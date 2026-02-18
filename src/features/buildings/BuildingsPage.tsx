@@ -6,12 +6,12 @@ export function BuildingsPage() {
   const { data: buildings, isLoading } = useBuildings();
 
   return (
-    <div>
+    <div className="flex h-full flex-col overflow-hidden">
       <PageHeader title="Edificios" />
 
       {isLoading && <p className="text-[#999]">Cargando...</p>}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid flex-1 grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {buildings?.map((b) => (
           <BuildingCard key={b.id} building={b} />
         ))}

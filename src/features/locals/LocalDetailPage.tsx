@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useLocal, useLocalConsumption } from '../../hooks/queries/useLocals';
@@ -10,6 +11,7 @@ export function LocalDetailPage() {
   const { data: building } = useBuilding(buildingId!);
   const { data: local, isLoading } = useLocal(localId!);
   const { data: consumption } = useLocalConsumption(localId!);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
 
   if (isLoading) return <p className="text-[#999]">Cargando...</p>;
   if (!local) return <p className="text-[#999]">Local no encontrado</p>;
@@ -37,27 +39,42 @@ export function LocalDetailPage() {
   };
 
   return (
-    <div>
-      <PageHeader
-        title={local.name}
-        showBack
-        breadcrumbs={[
-          { label: 'Edificios', to: '/' },
-          { label: building?.name ?? '...', to: `/buildings/${buildingId}` },
-          { label: local.name },
-        ]}
-      />
-
-      <p className="mb-4 text-sm text-[#666]">
-        {local.type} &middot; Piso {local.floor} &middot; {local.area} m²
-      </p>
-
-      <div className="mb-6">
-        <Chart options={chartOptions} />
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0">
+        <PageHeader
+          title={local.name}
+          showBack
+          breadcrumbs={[
+            { label: 'Edificios', to: '/' },
+            { label: building?.name ?? '...', to: `/buildings/${buildingId}` },
+            { label: local.name },
+          ]}
+        />
+        <p className="mb-3 text-sm text-[#666]">
+          {local.type} &middot; Piso {local.floor} &middot; {local.area} m²
+        </p>
       </div>
 
-      <h2 className="mb-3 text-lg font-bold text-black">Detalle de Consumo</h2>
-      {consumption && <LocalConsumptionTable data={consumption} />}
+      <div className="shrink-0">
+        <Chart
+          options={chartOptions}
+          onPointHover={setHighlightIndex}
+          highlightIndex={highlightIndex}
+        />
+      </div>
+
+      <div className="mt-3 flex min-h-0 shrink-0 flex-col">
+        <h2 className="mb-2 shrink-0 text-lg font-bold text-black">Detalle de Consumo</h2>
+        {consumption && (
+          <div className="min-h-0 overflow-x-auto">
+            <LocalConsumptionTable
+              data={consumption}
+              highlightIndex={highlightIndex}
+              onRowHover={setHighlightIndex}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

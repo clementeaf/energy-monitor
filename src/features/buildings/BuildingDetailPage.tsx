@@ -15,29 +15,34 @@ export function BuildingDetailPage() {
   if (!building) return <p className="text-[#999]">Edificio no encontrado</p>;
 
   return (
-    <div>
-      <PageHeader
-        title={building.name}
-        showBack
-        breadcrumbs={[
-          { label: 'Edificios', to: '/' },
-          { label: building.name },
-        ]}
-      />
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0">
+        <PageHeader
+          title={building.name}
+          showBack
+          breadcrumbs={[
+            { label: 'Edificios', to: '/' },
+            { label: building.name },
+          ]}
+        />
+        <p className="mb-3 text-sm text-[#666]">{building.address} &middot; {building.totalArea} m²</p>
+      </div>
 
-      <p className="mb-4 text-sm text-[#666]">{building.address} &middot; {building.totalArea} m²</p>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+        {consumption && (
+          <div className="min-h-0 shrink-0 lg:flex-1">
+            <BuildingConsumptionChart data={consumption} />
+          </div>
+        )}
 
-      {consumption && (
-        <div className="mb-6">
-          <BuildingConsumptionChart data={consumption} />
+        <div className="flex min-h-0 shrink-0 flex-col lg:w-80">
+          <h2 className="mb-2 shrink-0 text-lg font-bold text-black">Locales ({locals?.length ?? 0})</h2>
+          <div className="grid grid-cols-1 content-start gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            {locals?.map((l) => (
+              <LocalCard key={l.id} local={l} buildingId={id!} />
+            ))}
+          </div>
         </div>
-      )}
-
-      <h2 className="mb-3 text-lg font-bold text-black">Locales ({locals?.length ?? 0})</h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {locals?.map((l) => (
-          <LocalCard key={l.id} local={l} buildingId={id!} />
-        ))}
       </div>
     </div>
   );

@@ -21,8 +21,17 @@ const columns = [
 
 interface Props {
   data: MonthlyConsumption[];
+  highlightIndex?: number | null;
+  onRowHover?: (index: number | null) => void;
 }
 
-export function LocalConsumptionTable({ data }: Props) {
-  return <DataTable data={data} columns={columns} />;
+export function LocalConsumptionTable({ data, highlightIndex, onRowHover }: Props) {
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      highlightRowIndex={highlightIndex}
+      onRowHover={onRowHover}
+    />
+  );
 }

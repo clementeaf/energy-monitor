@@ -12,9 +12,11 @@ interface DataTableProps<T> {
   data: T[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[];
+  highlightRowIndex?: number | null;
+  onRowHover?: (index: number | null) => void;
 }
 
-export function DataTable<T>({ data, columns }: DataTableProps<T>) {
+export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -48,15 +50,25 @@ export function DataTable<T>({ data, columns }: DataTableProps<T>) {
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-b border-[#e0e0e0] hover:bg-[#f5f5f5]">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {table.getRowModel().rows.map((row) => {
+            const isHighlighted = highlightRowIndex != null && row.index === highlightRowIndex;
+            return (
+              <tr
+                key={row.id}
+                className={`border-b border-[#e0e0e0] transition-colors ${
+                  isHighlighted ? 'bg-[#e0e0e0]' : 'hover:bg-[#f5f5f5]'
+                }`}
+                onMouseEnter={() => onRowHover?.(row.index)}
+                onMouseLeave={() => onRowHover?.(null)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-4 py-3">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

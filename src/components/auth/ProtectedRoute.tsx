@@ -13,7 +13,7 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <p className="text-sm text-[#999]">Cargando...</p>
+        <p className="text-sm text-subtle">Cargando...</p>
       </div>
     );
   }

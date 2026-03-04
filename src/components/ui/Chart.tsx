@@ -2,21 +2,21 @@ import { useRef, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
-const monochromeTheme: Highcharts.Options = {
-  colors: ['#333', '#666', '#999', '#bbb', '#ddd'],
+const darkTheme: Highcharts.Options = {
+  colors: ['#388bfd', '#f78166', '#3dc9b0', '#d29922', '#f85149'],
   chart: {
-    backgroundColor: '#fff',
+    backgroundColor: '#161b22',
     style: { fontFamily: 'ui-sans-serif, system-ui, sans-serif' },
-    borderColor: '#e0e0e0',
+    borderColor: '#30363d',
     borderWidth: 1,
     borderRadius: 0,
     height: 280,
   },
-  title: { style: { color: '#000', fontSize: '14px', fontWeight: 'bold' } },
-  xAxis: { lineColor: '#e0e0e0', tickColor: '#e0e0e0', labels: { style: { color: '#666', fontSize: '11px' } } },
-  yAxis: { gridLineColor: '#f0f0f0', labels: { style: { color: '#666', fontSize: '11px' } }, title: { style: { color: '#999', fontSize: '11px' } } },
-  legend: { itemStyle: { color: '#333', fontSize: '11px' } },
-  tooltip: { backgroundColor: '#fff', borderColor: '#e0e0e0', style: { color: '#333' } },
+  title: { style: { color: '#e6edf3', fontSize: '14px', fontWeight: 'bold' } },
+  xAxis: { lineColor: '#30363d', tickColor: '#30363d', labels: { style: { color: '#8b949e', fontSize: '11px' } } },
+  yAxis: { gridLineColor: '#1e2530', labels: { style: { color: '#8b949e', fontSize: '11px' } }, title: { style: { color: '#6e7681', fontSize: '11px' } } },
+  legend: { itemStyle: { color: '#8b949e', fontSize: '11px' } },
+  tooltip: { backgroundColor: '#1e2530', borderColor: '#30363d', style: { color: '#e6edf3' } },
   plotOptions: { series: { borderWidth: 0 } },
   credits: { enabled: false },
 };
@@ -32,18 +32,18 @@ export function Chart({ options, className = '', onPointHover, highlightIndex }:
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   const merged: Highcharts.Options = {
-    ...monochromeTheme,
+    ...darkTheme,
     ...options,
-    chart: { ...monochromeTheme.chart, ...options.chart },
-    title: { ...monochromeTheme.title, ...options.title },
-    xAxis: { ...monochromeTheme.xAxis as object, ...options.xAxis as object },
-    yAxis: { ...monochromeTheme.yAxis as object, ...options.yAxis as object },
-    tooltip: { ...monochromeTheme.tooltip, ...options.tooltip },
+    chart: { ...darkTheme.chart, ...options.chart },
+    title: { ...darkTheme.title, ...options.title },
+    xAxis: { ...darkTheme.xAxis as object, ...options.xAxis as object },
+    yAxis: { ...darkTheme.yAxis as object, ...options.yAxis as object },
+    tooltip: { ...darkTheme.tooltip, ...options.tooltip },
     plotOptions: {
-      ...monochromeTheme.plotOptions,
+      ...darkTheme.plotOptions,
       ...options.plotOptions,
       series: {
-        ...monochromeTheme.plotOptions?.series,
+        ...darkTheme.plotOptions?.series,
         ...options.plotOptions?.series,
         point: {
           events: {

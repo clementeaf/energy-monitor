@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.0-alpha.1] - 2026-03-04
+
+### Added
+
+- **Dark theme** con 8 tokens semánticos CSS (`@theme {}` en Tailwind v4): `base`, `surface`, `raised`, `border`, `text`, `muted`, `subtle`, `accent`
+- **Scrollbar oscuro** global: thin, colores `--color-border` / `--color-subtle`
+- **Series de gráficos coloreadas**: azul (`#388bfd`), naranja (`#f78166`), teal (`#3dc9b0`), amarillo (`#d29922`), rojo (`#f85149`) — reemplaza la paleta monocromática
+
+### Changed
+
+- **18 archivos** migrados de colores hardcoded light-theme a tokens dark-theme
+- `src/index.css`: body bg/color usa CSS variables, scrollbar styles
+- `src/components/ui/Chart.tsx`: `monochromeTheme` → `darkTheme` con fondos oscuros y series coloreadas
+- `src/components/ui/DataTable.tsx`: headers sticky (`top-0`), acepta `className` prop
+- `src/components/ui/Card.tsx`, `PageHeader.tsx`, `Layout.tsx`: tokens dark
+- `src/features/buildings/BuildingDetailPage.tsx`: layout vertical (gráfico arriba, locales abajo)
+- `src/features/locals/LocalDetailPage.tsx`: tabla con scroll interno y headers fijos, fill gradient azul
+- `src/features/buildings/components/BuildingConsumptionChart.tsx`: removido `color: '#333'` inline (hereda azul del theme)
+- Auth pages (LoginPage, UnauthorizedPage, botones OAuth, DemoRoleSelector): tokens dark
+- Feature pages (BuildingsPage, BuildingCard, LocalCard): tokens dark
+- `src/components/auth/ProtectedRoute.tsx`: texto loading con token `text-subtle`
+
+---
+
 ## [0.2.0-alpha.2] - 2026-03-04
 
 ### Added

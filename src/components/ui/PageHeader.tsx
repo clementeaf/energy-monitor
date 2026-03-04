@@ -17,19 +17,19 @@ export function PageHeader({ title, breadcrumbs, showBack }: PageHeaderProps) {
   return (
     <div className="mb-6">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="mb-2 text-sm text-[#999]">
+        <nav className="mb-2 text-sm text-subtle">
           {breadcrumbs.map((crumb, i) => (
             <span key={i}>
               {i > 0 && <span className="mx-1">/</span>}
               {crumb.to ? (
                 <span
-                  className="cursor-pointer hover:text-[#333]"
+                  className="cursor-pointer hover:text-text"
                   onClick={() => navigate(crumb.to!)}
                 >
                   {crumb.label}
                 </span>
               ) : (
-                <span className="text-[#333]">{crumb.label}</span>
+                <span className="text-muted">{crumb.label}</span>
               )}
             </span>
           ))}
@@ -39,12 +39,12 @@ export function PageHeader({ title, breadcrumbs, showBack }: PageHeaderProps) {
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="border border-[#e0e0e0] bg-white px-3 py-1 text-sm hover:border-[#999]"
+            className="border border-border bg-surface px-3 py-1 text-sm hover:border-accent"
           >
             &larr; Volver
           </button>
         )}
-        <h1 className="text-2xl font-bold text-black">{title}</h1>
+        <h1 className="text-2xl font-bold text-text">{title}</h1>
       </div>
     </div>
   );

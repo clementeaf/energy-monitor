@@ -14,9 +14,10 @@ interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
   highlightRowIndex?: number | null;
   onRowHover?: (index: number | null) => void;
+  className?: string;
 }
 
-export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover }: DataTableProps<T>) {
+export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover, className = '' }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -29,15 +30,15 @@ export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover }: D
   });
 
   return (
-    <div className="overflow-x-auto border border-[#e0e0e0]">
+    <div className={`overflow-auto border border-border ${className}`}>
       <table className="w-full text-left text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id} className="border-b border-[#e0e0e0] bg-[#f5f5f5]">
+            <tr key={hg.id} className="border-b border-border bg-raised">
               {hg.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-4 py-3 font-semibold text-black cursor-pointer select-none"
+                  className="sticky top-0 z-10 bg-raised px-4 py-3 font-semibold text-text cursor-pointer select-none"
                   onClick={header.column.getToggleSortingHandler()}
                 >
                   <div className="flex items-center gap-1">
@@ -55,8 +56,8 @@ export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover }: D
             return (
               <tr
                 key={row.id}
-                className={`border-b border-[#e0e0e0] transition-colors ${
-                  isHighlighted ? 'bg-[#e0e0e0]' : 'hover:bg-[#f5f5f5]'
+                className={`border-b border-border transition-colors ${
+                  isHighlighted ? 'bg-raised' : 'hover:bg-raised'
                 }`}
                 onMouseEnter={() => onRowHover?.(row.index)}
                 onMouseLeave={() => onRowHover?.(null)}

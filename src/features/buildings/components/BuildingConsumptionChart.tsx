@@ -17,7 +17,6 @@ export function BuildingConsumptionChart({ data, title = 'Consumo Total por Mes'
         name: 'Consumo',
         type: 'column',
         data: data.map((d) => d.consumption),
-        color: '#333',
       },
     ],
   };

@@ -23,15 +23,17 @@ interface Props {
   data: MonthlyConsumption[];
   highlightIndex?: number | null;
   onRowHover?: (index: number | null) => void;
+  className?: string;
 }
 
-export function LocalConsumptionTable({ data, highlightIndex, onRowHover }: Props) {
+export function LocalConsumptionTable({ data, highlightIndex, onRowHover, className }: Props) {
   return (
     <DataTable
       data={data}
       columns={columns}
       highlightRowIndex={highlightIndex}
       onRowHover={onRowHover}
+      className={className}
     />
   );
 }

@@ -13,8 +13,8 @@ export function LocalDetailPage() {
   const { data: consumption } = useLocalConsumption(localId!);
   const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
 
-  if (isLoading) return <p className="text-[#999]">Cargando...</p>;
-  if (!local) return <p className="text-[#999]">Local no encontrado</p>;
+  if (isLoading) return <p className="text-subtle">Cargando...</p>;
+  if (!local) return <p className="text-subtle">Local no encontrado</p>;
 
   const chartOptions: Highcharts.Options = {
     chart: { type: 'area' },
@@ -26,12 +26,11 @@ export function LocalDetailPage() {
         name: 'Consumo',
         type: 'area',
         data: consumption?.map((d) => d.consumption) ?? [],
-        color: '#333',
         fillColor: {
           linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
           stops: [
-            [0, 'rgba(51,51,51,0.3)'],
-            [1, 'rgba(51,51,51,0.02)'],
+            [0, 'rgba(56,139,253,0.25)'],
+            [1, 'rgba(56,139,253,0.02)'],
           ],
         },
       },
@@ -50,7 +49,7 @@ export function LocalDetailPage() {
             { label: local.name },
           ]}
         />
-        <p className="mb-3 text-sm text-[#666]">
+        <p className="mb-3 text-sm text-muted">
           {local.type} &middot; Piso {local.floor} &middot; {local.area} m²
         </p>
       </div>
@@ -63,14 +62,15 @@ export function LocalDetailPage() {
         />
       </div>
 
-      <div className="mt-3 flex min-h-0 shrink-0 flex-col">
-        <h2 className="mb-2 shrink-0 text-lg font-bold text-black">Detalle de Consumo</h2>
+      <div className="mt-3 flex min-h-0 flex-1 flex-col">
+        <h2 className="mb-2 shrink-0 text-lg font-bold text-text">Detalle de Consumo</h2>
         {consumption && (
-          <div className="min-h-0 overflow-x-auto">
+          <div className="min-h-0 flex-1">
             <LocalConsumptionTable
               data={consumption}
               highlightIndex={highlightIndex}
               onRowHover={setHighlightIndex}
+              className="h-full"
             />
           </div>
         )}

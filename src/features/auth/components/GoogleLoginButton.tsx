@@ -7,7 +7,7 @@ export function GoogleLoginButton() {
     <button
       onClick={loginGoogle}
       disabled={isLoading}
-      className="flex w-full items-center justify-center gap-3 border border-[#e0e0e0] px-4 py-3 text-sm font-medium text-black transition-colors hover:bg-[#f5f5f5] disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-3 border border-border px-4 py-3 text-sm font-medium text-text transition-colors hover:bg-raised disabled:opacity-50"
     >
       {/* Google icon (simplified SVG) */}
       <svg width="16" height="16" viewBox="0 0 24 24">

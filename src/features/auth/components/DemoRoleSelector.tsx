@@ -20,10 +20,10 @@ export function DemoRoleSelector() {
         <button
           key={role}
           onClick={() => loginDemo(role)}
-          className="border border-[#e0e0e0] px-3 py-2 text-left transition-colors hover:bg-[#f5f5f5]"
+          className="border border-border px-3 py-2 text-left transition-colors hover:bg-raised"
         >
-          <span className="block text-xs font-semibold text-black">{label}</span>
-          <span className="block text-[10px] text-[#999]">{description}</span>
+          <span className="block text-xs font-semibold text-text">{label}</span>
+          <span className="block text-[10px] text-subtle">{description}</span>
         </button>
       ))}
     </div>

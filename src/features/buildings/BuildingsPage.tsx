@@ -9,7 +9,7 @@ export function BuildingsPage() {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader title="Edificios" />
 
-      {isLoading && <p className="text-[#999]">Cargando...</p>}
+      {isLoading && <p className="text-subtle">Cargando...</p>}
 
       <div className="grid flex-1 grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {buildings?.map((b) => (

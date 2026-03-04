@@ -14,16 +14,21 @@
 - **Auth Store** (`src/store/useAuthStore.ts`): Zustand con persist en sessionStorage para mantener sesión al refrescar
 - **Usuarios demo** (`src/mocks/users.ts`): 7 usuarios mock, uno por rol (SUPER_ADMIN → AUDITOR)
 - **Hook `useDemoAuth`** (`src/hooks/auth/useDemoAuth.ts`): login instantáneo por rol para desarrollo
-- **Hook `useAuth`** (`src/hooks/auth/useAuth.ts`): fachada unificada que abstrae Microsoft y Demo
-- **LoginPage** (`src/features/auth/LoginPage.tsx`): página de login con botón Microsoft + selector de roles demo
+- **Hook `useAuth`** (`src/hooks/auth/useAuth.ts`): fachada unificada que abstrae Microsoft, Google y Demo
+- **LoginPage** (`src/features/auth/LoginPage.tsx`): página de login con botones Microsoft/Google + selector de roles demo
 - **MicrosoftLoginButton**: botón con logo Microsoft SVG, abre popup OAuth
+- **GoogleLoginButton**: botón con logo Google SVG, abre popup OAuth
 - **DemoRoleSelector**: grid de 7 roles para login rápido en desarrollo
 - **Ruta `/login`**: registrada fuera del Layout (standalone, sin sidebar)
+- **Dependencia `@react-oauth/google`**: provider y hooks para Google OAuth
+- **Google Auth** (`src/auth/googleAuth.ts`, `src/auth/googleConfig.ts`): config y helper para parsear credenciales Google
+- **Hook `useGoogleAuth`** (`src/hooks/auth/useGoogleAuth.ts`): login popup Google con implicit flow
 
 ### Changed
 
-- `src/main.tsx`: `MsalProvider` envuelve `<App />`
+- `src/main.tsx`: `MsalProvider` + `GoogleOAuthProvider` envuelven `<App />`
 - `src/app/router.tsx`: ruta `/login` agregada fuera del layout principal
+- `src/types/auth.ts`: `AuthProvider` incluye `'google'`
 - `.gitignore` actualizado para excluir `.env` y `.env.local`
 
 ### Configuración Azure
@@ -31,6 +36,11 @@
 - App Registration "POWER Digital" en Microsoft Entra (multi-tenant + personal accounts)
 - Redirect URIs: `http://localhost:5173` (dev), `https://energymonitor.click` (prod)
 - API Permission: `User.Read` (Delegated) con admin consent
+
+### Configuración Google
+
+- OAuth Client ID reutilizado de banados-fullstack
+- Authorized JavaScript origins: `http://localhost:5173`, `https://energymonitor.click`
 
 ---
 

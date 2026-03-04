@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { MicrosoftLoginButton } from './components/MicrosoftLoginButton';
+import { GoogleLoginButton } from './components/GoogleLoginButton';
 import { DemoRoleSelector } from './components/DemoRoleSelector';
 
 export function LoginPage() {
@@ -23,8 +24,11 @@ export function LoginPage() {
         <div className="border border-[#e0e0e0] bg-white p-6">
           <h2 className="mb-4 text-center text-sm font-semibold text-[#666]">Iniciar sesión</h2>
 
-          {/* Microsoft button */}
-          <MicrosoftLoginButton />
+          {/* OAuth buttons */}
+          <div className="flex flex-col gap-2">
+            <MicrosoftLoginButton />
+            <GoogleLoginButton />
+          </div>
 
           {/* Error message */}
           {error && (

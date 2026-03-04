@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0-alpha.1] - 2026-03-04
+
+### Added
+
+- **Dependencias MSAL**: `@azure/msal-browser`, `@azure/msal-react` para autenticación Microsoft
+- **Tipos de autenticación** (`src/types/auth.ts`): `AuthProvider`, `Role` (7 roles), `AuthUser`, `AuthState`
+- **Tipos de dominio** (`src/types/index.ts`): `Meter`, `HierarchyNode`, `Reading`, `Alert`, `Invoice`, `AuditLog`, `Tenant`, `Integration`
+- **Variables de entorno**: `.env` y `.env.example` con config para Microsoft Entra y modo auth
+- **Tipado de env vars** (`src/env.d.ts`): `ImportMetaEnv` con las 4 variables VITE\_
+
+### Changed
+
+- `.gitignore` actualizado para excluir `.env` y `.env.local`
+
+---
+
 ## [0.1.0] - 2026-02-17
 
 ### Added

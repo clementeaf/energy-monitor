@@ -3,8 +3,13 @@ import { Layout } from '../components/ui/Layout';
 import { BuildingsPage } from '../features/buildings/BuildingsPage';
 import { BuildingDetailPage } from '../features/buildings/BuildingDetailPage';
 import { LocalDetailPage } from '../features/locals/LocalDetailPage';
+import { LoginPage } from '../features/auth/LoginPage';
 
 export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
   {
     element: <Layout />,
     children: [

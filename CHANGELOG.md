@@ -9,10 +9,28 @@
 - **Tipos de dominio** (`src/types/index.ts`): `Meter`, `HierarchyNode`, `Reading`, `Alert`, `Invoice`, `AuditLog`, `Tenant`, `Integration`
 - **Variables de entorno**: `.env` y `.env.example` con config para Microsoft Entra y modo auth
 - **Tipado de env vars** (`src/env.d.ts`): `ImportMetaEnv` con las 4 variables VITE\_
+- **Configuración MSAL** (`src/auth/`): `msalConfig.ts`, `msalInstance.ts`, `microsoftAuth.ts` — config, singleton y helpers de login/logout Microsoft
+- **Hook `useMicrosoftAuth`** (`src/hooks/auth/useMicrosoftAuth.ts`): login/logout popup Microsoft, estado de autenticación
+- **Auth Store** (`src/store/useAuthStore.ts`): Zustand con persist en sessionStorage para mantener sesión al refrescar
+- **Usuarios demo** (`src/mocks/users.ts`): 7 usuarios mock, uno por rol (SUPER_ADMIN → AUDITOR)
+- **Hook `useDemoAuth`** (`src/hooks/auth/useDemoAuth.ts`): login instantáneo por rol para desarrollo
+- **Hook `useAuth`** (`src/hooks/auth/useAuth.ts`): fachada unificada que abstrae Microsoft y Demo
+- **LoginPage** (`src/features/auth/LoginPage.tsx`): página de login con botón Microsoft + selector de roles demo
+- **MicrosoftLoginButton**: botón con logo Microsoft SVG, abre popup OAuth
+- **DemoRoleSelector**: grid de 7 roles para login rápido en desarrollo
+- **Ruta `/login`**: registrada fuera del Layout (standalone, sin sidebar)
 
 ### Changed
 
+- `src/main.tsx`: `MsalProvider` envuelve `<App />`
+- `src/app/router.tsx`: ruta `/login` agregada fuera del layout principal
 - `.gitignore` actualizado para excluir `.env` y `.env.local`
+
+### Configuración Azure
+
+- App Registration "POWER Digital" en Microsoft Entra (multi-tenant + personal accounts)
+- Redirect URIs: `http://localhost:5173` (dev), `https://energymonitor.click` (prod)
+- API Permission: `User.Read` (Delegated) con admin consent
 
 ---
 

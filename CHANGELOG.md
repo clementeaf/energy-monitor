@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0-alpha.2] - 2026-03-04
+
+### Added
+
+- **Permisos** (`src/auth/permissions.ts`): matriz `PERMISSIONS` por módulo/acción con helper `hasPermission(role, module, action)`
+- **ProtectedRoute** (`src/components/auth/ProtectedRoute.tsx`): wrapper que redirige a `/login` si no autenticado, a `/unauthorized` si rol no permitido
+- **UnauthorizedPage** (`src/features/auth/UnauthorizedPage.tsx`): página "Acceso denegado" con botón volver al inicio
+- **Ruta `/unauthorized`**: registrada como ruta pública en el router
+
+### Changed
+
+- `src/app/router.tsx`: rutas protegidas envueltas en `<ProtectedRoute><Layout /></ProtectedRoute>`
+- `src/components/ui/Layout.tsx`: sidebar muestra avatar + nombre + rol del usuario + botón "Cerrar sesión"; header muestra nombre en desktop
+
+---
+
 ## [0.2.0-alpha.1] - 2026-03-04
 
 ### Added

@@ -1,5 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
+import { useAuth } from '../../hooks/auth/useAuth';
 
 const navItems = [
   { label: 'Edificios', path: '/' },
@@ -7,6 +8,7 @@ const navItems = [
 
 export function Layout() {
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,6 +51,31 @@ export function Layout() {
             </button>
           ))}
         </nav>
+
+        {/* User info + logout */}
+        {user && (
+          <div className="border-t border-[#e0e0e0] p-3">
+            <div className="flex items-center gap-2">
+              {user.avatar ? (
+                <img src={user.avatar} alt="" className="h-7 w-7 rounded-full" />
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e0e0e0] text-xs font-semibold text-[#666]">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-black">{user.name}</p>
+                <p className="truncate text-[10px] text-[#999]">{user.role.replace('_', ' ')}</p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="mt-2 w-full border border-[#e0e0e0] px-2 py-1 text-xs text-[#666] transition-colors hover:bg-[#e0e0e0]"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Main content */}
@@ -62,6 +89,11 @@ export function Layout() {
             &#9776;
           </button>
           <span className="text-sm text-[#999]">Energy Monitor</span>
+          {user && (
+            <span className="ml-auto hidden text-xs text-[#999] md:block">
+              {user.name}
+            </span>
+          )}
         </header>
 
         {/* Page content */}

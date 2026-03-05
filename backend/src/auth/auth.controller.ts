@@ -11,7 +11,7 @@ export class AuthController {
     const token = this.extractToken(req);
     if (!token) throw new UnauthorizedException('Missing Authorization header');
 
-    const payload = this.authService.decodeToken(token);
+    const payload = await this.authService.verifyToken(token);
     if (!payload) throw new UnauthorizedException('Invalid token');
 
     const result = await this.authService.resolveUser(payload);
@@ -25,7 +25,7 @@ export class AuthController {
     const token = this.extractToken(req);
     if (!token) throw new UnauthorizedException('Missing Authorization header');
 
-    const payload = this.authService.decodeToken(token);
+    const payload = await this.authService.verifyToken(token);
     if (!payload) throw new UnauthorizedException('Invalid token');
 
     const result = await this.authService.resolvePermissions(payload);

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0-alpha.4] - 2026-03-05
+
+### Security (Critical Fixes)
+
+- **JWT audience validation**: `jwtVerify` ahora valida `audience` para ambos providers (Google y Microsoft). Si falta el client ID en env, el token es rechazado
+- **OAuth env vars**: `GOOGLE_CLIENT_ID` y `MICROSOFT_CLIENT_ID` agregados a `serverless.yml` (vía `${env:...}`, no hardcoded)
+- **Endpoint `/api/roles` eliminado**: `RolesController` borrado — el endpoint público ya no existe, permisos solo accesibles vía `/api/auth/*` autenticado
+- **Auto-provisioning desactivado**: nuevos usuarios se crean con `isActive: false` — requieren activación manual por admin
+
+### Changed
+
+- `backend/src/auth/auth.service.ts`: audience validation per-provider, fail-closed si falta client ID
+- `backend/src/roles/roles.module.ts`: removido `RolesController` del módulo
+- `backend/src/roles/roles.controller.ts`: archivo eliminado
+- `backend/src/users/users.service.ts`: `isActive: false` en `upsert()` para usuarios nuevos
+
+---
+
 ## [0.5.0-alpha.3] - 2026-03-05
 
 ### Added

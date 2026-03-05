@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { RolesService } from '../roles/roles.service';
 
@@ -10,21 +10,68 @@ export interface TokenPayload {
   iss: string;
 }
 
+const MICROSOFT_JWKS_URL = 'https://login.microsoftonline.com/common/discovery/v2.0/keys';
+const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private joseModule: typeof import('jose') | null = null;
+
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
   ) {}
 
-  decodeToken(token: string): TokenPayload | null {
+  private async getJose() {
+    if (!this.joseModule) {
+      this.joseModule = await import('jose');
+    }
+    return this.joseModule;
+  }
+
+  async verifyToken(token: string): Promise<TokenPayload | null> {
     try {
-      const parts = token.split('.');
-      if (parts.length !== 3) return null;
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+      const jose = await this.getJose();
+
+      // Decode header to detect provider before verification
+      const claims = jose.decodeJwt(token);
+
+      if (!claims.iss) return null;
+      const provider = this.detectProvider(claims.iss);
+      if (!provider) return null;
+
+      const jwksUrl = provider === 'microsoft' ? MICROSOFT_JWKS_URL : GOOGLE_JWKS_URL;
+      const jwks = jose.createRemoteJWKSet(new URL(jwksUrl));
+
+      const audience =
+        provider === 'google'
+          ? process.env.GOOGLE_CLIENT_ID
+          : process.env.MICROSOFT_CLIENT_ID;
+
+      if (!audience) {
+        this.logger.warn(`Missing ${provider.toUpperCase()}_CLIENT_ID env var`);
+        return null;
+      }
+
+      const verifyOptions = {
+        algorithms: ['RS256'],
+        audience,
+      };
+
+      const { payload } = await jose.jwtVerify(token, jwks, verifyOptions);
+
       if (!payload.sub || !payload.email) return null;
-      return payload;
-    } catch {
+
+      return {
+        sub: payload.sub,
+        email: payload.email as string,
+        name: ((payload.name ?? payload.email) as string),
+        picture: payload.picture as string | undefined,
+        iss: payload.iss!,
+      };
+    } catch (err) {
+      this.logger.warn(`Token verification failed: ${(err as Error).message}`);
       return null;
     }
   }
@@ -48,7 +95,7 @@ export class AuthService {
     });
 
     const user = await this.usersService.findByExternalId(provider, payload.sub);
-    if (!user || !user.isActive) return null;
+    if (!user?.isActive) return null;
 
     const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
     const siteIds = await this.usersService.getSiteIds(user.id);
@@ -72,7 +119,7 @@ export class AuthService {
     if (!provider) return null;
 
     const user = await this.usersService.findByExternalId(provider, payload.sub);
-    if (!user || !user.isActive) return null;
+    if (!user?.isActive) return null;
 
     const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
     return { role: user.role.name, permissions };

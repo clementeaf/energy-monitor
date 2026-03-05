@@ -47,6 +47,7 @@ export class UsersService {
         email: data.email,
         name: data.name,
         avatarUrl: data.avatarUrl ?? null,
+        isActive: false,
       }),
     );
   }

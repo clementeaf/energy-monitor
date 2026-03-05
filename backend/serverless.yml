@@ -13,6 +13,8 @@ provider:
     DB_NAME: energy_monitor
     DB_USERNAME: emadmin
     DB_PASSWORD: ${env:DB_PASSWORD, ''}
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID, ''}
+    MICROSOFT_CLIENT_ID: ${env:MICROSOFT_CLIENT_ID, ''}
     NODE_ENV: production
   vpc:
     securityGroupIds:

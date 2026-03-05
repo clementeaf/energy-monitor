@@ -21,7 +21,7 @@ import { UsersModule } from './users/users.module';
         autoLoadEntities: true,
         synchronize: false,
         ssl: config.get<string>('NODE_ENV') === 'production'
-          ? { rejectUnauthorized: true }
+          ? { rejectUnauthorized: false }
           : false,
       }),
     }),

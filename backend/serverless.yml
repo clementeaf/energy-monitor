@@ -8,18 +8,19 @@ provider:
   memorySize: 256
   timeout: 10
   environment:
-    DB_HOST: ${env:DB_HOST, ''}
-    DB_PORT: ${env:DB_PORT, '5432'}
-    DB_NAME: ${env:DB_NAME, 'energy_monitor'}
-    DB_USERNAME: ${env:DB_USERNAME, ''}
+    DB_HOST: energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com
+    DB_PORT: '5432'
+    DB_NAME: energy_monitor
+    DB_USERNAME: emadmin
     DB_PASSWORD: ${env:DB_PASSWORD, ''}
-    NODE_ENV: ${self:provider.stage}
+    NODE_ENV: production
   vpc:
     securityGroupIds:
-      - ${env:LAMBDA_SG_ID, ''}
+      - sg-0adda6a999e8d5d9a
     subnetIds:
-      - ${env:PRIVATE_SUBNET_1, ''}
-      - ${env:PRIVATE_SUBNET_2, ''}
+      - subnet-00ebf6d39c526567f
+      - subnet-07b8c60f262ea05f8
+      - subnet-058418d1bc1a8adfa
 
 functions:
   api:

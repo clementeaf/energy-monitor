@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.5.0-alpha.2] - 2026-03-05
+
+### Added
+
+- **RDS PostgreSQL 16** provisionado en AWS (`db.t3.micro`, 20GB gp3, encrypted, single-AZ, subnets privadas)
+  - Instancia: `energy-monitor-db`
+  - Security Group: `energy-monitor-rds-sg` (TCP 5432 desde VPC)
+  - DB subnet group con 3 subnets privadas (us-east-1a/c/d)
+- **SQL migrations ejecutadas** via Lambda temporal en VPC: 6 tablas creadas, 7 roles + 10 módulos + 3 acciones + 67 permisos insertados
+- **Backend desplegado** con Serverless Framework V3 a AWS Lambda + HTTP API Gateway
+  - Endpoint: `https://626lq125eh.execute-api.us-east-1.amazonaws.com`
+  - `GET /api/auth/me` → 401 sin token (correcto)
+  - `GET /api/roles` → 7 roles desde RDS (verificado)
+
+### Changed
+
+- `backend/serverless.yml`: credenciales RDS, VPC config (SG + 3 subnets privadas), `NODE_ENV: production`
+- `backend/src/app.module.ts`: SSL `rejectUnauthorized: false` para compatibilidad con RDS CA
+- Downgrade a `serverless@3` (V4 requiere licencia)
+
+### Infrastructure
+
+| Recurso | Valor |
+|---|---|
+| RDS Instance | `energy-monitor-db` (PostgreSQL 16, db.t3.micro) |
+| RDS Endpoint | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` |
+| Security Group | `sg-0adda6a999e8d5d9a` |
+| API Gateway | `626lq125eh.execute-api.us-east-1.amazonaws.com` |
+| Lambda | `power-digital-api-dev-api` (256MB, Node 20, VPC) |
+
+---
+
 ## [0.5.0-alpha.1] - 2026-03-05
 
 ### Added

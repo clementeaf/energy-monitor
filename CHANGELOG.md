@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0-alpha.1] - 2026-03-05
+
+### Added
+
+- **GitHub Actions CI/CD** (`.github/workflows/deploy.yml`): build + typecheck en PRs, deploy a S3 + CloudFront invalidation en push a main
+- **CDK stack** (`infra/`): S3 bucket (privado, OAC), CloudFront distribution con security headers policy (CSP, HSTS, X-Frame-Options), SPA routing (404→index.html), HTTP/2+3, TLS 1.2
+- **GitHub OIDC role**: deploy sin access keys, asume rol vía OIDC desde GitHub Actions
+- **Cache strategy**: assets hasheados con `max-age=31536000,immutable`; `index.html` con `no-cache`
+
+---
+
 ## [0.3.0-alpha.4] - 2026-03-05
 
 ### Added

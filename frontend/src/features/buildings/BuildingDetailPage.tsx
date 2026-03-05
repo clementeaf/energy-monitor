@@ -1,15 +1,15 @@
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
-import { useLocalsByBuilding } from '../../hooks/queries/useLocals';
+import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
-import { LocalCard } from '../locals/components/LocalCard';
+import { MeterCard } from '../meters/components/MeterCard';
 
 export function BuildingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: consumption } = useBuildingConsumption(id!);
-  const { data: locals } = useLocalsByBuilding(id!);
+  const { data: meters } = useMetersByBuilding(id!);
 
   if (loadingBuilding) return <p className="text-subtle">Cargando...</p>;
   if (!building) return <p className="text-subtle">Edificio no encontrado</p>;
@@ -34,10 +34,10 @@ export function BuildingDetailPage() {
         )}
 
         <div>
-          <h2 className="mb-2 text-lg font-bold text-text">Locales ({locals?.length ?? 0})</h2>
+          <h2 className="mb-2 text-lg font-bold text-text">Medidores ({meters?.length ?? 0})</h2>
           <div className="grid grid-cols-1 content-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {locals?.map((l) => (
-              <LocalCard key={l.id} local={l} buildingId={id!} />
+            {meters?.map((m) => (
+              <MeterCard key={m.id} meter={m} />
             ))}
           </div>
         </div>

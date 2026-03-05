@@ -6,5 +6,5 @@ export { useGoogleAuth } from './auth/useGoogleAuth';
 
 // Queries
 export { useBuildings, useBuilding, useBuildingConsumption } from './queries/useBuildings';
-export { useLocalsByBuilding, useLocal, useLocalConsumption } from './queries/useLocals';
+export { useMetersByBuilding, useMeter, useMeterReadings } from './queries/useMeters';
 export { useMe, usePermissions } from './queries/useAuthQuery';

@@ -3,65 +3,47 @@ export interface Building {
   name: string;
   address: string;
   totalArea: number;
-  localsCount: number;
+  metersCount: number;
 }
-
-export interface Local {
-  id: string;
-  buildingId: string;
-  name: string;
-  floor: number;
-  area: number;
-  type: string;
-}
-
-export interface MonthlyConsumption {
-  month: string;
-  consumption: number;
-  unit: string;
-}
-
-// --- Domain types (based on spec Hoja 5) ---
 
 export interface Meter {
   id: string;
-  siteId: string;
+  buildingId: string;
   model: string;
-  serial: string;
-  ip: string;
-  protocol: 'modbus-tcp' | 'modbus-rtu' | 'mqtt';
-  hierarchyNodeId: string;
-  status: 'online' | 'offline' | 'error';
+  phaseType: string;
+  busId: string;
+  modbusAddress: number;
+  uplinkRoute: string;
+  status: string;
   lastReadingAt: string | null;
 }
 
-export interface HierarchyNode {
-  id: string;
-  siteId: string;
-  parentId: string | null;
-  name: string;
-  level: 'building' | 'main-panel' | 'sub-panel' | 'circuit' | 'meter';
-  meterId: string | null;
-  status: 'active' | 'inactive';
+export interface Reading {
+  timestamp: string;
+  voltageL1: number | null;
+  voltageL2: number | null;
+  voltageL3: number | null;
+  currentL1: number | null;
+  currentL2: number | null;
+  currentL3: number | null;
+  powerKw: number;
+  reactivePowerKvar: number | null;
+  powerFactor: number | null;
+  frequencyHz: number | null;
+  energyKwhTotal: number;
+  thdVoltagePct: number | null;
+  thdCurrentPct: number | null;
+  phaseImbalancePct: number | null;
 }
 
-export interface Reading {
-  id: string;
-  meterId: string;
+export interface ConsumptionPoint {
   timestamp: string;
-  kWh: number;
-  kW: number;
-  kVArh: number;
-  powerFactor: number;
-  voltageL1: number;
-  voltageL2: number;
-  voltageL3: number;
-  currentL1: number;
-  currentL2: number;
-  currentL3: number;
-  thdV: number;
-  thdI: number;
+  totalPowerKw: number;
+  avgPowerKw: number;
+  peakPowerKw: number;
 }
+
+// --- Domain types (future use) ---
 
 export interface Alert {
   id: string;

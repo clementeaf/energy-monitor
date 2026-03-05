@@ -27,12 +27,22 @@ export class UsersService {
     name: string;
     avatarUrl?: string;
   }) {
-    const existing = await this.userRepo.findOneBy({
+    // 1. Try exact match by provider + externalId
+    let existing = await this.userRepo.findOneBy({
       provider: data.provider,
       externalId: data.externalId,
     });
 
+    // 2. Fallback: match by provider + email (pre-registered users)
+    if (!existing) {
+      existing = await this.userRepo.findOneBy({
+        provider: data.provider,
+        email: data.email,
+      });
+    }
+
     if (existing) {
+      existing.externalId = data.externalId;
       existing.email = data.email;
       existing.name = data.name;
       existing.avatarUrl = data.avatarUrl ?? existing.avatarUrl;

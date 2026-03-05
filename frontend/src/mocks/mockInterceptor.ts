@@ -1,8 +1,8 @@
 import type { InternalAxiosRequestConfig } from 'axios';
 import api from '../services/api';
 import { buildings } from './buildings';
-import { locals } from './locals';
-import { consumptionByLocal } from './consumption';
+import { meters } from './meters';
+import { readingsByMeter, getDailyConsumption } from './readings';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -11,30 +11,22 @@ type MockHandler = (params: string[]) => unknown;
 const isDemoMode = import.meta.env.VITE_AUTH_MODE === 'demo';
 
 const dataHandlers: [RegExp, MockHandler][] = [
-  [/^\/buildings\/([^/]+)\/consumption$/, ([buildingId]) => {
-    const bLocals = locals.filter((l) => l.buildingId === buildingId);
-    const months = consumptionByLocal[bLocals[0]?.id] ?? [];
-    return months.map((m, i) => ({
-      month: m.month,
-      consumption: bLocals.reduce(
-        (sum, local) => sum + (consumptionByLocal[local.id]?.[i]?.consumption ?? 0),
-        0,
-      ),
-      unit: 'kWh',
-    }));
+  [/^\/buildings\/([^/]+)\/consumption$/, ([buildingId]) =>
+    getDailyConsumption(buildingId),
+  ],
+  [/^\/buildings\/([^/]+)\/meters$/, ([buildingId]) =>
+    meters.filter((m) => m.buildingId === buildingId),
+  ],
+  [/^\/buildings\/([^/]+)$/, ([id]) => {
+    const b = buildings.find((b) => b.id === id);
+    return b ? { ...b, metersCount: meters.filter((m) => m.buildingId === id).length } : undefined;
   }],
-  [/^\/buildings\/([^/]+)\/locals$/, ([buildingId]) =>
-    locals.filter((l) => l.buildingId === buildingId),
-  ],
-  [/^\/buildings\/([^/]+)$/, ([id]) =>
-    buildings.find((b) => b.id === id),
-  ],
   [/^\/buildings$/, () => buildings],
-  [/^\/locals\/([^/]+)\/consumption$/, ([localId]) =>
-    consumptionByLocal[localId] ?? [],
+  [/^\/meters\/([^/]+)\/readings/, ([meterId]) =>
+    readingsByMeter[meterId] ?? [],
   ],
-  [/^\/locals\/([^/]+)$/, ([localId]) =>
-    locals.find((l) => l.id === localId),
+  [/^\/meters\/([^/]+)$/, ([meterId]) =>
+    meters.find((m) => m.id === meterId),
   ],
 ];
 
@@ -52,7 +44,6 @@ const authHandlers: [RegExp, MockHandler][] = [
     permissions: {
       DASHBOARD_TECHNICAL: ['view'],
       BUILDINGS: ['view'],
-      LOCALS: ['view'],
       METERS: ['view'],
       ALERTS: ['view'],
     },
@@ -62,7 +53,6 @@ const authHandlers: [RegExp, MockHandler][] = [
     permissions: {
       DASHBOARD_TECHNICAL: ['view'],
       BUILDINGS: ['view'],
-      LOCALS: ['view'],
       METERS: ['view'],
       ALERTS: ['view'],
     },

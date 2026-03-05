@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.6.0-alpha.1] - 2026-03-05
+
+### Breaking — Schema migration: locals → meters/readings
+
+Reemplazado el schema dummy (5 buildings, 10 locals, monthly_consumption) por data real de telemetría: 15 medidores Siemens (PAC1670/PAC1651) con 86,104 lecturas cada 15 min (Ene-Feb 2026).
+
+### Added
+
+- **SQL migration** (`sql/004_meters_readings.sql`): DROP locals/monthly_consumption, CREATE meters (15 rows) + readings (86K rows), index `(meter_id, timestamp)`
+- **Backend MetersModule** (`backend/src/meters/`): entity Meter + Reading, service con `date_trunc` aggregation (hourly/daily), controller `GET /meters/:id`, `GET /meters/:id/readings?resolution=hourly`
+- **Building consumption endpoint** mejorado: `GET /buildings/:id/consumption?resolution=hourly` — area chart con potencia total por hora (suma de todos los medidores), pico instantáneo
+- **Frontend MeterDetailPage** (`/meters/:meterId`): gráficos de potencia (kW) y voltaje trifásico (V) con data real horaria
+- **MeterCard component**: status badge (online/offline), modelo, fase, bus, última lectura
+- **Frontend hooks**: `useMetersByBuilding`, `useMeter`, `useMeterReadings`
+- **Mock data actualizada**: 2 buildings reales, 15 meters, readings generadas para demo mode
+- **User upsert fallback**: búsqueda por email cuando `external_id` no matchea (permite pre-registrar usuarios sin conocer su Google/Microsoft ID)
+- **Usuario darwin@hoktus.com** registrado como SUPER_ADMIN (Google login)
+
+### Removed
+
+- `backend/src/locals/` (5 archivos): entity Local, MonthlyConsumption, controller, service, module
+- `frontend/src/features/locals/` (3 archivos): LocalDetailPage, LocalCard, LocalConsumptionTable
+- `frontend/src/hooks/queries/useLocals.ts`
+- `frontend/src/mocks/locals.ts`, `consumption.ts`
+- Tipos `Local`, `MonthlyConsumption`, `HierarchyNode` del frontend
+
+### Changed
+
+- **Buildings**: `localsCount` → `metersCount`, `/locals` → `/meters` endpoint
+- **BuildingDetailPage**: muestra MeterCards en vez de LocalCards
+- **BuildingConsumptionChart**: area chart con potencia total + pico (era line chart de kWh mensuales)
+- **Router**: `meterDetail` (`/meters/:meterId`) reemplaza `localDetail`
+- **Types**: `Building.metersCount`, nuevo `Meter`, `Reading`, `ConsumptionPoint`
+- **Mock interceptor**: rutas meters/readings en vez de locals/consumption
+
+### Database (RDS)
+
+| Tabla | Filas |
+|---|---|
+| buildings | 2 (PAC4220 Gateway, S7-1200 PLC) |
+| meters | 15 (M001-M015) |
+| readings | 86,104 (15-min intervals, Jan-Feb 2026) |
+| locals | DROPPED |
+| monthly_consumption | DROPPED |
+
+---
+
 ## [0.5.0-alpha.8] - 2026-03-05
 
 ### Fixed

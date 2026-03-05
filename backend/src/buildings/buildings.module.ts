@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Building } from './building.entity';
-import { Local } from '../locals/local.entity';
-import { MonthlyConsumption } from '../locals/monthly-consumption.entity';
+import { MetersModule } from '../meters/meters.module';
 import { BuildingsService } from './buildings.service';
 import { BuildingsController } from './buildings.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Building, Local, MonthlyConsumption])],
+  imports: [TypeOrmModule.forFeature([Building]), MetersModule],
   controllers: [BuildingsController],
   providers: [BuildingsService],
 })

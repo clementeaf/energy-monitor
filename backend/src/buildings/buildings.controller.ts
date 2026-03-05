@@ -1,4 +1,4 @@
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
 import { BuildingsService } from './buildings.service';
 
 @Controller('buildings')
@@ -17,13 +17,16 @@ export class BuildingsController {
     return building;
   }
 
-  @Get(':id/locals')
-  findLocals(@Param('id') id: string) {
-    return this.buildingsService.findLocals(id);
+  @Get(':id/meters')
+  findMeters(@Param('id') id: string) {
+    return this.buildingsService.findMeters(id);
   }
 
   @Get(':id/consumption')
-  findConsumption(@Param('id') id: string) {
-    return this.buildingsService.findConsumption(id);
+  findConsumption(
+    @Param('id') id: string,
+    @Query('resolution') resolution?: 'hourly' | 'daily',
+  ) {
+    return this.buildingsService.findConsumption(id, resolution ?? 'hourly');
   }
 }

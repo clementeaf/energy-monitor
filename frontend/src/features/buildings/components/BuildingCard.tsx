@@ -15,7 +15,7 @@ export function BuildingCard({ building }: BuildingCardProps) {
       <p className="mb-1 text-sm text-muted">{building.address}</p>
       <div className="mt-3 flex justify-between border-t border-border pt-3 text-sm">
         <span className="text-subtle">Area: <span className="text-muted">{building.totalArea} m²</span></span>
-        <span className="text-subtle">Locales: <span className="font-semibold text-text">{building.localsCount}</span></span>
+        <span className="text-subtle">Medidores: <span className="font-semibold text-text">{building.metersCount}</span></span>
       </div>
     </Card>
   );

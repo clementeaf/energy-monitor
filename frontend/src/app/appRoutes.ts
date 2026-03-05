@@ -25,9 +25,9 @@ export const appRoutes = {
     label: 'Detalle Edificio',
     allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
   },
-  localDetail: {
-    path: '/buildings/:buildingId/locals/:localId',
-    label: 'Detalle Local',
+  meterDetail: {
+    path: '/meters/:meterId',
+    label: 'Detalle Medidor',
     allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
   },
 } as const satisfies Record<string, AppRoute>;

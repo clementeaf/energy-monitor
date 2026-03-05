@@ -1,24 +1,45 @@
 import { Chart } from '../../../components/ui/Chart';
-import type { MonthlyConsumption } from '../../../types';
+import type { ConsumptionPoint } from '../../../types';
 
 interface Props {
-  data: MonthlyConsumption[];
-  title?: string;
+  data: ConsumptionPoint[];
 }
 
-export function BuildingConsumptionChart({ data, title = 'Consumo Total por Mes' }: Props) {
+export function BuildingConsumptionChart({ data }: Props) {
   const options: Highcharts.Options = {
-    chart: { type: 'line' },
-    title: { text: title },
-    xAxis: { categories: data.map((d) => d.month) },
-    yAxis: { title: { text: 'kWh' } },
+    chart: { type: 'area', zooming: { type: 'x' } },
+    title: { text: 'Potencia Total del Edificio' },
+    xAxis: {
+      type: 'datetime',
+      title: { text: '' },
+    },
+    yAxis: { title: { text: 'kW' }, min: 0 },
     series: [
       {
-        name: 'Consumo',
+        name: 'Total (suma medidores)',
+        type: 'area',
+        color: '#3b82f6',
+        fillOpacity: 0.15,
+        data: data.map((d) => [new Date(d.timestamp).getTime(), d.totalPowerKw]),
+      },
+      {
+        name: 'Pico instantáneo',
         type: 'line',
-        data: data.map((d) => d.consumption),
+        color: '#ef4444',
+        lineWidth: 1,
+        dashStyle: 'ShortDot',
+        data: data.map((d) => [new Date(d.timestamp).getTime(), d.peakPowerKw]),
       },
     ],
+    tooltip: {
+      xDateFormat: '%d/%m/%Y %H:%M',
+      valueSuffix: ' kW',
+      shared: true,
+    },
+    plotOptions: {
+      area: { marker: { enabled: false } },
+      line: { marker: { enabled: false } },
+    },
   };
 
   return <Chart options={options} />;

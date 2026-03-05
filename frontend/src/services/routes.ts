@@ -3,11 +3,11 @@ export const routes = {
   getBuildings:            ()                       => '/buildings',
   getBuilding:             (id: string)             => `/buildings/${id}`,
   getBuildingConsumption:  (id: string)             => `/buildings/${id}/consumption`,
-  getBuildingLocals:       (buildingId: string)     => `/buildings/${buildingId}/locals`,
+  getBuildingMeters:       (buildingId: string)     => `/buildings/${buildingId}/meters`,
 
-  // Locals
-  getLocal:                (id: string)             => `/locals/${id}`,
-  getLocalConsumption:     (id: string)             => `/locals/${id}/consumption`,
+  // Meters
+  getMeter:                (id: string)             => `/meters/${id}`,
+  getMeterReadings:        (id: string)             => `/meters/${id}/readings`,
 
   // Auth
   getMe:                   ()                       => '/auth/me',

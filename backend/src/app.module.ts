@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
 import { BuildingsModule } from './buildings/buildings.module';
-import { LocalsModule } from './locals/locals.module';
+import { MetersModule } from './meters/meters.module';
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { LocalsModule } from './locals/locals.module';
     RolesModule,
     UsersModule,
     BuildingsModule,
-    LocalsModule,
+    MetersModule,
   ],
 })
 export class AppModule {}

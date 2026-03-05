@@ -6,7 +6,7 @@ const darkTheme: Highcharts.Options = {
   colors: ['#388bfd', '#f78166', '#3dc9b0', '#d29922', '#f85149'],
   chart: {
     backgroundColor: '#161b22',
-    style: { fontFamily: 'ui-sans-serif, system-ui, sans-serif' },
+    style: { fontFamily: "'Inter Variable', ui-sans-serif, system-ui, sans-serif" },
     borderColor: '#30363d',
     borderWidth: 1,
     borderRadius: 0,

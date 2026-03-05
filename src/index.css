@@ -1,3 +1,4 @@
+@import "@fontsource-variable/inter";
 @import "tailwindcss";
 
 @theme {
@@ -19,7 +20,7 @@
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   background: var(--color-base);
   color: var(--color-text);
 }

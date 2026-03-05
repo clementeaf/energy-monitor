@@ -35,6 +35,9 @@ export function Layout() {
           >
             Energy Monitor
           </h2>
+          {user && (
+            <p className="mt-1 truncate text-xs text-subtle">{user.name}</p>
+          )}
         </div>
         <nav className="flex-1 p-2">
           {navItems.map((item) => (
@@ -80,20 +83,14 @@ export function Layout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex items-center border-b border-border bg-surface px-4 py-3 md:px-6">
+        {/* Mobile header (hamburger only) */}
+        <header className="flex items-center border-b border-border bg-surface px-4 py-3 md:hidden">
           <button
             onClick={toggleSidebar}
-            className="mr-3 border border-border px-2 py-1 text-sm md:hidden"
+            className="border border-border px-2 py-1 text-sm"
           >
             &#9776;
           </button>
-          <span className="text-sm text-subtle">Energy Monitor</span>
-          {user && (
-            <span className="ml-auto hidden text-xs text-subtle md:block">
-              {user.name}
-            </span>
-          )}
         </header>
 
         {/* Page content */}

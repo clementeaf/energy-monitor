@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0-alpha.2] - 2026-03-05
+
+### Changed
+
+- **Tipografía Inter**: instalado `@fontsource-variable/inter` (self-hosted), aplicado en `index.css` y en Highcharts theme
+- **Header desktop eliminado**: removida la barra superior en desktop; nombre del usuario ahora aparece bajo "Energy Monitor" en el sidebar
+- **Header mobile**: se mantiene solo el hamburger menu en móvil
+
+---
+
 ## [0.3.0-alpha.1] - 2026-03-04
 
 ### Added

@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.5.0-alpha.1] - 2026-03-05
+
+### Added
+
+- **Monorepo structure**: proyecto separado en `frontend/` y `backend/`
+- **NestJS backend** (`backend/`): API REST con NestJS + TypeORM + PostgreSQL
+  - `AuthModule`: endpoints `GET /api/auth/me` y `GET /api/auth/permissions` (decode JWT, upsert user, return permissions)
+  - `RolesModule`: entities `Role`, `Module_`, `Action`, `RolePermission` con service para consultar permisos por role_id
+  - `UsersModule`: entities `User`, `UserSite` con upsert y lookup por OAuth provider
+  - `serverless.ts`: handler Lambda via `@vendia/serverless-express`
+  - `serverless.yml`: deploy a AWS Lambda + HTTP API Gateway con `serverless-offline` para dev local
+- **SQL migrations** (`sql/`): `001_schema.sql` (6 tablas) y `002_seed.sql` (7 roles con IDs numéricos, 10 módulos, 3 acciones, matriz completa de permisos)
+- **Frontend auth hooks**: `useMe()`, `usePermissions()` (TanStack Query) en `frontend/src/hooks/queries/useAuthQuery.ts`
+- **Frontend auth routes**: `routes.getMe()`, `routes.getPermissions()` + endpoints `fetchMe()`, `fetchPermissions()`
+- **Mock auth responses**: `/auth/me` y `/auth/permissions` en mock interceptor
+
+### Changed
+
+- `frontend/` ahora contiene todo el código React (movido desde raíz)
+- `.github/workflows/deploy.yml`: actualizado con `working-directory: frontend` y `cache-dependency-path`
+- CDK stack eliminado (`infra/`): reemplazado por NestJS + Serverless Framework
+
+### Database Schema
+
+| Tabla | Descripción |
+|---|---|
+| `roles` | 7 roles con IDs numéricos (1=SUPER_ADMIN ... 7=AUDITOR) |
+| `modules` | 10 módulos del sistema (Dashboard, Buildings, Alerts, etc.) |
+| `actions` | 3 acciones (view, manage, export) |
+| `role_permissions` | Matriz many-to-many role↔module↔action |
+| `users` | Usuarios OAuth con `external_id`, `provider`, `role_id` |
+| `user_sites` | Acceso por sitio/edificio por usuario |
+
+---
+
 ## [0.4.0-alpha.1] - 2026-03-05
 
 ### Added

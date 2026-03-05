@@ -8,4 +8,8 @@ export const routes = {
   // Locals
   getLocal:                (id: string)             => `/locals/${id}`,
   getLocalConsumption:     (id: string)             => `/locals/${id}/consumption`,
+
+  // Auth
+  getMe:                   ()                       => '/auth/me',
+  getPermissions:          ()                       => '/auth/permissions',
 };

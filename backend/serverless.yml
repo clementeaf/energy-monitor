@@ -1,0 +1,41 @@
+service: power-digital-api
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 10
+  environment:
+    DB_HOST: ${env:DB_HOST, ''}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME, 'energy_monitor'}
+    DB_USERNAME: ${env:DB_USERNAME, ''}
+    DB_PASSWORD: ${env:DB_PASSWORD, ''}
+    NODE_ENV: ${self:provider.stage}
+  vpc:
+    securityGroupIds:
+      - ${env:LAMBDA_SG_ID, ''}
+    subnetIds:
+      - ${env:PRIVATE_SUBNET_1, ''}
+      - ${env:PRIVATE_SUBNET_2, ''}
+
+functions:
+  api:
+    handler: dist/serverless.handler
+    events:
+      - httpApi:
+          method: '*'
+          path: /api/{proxy+}
+      - httpApi:
+          method: '*'
+          path: /api
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+    noPrependStageInUrl: true

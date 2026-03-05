@@ -34,6 +34,34 @@ const handlers: [RegExp, MockHandler][] = [
   [/^\/locals\/([^/]+)$/, ([localId]) =>
     locals.find((l) => l.id === localId),
   ],
+  [/^\/auth\/me$/, () => ({
+    user: {
+      id: 'demo-user-001',
+      email: 'operator@powerdigital.cl',
+      name: 'Demo Operator',
+      role: 'OPERATOR',
+      provider: 'demo',
+      avatar: null,
+      siteIds: ['*'],
+    },
+    permissions: {
+      DASHBOARD_TECHNICAL: ['view'],
+      BUILDINGS: ['view'],
+      LOCALS: ['view'],
+      METERS: ['view'],
+      ALERTS: ['view'],
+    },
+  })],
+  [/^\/auth\/permissions$/, () => ({
+    role: 'OPERATOR',
+    permissions: {
+      DASHBOARD_TECHNICAL: ['view'],
+      BUILDINGS: ['view'],
+      LOCALS: ['view'],
+      METERS: ['view'],
+      ALERTS: ['view'],
+    },
+  })],
 ];
 
 function resolve(url: string): unknown {

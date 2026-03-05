@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { useGoogleAuth } from './useGoogleAuth';
@@ -19,13 +20,15 @@ async function resolveBackendUser(
     }
     setUser(data.user);
   } catch (err: unknown) {
+    console.error('[resolveBackendUser] error:', err);
     sessionStorage.removeItem('access_token');
     const status = (err as { response?: { status?: number } }).response?.status;
     if (status === 403) {
       setError('Cuenta pendiente de activación por un administrador');
     } else {
       clearUser();
-      setError('Error al verificar sesión');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Error al verificar sesión: ${status ?? 'network'} — ${msg}`);
     }
   }
 }
@@ -35,33 +38,40 @@ export function useAuth() {
   const google = useGoogleAuth();
   const demo = useDemoAuth();
   const store = useAuthStore();
+  const resolving = useRef(false);
+
+  // Handle MSAL redirect flow: after Microsoft redirects back, MSAL is authenticated
+  // but store is empty. Acquire token silently and call backend.
+  useEffect(() => {
+    if (resolving.current) return;
+    if (store.isAuthenticated || store.isLoading || store.error) return;
+    if (!microsoft.isAuthenticated || !microsoft.user) return;
+
+    resolving.current = true;
+
+    if (isDemoMode) {
+      store.setUser(microsoft.user);
+      resolving.current = false;
+      return;
+    }
+
+    store.setLoading(true);
+    microsoft.acquireTokenSilently().then((idToken) => {
+      if (idToken) {
+        return resolveBackendUser(store.setUser, store.setError, store.clearUser);
+      } else {
+        store.setError('No se pudo obtener el token de Microsoft');
+      }
+    }).finally(() => {
+      store.setLoading(false);
+      resolving.current = false;
+    });
+  }, [microsoft.isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loginMicrosoft() {
     store.setLoading(true);
     store.setError(null);
-    try {
-      await microsoft.login();
-      // After popup resolves, the token should be in sessionStorage
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        // loginPopup resolved but no token — try acquireTokenSilent
-        const silentToken = await microsoft.acquireTokenSilently();
-        if (!silentToken) {
-          store.setError('Microsoft login completó pero no se obtuvo token');
-          store.setLoading(false);
-          return;
-        }
-      }
-      if (!isDemoMode) {
-        await resolveBackendUser(store.setUser, store.setError, store.clearUser);
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error('[MSAL] loginMicrosoft error:', err);
-      store.setError(`Error Microsoft: ${msg}`);
-    } finally {
-      store.setLoading(false);
-    }
+    await microsoft.login();
   }
 
   async function loginGoogle(credential?: string) {
@@ -88,12 +98,13 @@ export function useAuth() {
       try {
         await microsoft.logout();
       } catch {
-        // Popup closed or logout failed — store already cleared
+        // Logout failed — store already cleared
       }
     }
   }
 
-  // If already authenticated via store (demo, google, or persisted), use store data
+  const isLoading = store.isLoading || microsoft.isLoading;
+
   if (store.isAuthenticated && store.user) {
     return {
       user: store.user,
@@ -107,49 +118,10 @@ export function useAuth() {
     };
   }
 
-  // MSAL detected an authenticated account (e.g. after redirect flow) but store is empty
-  if (microsoft.isAuthenticated && microsoft.user) {
-    if (!store.isAuthenticated && !store.isLoading && !store.error) {
-      const token = sessionStorage.getItem('access_token');
-      if (token && !isDemoMode) {
-        // Token already in sessionStorage — call backend
-        store.setLoading(true);
-        resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
-          store.setLoading(false);
-        });
-      } else if (!token && !isDemoMode) {
-        // Redirect flow: MSAL is authenticated but no token in sessionStorage yet
-        store.setLoading(true);
-        microsoft.acquireTokenSilently().then((idToken) => {
-          if (idToken) {
-            resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
-              store.setLoading(false);
-            });
-          } else {
-            store.setLoading(false);
-            store.setError('No se pudo obtener el token de Microsoft');
-          }
-        });
-      } else if (isDemoMode) {
-        store.setUser(microsoft.user);
-      }
-    }
-    return {
-      user: store.user ?? microsoft.user,
-      isAuthenticated: store.isAuthenticated,
-      isLoading: store.isLoading || microsoft.isLoading,
-      error: store.error,
-      login: loginMicrosoft,
-      loginGoogle,
-      loginDemo: demo.login,
-      logout: handleLogout,
-    };
-  }
-
   return {
     user: null as AuthUser | null,
     isAuthenticated: false,
-    isLoading: store.isLoading || microsoft.isLoading,
+    isLoading,
     error: store.error,
     login: loginMicrosoft,
     loginGoogle,

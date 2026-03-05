@@ -13,19 +13,14 @@ export function useMicrosoftAuth() {
   const user: AuthUser | null = account ? getMicrosoftUser(account) : null;
 
   async function login() {
-    if (inProgress !== InteractionStatus.None) {
-      console.warn('[MSAL] login skipped — interaction in progress:', inProgress);
-      return;
-    }
-    const result = await instance.loginPopup(loginRequest);
-    if (result?.idToken) {
-      sessionStorage.setItem('access_token', result.idToken);
-    }
+    if (inProgress !== InteractionStatus.None) return;
+    // Use redirect flow instead of popup — more reliable in SPAs
+    await instance.loginRedirect(loginRequest);
   }
 
   async function logout() {
     if (inProgress !== InteractionStatus.None) return;
-    await instance.logoutPopup();
+    await instance.logoutRedirect({ postLogoutRedirectUri: '/login' });
   }
 
   async function acquireTokenSilently(): Promise<string | null> {

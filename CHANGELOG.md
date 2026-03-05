@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.5.0-alpha.8] - 2026-03-05
+
+### Fixed
+
+- **Microsoft login**: cambiado de `loginPopup()` a `loginRedirect()` — el popup flow de MSAL v5 no cerraba el popup (la SPA completa se cargaba dentro del popup y React Router tomaba control antes de que MSAL procesara el hash)
+- **Backend routes 404**: `dist/` estaba desactualizado — `BuildingsModule` y `LocalsModule` no estaban compilados. Rebuild + redeploy corrige todas las rutas
+- **React setState-during-render**: movido el side effect de `resolveBackendUser` a un `useEffect` con ref guard en vez de ejecutarlo durante el render del hook `useAuth`
+
+### Added
+
+- **Vite dev proxy**: proxy `/api` → API Gateway para desarrollo local (no requiere CORS en dev)
+- **Frontend `.env`** (gitignored): credenciales OAuth + API base URL para dev local
+
+### Changed
+
+- `frontend/src/hooks/auth/useMicrosoftAuth.ts`: `loginRedirect()` + `logoutRedirect()` en vez de popup
+- `frontend/src/hooks/auth/useAuth.ts`: `useEffect` para detectar MSAL redirect flow post-autenticación, error messages detallados con status code
+- `frontend/vite.config.ts`: proxy `/api` → API Gateway (sin `/dev/` stage prefix)
+- Backend redeployado con `BuildingsModule` + `LocalsModule` compilados — endpoints `/api/buildings`, `/api/locals` funcionan
+- Usuario Microsoft (`carriagadafalcone@gmail.com`) activado como SUPER_ADMIN en RDS
+
+---
+
 ## [0.5.0-alpha.6] - 2026-03-05
 
 ### Added

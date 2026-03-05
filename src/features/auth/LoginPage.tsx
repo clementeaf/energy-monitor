@@ -41,7 +41,7 @@ export function LoginPage() {
           )}
 
           {/* Demo mode */}
-          {(import.meta.env.VITE_AUTH_MODE === 'demo' || import.meta.env.DEV) && (
+          {import.meta.env.VITE_AUTH_MODE === 'demo' && (
             <>
               <div className="my-5 flex items-center gap-3">
                 <div className="flex-1 border-t border-border" />

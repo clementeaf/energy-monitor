@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.0-alpha.4] - 2026-03-05
+
+### Added
+
+- **CSP + security headers** (`index.html`): `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+- **Auth token interceptor** (`src/services/api.ts`): inyecta `Bearer` token en cada request, redirect a `/login` en 401
+- **Validación de env vars** (`src/validateEnv.ts`): valida `VITE_AUTH_MODE` y credenciales requeridas según el modo al iniciar la app
+
+### Changed
+
+- `src/main.tsx`: mock interceptor protegido con `import.meta.env.DEV`; `validateEnv()` ejecutado al startup
+- `src/features/auth/LoginPage.tsx`: demo login restringido a `VITE_AUTH_MODE === 'demo'` (ya no visible en cualquier build dev)
+- `src/components/ui/Layout.tsx`: avatar URL validada con protocolo `https:` antes de renderizar
+- `index.html`: título actualizado a "POWER Digital® — Energy Monitor"
+
+### Security
+
+- Mock interceptor ya no se activa en builds de producción
+- Demo role selector inaccesible fuera de modo demo
+- Avatar URLs con protocolo inseguro (`http:`, `javascript:`, etc.) son rechazadas
+- Requests API llevan token de autenticación automáticamente
+
+---
+
 ## [0.3.0-alpha.3] - 2026-03-05
 
 ### Added

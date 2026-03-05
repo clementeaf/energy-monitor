@@ -3,6 +3,12 @@ import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { getNavItems } from '../../app/appRoutes';
 
+function isSafeUrl(url?: string): boolean {
+  if (!url) return false;
+  try { return ['https:'].includes(new URL(url).protocol); }
+  catch { return false; }
+}
+
 export function Layout() {
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
   const { user, logout } = useAuth();
@@ -56,7 +62,7 @@ export function Layout() {
         {user && (
           <div className="border-t border-border p-3">
             <div className="flex items-center gap-2">
-              {user.avatar ? (
+              {isSafeUrl(user.avatar) ? (
                 <img src={user.avatar} alt="" className="h-7 w-7 rounded-full" />
               ) : (
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-raised text-xs font-semibold text-muted">

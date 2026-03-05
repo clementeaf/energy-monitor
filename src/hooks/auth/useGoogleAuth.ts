@@ -1,6 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../../store/useAuthStore';
-import { parseGoogleCredential } from '../../auth/googleAuth';
 
 export function useGoogleAuth() {
   const { setUser, clearUser, setError } = useAuthStore();

@@ -42,7 +42,7 @@ export function buildPath(route: string, params: Record<string, string> = {}): s
 
 /** Get nav items for a given role */
 export function getNavItems(role: Role): AppRoute[] {
-  return Object.values(appRoutes).filter(
+  return (Object.values(appRoutes) as AppRoute[]).filter(
     (r) => r.showInNav && (!r.allowedRoles || r.allowedRoles.includes(role)),
   );
 }

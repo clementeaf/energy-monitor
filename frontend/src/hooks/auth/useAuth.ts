@@ -13,8 +13,11 @@ async function resolveBackendUser(
   clearUser: () => void,
 ) {
   try {
-    const { user } = await fetchMe();
-    setUser(user);
+    const data = await fetchMe();
+    if (!data?.user?.email) {
+      throw new Error('Invalid response from /auth/me');
+    }
+    setUser(data.user);
   } catch (err: unknown) {
     sessionStorage.removeItem('access_token');
     const status = (err as { response?: { status?: number } }).response?.status;

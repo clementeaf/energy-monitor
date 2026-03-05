@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { MicrosoftLoginButton } from './components/MicrosoftLoginButton';
@@ -5,7 +6,19 @@ import { GoogleLoginButton } from './components/GoogleLoginButton';
 import { DemoRoleSelector } from './components/DemoRoleSelector';
 
 export function LoginPage() {
-  const { isAuthenticated, isLoading, error } = useAuth();
+  const { isAuthenticated, isLoading, error, loginGoogle } = useAuth();
+
+  useEffect(() => {
+    // Token was already saved in sessionStorage by main.tsx (before MSAL init)
+    const pending = sessionStorage.getItem('google_pending_login');
+    if (pending) {
+      sessionStorage.removeItem('google_pending_login');
+      const credential = sessionStorage.getItem('access_token');
+      if (credential) {
+        loginGoogle(credential);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;

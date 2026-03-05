@@ -1,9 +1,9 @@
+// MUST be first import — captures Google #id_token before MSAL constructor reads the hash
+import './auth/captureGoogleHash'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MsalProvider } from '@azure/msal-react'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { msalInstance } from './auth/msalInstance'
-import { googleClientId } from './auth/googleConfig'
 import { enableMockInterceptor } from './mocks/mockInterceptor'
 import { validateEnv } from './validateEnv'
 import './index.css'
@@ -18,9 +18,7 @@ if (import.meta.env.DEV) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MsalProvider instance={msalInstance}>
-      <GoogleOAuthProvider clientId={googleClientId}>
-        <App />
-      </GoogleOAuthProvider>
+      <App />
     </MsalProvider>
   </StrictMode>,
 )

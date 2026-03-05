@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { decodeJwt, createRemoteJWKSet, jwtVerify } from 'jose';
 import { UsersService } from '../users/users.service';
 import { RolesService } from '../roles/roles.service';
 
@@ -16,33 +17,23 @@ const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private joseModule: typeof import('jose') | null = null;
 
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
   ) {}
 
-  private async getJose() {
-    if (!this.joseModule) {
-      this.joseModule = await import('jose');
-    }
-    return this.joseModule;
-  }
-
   async verifyToken(token: string): Promise<TokenPayload | null> {
     try {
-      const jose = await this.getJose();
-
       // Decode header to detect provider before verification
-      const claims = jose.decodeJwt(token);
+      const claims = decodeJwt(token);
 
       if (!claims.iss) return null;
       const provider = this.detectProvider(claims.iss);
       if (!provider) return null;
 
       const jwksUrl = provider === 'microsoft' ? MICROSOFT_JWKS_URL : GOOGLE_JWKS_URL;
-      const jwks = jose.createRemoteJWKSet(new URL(jwksUrl));
+      const jwks = createRemoteJWKSet(new URL(jwksUrl));
 
       const audience =
         provider === 'google'
@@ -59,7 +50,7 @@ export class AuthService {
         audience,
       };
 
-      const { payload } = await jose.jwtVerify(token, jwks, verifyOptions);
+      const { payload } = await jwtVerify(token, jwks, verifyOptions);
 
       if (!payload.sub || !payload.email) return null;
 

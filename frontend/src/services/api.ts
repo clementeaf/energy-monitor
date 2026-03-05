@@ -9,24 +9,20 @@ const api = axios.create({
 
 // Inject Bearer token on every request
 api.interceptors.request.use((config) => {
-  const { user, isAuthenticated } = useAuthStore.getState();
-  if (isAuthenticated && user) {
-    const token = sessionStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = sessionStorage.getItem('access_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Handle 401 → redirect to login
+// Handle 401 → clear session (don't redirect during login flow)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().clearUser();
       sessionStorage.removeItem('access_token');
-      globalThis.location.href = '/login';
     }
     return Promise.reject(error);
   },

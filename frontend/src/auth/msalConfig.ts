@@ -2,7 +2,7 @@ import type { Configuration } from '@azure/msal-browser';
 
 const clientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID;
 const tenantId = import.meta.env.VITE_MICROSOFT_TENANT_ID;
-const redirectUri = import.meta.env.VITE_MICROSOFT_REDIRECT_URI || 'http://localhost:5173';
+const redirectUri = import.meta.env.VITE_MICROSOFT_REDIRECT_URI || window.location.origin;
 
 export const msalConfig: Configuration = {
   auth: {

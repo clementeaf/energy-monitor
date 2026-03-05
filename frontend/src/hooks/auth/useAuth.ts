@@ -41,11 +41,24 @@ export function useAuth() {
     store.setError(null);
     try {
       await microsoft.login();
+      // After popup resolves, the token should be in sessionStorage
+      const token = sessionStorage.getItem('access_token');
+      if (!token) {
+        // loginPopup resolved but no token — try acquireTokenSilent
+        const silentToken = await microsoft.acquireTokenSilently();
+        if (!silentToken) {
+          store.setError('Microsoft login completó pero no se obtuvo token');
+          store.setLoading(false);
+          return;
+        }
+      }
       if (!isDemoMode) {
         await resolveBackendUser(store.setUser, store.setError, store.clearUser);
       }
     } catch (err) {
-      store.setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Microsoft');
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[MSAL] loginMicrosoft error:', err);
+      store.setError(`Error Microsoft: ${msg}`);
     } finally {
       store.setLoading(false);
     }
@@ -94,17 +107,18 @@ export function useAuth() {
     };
   }
 
-  // If authenticated via MSAL (Microsoft) but store is empty, resolve from backend
+  // MSAL detected an authenticated account (e.g. after redirect flow) but store is empty
   if (microsoft.isAuthenticated && microsoft.user) {
     if (!store.isAuthenticated && !store.isLoading && !store.error) {
       const token = sessionStorage.getItem('access_token');
       if (token && !isDemoMode) {
+        // Token already in sessionStorage — call backend
         store.setLoading(true);
         resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
           store.setLoading(false);
         });
       } else if (!token && !isDemoMode) {
-        // Redirect flow: MSAL is authenticated but token not yet in sessionStorage
+        // Redirect flow: MSAL is authenticated but no token in sessionStorage yet
         store.setLoading(true);
         microsoft.acquireTokenSilently().then((idToken) => {
           if (idToken) {

@@ -1,6 +1,6 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
-import { loginWithMicrosoft, logoutMicrosoft, getMicrosoftUser } from '../../auth/microsoftAuth';
+import { getMicrosoftUser } from '../../auth/microsoftAuth';
 import { loginRequest } from '../../auth/msalConfig';
 import type { AuthUser } from '../../types/auth';
 
@@ -13,8 +13,11 @@ export function useMicrosoftAuth() {
   const user: AuthUser | null = account ? getMicrosoftUser(account) : null;
 
   async function login() {
-    if (inProgress !== InteractionStatus.None) return;
-    const result = await loginWithMicrosoft(instance);
+    if (inProgress !== InteractionStatus.None) {
+      console.warn('[MSAL] login skipped — interaction in progress:', inProgress);
+      return;
+    }
+    const result = await instance.loginPopup(loginRequest);
     if (result?.idToken) {
       sessionStorage.setItem('access_token', result.idToken);
     }
@@ -22,10 +25,9 @@ export function useMicrosoftAuth() {
 
   async function logout() {
     if (inProgress !== InteractionStatus.None) return;
-    await logoutMicrosoft(instance);
+    await instance.logoutPopup();
   }
 
-  /** Get idToken from MSAL cache (handles redirect flow where login() never ran) */
   async function acquireTokenSilently(): Promise<string | null> {
     if (!account) return null;
     try {

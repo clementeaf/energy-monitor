@@ -1,6 +1,7 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { loginWithMicrosoft, logoutMicrosoft, getMicrosoftUser } from '../../auth/microsoftAuth';
+import { loginRequest } from '../../auth/msalConfig';
 import type { AuthUser } from '../../types/auth';
 
 export function useMicrosoftAuth() {
@@ -24,9 +25,27 @@ export function useMicrosoftAuth() {
     await logoutMicrosoft(instance);
   }
 
+  /** Get idToken from MSAL cache (handles redirect flow where login() never ran) */
+  async function acquireTokenSilently(): Promise<string | null> {
+    if (!account) return null;
+    try {
+      const result = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account,
+      });
+      if (result.idToken) {
+        sessionStorage.setItem('access_token', result.idToken);
+      }
+      return result.idToken ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   return {
     login,
     logout,
+    acquireTokenSilently,
     user,
     account,
     isAuthenticated,

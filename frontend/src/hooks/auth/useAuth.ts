@@ -96,13 +96,25 @@ export function useAuth() {
 
   // If authenticated via MSAL (Microsoft) but store is empty, resolve from backend
   if (microsoft.isAuthenticated && microsoft.user) {
-    if (!store.isAuthenticated && !store.isLoading) {
-      // Token should already be in sessionStorage from login
+    if (!store.isAuthenticated && !store.isLoading && !store.error) {
       const token = sessionStorage.getItem('access_token');
       if (token && !isDemoMode) {
         store.setLoading(true);
         resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
           store.setLoading(false);
+        });
+      } else if (!token && !isDemoMode) {
+        // Redirect flow: MSAL is authenticated but token not yet in sessionStorage
+        store.setLoading(true);
+        microsoft.acquireTokenSilently().then((idToken) => {
+          if (idToken) {
+            resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
+              store.setLoading(false);
+            });
+          } else {
+            store.setLoading(false);
+            store.setError('No se pudo obtener el token de Microsoft');
+          }
         });
       } else if (isDemoMode) {
         store.setUser(microsoft.user);

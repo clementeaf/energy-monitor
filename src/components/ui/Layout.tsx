@@ -1,10 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
-
-const navItems = [
-  { label: 'Edificios', path: '/' },
-];
+import { getNavItems } from '../../app/appRoutes';
 
 export function Layout() {
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
@@ -40,7 +37,7 @@ export function Layout() {
           )}
         </div>
         <nav className="flex-1 p-2">
-          {navItems.map((item) => (
+          {(user ? getNavItems(user.role) : []).map((item) => (
             <button
               key={item.path}
               onClick={() => { navigate(item.path); setSidebarOpen(false); }}

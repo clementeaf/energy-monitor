@@ -6,22 +6,32 @@ import { BuildingDetailPage } from '../features/buildings/BuildingDetailPage';
 import { LocalDetailPage } from '../features/locals/LocalDetailPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { UnauthorizedPage } from '../features/auth/UnauthorizedPage';
+import { appRoutes } from './appRoutes';
 
 export const router = createBrowserRouter([
   {
-    path: '/login',
+    path: appRoutes.login.path,
     element: <LoginPage />,
   },
   {
-    path: '/unauthorized',
+    path: appRoutes.unauthorized.path,
     element: <UnauthorizedPage />,
   },
   {
     element: <ProtectedRoute><Layout /></ProtectedRoute>,
     children: [
-      { path: '/', element: <BuildingsPage /> },
-      { path: '/buildings/:id', element: <BuildingDetailPage /> },
-      { path: '/buildings/:buildingId/locals/:localId', element: <LocalDetailPage /> },
+      {
+        path: appRoutes.buildings.path,
+        element: <ProtectedRoute allowedRoles={[...appRoutes.buildings.allowedRoles]}><BuildingsPage /></ProtectedRoute>,
+      },
+      {
+        path: appRoutes.buildingDetail.path,
+        element: <ProtectedRoute allowedRoles={[...appRoutes.buildingDetail.allowedRoles]}><BuildingDetailPage /></ProtectedRoute>,
+      },
+      {
+        path: appRoutes.localDetail.path,
+        element: <ProtectedRoute allowedRoles={[...appRoutes.localDetail.allowedRoles]}><LocalDetailPage /></ProtectedRoute>,
+      },
     ],
   },
 ]);

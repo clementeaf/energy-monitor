@@ -1,46 +1,21 @@
+import api from './api';
+import { routes } from './routes';
 import type { Building, Local, MonthlyConsumption } from '../types';
-import { buildings } from '../mocks/buildings';
-import { locals } from '../mocks/locals';
-import { consumptionByLocal } from '../mocks/consumption';
 
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const fetchBuildings = () =>
+  api.get<Building[]>(routes.getBuildings()).then((r) => r.data);
 
-export async function fetchBuildings(): Promise<Building[]> {
-  await delay(300);
-  return buildings;
-}
+export const fetchBuilding = (id: string) =>
+  api.get<Building>(routes.getBuilding(id)).then((r) => r.data);
 
-export async function fetchBuilding(id: string): Promise<Building | undefined> {
-  await delay(200);
-  return buildings.find((b) => b.id === id);
-}
+export const fetchBuildingConsumption = (buildingId: string) =>
+  api.get<MonthlyConsumption[]>(routes.getBuildingConsumption(buildingId)).then((r) => r.data);
 
-export async function fetchLocalsByBuilding(buildingId: string): Promise<Local[]> {
-  await delay(200);
-  return locals.filter((l) => l.buildingId === buildingId);
-}
+export const fetchLocalsByBuilding = (buildingId: string) =>
+  api.get<Local[]>(routes.getBuildingLocals(buildingId)).then((r) => r.data);
 
-export async function fetchLocal(localId: string): Promise<Local | undefined> {
-  await delay(200);
-  return locals.find((l) => l.id === localId);
-}
+export const fetchLocal = (localId: string) =>
+  api.get<Local>(routes.getLocal(localId)).then((r) => r.data);
 
-export async function fetchConsumption(localId: string): Promise<MonthlyConsumption[]> {
-  await delay(250);
-  return consumptionByLocal[localId] ?? [];
-}
-
-export async function fetchBuildingConsumption(buildingId: string): Promise<MonthlyConsumption[]> {
-  await delay(300);
-  const buildingLocals = locals.filter((l) => l.buildingId === buildingId);
-  const months = consumptionByLocal[buildingLocals[0]?.id] ?? [];
-
-  return months.map((m, i) => ({
-    month: m.month,
-    consumption: buildingLocals.reduce(
-      (sum, local) => sum + (consumptionByLocal[local.id]?.[i]?.consumption ?? 0),
-      0,
-    ),
-    unit: 'kWh',
-  }));
-}
+export const fetchConsumption = (localId: string) =>
+  api.get<MonthlyConsumption[]>(routes.getLocalConsumption(localId)).then((r) => r.data);

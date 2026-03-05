@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0-alpha.3] - 2026-03-05
+
+### Added
+
+- **Mapa de rutas API** (`src/services/routes.ts`): objeto `routes` con helpers parametrizados (`routes.getBuilding(id)`, etc.)
+- **Mock interceptor** (`src/mocks/mockInterceptor.ts`): interceptor axios que sirve datos mock; se desactiva eliminando una línea en `main.tsx`
+- **Mapa de rutas de navegación** (`src/app/appRoutes.ts`): objeto `appRoutes` con path, label, `allowedRoles` y `showInNav`; helpers `buildPath()` y `getNavItems(role)`
+- **Barrel de hooks** (`src/hooks/index.ts`): re-exporta todos los hooks desde un solo import path
+
+### Changed
+
+- `src/services/endpoints.ts`: refactorizado a `api.get(routes.xxx())` — listo para API real
+- `src/app/router.tsx`: paths y `allowedRoles` consumidos desde `appRoutes`
+- `src/components/ui/Layout.tsx`: sidebar generado dinámicamente con `getNavItems(user.role)`
+- `src/features/buildings/components/BuildingConsumptionChart.tsx`: gráfico cambiado de `column` a `line`
+
+---
+
 ## [0.3.0-alpha.2] - 2026-03-05
 
 ### Changed

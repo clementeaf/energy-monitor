@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.0-alpha.3] - 2026-03-05
+
+### Added
+
+- **CloudFront `/api/*` behavior**: requests a `energymonitor.click/api/*` se rutean a API Gateway (origin `626lq125eh.execute-api.us-east-1.amazonaws.com`)
+  - Cache policy: `CachingDisabled` (no cache para API)
+  - Origin request policy: `AllViewerExceptHostHeader` (forward headers, query strings, cookies)
+  - Viewer protocol: HTTPS-only
+  - Allowed methods: GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE
+
+### Verified
+
+| Test | URL | Resultado |
+|---|---|---|
+| Roles desde RDS | `https://energymonitor.click/api/roles` | 7 roles OK |
+| Auth sin token | `https://energymonitor.click/api/auth/me` | 401 Unauthorized |
+| Frontend SPA | `https://energymonitor.click` | Sin cambios, sigue sirviendo desde S3 |
+
+---
+
 ## [0.5.0-alpha.2] - 2026-03-05
 
 ### Added

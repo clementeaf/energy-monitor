@@ -6,8 +6,18 @@
 
 - **GitHub Actions CI/CD** (`.github/workflows/deploy.yml`): build + typecheck en PRs, deploy a S3 + CloudFront invalidation en push a main
 - **CDK stack** (`infra/`): S3 bucket (privado, OAC), CloudFront distribution con security headers policy (CSP, HSTS, X-Frame-Options), SPA routing (404→index.html), HTTP/2+3, TLS 1.2
-- **GitHub OIDC role**: deploy sin access keys, asume rol vía OIDC desde GitHub Actions
 - **Cache strategy**: assets hasheados con `max-age=31536000,immutable`; `index.html` con `no-cache`
+- **GitHub Secrets/Variables**: OAuth credentials, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `AWS_REGION`
+
+### Fixed
+
+- Errores TypeScript en CI: `appRoutes.ts` (cast a `AppRoute[]`), `msalConfig.ts` (`storeAuthStateInCookie` removido), `useGoogleAuth.ts` (import no usado)
+
+### Pipeline
+
+- Build: `npm ci` → `tsc --noEmit` → `vite build` → artifact upload
+- Deploy: S3 sync (assets immutable + index.html no-cache) → CloudFront invalidation
+- Primer deploy exitoso a `energymonitor.click` vía CI/CD
 
 ---
 

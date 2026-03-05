@@ -7,10 +7,11 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.enableCors({
-    origin: ['http://localhost:5173', 'https://energymonitor.click'],
-    credentials: true,
-  });
+  const corsOrigins: string[] = ['https://energymonitor.click'];
+  if (process.env.NODE_ENV !== 'production') {
+    corsOrigins.push('http://localhost:5173');
+  }
+  app.enableCors({ origin: corsOrigins, credentials: true });
 
   await app.listen(4000);
 }

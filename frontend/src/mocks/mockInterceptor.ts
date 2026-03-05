@@ -79,16 +79,19 @@ export function enableMockInterceptor() {
 
     await delay(150 + Math.random() * 150);
 
+    const found = data !== null && data !== undefined;
+
     return {
       ...config,
       adapter: () =>
-        Promise.resolve({
-          data,
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config,
-        }),
+        found
+          ? Promise.resolve({ data, status: 200, statusText: 'OK', headers: {}, config })
+          : Promise.reject(
+              Object.assign(new Error('Not Found'), {
+                response: { data: { message: 'Not Found' }, status: 404, statusText: 'Not Found', headers: {}, config },
+                isAxiosError: true,
+              }),
+            ),
     } as InternalAxiosRequestConfig;
   });
 }

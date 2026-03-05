@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.5.0-alpha.5] - 2026-03-05
+
+### Added
+
+- **CI/CD backend deploy**: nuevo job `deploy-backend` en GitHub Actions — build + `sls deploy` con secrets
+- **GitHub Secrets**: `DB_PASSWORD`, `DB_HOST`, `DB_USERNAME`, `VPC_SECURITY_GROUP_ID`, `VPC_SUBNET_ID_1/2/3` (reutiliza `VITE_*` para OAuth client IDs)
+
+### Security
+
+- **CORS restringido**: `localhost:5173` solo se incluye cuando `NODE_ENV !== 'production'` (en `main.ts` y `serverless.ts`)
+- **Credenciales y IDs de infra externalizados**: `DB_HOST`, `DB_USERNAME`, SG y subnet IDs movidos de valores hardcoded a `${env:...}` en `serverless.yml`
+
+### Fixed
+
+- **Mock interceptor**: rutas desconocidas ahora retornan 404 en vez de `{ data: null, status: 200 }`
+
+### Changed
+
+- `backend/serverless.yml`: todos los valores sensibles vía env vars con defaults seguros para dev local
+- `.github/workflows/deploy.yml`: jobs `build-backend` + `deploy-backend` agregados
+- `backend/src/main.ts`, `backend/src/serverless.ts`: CORS condicional por entorno
+- `frontend/src/mocks/mockInterceptor.ts`: reject con 404 para rutas sin handler
+
+---
+
 ## [0.5.0-alpha.4] - 2026-03-05
 
 ### Security (Critical Fixes)

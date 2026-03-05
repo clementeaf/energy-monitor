@@ -13,7 +13,10 @@ export function useMicrosoftAuth() {
 
   async function login() {
     if (inProgress !== InteractionStatus.None) return;
-    await loginWithMicrosoft(instance);
+    const result = await loginWithMicrosoft(instance);
+    if (result?.idToken) {
+      sessionStorage.setItem('access_token', result.idToken);
+    }
   }
 
   async function logout() {

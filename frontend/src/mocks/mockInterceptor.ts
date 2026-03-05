@@ -8,7 +8,9 @@ const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type MockHandler = (params: string[]) => unknown;
 
-const handlers: [RegExp, MockHandler][] = [
+const isDemoMode = import.meta.env.VITE_AUTH_MODE === 'demo';
+
+const dataHandlers: [RegExp, MockHandler][] = [
   [/^\/buildings\/([^/]+)\/consumption$/, ([buildingId]) => {
     const bLocals = locals.filter((l) => l.buildingId === buildingId);
     const months = consumptionByLocal[bLocals[0]?.id] ?? [];
@@ -34,6 +36,9 @@ const handlers: [RegExp, MockHandler][] = [
   [/^\/locals\/([^/]+)$/, ([localId]) =>
     locals.find((l) => l.id === localId),
   ],
+];
+
+const authHandlers: [RegExp, MockHandler][] = [
   [/^\/auth\/me$/, () => ({
     user: {
       id: 'demo-user-001',
@@ -64,18 +69,27 @@ const handlers: [RegExp, MockHandler][] = [
   })],
 ];
 
+const handlers: [RegExp, MockHandler][] = isDemoMode
+  ? [...dataHandlers, ...authHandlers]
+  : dataHandlers;
+
+const NO_MATCH = Symbol('no-match');
+
 function resolve(url: string): unknown {
   for (const [pattern, handler] of handlers) {
     const match = url.match(pattern);
     if (match) return handler(match.slice(1));
   }
-  return null;
+  return NO_MATCH;
 }
 
 export function enableMockInterceptor() {
   api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     const url = config.url ?? '';
     const data = resolve(url);
+
+    // No mock handler → let request pass through to real backend
+    if (data === NO_MATCH) return config;
 
     await delay(150 + Math.random() * 150);
 

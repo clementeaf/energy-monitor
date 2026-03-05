@@ -2,7 +2,30 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { useGoogleAuth } from './useGoogleAuth';
 import { useDemoAuth } from './useDemoAuth';
+import { fetchMe } from '../../services/endpoints';
 import type { AuthUser } from '../../types/auth';
+
+const isDemoMode = import.meta.env.VITE_AUTH_MODE === 'demo';
+
+async function resolveBackendUser(
+  setUser: (user: AuthUser) => void,
+  setError: (error: string | null) => void,
+  clearUser: () => void,
+) {
+  try {
+    const { user } = await fetchMe();
+    setUser(user);
+  } catch (err: unknown) {
+    sessionStorage.removeItem('access_token');
+    const status = (err as { response?: { status?: number } }).response?.status;
+    if (status === 403) {
+      setError('Cuenta pendiente de activación por un administrador');
+    } else {
+      clearUser();
+      setError('Error al verificar sesión');
+    }
+  }
+}
 
 export function useAuth() {
   const microsoft = useMicrosoftAuth();
@@ -15,6 +38,9 @@ export function useAuth() {
     store.setError(null);
     try {
       await microsoft.login();
+      if (!isDemoMode) {
+        await resolveBackendUser(store.setUser, store.setError, store.clearUser);
+      }
     } catch (err) {
       store.setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Microsoft');
     } finally {
@@ -22,13 +48,26 @@ export function useAuth() {
     }
   }
 
-  function loginGoogle() {
+  async function loginGoogle(credential?: string) {
+    store.setLoading(true);
     store.setError(null);
-    google.login();
+    try {
+      if (credential) {
+        google.onGoogleSuccess(credential);
+      }
+      if (!isDemoMode) {
+        await resolveBackendUser(store.setUser, store.setError, store.clearUser);
+      }
+    } catch (err) {
+      store.setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
+    } finally {
+      store.setLoading(false);
+    }
   }
 
   async function handleLogout() {
     store.clearUser();
+    sessionStorage.removeItem('access_token');
     if (microsoft.isAuthenticated) {
       try {
         await microsoft.logout();
@@ -52,15 +91,24 @@ export function useAuth() {
     };
   }
 
-  // If authenticated via MSAL (Microsoft), sync to store
+  // If authenticated via MSAL (Microsoft) but store is empty, resolve from backend
   if (microsoft.isAuthenticated && microsoft.user) {
-    if (!store.isAuthenticated) {
-      store.setUser(microsoft.user);
+    if (!store.isAuthenticated && !store.isLoading) {
+      // Token should already be in sessionStorage from login
+      const token = sessionStorage.getItem('access_token');
+      if (token && !isDemoMode) {
+        store.setLoading(true);
+        resolveBackendUser(store.setUser, store.setError, store.clearUser).finally(() => {
+          store.setLoading(false);
+        });
+      } else if (isDemoMode) {
+        store.setUser(microsoft.user);
+      }
     }
     return {
-      user: microsoft.user,
-      isAuthenticated: true,
-      isLoading: false,
+      user: store.user ?? microsoft.user,
+      isAuthenticated: store.isAuthenticated,
+      isLoading: store.isLoading || microsoft.isLoading,
       error: store.error,
       login: loginMicrosoft,
       loginGoogle,

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.0-alpha.6] - 2026-03-05
+
+### Added
+
+- **Frontend → Backend auth integrado**: login con Microsoft/Google ahora envía el ID token (JWT) a `GET /api/auth/me`, recibe user + permissions reales desde RDS
+- **Google credential flow**: cambiado de `useGoogleLogin({ flow: 'implicit' })` (access_token opaco) a `<GoogleLogin>` component (ID token JWT verificable por JWKS)
+- **Microsoft ID token**: `loginPopup()` ahora guarda `idToken` en `sessionStorage` para envío automático como Bearer
+- **`resolveBackendUser()`**: helper en `useAuth` que llama `/api/auth/me` post-login y maneja 401/403 con mensajes claros
+- **Mock interceptor inteligente**: en modo no-demo, rutas `/auth/*` pasan al backend real; rutas de datos siguen mock. Rutas sin handler pasan al backend (no 404 falso)
+- **Backend `.env`**: archivo local con credenciales RDS + OAuth client IDs para `sls offline`
+
+### Changed
+
+- `frontend/src/hooks/auth/useMicrosoftAuth.ts`: guarda `idToken` en sessionStorage post-login
+- `frontend/src/hooks/auth/useGoogleAuth.ts`: exporta `onGoogleSuccess(credential)` en vez de implicit flow
+- `frontend/src/features/auth/components/GoogleLoginButton.tsx`: usa `<GoogleLogin>` de `@react-oauth/google`
+- `frontend/src/hooks/auth/useAuth.ts`: `loginMicrosoft()` y `loginGoogle()` llaman `resolveBackendUser()` post-token
+- `frontend/src/mocks/mockInterceptor.ts`: handlers separados en `dataHandlers` + `authHandlers`, con passthrough para rutas sin mock
+- Frontend desplegado a producción con `VITE_AUTH_MODE=microsoft`
+
+---
+
 ## [0.5.0-alpha.5] - 2026-03-05
 
 ### Added

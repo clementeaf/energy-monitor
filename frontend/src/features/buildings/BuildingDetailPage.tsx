@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingDetailSkeleton, ChartSkeleton, MetersGridSkeleton } from '../../components/ui/Skeleton';
@@ -6,11 +7,24 @@ import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
 import { MeterCard } from '../meters/components/MeterCard';
 
+type Resolution = '15min' | 'hourly' | 'daily';
+
+function pickResolution(rangeMs: number): Resolution {
+  const hours = rangeMs / 3_600_000;
+  if (hours <= 36) return '15min';
+  if (hours <= 7 * 24) return 'hourly';
+  return 'daily';
+}
+
 export function BuildingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [resolution, setResolution] = useState<Resolution>('hourly');
+  const handleRangeChange = useCallback((min: number, max: number) => {
+    setResolution(pickResolution(max - min));
+  }, []);
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
-  const { data: consumption, isLoading: loadingConsumption } = useBuildingConsumption(id!);
+  const { data: consumption, isLoading: loadingConsumption } = useBuildingConsumption(id!, resolution);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
 
   if (loadingBuilding) return <BuildingDetailSkeleton />;
@@ -39,7 +53,7 @@ export function BuildingDetailPage() {
       </div>
 
       <div className="shrink-0">
-        {loadingConsumption ? <ChartSkeleton /> : consumption && <BuildingConsumptionChart data={consumption} />}
+        {loadingConsumption ? <ChartSkeleton /> : consumption && <BuildingConsumptionChart data={consumption} onRangeChange={handleRangeChange} />}
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">

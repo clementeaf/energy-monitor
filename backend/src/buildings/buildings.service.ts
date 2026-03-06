@@ -39,7 +39,7 @@ export class BuildingsService {
     return this.metersService.findByBuilding(buildingId);
   }
 
-  async findConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
+  async findConsumption(buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
     return this.metersService.findBuildingConsumption(buildingId, resolution, from, to);
   }
 }

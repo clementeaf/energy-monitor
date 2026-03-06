@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent } from '../types';
+import type { Building, Meter, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary } from '../types';
 import type { AuthUser } from '../types/auth';
 
 export const fetchBuildings = () =>
@@ -9,7 +9,7 @@ export const fetchBuildings = () =>
 export const fetchBuilding = (id: string) =>
   api.get<Building>(routes.getBuilding(id)).then((r) => r.data);
 
-export const fetchBuildingConsumption = (buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
+export const fetchBuildingConsumption = (buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
   api.get<ConsumptionPoint[]>(routes.getBuildingConsumption(buildingId), { params: { resolution, from, to } }).then((r) => r.data);
 
 export const fetchMetersByBuilding = (buildingId: string) =>
@@ -26,6 +26,12 @@ export const fetchMeterUptime = (meterId: string) =>
 
 export const fetchMeterDowntimeEvents = (meterId: string, from: string, to: string) =>
   api.get<DowntimeEvent[]>(routes.getMeterDowntimeEvents(meterId), { params: { from, to } }).then((r) => r.data);
+
+export const fetchMeterAlarmEvents = (meterId: string, from: string, to: string) =>
+  api.get<AlarmEvent[]>(routes.getMeterAlarmEvents(meterId), { params: { from, to } }).then((r) => r.data);
+
+export const fetchMeterAlarmSummary = (meterId: string, from: string, to: string) =>
+  api.get<AlarmSummary>(routes.getMeterAlarmSummary(meterId), { params: { from, to } }).then((r) => r.data);
 
 // Hierarchy
 export const fetchHierarchy = (buildingId: string) =>

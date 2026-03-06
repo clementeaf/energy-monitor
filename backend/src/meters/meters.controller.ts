@@ -45,6 +45,32 @@ export class MetersController {
     return this.metersService.getDowntimeEvents(id, from, to);
   }
 
+  @Get(':id/alarm-events')
+  @ApiOperation({ summary: 'Obtener eventos de alarma del medidor' })
+  @ApiParam({ name: 'id', example: 'M001' })
+  @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
+  @ApiQuery({ name: 'to', required: true, description: 'Fin (ISO 8601)', example: '2026-03-06T23:59:59Z' })
+  getAlarmEvents(
+    @Param('id') id: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.metersService.getAlarmEvents(id, from, to);
+  }
+
+  @Get(':id/alarm-summary')
+  @ApiOperation({ summary: 'Obtener resumen de alarmas del medidor' })
+  @ApiParam({ name: 'id', example: 'M001' })
+  @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
+  @ApiQuery({ name: 'to', required: true, description: 'Fin (ISO 8601)', example: '2026-03-06T23:59:59Z' })
+  getAlarmSummary(
+    @Param('id') id: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.metersService.getAlarmSummary(id, from, to);
+  }
+
   @Get(':id/readings')
   @ApiOperation({ summary: 'Obtener lecturas de un medidor', description: 'Retorna lecturas crudas o agregadas (promedio) por hora/día.' })
   @ApiParam({ name: 'id', example: 'M001' })

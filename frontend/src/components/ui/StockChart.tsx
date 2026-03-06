@@ -50,11 +50,11 @@ const darkTheme: Highcharts.Options = {
     inputEnabled: false,
     buttons: [
       { type: 'day', count: 1, text: '1D' },
-      { type: 'hour', count: 1, text: '1H' },
-      { type: 'minute', count: 1, text: '1M' },
+      { type: 'week', count: 1, text: '1S' },
+      { type: 'month', count: 1, text: '1M' },
       { type: 'all', text: 'Todo' },
     ],
-    selected: 0,
+    selected: 2,
   },
 };
 

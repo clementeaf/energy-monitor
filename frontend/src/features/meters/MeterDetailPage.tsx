@@ -1,12 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { MeterDetailSkeleton, ChartSkeleton } from '../../components/ui/Skeleton';
 import { StockChart } from '../../components/ui/StockChart';
-import { useMeter, useMeterReadings } from '../../hooks/queries/useMeters';
+import { useMeter, useMeterReadings, useMeterAlarmEvents } from '../../hooks/queries/useMeters';
 import { UptimeBadges } from './components/UptimeBadges';
+import { AlarmSummaryBadges } from './components/AlarmSummaryBadges';
 import { DowntimeEventsTable } from './components/DowntimeEventsTable';
-import type { Reading } from '../../types';
+import { AlarmEventsTable } from './components/AlarmEventsTable';
+import type { Reading, AlarmEvent } from '../../types';
 
 type Resolution = 'raw' | '15min' | 'hourly' | 'daily';
 
@@ -29,6 +31,37 @@ function ts(readings: Reading[] | undefined, key: keyof Reading): [number, numbe
 const smallChart: Highcharts.Options['chart'] = { height: 300 };
 const tooltipFmt: Highcharts.Options['tooltip'] = { xDateFormat: '%d/%m/%Y %H:%M' };
 
+const ALARM_LABELS: Record<string, string> = {
+  MODBUS_CRC_ERROR: 'CRC', BREAKER_OPEN: 'BRK', HIGH_THD: 'THD',
+  PHASE_IMBALANCE: 'IMB', UNDERVOLTAGE: 'UV', OVERVOLTAGE: 'OV',
+  LOW_POWER_FACTOR: 'PF', HIGH_DEMAND: 'DEM',
+};
+
+/** Build Highcharts flags series from alarm events filtered by type */
+function alarmFlags(
+  events: AlarmEvent[] | undefined,
+  types: string[],
+  onSeries: string,
+): Highcharts.SeriesOptionsType | null {
+  if (!events) return null;
+  const filtered = events.filter((e) => types.includes(e.alarm));
+  if (filtered.length === 0) return null;
+  return {
+    type: 'flags' as const,
+    name: 'Alarmas',
+    onSeries,
+    shape: 'flag',
+    color: '#ef4444',
+    fillColor: 'rgba(239,68,68,0.25)',
+    style: { color: '#ef4444', fontSize: '9px' },
+    data: filtered.map((e) => ({
+      x: new Date(e.timestamp).getTime(),
+      title: ALARM_LABELS[e.alarm] ?? '!',
+      text: `${ALARM_LABELS[e.alarm] ?? e.alarm} — ${new Date(e.timestamp).toLocaleString('es-CL')}`,
+    })),
+  };
+}
+
 export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const { data: meter, isLoading } = useMeter(meterId!);
@@ -40,10 +73,23 @@ export function MeterDetailPage() {
 
   const { data: readings, isLoading: loadingReadings } = useMeterReadings(meterId!, resolution);
 
+  const alarmRange = useMemo(() => {
+    const to = new Date().toISOString();
+    const from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    return { from, to };
+  }, []);
+  const { data: alarmEvents } = useMeterAlarmEvents(meterId!, alarmRange.from, alarmRange.to);
+
   if (isLoading) return <MeterDetailSkeleton />;
   if (!meter) return <p className="text-subtle">Medidor no encontrado</p>;
 
   const is3P = meter.phaseType === '3P';
+
+  // Build alarm flag series per chart
+  const powerFlags = alarmFlags(alarmEvents, ['MODBUS_CRC_ERROR', 'HIGH_DEMAND', 'BREAKER_OPEN'], 'powerKw');
+  const voltageFlags = alarmFlags(alarmEvents, ['UNDERVOLTAGE', 'OVERVOLTAGE'], 'voltageL1');
+  const pfFlags = alarmFlags(alarmEvents, ['LOW_POWER_FACTOR'], 'pf');
+  const qualityFlags = alarmFlags(alarmEvents, ['HIGH_THD', 'PHASE_IMBALANCE'], 'thdV');
 
   // 1. Potencia Activa + Reactiva
   const powerChart: Highcharts.Options = {
@@ -54,8 +100,9 @@ export function MeterDetailPage() {
       { title: { text: 'kVAR' }, opposite: true },
     ],
     series: [
-      { name: 'Activa (kW)', type: 'line', data: ts(readings, 'powerKw'), yAxis: 0 },
+      { name: 'Activa (kW)', type: 'line', id: 'powerKw', data: ts(readings, 'powerKw'), yAxis: 0 },
       { name: 'Reactiva (kVAR)', type: 'line', data: ts(readings, 'reactivePowerKvar'), yAxis: 1 },
+      ...(powerFlags ? [powerFlags] : []),
     ],
     tooltip: tooltipFmt,
   };
@@ -63,14 +110,15 @@ export function MeterDetailPage() {
   // 2. Voltaje (L1/L2/L3)
   const voltageChart: Highcharts.Options = {
     chart: smallChart,
-    title: { text: 'Voltaje (V)' },
+    title: { text: 'Voltaje Fase (V)' },
     yAxis: { title: { text: 'V' } },
     series: [
-      { name: 'L1', type: 'line', data: ts(readings, 'voltageL1') },
+      { name: 'L1', type: 'line', id: 'voltageL1', data: ts(readings, 'voltageL1') },
       ...(is3P ? [
         { name: 'L2', type: 'line' as const, data: ts(readings, 'voltageL2') },
         { name: 'L3', type: 'line' as const, data: ts(readings, 'voltageL3') },
       ] : []),
+      ...(voltageFlags ? [voltageFlags] : []),
     ],
     tooltip: tooltipFmt,
   };
@@ -99,8 +147,9 @@ export function MeterDetailPage() {
       { title: { text: 'Hz' }, opposite: true },
     ],
     series: [
-      { name: 'Factor de Potencia', type: 'line', data: ts(readings, 'powerFactor'), yAxis: 0 },
+      { name: 'Factor de Potencia', type: 'line', id: 'pf', data: ts(readings, 'powerFactor'), yAxis: 0 },
       { name: 'Frecuencia (Hz)', type: 'line', data: ts(readings, 'frequencyHz'), yAxis: 1 },
+      ...(pfFlags ? [pfFlags] : []),
     ],
     tooltip: tooltipFmt,
   };
@@ -122,9 +171,10 @@ export function MeterDetailPage() {
     title: { text: 'Calidad Eléctrica' },
     yAxis: { title: { text: '%' } },
     series: [
-      { name: 'THD Voltaje (%)', type: 'line', data: ts(readings, 'thdVoltagePct') },
+      { name: 'THD Voltaje Fase (%)', type: 'line', id: 'thdV', data: ts(readings, 'thdVoltagePct') },
       { name: 'THD Corriente (%)', type: 'line', data: ts(readings, 'thdCurrentPct') },
       { name: 'Desbalance Fases (%)', type: 'line', data: ts(readings, 'phaseImbalancePct') },
+      ...(qualityFlags ? [qualityFlags] : []),
     ],
     tooltip: tooltipFmt,
   };
@@ -161,6 +211,7 @@ export function MeterDetailPage() {
           </span>
         </div>
         <UptimeBadges meterId={meter.id} />
+        <AlarmSummaryBadges meterId={meter.id} />
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
@@ -177,6 +228,7 @@ export function MeterDetailPage() {
           </>
         )}
         <DowntimeEventsTable meterId={meter.id} />
+        <AlarmEventsTable meterId={meter.id} />
       </div>
     </div>
   );

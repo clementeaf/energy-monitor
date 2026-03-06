@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.0-alpha.1] - 2026-03-06
+
+### Added
+
+- **Visualización de alarmas en MeterDetailPage** — 8 tipos de alarma (HIGH_DEMAND, LOW_POWER_FACTOR, BREAKER_OPEN, UNDERVOLTAGE, OVERVOLTAGE, HIGH_THD, PHASE_IMBALANCE, MODBUS_CRC_ERROR)
+  - Backend: `GET /meters/:id/alarm-events?from=&to=` y `GET /meters/:id/alarm-summary?from=&to=`
+  - Frontend: `AlarmSummaryBadges` — badges coloreados por tipo (últimos 30 días)
+  - Frontend: `AlarmEventsTable` — tabla de eventos con fecha, tipo, voltaje, FP, THD
+  - Highcharts `flags` series en 4 charts: Potencia (CRC/DEM/BRK), Voltaje (UV/OV), PF (PF), Calidad (THD/IMB)
+- **Resolución 15 min en gráfico de edificio** — `BuildingDetailPage` ahora cambia resolución dinámicamente al hacer zoom: ≤36h→15min, ≤7d→hourly, >7d→daily
+  - Backend: `findBuildingConsumption` soporta `resolution=15min` con truncación manual `date_trunc('hour') + interval '15 min' * floor(...)`
+  - Frontend: `pickResolution` + `handleRangeChange` via `afterSetExtremes`
+
+### Changed
+
+- **Range selector buttons** — Cambiados a `1D` (día), `1S` (semana), `1M` (mes), `Todo`. Default: 1M
+- **Labels de charts** — "Voltaje (V)" → "Voltaje Fase (V)", "THD Voltaje (%)" → "THD Voltaje Fase (%)"
+
+### Fixed
+
+- **Jerarquía inventada eliminada** — Removidos subtableros y circuitos ficticios (Iluminación, Climatización, Fuerza, etc.). Jerarquía aplanada a Gateway → Medidor (17 nodos reales)
+- **CSV reimportado (v2)** — Corregidos valores de `energy_kWh_total` (antes ~5-8 kWh, ahora 0→3,031 kWh acumulativo). Perfiles estadísticos y datos sintéticos regenerados
+
+---
+
 ## [0.8.0-alpha.5] - 2026-03-06
 
 ### Added

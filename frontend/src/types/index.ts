@@ -99,6 +99,23 @@ export interface DowntimeEvent {
   durationSeconds: number;
 }
 
+// --- Alarms ---
+
+export interface AlarmEvent {
+  timestamp: string;
+  alarm: string;
+  voltageL1: number | null;
+  currentL1: number | null;
+  powerFactor: number | null;
+  thdCurrentPct: number | null;
+  modbusCrcErrors: number | null;
+}
+
+export interface AlarmSummary {
+  total: number;
+  byType: { alarm: string; count: number }[];
+}
+
 // --- Domain types (future use) ---
 
 export interface Alert {

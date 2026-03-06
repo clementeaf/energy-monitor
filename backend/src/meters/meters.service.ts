@@ -174,8 +174,53 @@ export class MetersService {
     return { daily, weekly, monthly };
   }
 
-  async findBuildingConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
-    const trunc = resolution === 'daily' ? 'day' : 'hour';
+  async getAlarmEvents(meterId: string, from: string, to: string) {
+    const rows = await this.readingRepo.query(
+      `SELECT timestamp, alarm,
+              voltage_l1 AS "voltageL1",
+              current_l1 AS "currentL1",
+              power_factor AS "powerFactor",
+              thd_current_pct AS "thdCurrentPct",
+              modbus_crc_errors AS "modbusCrcErrors"
+       FROM readings
+       WHERE meter_id = $1 AND timestamp >= $2 AND timestamp <= $3
+         AND alarm IS NOT NULL AND alarm != ''
+       ORDER BY timestamp ASC`,
+      [meterId, from, to],
+    );
+    return rows.map((r: Record<string, unknown>) => ({
+      timestamp: r.timestamp,
+      alarm: r.alarm,
+      voltageL1: r.voltageL1 != null ? Number(r.voltageL1) : null,
+      currentL1: r.currentL1 != null ? Number(r.currentL1) : null,
+      powerFactor: r.powerFactor != null ? Number(r.powerFactor) : null,
+      thdCurrentPct: r.thdCurrentPct != null ? Number(r.thdCurrentPct) : null,
+      modbusCrcErrors: r.modbusCrcErrors != null ? Number(r.modbusCrcErrors) : null,
+    }));
+  }
+
+  async getAlarmSummary(meterId: string, from: string, to: string) {
+    const rows = await this.readingRepo.query(
+      `SELECT alarm, COUNT(*)::int AS count
+       FROM readings
+       WHERE meter_id = $1 AND timestamp >= $2 AND timestamp <= $3
+         AND alarm IS NOT NULL AND alarm != ''
+       GROUP BY alarm ORDER BY count DESC`,
+      [meterId, from, to],
+    );
+    const total = rows.reduce((s: number, r: { count: number }) => s + r.count, 0);
+    return { total, byType: rows };
+  }
+
+  async findBuildingConsumption(buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
+    let truncExpr: string;
+    if (resolution === '15min') {
+      truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;
+    } else if (resolution === 'daily') {
+      truncExpr = `date_trunc('day', r.timestamp)`;
+    } else {
+      truncExpr = `date_trunc('hour', r.timestamp)`;
+    }
 
     // Two-step aggregation: first AVG per meter per bucket (handles variable reading frequency),
     // then SUM/AVG/MAX across meters per bucket.
@@ -191,7 +236,7 @@ export class MetersService {
         MAX(max_power) AS "peakPowerKw"
       FROM (
         SELECT
-          date_trunc('${trunc}', r.timestamp) AS bucket,
+          ${truncExpr} AS bucket,
           r.meter_id,
           AVG(r.power_kw) AS avg_power,
           MAX(r.power_kw) AS max_power

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchMetersByBuilding, fetchMeter, fetchMeterReadings, fetchMeterUptime, fetchMeterDowntimeEvents } from '../../services/endpoints';
+import { fetchMetersByBuilding, fetchMeter, fetchMeterReadings, fetchMeterUptime, fetchMeterDowntimeEvents, fetchMeterAlarmEvents, fetchMeterAlarmSummary } from '../../services/endpoints';
 
 export function useMetersByBuilding(buildingId: string) {
   return useQuery({
@@ -40,5 +40,22 @@ export function useMeterDowntimeEvents(meterId: string, from: string, to: string
     queryKey: ['meter-downtime-events', meterId, from, to],
     queryFn: () => fetchMeterDowntimeEvents(meterId, from, to),
     enabled: !!from && !!to,
+  });
+}
+
+export function useMeterAlarmEvents(meterId: string, from: string, to: string) {
+  return useQuery({
+    queryKey: ['meter-alarm-events', meterId, from, to],
+    queryFn: () => fetchMeterAlarmEvents(meterId, from, to),
+    enabled: !!from && !!to,
+  });
+}
+
+export function useMeterAlarmSummary(meterId: string, from: string, to: string) {
+  return useQuery({
+    queryKey: ['meter-alarm-summary', meterId, from, to],
+    queryFn: () => fetchMeterAlarmSummary(meterId, from, to),
+    enabled: !!from && !!to,
+    staleTime: 60_000,
   });
 }

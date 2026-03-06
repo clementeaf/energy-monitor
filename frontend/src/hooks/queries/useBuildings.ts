@@ -15,9 +15,9 @@ export function useBuilding(id: string) {
   });
 }
 
-export function useBuildingConsumption(buildingId: string) {
+export function useBuildingConsumption(buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly') {
   return useQuery({
-    queryKey: ['buildingConsumption', buildingId],
-    queryFn: () => fetchBuildingConsumption(buildingId),
+    queryKey: ['buildingConsumption', buildingId, resolution],
+    queryFn: () => fetchBuildingConsumption(buildingId, resolution),
   });
 }

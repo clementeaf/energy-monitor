@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0-alpha.3] - 2026-03-06
+
+### Changed
+
+- **Sidebar**: removido bloque de usuario (avatar, nombre, rol) del fondo — solo queda botón "Cerrar sesión"
+- **Botón "Volver"**: sin bordes, texto plano con hover sutil
+- **BuildingDetailPage**: gráfico de consumo siempre visible (fijo); solo la sección de medidores hace scroll
+- **Bordes redondeados** (`rounded-lg` / `borderRadius: 8`): aplicado a `Card`, `StockChart` y `Chart`
+
+---
+
 ## [0.7.0-alpha.2] - 2026-03-06
 
 ### Added

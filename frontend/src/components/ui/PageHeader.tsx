@@ -39,7 +39,7 @@ export function PageHeader({ title, breadcrumbs, showBack }: PageHeaderProps) {
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="border border-border bg-surface px-3 py-1 text-sm hover:border-accent"
+            className="px-3 py-1 text-sm text-muted hover:text-text"
           >
             &larr; Volver
           </button>

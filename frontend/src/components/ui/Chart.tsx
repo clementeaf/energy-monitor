@@ -9,7 +9,7 @@ const darkTheme: Highcharts.Options = {
     style: { fontFamily: "'Inter Variable', ui-sans-serif, system-ui, sans-serif" },
     borderColor: '#30363d',
     borderWidth: 1,
-    borderRadius: 0,
+    borderRadius: 8,
     height: 280,
   },
   title: { style: { color: '#e6edf3', fontSize: '14px', fontWeight: 'bold' } },

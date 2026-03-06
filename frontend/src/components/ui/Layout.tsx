@@ -58,25 +58,12 @@ export function Layout() {
           ))}
         </nav>
 
-        {/* User info + logout */}
+        {/* Logout */}
         {user && (
           <div className="border-t border-border p-3">
-            <div className="flex items-center gap-2">
-              {isSafeUrl(user.avatar) ? (
-                <img src={user.avatar} alt="" className="h-7 w-7 rounded-full" />
-              ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-raised text-xs font-semibold text-muted">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-text">{user.name}</p>
-                <p className="truncate text-[10px] text-subtle">{user.role.replace('_', ' ')}</p>
-              </div>
-            </div>
             <button
               onClick={logout}
-              className="mt-2 w-full border border-border px-2 py-1 text-xs text-muted transition-colors hover:bg-raised"
+              className="w-full border border-border px-2 py-1 text-xs text-muted transition-colors hover:bg-raised"
             >
               Cerrar sesión
             </button>

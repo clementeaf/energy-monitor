@@ -28,18 +28,18 @@ export function BuildingDetailPage() {
         <p className="mb-3 text-sm text-muted">{building.address} &middot; {building.totalArea} m²</p>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
+      <div className="shrink-0">
         {consumption && (
           <BuildingConsumptionChart data={consumption} />
         )}
+      </div>
 
-        <div>
-          <h2 className="mb-2 text-lg font-bold text-text">Medidores ({meters?.length ?? 0})</h2>
-          <div className="grid grid-cols-1 content-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {meters?.map((m) => (
-              <MeterCard key={m.id} meter={m} />
-            ))}
-          </div>
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+        <h2 className="mb-2 text-lg font-bold text-text">Medidores ({meters?.length ?? 0})</h2>
+        <div className="grid grid-cols-1 content-start gap-3 pb-2 sm:grid-cols-2 lg:grid-cols-3">
+          {meters?.map((m) => (
+            <MeterCard key={m.id} meter={m} />
+          ))}
         </div>
       </div>
     </div>

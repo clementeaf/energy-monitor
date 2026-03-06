@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0-alpha.4] - 2026-03-06
+
+### Added
+
+- **Uptime tracking por medidor** — Historial de disponibilidad IoT derivado de gaps en readings via `LAG()` window function (sin nuevas tablas)
+  - Backend: `GET /meters/:id/uptime` (resumen 24h/7d/30d) y `GET /meters/:id/downtime-events` (eventos con duración)
+  - Frontend: `UptimeBadges` — 3 badges coloreados (verde ≥99.5%, amarillo ≥95%, rojo <95%) con conteo de eventos
+  - Frontend: `DowntimeEventsTable` — tabla de downtime últimos 30 días con inicio, fin y duración
+  - Threshold: 90 min (compatible con datos históricos 15min, backfill horario y sintéticos 1min)
+
+---
+
 ## [0.8.0-alpha.3] - 2026-03-06
 
 ### Changed

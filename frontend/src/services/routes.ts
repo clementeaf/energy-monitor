@@ -8,6 +8,8 @@ export const routes = {
   // Meters
   getMeter:                (id: string)             => `/meters/${id}`,
   getMeterReadings:        (id: string)             => `/meters/${id}/readings`,
+  getMeterUptime:          (id: string)             => `/meters/${id}/uptime`,
+  getMeterDowntimeEvents:  (id: string)             => `/meters/${id}/downtime-events`,
 
   // Hierarchy
   getHierarchy:            (buildingId: string)     => `/hierarchy/${buildingId}`,

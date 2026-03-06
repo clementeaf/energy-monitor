@@ -69,6 +69,29 @@ export interface HierarchyNodeWithPath {
   path: HierarchyNode[];
 }
 
+// --- Uptime ---
+
+export interface UptimeSummary {
+  period: 'daily' | 'weekly' | 'monthly';
+  totalSeconds: number;
+  uptimeSeconds: number;
+  downtimeSeconds: number;
+  uptimePercent: number;
+  downtimeEvents: number;
+}
+
+export interface UptimeAll {
+  daily: UptimeSummary;
+  weekly: UptimeSummary;
+  monthly: UptimeSummary;
+}
+
+export interface DowntimeEvent {
+  downtimeStart: string;
+  downtimeEnd: string;
+  durationSeconds: number;
+}
+
 // --- Domain types (future use) ---
 
 export interface Alert {

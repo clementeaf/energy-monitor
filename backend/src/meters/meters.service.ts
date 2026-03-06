@@ -101,6 +101,79 @@ export class MetersService {
     }));
   }
 
+  async getDowntimeEvents(meterId: string, from: string, to: string) {
+    const rows = await this.readingRepo.query(
+      `WITH ordered AS (
+        SELECT timestamp,
+          LAG(timestamp) OVER (ORDER BY timestamp) AS prev_ts
+        FROM readings
+        WHERE meter_id = $1 AND timestamp >= $2 AND timestamp <= $3
+      )
+      SELECT
+        prev_ts AS "downtimeStart",
+        timestamp AS "downtimeEnd",
+        EXTRACT(EPOCH FROM (timestamp - prev_ts)) AS "durationSeconds"
+      FROM ordered
+      WHERE timestamp - prev_ts > interval '90 minutes'
+      ORDER BY prev_ts ASC`,
+      [meterId, from, to],
+    );
+    return rows.map((r: Record<string, unknown>) => ({
+      downtimeStart: r.downtimeStart,
+      downtimeEnd: r.downtimeEnd,
+      durationSeconds: Number(r.durationSeconds),
+    }));
+  }
+
+  async getUptimeSummary(meterId: string, period: 'daily' | 'weekly' | 'monthly') {
+    const intervalMap = { daily: '24 hours', weekly: '7 days', monthly: '30 days' };
+    const iv = intervalMap[period];
+
+    const [row] = await this.readingRepo.query(
+      `WITH ordered AS (
+        SELECT timestamp,
+          LAG(timestamp) OVER (ORDER BY timestamp) AS prev_ts
+        FROM readings
+        WHERE meter_id = $1 AND timestamp >= NOW() - interval '${iv}'
+      ),
+      gaps AS (
+        SELECT EXTRACT(EPOCH FROM (timestamp - prev_ts)) AS gap_seconds
+        FROM ordered
+        WHERE timestamp - prev_ts > interval '90 minutes'
+      )
+      SELECT
+        EXTRACT(EPOCH FROM interval '${iv}') AS "totalSeconds",
+        COALESCE(SUM(gap_seconds), 0) AS "downtimeSeconds",
+        COUNT(*) AS "downtimeEvents"
+      FROM gaps`,
+      [meterId],
+    );
+
+    const totalSeconds = Number(row.totalSeconds);
+    const downtimeSeconds = Number(row.downtimeSeconds);
+    const uptimePercent = totalSeconds > 0
+      ? Number((((totalSeconds - downtimeSeconds) / totalSeconds) * 100).toFixed(2))
+      : 0;
+
+    return {
+      period,
+      totalSeconds,
+      uptimeSeconds: totalSeconds - downtimeSeconds,
+      downtimeSeconds,
+      uptimePercent,
+      downtimeEvents: Number(row.downtimeEvents),
+    };
+  }
+
+  async getUptimeAll(meterId: string) {
+    const [daily, weekly, monthly] = await Promise.all([
+      this.getUptimeSummary(meterId, 'daily'),
+      this.getUptimeSummary(meterId, 'weekly'),
+      this.getUptimeSummary(meterId, 'monthly'),
+    ]);
+    return { daily, weekly, monthly };
+  }
+
   async findBuildingConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 

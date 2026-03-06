@@ -4,6 +4,8 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { MeterDetailSkeleton, ChartSkeleton } from '../../components/ui/Skeleton';
 import { StockChart } from '../../components/ui/StockChart';
 import { useMeter, useMeterReadings } from '../../hooks/queries/useMeters';
+import { UptimeBadges } from './components/UptimeBadges';
+import { DowntimeEventsTable } from './components/DowntimeEventsTable';
 import type { Reading } from '../../types';
 
 type Resolution = 'raw' | '15min' | 'hourly' | 'daily';
@@ -158,6 +160,7 @@ export function MeterDetailPage() {
             {meter.status}
           </span>
         </div>
+        <UptimeBadges meterId={meter.id} />
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
@@ -173,6 +176,7 @@ export function MeterDetailPage() {
             {is3P && <StockChart options={qualityChart} />}
           </>
         )}
+        <DowntimeEventsTable meterId={meter.id} />
       </div>
     </div>
   );

@@ -35,19 +35,21 @@ export class MetersService {
   async findReadings(
     meterId: string,
     resolution: 'raw' | 'hourly' | 'daily' = 'hourly',
+    from?: string,
+    to?: string,
   ) {
     if (resolution === 'raw') {
-      const rows = await this.readingRepo.find({
-        where: { meterId },
-        order: { timestamp: 'DESC' },
-        take: 2000,
-      });
+      const qb = this.readingRepo.createQueryBuilder('r')
+        .where('r.meter_id = :meterId', { meterId });
+      if (from) qb.andWhere('r.timestamp >= :from', { from });
+      if (to) qb.andWhere('r.timestamp <= :to', { to });
+      const rows = await qb.orderBy('r.timestamp', 'DESC').take(2000).getMany();
       return rows.reverse();
     }
 
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 
-    const rows = await this.readingRepo
+    const qb = this.readingRepo
       .createQueryBuilder('r')
       .select(`date_trunc('${trunc}', r.timestamp)`, 'timestamp')
       .addSelect('AVG(r.voltage_l1)', 'voltageL1')
@@ -64,7 +66,10 @@ export class MetersService {
       .addSelect('AVG(r.thd_voltage_pct)', 'thdVoltagePct')
       .addSelect('AVG(r.thd_current_pct)', 'thdCurrentPct')
       .addSelect('AVG(r.phase_imbalance_pct)', 'phaseImbalancePct')
-      .where('r.meter_id = :meterId', { meterId })
+      .where('r.meter_id = :meterId', { meterId });
+    if (from) qb.andWhere('r.timestamp >= :from', { from });
+    if (to) qb.andWhere('r.timestamp <= :to', { to });
+    const rows = await qb
       .groupBy('1')
       .orderBy('1', 'ASC')
       .getRawMany();
@@ -88,10 +93,10 @@ export class MetersService {
     }));
   }
 
-  async findBuildingConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly') {
+  async findBuildingConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 
-    const rows = await this.readingRepo
+    const qb = this.readingRepo
       .createQueryBuilder('r')
       .select(`date_trunc('${trunc}', r.timestamp)`, 'timestamp')
       .addSelect('SUM(r.power_kw)', 'totalPowerKw')
@@ -99,7 +104,10 @@ export class MetersService {
       .addSelect('MAX(r.power_kw)', 'peakPowerKw')
       .addSelect('COUNT(*)', 'readings')
       .innerJoin('r.meter', 'm')
-      .where('m.building_id = :buildingId', { buildingId })
+      .where('m.building_id = :buildingId', { buildingId });
+    if (from) qb.andWhere('r.timestamp >= :from', { from });
+    if (to) qb.andWhere('r.timestamp <= :to', { to });
+    const rows = await qb
       .groupBy('1')
       .orderBy('1', 'ASC')
       .getRawMany();

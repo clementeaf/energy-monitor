@@ -39,11 +39,15 @@ export class BuildingsController {
   @ApiOperation({ summary: 'Consumo agregado de un edificio', description: 'Retorna serie temporal con potencia total, promedio y pico por intervalo.' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })
+  @ApiQuery({ name: 'from', required: false, description: 'Inicio del rango (ISO 8601)', example: '2026-01-01T00:00:00Z' })
+  @ApiQuery({ name: 'to', required: false, description: 'Fin del rango (ISO 8601)', example: '2026-03-06T23:59:59Z' })
   @ApiOkResponse({ type: [ConsumptionPointDto] })
   findConsumption(
     @Param('id') id: string,
     @Query('resolution') resolution?: 'hourly' | 'daily',
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.buildingsService.findConsumption(id, resolution ?? 'hourly');
+    return this.buildingsService.findConsumption(id, resolution ?? 'hourly', from, to);
   }
 }

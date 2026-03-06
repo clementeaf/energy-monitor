@@ -9,8 +9,8 @@ export const fetchBuildings = () =>
 export const fetchBuilding = (id: string) =>
   api.get<Building>(routes.getBuilding(id)).then((r) => r.data);
 
-export const fetchBuildingConsumption = (buildingId: string, resolution: 'hourly' | 'daily' = 'hourly') =>
-  api.get<ConsumptionPoint[]>(routes.getBuildingConsumption(buildingId), { params: { resolution } }).then((r) => r.data);
+export const fetchBuildingConsumption = (buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
+  api.get<ConsumptionPoint[]>(routes.getBuildingConsumption(buildingId), { params: { resolution, from, to } }).then((r) => r.data);
 
 export const fetchMetersByBuilding = (buildingId: string) =>
   api.get<Meter[]>(routes.getBuildingMeters(buildingId)).then((r) => r.data);
@@ -18,8 +18,8 @@ export const fetchMetersByBuilding = (buildingId: string) =>
 export const fetchMeter = (meterId: string) =>
   api.get<Meter>(routes.getMeter(meterId)).then((r) => r.data);
 
-export const fetchMeterReadings = (meterId: string, resolution: 'raw' | 'hourly' | 'daily' = 'hourly') =>
-  api.get<Reading[]>(routes.getMeterReadings(meterId), { params: { resolution } }).then((r) => r.data);
+export const fetchMeterReadings = (meterId: string, resolution: 'raw' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
+  api.get<Reading[]>(routes.getMeterReadings(meterId), { params: { resolution, from, to } }).then((r) => r.data);
 
 // Auth
 export const fetchMe = () =>

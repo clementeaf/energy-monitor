@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0-alpha.2] - 2026-03-06
+
+### Added
+
+- **Highcharts Stock Navigator**: nuevo componente `StockChart.tsx` usando `highcharts/highstock` — gráfico detallado arriba + mini-chart con handles arrastrables abajo para seleccionar rango temporal
+  - Range Selector con botones rápidos: 1d, 1s, 1m, Todo
+  - Dark theme con navigator estilizado (mask fill azul, handles azules, scrollbar deshabilitado)
+- **Filtrado temporal from/to**: endpoints `GET /meters/:id/readings` y `GET /buildings/:id/consumption` ahora aceptan parámetros opcionales `from` y `to` (ISO 8601) para limitar el rango de datos retornado
+
+### Changed
+
+- `BuildingConsumptionChart.tsx`: migrado de `Chart` a `StockChart` con navigator
+- `MeterDetailPage.tsx`: gráficos de potencia y voltaje migrados a `StockChart`
+- `meters.service.ts`: `findReadings()` y `findBuildingConsumption()` filtran por `from`/`to` via QueryBuilder
+- `buildings.service.ts`: `findConsumption()` pasa `from`/`to` al service
+- `endpoints.ts`: `fetchBuildingConsumption` y `fetchMeterReadings` aceptan `from`/`to`
+
+---
+
 ## [0.7.0-alpha.1] - 2026-03-06
 
 ### Added

@@ -1,4 +1,4 @@
-import { Chart } from '../../../components/ui/Chart';
+import { StockChart } from '../../../components/ui/StockChart';
 import type { ConsumptionPoint } from '../../../types';
 
 interface Props {
@@ -7,12 +7,7 @@ interface Props {
 
 export function BuildingConsumptionChart({ data }: Props) {
   const options: Highcharts.Options = {
-    chart: { type: 'area', zooming: { type: 'x' } },
     title: { text: 'Potencia Total del Edificio' },
-    xAxis: {
-      type: 'datetime',
-      title: { text: '' },
-    },
     yAxis: { title: { text: 'kW' }, min: 0 },
     series: [
       {
@@ -42,5 +37,5 @@ export function BuildingConsumptionChart({ data }: Props) {
     },
   };
 
-  return <Chart options={options} />;
+  return <StockChart options={options} />;
 }

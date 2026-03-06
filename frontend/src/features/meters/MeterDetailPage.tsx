@@ -1,6 +1,6 @@
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { Chart } from '../../components/ui/Chart';
+import { StockChart } from '../../components/ui/StockChart';
 import { useMeter, useMeterReadings } from '../../hooks/queries/useMeters';
 
 export function MeterDetailPage() {
@@ -12,12 +12,7 @@ export function MeterDetailPage() {
   if (!meter) return <p className="text-subtle">Medidor no encontrado</p>;
 
   const chartOptions: Highcharts.Options = {
-    chart: { type: 'line' },
     title: { text: 'Potencia (kW)' },
-    xAxis: {
-      type: 'datetime',
-      title: { text: '' },
-    },
     yAxis: { title: { text: 'kW' } },
     series: [
       {
@@ -32,9 +27,7 @@ export function MeterDetailPage() {
   };
 
   const voltageOptions: Highcharts.Options = {
-    chart: { type: 'line' },
     title: { text: 'Voltaje (V)' },
-    xAxis: { type: 'datetime', title: { text: '' } },
     yAxis: { title: { text: 'V' } },
     series: [
       { name: 'L1', type: 'line', data: readings?.map((r) => [new Date(r.timestamp).getTime(), r.voltageL1]) ?? [] },
@@ -76,8 +69,8 @@ export function MeterDetailPage() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
-        <Chart options={chartOptions} />
-        {meter.phaseType === '3P' && <Chart options={voltageOptions} />}
+        <StockChart options={chartOptions} />
+        {meter.phaseType === '3P' && <StockChart options={voltageOptions} />}
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export function UptimeBadges({ meterId }: { meterId: string }) {
   if (!data) return null;
 
   return (
-    <div className="flex gap-3">
+    <div className="mb-3 flex gap-3">
       <Badge label="24h" summary={data.daily} />
       <Badge label="7d" summary={data.weekly} />
       <Badge label="30d" summary={data.monthly} />

@@ -71,7 +71,7 @@ export function MeterDetailPage() {
     setResolution(pickResolution(max - min));
   }, []);
 
-  const { data: readings, isLoading: loadingReadings } = useMeterReadings(meterId!, resolution);
+  const { data: readings, isLoading: loadingReadings, isFetching: fetchingReadings } = useMeterReadings(meterId!, resolution);
 
   const alarmRange = useMemo(() => {
     const to = new Date().toISOString();
@@ -219,12 +219,12 @@ export function MeterDetailPage() {
           Array.from({ length: skeletonCount }).map((_, i) => <ChartSkeleton key={i} />)
         ) : (
           <>
-            <StockChart options={powerChart} onRangeChange={handleRangeChange} />
-            <StockChart options={voltageChart} />
-            <StockChart options={currentChart} />
-            <StockChart options={pfFreqChart} />
-            <StockChart options={energyChart} />
-            {is3P && <StockChart options={qualityChart} />}
+            <StockChart options={powerChart} loading={fetchingReadings} onRangeChange={handleRangeChange} />
+            <StockChart options={voltageChart} loading={fetchingReadings} />
+            <StockChart options={currentChart} loading={fetchingReadings} />
+            <StockChart options={pfFreqChart} loading={fetchingReadings} />
+            <StockChart options={energyChart} loading={fetchingReadings} />
+            {is3P && <StockChart options={qualityChart} loading={fetchingReadings} />}
           </>
         )}
         <DowntimeEventsTable meterId={meter.id} />

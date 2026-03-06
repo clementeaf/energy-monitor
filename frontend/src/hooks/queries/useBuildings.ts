@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchBuildings, fetchBuilding, fetchBuildingConsumption } from '../../services/endpoints';
 
 export function useBuildings() {
@@ -19,5 +19,6 @@ export function useBuildingConsumption(buildingId: string, resolution: '15min' |
   return useQuery({
     queryKey: ['buildingConsumption', buildingId, resolution],
     queryFn: () => fetchBuildingConsumption(buildingId, resolution),
+    placeholderData: keepPreviousData,
   });
 }

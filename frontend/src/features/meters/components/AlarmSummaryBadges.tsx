@@ -34,7 +34,7 @@ export function AlarmSummaryBadges({ meterId }: { meterId: string }) {
   if (!data || data.total === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="mb-3 flex flex-wrap gap-2">
       {data.byType.map((item) => {
         const meta = ALARM_META[item.alarm] ?? { label: item.alarm, color: 'bg-gray-500/20 text-gray-400' };
         return (

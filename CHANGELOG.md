@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.3] - 2026-03-06
+
+### Changed
+
+- **Loading state en charts al cambiar zoom** — Al cambiar resolución (ej. Todo→1D), el gráfico anterior permanece visible con un spinner overlay semitransparente en vez de desaparecer y mostrar un skeleton vacío
+  - `keepPreviousData` en `useBuildingConsumption` y `useMeterReadings` (TanStack Query)
+  - Prop `loading` en `StockChart` con overlay spinner animado
+- **Separación visual de badges** — `UptimeBadges` y `AlarmSummaryBadges` ahora tienen margen inferior (`mb-3`) para no pegarse al primer gráfico
+
+---
+
 ## [0.9.0-alpha.2] - 2026-03-06
 
 ### Added

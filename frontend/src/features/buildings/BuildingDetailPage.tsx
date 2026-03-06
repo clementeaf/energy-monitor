@@ -24,7 +24,7 @@ export function BuildingDetailPage() {
     setResolution(pickResolution(max - min));
   }, []);
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
-  const { data: consumption, isLoading: loadingConsumption } = useBuildingConsumption(id!, resolution);
+  const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
 
   if (loadingBuilding) return <BuildingDetailSkeleton />;
@@ -53,7 +53,7 @@ export function BuildingDetailPage() {
       </div>
 
       <div className="shrink-0">
-        {loadingConsumption ? <ChartSkeleton /> : consumption && <BuildingConsumptionChart data={consumption} onRangeChange={handleRangeChange} />}
+        {loadingConsumption ? <ChartSkeleton /> : consumption && <BuildingConsumptionChart data={consumption} loading={fetchingConsumption} onRangeChange={handleRangeChange} />}
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">

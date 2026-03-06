@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchMetersOverview, fetchMetersByBuilding, fetchMeter, fetchMeterReadings, fetchMeterUptime, fetchMeterDowntimeEvents, fetchMeterAlarmEvents, fetchMeterAlarmSummary } from '../../services/endpoints';
 
 export function useMetersOverview() {
@@ -32,6 +32,7 @@ export function useMeterReadings(
   return useQuery({
     queryKey: ['readings', meterId, resolution, from, to],
     queryFn: () => fetchMeterReadings(meterId, resolution, from, to),
+    placeholderData: keepPreviousData,
   });
 }
 

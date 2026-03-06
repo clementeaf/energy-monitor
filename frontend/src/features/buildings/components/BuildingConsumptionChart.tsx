@@ -3,10 +3,11 @@ import type { ConsumptionPoint } from '../../../types';
 
 interface Props {
   data: ConsumptionPoint[];
+  loading?: boolean;
   onRangeChange?: (min: number, max: number) => void;
 }
 
-export function BuildingConsumptionChart({ data, onRangeChange }: Props) {
+export function BuildingConsumptionChart({ data, loading, onRangeChange }: Props) {
   const options: Highcharts.Options = {
     title: { text: 'Potencia Total del Edificio' },
     yAxis: { title: { text: 'kW' }, min: 0 },
@@ -38,5 +39,5 @@ export function BuildingConsumptionChart({ data, onRangeChange }: Props) {
     },
   };
 
-  return <StockChart options={options} onRangeChange={onRangeChange} />;
+  return <StockChart options={options} loading={loading} onRangeChange={onRangeChange} />;
 }

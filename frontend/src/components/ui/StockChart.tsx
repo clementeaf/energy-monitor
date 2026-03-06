@@ -75,10 +75,11 @@ const darkTheme: Highcharts.Options = {
 interface StockChartProps {
   options: Highcharts.Options;
   className?: string;
+  loading?: boolean;
   onRangeChange?: (min: number, max: number) => void;
 }
 
-export function StockChart({ options, className = '', onRangeChange }: StockChartProps) {
+export function StockChart({ options, className = '', loading, onRangeChange }: StockChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
   const initialSelected = useRef<number | undefined>(2); // 1M on first render only
 
@@ -131,13 +132,18 @@ export function StockChart({ options, className = '', onRangeChange }: StockChar
   };
 
   return (
-    <div className={`overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`}>
       <HighchartsReact
         ref={chartRef}
         highcharts={Highcharts}
         constructorType="stockChart"
         options={merged}
       />
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-base/50">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        </div>
+      )}
     </div>
   );
 }

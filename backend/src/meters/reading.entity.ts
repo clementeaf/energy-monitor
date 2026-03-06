@@ -72,6 +72,34 @@ export class Reading {
   @Column({ name: 'phase_imbalance_pct', type: 'numeric', precision: 5, scale: 2, nullable: true })
   phaseImbalancePct!: number | null;
 
+  @ApiProperty({ example: 'closed', nullable: true })
+  @Column({ name: 'breaker_status', type: 'varchar', length: 10, nullable: true })
+  breakerStatus!: string | null;
+
+  @ApiProperty({ example: 0, nullable: true })
+  @Column({ name: 'digital_input_1', type: 'smallint', nullable: true })
+  digitalInput1!: number | null;
+
+  @ApiProperty({ example: 0, nullable: true })
+  @Column({ name: 'digital_input_2', type: 'smallint', nullable: true })
+  digitalInput2!: number | null;
+
+  @ApiProperty({ example: 0, nullable: true })
+  @Column({ name: 'digital_output_1', type: 'smallint', nullable: true })
+  digitalOutput1!: number | null;
+
+  @ApiProperty({ example: 0, nullable: true })
+  @Column({ name: 'digital_output_2', type: 'smallint', nullable: true })
+  digitalOutput2!: number | null;
+
+  @ApiProperty({ example: 'none', nullable: true })
+  @Column({ name: 'alarm', type: 'varchar', length: 50, nullable: true })
+  alarm!: string | null;
+
+  @ApiProperty({ example: 0, nullable: true })
+  @Column({ name: 'modbus_crc_errors', type: 'integer', nullable: true })
+  modbusCrcErrors!: number | null;
+
   @ManyToOne(() => Meter)
   @JoinColumn({ name: 'meter_id' })
   meter!: Meter;

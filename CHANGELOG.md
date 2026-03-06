@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0-alpha.5] - 2026-03-06
+
+### Added
+
+- **7 columnas faltantes en readings** — Agregadas `breaker_status`, `digital_input_1/2`, `digital_output_1/2`, `alarm`, `modbus_crc_errors` a la tabla `readings` (21/21 columnas del CSV)
+  - SQL migration, backend entity, frontend types, import script actualizados
+  - Re-importación completa: 86,104 filas con las 21 columnas
+
+### Changed
+
+- **Generador sintético basado en perfiles reales** — Reemplazado `Math.random()` con rangos inventados por distribución normal (Box-Muller) usando media + desviación estándar por medidor, por hora, extraídos del CSV histórico (13 campos × 15 medidores × 24 horas)
+  - Perfiles embebidos como `profiles.json` (58KB) en la Lambda
+  - Datos sintéticos regenerados: 4,065 readings "alucinadas" eliminadas, 1,650 nuevas con patrones estadísticos reales
+
+---
+
 ## [0.8.0-alpha.4] - 2026-03-06
 
 ### Added

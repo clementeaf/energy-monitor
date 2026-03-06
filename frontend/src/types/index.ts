@@ -34,6 +34,13 @@ export interface Reading {
   thdVoltagePct: number | null;
   thdCurrentPct: number | null;
   phaseImbalancePct: number | null;
+  breakerStatus: string | null;
+  digitalInput1: number | null;
+  digitalInput2: number | null;
+  digitalOutput1: number | null;
+  digitalOutput2: number | null;
+  alarm: string | null;
+  modbusCrcErrors: number | null;
 }
 
 export interface ConsumptionPoint {

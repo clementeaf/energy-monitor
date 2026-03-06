@@ -49,7 +49,14 @@ CREATE TABLE IF NOT EXISTS readings (
   energy_kwh_total      NUMERIC(14,3)  NOT NULL,
   thd_voltage_pct       NUMERIC(5,2),
   thd_current_pct       NUMERIC(5,2),
-  phase_imbalance_pct   NUMERIC(5,2)
+  phase_imbalance_pct   NUMERIC(5,2),
+  breaker_status        VARCHAR(10),
+  digital_input_1       SMALLINT,
+  digital_input_2       SMALLINT,
+  digital_output_1      SMALLINT,
+  digital_output_2      SMALLINT,
+  alarm                 VARCHAR(50),
+  modbus_crc_errors     INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS idx_readings_meter_ts ON readings(meter_id, timestamp);

@@ -1,8 +1,43 @@
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import pg from 'pg';
 const { Client } = pg;
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Statistical profiles extracted from historical CSV data.
+ * Per meter → per hour → { field: [mean, std] }
+ * Fields: vL1, vL2, vL3, iL1, iL2, iL3, pKw, qKvar, pf, freq, thdV, thdI, phImb
+ */
+const PROFILES = JSON.parse(
+  readFileSync(join(__dirname, 'profiles.json'), 'utf-8'),
+);
+
+/** Normal-distributed random using Box-Muller transform */
+function randNormal(mean, std) {
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  return mean + z * std;
+}
+
+/** Sample a value from the profile, clamping to reasonable bounds */
+function sample(profile, field, fallback = null) {
+  if (!profile || !profile[field]) return fallback;
+  const [mean, std] = profile[field];
+  return randNormal(mean, std);
+}
+
+/** Round to 3 decimals, preserve null */
+function r(v) {
+  return v == null ? null : Math.round(v * 1000) / 1000;
+}
+
 /**
  * Synthetic readings generator — inserts 1 reading per meter every invocation.
+ * Uses real statistical profiles (mean + stdev per meter per hour) from historical data.
  * Designed to run every 1 minute via EventBridge.
  * TEMPORARY: replace with real MQTT → Lambda → RDS pipeline.
  */
@@ -19,15 +54,13 @@ export const handler = async () => {
   await client.connect();
 
   try {
-    // 1. Get all meters with their last reading
+    // 1. Get all meters with their last energy reading
     const { rows: meters } = await client.query(`
       SELECT m.id, m.phase_type,
-             r.power_kw AS last_power,
-             r.energy_kwh_total AS last_energy,
-             r.voltage_l1 AS last_v1
+             r.energy_kwh_total AS last_energy
       FROM meters m
       LEFT JOIN LATERAL (
-        SELECT power_kw, energy_kwh_total, voltage_l1
+        SELECT energy_kwh_total
         FROM readings
         WHERE meter_id = m.id
         ORDER BY timestamp DESC
@@ -39,11 +72,9 @@ export const handler = async () => {
       return { inserted: 0 };
     }
 
-    // 2. Generate synthetic readings
+    // 2. Generate readings using statistical profiles
     const now = new Date();
     const hour = now.getUTCHours();
-    const isDay = hour >= 8 && hour <= 20;
-    const timeFactor = isDay ? 1.0 + 0.2 * Math.sin(Math.PI * (hour - 8) / 12) : 0.65;
 
     const values = [];
     const params = [];
@@ -51,52 +82,43 @@ export const handler = async () => {
 
     for (const m of meters) {
       const is3P = m.phase_type === '3P';
+      const meterProfile = PROFILES[m.id];
+      const hourProfile = meterProfile ? meterProfile[String(hour)] : null;
 
-      // Power: use fixed base range matching historical data, NOT last reading
-      // Historical data shows: 3P meters ~2-3 kW, 1P meters ~0.5-1.2 kW
-      const nominalPower = is3P ? 2.5 : 0.85;
-      const basePower = nominalPower * timeFactor;
-      const power = Math.max(0.05, basePower * (0.90 + Math.random() * 0.20));
+      // Sample from statistical profile
+      const vL1 = sample(hourProfile, 'vL1', 230);
+      const vL2 = is3P ? sample(hourProfile, 'vL2', 230) : null;
+      const vL3 = is3P ? sample(hourProfile, 'vL3', 230) : null;
 
-      // Energy: accumulate (1 minute = 1/60 hour)
+      const iL1 = Math.max(0, sample(hourProfile, 'iL1', 5));
+      const iL2 = is3P ? Math.max(0, sample(hourProfile, 'iL2', 5)) : null;
+      const iL3 = is3P ? Math.max(0, sample(hourProfile, 'iL3', 5)) : null;
+
+      const power = Math.max(0.01, sample(hourProfile, 'pKw', 1));
+      const reactive = Math.max(0, sample(hourProfile, 'qKvar', 0.5));
+
+      // PF: clamp to [0.7, 1.0]
+      const pf = Math.min(1.0, Math.max(0.7, sample(hourProfile, 'pf', 0.92)));
+
+      // Frequency: clamp to [49.8, 50.2]
+      const freq = Math.min(50.2, Math.max(49.8, sample(hourProfile, 'freq', 50)));
+
+      // Energy: accumulate from last reading (1 min = 1/60 hour)
       const lastEnergy = m.last_energy != null ? Number(m.last_energy) : 1000;
       const energy = lastEnergy + power / 60;
 
-      // Voltage: 228-232V with small noise
-      const v1 = 229.5 + (Math.random() - 0.5) * 4;
-      const v2 = is3P ? 229.5 + (Math.random() - 0.5) * 4 : null;
-      const v3 = is3P ? 229.5 + (Math.random() - 0.5) * 4 : null;
-
-      // Current: derived from power (I = P*1000 / (V * PF * sqrt(3) for 3P, or V * PF for 1P))
-      const pf = 0.87 + Math.random() * 0.12;
-      const i1 = is3P
-        ? (power * 1000) / (v1 * pf * 1.732) / 3
-        : (power * 1000) / (v1 * pf);
-      const i2 = is3P ? i1 * (0.95 + Math.random() * 0.1) : null;
-      const i3 = is3P ? i1 * (0.95 + Math.random() * 0.1) : null;
-
-      // Reactive power
-      const reactive = power * Math.tan(Math.acos(pf));
-
-      // Frequency: 49.95-50.05
-      const freq = 49.97 + Math.random() * 0.06;
-
-      // THD and phase imbalance (occasional non-null for 3P)
-      const thdV = is3P && Math.random() > 0.3 ? 1.5 + Math.random() * 3 : null;
-      const thdI = is3P && Math.random() > 0.3 ? 3 + Math.random() * 8 : null;
-      const phaseImb = is3P ? Math.abs(v1 - (v2 || v1)) / v1 * 100 : null;
+      // THD and phase imbalance (3P only, may be null in profile)
+      const thdV = is3P ? sample(hourProfile, 'thdV', null) : null;
+      const thdI = is3P ? sample(hourProfile, 'thdI', null) : null;
+      const phImb = is3P ? sample(hourProfile, 'phImb', null) : null;
 
       const row = [
-        m.id,                          // meter_id
-        now.toISOString(),             // timestamp
-        r(v1), r(v2), r(v3),          // voltage L1/L2/L3
-        r(i1), r(i2), r(i3),          // current L1/L2/L3
-        r(power),                      // power_kw
-        r(reactive),                   // reactive_power_kvar
-        r(pf),                         // power_factor
-        r(freq),                       // frequency_hz
-        r(energy),                     // energy_kwh_total
-        r(thdV), r(thdI), r(phaseImb), // thd_v, thd_i, phase_imbalance
+        m.id, now.toISOString(),
+        r(vL1), r(vL2), r(vL3),
+        r(iL1), r(iL2), r(iL3),
+        r(power), r(reactive), r(pf), r(freq),
+        r(energy),
+        r(thdV), r(thdI), r(phImb),
       ];
 
       const placeholders = row.map(() => `$${paramIdx++}`);
@@ -125,8 +147,3 @@ export const handler = async () => {
     await client.end();
   }
 };
-
-/** Round to 3 decimals, preserve null */
-function r(v) {
-  return v == null ? null : Math.round(v * 1000) / 1000;
-}

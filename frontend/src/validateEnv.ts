@@ -1,4 +1,4 @@
-const VALID_AUTH_MODES = ['microsoft', 'google', 'demo'] as const;
+const VALID_AUTH_MODES = ['microsoft', 'google'] as const;
 
 export function validateEnv() {
   const mode = import.meta.env.VITE_AUTH_MODE;

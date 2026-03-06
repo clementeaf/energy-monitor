@@ -1,4 +1,4 @@
-export type AuthProvider = 'microsoft' | 'google' | 'demo';
+export type AuthProvider = 'microsoft' | 'google';
 
 export type Role =
   | 'SUPER_ADMIN'

@@ -4,6 +4,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import serverlessExpress from '@vendia/serverless-express';
 import express from 'express';
 import { AppModule } from './app.module';
+import { setupSwagger } from './swagger';
 import type { Callback, Context, Handler } from 'aws-lambda';
 
 let cachedServer: Handler;
@@ -20,6 +21,8 @@ async function bootstrap() {
     corsOrigins.push('http://localhost:5173');
   }
   app.enableCors({ origin: corsOrigins, credentials: true });
+
+  setupSwagger(app);
 
   await app.init();
   return serverlessExpress({ app: expressApp });

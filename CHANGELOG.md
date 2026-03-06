@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.7.0-alpha.1] - 2026-03-06
+
+### Added
+
+- **Synthetic data generator** (`infra/synthetic-generator/`): Lambda standalone que inserta 15 readings (1 por medidor) cada 1 minuto con `timestamp = NOW()` y valores realistas (variación ±10%, factor hora del día, energía acumulativa)
+  - `index.mjs`: handler Lambda con LATERAL JOIN para leer última lectura + batch INSERT
+  - `package.json`: dependencia `pg`
+  - `teardown.sh`: script para eliminar Lambda + EventBridge rule
+  - `.gitignore`: excluye `node_modules/`
+- **EventBridge rule** `synthetic-readings-every-1min`: dispara la Lambda cada 1 minuto
+- **Swagger / OpenAPI** (`@nestjs/swagger`): documentación interactiva del API
+  - `swagger.ts`: setup centralizado (título, versión, Bearer auth)
+  - Swagger UI disponible en `/api/docs`
+  - `@ApiTags`, `@ApiOperation`, `@ApiParam`, `@ApiQuery`, `@ApiOkResponse` en los 3 controllers
+  - `@ApiProperty` con ejemplos en entities: Building, Meter, Reading
+  - DTOs de respuesta: `MeResponseDto`, `PermissionsResponseDto`, `BuildingSummaryDto`, `ConsumptionPointDto`
+
+### Changed
+
+- **Dynamic meter status**: `meters.service.ts` calcula `online`/`offline` según `lastReadingAt` (< 5 min = online) en vez de usar el valor estático de la DB
+- **Raw readings query**: cambiado de `ORDER BY timestamp ASC LIMIT 2000` (más viejas) a `DESC LIMIT 2000 + reverse` (más recientes)
+- **serverless.ts**: incluye `setupSwagger(app)` para que Swagger funcione en Lambda
+
+### Removed
+
+- **Frontend mocks eliminados**: `src/mocks/` (5 archivos), `useDemoAuth.ts`, `DemoRoleSelector.tsx`
+- **Demo mode**: removido `'demo'` de `AuthProvider`, `VITE_AUTH_MODE`, `validateEnv`, `LoginPage`, `useAuth`
+- Mock interceptor ya no intercepta rutas de datos — frontend consume API real directamente
+
+### Infrastructure
+
+| Recurso | Valor |
+|---|---|
+| Lambda (synthetic) | `synthetic-readings-generator` (Node 20, 128MB, 15s timeout) |
+| EventBridge | `synthetic-readings-every-1min` (rate: 1 minute) |
+| Costo estimado | ~$0.01/mes (free tier) |
+
+---
+
 ## [0.6.0-alpha.1] - 2026-03-05
 
 ### Breaking — Schema migration: locals → meters/readings

@@ -3,7 +3,6 @@ import { Navigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { MicrosoftLoginButton } from './components/MicrosoftLoginButton';
 import { GoogleLoginButton } from './components/GoogleLoginButton';
-import { DemoRoleSelector } from './components/DemoRoleSelector';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading, error, loginGoogle } = useAuth();
@@ -51,18 +50,6 @@ export function LoginPage() {
           {/* Loading */}
           {isLoading && (
             <p className="mt-3 text-center text-xs text-subtle">Conectando...</p>
-          )}
-
-          {/* Demo mode */}
-          {import.meta.env.VITE_AUTH_MODE === 'demo' && (
-            <>
-              <div className="my-5 flex items-center gap-3">
-                <div className="flex-1 border-t border-border" />
-                <span className="text-xs text-subtle">o modo demo</span>
-                <div className="flex-1 border-t border-border" />
-              </div>
-              <DemoRoleSelector />
-            </>
           )}
         </div>
       </div>

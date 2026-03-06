@@ -14,11 +14,22 @@ export class MetersService {
   ) {}
 
   async findByBuilding(buildingId: string) {
-    return this.meterRepo.find({ where: { buildingId }, order: { id: 'ASC' } });
+    const meters = await this.meterRepo.find({ where: { buildingId }, order: { id: 'ASC' } });
+    return meters.map((m) => this.withLiveStatus(m));
   }
 
   async findOne(id: string) {
-    return this.meterRepo.findOne({ where: { id } });
+    const meter = await this.meterRepo.findOne({ where: { id } });
+    return meter ? this.withLiveStatus(meter) : null;
+  }
+
+  /** Derive status from lastReadingAt: online if < 5 min ago */
+  private withLiveStatus(m: Meter) {
+    if (m.lastReadingAt) {
+      const age = Date.now() - new Date(m.lastReadingAt).getTime();
+      m.status = age < 5 * 60 * 1000 ? 'online' : 'offline';
+    }
+    return m;
   }
 
   async findReadings(
@@ -26,11 +37,12 @@ export class MetersService {
     resolution: 'raw' | 'hourly' | 'daily' = 'hourly',
   ) {
     if (resolution === 'raw') {
-      return this.readingRepo.find({
+      const rows = await this.readingRepo.find({
         where: { meterId },
-        order: { timestamp: 'ASC' },
+        order: { timestamp: 'DESC' },
         take: 2000,
       });
+      return rows.reverse();
     }
 
     const trunc = resolution === 'daily' ? 'day' : 'hour';

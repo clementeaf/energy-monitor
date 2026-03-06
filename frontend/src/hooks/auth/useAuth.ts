@@ -2,11 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { useGoogleAuth } from './useGoogleAuth';
-import { useDemoAuth } from './useDemoAuth';
 import { fetchMe } from '../../services/endpoints';
 import type { AuthUser } from '../../types/auth';
-
-const isDemoMode = import.meta.env.VITE_AUTH_MODE === 'demo';
 
 async function resolveBackendUser(
   setUser: (user: AuthUser) => void,
@@ -36,7 +33,6 @@ async function resolveBackendUser(
 export function useAuth() {
   const microsoft = useMicrosoftAuth();
   const google = useGoogleAuth();
-  const demo = useDemoAuth();
   const store = useAuthStore();
   const resolving = useRef(false);
 
@@ -48,13 +44,6 @@ export function useAuth() {
     if (!microsoft.isAuthenticated || !microsoft.user) return;
 
     resolving.current = true;
-
-    if (isDemoMode) {
-      store.setUser(microsoft.user);
-      resolving.current = false;
-      return;
-    }
-
     store.setLoading(true);
     microsoft.acquireTokenSilently().then((idToken) => {
       if (idToken) {
@@ -81,9 +70,7 @@ export function useAuth() {
       if (credential) {
         google.onGoogleSuccess(credential);
       }
-      if (!isDemoMode) {
-        await resolveBackendUser(store.setUser, store.setError, store.clearUser);
-      }
+      await resolveBackendUser(store.setUser, store.setError, store.clearUser);
     } catch (err) {
       store.setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
     } finally {
@@ -113,7 +100,6 @@ export function useAuth() {
       error: store.error,
       login: loginMicrosoft,
       loginGoogle,
-      loginDemo: demo.login,
       logout: handleLogout,
     };
   }
@@ -125,7 +111,6 @@ export function useAuth() {
     error: store.error,
     login: loginMicrosoft,
     loginGoogle,
-    loginDemo: demo.login,
     logout: handleLogout,
   };
 }

@@ -1,6 +1,5 @@
 // Auth
 export { useAuth } from './auth/useAuth';
-export { useDemoAuth } from './auth/useDemoAuth';
 export { useMicrosoftAuth } from './auth/useMicrosoftAuth';
 export { useGoogleAuth } from './auth/useGoogleAuth';
 

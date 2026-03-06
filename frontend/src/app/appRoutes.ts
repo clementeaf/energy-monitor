@@ -30,6 +30,12 @@ export const appRoutes = {
     label: 'Detalle Medidor',
     allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
   },
+  iotDevices: {
+    path: '/iot-devices',
+    label: 'Dispositivos',
+    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
+    showInNav: true,
+  },
   drilldown: {
     path: '/monitoring/drilldown/:buildingId',
     label: 'Drill-down',

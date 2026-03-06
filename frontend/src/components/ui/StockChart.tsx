@@ -26,7 +26,7 @@ const darkTheme: Highcharts.Options = {
     height: 380,
   },
   title: { style: { color: '#e6edf3', fontSize: '14px', fontWeight: 'bold' } },
-  xAxis: { lineColor: '#30363d', tickColor: '#30363d', labels: { style: { color: '#8b949e', fontSize: '11px' } } },
+  xAxis: { lineColor: '#30363d', tickColor: '#30363d', labels: { style: { color: '#8b949e', fontSize: '11px' } }, minRange: 3600000 },
   yAxis: { gridLineColor: '#1e2530', labels: { style: { color: '#8b949e', fontSize: '11px' } }, title: { style: { color: '#6e7681', fontSize: '11px' } } },
   legend: { enabled: true, itemStyle: { color: '#8b949e', fontSize: '11px' }, itemHoverStyle: { color: '#e6edf3' }, itemHiddenStyle: { color: '#484f58' } },
   tooltip: { backgroundColor: '#1e2530', borderColor: '#30363d', style: { color: '#e6edf3' } },
@@ -67,7 +67,8 @@ const darkTheme: Highcharts.Options = {
       { type: 'month', count: 1, text: '1M' },
       { type: 'all', text: 'Todo' },
     ],
-    selected: 2,
+    // NOTE: `selected` is NOT here — it's managed per-instance via initialSelected ref
+    // to prevent chart.update() from resetting the user's zoom on every re-render
   },
 };
 
@@ -79,6 +80,7 @@ interface StockChartProps {
 
 export function StockChart({ options, className = '', onRangeChange }: StockChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
+  const initialSelected = useRef<number | undefined>(2); // 1M on first render only
 
   const xAxisWithEvent = {
     ...darkTheme.xAxis as object,
@@ -99,6 +101,15 @@ export function StockChart({ options, className = '', onRangeChange }: StockChar
     ? options.yAxis.map((ax) => ({ ...themeY, ...ax }))
     : { ...themeY, ...options.yAxis as object };
 
+  // Build rangeSelector: include `selected` only on initial render
+  const rangeSelector = {
+    ...darkTheme.rangeSelector as object,
+    ...options.rangeSelector as object,
+    ...(initialSelected.current != null ? { selected: initialSelected.current } : {}),
+  };
+  // Clear after first use so chart.update() won't reset the user's zoom
+  if (initialSelected.current != null) initialSelected.current = undefined;
+
   const merged: Highcharts.Options = {
     ...darkTheme,
     ...options,
@@ -108,7 +119,7 @@ export function StockChart({ options, className = '', onRangeChange }: StockChar
     yAxis: mergedYAxis,
     tooltip: { ...darkTheme.tooltip, ...options.tooltip },
     navigator: { ...darkTheme.navigator as object, ...options.navigator as object },
-    rangeSelector: { ...darkTheme.rangeSelector as object, ...options.rangeSelector as object },
+    rangeSelector,
     plotOptions: {
       ...darkTheme.plotOptions,
       ...options.plotOptions,

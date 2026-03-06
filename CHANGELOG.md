@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.0-alpha.2] - 2026-03-06
+
+### Added
+
+- **Página Estado de Dispositivos IoT** (`/iot-devices`) — vista global de todos los medidores con status, uptime y alarmas
+  - Backend: `GET /meters/overview` — query eficiente con LATERAL JOIN para uptime 24h y subquery para alarmas 30d (sin N+1)
+  - Frontend: `IoTDevicesPage` con DataTable (TanStack Table), 8 columnas: Medidor, Edificio, Modelo, Fase, Estado (badge), Última Lectura (relativo), Uptime 24h (coloreado), Alarmas 30d (badge)
+  - Resumen: badges Total/Online/Offline en header
+  - Click en fila navega a `/meters/:id`
+  - Sorting por cualquier columna
+  - Nuevo item "Dispositivos" en sidebar (visible para todos los roles)
+
+### Fixed
+
+- **Zoom "Todo" → "1D" bloqueado** — Highcharts auto-calculaba `minRange` basado en densidad de datos diarios, impidiendo zoom a rangos <1 día. Fix: `minRange: 3600000` (1 hora) explícito en xAxis
+- **`rangeSelector.selected` reseteaba zoom en re-render** — Removido `selected` del theme global. Ahora se gestiona via `initialSelected` ref que aplica `selected: 2` (1M) solo en el primer render y se limpia después
+
+---
+
 ## [0.9.0-alpha.1] - 2026-03-06
 
 ### Added

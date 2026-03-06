@@ -212,6 +212,58 @@ export class MetersService {
     return { total, byType: rows };
   }
 
+  async getOverview() {
+    const rows = await this.readingRepo.query(`
+      SELECT
+        m.id,
+        m.building_id AS "buildingId",
+        m.model,
+        m.phase_type AS "phaseType",
+        m.bus_id AS "busId",
+        m.last_reading_at AS "lastReadingAt",
+        COALESCE(alarm_counts.cnt, 0)::int AS "alarmCount30d",
+        uptime_calc."uptimePercent"
+      FROM meters m
+      LEFT JOIN (
+        SELECT meter_id, COUNT(*) AS cnt
+        FROM readings
+        WHERE alarm IS NOT NULL AND alarm != ''
+          AND timestamp >= NOW() - interval '30 days'
+        GROUP BY meter_id
+      ) alarm_counts ON alarm_counts.meter_id = m.id
+      LEFT JOIN LATERAL (
+        SELECT
+          CASE WHEN EXTRACT(EPOCH FROM interval '24 hours') > 0
+            THEN ROUND(((EXTRACT(EPOCH FROM interval '24 hours') - COALESCE(gap_sum, 0)) / EXTRACT(EPOCH FROM interval '24 hours')) * 100, 2)
+            ELSE 0
+          END AS "uptimePercent"
+        FROM (
+          SELECT SUM(EXTRACT(EPOCH FROM (ts - prev_ts))) AS gap_sum
+          FROM (
+            SELECT timestamp AS ts,
+              LAG(timestamp) OVER (ORDER BY timestamp) AS prev_ts
+            FROM readings
+            WHERE meter_id = m.id AND timestamp >= NOW() - interval '24 hours'
+          ) gaps
+          WHERE ts - prev_ts > interval '90 minutes'
+        ) g
+      ) uptime_calc ON true
+      ORDER BY m.id ASC
+    `);
+
+    return rows.map((r: Record<string, unknown>) => ({
+      id: r.id,
+      buildingId: r.buildingId,
+      model: r.model,
+      phaseType: r.phaseType,
+      busId: r.busId,
+      status: r.lastReadingAt && (Date.now() - new Date(r.lastReadingAt as string).getTime() < 5 * 60 * 1000) ? 'online' : 'offline',
+      lastReadingAt: r.lastReadingAt,
+      uptime24h: r.uptimePercent != null ? Number(r.uptimePercent) : 0,
+      alarmCount30d: Number(r.alarmCount30d),
+    }));
+  }
+
   async findBuildingConsumption(buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
     let truncExpr: string;
     if (resolution === '15min') {

@@ -1,5 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchMetersByBuilding, fetchMeter, fetchMeterReadings, fetchMeterUptime, fetchMeterDowntimeEvents, fetchMeterAlarmEvents, fetchMeterAlarmSummary } from '../../services/endpoints';
+import { fetchMetersOverview, fetchMetersByBuilding, fetchMeter, fetchMeterReadings, fetchMeterUptime, fetchMeterDowntimeEvents, fetchMeterAlarmEvents, fetchMeterAlarmSummary } from '../../services/endpoints';
+
+export function useMetersOverview() {
+  return useQuery({
+    queryKey: ['metersOverview'],
+    queryFn: fetchMetersOverview,
+    staleTime: 30_000,
+  });
+}
 
 export function useMetersByBuilding(buildingId: string) {
   return useQuery({

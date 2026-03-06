@@ -116,6 +116,20 @@ export interface AlarmSummary {
   byType: { alarm: string; count: number }[];
 }
 
+// --- Meter Overview ---
+
+export interface MeterOverview {
+  id: string;
+  buildingId: string;
+  model: string;
+  phaseType: string;
+  busId: string;
+  status: string;
+  lastReadingAt: string | null;
+  uptime24h: number;
+  alarmCount30d: number;
+}
+
 // --- Domain types (future use) ---
 
 export interface Alert {

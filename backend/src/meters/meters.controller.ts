@@ -9,6 +9,12 @@ import { Reading } from './reading.entity';
 export class MetersController {
   constructor(private readonly metersService: MetersService) {}
 
+  @Get('overview')
+  @ApiOperation({ summary: 'Estado de todos los medidores', description: 'Retorna todos los medidores con status, uptime 24h y alarmas 30d.' })
+  getOverview() {
+    return this.metersService.getOverview();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener medidor por ID' })
   @ApiParam({ name: 'id', example: 'M001' })

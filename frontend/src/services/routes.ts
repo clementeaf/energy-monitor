@@ -6,6 +6,7 @@ export const routes = {
   getBuildingMeters:       (buildingId: string)     => `/buildings/${buildingId}/meters`,
 
   // Meters
+  getMetersOverview:       ()                       => '/meters/overview',
   getMeter:                (id: string)             => `/meters/${id}`,
   getMeterReadings:        (id: string)             => `/meters/${id}/readings`,
   getMeterUptime:          (id: string)             => `/meters/${id}/uptime`,

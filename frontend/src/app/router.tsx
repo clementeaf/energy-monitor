@@ -11,6 +11,7 @@ const UnauthorizedPage = lazy(() => import('../features/auth/UnauthorizedPage').
 const BuildingsPage = lazy(() => import('../features/buildings/BuildingsPage').then((m) => ({ default: m.BuildingsPage })));
 const BuildingDetailPage = lazy(() => import('../features/buildings/BuildingDetailPage').then((m) => ({ default: m.BuildingDetailPage })));
 const MeterDetailPage = lazy(() => import('../features/meters/MeterDetailPage').then((m) => ({ default: m.MeterDetailPage })));
+const IoTDevicesPage = lazy(() => import('../features/iot-devices/IoTDevicesPage').then((m) => ({ default: m.IoTDevicesPage })));
 const DrilldownPage = lazy(() => import('../features/drilldown/DrilldownPage').then((m) => ({ default: m.DrilldownPage })));
 
 export const router = createBrowserRouter([
@@ -52,6 +53,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute allowedRoles={[...appRoutes.meterDetail.allowedRoles]}>
             <ErrorBoundary>
               <Suspense fallback={<MeterDetailSkeleton />}><MeterDetailPage /></Suspense>
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: appRoutes.iotDevices.path,
+        element: (
+          <ProtectedRoute allowedRoles={[...appRoutes.iotDevices.allowedRoles]}>
+            <ErrorBoundary>
+              <Suspense fallback={<BuildingsPageSkeleton />}><IoTDevicesPage /></Suspense>
             </ErrorBoundary>
           </ProtectedRoute>
         ),

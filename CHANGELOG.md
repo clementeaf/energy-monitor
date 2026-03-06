@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.0-alpha.5] - 2026-03-06
+
+### Added
+
+- **React Suspense + Lazy Loading** (`router.tsx`): todas las páginas se cargan con `React.lazy()` + `Suspense` con skeleton como fallback
+  - Code splitting: cada página es un chunk separado (BuildingsPage 1.1KB, BuildingDetailPage 2.6KB, MeterDetailPage 2KB, LoginPage 3.3KB)
+  - StockChart (Highcharts 388KB) solo se descarga cuando se navega a una vista con gráficos
+- **Skeletons inline**: `ChartSkeleton` y `MetersGridSkeleton` para secciones que cargan después del componente principal (consumption, meters, readings)
+  - `BuildingDetailPage`: skeleton para chart mientras `consumption` carga + skeleton grid mientras `meters` carga
+  - `MeterDetailPage`: skeleton para charts mientras `readings` carga
+
+### Fixed
+
+- **`border-radius: 0 !important` global eliminado** (`index.css`): reset CSS que anulaba `rounded-lg` en Cards y `borderRadius: 8` en charts
+- **Navigator rango por defecto**: cambiado de "Todo" a "1 semana" (`selected: 1`) para vista inicial razonable
+
+---
+
 ## [0.7.0-alpha.4] - 2026-03-06
 
 ### Added

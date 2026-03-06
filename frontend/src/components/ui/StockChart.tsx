@@ -54,7 +54,7 @@ const darkTheme: Highcharts.Options = {
       { type: 'month', count: 1, text: '1m' },
       { type: 'all', text: 'Todo' },
     ],
-    selected: 3,
+    selected: 1,
   },
 };
 

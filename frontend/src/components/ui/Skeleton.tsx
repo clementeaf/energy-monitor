@@ -67,6 +67,29 @@ export function BuildingDetailSkeleton() {
   );
 }
 
+/** Skeleton placeholder for the chart area (reserves 380px) */
+export function ChartSkeleton() {
+  return <Skeleton className="h-[380px] w-full" />;
+}
+
+/** Skeleton placeholder for the meters grid */
+export function MetersGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="rounded-lg border border-border bg-surface p-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-14 rounded-full" />
+          </div>
+          <Skeleton className="mt-2 h-4 w-32" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Skeleton for MeterDetailPage: header + chart(s) */
 export function MeterDetailSkeleton() {
   return (

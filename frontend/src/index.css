@@ -12,11 +12,6 @@
   --color-accent:  #388bfd;
 }
 
-*,
-*::before,
-*::after {
-  border-radius: 0 !important;
-}
 
 body {
   margin: 0;

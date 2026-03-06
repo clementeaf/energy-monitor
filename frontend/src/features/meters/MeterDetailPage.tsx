@@ -1,13 +1,13 @@
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
+import { MeterDetailSkeleton, ChartSkeleton } from '../../components/ui/Skeleton';
 import { StockChart } from '../../components/ui/StockChart';
 import { useMeter, useMeterReadings } from '../../hooks/queries/useMeters';
 
 export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const { data: meter, isLoading } = useMeter(meterId!);
-  const { data: readings } = useMeterReadings(meterId!, 'hourly');
+  const { data: readings, isLoading: loadingReadings } = useMeterReadings(meterId!, 'hourly');
 
   if (isLoading) return <MeterDetailSkeleton />;
   if (!meter) return <p className="text-subtle">Medidor no encontrado</p>;
@@ -70,8 +70,17 @@ export function MeterDetailPage() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
-        <StockChart options={chartOptions} />
-        {meter.phaseType === '3P' && <StockChart options={voltageOptions} />}
+        {loadingReadings ? (
+          <>
+            <ChartSkeleton />
+            {meter.phaseType === '3P' && <ChartSkeleton />}
+          </>
+        ) : (
+          <>
+            <StockChart options={chartOptions} />
+            {meter.phaseType === '3P' && <StockChart options={voltageOptions} />}
+          </>
+        )}
       </div>
     </div>
   );

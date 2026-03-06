@@ -22,6 +22,7 @@
 
 - **Jerarquía inventada eliminada** — Removidos subtableros y circuitos ficticios (Iluminación, Climatización, Fuerza, etc.). Jerarquía aplanada a Gateway → Medidor (17 nodos reales)
 - **CSV reimportado (v2)** — Corregidos valores de `energy_kWh_total` (antes ~5-8 kWh, ahora 0→3,031 kWh acumulativo). Perfiles estadísticos y datos sintéticos regenerados
+- **Highcharts `hoverPoint` crash** — Parchado `Pointer.onContainerClick` con try-catch para evitar `TypeError: Cannot read properties of undefined (reading 'hoverPoint')` al hacer click en áreas vacías del chart o navigator
 
 ---
 

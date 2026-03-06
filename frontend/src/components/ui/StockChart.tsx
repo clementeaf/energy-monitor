@@ -2,6 +2,19 @@ import { useRef } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 
+// Patch: guard against "Cannot read properties of undefined (reading 'hoverPoint')"
+// https://github.com/highcharts/highcharts/issues/
+const proto = Highcharts.Pointer.prototype as Record<string, unknown>;
+const origClick = proto.onContainerClick as ((...args: unknown[]) => void) | undefined;
+if (origClick && !(origClick as { __patched?: boolean }).__patched) {
+  proto.onContainerClick = function (this: unknown, ...args: unknown[]) {
+    try {
+      return origClick.apply(this, args);
+    } catch { /* swallow hoverPoint undefined */ }
+  };
+  (proto.onContainerClick as { __patched?: boolean }).__patched = true;
+}
+
 const darkTheme: Highcharts.Options = {
   colors: ['#388bfd', '#f78166', '#3dc9b0', '#d29922', '#f85149'],
   chart: {

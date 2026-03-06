@@ -18,6 +18,7 @@
 ### Fixed
 
 - **Gap de datos Mar 2-5**: backfill de 1,440 readings sintéticas (15 medidores × 24 hrs × 4 días) para cerrar el hueco entre datos históricos (→Mar 1) y generador sintético (Mar 6→)
+- **Synthetic generator inflado**: `power_kw` se compounding exponencialmente (1.4→1550 kW) porque usaba `last_power` como base. Fix: rango nominal fijo por tipo de medidor (3P ~2.5 kW, 1P ~0.85 kW). Purgados 1,200 readings corruptos de Mar 6 y regenerados con magnitudes correctas
 - **Highcharts treemap ESM/CJS**: fix inicialización del módulo treemap compatible con ambos formatos de export
 
 ---

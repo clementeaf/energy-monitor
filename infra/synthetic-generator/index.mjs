@@ -52,10 +52,11 @@ export const handler = async () => {
     for (const m of meters) {
       const is3P = m.phase_type === '3P';
 
-      // Power: vary from last reading ±10%, apply time-of-day factor
-      const lastPower = m.last_power != null ? Number(m.last_power) : (is3P ? 2.5 : 1.0);
-      const basePower = lastPower * timeFactor;
-      const power = Math.max(0.05, basePower * (0.92 + Math.random() * 0.16));
+      // Power: use fixed base range matching historical data, NOT last reading
+      // Historical data shows: 3P meters ~2-3 kW, 1P meters ~0.5-1.2 kW
+      const nominalPower = is3P ? 2.5 : 0.85;
+      const basePower = nominalPower * timeFactor;
+      const power = Math.max(0.05, basePower * (0.90 + Math.random() * 0.20));
 
       // Energy: accumulate (1 minute = 1/60 hour)
       const lastEnergy = m.last_energy != null ? Number(m.last_energy) : 1000;

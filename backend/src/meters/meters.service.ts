@@ -34,7 +34,7 @@ export class MetersService {
 
   async findReadings(
     meterId: string,
-    resolution: 'raw' | 'hourly' | 'daily' = 'hourly',
+    resolution: 'raw' | '15min' | 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
   ) {
@@ -47,11 +47,19 @@ export class MetersService {
       return rows.reverse();
     }
 
-    const trunc = resolution === 'daily' ? 'day' : 'hour';
+    // 15-min buckets: Postgres has no date_trunc for 15min, so compute manually
+    let truncExpr: string;
+    if (resolution === '15min') {
+      truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;
+    } else if (resolution === 'daily') {
+      truncExpr = `date_trunc('day', r.timestamp)`;
+    } else {
+      truncExpr = `date_trunc('hour', r.timestamp)`;
+    }
 
     const qb = this.readingRepo
       .createQueryBuilder('r')
-      .select(`date_trunc('${trunc}', r.timestamp)`, 'timestamp')
+      .select(truncExpr, 'timestamp')
       .addSelect('AVG(r.voltage_l1)', 'voltageL1')
       .addSelect('AVG(r.voltage_l2)', 'voltageL2')
       .addSelect('AVG(r.voltage_l3)', 'voltageL3')
@@ -96,23 +104,34 @@ export class MetersService {
   async findBuildingConsumption(buildingId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 
-    const qb = this.readingRepo
-      .createQueryBuilder('r')
-      .select(`date_trunc('${trunc}', r.timestamp)`, 'timestamp')
-      .addSelect('SUM(r.power_kw)', 'totalPowerKw')
-      .addSelect('AVG(r.power_kw)', 'avgPowerKw')
-      .addSelect('MAX(r.power_kw)', 'peakPowerKw')
-      .addSelect('COUNT(*)', 'readings')
-      .innerJoin('r.meter', 'm')
-      .where('m.building_id = :buildingId', { buildingId });
-    if (from) qb.andWhere('r.timestamp >= :from', { from });
-    if (to) qb.andWhere('r.timestamp <= :to', { to });
-    const rows = await qb
-      .groupBy('1')
-      .orderBy('1', 'ASC')
-      .getRawMany();
+    // Two-step aggregation: first AVG per meter per bucket (handles variable reading frequency),
+    // then SUM/AVG/MAX across meters per bucket.
+    let whereClause = `m.building_id = '${buildingId.replaceAll("'", "''")}'`;
+    if (from) whereClause += ` AND r.timestamp >= '${from}'`;
+    if (to) whereClause += ` AND r.timestamp <= '${to}'`;
 
-    return rows.map((r) => ({
+    const rows = await this.readingRepo.query(`
+      SELECT
+        bucket AS "timestamp",
+        SUM(avg_power) AS "totalPowerKw",
+        AVG(avg_power) AS "avgPowerKw",
+        MAX(max_power) AS "peakPowerKw"
+      FROM (
+        SELECT
+          date_trunc('${trunc}', r.timestamp) AS bucket,
+          r.meter_id,
+          AVG(r.power_kw) AS avg_power,
+          MAX(r.power_kw) AS max_power
+        FROM readings r
+        INNER JOIN meters m ON m.id = r.meter_id
+        WHERE ${whereClause}
+        GROUP BY bucket, r.meter_id
+      ) sub
+      GROUP BY bucket
+      ORDER BY bucket ASC
+    `);
+
+    return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
       totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
       avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),

@@ -15,9 +15,14 @@ export function useMeter(meterId: string) {
   });
 }
 
-export function useMeterReadings(meterId: string, resolution: 'raw' | 'hourly' | 'daily' = 'hourly') {
+export function useMeterReadings(
+  meterId: string,
+  resolution: 'raw' | '15min' | 'hourly' | 'daily' = 'hourly',
+  from?: string,
+  to?: string,
+) {
   return useQuery({
-    queryKey: ['readings', meterId, resolution],
-    queryFn: () => fetchMeterReadings(meterId, resolution),
+    queryKey: ['readings', meterId, resolution, from, to],
+    queryFn: () => fetchMeterReadings(meterId, resolution, from, to),
   });
 }

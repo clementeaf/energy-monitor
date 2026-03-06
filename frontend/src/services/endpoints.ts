@@ -18,7 +18,7 @@ export const fetchMetersByBuilding = (buildingId: string) =>
 export const fetchMeter = (meterId: string) =>
   api.get<Meter>(routes.getMeter(meterId)).then((r) => r.data);
 
-export const fetchMeterReadings = (meterId: string, resolution: 'raw' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
+export const fetchMeterReadings = (meterId: string, resolution: 'raw' | '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
   api.get<Reading[]>(routes.getMeterReadings(meterId), { params: { resolution, from, to } }).then((r) => r.data);
 
 // Hierarchy

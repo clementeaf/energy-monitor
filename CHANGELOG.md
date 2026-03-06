@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0-alpha.2] - 2026-03-06
+
+### Added
+
+- **Resolución 15 minutos** — Zoom 1D ahora muestra puntos cada 15 min. Resolución dinámica: ≤36h→15min, ≤7d→hourly, >7d→daily via `afterSetExtremes` de Highcharts Stock
+- **6 gráficos por medidor** — MeterDetailPage ahora muestra: Potencia (kW + kVAR dual-axis), Voltaje (L1/L2/L3), Corriente (L1/L2/L3), Factor de Potencia & Frecuencia (dual-axis), Energía Acumulada (area), Calidad Eléctrica (THD + Desbalance, solo 3P). Series toggleables via legend
+
+### Fixed
+
+- **Spike consumo edificio (~550 kW → ~13 kW)** — Query `findBuildingConsumption` usaba `SUM(power_kw)` directo, inflado 60× por múltiples readings/hora. Fix: agregación en dos pasos (AVG por medidor por bucket, luego SUM entre medidores)
+- **Highcharts error #18 (dual-axis)** — StockChart mergeaba `yAxis` como objeto cuando charts pasan array. Fix: detecta `Array.isArray` y aplica theme styles a cada eje
+
+---
+
 ## [0.8.0-alpha.1] - 2026-03-06
 
 ### Added

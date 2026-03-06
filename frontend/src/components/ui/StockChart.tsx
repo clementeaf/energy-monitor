@@ -15,7 +15,7 @@ const darkTheme: Highcharts.Options = {
   title: { style: { color: '#e6edf3', fontSize: '14px', fontWeight: 'bold' } },
   xAxis: { lineColor: '#30363d', tickColor: '#30363d', labels: { style: { color: '#8b949e', fontSize: '11px' } } },
   yAxis: { gridLineColor: '#1e2530', labels: { style: { color: '#8b949e', fontSize: '11px' } }, title: { style: { color: '#6e7681', fontSize: '11px' } } },
-  legend: { itemStyle: { color: '#8b949e', fontSize: '11px' } },
+  legend: { enabled: true, itemStyle: { color: '#8b949e', fontSize: '11px' }, itemHoverStyle: { color: '#e6edf3' }, itemHiddenStyle: { color: '#484f58' } },
   tooltip: { backgroundColor: '#1e2530', borderColor: '#30363d', style: { color: '#e6edf3' } },
   plotOptions: { series: { borderWidth: 0 } },
   credits: { enabled: false },
@@ -61,18 +61,38 @@ const darkTheme: Highcharts.Options = {
 interface StockChartProps {
   options: Highcharts.Options;
   className?: string;
+  onRangeChange?: (min: number, max: number) => void;
 }
 
-export function StockChart({ options, className = '' }: StockChartProps) {
+export function StockChart({ options, className = '', onRangeChange }: StockChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
+
+  const xAxisWithEvent = {
+    ...darkTheme.xAxis as object,
+    ...options.xAxis as object,
+    events: {
+      ...(options.xAxis as Highcharts.XAxisOptions | undefined)?.events,
+      afterSetExtremes: onRangeChange
+        ? function (this: void, e: Highcharts.AxisSetExtremesEventObject) {
+            if (e.min != null && e.max != null) onRangeChange(e.min, e.max);
+          }
+        : undefined,
+    },
+  };
+
+  // yAxis: if options passes an array (dual-axis), apply theme styles to each axis
+  const themeY = darkTheme.yAxis as Highcharts.YAxisOptions;
+  const mergedYAxis = Array.isArray(options.yAxis)
+    ? options.yAxis.map((ax) => ({ ...themeY, ...ax }))
+    : { ...themeY, ...options.yAxis as object };
 
   const merged: Highcharts.Options = {
     ...darkTheme,
     ...options,
     chart: { ...darkTheme.chart, ...options.chart },
     title: { ...darkTheme.title, ...options.title },
-    xAxis: { ...darkTheme.xAxis as object, ...options.xAxis as object },
-    yAxis: { ...darkTheme.yAxis as object, ...options.yAxis as object },
+    xAxis: xAxisWithEvent,
+    yAxis: mergedYAxis,
     tooltip: { ...darkTheme.tooltip, ...options.tooltip },
     navigator: { ...darkTheme.navigator as object, ...options.navigator as object },
     rangeSelector: { ...darkTheme.rangeSelector as object, ...options.rangeSelector as object },

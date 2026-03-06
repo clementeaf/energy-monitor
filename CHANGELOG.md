@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.8.0-alpha.1] - 2026-03-06
+
+### Added
+
+- **Drill-down jerárquico 5 niveles** — Edificio → Tablero General → Subtablero → Circuito → Medidor
+  - SQL migration: tabla `hierarchy_nodes` con `parent_id` auto-referencial + seed 24 nodos (2 edificios)
+  - Backend `HierarchyModule`: queries CTE recursivos para árbol, path ancestros, hijos con consumo agregado, time-series por nodo
+  - `DrilldownPage`: estado `currentNodeId` con drill-down in-page
+  - `DrilldownTreemap`: Highcharts treemap con `colorAxis` (verde→rojo por consumo), click = drill
+  - `DrilldownBars`: barras horizontales kWh por hijo, ordenadas descendente
+  - `DrilldownChildrenTable`: tabla con nombre, tipo, kWh, %, medidores, estado; click = drill o navegar a medidor
+  - `DrilldownBreadcrumb`: breadcrumb clickeable con badges de nivel
+  - Ruta `/monitoring/drilldown/:buildingId` con lazy loading + Suspense + ErrorBoundary + DrilldownSkeleton
+  - Botón "Drill-down Jerárquico" en `BuildingDetailPage`
+
+### Fixed
+
+- **Gap de datos Mar 2-5**: backfill de 1,440 readings sintéticas (15 medidores × 24 hrs × 4 días) para cerrar el hueco entre datos históricos (→Mar 1) y generador sintético (Mar 6→)
+- **Highcharts treemap ESM/CJS**: fix inicialización del módulo treemap compatible con ambos formatos de export
+
+---
+
 ## [0.7.0-alpha.6] - 2026-03-06
 
 ### Added

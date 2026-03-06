@@ -49,12 +49,12 @@ const darkTheme: Highcharts.Options = {
     labelStyle: { color: '#8b949e' },
     inputEnabled: false,
     buttons: [
-      { type: 'day', count: 1, text: '1d' },
-      { type: 'week', count: 1, text: '1s' },
-      { type: 'month', count: 1, text: '1m' },
+      { type: 'day', count: 1, text: '1D' },
+      { type: 'hour', count: 1, text: '1H' },
+      { type: 'minute', count: 1, text: '1M' },
       { type: 'all', text: 'Todo' },
     ],
-    selected: 1,
+    selected: 0,
   },
 };
 

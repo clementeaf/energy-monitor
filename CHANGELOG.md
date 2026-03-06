@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0-alpha.3] - 2026-03-06
+
+### Changed
+
+- **Range selector buttons** — Cambiados de `1d, 1s, 1m` a `1D` (1 día), `1H` (1 hora), `1M` (1 minuto), `Todo`. Default: 1D
+
+---
+
 ## [0.8.0-alpha.2] - 2026-03-06
 
 ### Added

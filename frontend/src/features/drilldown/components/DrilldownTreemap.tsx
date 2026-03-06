@@ -8,6 +8,8 @@ import type { HierarchyChildSummary } from '../../../types';
 const initTreemap = (HighchartsTreemap as unknown as { default?: (H: typeof Highcharts) => void }).default ?? HighchartsTreemap;
 if (typeof initTreemap === 'function') initTreemap(Highcharts);
 
+const COLORS = ['#388bfd', '#3dc9b0', '#d29922', '#f78166', '#f85149', '#a371f7', '#79c0ff', '#56d364'];
+
 interface Props {
   children: HierarchyChildSummary[];
   onDrill: (nodeId: string) => void;
@@ -16,13 +18,16 @@ interface Props {
 export function DrilldownTreemap({ children, onDrill }: Props) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
-  const maxKwh = Math.max(...children.map((c) => c.totalKwh), 1);
+  const totalKwh = children.reduce((s, c) => s + c.totalKwh, 0) || 1;
+  const sorted = [...children].sort((a, b) => b.totalKwh - a.totalKwh);
 
-  const data = children.map((c) => ({
+  const data = sorted.map((c, i) => ({
     name: c.name,
     value: Math.max(c.totalKwh, 0.01),
-    colorValue: c.totalKwh / maxKwh,
+    color: COLORS[i % COLORS.length],
     nodeId: c.id,
+    pct: ((c.totalKwh / totalKwh) * 100).toFixed(1),
+    kwh: c.totalKwh.toFixed(0),
   }));
 
   const options: Highcharts.Options = {
@@ -34,18 +39,16 @@ export function DrilldownTreemap({ children, onDrill }: Props) {
       borderRadius: 8,
       height: 300,
     },
-    title: { text: 'Consumo por nodo', style: { color: '#e6edf3', fontSize: '13px', fontWeight: 'bold' } },
+    title: { text: 'Distribución de consumo', style: { color: '#e6edf3', fontSize: '13px', fontWeight: 'bold' } },
     credits: { enabled: false },
-    colorAxis: {
-      minColor: '#3dc9b0',
-      maxColor: '#f85149',
-      labels: { style: { color: '#8b949e' } },
-    },
     tooltip: {
       backgroundColor: '#1e2530',
       borderColor: '#30363d',
       style: { color: '#e6edf3' },
-      pointFormat: '<b>{point.name}</b><br/>kWh: {point.value:.1f}',
+      formatter: function () {
+        const p = this.point as unknown as { kwh: string; pct: string };
+        return `<b>${this.point.name}</b><br/>${p.kwh} kWh<br/>${p.pct}% del total`;
+      },
     },
     series: [
       {
@@ -54,8 +57,8 @@ export function DrilldownTreemap({ children, onDrill }: Props) {
         data,
         dataLabels: {
           enabled: true,
-          format: '{point.name}',
-          style: { color: '#e6edf3', fontSize: '11px', textOutline: 'none' },
+          format: '{point.name}<br/>{point.kwh} kWh',
+          style: { color: '#e6edf3', fontSize: '11px', fontWeight: 'normal', textOutline: '1px #000' },
         },
         cursor: 'pointer',
         point: {

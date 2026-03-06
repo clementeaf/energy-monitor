@@ -4,7 +4,6 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { ChartSkeleton } from '../../components/ui/Skeleton';
 import { useHierarchyNode, useHierarchyChildren } from '../../hooks/queries/useHierarchy';
 import { DrilldownBreadcrumb } from './components/DrilldownBreadcrumb';
-import { DrilldownTreemap } from './components/DrilldownTreemap';
 import { DrilldownBars } from './components/DrilldownBars';
 import { DrilldownChildrenTable } from './components/DrilldownChildrenTable';
 
@@ -73,18 +72,12 @@ export function DrilldownPage() {
           </div>
         ) : loadingChildren ? (
           <>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <ChartSkeleton />
-              <ChartSkeleton />
-            </div>
+            <ChartSkeleton />
             <ChartSkeleton />
           </>
         ) : children && children.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <DrilldownTreemap children={children} onDrill={handleDrill} />
-              <DrilldownBars children={children} onDrill={handleDrill} />
-            </div>
+            <DrilldownBars children={children} onDrill={handleDrill} />
             <DrilldownChildrenTable children={children} onDrill={handleDrill} />
           </>
         ) : (
@@ -103,10 +96,7 @@ function DrilldownSkeleton() {
         <div className="h-8 w-64 animate-pulse rounded bg-raised" />
       </div>
       <div className="mb-4 h-4 w-80 animate-pulse rounded bg-raised" />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-[300px] animate-pulse rounded-lg bg-raised" />
-        <div className="h-[300px] animate-pulse rounded-lg bg-raised" />
-      </div>
+      <div className="h-[300px] animate-pulse rounded-lg bg-raised" />
       <div className="mt-4 h-[200px] animate-pulse rounded-lg bg-raised" />
     </>
   );

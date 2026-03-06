@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0-alpha.4] - 2026-03-06
+
+### Fixed
+
+- **Gráfico "Calidad Eléctrica" vacío en medidores 3P** — Los campos THD voltaje, THD corriente y desbalance de fases se insertaban como NULL porque `profiles.json` no tenía perfiles estadísticos para esos campos
+  - Agregados perfiles `thdV`, `thdI`, `phImb` para los 6 medidores 3P (M001, M002, M003, M011, M012, M013) con variación día/noche
+  - Backfill de 35,738 readings históricos con datos realistas (THD-V ~2-4%, THD-I ~5-12%, desbalance ~0.8-2.5%)
+  - Lambda del generador sintético re-desplegada con nuevos perfiles
+
+### Changed
+
+- **Drill-down: removido treemap** — Se eliminó el gráfico treemap "Distribución de consumo" del drill-down jerárquico, dejando solo el gráfico de barras horizontales + tabla
+
+---
+
 ## [0.9.0-alpha.3] - 2026-03-06
 
 ### Changed

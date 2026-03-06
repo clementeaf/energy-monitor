@@ -3,7 +3,7 @@ import { createBrowserRouter } from 'react-router';
 import { Layout } from '../components/ui/Layout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton } from '../components/ui/Skeleton';
+import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, DrilldownSkeleton } from '../components/ui/Skeleton';
 import { appRoutes } from './appRoutes';
 
 const LoginPage = lazy(() => import('../features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -11,6 +11,7 @@ const UnauthorizedPage = lazy(() => import('../features/auth/UnauthorizedPage').
 const BuildingsPage = lazy(() => import('../features/buildings/BuildingsPage').then((m) => ({ default: m.BuildingsPage })));
 const BuildingDetailPage = lazy(() => import('../features/buildings/BuildingDetailPage').then((m) => ({ default: m.BuildingDetailPage })));
 const MeterDetailPage = lazy(() => import('../features/meters/MeterDetailPage').then((m) => ({ default: m.MeterDetailPage })));
+const DrilldownPage = lazy(() => import('../features/drilldown/DrilldownPage').then((m) => ({ default: m.DrilldownPage })));
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute allowedRoles={[...appRoutes.meterDetail.allowedRoles]}>
             <ErrorBoundary>
               <Suspense fallback={<MeterDetailSkeleton />}><MeterDetailPage /></Suspense>
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: appRoutes.drilldown.path,
+        element: (
+          <ProtectedRoute allowedRoles={[...appRoutes.drilldown.allowedRoles]}>
+            <ErrorBoundary>
+              <Suspense fallback={<DrilldownSkeleton />}><DrilldownPage /></Suspense>
             </ErrorBoundary>
           </ProtectedRoute>
         ),

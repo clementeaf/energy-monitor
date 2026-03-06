@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, Reading, ConsumptionPoint } from '../types';
+import type { Building, Meter, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath } from '../types';
 import type { AuthUser } from '../types/auth';
 
 export const fetchBuildings = () =>
@@ -20,6 +20,19 @@ export const fetchMeter = (meterId: string) =>
 
 export const fetchMeterReadings = (meterId: string, resolution: 'raw' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
   api.get<Reading[]>(routes.getMeterReadings(meterId), { params: { resolution, from, to } }).then((r) => r.data);
+
+// Hierarchy
+export const fetchHierarchy = (buildingId: string) =>
+  api.get<HierarchyNode[]>(routes.getHierarchy(buildingId)).then((r) => r.data);
+
+export const fetchHierarchyNode = (nodeId: string) =>
+  api.get<HierarchyNodeWithPath>(routes.getHierarchyNode(nodeId)).then((r) => r.data);
+
+export const fetchHierarchyChildren = (nodeId: string, from?: string, to?: string) =>
+  api.get<HierarchyChildSummary[]>(routes.getHierarchyChildren(nodeId), { params: { from, to } }).then((r) => r.data);
+
+export const fetchHierarchyConsumption = (nodeId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
+  api.get<ConsumptionPoint[]>(routes.getHierarchyConsumption(nodeId), { params: { resolution, from, to } }).then((r) => r.data);
 
 // Auth
 export const fetchMe = () =>

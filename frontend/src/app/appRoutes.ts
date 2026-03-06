@@ -30,6 +30,11 @@ export const appRoutes = {
     label: 'Detalle Medidor',
     allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
   },
+  drilldown: {
+    path: '/monitoring/drilldown/:buildingId',
+    label: 'Drill-down',
+    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST'],
+  },
 } as const satisfies Record<string, AppRoute>;
 
 /** Helper: build path with params */

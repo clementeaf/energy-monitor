@@ -43,6 +43,32 @@ export interface ConsumptionPoint {
   peakPowerKw: number;
 }
 
+// --- Hierarchy ---
+
+export interface HierarchyNode {
+  id: string;
+  parentId: string | null;
+  buildingId: string;
+  name: string;
+  level: number;
+  nodeType: 'building' | 'panel' | 'subpanel' | 'circuit';
+  meterId: string | null;
+  sortOrder: number;
+}
+
+export interface HierarchyChildSummary extends HierarchyNode {
+  totalKwh: number;
+  avgPowerKw: number;
+  peakPowerKw: number;
+  meterCount: number;
+  status: 'online' | 'offline' | 'partial';
+}
+
+export interface HierarchyNodeWithPath {
+  node: HierarchyNode;
+  path: HierarchyNode[];
+}
+
 // --- Domain types (future use) ---
 
 export interface Alert {

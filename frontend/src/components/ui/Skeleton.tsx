@@ -90,6 +90,31 @@ export function MetersGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+/** Skeleton for DrilldownPage: header + breadcrumb + 2 charts + table */
+export function DrilldownSkeleton() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0">
+        <div className="mb-6">
+          <Skeleton className="mb-2 h-4 w-48" />
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-8 w-56" />
+          </div>
+        </div>
+        <Skeleton className="mb-4 h-4 w-80" />
+      </div>
+      <div className="min-h-0 flex-1 space-y-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-[300px] w-full" />
+          <Skeleton className="h-[300px] w-full" />
+        </div>
+        <Skeleton className="h-[200px] w-full" />
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for MeterDetailPage: header + chart(s) */
 export function MeterDetailSkeleton() {
   return (

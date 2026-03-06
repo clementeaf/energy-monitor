@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { Layout } from '../components/ui/Layout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton } from '../components/ui/Skeleton';
 import { appRoutes } from './appRoutes';
 
@@ -14,20 +15,23 @@ const MeterDetailPage = lazy(() => import('../features/meters/MeterDetailPage').
 export const router = createBrowserRouter([
   {
     path: appRoutes.login.path,
-    element: <Suspense><LoginPage /></Suspense>,
+    element: <ErrorBoundary><Suspense><LoginPage /></Suspense></ErrorBoundary>,
   },
   {
     path: appRoutes.unauthorized.path,
-    element: <Suspense><UnauthorizedPage /></Suspense>,
+    element: <ErrorBoundary><Suspense><UnauthorizedPage /></Suspense></ErrorBoundary>,
   },
   {
     element: <ProtectedRoute><Layout /></ProtectedRoute>,
+    errorElement: <ErrorBoundary><></></ErrorBoundary>,
     children: [
       {
         path: appRoutes.buildings.path,
         element: (
           <ProtectedRoute allowedRoles={[...appRoutes.buildings.allowedRoles]}>
-            <Suspense fallback={<BuildingsPageSkeleton />}><BuildingsPage /></Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<BuildingsPageSkeleton />}><BuildingsPage /></Suspense>
+            </ErrorBoundary>
           </ProtectedRoute>
         ),
       },
@@ -35,7 +39,9 @@ export const router = createBrowserRouter([
         path: appRoutes.buildingDetail.path,
         element: (
           <ProtectedRoute allowedRoles={[...appRoutes.buildingDetail.allowedRoles]}>
-            <Suspense fallback={<BuildingDetailSkeleton />}><BuildingDetailPage /></Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<BuildingDetailSkeleton />}><BuildingDetailPage /></Suspense>
+            </ErrorBoundary>
           </ProtectedRoute>
         ),
       },
@@ -43,7 +49,9 @@ export const router = createBrowserRouter([
         path: appRoutes.meterDetail.path,
         element: (
           <ProtectedRoute allowedRoles={[...appRoutes.meterDetail.allowedRoles]}>
-            <Suspense fallback={<MeterDetailSkeleton />}><MeterDetailPage /></Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<MeterDetailSkeleton />}><MeterDetailPage /></Suspense>
+            </ErrorBoundary>
           </ProtectedRoute>
         ),
       },

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0-alpha.6] - 2026-03-06
+
+### Added
+
+- **ErrorBoundary** (`ErrorBoundary.tsx`): class component con `getDerivedStateFromError` + `componentDidCatch` que captura errores de rendering
+  - UI de error con mensaje, botón "Reintentar" (resetea estado) y "Ir al inicio"
+  - Logs de error en consola con component stack
+- **Per-route error boundaries**: cada página (Buildings, BuildingDetail, MeterDetail, Login, Unauthorized) envuelta en `<ErrorBoundary>` individual — un error en una página no tumba la app completa
+- **`errorElement`** en layout route como fallback de último recurso para errores de routing
+
+---
+
 ## [0.7.0-alpha.5] - 2026-03-06
 
 ### Added

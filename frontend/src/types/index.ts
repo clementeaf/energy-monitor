@@ -130,20 +130,35 @@ export interface MeterOverview {
   alarmCount30d: number;
 }
 
-// --- Domain types (future use) ---
+// --- Alerts ---
+
+export type AlertSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type AlertStatus = 'active' | 'acknowledged' | 'resolved';
 
 export interface Alert {
   id: string;
-  siteId: string;
-  meterId: string | null;
   type: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  severity: AlertSeverity;
+  status: AlertStatus;
+  meterId: string | null;
+  buildingId: string | null;
+  title: string;
   message: string;
-  status: 'active' | 'acknowledged' | 'resolved';
-  assignedTo: string | null;
-  createdAt: string;
+  triggeredAt: string;
+  acknowledgedAt: string | null;
   resolvedAt: string | null;
+  metadata: Record<string, unknown>;
 }
+
+export interface AlertsSyncSummary {
+  scannedMeters: number;
+  createdAlerts: number;
+  resolvedAlerts: number;
+  activeOfflineAlerts: number;
+  scannedAt: string;
+}
+
+// --- Domain types (future use) ---
 
 export interface Invoice {
   id: string;

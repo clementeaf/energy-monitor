@@ -1,7 +1,15 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary } from '../types';
+import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary } from '../types';
 import type { AuthUser } from '../types/auth';
+
+interface AlertsParams {
+  status?: AlertStatus;
+  type?: string;
+  meterId?: string;
+  buildingId?: string;
+  limit?: number;
+}
 
 export const fetchBuildings = () =>
   api.get<Building[]>(routes.getBuildings()).then((r) => r.data);
@@ -35,6 +43,16 @@ export const fetchMeterAlarmEvents = (meterId: string, from: string, to: string)
 
 export const fetchMeterAlarmSummary = (meterId: string, from: string, to: string) =>
   api.get<AlarmSummary>(routes.getMeterAlarmSummary(meterId), { params: { from, to } }).then((r) => r.data);
+
+// Alerts
+export const fetchAlerts = (params: AlertsParams = {}) =>
+  api.get<Alert[]>(routes.getAlerts(), { params }).then((r) => r.data);
+
+export const acknowledgeAlert = (alertId: string) =>
+  api.patch<Alert>(routes.acknowledgeAlert(alertId)).then((r) => r.data);
+
+export const syncOfflineAlerts = () =>
+  api.post<AlertsSyncSummary>(routes.syncOfflineAlerts()).then((r) => r.data);
 
 // Hierarchy
 export const fetchHierarchy = (buildingId: string) =>

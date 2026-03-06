@@ -46,8 +46,8 @@ export function DrilldownTreemap({ children, onDrill }: Props) {
       borderColor: '#30363d',
       style: { color: '#e6edf3' },
       formatter: function () {
-        const p = this.point as unknown as { kwh: string; pct: string };
-        return `<b>${this.point.name}</b><br/>${p.kwh} kWh<br/>${p.pct}% del total`;
+        const point = this as Highcharts.Point & { kwh: string; pct: string; name: string };
+        return `<b>${point.name}</b><br/>${point.kwh} kWh<br/>${point.pct}% del total`;
       },
     },
     series: [

@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 
 // Patch: guard against "Cannot read properties of undefined (reading 'hoverPoint')"
 // https://github.com/highcharts/highcharts/issues/
-const proto = Highcharts.Pointer.prototype as Record<string, unknown>;
+const proto = Highcharts.Pointer.prototype as unknown as Record<string, unknown>;
 const origClick = proto.onContainerClick as ((...args: unknown[]) => void) | undefined;
 if (origClick && !(origClick as { __patched?: boolean }).__patched) {
   proto.onContainerClick = function (this: unknown, ...args: unknown[]) {

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Meter } from './meter.entity';
 import { Reading } from './reading.entity';
+import { getMeterStatus } from './meter-status.util';
 
 @Injectable()
 export class MetersService {
@@ -25,10 +26,7 @@ export class MetersService {
 
   /** Derive status from lastReadingAt: online if < 5 min ago */
   private withLiveStatus(m: Meter) {
-    if (m.lastReadingAt) {
-      const age = Date.now() - new Date(m.lastReadingAt).getTime();
-      m.status = age < 5 * 60 * 1000 ? 'online' : 'offline';
-    }
+    m.status = getMeterStatus(m.lastReadingAt);
     return m;
   }
 
@@ -257,7 +255,7 @@ export class MetersService {
       model: r.model,
       phaseType: r.phaseType,
       busId: r.busId,
-      status: r.lastReadingAt && (Date.now() - new Date(r.lastReadingAt as string).getTime() < 5 * 60 * 1000) ? 'online' : 'offline',
+      status: getMeterStatus(r.lastReadingAt as string | null),
       lastReadingAt: r.lastReadingAt,
       uptime24h: r.uptimePercent != null ? Number(r.uptimePercent) : 0,
       alarmCount30d: Number(r.alarmCount30d),

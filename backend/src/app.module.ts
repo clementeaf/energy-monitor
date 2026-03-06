@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { BuildingsModule } from './buildings/buildings.module';
 import { MetersModule } from './meters/meters.module';
 import { HierarchyModule } from './hierarchy/hierarchy.module';
+import { AlertsModule } from './alerts/alerts.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { HierarchyModule } from './hierarchy/hierarchy.module';
     BuildingsModule,
     MetersModule,
     HierarchyModule,
+    AlertsModule,
   ],
 })
 export class AppModule {}

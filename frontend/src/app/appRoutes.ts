@@ -36,6 +36,12 @@ export const appRoutes = {
     allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
     showInNav: true,
   },
+  alerts: {
+    path: '/alerts',
+    label: 'Alertas',
+    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'AUDITOR'],
+    showInNav: true,
+  },
   drilldown: {
     path: '/monitoring/drilldown/:buildingId',
     label: 'Drill-down',

@@ -1,19 +1,22 @@
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
-import { getNavItems } from '../../app/appRoutes';
-
-function isSafeUrl(url?: string): boolean {
-  if (!url) return false;
-  try { return ['https:'].includes(new URL(url).protocol); }
-  catch { return false; }
-}
+import { appRoutes, getNavItems } from '../../app/appRoutes';
+import { useAlerts } from '../../hooks/queries/useAlerts';
+import type { Role } from '../../types/auth';
 
 export function Layout() {
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const alertRoles = appRoutes.alerts.allowedRoles as readonly Role[];
+  const canViewAlerts = !!user && alertRoles.includes(user.role);
+  const { data: activeAlerts } = useAlerts(
+    { status: 'active', limit: 20 },
+    { enabled: canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },
+  );
+  const activeAlertsCount = activeAlerts?.length ?? 0;
 
   return (
     <div className="flex h-screen overflow-hidden bg-base">
@@ -47,13 +50,18 @@ export function Layout() {
             <button
               key={item.path}
               onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-              className={`block w-full px-3 py-2 text-left text-sm ${
+              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
                 location.pathname === item.path
                   ? 'bg-raised font-semibold text-text'
                   : 'text-muted hover:bg-raised'
               }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.path === appRoutes.alerts.path && activeAlertsCount > 0 && (
+                <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-semibold text-red-400">
+                  {activeAlertsCount}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -85,6 +93,20 @@ export function Layout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-hidden p-4 md:p-6">
+          {canViewAlerts && activeAlertsCount > 0 && location.pathname !== appRoutes.alerts.path && (
+            <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              <div>
+                <span className="font-semibold text-red-300">{activeAlertsCount} alerta(s) activas</span>
+                <span className="ml-2 text-red-200/90">Hay medidores offline que requieren revisión.</span>
+              </div>
+              <button
+                onClick={() => navigate(appRoutes.alerts.path)}
+                className="rounded-md border border-red-400/40 px-3 py-1 text-xs font-medium text-red-200 hover:bg-red-500/10"
+              >
+                Ver alertas
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

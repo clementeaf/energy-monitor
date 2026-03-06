@@ -3,9 +3,12 @@ import { useParams, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingDetailSkeleton, ChartSkeleton, MetersGridSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
+import { useAlerts } from '../../hooks/queries/useAlerts';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
+import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
 import { MeterCard } from '../meters/components/MeterCard';
+import type { Alert } from '../../types';
 
 type Resolution = '15min' | 'hourly' | 'daily';
 
@@ -26,6 +29,18 @@ export function BuildingDetailPage() {
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
+  const { data: activeAlerts } = useAlerts(
+    { status: 'active', buildingId: id, limit: 50 },
+    { enabled: !!id, refetchInterval: 60_000, staleTime: 15_000 },
+  );
+
+  const alertsByMeter = new Map<string, Alert[]>();
+  for (const alert of activeAlerts ?? []) {
+    if (!alert.meterId) continue;
+    const list = alertsByMeter.get(alert.meterId) ?? [];
+    list.push(alert);
+    alertsByMeter.set(alert.meterId, list);
+  }
 
   if (loadingBuilding) return <BuildingDetailSkeleton />;
   if (!building) return <p className="text-subtle">Edificio no encontrado</p>;
@@ -57,13 +72,17 @@ export function BuildingDetailPage() {
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+        {(activeAlerts?.length ?? 0) > 0 && id && (
+          <BuildingAlertsPanel buildingId={id} alerts={activeAlerts ?? []} />
+        )}
+
         <h2 className="mb-2 text-lg font-bold text-text">Medidores ({meters?.length ?? 0})</h2>
         {loadingMeters ? (
           <MetersGridSkeleton />
         ) : (
           <div className="grid grid-cols-1 content-start gap-3 pb-2 sm:grid-cols-2 lg:grid-cols-3">
             {meters?.map((m) => (
-              <MeterCard key={m.id} meter={m} />
+              <MeterCard key={m.id} meter={m} activeAlerts={alertsByMeter.get(m.id) ?? []} />
             ))}
           </div>
         )}

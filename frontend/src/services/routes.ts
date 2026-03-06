@@ -14,6 +14,11 @@ export const routes = {
   getMeterAlarmEvents:     (id: string)             => `/meters/${id}/alarm-events`,
   getMeterAlarmSummary:    (id: string)             => `/meters/${id}/alarm-summary`,
 
+  // Alerts
+  getAlerts:               ()                       => '/alerts',
+  acknowledgeAlert:        (id: string)             => `/alerts/${id}/acknowledge`,
+  syncOfflineAlerts:       ()                       => '/alerts/sync-offline',
+
   // Hierarchy
   getHierarchy:            (buildingId: string)     => `/hierarchy/${buildingId}`,
   getHierarchyNode:        (nodeId: string)         => `/hierarchy/node/${nodeId}`,

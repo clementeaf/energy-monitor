@@ -1,5 +1,6 @@
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
@@ -11,7 +12,7 @@ export function BuildingDetailPage() {
   const { data: consumption } = useBuildingConsumption(id!);
   const { data: meters } = useMetersByBuilding(id!);
 
-  if (loadingBuilding) return <p className="text-subtle">Cargando...</p>;
+  if (loadingBuilding) return <BuildingDetailSkeleton />;
   if (!building) return <p className="text-subtle">Edificio no encontrado</p>;
 
   return (

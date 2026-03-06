@@ -1,5 +1,6 @@
 import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
 import { StockChart } from '../../components/ui/StockChart';
 import { useMeter, useMeterReadings } from '../../hooks/queries/useMeters';
 
@@ -8,7 +9,7 @@ export function MeterDetailPage() {
   const { data: meter, isLoading } = useMeter(meterId!);
   const { data: readings } = useMeterReadings(meterId!, 'hourly');
 
-  if (isLoading) return <p className="text-subtle">Cargando...</p>;
+  if (isLoading) return <MeterDetailSkeleton />;
   if (!meter) return <p className="text-subtle">Medidor no encontrado</p>;
 
   const chartOptions: Highcharts.Options = {

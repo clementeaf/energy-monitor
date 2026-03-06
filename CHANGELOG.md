@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0-alpha.4] - 2026-03-06
+
+### Added
+
+- **Skeleton loading states** (`Skeleton.tsx`): componentes `animate-pulse` que replican el layout de cada página durante la carga
+  - `BuildingsPageSkeleton`: título + grid de 4 cards fantasma
+  - `BuildingDetailSkeleton`: header + chart 380px + 6 meter cards
+  - `MeterDetailSkeleton`: header + metadata + 2 charts
+  - `ProtectedRoute`: sidebar fantasma + layout con chart y cards (reemplaza "Cargando..." a pantalla completa)
+
+---
+
 ## [0.7.0-alpha.3] - 2026-03-06
 
 ### Changed

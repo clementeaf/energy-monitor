@@ -15,6 +15,7 @@ Plataforma de monitoreo energético en tiempo real para edificios comerciales.
 - `CLAUDE.md`: contexto base para trabajar rápido y con baja ambigüedad.
 - `patterns/`: anexos cortos de ejecución para tareas concretas de frontend, backend, fullstack, data flow y AWS.
 - `patterns/playbooks/`: recetas ultracortas para tareas repetidas.
+- `docs/POWER_Digital_Especificacion_Modulos-rev2.1.xlsx`: especificación funcional objetivo del producto.
 - `PLAN_ACCION.md`: roadmap y prioridades, no contexto operativo.
 
 ## Stack
@@ -79,6 +80,11 @@ docs/       → runbooks y fixes
 2. Leer `patterns/devops.md` y `docs/aws-runbook.md`.
 3. Si agregas scheduler o lambda nueva, usar `patterns/playbooks/new-scheduled-lambda.md`.
 4. Aplicar cambios en env vars, serverless y deploy.
+
+### Entender alcance funcional objetivo
+1. Leer `CLAUDE.md`.
+2. Si falta contexto de producto, usar `patterns/playbooks/use-excel-spec.md`.
+3. Leer solo las hojas necesarias del XLSX canónico.
 
 ## Deploy
 - Usar `docs/aws-runbook.md`.

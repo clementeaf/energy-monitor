@@ -25,6 +25,40 @@ Usarlos solo si la tarea es muy puntual.
 - Endpoint nuevo: `patterns/playbooks/new-endpoint.md`
 - Flujo end-to-end nuevo: `patterns/playbooks/new-fullstack-flow.md`
 - Lambda programada nueva: `patterns/playbooks/new-scheduled-lambda.md`
+- Leer especificación funcional XLSX: `patterns/playbooks/use-excel-spec.md`
+
+## Functional Spec (XLSX)
+La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_Modulos-rev2.1.xlsx`.
+
+- Sirve como blueprint de producto, no como reflejo exacto del código actual.
+- Si hay conflicto, el código manda para comportamiento presente; el XLSX manda para intención funcional y roadmap.
+- Hojas más útiles para trabajo operativo:
+  - `1. Roles y Permisos`: RBAC, autenticación y sesión.
+  - `2. Módulos - Resumen`: módulos, vistas, roles y fase.
+  - `5. Datos y Campos`: tablas, KPIs, formatos y fuentes.
+  - `6. Tipos de Alertas`: catálogo de alertas, umbrales, severidad y escalamiento.
+  - `7. Navegación`: menú, rutas y acceso por rol.
+- Otras hojas cubren filtros detallados, gráficos/visualizaciones y catálogo de alertas.
+
+### Qué aporta hoy
+- RBAC objetivo más rico que el enforcement actual del backend.
+- Navegación objetivo mucho más amplia que la app hoy implementada.
+- Contratos funcionales de vistas, campos y dashboards que sirven como guía de expansión.
+
+### Alertas objetivo del XLSX
+- El spec define 22 tipos de alertas/fallos, mucho más que el `METER_OFFLINE` hoy persistido en backend.
+- Familias observadas: comunicación, eléctrica, consumo, operativa, generación y bus/concentrador.
+- Cada alerta trae: variable monitoreada, umbral default, severidad, escalamiento, canal de notificación, frecuencia de check y guía de acción por rol.
+- Ejemplos: pérdida de comunicación, timeout Modbus, sobretensión, subtensión, THD aviso/crítico, sobreconsumo, peak demand, factor de potencia bajo, breaker disparado, exportación detectada, sobrecorriente, desequilibrio de fases, CRC/dirección Modbus duplicada, fallo de concentrador, fallo MQTT S7-1200, corte total del edificio.
+- Usar esta hoja como blueprint para futuras reglas de alerts; el código actual implementa solo una fracción mínima.
+
+### Navegación objetivo del XLSX
+- Menú objetivo mucho más amplio que el router actual.
+- Grupos principales observados: `Dashboard`, `Monitoreo`, `Facturación` y módulos administrativos/reporting no implementados aún.
+- Rutas objetivo visibles en la muestra: `/dashboard/executive`, `/dashboard/executive/:siteId`, `/dashboard/compare`, `/monitoring/realtime`, `/monitoring/drilldown/:siteId`, `/monitoring/devices`, `/monitoring/demand/:siteId`, `/monitoring/quality/:siteId`, `/monitoring/meters/type`, `/monitoring/generation/:siteId`, `/monitoring/modbus-map/:siteId`, `/monitoring/fault-history/:meterId`, `/monitoring/concentrator/:concentratorId`, `/billing/rates`, `/billing/generate`.
+- Usar esta navegación como target funcional y roadmap; no asumir que todas esas rutas existen hoy en el código.
+
+Usar este XLSX solo cuando `CLAUDE.md` no alcance para resolver una duda funcional puntual.
 
 ## Project Overview
 Plataforma de monitoreo energético en tiempo real para edificios comerciales. Telemetría de 15 medidores Siemens (PAC1670 3P, PAC1651 1P) en 2 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.

@@ -127,3 +127,102 @@ useAuth.ts: fachada unificada
 - TanStack Query maneja retry/error per query
 - Auth flows: try/catch manual con mensajes en español
 - `catch (err: unknown)` → cast para properties
+
+## UI Components (components/ui/)
+
+### Card
+```typescript
+interface CardProps { children: ReactNode; className?: string; onClick?: () => void; }
+```
+Contenedor con borde. Si `onClick` → cursor-pointer + hover accent border.
+
+### DataTable
+```typescript
+interface DataTableProps<T> {
+  data: T[]; columns: ColumnDef<T, any>[];
+  highlightRowIndex?: number | null; onRowHover?: (index: number | null) => void;
+  className?: string;
+}
+```
+TanStack Table v8. Sorting por header click (↑↓). Row highlight vía prop o hover. Overflow-x responsive.
+
+### PageHeader
+```typescript
+interface PageHeaderProps {
+  title: string; breadcrumbs?: { label: string; to?: string }[]; showBack?: boolean;
+}
+```
+H1 + breadcrumbs (separados por "/") + botón "← Volver" (`navigate(-1)`).
+
+### Chart
+```typescript
+interface ChartProps {
+  options: Highcharts.Options; className?: string;
+  onPointHover?: (index: number | null) => void; highlightIndex?: number | null;
+}
+```
+Highcharts wrapper. Dark theme. Point hover sync bidireccional (para sincronizar con DataTable). Height: 280px.
+
+### StockChart
+```typescript
+interface StockChartProps {
+  options: Highcharts.Options; className?: string;
+  loading?: boolean; onRangeChange?: (min: number, max: number) => void;
+}
+```
+Highcharts Stock. Navigator (40px) + range selector (1D, 1S, 1M, Todo). Loading overlay spinner. `onRangeChange` → `afterSetExtremes`. Dual Y-axis support. MinRange: 1h. Height: 380px.
+
+### ErrorBoundary
+```typescript
+interface Props { children: ReactNode; fallback?: ReactNode; }
+```
+Class component. `getDerivedStateFromError` → muestra error + "Reintentar" + "Ir al inicio". Logs `componentDidCatch` a console.
+
+### Skeleton
+```typescript
+interface SkeletonProps { className?: string; }
+```
+Base: `animate-pulse bg-raised`. Presets exportados:
+- `BuildingsPageSkeleton` — título + grid 4 cards
+- `BuildingDetailSkeleton` — header + chart 380px + 6 meter cards
+- `ChartSkeleton` — 380px placeholder
+- `MetersGridSkeleton` — grid configurable (default 6)
+- `DrilldownSkeleton` — header + breadcrumb + 2 charts 300px + tabla
+- `MeterDetailSkeleton` — header + 2 charts 380px
+
+### Layout
+App shell. Sidebar 56px (logo, usuario, nav, logout) + content area + alerts banner. Mobile: hamburger + slide sidebar. `useAppStore` para toggle. `useAlerts` para badge/banner (60s refetch). Nav filtrado por `getNavItems(role)`.
+
+## TypeScript Types (types/)
+
+### types/index.ts — Domain
+```
+Building { id, name, address, totalArea, metersCount }
+Meter { id, buildingId, model, phaseType, busId, modbusAddress, uplinkRoute, status, lastReadingAt }
+Reading { timestamp, voltageL1-3, currentL1-3, powerKw, reactivePowerKvar, powerFactor, frequencyHz, energyKwhTotal, thdVoltagePct, thdCurrentPct, phaseImbalancePct, breakerStatus, digitalInput1-2, digitalOutput1-2, alarm, modbusCrcErrors }
+ConsumptionPoint { timestamp, totalPowerKw, avgPowerKw, peakPowerKw }
+HierarchyNode { id, parentId, buildingId, name, level, nodeType, meterId, sortOrder }
+HierarchyChildSummary extends HierarchyNode { totalKwh, avgPowerKw, peakPowerKw, meterCount, status }
+HierarchyNodeWithPath { node, path }
+UptimeSummary { period, totalSeconds, uptimeSeconds, downtimeSeconds, uptimePercent, downtimeEvents }
+UptimeAll { daily, weekly, monthly }
+DowntimeEvent { downtimeStart, downtimeEnd, durationSeconds }
+AlarmEvent { timestamp, alarm, voltageL1, currentL1, powerFactor, thdCurrentPct, modbusCrcErrors }
+AlarmSummary { total, byType[] }
+MeterOverview { id, buildingId, model, phaseType, busId, status, lastReadingAt, uptime24h, alarmCount30d }
+Alert { id, type, severity, status, meterId, buildingId, title, message, triggeredAt, acknowledgedAt, resolvedAt, metadata }
+AlertsSyncSummary { scannedMeters, createdAlerts, resolvedAlerts, activeOfflineAlerts, scannedAt }
+Invoice { id, siteId, tenantId, period, kWh, kW, kVArh, energyCharge, demandCharge, reactiveCharge, fixedCharge, netTotal, tax, total, status }
+AuditLog { id, userId, action, resource, resourceId, detail, ip, timestamp }
+Tenant { id, siteId, name, rut, localId, meterId, contractStart, contractEnd, status }
+Integration { id, name, type, status, lastSyncAt, recordsSynced, errors }
+```
+Types: `AlertSeverity`, `AlertStatus`, `Resolution`
+
+### types/auth.ts
+```
+AuthProvider = 'microsoft' | 'google'
+Role = 'SUPER_ADMIN' | 'CORP_ADMIN' | 'SITE_ADMIN' | 'OPERATOR' | 'ANALYST' | 'TENANT_USER' | 'AUDITOR'
+AuthUser { id, email, name, role, provider, avatar?, siteIds }
+AuthState { user, isAuthenticated, isLoading, error }
+```

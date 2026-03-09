@@ -152,16 +152,174 @@ this.logger.log(`Synced: ${created} created, ${resolved} resolved`);
 | `findBuildingConsumption()` | Raw SQL | **string interpolation (SQL injection)** | ConsumptionBucket[] |
 | `findAlarmEvents()` | Raw SQL | parametrized | AlarmEvent[] |
 
-## Database Schema (SQL migrations)
+## API Endpoints (completo)
 
+### Auth (`/auth`) — requiere Bearer token
+| Method | Path | Query Params | Response | Service |
+|---|---|---|---|---|
+| GET | `/auth/me` | — | `{ user, permissions }` | `verifyToken()` → `resolveUser()` |
+| GET | `/auth/permissions` | — | `{ role, permissions }` | `verifyToken()` → `resolvePermissions()` |
+
+### Buildings (`/buildings`) — sin auth
+| Method | Path | Query Params | Response | Service |
+|---|---|---|---|---|
+| GET | `/buildings` | — | `BuildingSummaryDto[]` | `findAll()` |
+| GET | `/buildings/:id` | — | `BuildingSummaryDto` | `findOne()` |
+| GET | `/buildings/:id/meters` | — | `Meter[]` | `findMeters()` |
+| GET | `/buildings/:id/consumption` | `resolution?`, `from?`, `to?` | `ConsumptionPointDto[]` | `findConsumption()` |
+
+### Meters (`/meters`) — sin auth
+| Method | Path | Query Params | Response | Service |
+|---|---|---|---|---|
+| GET | `/meters/overview` | — | `MeterOverview[]` | `getOverview()` |
+| GET | `/meters/:id` | — | `Meter` | `findOne()` |
+| GET | `/meters/:id/readings` | `resolution?`, `from?`, `to?` | `Reading[]` | `findReadings()` |
+| GET | `/meters/:id/uptime` | `period?` (daily/weekly/monthly/all) | `UptimeSummary[]` | `getUptimeAll()` / `getUptimeSummary()` |
+| GET | `/meters/:id/downtime-events` | `from`, `to` | `DowntimeEvent[]` | `getDowntimeEvents()` |
+| GET | `/meters/:id/alarm-events` | `from`, `to` | `AlarmEvent[]` | `getAlarmEvents()` |
+| GET | `/meters/:id/alarm-summary` | `from`, `to` | `AlarmSummary` | `getAlarmSummary()` |
+
+### Hierarchy (`/hierarchy`) — sin auth
+| Method | Path | Query Params | Response | Service |
+|---|---|---|---|---|
+| GET | `/hierarchy/:buildingId` | — | `HierarchyNode[]` (tree) | `findTree()` |
+| GET | `/hierarchy/node/:nodeId` | — | `{ node, path }` | `findNode()` |
+| GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` | `HierarchyChildSummary[]` | `findChildrenWithConsumption()` |
+| GET | `/hierarchy/node/:nodeId/consumption` | `resolution?`, `from?`, `to?` | time-series | `findNodeConsumption()` |
+
+### Alerts (`/alerts`) — sin auth
+| Method | Path | Query Params | Response | Service |
+|---|---|---|---|---|
+| GET | `/alerts` | `status?`, `type?`, `meterId?`, `buildingId?`, `limit?` | `Alert[]` | `findAll()` |
+| POST | `/alerts/sync-offline` | — | `AlertsSyncSummary` | `scanOfflineMeters()` |
+| PATCH | `/alerts/:id/acknowledge` | — | `Alert` | `acknowledge()` |
+
+Resolutions válidas: `raw`, `15min`, `hourly`, `daily`. Fechas en ISO 8601.
+
+## Database Schema (completo)
+
+### Tablas
+
+**roles**
+| Column | Type | Notes |
+|---|---|---|
+| id | smallint PK | |
+| name | varchar(30) | unique |
+| label_es | varchar(50) | |
+| is_active | boolean | default true |
+| created_at | timestamptz | default now() |
+
+**modules** — id: smallint PK, code: varchar(40) unique, label: varchar(60)
+
+**actions** — id: smallint PK, code: varchar(20) unique
+
+**role_permissions** — PK compuesto (role_id, module_id, action_id). FK role_id → roles.
+
+**users**
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| external_id | varchar(255) | OAuth provider ID |
+| provider | varchar(20) | 'microsoft' \| 'google' |
+| email | varchar(255) | |
+| name | varchar(255) | |
+| avatar_url | text | nullable |
+| role_id | smallint FK → roles | default 4 |
+| is_active | boolean | default true |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
+
+**user_sites** — PK (user_id, site_id). FK user_id → users CASCADE.
+
+**buildings**
+| Column | Type | Notes |
+|---|---|---|
+| id | varchar(50) PK | e.g. 'pac4220' |
+| name | varchar(200) | |
+| address | varchar(300) | |
+| total_area | numeric(10,2) | |
+
+**meters**
+| Column | Type | Notes |
+|---|---|---|
+| id | varchar(10) PK | e.g. 'M001' |
+| building_id | varchar(50) FK → buildings | |
+| model | varchar(20) | 'PAC1670' \| 'PAC1651' |
+| phase_type | varchar(5) | '1P' \| '3P' |
+| bus_id | varchar(30) | |
+| modbus_address | smallint | |
+| uplink_route | varchar(100) | |
+| status | varchar(10) | default 'online' |
+| last_reading_at | timestamptz | nullable |
+
+**readings**
+| Column | Type | Notes |
+|---|---|---|
+| id | integer PK | auto-increment |
+| meter_id | varchar(10) FK → meters | |
+| timestamp | timestamptz | |
+| voltage_l1/l2/l3 | numeric(7,2) | nullable (l2/l3 null para 1P) |
+| current_l1/l2/l3 | numeric(8,3) | nullable |
+| power_kw | numeric(10,3) | NOT NULL |
+| reactive_power_kvar | numeric(10,3) | nullable |
+| power_factor | numeric(5,3) | nullable |
+| frequency_hz | numeric(6,3) | nullable |
+| energy_kwh_total | numeric(14,3) | NOT NULL, acumulativo |
+| thd_voltage_pct | numeric(5,2) | nullable |
+| thd_current_pct | numeric(5,2) | nullable |
+| phase_imbalance_pct | numeric(5,2) | nullable |
+| breaker_status | varchar(10) | nullable |
+| digital_input_1/2 | smallint | nullable |
+| digital_output_1/2 | smallint | nullable |
+| alarm | varchar(50) | nullable |
+| modbus_crc_errors | integer | nullable |
+
+**hierarchy_nodes**
+| Column | Type | Notes |
+|---|---|---|
+| id | varchar(20) PK | e.g. 'TG-PAC4220' |
+| parent_id | varchar(20) FK → self | nullable (root = null) |
+| building_id | varchar(50) | |
+| name | varchar(100) | |
+| level | smallint | 1=Building, 2=Panel, 3=Subpanel, 4=Circuit |
+| node_type | varchar(20) | 'building' \| 'panel' \| 'subpanel' \| 'circuit' |
+| meter_id | varchar(10) FK → meters | nullable (solo leaf nodes) |
+| sort_order | smallint | default 0 |
+
+**alerts**
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | auto-generated |
+| type | varchar(50) | e.g. 'METER_OFFLINE' |
+| severity | varchar(20) | default 'high' |
+| status | varchar(20) | 'active' \| 'acknowledged' \| 'resolved' |
+| meter_id | varchar(10) FK → meters | nullable |
+| building_id | varchar(50) | nullable |
+| title | varchar(200) | |
+| message | text | |
+| triggered_at | timestamptz | default now() |
+| acknowledged_at | timestamptz | nullable |
+| resolved_at | timestamptz | nullable |
+| metadata | jsonb | default '{}' |
+
+### Relaciones
 ```
-sql/001_schema.sql          → users, roles, role_permissions
-sql/002_seed.sql            → seed roles, modules, actions
+roles 1──N users
+roles 1──N role_permissions
+users 1──N user_sites
+buildings 1──N meters
+meters 1──N readings
+meters 1──N alerts (nullable)
+hierarchy_nodes N──1 hierarchy_nodes (parent)
+hierarchy_nodes N──1 meters (nullable, leaf only)
+```
+
+### SQL Migrations
+```
+sql/001_schema.sql          → users, roles, role_permissions, modules, actions
+sql/002_seed.sql            → seed 7 roles, 10 modules, 3 actions
 sql/003_buildings_locals.sql → buildings, locals
 sql/004_meters_readings.sql → meters, readings, seed 15 meters
 sql/005_hierarchy_nodes.sql → hierarchy tree (adjacency list)
 sql/006_alerts.sql          → alerts
 ```
-
-Hierarchy: adjacency list con `parent_id`, leaf nodes con `meter_id`.
-Readings: `meter_id + timestamp` composite, 13 campos eléctricos.

@@ -73,15 +73,48 @@ StockChart afterSetExtremes callback
 ```
 DB (snake_case)         Backend (entity/raw SQL)     Frontend (types/index.ts)
 ───────────────         ────────────────────────     ─────────────────────────
-meters.meter_id         Meter.id                     Meter.id
-meters.last_reading_at  Meter.lastReadingAt          Meter.lastReadingAt
-readings.power_kw       r.power_kw (raw SQL)         Reading.powerKw
-readings.timestamp      r.timestamp                  Reading.timestamp
+roles                   Role                         (via auth.ts Role type)
+users                   User                         AuthUser
+buildings               Building                     Building
+meters                  Meter                        Meter
+readings                Reading                      Reading
 hierarchy_nodes         HierarchyNode                HierarchyNode
+alerts                  Alert                        Alert
+role_permissions        RolePermission               (permissions map)
+user_sites              UserSite                     (siteIds array)
 ```
 
-TypeORM entities: `@Column({ name: 'snake_case' })` o naming strategy.
-Raw SQL results: manual mapping `Record<string, unknown>` → typed object con `Number()` conversions.
+Column mapping: TypeORM `@Column({ name: 'snake_case' })`. Raw SQL → manual `Record<string, unknown>` → typed object con `Number()`.
+
+## Endpoints disponibles (referencia rápida)
+
+### Sin auth (públicos)
+```
+GET  /buildings                              → Building[]
+GET  /buildings/:id                          → Building
+GET  /buildings/:id/meters                   → Meter[]
+GET  /buildings/:id/consumption?res&from&to  → ConsumptionPoint[]
+GET  /meters/overview                        → MeterOverview[]
+GET  /meters/:id                             → Meter
+GET  /meters/:id/readings?res&from&to        → Reading[]
+GET  /meters/:id/uptime?period               → UptimeSummary[] | UptimeAll
+GET  /meters/:id/downtime-events?from&to     → DowntimeEvent[]
+GET  /meters/:id/alarm-events?from&to        → AlarmEvent[]
+GET  /meters/:id/alarm-summary?from&to       → AlarmSummary
+GET  /hierarchy/:buildingId                  → HierarchyNode[] (tree)
+GET  /hierarchy/node/:nodeId                 → { node, path }
+GET  /hierarchy/node/:nodeId/children?from&to → HierarchyChildSummary[]
+GET  /hierarchy/node/:nodeId/consumption?res&from&to → time-series
+GET  /alerts?status&type&meterId&buildingId&limit → Alert[]
+POST /alerts/sync-offline                    → AlertsSyncSummary
+PATCH /alerts/:id/acknowledge                → Alert
+```
+
+### Con auth (Bearer token)
+```
+GET  /auth/me                                → { user, permissions }
+GET  /auth/permissions                       → { role, permissions }
+```
 
 ## Caching Strategy
 

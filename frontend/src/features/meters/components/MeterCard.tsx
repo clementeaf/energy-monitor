@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../hooks/auth/useAuth';
+import { appRoutes, canAccessRoute } from '../../../app/appRoutes';
 import { Card } from '../../../components/ui/Card';
 import type { Alert, Meter } from '../../../types';
 
@@ -18,12 +20,14 @@ function formatAlertDate(value: string) {
 
 export function MeterCard({ meter, activeAlerts = [] }: Readonly<MeterCardProps>) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const latestAlert = activeAlerts[0] ?? null;
+  const canOpenMeterDetail = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
 
   return (
     <Card
       className={activeAlerts.length > 0 ? 'border-red-500/30 bg-red-500/5' : ''}
-      onClick={() => navigate(`/meters/${meter.id}`)}
+      onClick={canOpenMeterDetail ? () => navigate(`/meters/${meter.id}`) : undefined}
     >
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-text">{meter.id}</h3>

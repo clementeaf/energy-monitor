@@ -1,4 +1,5 @@
 import type { Role } from '../types/auth';
+import { PERMISSIONS } from '../auth/permissions';
 
 export interface AppRoute {
   path: string;
@@ -17,37 +18,41 @@ export const appRoutes = {
   buildings: {
     path: '/',
     label: 'Edificios',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
+    allowedRoles: PERMISSIONS.BUILDINGS.view,
     showInNav: true,
   },
   buildingDetail: {
     path: '/buildings/:id',
     label: 'Detalle Edificio',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
+    allowedRoles: PERMISSIONS.BUILDINGS.view,
   },
   meterDetail: {
     path: '/meters/:meterId',
     label: 'Detalle Medidor',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
+    allowedRoles: PERMISSIONS.METERS.view,
   },
   iotDevices: {
     path: '/iot-devices',
     label: 'Dispositivos',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
+    allowedRoles: PERMISSIONS.METERS.view,
     showInNav: true,
   },
   alerts: {
     path: '/alerts',
     label: 'Alertas',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'AUDITOR'],
+    allowedRoles: PERMISSIONS.ALERTS.view,
     showInNav: true,
   },
   drilldown: {
     path: '/monitoring/drilldown/:buildingId',
     label: 'Drill-down',
-    allowedRoles: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST'],
+    allowedRoles: PERMISSIONS.DASHBOARD_TECHNICAL.view_realtime,
   },
 } as const satisfies Record<string, AppRoute>;
+
+export function canAccessRoute(role: Role, route: AppRoute): boolean {
+  return !route.allowedRoles || route.allowedRoles.includes(role);
+}
 
 /** Helper: build path with params */
 export function buildPath(route: string, params: Record<string, string> = {}): string {
@@ -60,6 +65,6 @@ export function buildPath(route: string, params: Record<string, string> = {}): s
 /** Get nav items for a given role */
 export function getNavItems(role: Role): AppRoute[] {
   return (Object.values(appRoutes) as AppRoute[]).filter(
-    (r) => r.showInNav && (!r.allowedRoles || r.allowedRoles.includes(role)),
+    (r) => r.showInNav && canAccessRoute(role, r),
   );
 }

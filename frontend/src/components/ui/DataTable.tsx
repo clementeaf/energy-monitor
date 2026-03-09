@@ -14,10 +14,11 @@ interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
   highlightRowIndex?: number | null;
   onRowHover?: (index: number | null) => void;
+  onRowClick?: (row: T, index: number) => void;
   className?: string;
 }
 
-export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover, className = '' }: DataTableProps<T>) {
+export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover, onRowClick, className = '' }: Readonly<DataTableProps<T>>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -61,6 +62,7 @@ export function DataTable<T>({ data, columns, highlightRowIndex, onRowHover, cla
                 }`}
                 onMouseEnter={() => onRowHover?.(row.index)}
                 onMouseLeave={() => onRowHover?.(null)}
+                onClick={() => onRowClick?.(row.original, row.index)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-4 py-3">

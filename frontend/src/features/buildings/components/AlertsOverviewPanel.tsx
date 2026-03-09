@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../hooks/auth/useAuth';
 import { Card } from '../../../components/ui/Card';
-import { appRoutes } from '../../../app/appRoutes';
+import { appRoutes, canAccessRoute } from '../../../app/appRoutes';
 import type { Alert } from '../../../types';
 
 interface AlertsOverviewPanelProps {
@@ -19,6 +20,8 @@ function formatDate(value: string) {
 
 export function AlertsOverviewPanel({ alerts }: Readonly<AlertsOverviewPanelProps>) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canOpenMeterDetail = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
 
   const summary = useMemo(() => {
     const affectedBuildings = new Set(alerts.map((alert) => alert.buildingId).filter(Boolean));
@@ -74,7 +77,7 @@ export function AlertsOverviewPanel({ alerts }: Readonly<AlertsOverviewPanelProp
               <button
                 key={alert.id}
                 onClick={() => navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId ?? ''))}
-                disabled={!alert.meterId}
+                disabled={!alert.meterId || !canOpenMeterDetail}
                 className="flex w-full items-start justify-between gap-3 rounded-lg border border-border px-3 py-3 text-left transition-colors hover:bg-raised disabled:cursor-default disabled:opacity-80"
               >
                 <div>

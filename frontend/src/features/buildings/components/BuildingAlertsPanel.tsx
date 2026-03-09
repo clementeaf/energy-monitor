@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../hooks/auth/useAuth';
 import { Card } from '../../../components/ui/Card';
-import { appRoutes } from '../../../app/appRoutes';
+import { appRoutes, canAccessRoute } from '../../../app/appRoutes';
 import type { Alert } from '../../../types';
 
 interface BuildingAlertsPanelProps {
@@ -20,7 +21,9 @@ function formatDate(value: string) {
 
 export function BuildingAlertsPanel({ buildingId, alerts }: Readonly<BuildingAlertsPanelProps>) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const affectedMeters = new Set(alerts.map((alert) => alert.meterId).filter(Boolean)).size;
+  const canOpenMeterDetail = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
 
   return (
     <section className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
@@ -56,7 +59,8 @@ export function BuildingAlertsPanel({ buildingId, alerts }: Readonly<BuildingAle
         {alerts.slice(0, 4).map((alert) => (
           <button
             key={alert.id}
-            onClick={() => alert.meterId && navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId))}
+            onClick={() => alert.meterId && canOpenMeterDetail && navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId))}
+            disabled={!alert.meterId || !canOpenMeterDetail}
             className="flex w-full items-start justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-raised"
           >
             <div>

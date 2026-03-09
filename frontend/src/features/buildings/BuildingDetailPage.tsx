@@ -2,9 +2,11 @@ import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingDetailSkeleton, ChartSkeleton, MetersGridSkeleton } from '../../components/ui/Skeleton';
+import { useAuth } from '../../hooks/auth/useAuth';
 import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
+import { appRoutes, canAccessRoute } from '../../app/appRoutes';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
 import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
 import { MeterCard } from '../meters/components/MeterCard';
@@ -22,6 +24,7 @@ function pickResolution(rangeMs: number): Resolution {
 export function BuildingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [resolution, setResolution] = useState<Resolution>('hourly');
   const handleRangeChange = useCallback((min: number, max: number) => {
     setResolution(pickResolution(max - min));
@@ -29,9 +32,11 @@ export function BuildingDetailPage() {
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
+  const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
+  const canOpenDrilldown = !!user && canAccessRoute(user.role, appRoutes.drilldown);
   const { data: activeAlerts } = useAlerts(
     { status: 'active', buildingId: id, limit: 50 },
-    { enabled: !!id, refetchInterval: 60_000, staleTime: 15_000 },
+    { enabled: !!id && canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },
   );
 
   const alertsByMeter = new Map<string, Alert[]>();
@@ -58,12 +63,14 @@ export function BuildingDetailPage() {
         />
         <div className="mb-3 flex items-center gap-3">
           <p className="text-sm text-muted">{building.address} &middot; {building.totalArea} m²</p>
-          <button
-            onClick={() => navigate(`/monitoring/drilldown/${id}`)}
-            className="rounded-lg border border-border px-3 py-1 text-xs text-muted hover:bg-raised hover:text-text"
-          >
-            Drill-down Jerárquico
-          </button>
+          {canOpenDrilldown && (
+            <button
+              onClick={() => navigate(`/monitoring/drilldown/${id}`)}
+              className="rounded-lg border border-border px-3 py-1 text-xs text-muted hover:bg-raised hover:text-text"
+            >
+              Drill-down Jerárquico
+            </button>
+          )}
         </div>
       </div>
 
@@ -72,7 +79,7 @@ export function BuildingDetailPage() {
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-        {(activeAlerts?.length ?? 0) > 0 && id && (
+        {canViewAlerts && (activeAlerts?.length ?? 0) > 0 && id && (
           <BuildingAlertsPanel buildingId={id} alerts={activeAlerts ?? []} />
         )}
 

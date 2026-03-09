@@ -15,13 +15,13 @@ const NODE_TYPE_LABEL: Record<string, string> = {
 };
 
 interface Props {
-  children: HierarchyChildSummary[];
+  items: HierarchyChildSummary[];
   onDrill: (nodeId: string) => void;
 }
 
-export function DrilldownChildrenTable({ children, onDrill }: Props) {
+export function DrilldownChildrenTable({ items, onDrill }: Readonly<Props>) {
   const navigate = useNavigate();
-  const totalKwh = children.reduce((s, c) => s + c.totalKwh, 0) || 1;
+  const totalKwh = items.reduce((s, c) => s + c.totalKwh, 0) || 1;
 
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
@@ -38,7 +38,7 @@ export function DrilldownChildrenTable({ children, onDrill }: Props) {
           </tr>
         </thead>
         <tbody>
-          {children.map((c) => {
+          {items.map((c) => {
             const pct = ((c.totalKwh / totalKwh) * 100).toFixed(1);
             const isCircuit = c.nodeType === 'circuit';
             return (

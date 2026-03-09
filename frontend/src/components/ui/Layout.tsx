@@ -1,17 +1,15 @@
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
-import { appRoutes, getNavItems } from '../../app/appRoutes';
+import { appRoutes, canAccessRoute, getNavItems } from '../../app/appRoutes';
 import { useAlerts } from '../../hooks/queries/useAlerts';
-import type { Role } from '../../types/auth';
 
 export function Layout() {
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const alertRoles = appRoutes.alerts.allowedRoles as readonly Role[];
-  const canViewAlerts = !!user && alertRoles.includes(user.role);
+  const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
   const { data: activeAlerts } = useAlerts(
     { status: 'active', limit: 20 },
     { enabled: canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },
@@ -22,7 +20,9 @@ export function Layout() {
     <div className="flex h-screen overflow-hidden bg-base">
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
-        <div
+        <button
+          type="button"
+          aria-label="Cerrar menú lateral"
           className="fixed inset-0 z-20 bg-black/50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -35,12 +35,13 @@ export function Layout() {
         }`}
       >
         <div className="border-b border-border px-4 py-4">
-          <h2
-            className="cursor-pointer text-lg font-bold text-text"
+          <button
+            type="button"
+            className="text-lg font-bold text-text"
             onClick={() => { navigate('/'); setSidebarOpen(false); }}
           >
             Energy Monitor
-          </h2>
+          </button>
           {user && (
             <p className="mt-1 truncate text-xs text-subtle">{user.name}</p>
           )}

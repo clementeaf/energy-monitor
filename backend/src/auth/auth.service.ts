@@ -11,6 +11,17 @@ export interface TokenPayload {
   iss: string;
 }
 
+export interface AuthorizationContext {
+  userId: string;
+  roleId: number;
+  role: string;
+  provider: 'microsoft' | 'google';
+  email: string;
+  name: string;
+  avatar?: string;
+  permissions: Record<string, string[]>;
+}
+
 const MICROSOFT_JWKS_URL = 'https://login.microsoftonline.com/common/discovery/v2.0/keys';
 const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 
@@ -73,6 +84,29 @@ export class AuthService {
     return null;
   }
 
+  async resolveAuthorizationContext(
+    payload: TokenPayload,
+  ): Promise<AuthorizationContext | null> {
+    const provider = this.detectProvider(payload.iss);
+    if (!provider) return null;
+
+    const user = await this.usersService.findByExternalId(provider, payload.sub);
+    if (!user?.isActive) return null;
+
+    const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
+
+    return {
+      userId: user.id,
+      roleId: user.roleId,
+      role: user.role.name,
+      provider,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatarUrl ?? undefined,
+      permissions,
+    };
+  }
+
   async resolveUser(payload: TokenPayload) {
     const provider = this.detectProvider(payload.iss);
     if (!provider) return null;
@@ -85,34 +119,32 @@ export class AuthService {
       avatarUrl: payload.picture,
     });
 
-    const user = await this.usersService.findByExternalId(provider, payload.sub);
-    if (!user?.isActive) return null;
+    const authContext = await this.resolveAuthorizationContext(payload);
+    if (!authContext) return null;
 
-    const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
-    const siteIds = await this.usersService.getSiteIds(user.id);
+    const siteIds = await this.usersService.getSiteIds(authContext.userId);
 
     return {
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role.name,
-        provider,
-        avatar: user.avatarUrl,
+        id: authContext.userId,
+        email: authContext.email,
+        name: authContext.name,
+        role: authContext.role,
+        provider: authContext.provider,
+        avatar: authContext.avatar,
         siteIds: siteIds.length > 0 ? siteIds : ['*'],
       },
-      permissions,
+      permissions: authContext.permissions,
     };
   }
 
   async resolvePermissions(payload: TokenPayload) {
-    const provider = this.detectProvider(payload.iss);
-    if (!provider) return null;
+    const authContext = await this.resolveAuthorizationContext(payload);
+    if (!authContext) return null;
 
-    const user = await this.usersService.findByExternalId(provider, payload.sub);
-    if (!user?.isActive) return null;
-
-    const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
-    return { role: user.role.name, permissions };
+    return {
+      role: authContext.role,
+      permissions: authContext.permissions,
+    };
   }
 }

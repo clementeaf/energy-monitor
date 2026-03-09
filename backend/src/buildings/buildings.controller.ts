@@ -1,15 +1,18 @@
 import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { BuildingsService } from './buildings.service';
 import { BuildingSummaryDto, ConsumptionPointDto } from './dto/building-response.dto';
 import { Meter } from '../meters/meter.entity';
+import { RequirePermissions } from '../auth/require-permissions.decorator';
 
 @ApiTags('Buildings')
+@ApiBearerAuth()
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Get()
+  @RequirePermissions('BUILDINGS', 'view')
   @ApiOperation({ summary: 'Listar edificios', description: 'Retorna todos los edificios con la cantidad de medidores.' })
   @ApiOkResponse({ type: [BuildingSummaryDto] })
   findAll() {
@@ -17,6 +20,7 @@ export class BuildingsController {
   }
 
   @Get(':id')
+  @RequirePermissions('BUILDINGS', 'view')
   @ApiOperation({ summary: 'Obtener edificio por ID' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: BuildingSummaryDto })
@@ -28,6 +32,7 @@ export class BuildingsController {
   }
 
   @Get(':id/meters')
+  @RequirePermissions('BUILDINGS', 'view')
   @ApiOperation({ summary: 'Listar medidores de un edificio' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: [Meter] })
@@ -36,6 +41,7 @@ export class BuildingsController {
   }
 
   @Get(':id/consumption')
+  @RequirePermissions('BUILDINGS', 'view')
   @ApiOperation({ summary: 'Consumo agregado de un edificio', description: 'Retorna serie temporal con potencia total, promedio y pico por intervalo.' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })

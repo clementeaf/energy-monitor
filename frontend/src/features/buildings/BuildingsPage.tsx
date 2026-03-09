@@ -3,8 +3,7 @@ import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { useAuth } from '../../hooks/auth/useAuth';
-import { appRoutes } from '../../app/appRoutes';
-import type { Role } from '../../types/auth';
+import { appRoutes, canAccessRoute } from '../../app/appRoutes';
 import type { Alert } from '../../types';
 import { AlertsOverviewPanel } from './components/AlertsOverviewPanel';
 import { BuildingCard } from './components/BuildingCard';
@@ -12,8 +11,7 @@ import { BuildingCard } from './components/BuildingCard';
 export function BuildingsPage() {
   const { user } = useAuth();
   const { data: buildings, isLoading } = useBuildings();
-  const alertRoles = appRoutes.alerts.allowedRoles as readonly Role[];
-  const canViewAlerts = !!user && alertRoles.includes(user.role);
+  const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
   const { data: activeAlerts } = useAlerts(
     { status: 'active', limit: 12 },
     { enabled: canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },

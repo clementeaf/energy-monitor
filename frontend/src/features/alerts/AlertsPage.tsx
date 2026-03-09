@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { Card } from '../../components/ui/Card';
+import { useAuth } from '../../hooks/auth/useAuth';
 import { useAlerts, useAcknowledgeAlert, useSyncOfflineAlerts } from '../../hooks/queries/useAlerts';
+import { hasPermission } from '../../auth/permissions';
 import type { Alert, AlertStatus } from '../../types';
-import { appRoutes } from '../../app/appRoutes';
+import { appRoutes, canAccessRoute } from '../../app/appRoutes';
 
 function statusBadge(status: AlertStatus) {
   switch (status) {
@@ -54,6 +56,7 @@ function timeAgo(value: string) {
 
 export function AlertsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<AlertStatus | 'all'>('all');
   const { data: alerts, isLoading, isFetching } = useAlerts(
     { status: statusFilter === 'all' ? undefined : statusFilter, limit: 100 },
@@ -61,6 +64,8 @@ export function AlertsPage() {
   );
   const acknowledgeMutation = useAcknowledgeAlert();
   const syncMutation = useSyncOfflineAlerts();
+  const canManageAlerts = !!user && hasPermission(user.role, 'ALERTS', 'manage');
+  const canOpenMeterDetail = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
 
   const summary = useMemo(() => {
     const items = alerts ?? [];
@@ -97,21 +102,23 @@ export function AlertsPage() {
           ))}
         </div>
 
-        <button
-          onClick={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-          className="rounded-lg border border-border px-4 py-2 text-sm text-text transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {syncMutation.isPending ? 'Sincronizando…' : 'Sincronizar offline'}
-        </button>
+        {canManageAlerts && (
+          <button
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="rounded-lg border border-border px-4 py-2 text-sm text-text transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {syncMutation.isPending ? 'Sincronizando…' : 'Sincronizar offline'}
+          </button>
+        )}
       </div>
 
-      {syncMutation.data && (
+      {canManageAlerts && syncMutation.data && (
         <div className="mb-4 rounded-lg border border-border bg-surface px-4 py-3 text-sm text-muted">
           Última sincronización manual: <span className="font-medium text-text">{formatDate(syncMutation.data.scannedAt)}</span>
-          <span className="mx-2">•</span>
+          {' • '}
           creadas <span className="font-medium text-text">{syncMutation.data.createdAlerts}</span>
-          <span className="mx-2">•</span>
+          {' • '}
           resueltas <span className="font-medium text-text">{syncMutation.data.resolvedAlerts}</span>
         </div>
       )}
@@ -147,7 +154,7 @@ export function AlertsPage() {
                   <div className="mt-1 max-w-xl text-muted">{alert.message}</div>
                 </td>
                 <td className="px-4 py-3">
-                  {alert.meterId ? (
+                  {alert.meterId && canOpenMeterDetail ? (
                     <button
                       onClick={() => navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId!))}
                       className="font-medium text-accent hover:underline"
@@ -163,7 +170,7 @@ export function AlertsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-2">
-                    {alert.status === 'active' && (
+                    {canManageAlerts && alert.status === 'active' && (
                       <button
                         onClick={() => acknowledgeMutation.mutate(alert.id)}
                         disabled={acknowledgeMutation.isPending}
@@ -172,7 +179,7 @@ export function AlertsPage() {
                         Reconocer
                       </button>
                     )}
-                    {alert.meterId && (
+                    {alert.meterId && canOpenMeterDetail && (
                       <button
                         onClick={() => navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId!))}
                         className="rounded-md border border-border px-3 py-1 text-xs font-medium text-muted hover:bg-raised"

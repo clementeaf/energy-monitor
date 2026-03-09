@@ -4,15 +4,31 @@ import HighchartsReact from 'highcharts-react-official';
 import type { HierarchyChildSummary } from '../../../types';
 
 interface Props {
-  children: HierarchyChildSummary[];
+  items: HierarchyChildSummary[];
   onDrill: (nodeId: string) => void;
 }
 
-export function DrilldownBars({ children, onDrill }: Props) {
+function createTooltipFormatter(totalKwh: number) {
+  return function tooltipFormatter(this: Highcharts.Point): string {
+    const pct = ((Number(this.y) / totalKwh) * 100).toFixed(1);
+    return `<b>${this.category}</b><br/>kWh: ${Number(this.y).toFixed(1)}<br/>${pct}% del total`;
+  };
+}
+
+function createPointClickHandler(
+  sorted: HierarchyChildSummary[],
+  onDrill: (nodeId: string) => void,
+) {
+  return function pointClickHandler(this: Highcharts.Point): void {
+    onDrill(sorted[this.index].id);
+  };
+}
+
+export function DrilldownBars({ items, onDrill }: Readonly<Props>) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
-  const totalKwh = children.reduce((s, c) => s + c.totalKwh, 0) || 1;
-  const sorted = [...children].sort((a, b) => b.totalKwh - a.totalKwh);
+  const totalKwh = items.reduce((s, c) => s + c.totalKwh, 0) || 1;
+  const sorted = [...items].sort((a, b) => b.totalKwh - a.totalKwh);
 
   const options: Highcharts.Options = {
     chart: {
@@ -41,10 +57,7 @@ export function DrilldownBars({ children, onDrill }: Props) {
       backgroundColor: '#1e2530',
       borderColor: '#30363d',
       style: { color: '#e6edf3' },
-      formatter: function () {
-        const pct = ((Number(this.y) / totalKwh) * 100).toFixed(1);
-        return `<b>${this.x}</b><br/>kWh: ${Number(this.y).toFixed(1)}<br/>${pct}% del total`;
-      },
+      formatter: createTooltipFormatter(totalKwh),
     },
     plotOptions: {
       bar: {
@@ -54,10 +67,7 @@ export function DrilldownBars({ children, onDrill }: Props) {
         colorByPoint: true,
         point: {
           events: {
-            click: function () {
-              const idx = this.index;
-              onDrill(sorted[idx].id);
-            },
+            click: createPointClickHandler(sorted, onDrill),
           },
         },
       },

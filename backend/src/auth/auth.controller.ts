@@ -1,8 +1,8 @@
-import { Controller, Get, Req, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Controller, ForbiddenException, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiUnauthorizedResponse, ApiForbiddenResponse } from '@nestjs/swagger';
-import { Request } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService, type TokenPayload } from './auth.service';
 import { MeResponseDto, PermissionsResponseDto } from './dto/auth-response.dto';
+import { CurrentUser } from './current-user.decorator';
 
 @ApiTags('Auth')
 @ApiBearerAuth()
@@ -15,13 +15,7 @@ export class AuthController {
   @ApiOkResponse({ type: MeResponseDto })
   @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
   @ApiForbiddenResponse({ description: 'Cuenta deshabilitada' })
-  async getMe(@Req() req: Request) {
-    const token = this.extractToken(req);
-    if (!token) throw new UnauthorizedException('Missing Authorization header');
-
-    const payload = await this.authService.verifyToken(token);
-    if (!payload) throw new UnauthorizedException('Invalid token');
-
+  async getMe(@CurrentUser() payload: TokenPayload) {
     const result = await this.authService.resolveUser(payload);
     if (!result) throw new ForbiddenException('User account is disabled');
 
@@ -33,22 +27,10 @@ export class AuthController {
   @ApiOkResponse({ type: PermissionsResponseDto })
   @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
   @ApiForbiddenResponse({ description: 'Usuario no encontrado o deshabilitado' })
-  async getPermissions(@Req() req: Request) {
-    const token = this.extractToken(req);
-    if (!token) throw new UnauthorizedException('Missing Authorization header');
-
-    const payload = await this.authService.verifyToken(token);
-    if (!payload) throw new UnauthorizedException('Invalid token');
-
+  async getPermissions(@CurrentUser() payload: TokenPayload) {
     const result = await this.authService.resolvePermissions(payload);
     if (!result) throw new ForbiddenException('User not found or disabled');
 
     return result;
-  }
-
-  private extractToken(req: Request): string | null {
-    const auth = req.headers.authorization;
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
   }
 }

@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
   children?: React.ReactNode;
 }
 
-export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
+export function ProtectedRoute({ allowedRoles, children }: Readonly<ProtectedRouteProps>) {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {

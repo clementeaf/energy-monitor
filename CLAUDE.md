@@ -58,6 +58,17 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 - Rutas objetivo visibles en la muestra: `/dashboard/executive`, `/dashboard/executive/:siteId`, `/dashboard/compare`, `/monitoring/realtime`, `/monitoring/drilldown/:siteId`, `/monitoring/devices`, `/monitoring/demand/:siteId`, `/monitoring/quality/:siteId`, `/monitoring/meters/type`, `/monitoring/generation/:siteId`, `/monitoring/modbus-map/:siteId`, `/monitoring/fault-history/:meterId`, `/monitoring/concentrator/:concentratorId`, `/billing/rates`, `/billing/generate`.
 - Usar esta navegación como target funcional y roadmap; no asumir que todas esas rutas existen hoy en el código.
 
+### Mapa objetivo y backlog normalizados
+- El mapa objetivo de vistas derivado del XLSX se mantiene normalizado en `PLAN_ACCION.md`.
+- Agrupación canónica actual: Acceso y Contexto, Dashboard, Monitoreo, Facturación, Alertas, Reportes, Analítica, Administración, Auditoría, Integraciones.
+- Frontend implementado hoy: `/login`, `/unauthorized`, `/`, `/buildings/:id`, `/meters/:meterId`, `/iot-devices`, `/alerts`, `/monitoring/drilldown/:buildingId`.
+- Todo objetivo del XLSX que no exista en esas rutas debe tratarse como backlog funcional, no como funcionalidad asumida.
+
+### Regla de planificación funcional
+- Si se usa el XLSX para planificar producto, primero normalizar mapa objetivo de vistas.
+- Luego convertirlo en etapas priorizadas y checklist ejecutable en `PLAN_ACCION.md`.
+- Si se completa o cambia una vista objetivo, actualizar código, `PLAN_ACCION.md` y `CLAUDE.md` cuando cambie el contexto operativo base.
+
 Usar este XLSX solo cuando `CLAUDE.md` no alcance para resolver una duda funcional puntual.
 
 ## Project Overview
@@ -107,13 +118,16 @@ Lambda offlineAlerts (EventBridge 5/min)
 Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
   → JWT id_token → sessionStorage['access_token']
   → Axios interceptor inyecta Bearer → GET /api/auth/me
-  → Backend: extractToken() → detectProvider(iss) → jose.jwtVerify(jwks RS256)
+  → Backend: AuthGuard reusable extrae Bearer → detectProvider(iss) → jose.jwtVerify(jwks RS256)
+  → RolesGuard global lee metadata @RequirePermissions(module, action) y aplica 403 por permiso faltante
   → resolveUser(): upsert user + load permissions
   → Frontend: Zustand useAuthStore.setUser() → ProtectedRoute checks roles
   → 401 Axios interceptor → limpia auth store + sessionStorage
 ```
 - RBAC: 7 roles (`SUPER_ADMIN`, `CORP_ADMIN`, `SITE_ADMIN`, `OPERATOR`, `ANALYST`, `TENANT_USER`, `AUDITOR`), 10 módulos, 3 acciones
-- **Solo frontend enforce** (`ProtectedRoute`); backend NO tiene auth guards en data endpoints
+- Backend exige JWT válido en endpoints API mediante guard global y aplica RBAC por módulo/acción con metadata `@RequirePermissions(...)`
+- Mapeo RBAC actual backend: `BUILDINGS.view` para `/buildings*`, `METERS.view` para `/meters*`, `DASHBOARD_TECHNICAL.view` para `/hierarchy*`, `ALERTS.view/manage` para `/alerts*`
+- Alcance pendiente: todavía no existe scoping por site/recurso, sólo autorización por rol-permiso
 
 ## API Endpoints
 
@@ -123,7 +137,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/auth/me` | — | `{ user, permissions }` |
 | GET | `/auth/permissions` | — | `{ role, permissions }` |
 
-### Buildings (`/buildings`) — sin auth
+### Buildings (`/buildings`) — requiere Bearer
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/buildings` | — | `BuildingSummaryDto[]` |
@@ -131,7 +145,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/buildings/:id/meters` | — | `Meter[]` |
 | GET | `/buildings/:id/consumption` | `resolution?` (`15min`/`hourly`/`daily`), `from?`, `to?` | `ConsumptionPoint[]` |
 
-### Meters (`/meters`) — sin auth
+### Meters (`/meters`) — requiere Bearer
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/meters/overview` | — | `MeterOverview[]` (status + uptime24h + alarmCount30d) |
@@ -142,7 +156,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/meters/:id/alarm-events` | `from`, `to` | `AlarmEvent[]` |
 | GET | `/meters/:id/alarm-summary` | `from`, `to` | `AlarmSummary` |
 
-### Hierarchy (`/hierarchy`) — sin auth
+### Hierarchy (`/hierarchy`) — requiere Bearer
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/hierarchy/:buildingId` | — | `HierarchyNode[]` (tree) |
@@ -150,7 +164,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` | `HierarchyChildSummary[]` |
 | GET | `/hierarchy/node/:nodeId/consumption` | `resolution?` (`hourly`/`daily`), `from?`, `to?` | time-series |
 
-### Alerts (`/alerts`) — sin auth
+### Alerts (`/alerts`) — requiere Bearer
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/alerts` | `status?`, `type?`, `meterId?`, `buildingId?`, `limit?` | `Alert[]` |
@@ -259,7 +273,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Cache strategy:** buildings/building detail/auth me → `Infinity`; meters overview/alerts → `30s` + `30s`; consumption/readings → `0` + `keepPreviousData`.
 
-**Routing:** `appRoutes.ts` (centralized + allowedRoles) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute.
+**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables.
 
 **Feature folders:** `features/<domain>/<Domain>Page.tsx` (named export) + `components/` subdirectory.
 
@@ -271,6 +285,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Error handling:** ErrorBoundary por ruta; Axios 401 limpia auth store; TanStack Query maneja retry/error per query; auth usa try/catch manual con mensajes en español; `catch (err: unknown)` y cast explícito.
 
+**Tablas interactivas:** usar `DataTable` con `onRowClick` cuando la fila completa navega o dispara una acción; evitar wrappers `div` con `onClick` alrededor de la tabla.
+
 ## Backend Patterns
 
 **NestJS module (4-file):** `<entity>.entity.ts` (@ApiProperty) → `<domain>.service.ts` (@Injectable) → `<domain>.controller.ts` (Swagger decorators) → `<domain>.module.ts` (TypeOrmModule.forFeature). Registrar en app.module.ts.
@@ -279,7 +295,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **SQL patterns:** date_trunc aggregation, WITH RECURSIVE CTE (hierarchy), LATERAL subqueries (overview).
 
-**Auth:** Manual extractToken() en controller, NO guards. verifyToken() retorna null on failure.
+**Auth:** Guard reusable valida Bearer token y adjunta payload al request. `@CurrentUser()` permite leerlo en controllers. `verifyToken()` retorna null on failure.
+**RBAC backend:** `@RequirePermissions(module, action)` define el permiso requerido por endpoint; `RolesGuard` global resuelve permisos efectivos desde DB y rechaza `403` cuando falta el permiso.
 
 **Validation:** Global ValidationPipe({ whitelist: true, transform: true }). DTOs con class-validator.
 
@@ -377,7 +394,7 @@ cd backend && npx sls offline
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 
 ## Known Issues & Tech Debt
-- **Sin auth guards en API:** Data endpoints públicos. CORS no protege calls directos.
+- **Sin scoping fino por recurso:** Ya existe enforcement RBAC por módulo/acción en API, pero todavía falta restringir por site/building/meter según pertenencia o contexto del usuario.
 - **SQL injection:** `findBuildingConsumption` interpola from/to sin parametrizar.
 - **Sin tests:** Zero coverage.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.

@@ -5,6 +5,14 @@ import { Meter } from './meter.entity';
 import { Reading } from './reading.entity';
 import { getMeterStatus } from './meter-status.util';
 
+function toNullableNumber(value: unknown): number | null {
+  return value == null ? null : Number(value);
+}
+
+function toNumberOrZero(value: unknown): number {
+  return value == null ? 0 : Number(value);
+}
+
 @Injectable()
 export class MetersService {
   constructor(
@@ -82,20 +90,20 @@ export class MetersService {
 
     return rows.map((r) => ({
       timestamp: r.timestamp,
-      voltageL1: r.voltageL1 != null ? Number(r.voltageL1) : null,
-      voltageL2: r.voltageL2 != null ? Number(r.voltageL2) : null,
-      voltageL3: r.voltageL3 != null ? Number(r.voltageL3) : null,
-      currentL1: r.currentL1 != null ? Number(r.currentL1) : null,
-      currentL2: r.currentL2 != null ? Number(r.currentL2) : null,
-      currentL3: r.currentL3 != null ? Number(r.currentL3) : null,
+      voltageL1: toNullableNumber(r.voltageL1),
+      voltageL2: toNullableNumber(r.voltageL2),
+      voltageL3: toNullableNumber(r.voltageL3),
+      currentL1: toNullableNumber(r.currentL1),
+      currentL2: toNullableNumber(r.currentL2),
+      currentL3: toNullableNumber(r.currentL3),
       powerKw: Number(r.powerKw),
-      reactivePowerKvar: r.reactivePowerKvar != null ? Number(r.reactivePowerKvar) : null,
-      powerFactor: r.powerFactor != null ? Number(r.powerFactor) : null,
-      frequencyHz: r.frequencyHz != null ? Number(r.frequencyHz) : null,
+      reactivePowerKvar: toNullableNumber(r.reactivePowerKvar),
+      powerFactor: toNullableNumber(r.powerFactor),
+      frequencyHz: toNullableNumber(r.frequencyHz),
       energyKwhTotal: Number(r.energyKwhTotal),
-      thdVoltagePct: r.thdVoltagePct != null ? Number(r.thdVoltagePct) : null,
-      thdCurrentPct: r.thdCurrentPct != null ? Number(r.thdCurrentPct) : null,
-      phaseImbalancePct: r.phaseImbalancePct != null ? Number(r.phaseImbalancePct) : null,
+      thdVoltagePct: toNullableNumber(r.thdVoltagePct),
+      thdCurrentPct: toNullableNumber(r.thdCurrentPct),
+      phaseImbalancePct: toNullableNumber(r.phaseImbalancePct),
     }));
   }
 
@@ -189,11 +197,11 @@ export class MetersService {
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
       alarm: r.alarm,
-      voltageL1: r.voltageL1 != null ? Number(r.voltageL1) : null,
-      currentL1: r.currentL1 != null ? Number(r.currentL1) : null,
-      powerFactor: r.powerFactor != null ? Number(r.powerFactor) : null,
-      thdCurrentPct: r.thdCurrentPct != null ? Number(r.thdCurrentPct) : null,
-      modbusCrcErrors: r.modbusCrcErrors != null ? Number(r.modbusCrcErrors) : null,
+      voltageL1: toNullableNumber(r.voltageL1),
+      currentL1: toNullableNumber(r.currentL1),
+      powerFactor: toNullableNumber(r.powerFactor),
+      thdCurrentPct: toNullableNumber(r.thdCurrentPct),
+      modbusCrcErrors: toNullableNumber(r.modbusCrcErrors),
     }));
   }
 
@@ -257,7 +265,7 @@ export class MetersService {
       busId: r.busId,
       status: getMeterStatus(r.lastReadingAt as string | null),
       lastReadingAt: r.lastReadingAt,
-      uptime24h: r.uptimePercent != null ? Number(r.uptimePercent) : 0,
+      uptime24h: toNumberOrZero(r.uptimePercent),
       alarmCount30d: Number(r.alarmCount30d),
     }));
   }
@@ -274,9 +282,20 @@ export class MetersService {
 
     // Two-step aggregation: first AVG per meter per bucket (handles variable reading frequency),
     // then SUM/AVG/MAX across meters per bucket.
-    let whereClause = `m.building_id = '${buildingId.replaceAll("'", "''")}'`;
-    if (from) whereClause += ` AND r.timestamp >= '${from}'`;
-    if (to) whereClause += ` AND r.timestamp <= '${to}'`;
+    const conditions = ['m.building_id = $1'];
+    const params: Array<string> = [buildingId];
+
+    if (from) {
+      params.push(from);
+      conditions.push(`r.timestamp >= $${params.length}`);
+    }
+
+    if (to) {
+      params.push(to);
+      conditions.push(`r.timestamp <= $${params.length}`);
+    }
+
+    const whereClause = conditions.join(' AND ');
 
     const rows = await this.readingRepo.query(`
       SELECT
@@ -297,7 +316,7 @@ export class MetersService {
       ) sub
       GROUP BY bucket
       ORDER BY bucket ASC
-    `);
+    `, params);
 
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,

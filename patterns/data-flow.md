@@ -1,80 +1,61 @@
 # Data Flow — Energy Monitor
 
-## Ingesta de lecturas
+> Anexo secundario. El contexto operativo base vive en `CLAUDE.md`.
 
-```
-Medidor Siemens (PAC1670/PAC1651)
-  → [futuro] MQTT broker
-  → [actual] Lambda synthetic-readings-generator (EventBridge 1/min)
-    → INSERT readings (15 filas/min, una por medidor)
-    → UPDATE meters SET last_reading_at = NOW(), status = 'online'
-```
+## Cuándo leer esto
+- Tocar lecturas sintéticas, alerts offline o series temporales.
+- Agregar campos eléctricos, agregaciones o reglas operativas.
 
-### Perfil estadístico
-Cada lectura sintética se genera con distribución normal (Box-Muller):
-- `profiles.json`: media + desviación estándar por medidor (M001-M015), por hora (00-23), por campo (13 campos eléctricos)
-- Energía (`energy_kwh_total`): acumulativa desde última lectura real, incremento = `power_kw * dt_hours`
+## Flujos vivos
 
-### Datos históricos
-- CSV importado: 86,104 filas, 15-min interval, Ene-Feb 2026
-- Post-CSV gap (Mar 2-5): backfill con `infra/backfill-gap/`
-- Mar 6+: generador sintético en tiempo real
-
-## API → Frontend
-
-```
-Frontend (React)
-  → Axios + Bearer JWT
-    → CloudFront /api/*
-      → API Gateway HTTP
-        → Lambda NestJS
-
-Resolución dinámica (StockChart afterSetExtremes):
-  ≤36h  → resolution=15min  → date_trunc + floor(extract(min)/15)*15
-  ≤7d   → resolution=hourly → date_trunc('hour')
-  >7d   → resolution=daily  → date_trunc('day')
+### Ingesta sintética
+```text
+EventBridge 1/min
+→ infra/synthetic-generator
+→ INSERT readings
+→ UPDATE meters.last_reading_at
 ```
 
-### Endpoints principales
-
-| Endpoint | Agregación | Uso |
-|---|---|---|
-| `GET /buildings/:id/consumption?resolution=&from=&to=` | AVG(power_kw) por medidor por bucket, luego SUM | Gráfico edificio (area+line) |
-| `GET /meters/:id/readings?resolution=&from=&to=` | AVG por bucket (13 campos) | 6 charts por medidor |
-| `GET /hierarchy/:buildingId/nodes/:nodeId/children-consumption?from=&to=` | SUM energy_kwh por subtree (CTE recursivo) | Drill-down barras + tabla |
-| `GET /meters/:id/uptime` | LAG() window function, gap > 90min = downtime | Badges 24h/7d/30d |
-| `GET /meters/:id/alarm-events?from=&to=` | Detección por umbrales en readings | Tabla + flags en charts |
-
-## Detección de offline
-
-```
-Lambda offlineAlerts (EventBridge 5/min)
-  → SELECT meters WHERE last_reading_at < NOW() - 5min
-  → INSERT alert (type=METER_OFFLINE) si no existe activa
-  → UPDATE alert SET resolved_at = NOW() si medidor volvió online
+### Offline alerts
+```text
+EventBridge 5/min
+→ offline-alerts lambda
+→ detecta meters sin lectura > 5 min
+→ crea o resuelve alertas
 ```
 
-## Autenticación
-
-```
-Login (Microsoft redirect / Google credential)
-  → JWT id_token en sessionStorage
-  → Axios interceptor: Authorization: Bearer <token>
-  → Backend: jose.jwtVerify() con JWKS (Microsoft/Google)
-    → audience validation por provider
-    → users.upsert(external_id, provider, email)
-    → Si user.is_active = false → 403
-    → Retorna { user, permissions[] }
+### Consumo y charts
+```text
+Frontend cambia rango
+→ decide resolución
+→ backend agrega por bucket
+→ frontend re-renderiza con keepPreviousData
 ```
 
-## Caching (TanStack Query)
+## Recetas rápidas
 
-| Query | staleTime | refetchInterval |
-|---|---|---|
-| buildings list | Infinity | — |
-| building detail | Infinity | — |
-| consumption | 0 (keepPreviousData) | — |
-| meter readings | 0 (keepPreviousData) | — |
-| meters overview | 30s | 30s |
-| alerts | 30s | 30s |
-| auth/me | Infinity | — |
+### Agregar un nuevo campo de lectura
+1. Cambiar schema si aplica.
+2. Ajustar entity backend.
+3. Ajustar generación sintética si el campo nace en `infra/`.
+4. Ajustar query aggregation en readings.
+5. Ajustar tipo frontend.
+6. Ajustar chart o tabla que lo consume.
+
+### Agregar nueva agregación temporal
+1. Definir resolución permitida.
+2. Implementar bucket en service.
+3. Exponer resolución en controller.
+4. Reflejar unión literal en frontend.
+
+### Agregar nueva regla operativa
+1. Definir trigger: lectura, ventana temporal o scheduler.
+2. Decidir si vive en NestJS o en lambda standalone.
+3. Persistir resultado o emitir alerta.
+4. Añadir vista o summary si impacta UI.
+
+## Puntos sensibles
+- `energy_kwh_total` es acumulativo.
+- `readings` crece rápido y hoy no tiene retention.
+- Offline alerts depende de `last_reading_at`.
+- Rango temporal y resolución impactan costo de query y UX.

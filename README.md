@@ -1,73 +1,88 @@
-# React + TypeScript + Vite
+# Energy Monitor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma de monitoreo energético en tiempo real para edificios comerciales.
 
-Currently, two official plugins are available:
+## Uso del Repo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Contexto mínimo
+- Base: `Read CLAUDE.md`
+- Con tarea: `Read CLAUDE.md. Hoy voy a [tarea].`
+- Con objetivo: `Read CLAUDE.md. Hoy voy a [tarea]. Debe quedar logrado [resultado].`
 
-## React Compiler
+`CLAUDE.md` es la fuente única de contexto operativo.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Jerarquía documental
+- `CLAUDE.md`: contexto base para trabajar rápido y con baja ambigüedad.
+- `patterns/`: anexos cortos de ejecución para tareas concretas de frontend, backend, fullstack, data flow y AWS.
+- `patterns/playbooks/`: recetas ultracortas para tareas repetidas.
+- `PLAN_ACCION.md`: roadmap y prioridades, no contexto operativo.
 
-## Expanding the ESLint configuration
+## Stack
+- Frontend: React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock, TanStack Query, Zustand.
+- Backend: NestJS 11, TypeORM 0.3, PostgreSQL 16, Swagger, Serverless Express.
+- Infra: AWS Lambda, API Gateway HTTP, RDS PostgreSQL, S3, CloudFront, EventBridge.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Desarrollo Local
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Frontend
+```bash
+cd frontend
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Backend
+```bash
+cd backend
+npm ci
+npm run start:dev
 ```
+
+### Serverless local
+```bash
+cd backend
+npx sls offline
+```
+
+## Estructura útil
+```text
+frontend/   → React app
+backend/    → NestJS API + Lambdas
+infra/      → scripts/lambdas standalone
+sql/        → schema y migraciones manuales
+patterns/   → recetas de ejecución
+docs/       → runbooks y fixes
+```
+
+## Flujos de trabajo rápidos
+
+### Crear feature frontend
+1. Leer `CLAUDE.md`.
+2. Si hace falta receta concreta, leer `patterns/frontend.md`.
+3. Si la tarea es muy puntual, usar `patterns/playbooks/new-component.md` o `patterns/playbooks/new-chart.md`.
+4. Seguir secuencia: `types` → `routes` → `endpoints` → `hooks` → `feature` → `route`.
+
+### Crear endpoint backend
+1. Leer `CLAUDE.md`.
+2. Si hace falta receta concreta, leer `patterns/backend.md`.
+3. Si la tarea es puntual, usar `patterns/playbooks/new-endpoint.md`.
+4. Seguir secuencia: migration → entity → service → controller → module → register.
+
+### Crear feature end-to-end
+1. Leer `CLAUDE.md`.
+2. Leer `patterns/fullstack.md`.
+3. Si es un flujo nuevo, usar `patterns/playbooks/new-fullstack-flow.md`.
+4. Ejecutar checklist completa de backend + frontend + validación.
+
+### Tocar AWS o Lambdas
+1. Leer `CLAUDE.md`.
+2. Leer `patterns/devops.md` y `docs/aws-runbook.md`.
+3. Si agregas scheduler o lambda nueva, usar `patterns/playbooks/new-scheduled-lambda.md`.
+4. Aplicar cambios en env vars, serverless y deploy.
+
+## Deploy
+- Usar `docs/aws-runbook.md`.
+- No usar runbooks antiguos ajenos al flujo AWS actual.
+
+## Regla práctica
+Si cambias un patrón real del sistema, actualiza `CLAUDE.md` en la misma tarea.

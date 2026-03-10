@@ -26,6 +26,10 @@ export const routes = {
   getHierarchyChildren:    (nodeId: string)         => `/hierarchy/node/${nodeId}/children`,
   getHierarchyConsumption: (nodeId: string)         => `/hierarchy/node/${nodeId}/consumption`,
 
+  // Users / Roles
+  getAdminUsers:           ()                       => '/users',
+  getRoles:                ()                       => '/roles',
+
   // Auth
   getMe:                   ()                       => '/auth/me',
   getPermissions:          ()                       => '/auth/permissions',

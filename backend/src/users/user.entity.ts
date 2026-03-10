@@ -6,11 +6,11 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'external_id', type: 'varchar', length: 255 })
-  externalId!: string;
+  @Column({ name: 'external_id', type: 'varchar', length: 255, nullable: true })
+  externalId!: string | null;
 
-  @Column({ type: 'varchar', length: 20 })
-  provider!: string;
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  provider!: string | null;
 
   @Column({ type: 'varchar', length: 255 })
   email!: string;

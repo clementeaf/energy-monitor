@@ -12,7 +12,7 @@ export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Get()
-  @RequirePermissions('BUILDINGS', 'view')
+  @RequirePermissions('BUILDINGS_OVERVIEW', 'view')
   @ApiOperation({ summary: 'Listar edificios', description: 'Retorna todos los edificios con la cantidad de medidores.' })
   @ApiOkResponse({ type: [BuildingSummaryDto] })
   findAll() {
@@ -20,7 +20,7 @@ export class BuildingsController {
   }
 
   @Get(':id')
-  @RequirePermissions('BUILDINGS', 'view')
+  @RequirePermissions('BUILDING_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener edificio por ID' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: BuildingSummaryDto })
@@ -32,7 +32,7 @@ export class BuildingsController {
   }
 
   @Get(':id/meters')
-  @RequirePermissions('BUILDINGS', 'view')
+  @RequirePermissions('BUILDING_DETAIL', 'view')
   @ApiOperation({ summary: 'Listar medidores de un edificio' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: [Meter] })
@@ -41,7 +41,7 @@ export class BuildingsController {
   }
 
   @Get(':id/consumption')
-  @RequirePermissions('BUILDINGS', 'view')
+  @RequirePermissions('BUILDING_DETAIL', 'view')
   @ApiOperation({ summary: 'Consumo agregado de un edificio', description: 'Retorna serie temporal con potencia total, promedio y pico por intervalo.' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })

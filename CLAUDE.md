@@ -17,6 +17,15 @@ Usar el menor contexto posible.
 
 No hace falta pedir `patterns/` para arrancar. Solo usarlo como anexo secundario si se busca contexto histórico o detalle ampliado.
 
+## Prioridad Actual de Acceso
+La prioridad funcional actual del producto es: `rol -> vistas -> acciones`.
+
+- En este repo, `module` debe leerse como `vista` para diseño funcional y RBAC.
+- El catálogo de vistas debe ser la fuente para definir qué pantallas existen y qué acciones se pueden ejecutar dentro de cada una.
+- Un usuario invitado deberá entrar ya con un rol asignado.
+- Ese rol definirá automáticamente qué vistas puede abrir y qué acciones puede ejecutar dentro de esas vistas.
+- Cualquier cambio futuro de auth, navegación, permisos, onboarding o administración debe evaluarse primero contra ese modelo.
+
 ## Contexto Externo Complementario
 Existe además un documento externo complementario en `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`.
 
@@ -67,7 +76,7 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 ### Mapa objetivo y backlog normalizados
 - El mapa objetivo de vistas derivado del XLSX se mantiene normalizado en `PLAN_ACCION.md`.
 - Agrupación canónica actual: Acceso y Contexto, Dashboard, Monitoreo, Facturación, Alertas, Reportes, Analítica, Administración, Auditoría, Integraciones.
-- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
 - Todo objetivo del XLSX que no exista en esas rutas debe tratarse como backlog funcional, no como funcionalidad asumida.
 
 ### Regla de planificación funcional
@@ -126,14 +135,21 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
   → Axios interceptor inyecta Bearer → GET /api/auth/me
   → Backend: AuthGuard reusable extrae Bearer → detectProvider(iss) → jose.jwtVerify(jwks RS256)
   → RolesGuard global lee metadata @RequirePermissions(module, action) y aplica 403 por permiso faltante
-  → resolveUser(): upsert user + load permissions
+  → resolveUser(): enlaza identidad OAuth contra un usuario invitado/preprovisionado por email y luego carga permisos
   → Frontend: Zustand useAuthStore.setUser() + contexto de sitio en Zustand useAppStore
   → ProtectedRoute checks roles y fuerza selección de sitio cuando aplica
   → 401 Axios interceptor → limpia auth store + sessionStorage
 ```
 - RBAC: 7 roles (`SUPER_ADMIN`, `CORP_ADMIN`, `SITE_ADMIN`, `OPERATOR`, `ANALYST`, `TENANT_USER`, `AUDITOR`), 10 módulos, 3 acciones
+- Regla funcional vigente: `módulo = vista`; los permisos deben interpretarse como acceso a vistas y acciones disponibles dentro de esas vistas.
+- La tabla `modules` ya persiste el catálogo de vistas/rutas reales implementadas con metadata de navegación (`route_path`, `navigation_group`, `show_in_nav`, `sort_order`, `is_public`).
 - Backend exige JWT válido en endpoints API mediante guard global y aplica RBAC por módulo/acción con metadata `@RequirePermissions(...)`
-- Mapeo RBAC actual backend: `BUILDINGS.view` para `/buildings*`, `METERS.view` para `/meters*`, `DASHBOARD_TECHNICAL.view` para `/hierarchy*`, `ALERTS.view/manage` para `/alerts*`
+- Mapeo RBAC actual backend: `BUILDINGS_OVERVIEW.view` para `GET /buildings`, `BUILDING_DETAIL.view` para `/buildings/:id*`, `MONITORING_DEVICES.view` para `GET /meters/overview`, `METER_DETAIL.view` para `/meters/:id*`, `MONITORING_DRILLDOWN.view` para `/hierarchy*`, `ALERTS_OVERVIEW.view/manage` para `/alerts` y `sync-offline`, `ALERT_DETAIL.view/manage` para `/alerts/:id*`
+- Catálogo de vistas implementadas hoy en DB: `LOGIN`, `UNAUTHORIZED`, `CONTEXT_SELECT`, `BUILDINGS_OVERVIEW`, `BUILDING_DETAIL`, `METER_DETAIL`, `MONITORING_REALTIME`, `MONITORING_DEVICES`, `ALERTS_OVERVIEW`, `ALERT_DETAIL`, `MONITORING_DRILLDOWN`, `ADMIN_SITES`, `ADMIN_USERS`, `ADMIN_METERS`, `ADMIN_HIERARCHY`.
+- Base vigente de onboarding: el login ya no autocrea usuarios no invitados; el acceso requiere un registro previo en `users` con rol preasignado y sitios opcionales/preasignados.
+- Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios; `GET /roles` expone el catálogo para esa vista.
+- Catálogo de vistas disponible por API: `GET /views` para inspeccionar las vistas persistidas en DB.
+- Operación pendiente en entornos ya existentes: aplicar `sql/008_views_catalog.sql` para migrar `modules` al catálogo de vistas reales y reseedear `role_permissions`.
 - Alcance pendiente: todavía no existe scoping por site/recurso, sólo autorización por rol-permiso
 
 ## API Endpoints
@@ -179,20 +195,40 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | POST | `/alerts/sync-offline` | — | `AlertsSyncSummary` |
 | PATCH | `/alerts/:id/acknowledge` | — | `Alert` |
 
+### Users (`/users`) — requiere Bearer + `ADMIN_USERS`
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/users` | — | `AdminUserSummary[]` |
+| POST | `/users` | `{ email, name, roleId, siteIds, isActive? }` | `AdminUserSummary` |
+
+### Roles (`/roles`) — requiere Bearer + `ADMIN_USERS.view`
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/roles` | — | `RoleOption[]` |
+
+### Views (`/views`) — requiere Bearer + `CONTEXT_SELECT.view`
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/views` | — | `ViewOption[]` |
+
 Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
+**users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
+
+- `external_id` y `provider` quedan nulos en invitaciones pendientes y se completan en el primer login válido.
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales
 
 ## Database Schema
 
 ### Tables
 **roles** — id: smallint PK, name: varchar(30) unique, label_es: varchar(50), is_active: bool, created_at: timestamptz
 
-**modules** — id: smallint PK, code: varchar(40) unique, label: varchar(60)
+**modules** — id: smallint PK, code: varchar(40) unique, label: varchar(60), route_path: varchar(120) unique, navigation_group: varchar(40), show_in_nav: bool, sort_order: smallint, is_public: bool, is_active: bool
 
 **actions** — id: smallint PK, code: varchar(20) unique
 
 **role_permissions** — PK(role_id, module_id, action_id), FK role_id → roles
 
-**users** — id: uuid PK auto, external_id: varchar(255), provider: varchar(20) ['microsoft'|'google'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
+**users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
 
 **user_sites** — PK(user_id, site_id), FK user_id → users CASCADE
 
@@ -216,7 +252,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, 10 modules, 3 actions | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions
 
 ## TypeScript Types
 
@@ -239,10 +275,14 @@ AlertSeverity = 'critical' | 'high' | 'medium' | 'low'
 AlertStatus = 'active' | 'acknowledged' | 'resolved'
 Alert { id, type, severity, status, meterId, buildingId, title, message, triggeredAt, acknowledgedAt, resolvedAt, metadata }
 AlertsSyncSummary { scannedMeters, createdAlerts, resolvedAlerts, activeOfflineAlerts, scannedAt }
+AdminUserAccount { id, email, name, roleId, role, roleLabel, provider, isActive, siteIds, invitationStatus, createdAt, updatedAt }
+RoleOption { id, name, labelEs, requiresSiteScope }
+ViewOption { id, code, label, routePath, navigationGroup, showInNav, sortOrder, isPublic }
 Invoice { id, siteId, tenantId, period, kWh, kW, kVArh, energyCharge, demandCharge, reactiveCharge, fixedCharge, netTotal, tax, total, status }
 Tenant { id, siteId, name, rut, localId, meterId, contractStart, contractEnd, status }
 Integration { id, name, type, status, lastSyncAt, recordsSynced, errors }
 AuditLog { id, userId, action, resource, resourceId, detail, ip, timestamp }
+- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
 ```
 
 ### Frontend types/auth.ts
@@ -305,6 +345,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Auth:** Guard reusable valida Bearer token y adjunta payload al request. `@CurrentUser()` permite leerlo en controllers. `verifyToken()` retorna null on failure.
 **RBAC backend:** `@RequirePermissions(module, action)` define el permiso requerido por endpoint; `RolesGuard` global resuelve permisos efectivos desde DB y rechaza `403` cuando falta el permiso.
+
+**Interpretación RBAC:** para diseño funcional, `module` equivale a `view`. Si una vista nueva del frontend pasa a ser parte del producto, debe existir una representación explícita en el catálogo RBAC y en su matriz de acciones por rol.
 
 **Validation:** Global ValidationPipe({ whitelist: true, transform: true }). DTOs con class-validator.
 
@@ -391,9 +433,11 @@ cd backend && npx sls offline
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
 | `backend/src/meters/meters.service.ts` | Core: lecturas, uptime, alarmas y consumo |
 | `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
-| `backend/src/auth/auth.service.ts` | JWT/JWKS verification y user upsert |
+| `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
+| `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
+| `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
@@ -406,6 +450,7 @@ cd backend && npx sls offline
 
 ## Known Issues & Tech Debt
 - **Sin scoping fino por recurso:** Ya existe enforcement RBAC por módulo/acción en API, pero todavía falta restringir por site/building/meter según pertenencia o contexto del usuario.
+- **Invitación sin token/link firmado todavía:** el baseline actual ya es invite-first por registro previo en admin/users, pero el link transaccional y su expiración todavía no existen.
 - **Contexto frontend sin enforcement backend:** la selección de sitio mejora UX y navegación, pero todavía no restringe datos en API por recurso.
 - **Cobertura baja:** ya existen tests de guards y controllers, pero la suite sigue siendo mínima y sin servicios/integración.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.

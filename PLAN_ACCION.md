@@ -14,6 +14,14 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - Contexto operativo mínimo: `CLAUDE.md`.
 - Si hay conflicto, para implementación inmediata manda el código; para roadmap y expansión funcional manda el XLSX.
 
+## Prioridad actual de acceso
+
+- Prioridad vigente: `rol -> vistas -> acciones`.
+- En la práctica del repo, `module` debe tratarse como `vista`.
+- Cada rol debe definir qué vistas están disponibles y qué acciones están habilitadas dentro de cada vista.
+- El flujo objetivo de onboarding es invitación por link con rol preasignado; el usuario invitado no debería requerir configuración manual extra de permisos para acceder a sus vistas.
+- Las etapas futuras deben leerse bajo esta regla, especialmente dashboard, administración, auditoría e invitaciones.
+
 ## Estado actual consolidado
 
 ### Base ya lograda en el repo
@@ -28,7 +36,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - [x] Backend NestJS + PostgreSQL + AWS Lambda operativos.
 
 ### Cobertura frente al mapa objetivo del XLSX
-- Acceso: existe login básico con selección de contexto; falta MFA.
+- Acceso: existe login básico con selección de contexto y baseline invite-first con rol preasignado; falta MFA y link/token transaccional de invitación.
 - Dashboard: no existen aún las vistas ejecutivas ni comparativas.
 - Monitoreo: existen tiempo real base, drill-down base y dispositivos bajo la ruta objetivo; faltan demanda, calidad, tipo de medidor, generación, mapa Modbus, fallos y concentradores.
 - Alertas: existe panel base en `/alerts` con detalle operativo; faltan reglas e historial SLA.
@@ -39,6 +47,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 ### Ya resuelto en el repo
 - Backend NestJS conectado a PostgreSQL con endpoints de buildings, meters, hierarchy, alerts y auth.
 - Frontend React con vistas de edificios, detalle, drill-down, medidores, gráficos y auth.
+- El catálogo real de vistas implementadas ya está persistido en DB dentro de `modules`, con route path y metadata de navegación.
 - Infra AWS con CloudFront + S3 + API Gateway + Lambda + RDS + EventBridge.
 - Generación sintética de lecturas y offline alerts en ejecución separada.
 
@@ -98,7 +107,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - [ ] `/analytics/patterns` — patrones y anomalías.
 
 ### 8. Administración
-- [ ] `/admin/users` — gestión de usuarios.
+- [x] `/admin/users` — gestión base de usuarios e invitaciones.
 - [x] `/admin/sites` — gestión base de edificios o sites.
 - [x] `/admin/meters` — gestión base de medidores y concentradores.
 - [ ] `/admin/tenants-units` — gestión de locatarios.
@@ -130,6 +139,16 @@ Incluye:
 7. Normalización de drill-down al target `/monitoring/drilldown/:siteId`.
 8. Robustecimiento del panel `/alerts` y detalle de alerta.
 9. Base administrativa mínima: `/admin/sites`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+
+### Corte post-Etapa 1 · Base de invitaciones y acceso preasignado
+Objetivo: convertir el onboarding actual en invite-first para que el rol preasignado gobierne vistas y acciones desde el primer login, sin provisión manual por SQL ni autocreación abierta.
+
+Incluye:
+1. Permitir usuarios preprovisionados sin `provider` ni `external_id` hasta su primer login.
+2. Enlazar identidad OAuth contra invitaciones existentes por email en `auth/me`.
+3. Exponer `/admin/users` como base administrativa de invitaciones.
+4. Exponer `/roles` para alimentar el catálogo de roles en frontend.
+5. Validar asignación de sitios según rol antes de provisionar acceso.
 
 ### Etapa 2 · Dashboards ejecutivos y monitoreo analítico
 Objetivo: cubrir el núcleo visible de producto usando la data ya disponible en lecturas, jerarquía y overview.
@@ -169,7 +188,7 @@ Incluye:
 Objetivo: completar operación administrativa, cumplimiento y conectividad empresarial.
 
 Incluye:
-1. `/admin/users`.
+1. Expandir `/admin/users` con edición, revocación y lifecycle más completo.
 2. `/admin/tenant-config`.
 3. `/reports`.
 4. `/reports/scheduled`.
@@ -202,6 +221,17 @@ Incluye:
 - [x] Implementar `/admin/hierarchy/:siteId`.
 
 Estado: Etapa 1 cerrada como baseline funcional.
+
+### Corte post-Etapa 1 · Checklist de trabajo
+- [x] Permitir usuarios preprovisionados sin `provider` ni `external_id` hasta su primer login.
+- [x] Dejar de autocrear usuarios no invitados en `auth/me`.
+- [x] Enlazar identidad OAuth por email contra invitaciones existentes.
+- [x] Implementar `/admin/users` para provisionar email, rol y sitios.
+- [x] Exponer `/roles` para el formulario de invitaciones.
+- [x] Validar roles que requieren al menos un sitio asignado.
+- [x] Cubrir el binding invite-first con tests backend.
+
+Estado: baseline invite-first operativo sobre login SSO actual.
 
 ### Etapa 1 · Orden recomendado de ejecución
 1. Agregar auth guards o mecanismo equivalente real en backend para data endpoints.
@@ -326,7 +356,7 @@ Desalineaciones detectadas:
 - [ ] Implementar `/admin/tenants-units`.
 
 ### Etapa 5 · Checklist de trabajo
-- [ ] Implementar `/admin/users`.
+- [ ] Expandir `/admin/users` con edición, revocación y lifecycle completo de invitación.
 - [ ] Implementar `/admin/tenant-config`.
 - [ ] Implementar `/reports`.
 - [ ] Implementar `/reports/scheduled`.

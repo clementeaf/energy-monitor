@@ -211,3 +211,33 @@ export interface Integration {
   recordsSynced: number;
   errors: number;
 }
+
+export interface AdminUserAccount {
+  id: string;
+  email: string;
+  name: string;
+  roleId: number;
+  role: string;
+  roleLabel: string;
+  provider: 'microsoft' | 'google' | null;
+  isActive: boolean;
+  siteIds: string[];
+  invitationStatus: 'invited' | 'active' | 'disabled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoleOption {
+  id: number;
+  name: string;
+  labelEs: string;
+  requiresSiteScope: boolean;
+}
+
+export interface CreateUserInvitationInput {
+  email: string;
+  name: string;
+  roleId: number;
+  siteIds: string[];
+  isActive?: boolean;
+}

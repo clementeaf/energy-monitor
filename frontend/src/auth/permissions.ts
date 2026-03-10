@@ -1,46 +1,58 @@
 import type { Role } from '../types/auth';
 
+const ALL_INVITED_ROLES: Role[] = ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'];
+const TECHNICAL_ROLES: Role[] = ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST'];
+const ALERTS_VIEW_ROLES: Role[] = ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'AUDITOR'];
+const SITE_ADMIN_ROLES: Role[] = ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN'];
+const ADMIN_USERS_VIEW_ROLES: Role[] = ['SUPER_ADMIN', 'CORP_ADMIN'];
+const ADMIN_USERS_MANAGE_ROLES: Role[] = ['SUPER_ADMIN'];
+
 /**
- * Matriz de permisos por módulo y acción.
- * Basado en la Hoja 1, sección 1.2 de la especificación.
+ * Matriz de permisos por vista y acción.
+ * `module = vista`: cada código corresponde a una pantalla persistida en la tabla `modules`.
  */
 export const PERMISSIONS: Record<string, Record<string, Role[]>> = {
-  DASHBOARD_EXECUTIVE: {
-    view_portfolio: ['SUPER_ADMIN', 'CORP_ADMIN', 'ANALYST', 'AUDITOR'],
+  CONTEXT_SELECT: {
+    view: ALL_INVITED_ROLES,
   },
-  DASHBOARD_TECHNICAL: {
-    view_realtime: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST'],
+  BUILDINGS_OVERVIEW: {
+    view: ALL_INVITED_ROLES,
   },
-  BUILDINGS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
-    manage: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN'],
+  BUILDING_DETAIL: {
+    view: ALL_INVITED_ROLES,
   },
-  LOCALS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
-    manage: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN'],
+  METER_DETAIL: {
+    view: TECHNICAL_ROLES,
   },
-  METERS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST'],
-    manage: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN'],
+  MONITORING_REALTIME: {
+    view: TECHNICAL_ROLES,
   },
-  ALERTS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'OPERATOR', 'ANALYST', 'AUDITOR'],
-    manage: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN'],
+  MONITORING_DEVICES: {
+    view: TECHNICAL_ROLES,
   },
-  BILLING: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'ANALYST', 'TENANT_USER', 'AUDITOR'],
-    manage: ['SUPER_ADMIN', 'CORP_ADMIN'],
+  ALERTS_OVERVIEW: {
+    view: ALERTS_VIEW_ROLES,
+    manage: SITE_ADMIN_ROLES,
   },
-  REPORTS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN', 'SITE_ADMIN', 'ANALYST', 'AUDITOR'],
-    export: ['SUPER_ADMIN', 'CORP_ADMIN', 'ANALYST'],
+  ALERT_DETAIL: {
+    view: ALERTS_VIEW_ROLES,
+    manage: SITE_ADMIN_ROLES,
+  },
+  MONITORING_DRILLDOWN: {
+    view: TECHNICAL_ROLES,
+  },
+  ADMIN_SITES: {
+    view: SITE_ADMIN_ROLES,
   },
   ADMIN_USERS: {
-    view: ['SUPER_ADMIN', 'CORP_ADMIN'],
-    manage: ['SUPER_ADMIN'],
+    view: ADMIN_USERS_VIEW_ROLES,
+    manage: ADMIN_USERS_MANAGE_ROLES,
   },
-  AUDIT: {
-    view: ['SUPER_ADMIN', 'AUDITOR'],
+  ADMIN_METERS: {
+    view: SITE_ADMIN_ROLES,
+  },
+  ADMIN_HIERARCHY: {
+    view: SITE_ADMIN_ROLES,
   },
 };
 

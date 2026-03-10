@@ -3,8 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from './role.entity';
 import { RolePermission } from './role-permission.entity';
-import { Module_ } from './module.entity';
+import { ViewModule } from './module.entity';
 import { Action } from './action.entity';
+
+const GLOBAL_SITE_ACCESS_ROLES = new Set(['SUPER_ADMIN', 'CORP_ADMIN', 'AUDITOR']);
+
+export function isGlobalSiteAccessRole(roleName: string): boolean {
+  return GLOBAL_SITE_ACCESS_ROLES.has(roleName);
+}
 
 @Injectable()
 export class RolesService {
@@ -13,14 +19,24 @@ export class RolesService {
     private readonly roleRepo: Repository<Role>,
     @InjectRepository(RolePermission)
     private readonly permRepo: Repository<RolePermission>,
-    @InjectRepository(Module_)
-    private readonly moduleRepo: Repository<Module_>,
+    @InjectRepository(ViewModule)
+    private readonly moduleRepo: Repository<ViewModule>,
     @InjectRepository(Action)
     private readonly actionRepo: Repository<Action>,
   ) {}
 
   findAll() {
     return this.roleRepo.find({ where: { isActive: true } });
+  }
+
+  findAllViews() {
+    return this.moduleRepo.find({
+      where: { isActive: true },
+      order: {
+        navigationGroup: 'ASC',
+        sortOrder: 'ASC',
+      },
+    });
   }
 
   findById(id: number) {
@@ -30,7 +46,7 @@ export class RolesService {
   async getPermissionsByRoleId(roleId: number): Promise<Record<string, string[]>> {
     const rows = await this.permRepo
       .createQueryBuilder('rp')
-      .innerJoin(Module_, 'm', 'm.id = rp.moduleId')
+      .innerJoin(ViewModule, 'm', 'm.id = rp.moduleId')
       .innerJoin(Action, 'a', 'a.id = rp.actionId')
       .select(['m.code AS module', 'a.code AS action'])
       .where('rp.roleId = :roleId', { roleId })

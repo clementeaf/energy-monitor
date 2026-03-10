@@ -19,13 +19,13 @@ class TestController {
   }
 
   @Get('buildings')
-  @RequirePermissions('BUILDINGS', 'view')
+  @RequirePermissions('BUILDINGS_OVERVIEW', 'view')
   getBuildings() {
     return { ok: true };
   }
 
   @Post('alerts/manage')
-  @RequirePermissions('ALERTS', 'manage')
+  @RequirePermissions('ALERTS_OVERVIEW', 'manage')
   manageAlerts() {
     return { ok: true };
   }
@@ -124,7 +124,7 @@ describe('RBAC guards', () => {
     authService.verifyToken.mockResolvedValue(payload);
     authService.resolveAuthorizationContext.mockResolvedValue(
       buildAuthContext(payload, {
-        ALERTS: ['view'],
+        ALERTS_OVERVIEW: ['view'],
       }),
     );
 
@@ -148,7 +148,7 @@ describe('RBAC guards', () => {
     authService.verifyToken.mockResolvedValue(payload);
     authService.resolveAuthorizationContext.mockResolvedValue(
       buildAuthContext(payload, {
-        BUILDINGS: ['view'],
+        BUILDINGS_OVERVIEW: ['view'],
       }),
     );
 
@@ -172,7 +172,7 @@ describe('RBAC guards', () => {
     authService.verifyToken.mockResolvedValue(payload);
     authService.resolveAuthorizationContext.mockResolvedValue(
       buildAuthContext(payload, {
-        ALERTS: ['view'],
+        ALERTS_OVERVIEW: ['view'],
       }),
     );
 

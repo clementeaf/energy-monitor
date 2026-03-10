@@ -21,7 +21,8 @@ async function resolveBackendUser(
     sessionStorage.removeItem('access_token');
     const status = (err as { response?: { status?: number } }).response?.status;
     if (status === 403) {
-      setError('Cuenta pendiente de activación por un administrador');
+      clearUser();
+      setError('Cuenta sin invitación activa o pendiente de habilitación');
     } else {
       clearUser();
       const msg = err instanceof Error ? err.message : String(err);

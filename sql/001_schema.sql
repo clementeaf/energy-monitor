@@ -16,9 +16,15 @@ CREATE TABLE roles (
 
 -- 2. Modules (permission scopes from the spec)
 CREATE TABLE modules (
-  id    SMALLINT    PRIMARY KEY,
-  code  VARCHAR(40) NOT NULL UNIQUE,
-  label VARCHAR(60) NOT NULL
+  id               SMALLINT     PRIMARY KEY,
+  code             VARCHAR(40)  NOT NULL UNIQUE,
+  label            VARCHAR(60)  NOT NULL,
+  route_path       VARCHAR(120) NOT NULL UNIQUE,
+  navigation_group VARCHAR(40)  NOT NULL,
+  show_in_nav      BOOLEAN      NOT NULL DEFAULT false,
+  sort_order       SMALLINT     NOT NULL DEFAULT 0,
+  is_public        BOOLEAN      NOT NULL DEFAULT false,
+  is_active        BOOLEAN      NOT NULL DEFAULT true
 );
 
 -- 3. Actions (granular operations)
@@ -38,8 +44,8 @@ CREATE TABLE role_permissions (
 -- 5. Users (linked to OAuth providers)
 CREATE TABLE users (
   id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  external_id VARCHAR(255) NOT NULL,
-  provider    VARCHAR(20)  NOT NULL,
+  external_id VARCHAR(255),
+  provider    VARCHAR(20),
   email       VARCHAR(255) NOT NULL,
   name        VARCHAR(255) NOT NULL,
   avatar_url  TEXT,

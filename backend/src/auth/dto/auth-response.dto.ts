@@ -27,7 +27,7 @@ export class MeResponseDto {
   @ApiProperty({ type: AuthUserDto })
   user!: AuthUserDto;
 
-  @ApiProperty({ example: { buildings: ['read'], meters: ['read'], readings: ['read'] } })
+  @ApiProperty({ example: { BUILDINGS_OVERVIEW: ['view'], BUILDING_DETAIL: ['view'], ALERTS_OVERVIEW: ['view'] } })
   permissions!: Record<string, string[]>;
 }
 
@@ -35,6 +35,6 @@ export class PermissionsResponseDto {
   @ApiProperty({ example: 'SUPER_ADMIN' })
   role!: string;
 
-  @ApiProperty({ example: { buildings: ['read'], meters: ['read'], readings: ['read'] } })
+  @ApiProperty({ example: { BUILDINGS_OVERVIEW: ['view'], BUILDING_DETAIL: ['view'], ALERTS_OVERVIEW: ['view'] } })
   permissions!: Record<string, string[]>;
 }

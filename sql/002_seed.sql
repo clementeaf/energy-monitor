@@ -16,18 +16,23 @@ INSERT INTO roles (id, name, label_es) VALUES
   (6, 'TENANT_USER',  'Usuario Inquilino'),
   (7, 'AUDITOR',      'Auditor');
 
--- ── Modules ──────────────────────────────────────────────────
-INSERT INTO modules (id, code, label) VALUES
-  (1,  'DASHBOARD_EXECUTIVE', 'Dashboard Ejecutivo'),
-  (2,  'DASHBOARD_TECHNICAL', 'Dashboard Técnico'),
-  (3,  'BUILDINGS',           'Edificios'),
-  (4,  'LOCALS',              'Locales'),
-  (5,  'METERS',              'Medidores'),
-  (6,  'ALERTS',              'Alertas'),
-  (7,  'BILLING',             'Facturación'),
-  (8,  'REPORTS',             'Reportes'),
-  (9,  'ADMIN_USERS',         'Administración de Usuarios'),
-  (10, 'AUDIT',               'Auditoría');
+-- ── Views (persisted in modules table) ───────────────────────
+INSERT INTO modules (id, code, label, route_path, navigation_group, show_in_nav, sort_order, is_public) VALUES
+  (1,  'LOGIN',                'Iniciar sesión',              '/login',                           'Acceso y contexto', false, 10, true),
+  (2,  'UNAUTHORIZED',         'Sin acceso',                  '/unauthorized',                    'Acceso y contexto', false, 20, true),
+  (3,  'CONTEXT_SELECT',       'Seleccionar sitio',           '/context/select',                  'Acceso y contexto', false, 30, false),
+  (4,  'BUILDINGS_OVERVIEW',   'Edificios',                   '/',                                'Dashboard',         true,  10, false),
+  (5,  'BUILDING_DETAIL',      'Detalle de edificio',         '/buildings/:id',                   'Dashboard',         false, 20, false),
+  (6,  'METER_DETAIL',         'Detalle de medidor',          '/meters/:meterId',                 'Monitoreo',         false, 10, false),
+  (7,  'MONITORING_REALTIME',  'Monitoreo en tiempo real',    '/monitoring/realtime',             'Monitoreo',         true,  20, false),
+  (8,  'MONITORING_DEVICES',   'Dispositivos',                '/monitoring/devices',              'Monitoreo',         true,  30, false),
+  (9,  'ALERTS_OVERVIEW',      'Alertas',                     '/alerts',                          'Alertas',           true,  10, false),
+  (10, 'ALERT_DETAIL',         'Detalle de alerta',           '/alerts/:id',                      'Alertas',           false, 20, false),
+  (11, 'MONITORING_DRILLDOWN', 'Drill-down',                  '/monitoring/drilldown/:siteId',    'Monitoreo',         false, 40, false),
+  (12, 'ADMIN_SITES',          'Administrar sitios',          '/admin/sites',                     'Administración',    true,  10, false),
+  (13, 'ADMIN_USERS',          'Administrar usuarios',        '/admin/users',                     'Administración',    true,  20, false),
+  (14, 'ADMIN_METERS',         'Administrar medidores',       '/admin/meters',                    'Administración',    true,  30, false),
+  (15, 'ADMIN_HIERARCHY',      'Administrar jerarquía',       '/admin/hierarchy/:siteId',         'Administración',    false, 40, false);
 
 -- ── Actions ──────────────────────────────────────────────────
 INSERT INTO actions (id, code) VALUES
@@ -38,53 +43,47 @@ INSERT INTO actions (id, code) VALUES
 -- ── Role Permissions ─────────────────────────────────────────
 -- Format: (role_id, module_id, action_id)
 
--- DASHBOARD_EXECUTIVE.view_portfolio → mapped to (module=1, action=1 view)
---   SUPER_ADMIN(1), CORP_ADMIN(2), ANALYST(5), AUDITOR(7)
 INSERT INTO role_permissions (role_id, module_id, action_id) VALUES
-  (1, 1, 1), (2, 1, 1), (5, 1, 1), (7, 1, 1),
-
--- DASHBOARD_TECHNICAL.view_realtime → (module=2, action=1)
---   SUPER_ADMIN(1), CORP_ADMIN(2), SITE_ADMIN(3), OPERATOR(4), ANALYST(5)
-  (1, 2, 1), (2, 2, 1), (3, 2, 1), (4, 2, 1), (5, 2, 1),
-
--- BUILDINGS.view → (module=3, action=1)
---   ALL 7 roles
+  -- CONTEXT_SELECT.view → all invited roles
   (1, 3, 1), (2, 3, 1), (3, 3, 1), (4, 3, 1), (5, 3, 1), (6, 3, 1), (7, 3, 1),
--- BUILDINGS.manage → (module=3, action=2)
---   SUPER_ADMIN(1), CORP_ADMIN(2), SITE_ADMIN(3)
-  (1, 3, 2), (2, 3, 2), (3, 3, 2),
 
--- LOCALS.view → (module=4, action=1)
+  -- BUILDINGS_OVERVIEW.view → all invited roles
   (1, 4, 1), (2, 4, 1), (3, 4, 1), (4, 4, 1), (5, 4, 1), (6, 4, 1), (7, 4, 1),
--- LOCALS.manage → (module=4, action=2)
-  (1, 4, 2), (2, 4, 2), (3, 4, 2),
 
--- METERS.view → (module=5, action=1)
-  (1, 5, 1), (2, 5, 1), (3, 5, 1), (4, 5, 1), (5, 5, 1),
--- METERS.manage → (module=5, action=2)
-  (1, 5, 2), (2, 5, 2), (3, 5, 2),
+  -- BUILDING_DETAIL.view → all invited roles
+  (1, 5, 1), (2, 5, 1), (3, 5, 1), (4, 5, 1), (5, 5, 1), (6, 5, 1), (7, 5, 1),
 
--- ALERTS.view → (module=6, action=1)
-  (1, 6, 1), (2, 6, 1), (3, 6, 1), (4, 6, 1), (5, 6, 1), (7, 6, 1),
--- ALERTS.manage → (module=6, action=2)
-  (1, 6, 2), (2, 6, 2), (3, 6, 2),
+  -- METER_DETAIL.view → technical roles
+  (1, 6, 1), (2, 6, 1), (3, 6, 1), (4, 6, 1), (5, 6, 1),
 
--- BILLING.view → (module=7, action=1)
-  (1, 7, 1), (2, 7, 1), (3, 7, 1), (5, 7, 1), (6, 7, 1), (7, 7, 1),
--- BILLING.manage → (module=7, action=2)
-  (1, 7, 2), (2, 7, 2),
+  -- MONITORING_REALTIME.view → technical roles
+  (1, 7, 1), (2, 7, 1), (3, 7, 1), (4, 7, 1), (5, 7, 1),
 
--- REPORTS.view → (module=8, action=1)
-  (1, 8, 1), (2, 8, 1), (3, 8, 1), (5, 8, 1), (7, 8, 1),
--- REPORTS.export → (module=8, action=3)
-  (1, 8, 3), (2, 8, 3), (5, 8, 3),
+  -- MONITORING_DEVICES.view → technical roles
+  (1, 8, 1), (2, 8, 1), (3, 8, 1), (4, 8, 1), (5, 8, 1),
 
--- ADMIN_USERS.view → (module=9, action=1)
-  (1, 9, 1), (2, 9, 1),
--- ADMIN_USERS.manage → (module=9, action=2)
-  (1, 9, 2),
+  -- ALERTS_OVERVIEW.view/manage
+  (1, 9, 1), (2, 9, 1), (3, 9, 1), (4, 9, 1), (5, 9, 1), (7, 9, 1),
+  (1, 9, 2), (2, 9, 2), (3, 9, 2),
 
--- AUDIT.view → (module=10, action=1)
-  (1, 10, 1), (7, 10, 1);
+  -- ALERT_DETAIL.view/manage
+  (1, 10, 1), (2, 10, 1), (3, 10, 1), (4, 10, 1), (5, 10, 1), (7, 10, 1),
+  (1, 10, 2), (2, 10, 2), (3, 10, 2),
+
+  -- MONITORING_DRILLDOWN.view → technical roles
+  (1, 11, 1), (2, 11, 1), (3, 11, 1), (4, 11, 1), (5, 11, 1),
+
+  -- ADMIN_SITES.view → site administration roles
+  (1, 12, 1), (2, 12, 1), (3, 12, 1),
+
+  -- ADMIN_USERS.view/manage
+  (1, 13, 1), (2, 13, 1),
+  (1, 13, 2),
+
+  -- ADMIN_METERS.view → site administration roles
+  (1, 14, 1), (2, 14, 1), (3, 14, 1),
+
+  -- ADMIN_HIERARCHY.view → site administration roles
+  (1, 15, 1), (2, 15, 1), (3, 15, 1);
 
 COMMIT;

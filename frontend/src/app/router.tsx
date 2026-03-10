@@ -18,6 +18,7 @@ const AlertsPage = lazy(() => import('../features/alerts/AlertsPage').then((m) =
 const AlertDetailPage = lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage })));
 const DrilldownPage = lazy(() => import('../features/drilldown/DrilldownPage').then((m) => ({ default: m.DrilldownPage })));
 const AdminSitesPage = lazy(() => import('../features/admin/AdminSitesPage').then((m) => ({ default: m.AdminSitesPage })));
+const AdminUsersPage = lazy(() => import('../features/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
 const AdminMetersPage = lazy(() => import('../features/admin/AdminMetersPage').then((m) => ({ default: m.AdminMetersPage })));
 const AdminHierarchyPage = lazy(() => import('../features/admin/AdminHierarchyPage').then((m) => ({ default: m.AdminHierarchyPage })));
 
@@ -134,6 +135,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute allowedRoles={[...appRoutes.adminSites.allowedRoles]}>
             <ErrorBoundary>
               <Suspense fallback={<BuildingsPageSkeleton />}><AdminSitesPage /></Suspense>
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: appRoutes.adminUsers.path,
+        element: (
+          <ProtectedRoute allowedRoles={[...appRoutes.adminUsers.allowedRoles]}>
+            <ErrorBoundary>
+              <Suspense fallback={<BuildingsPageSkeleton />}><AdminUsersPage /></Suspense>
             </ErrorBoundary>
           </ProtectedRoute>
         ),

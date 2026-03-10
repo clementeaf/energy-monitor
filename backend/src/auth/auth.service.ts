@@ -111,13 +111,15 @@ export class AuthService {
     const provider = this.detectProvider(payload.iss);
     if (!provider) return null;
 
-    await this.usersService.upsert({
+    const user = await this.usersService.bindIdentityFromLogin({
       externalId: payload.sub,
       provider,
       email: payload.email,
       name: payload.name,
       avatarUrl: payload.picture,
     });
+
+    if (!user) return null;
 
     const authContext = await this.resolveAuthorizationContext(payload);
     if (!authContext) return null;

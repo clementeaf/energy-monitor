@@ -4,16 +4,19 @@ import { ApiForbiddenResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 export const REQUIRED_PERMISSION_KEY = 'requiredPermission';
 
 export type PermissionModule =
-  | 'DASHBOARD_EXECUTIVE'
-  | 'DASHBOARD_TECHNICAL'
-  | 'BUILDINGS'
-  | 'LOCALS'
-  | 'METERS'
-  | 'ALERTS'
-  | 'BILLING'
-  | 'REPORTS'
+  | 'CONTEXT_SELECT'
+  | 'BUILDINGS_OVERVIEW'
+  | 'BUILDING_DETAIL'
+  | 'METER_DETAIL'
+  | 'MONITORING_REALTIME'
+  | 'MONITORING_DEVICES'
+  | 'ALERTS_OVERVIEW'
+  | 'ALERT_DETAIL'
+  | 'MONITORING_DRILLDOWN'
+  | 'ADMIN_SITES'
   | 'ADMIN_USERS'
-  | 'AUDIT';
+  | 'ADMIN_METERS'
+  | 'ADMIN_HIERARCHY';
 
 export type PermissionAction = 'view' | 'manage' | 'export';
 

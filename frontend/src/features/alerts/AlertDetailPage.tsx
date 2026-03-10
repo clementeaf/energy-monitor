@@ -35,7 +35,7 @@ export function AlertDetailPage() {
   const { user } = useAuth();
   const { data: alert, isLoading } = useAlert(id!);
   const acknowledgeMutation = useAcknowledgeAlert();
-  const canManageAlerts = !!user && hasPermission(user.role, 'ALERTS', 'manage');
+  const canManageAlerts = !!user && hasPermission(user.role, 'ALERT_DETAIL', 'manage');
   const canOpenMeter = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
   const metadataEntries = alert ? Object.entries(alert.metadata ?? {}) : [];
 

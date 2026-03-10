@@ -12,14 +12,14 @@ export class MetersController {
   constructor(private readonly metersService: MetersService) {}
 
   @Get('overview')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('MONITORING_DEVICES', 'view')
   @ApiOperation({ summary: 'Estado de todos los medidores', description: 'Retorna todos los medidores con status, uptime 24h y alarmas 30d.' })
   getOverview() {
     return this.metersService.getOverview();
   }
 
   @Get(':id')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener medidor por ID' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiOkResponse({ type: Meter })
@@ -31,7 +31,7 @@ export class MetersController {
   }
 
   @Get(':id/uptime')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener resumen de uptime del medidor' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'period', required: false, enum: ['daily', 'weekly', 'monthly', 'all'], description: 'Período (default: all)' })
@@ -44,7 +44,7 @@ export class MetersController {
   }
 
   @Get(':id/downtime-events')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener eventos de downtime del medidor' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
@@ -58,7 +58,7 @@ export class MetersController {
   }
 
   @Get(':id/alarm-events')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener eventos de alarma del medidor' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
@@ -72,7 +72,7 @@ export class MetersController {
   }
 
   @Get(':id/alarm-summary')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener resumen de alarmas del medidor' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
@@ -86,7 +86,7 @@ export class MetersController {
   }
 
   @Get(':id/readings')
-  @RequirePermissions('METERS', 'view')
+  @RequirePermissions('METER_DETAIL', 'view')
   @ApiOperation({ summary: 'Obtener lecturas de un medidor', description: 'Retorna lecturas crudas o agregadas (promedio) por hora/día.' })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['raw', '15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })

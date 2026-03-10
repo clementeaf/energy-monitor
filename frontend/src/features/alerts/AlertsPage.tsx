@@ -70,7 +70,7 @@ export function AlertsPage() {
   );
   const acknowledgeMutation = useAcknowledgeAlert();
   const syncMutation = useSyncOfflineAlerts();
-  const canManageAlerts = !!user && hasPermission(user.role, 'ALERTS', 'manage');
+  const canManageAlerts = !!user && hasPermission(user.role, 'ALERTS_OVERVIEW', 'manage');
   const canOpenMeterDetail = !!user && canAccessRoute(user.role, appRoutes.meterDetail);
 
   const summary = useMemo(() => {

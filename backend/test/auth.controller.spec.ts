@@ -33,7 +33,7 @@ describe('AuthController', () => {
         avatar: undefined,
         siteIds: ['pac4220'],
       },
-      permissions: { BUILDINGS: ['view'] },
+      permissions: { BUILDINGS_OVERVIEW: ['view'] },
     };
 
     authService.resolveUser.mockResolvedValue(result);
@@ -50,7 +50,7 @@ describe('AuthController', () => {
   it('returns permissions from getPermissions', async () => {
     const result: NonNullable<Awaited<ReturnType<AuthService['resolvePermissions']>>> = {
       role: 'OPERATOR',
-      permissions: { ALERTS: ['view'] },
+      permissions: { ALERTS_OVERVIEW: ['view'] },
     };
     authService.resolvePermissions.mockResolvedValue(result);
 

@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary } from '../types';
+import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary, AdminUserAccount, RoleOption, CreateUserInvitationInput } from '../types';
 import type { AuthUser } from '../types/auth';
 
 interface AlertsParams {
@@ -69,6 +69,16 @@ export const fetchHierarchyChildren = (nodeId: string, from?: string, to?: strin
 
 export const fetchHierarchyConsumption = (nodeId: string, resolution: 'hourly' | 'daily' = 'hourly', from?: string, to?: string) =>
   api.get<ConsumptionPoint[]>(routes.getHierarchyConsumption(nodeId), { params: { resolution, from, to } }).then((r) => r.data);
+
+// Users / Roles
+export const fetchAdminUsers = () =>
+  api.get<AdminUserAccount[]>(routes.getAdminUsers()).then((r) => r.data);
+
+export const createUserInvitation = (payload: CreateUserInvitationInput) =>
+  api.post<AdminUserAccount>(routes.getAdminUsers(), payload).then((r) => r.data);
+
+export const fetchRoles = () =>
+  api.get<RoleOption[]>(routes.getRoles()).then((r) => r.data);
 
 // Auth
 export const fetchMe = () =>

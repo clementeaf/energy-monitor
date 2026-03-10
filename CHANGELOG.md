@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.0-alpha.5] - 2026-03-10
+
+### Added
+
+- **Baseline invite-first operativo** — el backend ya no autocrea accesos abiertos; el primer login SSO sólo enlaza identidades contra usuarios preprovisionados por email
+  - SQL: nueva migración `sql/007_invite_first_users.sql` para permitir `provider` y `external_id` nulos hasta el primer login
+  - Backend: `GET /users`, `POST /users` y `GET /roles` para provisionar invitaciones con rol y sitios preasignados
+  - Frontend: nueva vista `/admin/users` para crear invitaciones y revisar estado (`invited`, `active`, `disabled`)
+  - Tests backend agregados para el binding invite-first y el flujo RBAC actualizado
+- **Catálogo persistido de vistas reales** — la tabla `modules` ahora representa vistas navegables del producto y no módulos abstractos
+  - SQL: nueva migración `sql/008_views_catalog.sql` para migrar `modules` al catálogo real y reseedear `role_permissions`
+  - Backend: nuevo endpoint `GET /views` para inspeccionar el catálogo persistido de vistas
+  - RBAC backend y frontend alineados a códigos de vista reales como `BUILDINGS_OVERVIEW`, `ALERTS_OVERVIEW`, `METER_DETAIL` y `ADMIN_USERS`
+
+### Changed
+
+- **Matriz de acceso normalizada a `rol -> vistas -> acciones`** — rutas protegidas, guards backend, navegación y CTAs quedaron alineados al catálogo real de vistas para reducir `403` evitables
+- **Mensajes de acceso no invitado** — el frontend ahora informa explícitamente cuando una cuenta no tiene invitación activa en vez de tratarlo como activación pendiente genérica
+
 ## [0.9.0-alpha.4] - 2026-03-06
 
 ### Fixed

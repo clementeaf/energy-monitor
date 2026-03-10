@@ -10,7 +10,7 @@ export class HierarchyController {
   constructor(private readonly hierarchyService: HierarchyService) {}
 
   @Get(':buildingId')
-  @RequirePermissions('DASHBOARD_TECHNICAL', 'view')
+  @RequirePermissions('MONITORING_DRILLDOWN', 'view')
   @ApiOperation({ summary: 'Obtener árbol jerárquico de un edificio' })
   @ApiParam({ name: 'buildingId', example: 'pac4220' })
   findTree(@Param('buildingId') buildingId: string) {
@@ -18,7 +18,7 @@ export class HierarchyController {
   }
 
   @Get('node/:nodeId')
-  @RequirePermissions('DASHBOARD_TECHNICAL', 'view')
+  @RequirePermissions('MONITORING_DRILLDOWN', 'view')
   @ApiOperation({ summary: 'Obtener nodo con path de ancestros' })
   @ApiParam({ name: 'nodeId', example: 'ST-ILUM' })
   async findNode(@Param('nodeId') nodeId: string) {
@@ -28,7 +28,7 @@ export class HierarchyController {
   }
 
   @Get('node/:nodeId/children')
-  @RequirePermissions('DASHBOARD_TECHNICAL', 'view')
+  @RequirePermissions('MONITORING_DRILLDOWN', 'view')
   @ApiOperation({ summary: 'Obtener hijos directos con consumo agregado' })
   @ApiParam({ name: 'nodeId', example: 'TG-PAC4220' })
   @ApiQuery({ name: 'from', required: false, description: 'Inicio (ISO 8601)' })
@@ -42,7 +42,7 @@ export class HierarchyController {
   }
 
   @Get('node/:nodeId/consumption')
-  @RequirePermissions('DASHBOARD_TECHNICAL', 'view')
+  @RequirePermissions('MONITORING_DRILLDOWN', 'view')
   @ApiOperation({ summary: 'Time-series de consumo agregado del nodo' })
   @ApiParam({ name: 'nodeId', example: 'ST-ILUM' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['hourly', 'daily'] })

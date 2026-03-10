@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
+import { useAppStore } from '../store/useAppStore';
 
 const api = axios.create({
   baseURL: '/api',
@@ -13,6 +14,12 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const selectedSiteId = useAppStore.getState().selectedSiteId;
+  if (selectedSiteId && selectedSiteId !== '*') {
+    config.headers['X-Site-Context'] = selectedSiteId;
+  }
+
   return config;
 });
 

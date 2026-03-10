@@ -187,4 +187,30 @@ describe('RBAC guards', () => {
 
     expect(response.status).toBe(403);
   });
+
+  it('returns 403 when selected site is outside the authenticated scope', async () => {
+    const payload: TokenPayload = {
+      sub: 'multi-site-operator',
+      email: 'operator@example.com',
+      name: 'Operator',
+      iss: 'https://accounts.google.com',
+    };
+
+    authService.verifyToken.mockResolvedValue(payload);
+    authService.resolveAuthorizationContext.mockResolvedValue({
+      ...buildAuthContext(payload, {
+        BUILDINGS_OVERVIEW: ['view'],
+      }),
+      siteIds: ['pac4220'],
+    });
+
+    const response = await fetch(`${baseUrl}/buildings`, {
+      headers: {
+        Authorization: 'Bearer valid-buildings',
+        'X-Site-Context': 'pac4250',
+      },
+    });
+
+    expect(response.status).toBe(403);
+  });
 });

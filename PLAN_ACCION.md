@@ -53,7 +53,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - Generación sintética de lecturas y offline alerts en ejecución separada.
 
 ### Deuda técnica vigente
-- Falta usar el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite.
+- Falta envío/reemisión administrativa completa de invitaciones por email.
 - Cobertura de tests todavía mínima y centrada en controllers/guards.
 - `offline-alerts.ts` sigue con cold start completo.
 - No hay retention/partitioning para `readings`.
@@ -273,6 +273,23 @@ Incluye:
 - [x] Cubrir helpers y controllers de scoping con tests backend.
 
 Estado: scoping backend por sitio operativo para endpoints de datos.
+
+### Corte post-Etapa 1 · Contexto activo server-side
+Objetivo: hacer que el sitio seleccionado en frontend no sea sólo UX local, sino un narrowing efectivo por request sobre el alcance ya autorizado para usuarios multisite.
+
+Incluye:
+1. Propagar `selectedSiteId` desde frontend en un header dedicado por request.
+2. Estrechar el `authContext` efectivo en `RolesGuard` cuando el sitio seleccionado esté dentro del scope permitido.
+3. Rechazar con `403` un sitio activo fuera del alcance del usuario.
+4. Mantener compatibilidad con roles globales y con la vista portafolio (`*`).
+
+### Corte post-Etapa 1 · Contexto activo server-side · Checklist de trabajo
+- [x] Enviar `X-Site-Context` desde el cliente cuando existe un sitio seleccionado concreto.
+- [x] Estrechar el scope efectivo en backend por request.
+- [x] Rechazar sitio seleccionado fuera del alcance asignado.
+- [x] Cubrir narrowing de guard y helper con tests backend.
+
+Estado: contexto activo del frontend ya se usa como filtro server-side adicional.
 
 ### Etapa 1 · Orden recomendado de ejecución
 1. Agregar auth guards o mecanismo equivalente real en backend para data endpoints.

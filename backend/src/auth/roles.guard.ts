@@ -8,6 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import type { AuthenticatedRequest } from './auth-request.interface';
 import { AuthService } from './auth.service';
+import { applySelectedSiteContext } from './access-scope';
 import {
   REQUIRED_PERMISSION_KEY,
   type RequiredPermission,
@@ -41,9 +42,16 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User not found or disabled');
     }
 
-    request.authContext = authContext;
+    const selectedSiteHeader = request.headers['x-site-context'];
+    const selectedSiteId = Array.isArray(selectedSiteHeader) ? selectedSiteHeader[0] : selectedSiteHeader;
+    const effectiveAuthContext = applySelectedSiteContext(authContext, selectedSiteId);
+    if (!effectiveAuthContext) {
+      throw new ForbiddenException('Selected site is outside user scope');
+    }
 
-    const allowedActions = authContext.permissions[requiredPermission.module] ?? [];
+    request.authContext = effectiveAuthContext;
+
+    const allowedActions = effectiveAuthContext.permissions[requiredPermission.module] ?? [];
     if (!allowedActions.includes(requiredPermission.action)) {
       throw new ForbiddenException(
         `Missing permission ${requiredPermission.module}.${requiredPermission.action}`,

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.0-alpha.8] - 2026-03-10
+
+### Changed
+
+- **Contexto activo ahora sí estrecha el backend** — cuando el usuario selecciona un sitio en frontend, el cliente envía `X-Site-Context` y `RolesGuard` reduce el scope efectivo de ese request
+  - Usuarios multisite ya no reciben sólo filtro visual local; el narrowing también ocurre server-side
+  - Un sitio activo fuera del alcance asignado ahora devuelve `403`
+  - Los roles globales conservan vista portafolio cuando el contexto es `*`, y pueden estrecharse a un sitio concreto cuando lo eligen
+
 ## [0.9.0-alpha.7] - 2026-03-10
 
 ### Added

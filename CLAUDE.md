@@ -152,7 +152,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 - Operación pendiente en entornos ya existentes: aplicar `sql/008_views_catalog.sql` para migrar `modules` al catálogo de vistas reales y reseedear `role_permissions`.
 - Operación pendiente adicional en entornos ya existentes: aplicar `sql/009_invitation_links.sql` para agregar columnas de invitación y la vista pública `INVITATION_ACCEPT`.
 - Scoping vigente en backend: buildings, meters, hierarchy, alerts y `sync-offline` ya restringen datos por `siteIds` asignados; los roles globales mantienen acceso total.
-- Alcance pendiente: la selección de sitio del frontend todavía no se usa como filtro server-side adicional cuando un usuario tiene múltiples sitios asignados.
+- Contexto activo vigente: cuando el frontend tiene un `selectedSiteId`, el interceptor Axios envía `X-Site-Context` y `RolesGuard` estrecha el scope server-side adicionalmente para ese request.
 
 ## API Endpoints
 
@@ -456,7 +456,6 @@ cd backend && npx sls offline
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 
 ## Known Issues & Tech Debt
-- **Scoping por contexto activo pendiente:** el backend ya restringe por `siteIds` asignados, pero aún no usa el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite.
 - **Invitación transaccional pendiente:** ya existe link/token firmado con expiración y validación pública, pero todavía no hay envío por email, reemisión ni revocación administrativa completa.
 - **Cobertura baja:** ya existen tests de guards y controllers, pero la suite sigue siendo mínima y sin servicios/integración.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.

@@ -38,6 +38,10 @@ export class AlertsService {
     return qb.getMany();
   }
 
+  async findOne(id: string) {
+    return this.alertRepo.findOne({ where: { id } });
+  }
+
   async acknowledge(id: string) {
     const alert = await this.alertRepo.findOne({ where: { id } });
     if (!alert) return null;

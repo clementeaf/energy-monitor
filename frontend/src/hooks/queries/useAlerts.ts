@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import { acknowledgeAlert, fetchAlerts, syncOfflineAlerts } from '../../services/endpoints';
+import { acknowledgeAlert, fetchAlert, fetchAlerts, syncOfflineAlerts } from '../../services/endpoints';
 import type { Alert, AlertsSyncSummary, AlertStatus } from '../../types';
 
 export interface AlertsFilters {
@@ -20,6 +20,14 @@ export function useAlerts(
     staleTime: 30_000,
     refetchInterval: 60_000,
     ...options,
+  });
+}
+
+export function useAlert(alertId: string) {
+  return useQuery({
+    queryKey: ['alert', alertId],
+    queryFn: () => fetchAlert(alertId),
+    enabled: !!alertId,
   });
 }
 

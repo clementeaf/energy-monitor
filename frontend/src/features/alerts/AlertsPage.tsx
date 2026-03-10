@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { Card } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { useAppStore } from '../../store/useAppStore';
 import { useAlerts, useAcknowledgeAlert, useSyncOfflineAlerts } from '../../hooks/queries/useAlerts';
 import { hasPermission } from '../../auth/permissions';
 import type { Alert, AlertStatus } from '../../types';
@@ -57,9 +58,14 @@ function timeAgo(value: string) {
 export function AlertsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { selectedSiteId } = useAppStore();
   const [statusFilter, setStatusFilter] = useState<AlertStatus | 'all'>('all');
   const { data: alerts, isLoading, isFetching } = useAlerts(
-    { status: statusFilter === 'all' ? undefined : statusFilter, limit: 100 },
+    {
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      limit: 100,
+      buildingId: selectedSiteId && selectedSiteId !== '*' ? selectedSiteId : undefined,
+    },
     { refetchInterval: 30_000, staleTime: 10_000 },
   );
   const acknowledgeMutation = useAcknowledgeAlert();
@@ -138,7 +144,11 @@ export function AlertsPage() {
           </thead>
           <tbody>
             {(alerts ?? []).map((alert) => (
-              <tr key={alert.id} className="border-b border-border align-top hover:bg-raised/70">
+              <tr
+                key={alert.id}
+                className="cursor-pointer border-b border-border align-top hover:bg-raised/70"
+                onClick={() => navigate(appRoutes.alertDetail.path.replace(':id', alert.id))}
+              >
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2 py-1 text-xs font-semibold ${statusBadge(alert.status)}`}>
                     {alert.status}
@@ -172,7 +182,10 @@ export function AlertsPage() {
                   <div className="flex flex-col gap-2">
                     {canManageAlerts && alert.status === 'active' && (
                       <button
-                        onClick={() => acknowledgeMutation.mutate(alert.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          acknowledgeMutation.mutate(alert.id);
+                        }}
                         disabled={acknowledgeMutation.isPending}
                         className="rounded-md border border-border px-3 py-1 text-xs font-medium text-text hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
                       >
@@ -181,7 +194,10 @@ export function AlertsPage() {
                     )}
                     {alert.meterId && canOpenMeterDetail && (
                       <button
-                        onClick={() => navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId!))}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigate(appRoutes.meterDetail.path.replace(':meterId', alert.meterId!));
+                        }}
                         className="rounded-md border border-border px-3 py-1 text-xs font-medium text-muted hover:bg-raised"
                       >
                         Ver medidor

@@ -8,11 +8,11 @@ import { DrilldownBars } from './components/DrilldownBars';
 import { DrilldownChildrenTable } from './components/DrilldownChildrenTable';
 
 export function DrilldownPage() {
-  const { buildingId } = useParams<{ buildingId: string }>();
+  const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
 
   // The root node ID convention: B-{BUILDING_ID_UPPER}
-  const rootNodeId = `B-${buildingId!.toUpperCase()}`;
+  const rootNodeId = `B-${siteId!.toUpperCase()}`;
   const [currentNodeId, setCurrentNodeId] = useState(rootNodeId);
 
   const { data: nodeData, isLoading: loadingNode } = useHierarchyNode(currentNodeId);
@@ -80,7 +80,7 @@ export function DrilldownPage() {
           showBack
           breadcrumbs={[
             { label: 'Edificios', to: '/' },
-            { label: nodeData.path[0]?.name ?? buildingId!, to: `/buildings/${buildingId}` },
+            { label: nodeData.path[0]?.name ?? siteId!, to: `/buildings/${siteId}` },
             { label: 'Drill-down' },
           ]}
         />

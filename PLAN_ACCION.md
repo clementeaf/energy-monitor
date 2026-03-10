@@ -28,10 +28,10 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - [x] Backend NestJS + PostgreSQL + AWS Lambda operativos.
 
 ### Cobertura frente al mapa objetivo del XLSX
-- Acceso: existe login básico; faltan selección de contexto y MFA.
+- Acceso: existe login básico con selección de contexto; falta MFA.
 - Dashboard: no existen aún las vistas ejecutivas ni comparativas.
-- Monitoreo: existe drill-down base y una vista de dispositivos fuera de la ruta objetivo; faltan tiempo real, demanda, calidad, tipo de medidor, generación, mapa Modbus, fallos y concentradores.
-- Alertas: existe panel base en `/alerts`; faltan reglas, historial SLA y detalle operativo completo.
+- Monitoreo: existen tiempo real base, drill-down base y dispositivos bajo la ruta objetivo; faltan demanda, calidad, tipo de medidor, generación, mapa Modbus, fallos y concentradores.
+- Alertas: existe panel base en `/alerts` con detalle operativo; faltan reglas e historial SLA.
 - Facturación, reportes, analítica, administración avanzada, auditoría e integraciones: pendientes.
 
 ## Estado Actual
@@ -43,9 +43,8 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - Generación sintética de lecturas y offline alerts en ejecución separada.
 
 ### Deuda técnica vigente
-- Falta enforcement real de auth y RBAC en data endpoints backend.
-- Existe riesgo de SQL injection en consumo de buildings.
-- No hay tests relevantes.
+- Falta scoping fino por recurso en backend.
+- Cobertura de tests todavía mínima y centrada en controllers/guards.
 - `offline-alerts.ts` sigue con cold start completo.
 - No hay retention/partitioning para `readings`.
 - Tokens en `sessionStorage`.
@@ -55,7 +54,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 
 ### 1. Acceso y contexto
 - [x] Login / autenticación SSO.
-- [ ] Selección de contexto edificio o portafolio.
+- [x] Selección de contexto edificio o portafolio.
 - [ ] MFA o segundo factor.
 
 ### 2. Dashboard
@@ -64,9 +63,9 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - [ ] `/dashboard/compare` — comparativo entre edificios.
 
 ### 3. Monitoreo
-- [ ] `/monitoring/realtime` — monitoreo técnico en tiempo real.
-- [x] `/monitoring/drilldown/:siteId` — existe base funcional hoy en `/monitoring/drilldown/:buildingId`; falta alinear naming y completar target.
-- [ ] `/monitoring/devices` — inventario y estado de dispositivos; hoy existe base en `/iot-devices`.
+- [x] `/monitoring/realtime` — monitoreo técnico en tiempo real base.
+- [x] `/monitoring/drilldown/:siteId` — ruta y naming alineados al target funcional base.
+- [x] `/monitoring/devices` — inventario y estado de dispositivos alineado a la ruta objetivo.
 - [ ] `/monitoring/demand/:siteId` — análisis de demanda.
 - [ ] `/monitoring/quality/:siteId` — calidad de energía.
 - [ ] `/monitoring/meters/type` — tipo de medidor y estado breaker.
@@ -84,9 +83,9 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 
 ### 5. Alertas
 - [x] `/alerts` — panel base de alertas activas.
+- [x] Vista de detalle de alerta con timeline y acciones.
 - [ ] `/alerts/rules` — configuración de reglas.
 - [ ] `/alerts/history` — historial y SLA.
-- [ ] Vista de detalle de alerta con timeline y acciones.
 
 ### 6. Reportes
 - [ ] `/reports` — centro de reportes.
@@ -100,10 +99,10 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 
 ### 8. Administración
 - [ ] `/admin/users` — gestión de usuarios.
-- [ ] `/admin/sites` — gestión de edificios o sites.
-- [ ] `/admin/meters` — gestión de medidores y concentradores.
+- [x] `/admin/sites` — gestión base de edificios o sites.
+- [x] `/admin/meters` — gestión base de medidores y concentradores.
 - [ ] `/admin/tenants-units` — gestión de locatarios.
-- [ ] `/admin/hierarchy/:siteId` — jerarquía eléctrica.
+- [x] `/admin/hierarchy/:siteId` — inspección base de jerarquía eléctrica.
 - [ ] `/admin/tenant-config` — configuración global tenant.
 
 ### 9. Auditoría
@@ -192,15 +191,17 @@ Incluye:
 - [x] Agregar auth guards o mecanismo equivalente real en backend para data endpoints.
 - [x] Llevar RBAC backend al mismo nivel mínimo que `ProtectedRoute`.
 - [x] Parametrizar queries de consumo en buildings.
-- [ ] Cubrir con tests mínimos auth, buildings, meters, hierarchy y alerts.
-- [ ] Implementar selección de contexto después del login.
-- [ ] Implementar `/monitoring/realtime`.
-- [ ] Migrar o redirigir `/iot-devices` hacia `/monitoring/devices`.
-- [ ] Alinear `/monitoring/drilldown/:buildingId` al target `/monitoring/drilldown/:siteId`.
-- [ ] Completar `/alerts` con detalle operativo de alerta.
-- [ ] Implementar `/admin/sites`.
-- [ ] Implementar `/admin/meters`.
-- [ ] Implementar `/admin/hierarchy/:siteId`.
+- [x] Cubrir con tests mínimos auth, buildings, meters, hierarchy y alerts.
+- [x] Implementar selección de contexto después del login.
+- [x] Implementar `/monitoring/realtime`.
+- [x] Migrar o redirigir `/iot-devices` hacia `/monitoring/devices`.
+- [x] Alinear `/monitoring/drilldown/:buildingId` al target `/monitoring/drilldown/:siteId`.
+- [x] Completar `/alerts` con detalle operativo de alerta.
+- [x] Implementar `/admin/sites`.
+- [x] Implementar `/admin/meters`.
+- [x] Implementar `/admin/hierarchy/:siteId`.
+
+Estado: Etapa 1 cerrada como baseline funcional.
 
 ### Etapa 1 · Orden recomendado de ejecución
 1. Agregar auth guards o mecanismo equivalente real en backend para data endpoints.

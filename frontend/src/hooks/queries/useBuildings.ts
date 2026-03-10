@@ -12,6 +12,7 @@ export function useBuilding(id: string) {
   return useQuery({
     queryKey: ['building', id],
     queryFn: () => fetchBuilding(id),
+    enabled: !!id,
   });
 }
 
@@ -19,6 +20,7 @@ export function useBuildingConsumption(buildingId: string, resolution: '15min' |
   return useQuery({
     queryKey: ['buildingConsumption', buildingId, resolution],
     queryFn: () => fetchBuildingConsumption(buildingId, resolution),
+    enabled: !!buildingId,
     placeholderData: keepPreviousData,
   });
 }

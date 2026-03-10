@@ -37,6 +37,17 @@ export class AlertsController {
     });
   }
 
+  @Get(':id')
+  @RequirePermissions('ALERTS', 'view')
+  @ApiOperation({ summary: 'Obtener alerta por ID', description: 'Retorna el detalle operativo de una alerta persistida.' })
+  @ApiParam({ name: 'id', example: '0c5b2ea3-52bb-4a75-a19a-b7e36619e9bb' })
+  @ApiOkResponse({ type: Alert })
+  async findOne(@Param('id') id: string) {
+    const alert = await this.alertsService.findOne(id);
+    if (!alert) throw new NotFoundException('Alert not found');
+    return alert;
+  }
+
   @Post('sync-offline')
   @RequirePermissions('ALERTS', 'manage')
   @ApiOperation({ summary: 'Sincronizar alertas offline', description: 'Evalúa el estado de todos los medidores y crea/resuelve alertas offline.' })

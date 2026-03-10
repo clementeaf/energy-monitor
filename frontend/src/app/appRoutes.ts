@@ -15,6 +15,10 @@ export const appRoutes = {
   unauthorized: { path: '/unauthorized', label: 'Sin acceso' },
 
   // Protected
+  contextSelect: {
+    path: '/context/select',
+    label: 'Seleccionar sitio',
+  },
   buildings: {
     path: '/',
     label: 'Edificios',
@@ -31,11 +35,22 @@ export const appRoutes = {
     label: 'Detalle Medidor',
     allowedRoles: PERMISSIONS.METERS.view,
   },
-  iotDevices: {
-    path: '/iot-devices',
+  monitoringRealtime: {
+    path: '/monitoring/realtime',
+    label: 'Monitoreo en Tiempo Real',
+    allowedRoles: PERMISSIONS.DASHBOARD_TECHNICAL.view_realtime,
+    showInNav: true,
+  },
+  monitoringDevices: {
+    path: '/monitoring/devices',
     label: 'Dispositivos',
     allowedRoles: PERMISSIONS.METERS.view,
     showInNav: true,
+  },
+  iotDevicesLegacy: {
+    path: '/iot-devices',
+    label: 'Dispositivos Legacy',
+    allowedRoles: PERMISSIONS.METERS.view,
   },
   alerts: {
     path: '/alerts',
@@ -43,10 +58,32 @@ export const appRoutes = {
     allowedRoles: PERMISSIONS.ALERTS.view,
     showInNav: true,
   },
+  alertDetail: {
+    path: '/alerts/:id',
+    label: 'Detalle Alerta',
+    allowedRoles: PERMISSIONS.ALERTS.view,
+  },
   drilldown: {
-    path: '/monitoring/drilldown/:buildingId',
+    path: '/monitoring/drilldown/:siteId',
     label: 'Drill-down',
     allowedRoles: PERMISSIONS.DASHBOARD_TECHNICAL.view_realtime,
+  },
+  adminSites: {
+    path: '/admin/sites',
+    label: 'Administrar Sitios',
+    allowedRoles: PERMISSIONS.BUILDINGS.manage,
+    showInNav: true,
+  },
+  adminMeters: {
+    path: '/admin/meters',
+    label: 'Administrar Medidores',
+    allowedRoles: PERMISSIONS.METERS.manage,
+    showInNav: true,
+  },
+  adminHierarchy: {
+    path: '/admin/hierarchy/:siteId',
+    label: 'Administrar Jerarquía',
+    allowedRoles: PERMISSIONS.BUILDINGS.manage,
   },
 } as const satisfies Record<string, AppRoute>;
 

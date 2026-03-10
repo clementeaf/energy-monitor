@@ -48,6 +48,9 @@ export const fetchMeterAlarmSummary = (meterId: string, from: string, to: string
 export const fetchAlerts = (params: AlertsParams = {}) =>
   api.get<Alert[]>(routes.getAlerts(), { params }).then((r) => r.data);
 
+export const fetchAlert = (alertId: string) =>
+  api.get<Alert>(routes.getAlert(alertId)).then((r) => r.data);
+
 export const acknowledgeAlert = (alertId: string) =>
   api.patch<Alert>(routes.acknowledgeAlert(alertId)).then((r) => r.data);
 

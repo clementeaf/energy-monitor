@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { BuildingDetailSkeleton, ChartSkeleton, MetersGridSkeleton } from '../../components/ui/Skeleton';
@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/auth/useAuth';
 import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
+import { useAppStore } from '../../store/useAppStore';
 import { appRoutes, canAccessRoute } from '../../app/appRoutes';
 import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
 import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
@@ -25,10 +26,17 @@ export function BuildingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { setSelectedSiteId } = useAppStore();
   const [resolution, setResolution] = useState<Resolution>('hourly');
   const handleRangeChange = useCallback((min: number, max: number) => {
     setResolution(pickResolution(max - min));
   }, []);
+  useEffect(() => {
+    if (id) {
+      setSelectedSiteId(id);
+    }
+  }, [id, setSelectedSiteId]);
+
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
@@ -89,7 +97,11 @@ export function BuildingDetailPage() {
         ) : (
           <div className="grid grid-cols-1 content-start gap-3 pb-2 sm:grid-cols-2 lg:grid-cols-3">
             {meters?.map((m) => (
-              <MeterCard key={m.id} meter={m} activeAlerts={alertsByMeter.get(m.id) ?? []} />
+              <MeterCard
+                key={m.id}
+                meter={m}
+                activeAlerts={alertsByMeter.get(m.id) ?? []}
+              />
             ))}
           </div>
         )}

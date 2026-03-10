@@ -17,6 +17,12 @@ Usar el menor contexto posible.
 
 No hace falta pedir `patterns/` para arrancar. Solo usarlo como anexo secundario si se busca contexto histórico o detalle ampliado.
 
+## Contexto Externo Complementario
+Existe además un documento externo complementario en `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`.
+
+- No reemplaza a `CLAUDE.md` como fuente operativa principal de este repo.
+- Usarlo solo como referencia secundaria o contexto histórico adicional cuando haga falta contrastar decisiones fuera del workspace.
+
 ## Playbooks Opcionales
 Usarlos solo si la tarea es muy puntual.
 
@@ -61,7 +67,7 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 ### Mapa objetivo y backlog normalizados
 - El mapa objetivo de vistas derivado del XLSX se mantiene normalizado en `PLAN_ACCION.md`.
 - Agrupación canónica actual: Acceso y Contexto, Dashboard, Monitoreo, Facturación, Alertas, Reportes, Analítica, Administración, Auditoría, Integraciones.
-- Frontend implementado hoy: `/login`, `/unauthorized`, `/`, `/buildings/:id`, `/meters/:meterId`, `/iot-devices`, `/alerts`, `/monitoring/drilldown/:buildingId`.
+- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/meters`, `/admin/hierarchy/:siteId`.
 - Todo objetivo del XLSX que no exista en esas rutas debe tratarse como backlog funcional, no como funcionalidad asumida.
 
 ### Regla de planificación funcional
@@ -121,7 +127,8 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
   → Backend: AuthGuard reusable extrae Bearer → detectProvider(iss) → jose.jwtVerify(jwks RS256)
   → RolesGuard global lee metadata @RequirePermissions(module, action) y aplica 403 por permiso faltante
   → resolveUser(): upsert user + load permissions
-  → Frontend: Zustand useAuthStore.setUser() → ProtectedRoute checks roles
+  → Frontend: Zustand useAuthStore.setUser() + contexto de sitio en Zustand useAppStore
+  → ProtectedRoute checks roles y fuerza selección de sitio cuando aplica
   → 401 Axios interceptor → limpia auth store + sessionStorage
 ```
 - RBAC: 7 roles (`SUPER_ADMIN`, `CORP_ADMIN`, `SITE_ADMIN`, `OPERATOR`, `ANALYST`, `TENANT_USER`, `AUDITOR`), 10 módulos, 3 acciones
@@ -168,6 +175,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/alerts` | `status?`, `type?`, `meterId?`, `buildingId?`, `limit?` | `Alert[]` |
+| GET | `/alerts/:id` | — | `Alert` |
 | POST | `/alerts/sync-offline` | — | `AlertsSyncSummary` |
 | PATCH | `/alerts/:id/acknowledge` | — | `Alert` |
 
@@ -269,11 +277,11 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **API layer (3-file):** `services/routes.ts` (URL builders) → `services/endpoints.ts` (Axios calls) → `hooks/queries/use<Entity>.ts` (TanStack Query)
 
-**State:** TanStack Query (server, staleTime: Infinity static / 30s live / 0+keepPreviousData charts) | Zustand useAuthStore (sessionStorage persist) | Zustand useAppStore (no persist)
+**State:** TanStack Query (server, staleTime: Infinity static / 30s live / 0+keepPreviousData charts) | Zustand useAuthStore (sessionStorage persist) | Zustand useAppStore (sessionStorage persist para contexto de sitio)
 
 **Cache strategy:** buildings/building detail/auth me → `Infinity`; meters overview/alerts → `30s` + `30s`; consumption/readings → `0` + `keepPreviousData`.
 
-**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables.
+**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables.
 
 **Feature folders:** `features/<domain>/<Domain>Page.tsx` (named export) + `components/` subdirectory.
 
@@ -390,13 +398,16 @@ cd backend && npx sls offline
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |
+| `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
+| `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
+| `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 
 ## Known Issues & Tech Debt
 - **Sin scoping fino por recurso:** Ya existe enforcement RBAC por módulo/acción en API, pero todavía falta restringir por site/building/meter según pertenencia o contexto del usuario.
-- **SQL injection:** `findBuildingConsumption` interpola from/to sin parametrizar.
-- **Sin tests:** Zero coverage.
+- **Contexto frontend sin enforcement backend:** la selección de sitio mejora UX y navegación, pero todavía no restringe datos en API por recurso.
+- **Cobertura baja:** ya existen tests de guards y controllers, pero la suite sigue siendo mínima y sin servicios/integración.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.
 - **offlineAlerts cold start:** Bootstrap NestJS completo cada invocación.
 - **Readings sin retention:** ~21,600 filas/día, sin partitioning.

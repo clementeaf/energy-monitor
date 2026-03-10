@@ -1,14 +1,20 @@
-import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router';
+import { appRoutes } from '../../app/appRoutes';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { hasGlobalSiteAccess } from '../../auth/siteScope';
+import { useAppStore } from '../../store/useAppStore';
 import type { Role } from '../../types/auth';
 
 interface ProtectedRouteProps {
   allowedRoles?: Role[];
   children?: React.ReactNode;
+  enforceSiteContext?: boolean;
 }
 
-export function ProtectedRoute({ allowedRoles, children }: Readonly<ProtectedRouteProps>) {
+export function ProtectedRoute({ allowedRoles, children, enforceSiteContext = true }: Readonly<ProtectedRouteProps>) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { selectedSiteId } = useAppStore();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -35,6 +41,16 @@ export function ProtectedRoute({ allowedRoles, children }: Readonly<ProtectedRou
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />;
+  }
+
+  const requiresSiteContext = !!user && !hasGlobalSiteAccess(user.siteIds) && user.siteIds.length > 1;
+
+  if (requiresSiteContext && enforceSiteContext && !selectedSiteId) {
+    return <Navigate to={appRoutes.contextSelect.path} replace state={{ from: location.pathname }} />;
+  }
+
+  if (!enforceSiteContext && location.pathname === appRoutes.contextSelect.path && selectedSiteId) {
+    return <Navigate to={appRoutes.buildings.path} replace />;
   }
 
   return children ?? <Outlet />;

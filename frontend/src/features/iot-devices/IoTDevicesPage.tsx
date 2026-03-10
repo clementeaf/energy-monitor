@@ -4,6 +4,8 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useMetersOverview } from '../../hooks/queries/useMeters';
+import { useAppStore } from '../../store/useAppStore';
+import { matchesSelectedSite } from '../../auth/siteScope';
 import type { MeterOverview } from '../../types';
 
 function timeAgo(iso: string | null): string {
@@ -77,16 +79,18 @@ const columns: ColumnDef<MeterOverview, unknown>[] = [
 
 export function IoTDevicesPage() {
   const { data: meters, isLoading } = useMetersOverview();
+  const { selectedSiteId } = useAppStore();
   const navigate = useNavigate();
 
   if (isLoading) return <BuildingsPageSkeleton />;
 
-  const online = meters?.filter((m) => m.status === 'online').length ?? 0;
-  const total = meters?.length ?? 0;
+  const scopedMeters = (meters ?? []).filter((meter) => matchesSelectedSite(selectedSiteId, meter.buildingId));
+  const online = scopedMeters.filter((m) => m.status === 'online').length;
+  const total = scopedMeters.length;
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader title="Estado de Dispositivos IoT" />
+      <PageHeader title="Inventario y Estado de Dispositivos" />
       <div className="mb-3 flex gap-4 text-sm">
         <span className="text-muted">Total: <span className="font-medium text-text">{total}</span></span>
         <span className="text-muted">Online: <span className="font-medium text-green-400">{online}</span></span>
@@ -94,7 +98,7 @@ export function IoTDevicesPage() {
       </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         <DataTable
-          data={meters ?? []}
+          data={scopedMeters}
           columns={columns}
           className="h-full cursor-pointer"
           onRowClick={(meter) => navigate(`/meters/${meter.id}`)}

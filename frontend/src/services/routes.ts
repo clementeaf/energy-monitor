@@ -16,6 +16,7 @@ export const routes = {
 
   // Alerts
   getAlerts:               ()                       => '/alerts',
+  getAlert:                (id: string)             => `/alerts/${id}`,
   acknowledgeAlert:        (id: string)             => `/alerts/${id}/acknowledge`,
   syncOfflineAlerts:       ()                       => '/alerts/sync-offline',
 

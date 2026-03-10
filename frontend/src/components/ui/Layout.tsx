@@ -1,20 +1,69 @@
+import { useEffect, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { useBuildings } from '../../hooks/queries/useBuildings';
+import { hasGlobalSiteAccess, isSiteInScope } from '../../auth/siteScope';
 import { appRoutes, canAccessRoute, getNavItems } from '../../app/appRoutes';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 
 export function Layout() {
-  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
+  const {
+    sidebarOpen,
+    selectedSiteId,
+    toggleSidebar,
+    setSidebarOpen,
+    setSelectedSiteId,
+    clearSelectedSiteId,
+  } = useAppStore();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: buildings } = useBuildings();
+  const visibleBuildings = useMemo(() => {
+    if (!user) return [];
+    if (hasGlobalSiteAccess(user.siteIds)) return buildings ?? [];
+    return (buildings ?? []).filter((building) => isSiteInScope(user.siteIds, building.id));
+  }, [buildings, user]);
+
+  useEffect(() => {
+    if (!user) {
+      clearSelectedSiteId();
+      return;
+    }
+
+    if (hasGlobalSiteAccess(user.siteIds)) {
+      if (!selectedSiteId) {
+        setSelectedSiteId('*');
+      }
+      return;
+    }
+
+    if (selectedSiteId && user.siteIds.includes(selectedSiteId)) {
+      return;
+    }
+
+    if (user.siteIds.length === 1) {
+      setSelectedSiteId(user.siteIds[0]);
+      return;
+    }
+
+    clearSelectedSiteId();
+  }, [clearSelectedSiteId, selectedSiteId, setSelectedSiteId, user]);
+
   const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
   const { data: activeAlerts } = useAlerts(
-    { status: 'active', limit: 20 },
+    {
+      status: 'active',
+      limit: 20,
+      buildingId: selectedSiteId && selectedSiteId !== '*' ? selectedSiteId : undefined,
+    },
     { enabled: canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },
   );
   const activeAlertsCount = activeAlerts?.length ?? 0;
+  const selectedSiteLabel = selectedSiteId === '*'
+    ? 'Todos los sitios'
+    : visibleBuildings.find((building) => building.id === selectedSiteId)?.name ?? selectedSiteId;
 
   return (
     <div className="flex h-screen overflow-hidden bg-base">
@@ -44,6 +93,33 @@ export function Layout() {
           </button>
           {user && (
             <p className="mt-1 truncate text-xs text-subtle">{user.name}</p>
+          )}
+          {user && visibleBuildings.length > 0 && (
+            <div className="mt-3">
+              <label htmlFor="site-context-select" className="mb-1 block text-[11px] uppercase tracking-wide text-subtle">
+                Contexto
+              </label>
+              <select
+                id="site-context-select"
+                value={selectedSiteId ?? ''}
+                onChange={(event) => {
+                  setSelectedSiteId(event.target.value);
+                  if (location.pathname === appRoutes.contextSelect.path) {
+                    navigate(appRoutes.buildings.path);
+                  }
+                }}
+                className="w-full rounded-lg border border-border bg-base px-3 py-2 text-sm text-text"
+              >
+                {hasGlobalSiteAccess(user.siteIds) && (
+                  <option value="*">Todos los sitios</option>
+                )}
+                {visibleBuildings.map((building) => (
+                  <option key={building.id} value={building.id}>
+                    {building.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
         <nav className="flex-1 p-2">
@@ -94,6 +170,11 @@ export function Layout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-hidden p-4 md:p-6">
+          {user && selectedSiteLabel && location.pathname !== appRoutes.contextSelect.path && (
+            <div className="mb-4 text-xs uppercase tracking-wide text-subtle">
+              Contexto activo: <span className="font-semibold text-text">{selectedSiteLabel}</span>
+            </div>
+          )}
           {canViewAlerts && activeAlertsCount > 0 && location.pathname !== appRoutes.alerts.path && (
             <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
               <div>

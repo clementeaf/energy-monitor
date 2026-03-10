@@ -92,7 +92,7 @@ Plataforma de monitoreo energético en tiempo real para edificios comerciales. T
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7, MSAL v5, @react-oauth/google
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS), class-validator, Swagger
-- **Infra:** AWS Lambda (Node 20, Serverless Framework v3), API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge
+- **Infra:** AWS Lambda (Node 20, Serverless Framework v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, Secrets Manager
 - **CI/CD:** GitHub Actions → S3 sync + CloudFront invalidation (frontend), `sls deploy` (backend)
 - **Testing:** Jest 29 + ts-jest (backend, sin tests escritos). Frontend sin test runner.
 
@@ -105,6 +105,7 @@ CloudFront (energymonitor.click)
 
 EventBridge (1 min) → Lambda synthetic-readings-generator → RDS (pg directo)
 EventBridge (5 min) → Lambda offlineAlerts → RDS (NestJS context, NO cached)
+ECS Fargate (on-demand) → Google Drive CSV ingest → S3 raw/manifests → [pendiente] staging RDS
 ```
 
 ## Runtime Data Flow
@@ -119,6 +120,38 @@ Medidor Siemens (PAC1670/PAC1651)
 - `infra/synthetic-generator/profiles.json`: media + desviación estándar por medidor, por hora y por campo eléctrico.
 - `energy_kwh_total` es acumulativo; incremento sintético = `power_kw * dt_hours`.
 - Historial: CSV Ene-Feb 2026 importado, gap Mar 2-5 backfilled, Mar 6+ generado en tiempo real.
+
+## Bulk CSV Ingest Baseline
+- Ultima actualizacion operativa validada: `2026-03-10`.
+- Nuevo frente operativo habilitado: ingesta masiva desde Google Drive hacia AWS sin descarga manual local.
+- Flujo base aprobado: Google Drive compartido → ECS Fargate → S3 `raw/` + `manifests/` → staging en RDS → promotion a `readings`.
+- Runtime elegido y ya provisionado para transferencia: `ECS Fargate`.
+- Bucket de ingesta: `energy-monitor-ingest-058310292956`.
+- Secrets en AWS Secrets Manager: `energy-monitor/drive-ingest/db`, `energy-monitor/drive-ingest/google-service-account`.
+- Cluster ECS: `energy-monitor-drive-ingest`.
+- CloudWatch log group: `/ecs/energy-monitor-drive-ingest`.
+- Roles base creados: `energy-monitor-drive-ingest-task-execution-role`, `energy-monitor-drive-ingest-task-role`.
+- Restricción operativa: no usar Lambda para mover CSV de 1.5 GB a 3.15 GB; el baseline aprobado para esa transferencia es Fargate.
+- Ingesta inicial ya ejecutada: los 5 CSV objetivo quedaron cargados en S3 `raw/` y sus manifests en `manifests/`.
+- La corrida inicial se ejecutó desde el job del repo; Fargate queda provisionado como runtime objetivo para próximas corridas y automatización.
+- Objetos ya presentes en `raw/`: `MALL_GRANDE_446_completo.csv`, `MALL_MEDIANO_254_completo.csv`, `OUTLET_70_anual.csv`, `SC52_StripCenter_anual.csv`, `SC53_StripCenter_anual.csv`.
+- El job implementado en el repo vive en `infra/drive-ingest/` y resuelve `fileId` por listing del folder, descarga por streaming desde Google Drive, sube con multipart upload a S3 y escribe manifest JSON por archivo.
+
+### Siguiente tramo operativo
+- No importar directo a `readings`.
+- Siguiente fase aprobada: `S3 -> staging RDS -> validacion -> resolucion de meter_id -> promotion`.
+- Gap critico actual: el dataset fuente usa `meter_id` como `MG-001`, `MM-045`, `OT-012`, `SC53-030`, mientras el modelo actual del repo espera ids tipo `M001`.
+- Base de especificacion del import: `docs/drive-csv-import-spec.md`.
+
+### Micro tareas aprobadas para el siguiente tramo
+- Preparar tabla `readings_import_staging` con columnas fuente y trazabilidad.
+- Implementar parser desde S3 respetando `;`, decimal `,`, `utf-8-sig` y vacios a `NULL`.
+- Probar parser primero con 10 filas, luego 100 filas y luego un archivo completo.
+- Validar conteos, duplicados, paso de 15 minutos, nulls de monofasicos y monotonia de `energy_kwh_total`.
+- Cargar los 5 archivos completos a staging solo despues de pasar la muestra.
+- Resolver estrategia de `meter_id`: reemplazo de catalogo o tabla de mapeo `source_meter_id -> meters.id`.
+- Recién despues diseñar y ejecutar la promotion a `readings`.
+- Antes del corte real: snapshot, pausa de procesos que escriben, promotion, validacion y reactivacion.
 
 ## Offline Alerts Flow
 ```
@@ -409,6 +442,7 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ## Standalone Infra Scripts
 ```
 infra/
+  drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
   reimport-readings/     → one-off CSV import + regen synthetic
   backfill-gap/          → one-off gap backfill
@@ -444,6 +478,7 @@ cd backend && npx sls offline
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
+| `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests |
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |

@@ -28,8 +28,11 @@ export class AdminUserResponseDto {
   @ApiProperty({ example: ['pac4220'], type: [String] })
   siteIds!: string[];
 
-  @ApiProperty({ example: 'invited', enum: ['invited', 'active', 'disabled'] })
-  invitationStatus!: 'invited' | 'active' | 'disabled';
+  @ApiProperty({ example: 'invited', enum: ['invited', 'active', 'disabled', 'expired'] })
+  invitationStatus!: 'invited' | 'active' | 'disabled' | 'expired';
+
+  @ApiProperty({ example: '2026-03-17T18:30:00.000Z', nullable: true })
+  invitationExpiresAt!: string | null;
 
   @ApiProperty({ example: '2026-03-10T18:30:00.000Z' })
   createdAt!: string;

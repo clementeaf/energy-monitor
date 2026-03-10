@@ -12,6 +12,7 @@ export interface AppRoute {
 export const appRoutes = {
   // Public
   login:        { path: '/login',        label: 'Iniciar sesión' },
+  invitationAccept: { path: '/invite/:token', label: 'Aceptar invitación' },
   unauthorized: { path: '/unauthorized', label: 'Sin acceso' },
 
   // Protected

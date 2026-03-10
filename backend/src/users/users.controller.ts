@@ -14,6 +14,7 @@ import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { UsersService } from './users.service';
 import { AdminUserResponseDto } from './dto/admin-user-response.dto';
 import { CreateUserInvitationDto } from './dto/create-user-invitation.dto';
+import { CreateUserInvitationResponseDto } from './dto/create-user-invitation-response.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -35,7 +36,7 @@ export class UsersController {
   @RequirePermissions('ADMIN_USERS', 'manage')
   @ApiOperation({ summary: 'Crear invitación de acceso', description: 'Provisiona un usuario invitado con rol y sitios preasignados para que su primer login resuelva vistas y acciones automáticamente.' })
   @ApiBody({ type: CreateUserInvitationDto })
-  @ApiCreatedResponse({ type: AdminUserResponseDto })
+  @ApiCreatedResponse({ type: CreateUserInvitationResponseDto })
   @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
   @ApiForbiddenResponse({ description: 'Permiso ADMIN_USERS.manage requerido' })
   @ApiConflictResponse({ description: 'Ya existe un registro de acceso para ese email' })

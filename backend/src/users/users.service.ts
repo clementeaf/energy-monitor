@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { createHash, randomBytes } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -15,9 +16,23 @@ export interface AdminUserSummary {
   provider: 'microsoft' | 'google' | null;
   isActive: boolean;
   siteIds: string[];
-  invitationStatus: 'invited' | 'active' | 'disabled';
+  invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
+  invitationExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateInvitationResult extends AdminUserSummary {
+  invitationToken: string;
+}
+
+export interface InvitationValidationSummary {
+  email: string;
+  name: string;
+  role: string;
+  roleLabel: string;
+  invitationStatus: AdminUserSummary['invitationStatus'];
+  invitationExpiresAt: string | null;
 }
 
 export interface CreateUserInvitationInput {
@@ -26,6 +41,34 @@ export interface CreateUserInvitationInput {
   roleId: number;
   siteIds: string[];
   isActive?: boolean;
+}
+
+const INVITATION_TTL_DAYS = 7;
+
+function hashInvitationToken(token: string) {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function buildInvitationExpiration() {
+  const expiration = new Date();
+  expiration.setDate(expiration.getDate() + INVITATION_TTL_DAYS);
+  return expiration;
+}
+
+function buildInvitationStatus(user: User): AdminUserSummary['invitationStatus'] {
+  if (!user.isActive) {
+    return 'disabled';
+  }
+
+  if (user.externalId) {
+    return 'active';
+  }
+
+  if (user.invitationExpiresAt && user.invitationExpiresAt.getTime() < Date.now()) {
+    return 'expired';
+  }
+
+  return 'invited';
 }
 
 @Injectable()
@@ -65,6 +108,7 @@ export class UsersService {
     email: string;
     name: string;
     avatarUrl?: string;
+    invitationToken?: string;
   }) {
     const normalizedEmail = this.normalizeEmail(data.email);
     let existing = await this.findByExternalId(data.provider, data.externalId);
@@ -83,11 +127,24 @@ export class UsersService {
       return null;
     }
 
+    const requiresInvitationToken = !existing.externalId && !existing.provider && !!existing.invitationTokenHash;
+    if (requiresInvitationToken) {
+      const invitationStatus = buildInvitationStatus(existing);
+      const matchesInvitation = !!data.invitationToken
+        && hashInvitationToken(data.invitationToken) === existing.invitationTokenHash;
+
+      if (invitationStatus !== 'invited' || !matchesInvitation) {
+        return null;
+      }
+    }
+
     existing.externalId = data.externalId;
     existing.provider = data.provider;
     existing.email = normalizedEmail;
     existing.name = data.name;
     existing.avatarUrl = data.avatarUrl ?? existing.avatarUrl;
+    existing.invitationTokenHash = null;
+    existing.invitationExpiresAt = null;
     existing.updatedAt = new Date();
 
     return this.userRepo.save(existing);
@@ -107,7 +164,7 @@ export class UsersService {
     return this.mapAdminUsers(users);
   }
 
-  async createInvitation(data: CreateUserInvitationInput): Promise<AdminUserSummary> {
+  async createInvitation(data: CreateUserInvitationInput): Promise<CreateInvitationResult> {
     const normalizedEmail = this.normalizeEmail(data.email);
     const existing = await this.findByEmail(normalizedEmail);
 
@@ -125,6 +182,10 @@ export class UsersService {
       throw new BadRequestException('Selected role requires at least one site');
     }
 
+    const invitationToken = randomBytes(24).toString('base64url');
+    const invitationExpiresAt = buildInvitationExpiration();
+    const invitationSentAt = new Date();
+
     const user = await this.userRepo.save(
       this.userRepo.create({
         externalId: null,
@@ -134,6 +195,9 @@ export class UsersService {
         avatarUrl: null,
         roleId: data.roleId,
         isActive: data.isActive ?? true,
+        invitationTokenHash: hashInvitationToken(invitationToken),
+        invitationExpiresAt,
+        invitationSentAt,
       }),
     );
 
@@ -144,7 +208,30 @@ export class UsersService {
       relations: ['role'],
     });
 
-    return (await this.mapAdminUsers(savedUser ? [savedUser] : []))[0];
+    return {
+      ...(await this.mapAdminUsers(savedUser ? [savedUser] : []))[0],
+      invitationToken,
+    };
+  }
+
+  async validateInvitationToken(token: string): Promise<InvitationValidationSummary | null> {
+    const user = await this.userRepo.findOne({
+      where: { invitationTokenHash: hashInvitationToken(token) },
+      relations: ['role'],
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      email: user.email,
+      name: user.name,
+      role: user.role.name,
+      roleLabel: user.role.labelEs,
+      invitationStatus: buildInvitationStatus(user),
+      invitationExpiresAt: user.invitationExpiresAt?.toISOString() ?? null,
+    };
   }
 
   private async replaceSites(userId: string, siteIds: string[]) {
@@ -180,16 +267,6 @@ export class UsersService {
     }
 
     return users.map((user) => {
-      let invitationStatus: AdminUserSummary['invitationStatus'];
-
-      if (!user.isActive) {
-        invitationStatus = 'disabled';
-      } else if (user.externalId) {
-        invitationStatus = 'active';
-      } else {
-        invitationStatus = 'invited';
-      }
-
       return {
         id: user.id,
         email: user.email,
@@ -200,7 +277,8 @@ export class UsersService {
         provider: (user.provider as 'microsoft' | 'google' | null) ?? null,
         isActive: user.isActive,
         siteIds: siteMap.get(user.id) ?? [],
-        invitationStatus,
+        invitationStatus: buildInvitationStatus(user),
+        invitationExpiresAt: user.invitationExpiresAt?.toISOString() ?? null,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
       };

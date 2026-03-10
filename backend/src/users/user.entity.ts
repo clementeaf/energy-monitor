@@ -27,6 +27,15 @@ export class User {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
+  @Column({ name: 'invitation_token_hash', type: 'varchar', length: 64, nullable: true })
+  invitationTokenHash!: string | null;
+
+  @Column({ name: 'invitation_expires_at', type: 'timestamptz', nullable: true })
+  invitationExpiresAt!: Date | null;
+
+  @Column({ name: 'invitation_sent_at', type: 'timestamptz', nullable: true })
+  invitationSentAt!: Date | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt!: Date;
 

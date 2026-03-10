@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createUserInvitation, fetchAdminUsers, fetchRoles } from '../../services/endpoints';
+import { createUserInvitation, fetchAdminUsers, fetchInvitation, fetchRoles } from '../../services/endpoints';
 import type { CreateUserInvitationInput } from '../../types';
 
 export function useAdminUsers() {
@@ -14,6 +14,15 @@ export function useRoleOptions() {
     queryKey: ['role-options'],
     queryFn: fetchRoles,
     staleTime: Infinity,
+  });
+}
+
+export function useInvitation(token: string) {
+  return useQuery({
+    queryKey: ['invitation', token],
+    queryFn: () => fetchInvitation(token),
+    retry: false,
+    enabled: token.length > 0,
   });
 }
 

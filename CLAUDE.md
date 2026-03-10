@@ -76,7 +76,7 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 ### Mapa objetivo y backlog normalizados
 - El mapa objetivo de vistas derivado del XLSX se mantiene normalizado en `PLAN_ACCION.md`.
 - Agrupación canónica actual: Acceso y Contexto, Dashboard, Monitoreo, Facturación, Alertas, Reportes, Analítica, Administración, Auditoría, Integraciones.
-- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
 - Todo objetivo del XLSX que no exista en esas rutas debe tratarse como backlog funcional, no como funcionalidad asumida.
 
 ### Regla de planificación funcional
@@ -145,11 +145,12 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 - La tabla `modules` ya persiste el catálogo de vistas/rutas reales implementadas con metadata de navegación (`route_path`, `navigation_group`, `show_in_nav`, `sort_order`, `is_public`).
 - Backend exige JWT válido en endpoints API mediante guard global y aplica RBAC por módulo/acción con metadata `@RequirePermissions(...)`
 - Mapeo RBAC actual backend: `BUILDINGS_OVERVIEW.view` para `GET /buildings`, `BUILDING_DETAIL.view` para `/buildings/:id*`, `MONITORING_DEVICES.view` para `GET /meters/overview`, `METER_DETAIL.view` para `/meters/:id*`, `MONITORING_DRILLDOWN.view` para `/hierarchy*`, `ALERTS_OVERVIEW.view/manage` para `/alerts` y `sync-offline`, `ALERT_DETAIL.view/manage` para `/alerts/:id*`
-- Catálogo de vistas implementadas hoy en DB: `LOGIN`, `UNAUTHORIZED`, `CONTEXT_SELECT`, `BUILDINGS_OVERVIEW`, `BUILDING_DETAIL`, `METER_DETAIL`, `MONITORING_REALTIME`, `MONITORING_DEVICES`, `ALERTS_OVERVIEW`, `ALERT_DETAIL`, `MONITORING_DRILLDOWN`, `ADMIN_SITES`, `ADMIN_USERS`, `ADMIN_METERS`, `ADMIN_HIERARCHY`.
+- Catálogo de vistas implementadas hoy en DB: `LOGIN`, `INVITATION_ACCEPT`, `UNAUTHORIZED`, `CONTEXT_SELECT`, `BUILDINGS_OVERVIEW`, `BUILDING_DETAIL`, `METER_DETAIL`, `MONITORING_REALTIME`, `MONITORING_DEVICES`, `ALERTS_OVERVIEW`, `ALERT_DETAIL`, `MONITORING_DRILLDOWN`, `ADMIN_SITES`, `ADMIN_USERS`, `ADMIN_METERS`, `ADMIN_HIERARCHY`.
 - Base vigente de onboarding: el login ya no autocrea usuarios no invitados; el acceso requiere un registro previo en `users` con rol preasignado y sitios opcionales/preasignados.
-- Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios; `GET /roles` expone el catálogo para esa vista.
+- Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios, devolver un link firmado de activación y exponer su expiración; `GET /roles` expone el catálogo para esa vista.
 - Catálogo de vistas disponible por API: `GET /views` para inspeccionar las vistas persistidas en DB.
 - Operación pendiente en entornos ya existentes: aplicar `sql/008_views_catalog.sql` para migrar `modules` al catálogo de vistas reales y reseedear `role_permissions`.
+- Operación pendiente adicional en entornos ya existentes: aplicar `sql/009_invitation_links.sql` para agregar columnas de invitación y la vista pública `INVITATION_ACCEPT`.
 - Scoping vigente en backend: buildings, meters, hierarchy, alerts y `sync-offline` ya restringen datos por `siteIds` asignados; los roles globales mantienen acceso total.
 - Alcance pendiente: la selección de sitio del frontend todavía no se usa como filtro server-side adicional cuando un usuario tiene múltiples sitios asignados.
 
@@ -200,12 +201,17 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | Method | Path | Params | Response |
 |---|---|---|---|
 | GET | `/users` | — | `AdminUserSummary[]` |
-| POST | `/users` | `{ email, name, roleId, siteIds, isActive? }` | `AdminUserSummary` |
+| POST | `/users` | `{ email, name, roleId, siteIds, isActive? }` | `AdminUserSummary & { invitationToken }` |
 
 ### Roles (`/roles`) — requiere Bearer + `ADMIN_USERS.view`
 | Method | Path | Params | Response |
 |---|---|---|---|
 | GET | `/roles` | — | `RoleOption[]` |
+
+### Invitations (`/invitations`) — público
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/invitations/:token` | — | `{ email, name, role, roleLabel, invitationStatus, invitationExpiresAt }` |
 
 ### Views (`/views`) — requiere Bearer + `CONTEXT_SELECT.view`
 | Method | Path | Params | Response |
@@ -216,7 +222,7 @@ Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
 **users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
 
 - `external_id` y `provider` quedan nulos en invitaciones pendientes y se completan en el primer login válido.
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación
 
 ## Database Schema
 
@@ -253,7 +259,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación
 
 ## TypeScript Types
 
@@ -283,7 +289,7 @@ Invoice { id, siteId, tenantId, period, kWh, kW, kVArh, energyCharge, demandChar
 Tenant { id, siteId, name, rut, localId, meterId, contractStart, contractEnd, status }
 Integration { id, name, type, status, lastSyncAt, recordsSynced, errors }
 AuditLog { id, userId, action, resource, resourceId, detail, ip, timestamp }
-- Frontend implementado hoy: `/login`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
 ```
 
 ### Frontend types/auth.ts
@@ -451,7 +457,7 @@ cd backend && npx sls offline
 
 ## Known Issues & Tech Debt
 - **Scoping por contexto activo pendiente:** el backend ya restringe por `siteIds` asignados, pero aún no usa el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite.
-- **Invitación sin token/link firmado todavía:** el baseline actual ya es invite-first por registro previo en admin/users, pero el link transaccional y su expiración todavía no existen.
+- **Invitación transaccional pendiente:** ya existe link/token firmado con expiración y validación pública, pero todavía no hay envío por email, reemisión ni revocación administrativa completa.
 - **Cobertura baja:** ya existen tests de guards y controllers, pero la suite sigue siendo mínima y sin servicios/integración.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.
 - **offlineAlerts cold start:** Bootstrap NestJS completo cada invocación.

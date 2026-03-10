@@ -5,16 +5,20 @@ import { useGoogleAuth } from './useGoogleAuth';
 import { fetchMe } from '../../services/endpoints';
 import type { AuthUser } from '../../types/auth';
 
+const INVITATION_TOKEN_KEY = 'invitation_token';
+
 async function resolveBackendUser(
   setUser: (user: AuthUser) => void,
   setError: (error: string | null) => void,
   clearUser: () => void,
 ) {
   try {
-    const data = await fetchMe();
+    const invitationToken = sessionStorage.getItem(INVITATION_TOKEN_KEY) ?? undefined;
+    const data = await fetchMe(invitationToken);
     if (!data?.user?.email) {
       throw new Error('Invalid response from /auth/me');
     }
+    sessionStorage.removeItem(INVITATION_TOKEN_KEY);
     setUser(data.user);
   } catch (err: unknown) {
     console.error('[resolveBackendUser] error:', err);
@@ -22,7 +26,11 @@ async function resolveBackendUser(
     const status = (err as { response?: { status?: number } }).response?.status;
     if (status === 403) {
       clearUser();
-      setError('Cuenta sin invitación activa o pendiente de habilitación');
+      if (sessionStorage.getItem(INVITATION_TOKEN_KEY)) {
+        setError('La invitación es inválida, expiró o no coincide con la cuenta usada para iniciar sesión.');
+      } else {
+        setError('Cuenta sin invitación activa o pendiente de habilitación');
+      }
     } else {
       clearUser();
       const msg = err instanceof Error ? err.message : String(err);

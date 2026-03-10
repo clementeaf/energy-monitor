@@ -4,7 +4,7 @@ import { fetchMe, fetchPermissions } from '../../services/endpoints';
 export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: fetchMe,
+    queryFn: () => fetchMe(),
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

@@ -51,6 +51,9 @@ CREATE TABLE users (
   avatar_url  TEXT,
   role_id     SMALLINT     NOT NULL REFERENCES roles(id) DEFAULT 4,
   is_active   BOOLEAN      NOT NULL DEFAULT true,
+  invitation_token_hash VARCHAR(64),
+  invitation_expires_at TIMESTAMPTZ,
+  invitation_sent_at    TIMESTAMPTZ,
   created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
   UNIQUE(provider, external_id)

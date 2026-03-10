@@ -4,8 +4,11 @@ import { useAuth } from '../../hooks/auth/useAuth';
 import { MicrosoftLoginButton } from './components/MicrosoftLoginButton';
 import { GoogleLoginButton } from './components/GoogleLoginButton';
 
+const INVITATION_TOKEN_KEY = 'invitation_token';
+
 export function LoginPage() {
   const { isAuthenticated, isLoading, error, loginGoogle } = useAuth();
+  const hasInvitationToken = !!sessionStorage.getItem(INVITATION_TOKEN_KEY);
 
   useEffect(() => {
     // Token was already saved in sessionStorage by main.tsx (before MSAL init)
@@ -35,6 +38,12 @@ export function LoginPage() {
         {/* Login card */}
         <div className="border border-border bg-surface p-6">
           <h2 className="mb-4 text-center text-sm font-semibold text-muted">Iniciar sesión</h2>
+
+          {hasInvitationToken && (
+            <p className="mb-4 text-center text-xs text-subtle">
+              Continúa con la cuenta invitada para activar el acceso asignado.
+            </p>
+          )}
 
           {/* OAuth buttons */}
           <div className="flex flex-col gap-2">

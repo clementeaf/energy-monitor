@@ -222,9 +222,23 @@ export interface AdminUserAccount {
   provider: 'microsoft' | 'google' | null;
   isActive: boolean;
   siteIds: string[];
-  invitationStatus: 'invited' | 'active' | 'disabled';
+  invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
+  invitationExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateUserInvitationResult extends AdminUserAccount {
+  invitationToken: string;
+}
+
+export interface InvitationValidationResult {
+  email: string;
+  name: string;
+  role: string;
+  roleLabel: string;
+  invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
+  invitationExpiresAt: string | null;
 }
 
 export interface RoleOption {

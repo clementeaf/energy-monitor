@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary, AdminUserAccount, RoleOption, CreateUserInvitationInput } from '../types';
+import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary, AdminUserAccount, RoleOption, CreateUserInvitationInput, CreateUserInvitationResult, InvitationValidationResult } from '../types';
 import type { AuthUser } from '../types/auth';
 
 interface AlertsParams {
@@ -75,14 +75,19 @@ export const fetchAdminUsers = () =>
   api.get<AdminUserAccount[]>(routes.getAdminUsers()).then((r) => r.data);
 
 export const createUserInvitation = (payload: CreateUserInvitationInput) =>
-  api.post<AdminUserAccount>(routes.getAdminUsers(), payload).then((r) => r.data);
+  api.post<CreateUserInvitationResult>(routes.getAdminUsers(), payload).then((r) => r.data);
 
 export const fetchRoles = () =>
   api.get<RoleOption[]>(routes.getRoles()).then((r) => r.data);
 
+export const fetchInvitation = (token: string) =>
+  api.get<InvitationValidationResult>(routes.getInvitation(token)).then((r) => r.data);
+
 // Auth
-export const fetchMe = () =>
-  api.get<{ user: AuthUser; permissions: Record<string, string[]> }>(routes.getMe()).then((r) => r.data);
+export const fetchMe = (invitationToken?: string) =>
+  api.get<{ user: AuthUser; permissions: Record<string, string[]> }>(routes.getMe(), {
+    headers: invitationToken ? { 'X-Invitation-Token': invitationToken } : undefined,
+  }).then((r) => r.data);
 
 export const fetchPermissions = () =>
   api.get<{ role: string; permissions: Record<string, string[]> }>(routes.getPermissions()).then((r) => r.data);

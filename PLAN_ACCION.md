@@ -36,7 +36,7 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - [x] Backend NestJS + PostgreSQL + AWS Lambda operativos.
 
 ### Cobertura frente al mapa objetivo del XLSX
-- Acceso: existe login básico con selección de contexto y baseline invite-first con rol preasignado; falta MFA y link/token transaccional de invitación.
+- Acceso: existe login básico con selección de contexto y link de invitación firmado con expiración; falta MFA y el envío/reemisión transaccional de invitaciones.
 - Dashboard: no existen aún las vistas ejecutivas ni comparativas.
 - Monitoreo: existen tiempo real base, drill-down base y dispositivos bajo la ruta objetivo; faltan demanda, calidad, tipo de medidor, generación, mapa Modbus, fallos y concentradores.
 - Alertas: existe panel base en `/alerts` con detalle operativo; faltan reglas e historial SLA.
@@ -233,6 +233,26 @@ Estado: Etapa 1 cerrada como baseline funcional.
 - [x] Cubrir el binding invite-first con tests backend.
 
 Estado: baseline invite-first operativo sobre login SSO actual.
+
+### Corte post-Etapa 1 · Invitación con link firmado
+Objetivo: cerrar el gap entre provisión administrativa y activación del primer acceso SSO mediante un token firmado con expiración y validación pública.
+
+Incluye:
+1. Persistir token hash y expiración de invitación en `users`.
+2. Devolver el token al crear invitaciones desde `/admin/users`.
+3. Exponer validación pública de `/invitations/:token`.
+4. Requerir el token en el primer `auth/me` cuando la invitación fue emitida con link firmado.
+5. Agregar la vista pública `/invite/:token` y el catálogo `INVITATION_ACCEPT`.
+
+### Corte post-Etapa 1 · Invitación con link firmado · Checklist de trabajo
+- [x] Persistir token hash y expiración en backend.
+- [x] Exponer validación pública de invitación.
+- [x] Consumir token durante el primer login SSO.
+- [x] Emitir link de invitación desde `/admin/users`.
+- [x] Agregar vista pública `/invite/:token` en frontend.
+- [x] Cubrir el flujo base con tests backend y builds.
+
+Estado: invitación con link firmado operativa; pendiente envío/reemisión administrativa completa.
 
 ### Corte post-Etapa 1 · Scoping backend por sitio
 Objetivo: dejar de exponer datos globales a usuarios con acceso limitado a uno o más sitios, manteniendo roles globales con acceso transversal.

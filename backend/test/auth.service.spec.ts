@@ -41,6 +41,20 @@ describe('AuthService', () => {
     expect(usersService.findByExternalId).not.toHaveBeenCalled();
   });
 
+  it('passes invitation token to first-login binding when present', async () => {
+    usersService.bindIdentityFromLogin.mockResolvedValue(null);
+
+    await expect(service.resolveUser(payload, 'invite-token-123')).resolves.toBeNull();
+    expect(usersService.bindIdentityFromLogin).toHaveBeenCalledWith({
+      externalId: 'google-sub-1',
+      provider: 'google',
+      email: 'operator@example.com',
+      name: 'Operador',
+      avatarUrl: undefined,
+      invitationToken: 'invite-token-123',
+    });
+  });
+
   it('returns user and permissions when invited access record is bound on first login', async () => {
     usersService.bindIdentityFromLogin.mockResolvedValue({
       id: 'user-1',

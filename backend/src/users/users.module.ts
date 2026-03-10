@@ -5,10 +5,11 @@ import { UserSite } from './user-site.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { RolesModule } from '../roles/roles.module';
+import { InvitationsController } from './invitations.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, UserSite]), RolesModule],
-  controllers: [UsersController],
+  controllers: [UsersController, InvitationsController],
   providers: [UsersService],
   exports: [UsersService],
 })

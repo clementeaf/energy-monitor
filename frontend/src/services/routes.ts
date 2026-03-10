@@ -29,6 +29,7 @@ export const routes = {
   // Users / Roles
   getAdminUsers:           ()                       => '/users',
   getRoles:                ()                       => '/roles',
+  getInvitation:           (token: string)         => `/invitations/${token}`,
 
   // Auth
   getMe:                   ()                       => '/auth/me',

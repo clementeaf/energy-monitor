@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0-alpha.7] - 2026-03-10
+
+### Added
+
+- **Invitación con link firmado operativa** — el primer acceso SSO ya puede exigir un token de invitación con expiración cuando la cuenta fue provisionada por `/admin/users`
+  - Backend: `users` ahora persiste `invitation_token_hash`, `invitation_expires_at` e `invitation_sent_at`
+  - Backend: nuevo endpoint público `GET /invitations/:token` para validar la invitación antes del login
+  - Backend: `GET /auth/me` acepta `X-Invitation-Token` para enlazar identidades en el primer acceso y limpiar el token al activarse
+  - Frontend: nueva vista pública `/invite/:token` para validar la invitación y continuar con Microsoft/Google
+  - Frontend: `/admin/users` ahora devuelve y muestra un link de invitación copiable con fecha de expiración
+  - SQL: nueva migración `sql/009_invitation_links.sql`
+
+### Changed
+
+- **Onboarding invite-first endurecido** — una invitación emitida con link firmado ya no depende sólo del match por email; el primer enlace SSO puede requerir el token válido y vigente
+- **Backlog de invitaciones reducido** — el pendiente ya no es el token firmado, sino el envío transaccional por email y el lifecycle administrativo de reemisión o revocación
+
 ## [0.9.0-alpha.6] - 2026-03-10
 
 ### Added

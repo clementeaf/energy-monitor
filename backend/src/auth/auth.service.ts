@@ -114,7 +114,7 @@ export class AuthService {
     };
   }
 
-  async resolveUser(payload: TokenPayload) {
+  async resolveUser(payload: TokenPayload, invitationToken?: string) {
     const provider = this.detectProvider(payload.iss);
     if (!provider) return null;
 
@@ -124,6 +124,7 @@ export class AuthService {
       email: payload.email,
       name: payload.name,
       avatarUrl: payload.picture,
+      invitationToken,
     });
 
     if (!user) return null;

@@ -7,6 +7,7 @@ import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, Dri
 import { appRoutes } from './appRoutes';
 
 const LoginPage = lazy(() => import('../features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const InviteAcceptPage = lazy(() => import('../features/auth/InviteAcceptPage').then((m) => ({ default: m.InviteAcceptPage })));
 const UnauthorizedPage = lazy(() => import('../features/auth/UnauthorizedPage').then((m) => ({ default: m.UnauthorizedPage })));
 const ContextSelectPage = lazy(() => import('../features/auth/ContextSelectPage').then((m) => ({ default: m.ContextSelectPage })));
 const BuildingsPage = lazy(() => import('../features/buildings/BuildingsPage').then((m) => ({ default: m.BuildingsPage })));
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
   {
     path: appRoutes.login.path,
     element: <ErrorBoundary><Suspense><LoginPage /></Suspense></ErrorBoundary>,
+  },
+  {
+    path: appRoutes.invitationAccept.path,
+    element: <ErrorBoundary><Suspense><InviteAcceptPage /></Suspense></ErrorBoundary>,
   },
   {
     path: appRoutes.unauthorized.path,

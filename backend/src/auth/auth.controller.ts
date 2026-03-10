@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, Get } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiUnauthorizedResponse, ApiForbiddenResponse } from '@nestjs/swagger';
 import { AuthService, type TokenPayload } from './auth.service';
 import { MeResponseDto, PermissionsResponseDto } from './dto/auth-response.dto';
@@ -15,8 +15,11 @@ export class AuthController {
   @ApiOkResponse({ type: MeResponseDto })
   @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
   @ApiForbiddenResponse({ description: 'Cuenta deshabilitada' })
-  async getMe(@CurrentUser() payload: TokenPayload) {
-    const result = await this.authService.resolveUser(payload);
+  async getMe(
+    @CurrentUser() payload: TokenPayload,
+    @Headers('x-invitation-token') invitationToken?: string,
+  ) {
+    const result = await this.authService.resolveUser(payload, invitationToken);
     if (!result) throw new ForbiddenException('User account is disabled');
 
     return result;

@@ -6,12 +6,14 @@ import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { Card } from '../../components/ui/Card';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useAdminUsers, useCreateUserInvitation, useRoleOptions } from '../../hooks/queries/useAdminUsers';
-import type { AdminUserAccount, RoleOption } from '../../types';
+import { appRoutes, buildPath } from '../../app/appRoutes';
+import type { AdminUserAccount, CreateUserInvitationResult, RoleOption } from '../../types';
 
 const invitationStatusLabel: Record<AdminUserAccount['invitationStatus'], string> = {
   invited: 'Invitado pendiente',
   active: 'Activo',
   disabled: 'Deshabilitado',
+  expired: 'Invitación expirada',
 };
 
 type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0];
@@ -66,6 +68,8 @@ export function AdminUsersPage() {
   const [isActive, setIsActive] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+  const [generatedInviteExpiry, setGeneratedInviteExpiry] = useState<string | null>(null);
 
   useEffect(() => {
     if (!roleId && roles && roles.length > 0) {
@@ -104,6 +108,8 @@ export function AdminUsersPage() {
     event.preventDefault();
     setFormError(null);
     setSuccessMessage(null);
+    setGeneratedInviteLink(null);
+    setGeneratedInviteExpiry(null);
 
     if (!roleId) {
       setFormError('Selecciona un rol para continuar.');
@@ -116,7 +122,7 @@ export function AdminUsersPage() {
     }
 
     try {
-      await createInvitation.mutateAsync({
+      const createdInvitation: CreateUserInvitationResult = await createInvitation.mutateAsync({
         email,
         name,
         roleId,
@@ -128,7 +134,11 @@ export function AdminUsersPage() {
       setName('');
       setSiteIds([]);
       setIsActive(true);
-      setSuccessMessage('Invitación registrada. El primer login resolverá su rol y vistas automáticamente.');
+      setGeneratedInviteLink(
+        `${globalThis.location.origin}${buildPath(appRoutes.invitationAccept.path, { token: createdInvitation.invitationToken })}`,
+      );
+      setGeneratedInviteExpiry(createdInvitation.invitationExpiresAt);
+      setSuccessMessage('Invitación registrada. Comparte el link generado para activar el primer acceso SSO.');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo crear la invitación';
       setFormError(message);
@@ -220,6 +230,21 @@ export function AdminUsersPage() {
             <div className="lg:col-span-2">
               {formError && <p className="text-sm text-red-400">{formError}</p>}
               {successMessage && <p className="text-sm text-emerald-400">{successMessage}</p>}
+              {generatedInviteLink && (
+                <div className="mt-3 space-y-2 border border-border bg-base p-3 text-sm text-muted">
+                  <p className="text-text">Link de invitación</p>
+                  <input
+                    readOnly
+                    value={generatedInviteLink}
+                    className="w-full border border-border bg-surface px-3 py-2 text-xs text-text outline-none"
+                  />
+                  {generatedInviteExpiry && (
+                    <p className="text-xs text-subtle">
+                      Expira: {new Date(generatedInviteExpiry).toLocaleString('es-CL')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

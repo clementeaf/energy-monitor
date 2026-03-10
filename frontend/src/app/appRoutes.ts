@@ -69,6 +69,7 @@ export const appRoutes = {
     path: '/monitoring/drilldown/:siteId',
     label: 'Drill-down',
     allowedRoles: PERMISSIONS.MONITORING_DRILLDOWN.view,
+    showInNav: true,
   },
   adminSites: {
     path: '/admin/sites',
@@ -92,6 +93,7 @@ export const appRoutes = {
     path: '/admin/hierarchy/:siteId',
     label: 'Administrar Jerarquía',
     allowedRoles: PERMISSIONS.ADMIN_HIERARCHY.view,
+    showInNav: true,
   },
 } as const satisfies Record<string, AppRoute>;
 

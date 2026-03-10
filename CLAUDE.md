@@ -443,6 +443,7 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ```
 infra/
   drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests
+  drive-import-staging/  → S3 raw CSV → staging RDS con parseo streaming y validaciones base
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
   reimport-readings/     → one-off CSV import + regen synthetic
   backfill-gap/          → one-off gap backfill
@@ -479,6 +480,7 @@ cd backend && npx sls offline
 | `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests |
+| `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |

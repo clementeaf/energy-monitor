@@ -1,0 +1,16 @@
+{
+  "name": "drive-import-staging",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "migrate": "node apply-migration.mjs",
+    "qa": "node qa-staging.mjs",
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1005.0",
+    "@aws-sdk/client-secrets-manager": "^3.1005.0",
+    "csv-parse": "^5.6.0",
+    "pg": "^8.13.1"
+  }
+}

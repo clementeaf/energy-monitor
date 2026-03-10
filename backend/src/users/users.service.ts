@@ -119,11 +119,13 @@ export class UsersService {
       return null;
     }
 
-    if (existing.externalId && existing.externalId !== data.externalId) {
-      return null;
-    }
-
-    if (existing.provider && existing.provider !== data.provider) {
+    // Allow re-binding when user switches OAuth provider (same email, different provider).
+    // Block only when external_id conflicts within the SAME provider.
+    if (
+      existing.externalId &&
+      existing.provider === data.provider &&
+      existing.externalId !== data.externalId
+    ) {
       return null;
     }
 

@@ -4,7 +4,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { hasGlobalSiteAccess, isSiteInScope } from '../../auth/siteScope';
-import { appRoutes, canAccessRoute, getNavItems } from '../../app/appRoutes';
+import { appRoutes, buildPath, canAccessRoute, getNavItems } from '../../app/appRoutes';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 
 export function Layout() {
@@ -123,24 +123,33 @@ export function Layout() {
           )}
         </div>
         <nav className="flex-1 p-2">
-          {(user ? getNavItems(user.role) : []).map((item) => (
-            <button
-              key={item.path}
-              onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
-                location.pathname === item.path
-                  ? 'bg-raised font-semibold text-text'
-                  : 'text-muted hover:bg-raised'
-              }`}
-            >
-              <span>{item.label}</span>
-              {item.path === appRoutes.alerts.path && activeAlertsCount > 0 && (
-                <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-semibold text-red-400">
-                  {activeAlertsCount}
-                </span>
-              )}
-            </button>
-          ))}
+          {(user ? getNavItems(user.role) : []).map((item) => {
+            const needsSite = item.path.includes(':siteId');
+            const resolvedSiteId = selectedSiteId && selectedSiteId !== '*' ? selectedSiteId : visibleBuildings[0]?.id;
+            if (needsSite && !resolvedSiteId) return null;
+            const resolvedPath = needsSite ? buildPath(item.path, { siteId: resolvedSiteId }) : item.path;
+            const isActive = needsSite
+              ? location.pathname.startsWith(item.path.split(':')[0])
+              : location.pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => { navigate(resolvedPath); setSidebarOpen(false); }}
+                className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
+                  isActive
+                    ? 'bg-raised font-semibold text-text'
+                    : 'text-muted hover:bg-raised'
+                }`}
+              >
+                <span>{item.label}</span>
+                {item.path === appRoutes.alerts.path && activeAlertsCount > 0 && (
+                  <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-semibold text-red-400">
+                    {activeAlertsCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Logout */}

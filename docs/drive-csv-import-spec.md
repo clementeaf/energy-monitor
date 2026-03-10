@@ -189,6 +189,54 @@ Sin resolver eso, la promotion a `readings` no es segura.
 4. Resolver estrategia de mapeo de `meter_id`
 5. Recién entonces diseñar la promotion a `readings`
 
+## Scripts implementados en el repo
+- Migración staging: `infra/drive-import-staging/apply-migration.mjs`
+- Importador S3 a staging: `infra/drive-import-staging/index.mjs`
+- SQL de staging: `sql/010_readings_import_staging.sql`
+
+## Ejecución recomendada
+
+### 1. Crear tabla de staging
+```bash
+npm --prefix infra/drive-import-staging run migrate
+```
+
+### 2. Probar con 10 filas
+```bash
+AWS_REGION=us-east-1 \
+TRUNCATE_BEFORE_LOAD=true \
+LIMIT_ROWS=10 \
+BATCH_SIZE=10 \
+npm --prefix infra/drive-import-staging run start
+```
+
+### 3. Probar con 100 filas
+```bash
+AWS_REGION=us-east-1 \
+TRUNCATE_BEFORE_LOAD=true \
+LIMIT_ROWS=100 \
+BATCH_SIZE=100 \
+npm --prefix infra/drive-import-staging run start
+```
+
+### 4. Cargar archivo completo a staging
+```bash
+AWS_REGION=us-east-1 \
+TRUNCATE_BEFORE_LOAD=false \
+S3_KEY=raw/MALL_GRANDE_446_completo.csv \
+BATCH_SIZE=1000 \
+npm --prefix infra/drive-import-staging run start
+```
+
+Variables soportadas por el importador:
+- `AWS_REGION`
+- `DB_SECRET_NAME`
+- `S3_BUCKET`
+- `S3_KEY`
+- `LIMIT_ROWS`
+- `BATCH_SIZE`
+- `TRUNCATE_BEFORE_LOAD`
+
 ## Consultas mínimas útiles para QA
 - filas por archivo
 - filas por `meter_id`

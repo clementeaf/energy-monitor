@@ -4,6 +4,8 @@ import { BuildingsService } from './buildings.service';
 import { BuildingSummaryDto, ConsumptionPointDto } from './dto/building-response.dto';
 import { Meter } from '../meters/meter.entity';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { CurrentAuthContext } from '../auth/current-auth-context.decorator';
+import type { AuthorizationContext } from '../auth/auth.service';
 
 @ApiTags('Buildings')
 @ApiBearerAuth()
@@ -15,8 +17,8 @@ export class BuildingsController {
   @RequirePermissions('BUILDINGS_OVERVIEW', 'view')
   @ApiOperation({ summary: 'Listar edificios', description: 'Retorna todos los edificios con la cantidad de medidores.' })
   @ApiOkResponse({ type: [BuildingSummaryDto] })
-  findAll() {
-    return this.buildingsService.findAll();
+  findAll(@CurrentAuthContext() authContext: AuthorizationContext) {
+    return this.buildingsService.findAll(authContext);
   }
 
   @Get(':id')
@@ -25,8 +27,11 @@ export class BuildingsController {
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: BuildingSummaryDto })
   @ApiNotFoundResponse({ description: 'Edificio no encontrado' })
-  async findOne(@Param('id') id: string) {
-    const building = await this.buildingsService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
+  ) {
+    const building = await this.buildingsService.findOne(id, authContext);
     if (!building) throw new NotFoundException();
     return building;
   }
@@ -36,8 +41,13 @@ export class BuildingsController {
   @ApiOperation({ summary: 'Listar medidores de un edificio' })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiOkResponse({ type: [Meter] })
-  findMeters(@Param('id') id: string) {
-    return this.buildingsService.findMeters(id);
+  async findMeters(
+    @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
+  ) {
+    const meters = await this.buildingsService.findMeters(id, authContext);
+    if (!meters) throw new NotFoundException();
+    return meters;
   }
 
   @Get(':id/consumption')
@@ -50,10 +60,11 @@ export class BuildingsController {
   @ApiOkResponse({ type: [ConsumptionPointDto] })
   findConsumption(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('resolution') resolution?: '15min' | 'hourly' | 'daily',
     @Query('from') from?: string,
     @Query('to') to?: string,
   ) {
-    return this.buildingsService.findConsumption(id, resolution ?? 'hourly', from, to);
+    return this.buildingsService.findConsumption(id, authContext, resolution ?? 'hourly', from, to);
   }
 }

@@ -1,6 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { HierarchyController } from '../src/hierarchy/hierarchy.controller';
+import type { AuthorizationContext } from '../src/auth/auth.service';
 import type { HierarchyService } from '../src/hierarchy/hierarchy.service';
+
+const authContext: AuthorizationContext = {
+  userId: 'user-1',
+  roleId: 4,
+  role: 'OPERATOR',
+  provider: 'google',
+  email: 'operator@example.com',
+  name: 'Operador',
+  permissions: { MONITORING_DRILLDOWN: ['view'] },
+  siteIds: ['pac4220'],
+  hasGlobalSiteAccess: false,
+};
 
 describe('HierarchyController', () => {
   const hierarchyService = {
@@ -33,13 +46,13 @@ describe('HierarchyController', () => {
     }];
     hierarchyService.findTree.mockResolvedValue(result);
 
-    await expect(controller.findTree('pac4220')).resolves.toEqual(result);
+    await expect(controller.findTree('pac4220', authContext)).resolves.toEqual(result);
   });
 
   it('throws NotFoundException when node is missing', async () => {
     hierarchyService.findNode.mockResolvedValue(null);
 
-    await expect(controller.findNode('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(controller.findNode('missing', authContext)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('passes filters to children query', async () => {
@@ -63,10 +76,11 @@ describe('HierarchyController', () => {
     hierarchyService.findChildrenWithConsumption.mockResolvedValue(result);
 
     await expect(
-      controller.findChildren('NODE-1', '2026-03-09T00:00:00Z', '2026-03-09T23:59:59Z'),
+      controller.findChildren('NODE-1', authContext, '2026-03-09T00:00:00Z', '2026-03-09T23:59:59Z'),
     ).resolves.toEqual(result);
     expect(hierarchyService.findChildrenWithConsumption).toHaveBeenCalledWith(
       'NODE-1',
+      authContext,
       '2026-03-09T00:00:00Z',
       '2026-03-09T23:59:59Z',
     );

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Meter } from './meter.entity';
 import { Reading } from './reading.entity';
 import { getMeterStatus } from './meter-status.util';
+import { getScopedSiteIds, hasSiteAccess, type AccessScope } from '../auth/access-scope';
 
 function toNullableNumber(value: unknown): number | null {
   return value == null ? null : Number(value);
@@ -22,13 +23,21 @@ export class MetersService {
     private readonly readingRepo: Repository<Reading>,
   ) {}
 
-  async findByBuilding(buildingId: string) {
+  private async findAccessibleMeterEntity(id: string, scope: AccessScope) {
+    const meter = await this.meterRepo.findOne({ where: { id } });
+    if (!meter) return null;
+    return hasSiteAccess(scope, meter.buildingId) ? meter : null;
+  }
+
+  async findByBuilding(buildingId: string, scope: AccessScope) {
+    if (!hasSiteAccess(scope, buildingId)) return null;
+
     const meters = await this.meterRepo.find({ where: { buildingId }, order: { id: 'ASC' } });
     return meters.map((m) => this.withLiveStatus(m));
   }
 
-  async findOne(id: string) {
-    const meter = await this.meterRepo.findOne({ where: { id } });
+  async findOne(id: string, scope: AccessScope) {
+    const meter = await this.findAccessibleMeterEntity(id, scope);
     return meter ? this.withLiveStatus(meter) : null;
   }
 
@@ -40,10 +49,14 @@ export class MetersService {
 
   async findReadings(
     meterId: string,
+    scope: AccessScope,
     resolution: 'raw' | '15min' | 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
   ) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     if (resolution === 'raw') {
       const qb = this.readingRepo.createQueryBuilder('r')
         .where('r.meter_id = :meterId', { meterId });
@@ -107,7 +120,15 @@ export class MetersService {
     }));
   }
 
-  async getDowntimeEvents(meterId: string, from: string, to: string) {
+  async getDowntimeEvents(
+    meterId: string,
+    scope: AccessScope,
+    from: string,
+    to: string,
+  ) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     const rows = await this.readingRepo.query(
       `WITH ordered AS (
         SELECT timestamp,
@@ -131,7 +152,14 @@ export class MetersService {
     }));
   }
 
-  async getUptimeSummary(meterId: string, period: 'daily' | 'weekly' | 'monthly') {
+  async getUptimeSummary(
+    meterId: string,
+    scope: AccessScope,
+    period: 'daily' | 'weekly' | 'monthly',
+  ) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     const intervalMap = { daily: '24 hours', weekly: '7 days', monthly: '30 days' };
     const iv = intervalMap[period];
 
@@ -171,16 +199,27 @@ export class MetersService {
     };
   }
 
-  async getUptimeAll(meterId: string) {
+  async getUptimeAll(meterId: string, scope: AccessScope) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     const [daily, weekly, monthly] = await Promise.all([
-      this.getUptimeSummary(meterId, 'daily'),
-      this.getUptimeSummary(meterId, 'weekly'),
-      this.getUptimeSummary(meterId, 'monthly'),
+      this.getUptimeSummary(meterId, scope, 'daily'),
+      this.getUptimeSummary(meterId, scope, 'weekly'),
+      this.getUptimeSummary(meterId, scope, 'monthly'),
     ]);
     return { daily, weekly, monthly };
   }
 
-  async getAlarmEvents(meterId: string, from: string, to: string) {
+  async getAlarmEvents(
+    meterId: string,
+    scope: AccessScope,
+    from: string,
+    to: string,
+  ) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     const rows = await this.readingRepo.query(
       `SELECT timestamp, alarm,
               voltage_l1 AS "voltageL1",
@@ -205,7 +244,15 @@ export class MetersService {
     }));
   }
 
-  async getAlarmSummary(meterId: string, from: string, to: string) {
+  async getAlarmSummary(
+    meterId: string,
+    scope: AccessScope,
+    from: string,
+    to: string,
+  ) {
+    const meter = await this.findAccessibleMeterEntity(meterId, scope);
+    if (!meter) return null;
+
     const rows = await this.readingRepo.query(
       `SELECT alarm, COUNT(*)::int AS count
        FROM readings
@@ -218,7 +265,9 @@ export class MetersService {
     return { total, byType: rows };
   }
 
-  async getOverview() {
+  async getOverview(scope: AccessScope) {
+    const scopedSiteIds = getScopedSiteIds(scope);
+    const whereClause = scopedSiteIds ? 'WHERE m.building_id = ANY($1)' : '';
     const rows = await this.readingRepo.query(`
       SELECT
         m.id,
@@ -254,8 +303,9 @@ export class MetersService {
           WHERE ts - prev_ts > interval '90 minutes'
         ) g
       ) uptime_calc ON true
+      ${whereClause}
       ORDER BY m.id ASC
-    `);
+    `, scopedSiteIds ? [scopedSiteIds] : []);
 
     return rows.map((r: Record<string, unknown>) => ({
       id: r.id,
@@ -270,7 +320,15 @@ export class MetersService {
     }));
   }
 
-  async findBuildingConsumption(buildingId: string, resolution: '15min' | 'hourly' | 'daily' = 'hourly', from?: string, to?: string) {
+  async findBuildingConsumption(
+    buildingId: string,
+    scope: AccessScope,
+    resolution: '15min' | 'hourly' | 'daily' = 'hourly',
+    from?: string,
+    to?: string,
+  ) {
+    if (!hasSiteAccess(scope, buildingId)) return null;
+
     let truncExpr: string;
     if (resolution === '15min') {
       truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;

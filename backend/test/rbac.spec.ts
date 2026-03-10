@@ -64,6 +64,8 @@ function buildAuthContext(
     provider: 'google',
     email: payload.email,
     name: payload.name,
+    siteIds: ['pac4220'],
+    hasGlobalSiteAccess: false,
     permissions,
   };
 }

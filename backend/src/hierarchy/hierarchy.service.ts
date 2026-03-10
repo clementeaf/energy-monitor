@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { HierarchyNode } from './hierarchy-node.entity';
 import { Meter } from '../meters/meter.entity';
+import { hasSiteAccess, type AccessScope } from '../auth/access-scope';
 
 @Injectable()
 export class HierarchyService {
@@ -15,7 +16,9 @@ export class HierarchyService {
   ) {}
 
   /** Get all nodes for a building (flat array, frontend builds tree) */
-  async findTree(buildingId: string) {
+  async findTree(buildingId: string, scope: AccessScope) {
+    if (!hasSiteAccess(scope, buildingId)) return null;
+
     return this.nodeRepo.find({
       where: { buildingId },
       order: { level: 'ASC', sortOrder: 'ASC' },
@@ -23,7 +26,7 @@ export class HierarchyService {
   }
 
   /** Get a single node with its ancestor path */
-  async findNode(nodeId: string) {
+  async findNode(nodeId: string, scope: AccessScope) {
     const rows = await this.dataSource.query(
       `WITH RECURSIVE ancestors AS (
         SELECT * FROM hierarchy_nodes WHERE id = $1
@@ -36,6 +39,7 @@ export class HierarchyService {
     );
 
     if (rows.length === 0) return null;
+    if (!hasSiteAccess(scope, rows[0].building_id as string)) return null;
 
     const mapped = rows.map((r: Record<string, unknown>) => this.mapRow(r));
     return {
@@ -45,7 +49,10 @@ export class HierarchyService {
   }
 
   /** Get direct children of a node with aggregated consumption */
-  async findChildrenWithConsumption(nodeId: string, from?: string, to?: string) {
+  async findChildrenWithConsumption(nodeId: string, scope: AccessScope, from?: string, to?: string) {
+    const node = await this.findNode(nodeId, scope);
+    if (!node) return null;
+
     const children = await this.nodeRepo.find({
       where: { parentId: nodeId },
       order: { sortOrder: 'ASC' },
@@ -68,10 +75,14 @@ export class HierarchyService {
   /** Time-series consumption for a node (aggregates all meters in subtree) */
   async findNodeConsumption(
     nodeId: string,
+    scope: AccessScope,
     resolution: 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
   ) {
+    const node = await this.findNode(nodeId, scope);
+    if (!node) return null;
+
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 
     let query = `

@@ -150,7 +150,8 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 - Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios; `GET /roles` expone el catálogo para esa vista.
 - Catálogo de vistas disponible por API: `GET /views` para inspeccionar las vistas persistidas en DB.
 - Operación pendiente en entornos ya existentes: aplicar `sql/008_views_catalog.sql` para migrar `modules` al catálogo de vistas reales y reseedear `role_permissions`.
-- Alcance pendiente: todavía no existe scoping por site/recurso, sólo autorización por rol-permiso
+- Scoping vigente en backend: buildings, meters, hierarchy, alerts y `sync-offline` ya restringen datos por `siteIds` asignados; los roles globales mantienen acceso total.
+- Alcance pendiente: la selección de sitio del frontend todavía no se usa como filtro server-side adicional cuando un usuario tiene múltiples sitios asignados.
 
 ## API Endpoints
 
@@ -449,9 +450,8 @@ cd backend && npx sls offline
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 
 ## Known Issues & Tech Debt
-- **Sin scoping fino por recurso:** Ya existe enforcement RBAC por módulo/acción en API, pero todavía falta restringir por site/building/meter según pertenencia o contexto del usuario.
+- **Scoping por contexto activo pendiente:** el backend ya restringe por `siteIds` asignados, pero aún no usa el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite.
 - **Invitación sin token/link firmado todavía:** el baseline actual ya es invite-first por registro previo en admin/users, pero el link transaccional y su expiración todavía no existen.
-- **Contexto frontend sin enforcement backend:** la selección de sitio mejora UX y navegación, pero todavía no restringe datos en API por recurso.
 - **Cobertura baja:** ya existen tests de guards y controllers, pero la suite sigue siendo mínima y sin servicios/integración.
 - **N+1 queries:** `findChildrenWithConsumption` 3N+1 queries.
 - **offlineAlerts cold start:** Bootstrap NestJS completo cada invocación.

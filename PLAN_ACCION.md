@@ -48,11 +48,12 @@ Roadmap resumido del producto y del endurecimiento técnico del repo.
 - Backend NestJS conectado a PostgreSQL con endpoints de buildings, meters, hierarchy, alerts y auth.
 - Frontend React con vistas de edificios, detalle, drill-down, medidores, gráficos y auth.
 - El catálogo real de vistas implementadas ya está persistido en DB dentro de `modules`, con route path y metadata de navegación.
+- Los endpoints de datos ya restringen buildings, meters, hierarchy y alerts según los `siteIds` asignados al usuario; los roles globales conservan acceso transversal.
 - Infra AWS con CloudFront + S3 + API Gateway + Lambda + RDS + EventBridge.
 - Generación sintética de lecturas y offline alerts en ejecución separada.
 
 ### Deuda técnica vigente
-- Falta scoping fino por recurso en backend.
+- Falta usar el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite.
 - Cobertura de tests todavía mínima y centrada en controllers/guards.
 - `offline-alerts.ts` sigue con cold start completo.
 - No hay retention/partitioning para `readings`.
@@ -232,6 +233,26 @@ Estado: Etapa 1 cerrada como baseline funcional.
 - [x] Cubrir el binding invite-first con tests backend.
 
 Estado: baseline invite-first operativo sobre login SSO actual.
+
+### Corte post-Etapa 1 · Scoping backend por sitio
+Objetivo: dejar de exponer datos globales a usuarios con acceso limitado a uno o más sitios, manteniendo roles globales con acceso transversal.
+
+Incluye:
+1. Resolver `siteIds` y alcance global dentro del `authContext` reutilizable.
+2. Restringir `/buildings`, `/meters`, `/hierarchy` y `/alerts` por asignación de sitios.
+3. Restringir `POST /alerts/sync-offline` al subconjunto de medidores visible para el usuario.
+4. Responder `404` cuando un recurso exista pero quede fuera del alcance del usuario.
+5. Cubrir helpers y controllers afectados con tests backend.
+
+### Corte post-Etapa 1 · Scoping backend por sitio · Checklist de trabajo
+- [x] Incluir `siteIds` y alcance global en el `authContext` del backend.
+- [x] Filtrar listados de buildings y meters por sitios asignados.
+- [x] Restringir detalle y series de meter/building por sitio asignado.
+- [x] Restringir hierarchy por sitio asignado.
+- [x] Restringir alerts y `sync-offline` por sitio asignado.
+- [x] Cubrir helpers y controllers de scoping con tests backend.
+
+Estado: scoping backend por sitio operativo para endpoints de datos.
 
 ### Etapa 1 · Orden recomendado de ejecución
 1. Agregar auth guards o mecanismo equivalente real en backend para data endpoints.

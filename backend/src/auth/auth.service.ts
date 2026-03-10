@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { decodeJwt, createRemoteJWKSet, jwtVerify } from 'jose';
 import { UsersService } from '../users/users.service';
-import { RolesService } from '../roles/roles.service';
+import { RolesService, isGlobalSiteAccessRole } from '../roles/roles.service';
+import type { AccessScope } from './access-scope';
 
 export interface TokenPayload {
   sub: string;
@@ -11,7 +12,7 @@ export interface TokenPayload {
   iss: string;
 }
 
-export interface AuthorizationContext {
+export interface AuthorizationContext extends AccessScope {
   userId: string;
   roleId: number;
   role: string;
@@ -93,7 +94,11 @@ export class AuthService {
     const user = await this.usersService.findByExternalId(provider, payload.sub);
     if (!user?.isActive) return null;
 
-    const permissions = await this.rolesService.getPermissionsByRoleId(user.roleId);
+    const [permissions, siteIds] = await Promise.all([
+      this.rolesService.getPermissionsByRoleId(user.roleId),
+      this.usersService.getSiteIds(user.id),
+    ]);
+    const hasGlobalSiteAccess = isGlobalSiteAccessRole(user.role.name);
 
     return {
       userId: user.id,
@@ -103,6 +108,8 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatar: user.avatarUrl ?? undefined,
+      siteIds,
+      hasGlobalSiteAccess,
       permissions,
     };
   }
@@ -124,8 +131,6 @@ export class AuthService {
     const authContext = await this.resolveAuthorizationContext(payload);
     if (!authContext) return null;
 
-    const siteIds = await this.usersService.getSiteIds(authContext.userId);
-
     return {
       user: {
         id: authContext.userId,
@@ -134,7 +139,7 @@ export class AuthService {
         role: authContext.role,
         provider: authContext.provider,
         avatar: authContext.avatar,
-        siteIds: siteIds.length > 0 ? siteIds : ['*'],
+        siteIds: authContext.hasGlobalSiteAccess ? ['*'] : authContext.siteIds,
       },
       permissions: authContext.permissions,
     };

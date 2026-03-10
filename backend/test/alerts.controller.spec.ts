@@ -1,6 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { AlertsController } from '../src/alerts/alerts.controller';
+import type { AuthorizationContext } from '../src/auth/auth.service';
 import type { AlertsService } from '../src/alerts/alerts.service';
+
+const authContext: AuthorizationContext = {
+  userId: 'user-1',
+  roleId: 4,
+  role: 'OPERATOR',
+  provider: 'google',
+  email: 'operator@example.com',
+  name: 'Operador',
+  permissions: { ALERTS_OVERVIEW: ['view'], ALERT_DETAIL: ['view'] },
+  siteIds: ['pac4220'],
+  hasGlobalSiteAccess: false,
+};
 
 describe('AlertsController', () => {
   const alertsService = {
@@ -33,8 +46,8 @@ describe('AlertsController', () => {
     }];
     alertsService.findAll.mockResolvedValue(result);
 
-    await expect(controller.findAll('active', 'METER_OFFLINE', 'M001', 'pac4220', '25')).resolves.toEqual(result);
-    expect(alertsService.findAll).toHaveBeenCalledWith({
+    await expect(controller.findAll(authContext, 'active', 'METER_OFFLINE', 'M001', 'pac4220', '25')).resolves.toEqual(result);
+    expect(alertsService.findAll).toHaveBeenCalledWith(authContext, {
       status: 'active',
       type: 'METER_OFFLINE',
       meterId: 'M001',
@@ -46,12 +59,12 @@ describe('AlertsController', () => {
   it('throws NotFoundException when alert detail is missing', async () => {
     alertsService.findOne.mockResolvedValue(null);
 
-    await expect(controller.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(controller.findOne('missing', authContext)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('throws NotFoundException when acknowledge target is missing', async () => {
     alertsService.acknowledge.mockResolvedValue(null);
 
-    await expect(controller.acknowledge('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(controller.acknowledge('missing', authContext)).rejects.toBeInstanceOf(NotFoundException);
   });
 });

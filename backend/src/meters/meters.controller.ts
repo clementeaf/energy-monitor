@@ -4,6 +4,8 @@ import { MetersService } from './meters.service';
 import { Meter } from './meter.entity';
 import { Reading } from './reading.entity';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
+import { CurrentAuthContext } from '../auth/current-auth-context.decorator';
+import type { AuthorizationContext } from '../auth/auth.service';
 
 @ApiTags('Meters')
 @ApiBearerAuth()
@@ -14,8 +16,8 @@ export class MetersController {
   @Get('overview')
   @RequirePermissions('MONITORING_DEVICES', 'view')
   @ApiOperation({ summary: 'Estado de todos los medidores', description: 'Retorna todos los medidores con status, uptime 24h y alarmas 30d.' })
-  getOverview() {
-    return this.metersService.getOverview();
+  getOverview(@CurrentAuthContext() authContext: AuthorizationContext) {
+    return this.metersService.getOverview(authContext);
   }
 
   @Get(':id')
@@ -24,8 +26,11 @@ export class MetersController {
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiOkResponse({ type: Meter })
   @ApiNotFoundResponse({ description: 'Medidor no encontrado' })
-  async findOne(@Param('id') id: string) {
-    const meter = await this.metersService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
+  ) {
+    const meter = await this.metersService.findOne(id, authContext);
     if (!meter) throw new NotFoundException();
     return meter;
   }
@@ -37,10 +42,15 @@ export class MetersController {
   @ApiQuery({ name: 'period', required: false, enum: ['daily', 'weekly', 'monthly', 'all'], description: 'Período (default: all)' })
   async getUptime(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('period') period?: 'daily' | 'weekly' | 'monthly' | 'all',
   ) {
-    if (!period || period === 'all') return this.metersService.getUptimeAll(id);
-    return this.metersService.getUptimeSummary(id, period);
+    const result = !period || period === 'all'
+      ? await this.metersService.getUptimeAll(id, authContext)
+      : await this.metersService.getUptimeSummary(id, authContext, period);
+
+    if (!result) throw new NotFoundException();
+    return result;
   }
 
   @Get(':id/downtime-events')
@@ -49,12 +59,15 @@ export class MetersController {
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
   @ApiQuery({ name: 'to', required: true, description: 'Fin (ISO 8601)', example: '2026-03-06T23:59:59Z' })
-  getDowntimeEvents(
+  async getDowntimeEvents(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('from') from: string,
     @Query('to') to: string,
   ) {
-    return this.metersService.getDowntimeEvents(id, from, to);
+    const events = await this.metersService.getDowntimeEvents(id, authContext, from, to);
+    if (!events) throw new NotFoundException();
+    return events;
   }
 
   @Get(':id/alarm-events')
@@ -63,12 +76,15 @@ export class MetersController {
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
   @ApiQuery({ name: 'to', required: true, description: 'Fin (ISO 8601)', example: '2026-03-06T23:59:59Z' })
-  getAlarmEvents(
+  async getAlarmEvents(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('from') from: string,
     @Query('to') to: string,
   ) {
-    return this.metersService.getAlarmEvents(id, from, to);
+    const events = await this.metersService.getAlarmEvents(id, authContext, from, to);
+    if (!events) throw new NotFoundException();
+    return events;
   }
 
   @Get(':id/alarm-summary')
@@ -77,12 +93,15 @@ export class MetersController {
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'from', required: true, description: 'Inicio (ISO 8601)', example: '2026-01-01T00:00:00Z' })
   @ApiQuery({ name: 'to', required: true, description: 'Fin (ISO 8601)', example: '2026-03-06T23:59:59Z' })
-  getAlarmSummary(
+  async getAlarmSummary(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('from') from: string,
     @Query('to') to: string,
   ) {
-    return this.metersService.getAlarmSummary(id, from, to);
+    const summary = await this.metersService.getAlarmSummary(id, authContext, from, to);
+    if (!summary) throw new NotFoundException();
+    return summary;
   }
 
   @Get(':id/readings')
@@ -93,12 +112,15 @@ export class MetersController {
   @ApiQuery({ name: 'from', required: false, description: 'Inicio del rango (ISO 8601)', example: '2026-01-01T00:00:00Z' })
   @ApiQuery({ name: 'to', required: false, description: 'Fin del rango (ISO 8601)', example: '2026-03-06T23:59:59Z' })
   @ApiOkResponse({ type: [Reading] })
-  findReadings(
+  async findReadings(
     @Param('id') id: string,
+    @CurrentAuthContext() authContext: AuthorizationContext,
     @Query('resolution') resolution?: 'raw' | '15min' | 'hourly' | 'daily',
     @Query('from') from?: string,
     @Query('to') to?: string,
   ) {
-    return this.metersService.findReadings(id, resolution ?? 'hourly', from, to);
+    const readings = await this.metersService.findReadings(id, authContext, resolution ?? 'hourly', from, to);
+    if (!readings) throw new NotFoundException();
+    return readings;
   }
 }

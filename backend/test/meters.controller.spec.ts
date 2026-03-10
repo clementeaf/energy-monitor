@@ -1,6 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { MetersController } from '../src/meters/meters.controller';
+import type { AuthorizationContext } from '../src/auth/auth.service';
 import type { MetersService } from '../src/meters/meters.service';
+
+const authContext: AuthorizationContext = {
+  userId: 'user-1',
+  roleId: 4,
+  role: 'OPERATOR',
+  provider: 'google',
+  email: 'operator@example.com',
+  name: 'Operador',
+  permissions: { MONITORING_DEVICES: ['view'], METER_DETAIL: ['view'] },
+  siteIds: ['pac4220'],
+  hasGlobalSiteAccess: false,
+};
 
 describe('MetersController', () => {
   const metersService = {
@@ -36,13 +49,13 @@ describe('MetersController', () => {
     }];
     metersService.getOverview.mockResolvedValue(result);
 
-    await expect(controller.getOverview()).resolves.toEqual(result);
+    await expect(controller.getOverview(authContext)).resolves.toEqual(result);
   });
 
   it('throws NotFoundException when meter is missing', async () => {
     metersService.findOne.mockResolvedValue(null);
 
-    await expect(controller.findOne('M999')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(controller.findOne('M999', authContext)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('uses getUptimeAll when period is all or omitted', async () => {
@@ -74,8 +87,8 @@ describe('MetersController', () => {
     };
     metersService.getUptimeAll.mockResolvedValue(result);
 
-    await expect(controller.getUptime('M001')).resolves.toEqual(result);
-    expect(metersService.getUptimeAll).toHaveBeenCalledWith('M001');
+    await expect(controller.getUptime('M001', authContext)).resolves.toEqual(result);
+    expect(metersService.getUptimeAll).toHaveBeenCalledWith('M001', authContext);
   });
 
   it('passes reading resolution and range to service', async () => {
@@ -99,13 +112,33 @@ describe('MetersController', () => {
     metersService.findReadings.mockResolvedValue(result);
 
     await expect(
-      controller.findReadings('M001', 'raw', '2026-03-09T00:00:00Z', '2026-03-09T01:00:00Z'),
+      controller.findReadings('M001', authContext, 'raw', '2026-03-09T00:00:00Z', '2026-03-09T01:00:00Z'),
     ).resolves.toEqual(result);
     expect(metersService.findReadings).toHaveBeenCalledWith(
       'M001',
+      authContext,
       'raw',
       '2026-03-09T00:00:00Z',
       '2026-03-09T01:00:00Z',
+    );
+  });
+
+  it('passes downtime range through scoped service method', async () => {
+    const result: Awaited<ReturnType<MetersService['getDowntimeEvents']>> = [{
+      downtimeStart: '2026-03-09T00:00:00Z',
+      downtimeEnd: '2026-03-09T02:00:00Z',
+      durationSeconds: 7200,
+    }];
+    metersService.getDowntimeEvents.mockResolvedValue(result);
+
+    await expect(
+      controller.getDowntimeEvents('M001', authContext, '2026-03-09T00:00:00Z', '2026-03-09T03:00:00Z'),
+    ).resolves.toEqual(result);
+    expect(metersService.getDowntimeEvents).toHaveBeenCalledWith(
+      'M001',
+      authContext,
+      '2026-03-09T00:00:00Z',
+      '2026-03-09T03:00:00Z',
     );
   });
 });

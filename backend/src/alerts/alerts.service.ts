@@ -4,6 +4,7 @@ import { In, Repository } from 'typeorm';
 import { Alert, type AlertStatus } from './alert.entity';
 import { Meter } from '../meters/meter.entity';
 import { getMeterStatus, getOfflineTriggeredAt, OFFLINE_THRESHOLD_MINUTES } from '../meters/meter-status.util';
+import { getScopedSiteIds, hasSiteAccess, type AccessScope } from '../auth/access-scope';
 
 const OFFLINE_ALERT_TYPE = 'METER_OFFLINE';
 const OPEN_ALERT_STATUSES: AlertStatus[] = ['active', 'acknowledged'];
@@ -19,7 +20,20 @@ export class AlertsService {
     private readonly meterRepo: Repository<Meter>,
   ) {}
 
-  async findAll(filters: {
+  private async canAccessAlert(alert: Alert, scope: AccessScope) {
+    if (hasSiteAccess(scope, alert.buildingId)) {
+      return true;
+    }
+
+    if (!alert.meterId) {
+      return false;
+    }
+
+    const meter = await this.meterRepo.findOne({ where: { id: alert.meterId } });
+    return hasSiteAccess(scope, meter?.buildingId);
+  }
+
+  async findAll(scope: AccessScope, filters: {
     status?: AlertStatus;
     type?: string;
     meterId?: string;
@@ -28,6 +42,11 @@ export class AlertsService {
   } = {}) {
     const qb = this.alertRepo.createQueryBuilder('alert')
       .orderBy('alert.triggeredAt', 'DESC');
+    const scopedSiteIds = getScopedSiteIds(scope);
+
+    if (scopedSiteIds) {
+      qb.andWhere('alert.buildingId IN (:...siteIds)', { siteIds: scopedSiteIds });
+    }
 
     if (filters.status) qb.andWhere('alert.status = :status', { status: filters.status });
     if (filters.type) qb.andWhere('alert.type = :type', { type: filters.type });
@@ -38,12 +57,15 @@ export class AlertsService {
     return qb.getMany();
   }
 
-  async findOne(id: string) {
-    return this.alertRepo.findOne({ where: { id } });
+  async findOne(id: string, scope: AccessScope) {
+    const alert = await this.alertRepo.findOne({ where: { id } });
+    if (!alert) return null;
+
+    return (await this.canAccessAlert(alert, scope)) ? alert : null;
   }
 
-  async acknowledge(id: string) {
-    const alert = await this.alertRepo.findOne({ where: { id } });
+  async acknowledge(id: string, scope: AccessScope) {
+    const alert = await this.findOne(id, scope);
     if (!alert) return null;
     if (alert.status === 'resolved') return alert;
 
@@ -98,15 +120,44 @@ export class AlertsService {
     return alert;
   }
 
-  async scanOfflineMeters() {
+  private syncMeterAlertState(
+    meter: Meter,
+    existingAlert: Alert | undefined,
+    meterUpdates: Meter[],
+    alertCreates: Alert[],
+    alertUpdates: Alert[],
+  ) {
+    const computedStatus = getMeterStatus(meter.lastReadingAt);
+
+    if (meter.status !== computedStatus) {
+      meter.status = computedStatus;
+      meterUpdates.push(meter);
+    }
+
+    if (computedStatus === 'offline') {
+      if (!existingAlert && meter.lastReadingAt) {
+        alertCreates.push(this.createOfflineAlert(meter));
+      }
+
+      return;
+    }
+
+    if (existingAlert) {
+      alertUpdates.push(this.resolveOfflineAlert(existingAlert));
+    }
+  }
+
+  async scanOfflineMeters(scope: AccessScope) {
+    const scopedSiteIds = getScopedSiteIds(scope);
+    const meterWhere = scopedSiteIds ? { buildingId: In(scopedSiteIds) } : {};
+    const openAlertWhere = {
+      ...(scopedSiteIds ? { buildingId: In(scopedSiteIds) } : {}),
+      type: OFFLINE_ALERT_TYPE,
+      status: In(OPEN_ALERT_STATUSES),
+    };
     const [meters, openAlerts] = await Promise.all([
-      this.meterRepo.find({ order: { id: 'ASC' } }),
-      this.alertRepo.find({
-        where: {
-          type: OFFLINE_ALERT_TYPE,
-          status: In(OPEN_ALERT_STATUSES),
-        },
-      }),
+      this.meterRepo.find({ where: meterWhere, order: { id: 'ASC' } }),
+      this.alertRepo.find({ where: openAlertWhere }),
     ]);
 
     const openAlertByMeterId = this.buildOpenAlertByMeterId(openAlerts);
@@ -116,25 +167,14 @@ export class AlertsService {
     const alertUpdates: Alert[] = [];
 
     for (const meter of meters) {
-      const computedStatus = getMeterStatus(meter.lastReadingAt);
       const existingAlert = openAlertByMeterId.get(meter.id);
-
-      if (meter.status !== computedStatus) {
-        meter.status = computedStatus;
-        meterUpdates.push(meter);
-      }
-
-      if (computedStatus === 'offline') {
-        if (!existingAlert && meter.lastReadingAt) {
-          alertCreates.push(this.createOfflineAlert(meter));
-        }
-
-        continue;
-      }
-
-      if (existingAlert) {
-        alertUpdates.push(this.resolveOfflineAlert(existingAlert));
-      }
+      this.syncMeterAlertState(
+        meter,
+        existingAlert,
+        meterUpdates,
+        alertCreates,
+        alertUpdates,
+      );
     }
 
     if (meterUpdates.length > 0) {
@@ -147,12 +187,7 @@ export class AlertsService {
       await this.alertRepo.save(alertUpdates);
     }
 
-    const activeCount = await this.alertRepo.count({
-      where: {
-        type: OFFLINE_ALERT_TYPE,
-        status: In(OPEN_ALERT_STATUSES),
-      },
-    });
+    const activeCount = await this.alertRepo.count({ where: openAlertWhere });
 
     const summary = {
       scannedMeters: meters.length,

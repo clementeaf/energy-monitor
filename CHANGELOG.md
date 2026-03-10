@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0-alpha.6] - 2026-03-10
+
+### Added
+
+- **Scoping backend por sitio operativo** — los endpoints de datos ya no exponen información global a usuarios limitados a uno o más sitios
+  - `authContext` ahora resuelve `siteIds` y alcance global reutilizable para guards y controllers
+  - Buildings, meters, hierarchy y alerts filtran datos por sitios asignados; los roles globales conservan acceso transversal
+  - `POST /alerts/sync-offline` ahora evalúa sólo el subconjunto de medidores visible para el usuario que ejecuta la acción
+  - Nuevas tests backend para helpers de scoping y wiring de controllers
+
+### Changed
+
+- **Recursos fuera de alcance devuelven 404** — detalle de building, meter, hierarchy y alert ya no filtra sólo por permiso; también oculta recursos fuera del scope asignado
+- **Known gap reducido** — el pendiente de acceso ya no es el scoping por sitio, sino usar el sitio seleccionado en frontend como filtro server-side adicional para usuarios multisite
+
 ## [0.9.0-alpha.5] - 2026-03-10
 
 ### Added

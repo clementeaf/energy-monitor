@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.0-alpha.9] - 2026-03-11
+
+### Added
+
+- **Ingesta incremental automatizada Drive → Fargate → RDS** — reemplaza el proceso manual de tunneling SSH (~2.5 horas) por un flujo autónomo, rápido y sin intervención
+  - `infra/drive-ingest/index.mjs`: detección de cambios por `driveModifiedTime` — compara el manifest S3 más reciente con el valor actual en Drive antes de descargar; archivos sin cambios se saltan con `[skip]`. Variable `FORCE_DOWNLOAD=true` disponible para forzar descarga completa
+  - `infra/drive-pipeline/` (nueva carpeta): orquestador unificado que encadena detección → descarga Drive→S3 → importación S3→`readings_import_staging` en un único proceso Fargate-ready
+    - `index.mjs`: lógica completa del pipeline con validación de registros, batching y `INSERT ON CONFLICT DO NOTHING` idempotente
+    - `Dockerfile`: imagen `node:20-alpine` lista para ECS Fargate
+    - `package.json`: dependencias unificadas (googleapis, csv-parse, pg, @aws-sdk/*)
+    - `task-definition.json`: Task Definition para `energy-monitor-drive-pipeline:1` (1 vCPU, 2 GB, subnets privadas, SG RDS)
+  - EventBridge Scheduler `energy-monitor-drive-pipeline-daily`: cron `0 6 * * ? *` UTC = **03:00 Chile** diariamente
+  - CloudWatch log group `/ecs/energy-monitor-drive-pipeline` para auditoría de corridas
+  - `.github/workflows/drive-pipeline.yml`: CI/CD que hace build + push de la imagen Docker a ECR en cada push a `main` con cambios en `infra/drive-pipeline/**`
+
+### Infrastructure
+
+| Recurso | Valor |
+|---|---|
+| Task Definition | `energy-monitor-drive-pipeline:1` |
+| ECR Repository | `energy-monitor-drive-pipeline` |
+| EventBridge Schedule | `energy-monitor-drive-pipeline-daily` (`cron(0 6 * * ? *)`) |
+| CloudWatch Log Group | `/ecs/energy-monitor-drive-pipeline` |
+| IAM Role (EventBridge) | `energy-monitor-eventbridge-drive-pipeline` |
+
 ## [0.9.0-alpha.8] - 2026-03-10
 
 ### Changed

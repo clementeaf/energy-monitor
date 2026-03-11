@@ -105,7 +105,10 @@ CloudFront (energymonitor.click)
 
 EventBridge (1 min) → Lambda synthetic-readings-generator → RDS (pg directo)
 EventBridge (5 min) → Lambda offlineAlerts → RDS (NestJS context, NO cached)
-ECS Fargate (on-demand) → Google Drive CSV ingest → S3 raw/manifests → [pendiente] staging RDS
+EventBridge (daily 06:00 UTC) → ECS Fargate drive-pipeline →
+  1. Detecta cambios driveModifiedTime vs manifest S3
+  2. Descarga solo archivos nuevos/modificados desde Google Drive → S3 raw/
+  3. Importa S3 raw/ → readings_import_staging (INSERT ON CONFLICT DO NOTHING)
 ```
 
 ## Runtime Data Flow
@@ -121,37 +124,41 @@ Medidor Siemens (PAC1670/PAC1651)
 - `energy_kwh_total` es acumulativo; incremento sintético = `power_kw * dt_hours`.
 - Historial: CSV Ene-Feb 2026 importado, gap Mar 2-5 backfilled, Mar 6+ generado en tiempo real.
 
-## Bulk CSV Ingest Baseline
-- Ultima actualizacion operativa validada: `2026-03-10`.
-- Nuevo frente operativo habilitado: ingesta masiva desde Google Drive hacia AWS sin descarga manual local.
-- Flujo base aprobado: Google Drive compartido → ECS Fargate → S3 `raw/` + `manifests/` → staging en RDS → promotion a `readings`.
-- Runtime elegido y ya provisionado para transferencia: `ECS Fargate`.
+## Bulk CSV Ingest — Sistema Incremental Automatizado
+- Última actualización operativa validada: `2026-03-11`.
+- **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso.
+- **Detección de cambios:** compara `driveModifiedTime` del manifest S3 más reciente contra el valor actual en Drive antes de descargar. Si no hubo cambios → `[skip]`. Soporta `FORCE_DOWNLOAD=true` para forzar descarga completa.
+- **Importación idempotente:** `INSERT ... ON CONFLICT (meter_id, timestamp, source_file) DO NOTHING` — re-correr no duplica filas; solo inserta datos nuevos.
+- **Runtime:** ECS Fargate dentro del VPC — S3→RDS sin latencia local, sin túnel SSH.
+- **Schedule:** EventBridge `cron(0 6 * * ? *)` = **03:00 Chile** diariamente.
+- **CI/CD imagen Docker:** `.github/workflows/drive-pipeline.yml` → build+push a ECR en cada push a main con cambios en `infra/drive-pipeline/**`.
+- **Corrida manual bajo demanda:**
+  ```bash
+  aws ecs run-task --cluster energy-monitor-drive-ingest \
+    --task-definition energy-monitor-drive-pipeline:1 \
+    --launch-type FARGATE \
+    --network-configuration "awsvpcConfiguration={subnets=[subnet-07b8c60f262ea05f8,subnet-00ebf6d39c526567f,subnet-058418d1bc1a8adfa],securityGroups=[sg-0adda6a999e8d5d9a],assignPublicIp=DISABLED}"
+  ```
+- **Ver logs:** `aws logs tail /ecs/energy-monitor-drive-pipeline --follow`
 - Bucket de ingesta: `energy-monitor-ingest-058310292956`.
 - Secrets en AWS Secrets Manager: `energy-monitor/drive-ingest/db`, `energy-monitor/drive-ingest/google-service-account`.
-- Cluster ECS: `energy-monitor-drive-ingest`.
-- CloudWatch log group: `/ecs/energy-monitor-drive-ingest`.
-- Roles base creados: `energy-monitor-drive-ingest-task-execution-role`, `energy-monitor-drive-ingest-task-role`.
-- Restricción operativa: no usar Lambda para mover CSV de 1.5 GB a 3.15 GB; el baseline aprobado para esa transferencia es Fargate.
-- Ingesta inicial ya ejecutada: los 5 CSV objetivo quedaron cargados en S3 `raw/` y sus manifests en `manifests/`.
-- La corrida inicial se ejecutó desde el job del repo; Fargate queda provisionado como runtime objetivo para próximas corridas y automatización.
+- Cluster ECS: `energy-monitor-drive-ingest`. Task Definition: `energy-monitor-drive-pipeline:1`.
+- ECR: `energy-monitor-drive-pipeline`. CloudWatch log group: `/ecs/energy-monitor-drive-pipeline`.
+- Roles IAM: `energy-monitor-drive-ingest-task-execution-role`, `energy-monitor-drive-ingest-task-role`, `energy-monitor-eventbridge-drive-pipeline`.
+- Restricción operativa: no usar Lambda para mover CSV de 1.5 GB a 3.15 GB; el baseline aprobado es Fargate.
 - Objetos ya presentes en `raw/`: `MALL_GRANDE_446_completo.csv`, `MALL_MEDIANO_254_completo.csv`, `OUTLET_70_anual.csv`, `SC52_StripCenter_anual.csv`, `SC53_StripCenter_anual.csv`.
-- El job implementado en el repo vive en `infra/drive-ingest/` y resuelve `fileId` por listing del folder, descarga por streaming desde Google Drive, sube con multipart upload a S3 y escribe manifest JSON por archivo.
 
 ### Siguiente tramo operativo
 - No importar directo a `readings`.
-- Siguiente fase aprobada: `S3 -> staging RDS -> validacion -> resolucion de meter_id -> promotion`.
-- Gap critico actual: el dataset fuente usa `meter_id` como `MG-001`, `MM-045`, `OT-012`, `SC53-030`, mientras el modelo actual del repo espera ids tipo `M001`.
-- Base de especificacion del import: `docs/drive-csv-import-spec.md`.
+- Siguiente fase aprobada: `staging RDS → validación → resolución de meter_id → promotion`.
+- Gap crítico actual: el dataset fuente usa `meter_id` como `MG-001`, `MM-045`, `OT-012`, `SC53-030`, mientras el modelo actual del repo espera ids tipo `M001`.
+- Base de especificación del import: `docs/drive-csv-import-spec.md`.
 
 ### Micro tareas aprobadas para el siguiente tramo
-- Preparar tabla `readings_import_staging` con columnas fuente y trazabilidad.
-- Implementar parser desde S3 respetando `;`, decimal `,`, `utf-8-sig` y vacios a `NULL`.
-- Probar parser primero con 10 filas, luego 100 filas y luego un archivo completo.
-- Validar conteos, duplicados, paso de 15 minutos, nulls de monofasicos y monotonia de `energy_kwh_total`.
-- Cargar los 5 archivos completos a staging solo despues de pasar la muestra.
-- Resolver estrategia de `meter_id`: reemplazo de catalogo o tabla de mapeo `source_meter_id -> meters.id`.
-- Recién despues diseñar y ejecutar la promotion a `readings`.
-- Antes del corte real: snapshot, pausa de procesos que escriben, promotion, validacion y reactivacion.
+- Validar conteos, duplicados, paso de 15 minutos, nulls de monofásicos y monotonía de `energy_kwh_total`.
+- Resolver estrategia de `meter_id`: reemplazo de catálogo o tabla de mapeo `source_meter_id → meters.id`.
+- Recién después diseñar y ejecutar la promotion a `readings`.
+- Antes del corte real: snapshot, pausa de procesos que escriben, promotion, validación y reactivación.
 
 ## Offline Alerts Flow
 ```
@@ -168,12 +175,12 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
   → Axios interceptor inyecta Bearer → GET /api/auth/me
   → Backend: AuthGuard reusable extrae Bearer → detectProvider(iss) → jose.jwtVerify(jwks RS256)
   → RolesGuard global lee metadata @RequirePermissions(module, action) y aplica 403 por permiso faltante
-  → resolveUser(): enlaza identidad OAuth contra un usuario invitado/preprovisionado por email y luego carga permisos
+  → resolveUser(): enlaza identidad OAuth contra un usuario invitado/preprovisionado por email y luego carga permisos; soporta re-binding si el usuario cambia de provider (mismo email)
   → Frontend: Zustand useAuthStore.setUser() + contexto de sitio en Zustand useAppStore
   → ProtectedRoute checks roles y fuerza selección de sitio cuando aplica
   → 401 Axios interceptor → limpia auth store + sessionStorage
 ```
-- RBAC: 7 roles (`SUPER_ADMIN`, `CORP_ADMIN`, `SITE_ADMIN`, `OPERATOR`, `ANALYST`, `TENANT_USER`, `AUDITOR`), 10 módulos, 3 acciones
+- RBAC: 7 roles (`SUPER_ADMIN`, `CORP_ADMIN`, `SITE_ADMIN`, `OPERATOR`, `ANALYST`, `TENANT_USER`, `AUDITOR`), 16 vistas, 3 acciones
 - Regla funcional vigente: `módulo = vista`; los permisos deben interpretarse como acceso a vistas y acciones disponibles dentro de esas vistas.
 - La tabla `modules` ya persiste el catálogo de vistas/rutas reales implementadas con metadata de navegación (`route_path`, `navigation_group`, `show_in_nav`, `sort_order`, `is_public`).
 - Backend exige JWT válido en endpoints API mediante guard global y aplica RBAC por módulo/acción con metadata `@RequirePermissions(...)`
@@ -182,8 +189,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 - Base vigente de onboarding: el login ya no autocrea usuarios no invitados; el acceso requiere un registro previo en `users` con rol preasignado y sitios opcionales/preasignados.
 - Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios, devolver un link firmado de activación y exponer su expiración; `GET /roles` expone el catálogo para esa vista.
 - Catálogo de vistas disponible por API: `GET /views` para inspeccionar las vistas persistidas en DB.
-- Operación pendiente en entornos ya existentes: aplicar `sql/008_views_catalog.sql` para migrar `modules` al catálogo de vistas reales y reseedear `role_permissions`.
-- Operación pendiente adicional en entornos ya existentes: aplicar `sql/009_invitation_links.sql` para agregar columnas de invitación y la vista pública `INVITATION_ACCEPT`.
+- Migraciones `006_alerts.sql`, `008_views_catalog.sql` y `009_invitation_links.sql` ya aplicadas en producción (2026-03-10).
 - Scoping vigente en backend: buildings, meters, hierarchy, alerts y `sync-offline` ya restringen datos por `siteIds` asignados; los roles globales mantienen acceso total.
 - Contexto activo vigente: cuando el frontend tiene un `selectedSiteId`, el interceptor Axios envía `X-Site-Context` y `RolesGuard` estrecha el scope server-side adicionalmente para ese request.
 
@@ -292,7 +298,8 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | `010_readings_import_staging.sql` → tabla staging para importación CSV
+Todas las migraciones hasta `010` ya están aplicadas en producción (2026-03-10).
 
 ## TypeScript Types
 
@@ -351,7 +358,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Skeleton** — placeholders base y presets de páginas principales.
 
-**Layout** — shell principal con sidebar, banner de alertas y navegación por rol.
+**Layout** — shell principal con sidebar, banner de alertas y navegación por rol. Sidebar resuelve dinámicamente `:siteId` en rutas que lo requieren usando `selectedSiteId` o el primer building disponible.
 
 ## Frontend Patterns
 
@@ -361,7 +368,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Cache strategy:** buildings/building detail/auth me → `Infinity`; meters overview/alerts → `30s` + `30s`; consumption/readings → `0` + `keepPreviousData`.
 
-**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables.
+**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables. Sidebar muestra 9 ítems para `SUPER_ADMIN`: Edificios, Monitoreo en Tiempo Real, Dispositivos, Alertas, Drill-down, Admin Sitios, Admin Usuarios, Admin Medidores, Admin Jerarquía.
 
 **Feature folders:** `features/<domain>/<Domain>Page.tsx` (named export) + `components/` subdirectory.
 
@@ -442,8 +449,9 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ## Standalone Infra Scripts
 ```
 infra/
-  drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests
+  drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests (con detección de cambios driveModifiedTime)
   drive-import-staging/  → S3 raw CSV → staging RDS con parseo streaming y validaciones base
+  drive-pipeline/        → Orquestador unificado: detecta cambios + descarga Drive→S3 + importa S3→staging (Fargate)
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
   reimport-readings/     → one-off CSV import + regen synthetic
   backfill-gap/          → one-off gap backfill
@@ -479,8 +487,11 @@ cd backend && npx sls offline
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
-| `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests |
+| `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
+| `infra/drive-pipeline/index.mjs` | **Orquestador Fargate**: detecta cambios + ingest Drive→S3 + import S3→staging |
+| `infra/drive-pipeline/Dockerfile` | Imagen Docker del pipeline para ECS Fargate |
+| `infra/drive-pipeline/task-definition.json` | Task Definition ECS (`energy-monitor-drive-pipeline:1`) |
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
@@ -501,6 +512,7 @@ cd backend && npx sls offline
 - **SSL rejectUnauthorized: false** en todas las conexiones DB.
 - **Token en sessionStorage:** Vulnerable a XSS.
 - **Sin rate limiting, sin security headers, sin structured logging.**
+- **Migraciones manuales:** no hay migration runner; las migraciones SQL se aplican manualmente. Verificar siempre que las tablas y columnas esperadas por el código existan en producción antes de deployar.
 
 ## Deploy
 - **Usar:** [AWS Runbook](docs/aws-runbook.md) + [Deploy Skill](skills/deploy.md)

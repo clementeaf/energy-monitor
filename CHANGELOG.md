@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0-alpha.11] - 2026-03-11
+
+### Fixed
+
+- **dbVerify Lambda y script verify-rds.mjs** — La tabla `meters` tiene columna PK `id`, no `meter_id`. Corregida la consulta de muestra de medidores: `SELECT id AS meter_id FROM meters` en ambos (Lambda y script local).
+
 ## [0.9.0-alpha.10] - 2026-03-11
 
 ### Added

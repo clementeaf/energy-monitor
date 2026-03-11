@@ -158,8 +158,8 @@ async function main() {
 
     const meterIds = await run(
       client,
-      'distinct meter_id',
-      `SELECT DISTINCT meter_id FROM meters ORDER BY meter_id LIMIT 50`,
+      'distinct meter id',
+      `SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50`,
     );
     const ids = meterIds.map((r) => r.meter_id);
     console.log('  Primeros 50 meter_id:', ids.join(', '));

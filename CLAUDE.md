@@ -418,7 +418,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Entities con @ApiProperty({ example }).
 
-**Lambda:** serverless.ts cachea bootstrap. offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI, ejecuta consultas de verificación RDS (misma VPC/env que api). Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
+**Lambda:** serverless.ts cachea bootstrap. offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI, ejecuta consultas de verificación RDS (misma VPC/env que api). Usa `meters.id` (no `meter_id`); la tabla meters tiene PK `id`. Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
 
 **Error handling:** service retorna `null` para not-found y controller lanza `NotFoundException`; auth `verifyToken()` retorna `null` en failure; Nest maneja el resto como 500.
 
@@ -506,7 +506,7 @@ cd backend && npx sls offline
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars (api, offlineAlerts, dbVerify) |
-| `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía) |
+| `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |

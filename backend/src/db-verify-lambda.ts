@@ -82,7 +82,7 @@ export const handler: Handler = async (): Promise<{ statusCode: number; body: st
     ).rows.map((r: { building_id: string; meter_count: string }) => ({ building_id: r.building_id, meter_count: Number(r.meter_count) }));
 
     const meterIdRows = await client.query<{ meter_id: string }>(
-      'SELECT DISTINCT meter_id FROM meters ORDER BY meter_id LIMIT 50',
+      'SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50',
     );
     const meterIdSample = meterIdRows.rows.map((r: { meter_id: string }) => r.meter_id);
     const meterIdLengthWarning = meterIdSample.some((id: string) => id.length > 10);

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0-alpha.10] - 2026-03-11
+
+### Added
+
+- **Promoción automática en pipeline Fargate** — tras importar a staging, el contenedor ejecuta `promote.mjs` (validate → catalog → promote → verify). La data de Drive queda en `readings` lista para NestJS. Si staging está vacío, promote sale en 0 sin error.
+- **Lambda dbVerify** — función invocable con AWS CLI para verificación RDS sin túnel ni token. `aws lambda invoke --function-name power-digital-api-dev-dbVerify --region us-east-1 out.json`. Devuelve JSON con conteos, medidores por edificio, muestra de meter_id, rangos temporales, jerarquía y listado de edificios. Misma VPC y env que la API.
+- **Script infra/db-verify** — verificación RDS con dos modos: (1) modo prueba con `.env` (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME); carga automática con dotenv; (2) sin credenciales locales usa AWS Secrets Manager. Mensajes de error claros en español (ECONNREFUSED, ETIMEDOUT, fallo de autenticación). README y `.env.example` en `infra/db-verify/`.
+- **Documento docs/data-drive-aws-review.md** — revisión de qué hay en RDS tras la carga Drive, cómo exponer por backend, consumo en frontend y vistas; verificación vía AWS CLI (Lambda) o script local.
+
+### Changed
+
+- **drive-pipeline Dockerfile** — CMD ejecuta `node index.mjs && node promote.mjs` en secuencia.
+- **drive-pipeline/promote.mjs** — cuando staging está vacío retorna null y sale en 0 en vez de lanzar error.
+
 ## [0.9.0-alpha.9] - 2026-03-11
 
 ### Added

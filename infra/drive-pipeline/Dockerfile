@@ -5,6 +5,6 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 
-COPY index.mjs ./
+COPY index.mjs promote.mjs ./
 
-CMD ["node", "index.mjs"]
+CMD ["sh", "-c", "node index.mjs && node promote.mjs"]

@@ -148,17 +148,36 @@ Medidor Siemens (PAC1670/PAC1651)
 - Restricción operativa: no usar Lambda para mover CSV de 1.5 GB a 3.15 GB; el baseline aprobado es Fargate.
 - Objetos ya presentes en `raw/`: `MALL_GRANDE_446_completo.csv`, `MALL_MEDIANO_254_completo.csv`, `OUTLET_70_anual.csv`, `SC52_StripCenter_anual.csv`, `SC53_StripCenter_anual.csv`.
 
-### Siguiente tramo operativo
-- No importar directo a `readings`.
-- Siguiente fase aprobada: `staging RDS → validación → resolución de meter_id → promotion`.
-- Gap crítico actual: el dataset fuente usa `meter_id` como `MG-001`, `MM-045`, `OT-012`, `SC53-030`, mientras el modelo actual del repo espera ids tipo `M001`.
+### Promotion pipeline: staging → readings
+- El task Fargate ejecuta en secuencia: `index.mjs` (Drive → S3 → staging) y luego `promote.mjs` (staging → readings). Tras cada corrida diaria, la data queda en `readings` lista para NestJS/Lambda.
+- Script de promoción: `infra/drive-pipeline/promote.mjs` (mismo contenedor) y `infra/drive-import-staging/promote.mjs` (ejecución manual local).
+- Fases: `validate` → `catalog` → `promote` → `verify` (ejecutables independientemente con `PHASE=<fase>`). Si staging está vacío, promote sale en 0 sin error.
+- Estrategia de `meter_id` resuelta: expansión directa del catálogo — los meter_ids fuente (`MG-001`, `MM-045`, `OT-012`, `SC52-*`, `SC53-*`) se insertan tal cual en `meters` y `buildings`.
+- Los medidores existentes (`M001`–`M015`) y sus edificios (`pac4220`, `s7-1200`) no se tocan; los nuevos coexisten.
+- `promote.mjs` auto-descubre `center_name` → crea buildings slugificados, auto-descubre meters → crea catalog entries.
+- Promotion usa `INSERT INTO readings SELECT FROM staging` con `NOT EXISTS` para idempotencia, batch por `source_file`.
+- Soporta `DRY_RUN=true` para inspección sin escritura.
 - Base de especificación del import: `docs/drive-csv-import-spec.md`.
 
-### Micro tareas aprobadas para el siguiente tramo
-- Validar conteos, duplicados, paso de 15 minutos, nulls de monofásicos y monotonía de `energy_kwh_total`.
-- Resolver estrategia de `meter_id`: reemplazo de catálogo o tabla de mapeo `source_meter_id → meters.id`.
-- Recién después diseñar y ejecutar la promotion a `readings`.
-- Antes del corte real: snapshot, pausa de procesos que escriben, promotion, validación y reactivación.
+### Ejecución de la promotion
+```bash
+# 1. Solo validar staging (sin escritura)
+PHASE=validate npm --prefix infra/drive-import-staging run promote
+
+# 2. Dry run completo (inspección sin escritura)
+DRY_RUN=true npm --prefix infra/drive-import-staging run promote
+
+# 3. Ejecución completa (validate → catalog → promote → verify)
+npm --prefix infra/drive-import-staging run promote
+
+# 4. Con SSH tunnel local
+DB_HOST=127.0.0.1 DB_PORT=5433 npm --prefix infra/drive-import-staging run promote
+```
+
+### Antes del corte real
+- Snapshot RDS recomendado antes de correr `PHASE=promote`.
+- Considerar pausar `synthetic-readings-generator` y `offlineAlerts` durante la promotion para evitar contención.
+- Post-promotion: validar con `PHASE=verify` y reactivar procesos.
 
 ## Offline Alerts Flow
 ```
@@ -399,7 +418,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Entities con @ApiProperty({ example }).
 
-**Lambda:** serverless.ts cachea bootstrap. offline-alerts.ts NO cachea (tech debt). Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
+**Lambda:** serverless.ts cachea bootstrap. offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI, ejecuta consultas de verificación RDS (misma VPC/env que api). Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
 
 **Error handling:** service retorna `null` para not-found y controller lanza `NotFoundException`; auth `verifyToken()` retorna `null` en failure; Nest maneja el resto como 500.
 
@@ -452,6 +471,7 @@ infra/
   drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests (con detección de cambios driveModifiedTime)
   drive-import-staging/  → S3 raw CSV → staging RDS con parseo streaming y validaciones base
   drive-pipeline/        → Orquestador unificado: detecta cambios + descarga Drive→S3 + importa S3→staging (Fargate)
+  db-verify/             → Verificación RDS: script local (npm run verify) o Lambda invocable con AWS CLI (dbVerify)
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
   reimport-readings/     → one-off CSV import + regen synthetic
   backfill-gap/          → one-off gap backfill
@@ -485,7 +505,8 @@ cd backend && npx sls offline
 | `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
-| `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars |
+| `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars (api, offlineAlerts, dbVerify) |
+| `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía) |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
@@ -502,6 +523,8 @@ cd backend && npx sls offline
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
+| `infra/db-verify/verify-rds.mjs` | Verificación RDS: modo prueba (.env) o AWS Secrets Manager; carga dotenv; mensajes de error claros |
+| `docs/data-drive-aws-review.md` | Revisión: qué hay en RDS, cómo exponer por backend, vistas frontend, verificación (script o aws lambda invoke) |
 
 ## Known Issues & Tech Debt
 - **Invitación transaccional pendiente:** ya existe link/token firmado con expiración y validación pública, pero todavía no hay envío por email, reemisión ni revocación administrativa completa.
@@ -519,5 +542,5 @@ cd backend && npx sls offline
 - **NO usar:** cpanel-runbook.md, git-deploy.md, server-runbook.md
 
 ## References
-- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Perfil de Datos](scripts/perfil_datos.py)
+- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Perfil de Datos](scripts/perfil_datos.py) | [Revisión datos Drive en RDS](docs/data-drive-aws-review.md)
 - `CLAUDE.md` debe mantenerse autocontenido; no depender de `patterns/` para contexto operativo base.

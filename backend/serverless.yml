@@ -41,6 +41,9 @@ functions:
       - schedule:
           rate: rate(5 minutes)
           enabled: true
+  dbVerify:
+    handler: dist/db-verify-lambda.handler
+    description: Verificación RDS (conteos, distribución). Invocar con AWS CLI.
 
 plugins:
   - serverless-offline

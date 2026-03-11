@@ -1,0 +1,17 @@
+{
+  "name": "drive-pipeline",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Orquestador unificado: Google Drive → S3 → RDS staging. Detecta cambios, descarga solo lo necesario y carga a staging.",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1005.0",
+    "@aws-sdk/client-secrets-manager": "^3.1005.0",
+    "@aws-sdk/lib-storage": "^3.1005.0",
+    "csv-parse": "^5.6.0",
+    "googleapis": "^146.0.0",
+    "pg": "^8.13.1"
+  }
+}

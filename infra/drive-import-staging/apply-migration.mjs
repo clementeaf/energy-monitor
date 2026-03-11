@@ -23,8 +23,8 @@ async function getSecretJson(secretId) {
 
 function buildDbConfig(secret) {
   return {
-    host: secret.host || secret.DB_HOST,
-    port: Number(secret.port || secret.DB_PORT || 5432),
+    host: process.env.DB_HOST || secret.host || secret.DB_HOST,
+    port: Number(process.env.DB_PORT || secret.port || secret.DB_PORT || 5432),
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,

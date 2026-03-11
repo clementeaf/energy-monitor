@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { PassThrough, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { Upload } from '@aws-sdk/lib-storage';
 import { google } from 'googleapis';
@@ -17,9 +17,52 @@ const SOURCE_FILES = (process.env.SOURCE_FILES || '')
   .split(',')
   .map((value) => value.trim())
   .filter(Boolean);
+const FORCE_DOWNLOAD = process.env.FORCE_DOWNLOAD === 'true';
 
 const secretsClient = new SecretsManagerClient({ region: REGION });
 const s3Client = new S3Client({ region: REGION });
+
+/**
+ * Lee el manifest más reciente de S3 para un archivo y retorna su driveModifiedTime.
+ * Retorna null si no existe manifest previo.
+ */
+async function getLastManifestModifiedTime(fileName) {
+  const prefix = `${MANIFEST_PREFIX}/`;
+  let continuationToken;
+  let latestKey = null;
+  let latestModified = null;
+
+  // Los manifests se nombran como: manifests/<ISO-timestamp>-<fileName>.json
+  // Listamos todos los objetos con ese prefix y buscamos el más reciente
+  do {
+    const response = await s3Client.send(new ListObjectsV2Command({
+      Bucket: S3_BUCKET,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    }));
+
+    for (const obj of (response.Contents || [])) {
+      if (!obj.Key.endsWith(`-${fileName}.json`)) continue;
+      if (!latestModified || obj.LastModified > latestModified) {
+        latestKey = obj.Key;
+        latestModified = obj.LastModified;
+      }
+    }
+
+    continuationToken = response.NextContinuationToken;
+  } while (continuationToken);
+
+  if (!latestKey) return null;
+
+  const manifestResponse = await s3Client.send(new GetObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: latestKey,
+  }));
+
+  const body = await manifestResponse.Body.transformToString();
+  const manifest = JSON.parse(body);
+  return manifest.driveModifiedTime || null;
+}
 
 async function getSecretJson(secretId) {
   const response = await secretsClient.send(new GetSecretValueCommand({ SecretId: secretId }));
@@ -163,17 +206,42 @@ async function main() {
     throw new Error('No CSV files found for ingestion');
   }
 
-  console.log(`Found ${files.length} CSV file(s) to ingest from Google Drive folder ${DRIVE_FOLDER_ID}`);
+  console.log(`Found ${files.length} CSV file(s) in Google Drive folder ${DRIVE_FOLDER_ID}`);
+  if (FORCE_DOWNLOAD) {
+    console.log('[force] FORCE_DOWNLOAD=true — skipping change detection, all files will be downloaded');
+  }
 
   const manifests = [];
+  const skipped = [];
+
   for (const file of files) {
+    if (!FORCE_DOWNLOAD) {
+      const lastModifiedTime = await getLastManifestModifiedTime(file.name);
+      if (lastModifiedTime && lastModifiedTime === file.modifiedTime) {
+        console.log(`[skip] ${file.name} — no changes since last ingest (driveModifiedTime: ${file.modifiedTime})`);
+        skipped.push(file.name);
+        continue;
+      }
+      if (lastModifiedTime) {
+        console.log(`[changed] ${file.name} — previous: ${lastModifiedTime}, current: ${file.modifiedTime}`);
+      } else {
+        console.log(`[new] ${file.name} — no previous manifest found`);
+      }
+    }
+
     console.log(`Uploading ${file.name} (${file.size || 'unknown'} bytes) to s3://${S3_BUCKET}/${buildRawKey(file.name)}`);
     const manifest = await uploadDriveFileToS3(drive, file);
     manifests.push(manifest);
     console.log(`Completed ${file.name}`);
   }
 
-  console.log(JSON.stringify({ uploadedFiles: manifests.length, bucket: S3_BUCKET, files: manifests }, null, 2));
+  console.log(JSON.stringify({
+    uploadedFiles: manifests.length,
+    skippedFiles: skipped.length,
+    skipped,
+    bucket: S3_BUCKET,
+    files: manifests,
+  }, null, 2));
 }
 
 main().catch((error) => {

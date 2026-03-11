@@ -187,7 +187,8 @@ function validateRecord(record, state) {
   if (previous) {
     const deltaMs = Date.parse(record.timestamp) - Date.parse(previous.timestamp);
     if (deltaMs <= 0) {
-      throw new TypeError(`Row ${record.source_row_number}: timestamp is not strictly ascending for meter ${record.meter_id}`);
+      console.warn(`Row ${record.source_row_number}: timestamp is not strictly ascending for meter ${record.meter_id} (skipping)`);
+      return false;
     }
 
     if (deltaMs !== FIFTEEN_MINUTES_MS) {
@@ -195,7 +196,8 @@ function validateRecord(record, state) {
     }
 
     if (record.energy_kwh_total < previous.energyKwhTotal) {
-      throw new TypeError(`Row ${record.source_row_number}: energy_kWh_total decreased for meter ${record.meter_id}`);
+      console.warn(`Row ${record.source_row_number}: energy_kWh_total decreased for meter ${record.meter_id} (skipping)`);
+      return false;
     }
   }
 
@@ -204,6 +206,7 @@ function validateRecord(record, state) {
     energyKwhTotal: record.energy_kwh_total,
   });
   state.uniqueMeters.add(record.meter_id);
+  return true;
 }
 
 async function getSecretJson(secretId) {
@@ -217,8 +220,8 @@ async function getSecretJson(secretId) {
 
 function buildDbConfig(secret) {
   return {
-    host: secret.host || secret.DB_HOST,
-    port: Number(secret.port || secret.DB_PORT || 5432),
+    host: process.env.DB_HOST || secret.host || secret.DB_HOST,
+    port: Number(process.env.DB_PORT || secret.port || secret.DB_PORT || 5432),
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
@@ -314,40 +317,29 @@ async function main() {
     s3Object.Body.pipe(parser);
     console.log('Started CSV parse stream');
 
-    await new Promise((resolve, reject) => {
-      parser.on('readable', async () => {
-        try {
-          let record;
-          while ((record = parser.read()) !== null) {
-            rowNumber += 1;
-            const normalized = normalizeRecord(record, sourceFile, rowNumber);
-            validateRecord(normalized, validationState);
-            batch.push(normalized);
-
-            if (LIMIT_ROWS && rowNumber >= LIMIT_ROWS) {
-              parser.destroy();
-              return;
-            }
-
-            if (batch.length >= BATCH_SIZE) {
-              insertedRows += await flushBatch(client, batch);
-            }
-          }
-        } catch (error) {
-          reject(error);
+    try {
+      for await (const record of parser) {
+        rowNumber += 1;
+        const normalized = normalizeRecord(record, sourceFile, rowNumber);
+        const isValid = validateRecord(normalized, validationState);
+        if (isValid) {
+          batch.push(normalized);
         }
-      });
 
-      parser.once('end', resolve);
-      parser.once('close', resolve);
-      parser.once('error', reject);
-      s3Object.Body.once('error', reject);
-      s3Object.Body.once('close', () => {
-        if (parser.readableEnded || parser.destroyed) {
-          resolve();
+        if (LIMIT_ROWS && rowNumber >= LIMIT_ROWS) {
+          parser.destroy();
+          break;
         }
-      });
-    });
+
+        if (batch.length >= BATCH_SIZE) {
+          insertedRows += await flushBatch(client, batch);
+        }
+      }
+    } catch (error) {
+      if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+        throw error;
+      }
+    }
 
     if (batch.length > 0) {
       insertedRows += await flushBatch(client, batch);

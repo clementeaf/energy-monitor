@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0-alpha.15] - 2026-03-12
+
+### Added
+
+- **Campos centro y tienda (docx)** — Migración `sql/013_center_and_store_fields.sql`: `buildings.center_type` (categoría del centro: Mall Grande, Outlet, etc.) y `meters.store_type`, `meters.store_name` (rubro y nombre del local). APIs `GET /buildings`, `GET /buildings/:id` devuelven `centerType`; `GET /meters/overview`, `GET /meters/:id` devuelven `storeType`, `storeName`. Null en datos legacy. Promote rellena desde staging en fase catalog.
+- **DbVerify stagingCentersCount** — `GET /api/db-verify` incluye `stagingCentersCount` (COUNT(DISTINCT center_name) en readings_import_staging).
+- **Script lectura docx** — `scripts/read-docx.mjs` (mammoth) extrae texto de POWER_Digital_Documentacion_BD.docx; uso: `node scripts/read-docx.mjs [--out=archivo.txt]`.
+- **Revisión APIs vs docx** — `docs/revision-apis-vs-docx-bd.md`: mapeo modelo docx → backend y brechas resueltas (centerType, storeType, storeName).
+
+### Changed
+
+- **Promote (catalog)** — Inserción de buildings con `center_type`; inserción de meters con `store_type`, `store_name` desde staging. ON CONFLICT actualiza esos campos.
+- **CLAUDE.md** — Schema buildings/meters con nuevos campos; migración 013 en lista; tipo Building con centerType.
+
 ## [0.9.0-alpha.14] - 2026-03-12
 
 ### Added

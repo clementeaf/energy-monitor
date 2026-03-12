@@ -377,6 +377,8 @@ export class MetersService {
         m.model,
         m.phase_type AS "phaseType",
         m.bus_id AS "busId",
+        m.store_type AS "storeType",
+        m.store_name AS "storeName",
         m.last_reading_at AS "lastReadingAt",
         COALESCE(alarm_counts.cnt, 0)::int AS "alarmCount30d",
         uptime_calc."uptimePercent"
@@ -415,6 +417,8 @@ export class MetersService {
       model: r.model,
       phaseType: r.phaseType,
       busId: r.busId,
+      storeType: r.storeType ?? null,
+      storeName: r.storeName ?? null,
       status: getMeterStatus(r.lastReadingAt as string | null),
       lastReadingAt: r.lastReadingAt,
       uptime24h: toNumberOrZero(r.uptimePercent),

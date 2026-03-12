@@ -16,6 +16,10 @@ export class Building {
   @Column({ type: 'varchar', length: 300 })
   address!: string;
 
+  @ApiProperty({ example: 'Mall Grande', nullable: true, description: 'Categoría del centro (docx: center_type). Null en legacy.' })
+  @Column({ name: 'center_type', type: 'varchar', length: 100, nullable: true })
+  centerType!: string | null;
+
   @ApiProperty({ example: 1200.5 })
   @Column({ name: 'total_area', type: 'numeric', precision: 10, scale: 2 })
   totalArea!: number;

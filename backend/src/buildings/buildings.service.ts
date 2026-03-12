@@ -23,6 +23,7 @@ export class BuildingsService {
       id: b.id,
       name: b.name,
       address: b.address,
+      centerType: b.centerType ?? null,
       totalArea: Number(b.totalArea),
       metersCount: b.meters.length,
     }));
@@ -37,6 +38,7 @@ export class BuildingsService {
       id: b.id,
       name: b.name,
       address: b.address,
+      centerType: b.centerType ?? null,
       totalArea: Number(b.totalArea),
       metersCount: b.meters.length,
     };

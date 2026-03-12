@@ -272,10 +272,11 @@ async function phaseCatalog(client) {
   log('catalog', `Discovered ${buildings.length} building(s):`);
   logTable(buildings);
 
-  // Discover distinct meters
+  // Discover distinct meters (store_type, store_name: un valor por medidor)
   const meters = (await client.query(`
     SELECT DISTINCT ON (meter_id)
-      meter_id, center_name, model, phase_type, uplink_route, modbus_address
+      meter_id, center_name, model, phase_type, uplink_route, modbus_address,
+      store_type, store_name
     FROM readings_import_staging
     ORDER BY meter_id, source_row_number
   `)).rows;
@@ -296,7 +297,7 @@ async function phaseCatalog(client) {
 
   log('catalog', `Buildings to create: ${buildingRows.filter(b => b.isNew).length} new, ${buildingRows.filter(b => !b.isNew).length} existing`);
 
-  // Prepare meter inserts
+  // Prepare meter inserts (store_type, store_name del docx)
   const meterRows = meters.map(m => ({
     id: m.meter_id,
     building_id: slugify(m.center_name),
@@ -304,6 +305,8 @@ async function phaseCatalog(client) {
     phase_type: m.phase_type,
     uplink_route: m.uplink_route,
     modbus_address: m.modbus_address,
+    store_type: m.store_type || null,
+    store_name: m.store_name || null,
     isNew: !existingMeters.includes(m.meter_id),
   }));
 
@@ -318,25 +321,26 @@ async function phaseCatalog(client) {
     return { buildingRows, meterRows };
   }
 
-  // Insert buildings
+  // Insert buildings (center_type en columna propia; address sigue con center_type por compatibilidad)
   for (const b of buildingRows.filter(b => b.isNew)) {
+    const centerType = b.center_type || '';
     await client.query(
-      `INSERT INTO buildings (id, name, address, total_area)
-       VALUES ($1, $2, $3, 0)
-       ON CONFLICT (id) DO NOTHING`,
-      [b.id, b.name, b.center_type || ''],
+      `INSERT INTO buildings (id, name, address, total_area, center_type)
+       VALUES ($1, $2, $3, 0, $4)
+       ON CONFLICT (id) DO UPDATE SET center_type = EXCLUDED.center_type`,
+      [b.id, b.name, centerType, centerType || null],
     );
     log('catalog', `Created building: ${b.id} (${b.name})`);
   }
 
-  // Insert meters in batches
+  // Insert meters in batches (store_type, store_name si existen columnas)
   let created = 0;
   for (const m of newMeters) {
     await client.query(
-      `INSERT INTO meters (id, building_id, model, phase_type, bus_id, modbus_address, uplink_route, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'online')
-       ON CONFLICT (id) DO NOTHING`,
-      [m.id, m.building_id, m.model, m.phase_type, `${m.building_id}-Bus1`, m.modbus_address, m.uplink_route],
+      `INSERT INTO meters (id, building_id, model, phase_type, bus_id, modbus_address, uplink_route, status, store_type, store_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'online', $8, $9)
+       ON CONFLICT (id) DO UPDATE SET store_type = EXCLUDED.store_type, store_name = EXCLUDED.store_name`,
+      [m.id, m.building_id, m.model, m.phase_type, `${m.building_id}-Bus1`, m.modbus_address, m.uplink_route, m.store_type, m.store_name],
     );
     created++;
     if (created % 100 === 0) {

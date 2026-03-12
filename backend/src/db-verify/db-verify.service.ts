@@ -51,6 +51,8 @@ ON CONFLICT (token_hash) DO UPDATE SET
 export interface DbVerifyResult {
   /** staging es estimado (pg_class) para no hacer COUNT(*) sobre millones de filas. */
   counts: { readings: number; meters: number; buildings: number; staging: number | null };
+  /** Centros/edificios distintos en readings_import_staging (center_name). */
+  stagingCentersCount: number | null;
   metersPerBuilding: Array<{ building_id: string; meter_count: number }>;
   meterIdSample: string[];
   meterIdLengthWarning: boolean;
@@ -100,6 +102,16 @@ export class DbVerifyService {
       staging = stagingRes[0] ? Math.max(0, Math.round(Number(stagingRes[0].reltuples))) : null;
     } catch {
       // tabla puede no existir
+    }
+
+    let stagingCentersCount: number | null = null;
+    try {
+      const centerRes = await this.dataSource.query<Array<{ count: string }>>(
+        `SELECT COUNT(DISTINCT center_name)::bigint AS count FROM readings_import_staging`,
+      );
+      stagingCentersCount = centerRes[0] ? Number(centerRes[0].count) : null;
+    } catch {
+      // puede ser costoso en tablas muy grandes
     }
 
     const counts = {
@@ -185,6 +197,7 @@ export class DbVerifyService {
 
     const result: DbVerifyResult = {
       counts,
+      stagingCentersCount,
       metersPerBuilding,
       meterIdSample,
       meterIdLengthWarning,

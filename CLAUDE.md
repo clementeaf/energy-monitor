@@ -286,7 +286,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 ### Admin / Diagnóstico — requiere Bearer + `ADMIN_USERS.view`
 | Method | Path | Params | Response |
 |---|---|---|---|
-| GET | `/db-verify` | — | Conteos (readings, meters, buildings, staging), metersPerBuilding, timeRanges, hierarchy, buildings; opcional `errors[]` si alguna query falla (respuesta siempre 200). |
+| GET | `/db-verify` | — | Conteos (readings, meters, buildings, staging), stagingCentersCount (DISTINCT center_name en staging), metersPerBuilding, timeRanges, hierarchy, buildings; opcional `errors[]` si alguna query falla (respuesta siempre 200). |
 | GET | `/db-verify/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
 | GET | `/ingest/diagnostic` | — | Diagnóstico Drive→RDS: staging vs readings, conclusion (full_match \| partial_match \| mismatch \| no_staging_data), perFileMatch, message. |
 | GET | `/ingest/diagnostic/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
@@ -312,9 +312,9 @@ Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
 
 **user_sites** — PK(user_id, site_id), FK user_id → users CASCADE
 
-**buildings** — id: varchar(50) PK (e.g. 'pac4220'), name: varchar(200), address: varchar(300), total_area: numeric(10,2)
+**buildings** — id: varchar(50) PK (e.g. 'pac4220'), name: varchar(200), address: varchar(300), center_type: varchar(100) NULL (docx: categoría del centro; migración 013), total_area: numeric(10,2)
 
-**meters** — id: varchar(10) PK (e.g. 'M001'), building_id: varchar(50) FK→buildings, model: varchar(20) ['PAC1670'|'PAC1651'], phase_type: varchar(5) ['1P'|'3P'], bus_id: varchar(30), modbus_address: smallint, uplink_route: varchar(100), status: varchar(10) default 'online', last_reading_at: timestamptz?
+**meters** — id: varchar(10) PK (e.g. 'M001'), building_id: varchar(50) FK→buildings, model: varchar(20) ['PAC1670'|'PAC1651'], phase_type: varchar(5) ['1P'|'3P'], bus_id: varchar(30), modbus_address: smallint, uplink_route: varchar(100), store_type: varchar(100) NULL, store_name: varchar(200) NULL (docx: tienda/local; migración 013), status: varchar(10) default 'online', last_reading_at: timestamptz?
 
 **readings** — id: integer PK auto, meter_id: varchar(10) FK→meters, timestamp: timestamptz, voltage_l1/l2/l3: numeric(7,2)?, current_l1/l2/l3: numeric(8,3)?, power_kw: numeric(10,3) NOT NULL, reactive_power_kvar: numeric(10,3)?, power_factor: numeric(5,3)?, frequency_hz: numeric(6,3)?, energy_kwh_total: numeric(14,3) NOT NULL acumulativo, thd_voltage_pct: numeric(5,2)?, thd_current_pct: numeric(5,2)?, phase_imbalance_pct: numeric(5,2)?, breaker_status: varchar(10)?, digital_input_1/2: smallint?, digital_output_1/2: smallint?, alarm: varchar(50)?, modbus_crc_errors: integer?
 
@@ -332,14 +332,14 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | `010_readings_import_staging.sql` → tabla staging para importación CSV
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | `010_readings_import_staging.sql` → tabla staging para importación CSV | `013_center_and_store_fields.sql` → center_type en buildings, store_type/store_name en meters (docx)
 Todas las migraciones hasta `010` ya están aplicadas en producción (2026-03-10).
 
 ## TypeScript Types
 
 ### Frontend types/index.ts
 ```
-Building { id, name, address, totalArea, metersCount }
+Building { id, name, address, centerType?, totalArea, metersCount }
 Meter { id, buildingId, model, phaseType, busId, modbusAddress, uplinkRoute, status, lastReadingAt }
 Reading { timestamp, voltageL1-3, currentL1-3, powerKw, reactivePowerKvar, powerFactor, frequencyHz, energyKwhTotal, thdVoltagePct, thdCurrentPct, phaseImbalancePct, breakerStatus, digitalInput1-2, digitalOutput1-2, alarm, modbusCrcErrors }
 ConsumptionPoint { timestamp, totalPowerKw, avgPowerKw, peakPowerKw }
@@ -627,5 +627,5 @@ cd backend && npx sls offline
 - **NO usar:** cpanel-runbook.md, git-deploy.md, server-runbook.md
 
 ## References
-- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Perfil de Datos](scripts/perfil_datos.py) | [Revisión datos Drive en RDS](docs/data-drive-aws-review.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md)
+- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Revisión APIs vs docx](docs/revision-apis-vs-docx-bd.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md). Lectura docx: `node scripts/read-docx.mjs` (requiere `cd scripts && npm install`).
 - `CLAUDE.md` debe mantenerse autocontenido; no depender de `patterns/` para contexto operativo base.

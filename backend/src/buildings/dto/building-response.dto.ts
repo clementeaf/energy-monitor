@@ -10,6 +10,9 @@ export class BuildingSummaryDto {
   @ApiProperty({ example: 'Av. Principal 4220' })
   address!: string;
 
+  @ApiProperty({ example: 'Mall Grande', nullable: true, description: 'Categoría del centro (center_type). Null en legacy.' })
+  centerType!: string | null;
+
   @ApiProperty({ example: 1200.5 })
   totalArea!: number;
 

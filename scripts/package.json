@@ -1,0 +1,9 @@
+{
+  "name": "energy-monitor-scripts",
+  "private": true,
+  "description": "Scripts auxiliares (lectura docx, diagnósticos, etc.)",
+  "type": "module",
+  "dependencies": {
+    "mammoth": "^1.8.0"
+  }
+}

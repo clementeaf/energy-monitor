@@ -32,6 +32,14 @@ export class Meter {
   @Column({ name: 'uplink_route', type: 'varchar', length: 100 })
   uplinkRoute!: string;
 
+  @ApiProperty({ example: 'Retail', nullable: true, description: 'Rubro del local (docx: store_type). Null en legacy.' })
+  @Column({ name: 'store_type', type: 'varchar', length: 100, nullable: true })
+  storeType!: string | null;
+
+  @ApiProperty({ example: 'Falabella', nullable: true, description: 'Nombre del local (docx: store_name). Null en legacy.' })
+  @Column({ name: 'store_name', type: 'varchar', length: 200, nullable: true })
+  storeName!: string | null;
+
   @ApiProperty({ example: 'online', enum: ['online', 'offline'] })
   @Column({ type: 'varchar', length: 10, default: 'online' })
   status!: string;

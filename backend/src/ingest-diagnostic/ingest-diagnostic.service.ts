@@ -40,8 +40,8 @@ export class IngestDiagnosticService {
   constructor(private readonly dataSource: DataSource) {}
 
   /**
-   * Ejecuta el diagnóstico completo: staging (Drive) vs readings (backend).
-   * Determina si la data consumida por el backend corresponde en totalidad a lo obtenido de Google Drive.
+   * Ejecuta el diagnóstico por tramos (por source_file) para no colapsar con tablas de millones de filas.
+   * Evita JOINs masivos: cada archivo se consulta por separado usando índice en source_file.
    */
   async runDiagnostic(): Promise<DriveIngestDiagnosticResult> {
     const generatedAt = new Date().toISOString();
@@ -62,8 +62,8 @@ export class IngestDiagnosticService {
       };
     }
 
-    const stagingTotalRows = await this.getStagingTotalRows();
-    if (stagingTotalRows === 0) {
+    const stagingFiles = await this.getStagingSummaryByFileChunked();
+    if (stagingFiles.length === 0) {
       return {
         hasStagingTable: true,
         stagingTotalRows: 0,
@@ -78,14 +78,11 @@ export class IngestDiagnosticService {
       };
     }
 
-    const [stagingFiles, stagingMeterIds, readingsMatchedCount, readingsTotalForStagingMeters, perFileMatch] =
-      await Promise.all([
-        this.getStagingSummaryByFile(),
-        this.getStagingMeterIds(),
-        this.getReadingsMatchedCount(),
-        this.getReadingsTotalForStagingMeters(),
-        this.getPerFileMatch(),
-      ]);
+    const stagingTotalRows = stagingFiles.reduce((sum, f) => sum + f.rowCount, 0);
+
+    const { stagingMeterIds, perFileMatch, readingsMatchedCount } = await this.processByFile(stagingFiles);
+    const readingsTotalForStagingMeters =
+      stagingMeterIds.length > 0 ? await this.getReadingsTotalForStagingMeters(stagingMeterIds) : 0;
 
     const missingTotal = stagingTotalRows - readingsMatchedCount;
     let conclusion: DriveIngestDiagnosticResult['conclusion'];
@@ -127,85 +124,112 @@ export class IngestDiagnosticService {
     return result[0]?.exists === true;
   }
 
-  private async getStagingTotalRows(): Promise<number> {
-    const result = await this.dataSource.query<Array<{ total: string }>>(
-      'SELECT COUNT(*)::bigint AS total FROM readings_import_staging',
+  /**
+   * Lista de source_file sin barrer toda la tabla: usa índice si existe en source_file.
+   */
+  private async getStagingSourceFiles(): Promise<string[]> {
+    const rows = await this.dataSource.query<Array<{ source_file: string }>>(
+      'SELECT DISTINCT source_file FROM readings_import_staging ORDER BY source_file',
     );
-    return Number(result[0]?.total ?? 0);
+    return rows.map((r) => r.source_file);
   }
 
-  private async getStagingSummaryByFile(): Promise<DriveIngestFileSummary[]> {
-    const rows = await this.dataSource.query<
-      { source_file: string; row_count: string; meter_count: string; min_ts: string; max_ts: string }[]
-    >(
-      `SELECT
-        source_file,
-        COUNT(*)::bigint AS row_count,
-        COUNT(DISTINCT meter_id)::int AS meter_count,
-        MIN(timestamp)::text AS min_ts,
-        MAX(timestamp)::text AS max_ts
-       FROM readings_import_staging
-       GROUP BY source_file
-       ORDER BY source_file`,
-    );
-    return rows.map((r) => ({
-      sourceFile: r.source_file,
-      rowCount: Number(r.row_count),
-      meterCount: Number(r.meter_count),
-      minTimestamp: r.min_ts,
-      maxTimestamp: r.max_ts,
-    }));
+  /**
+   * Resumen por archivo en tramos: una query por source_file (índice; no colapsa con millones de filas).
+   */
+  private async getStagingSummaryByFileChunked(): Promise<DriveIngestFileSummary[]> {
+    const files = await this.getStagingSourceFiles();
+    if (files.length === 0) return [];
+
+    const summaries: DriveIngestFileSummary[] = [];
+    for (const sourceFile of files) {
+      const rows = await this.dataSource.query<
+        Array<{ row_count: string; meter_count: string; min_ts: string; max_ts: string }>
+      >(
+        `SELECT
+          COUNT(*)::bigint AS row_count,
+          COUNT(DISTINCT meter_id)::int AS meter_count,
+          MIN(timestamp)::text AS min_ts,
+          MAX(timestamp)::text AS max_ts
+         FROM readings_import_staging
+         WHERE source_file = $1`,
+        [sourceFile],
+      );
+      const r = rows[0];
+      if (r)
+        summaries.push({
+          sourceFile,
+          rowCount: Number(r.row_count),
+          meterCount: Number(r.meter_count),
+          minTimestamp: r.min_ts,
+          maxTimestamp: r.max_ts,
+        });
+    }
+    return summaries;
   }
 
-  private async getStagingMeterIds(): Promise<string[]> {
-    const rows = await this.dataSource.query<Array<{ meter_id: string }>>(
-      'SELECT DISTINCT meter_id FROM readings_import_staging ORDER BY meter_id',
-    );
-    return rows.map((r: { meter_id: string }) => r.meter_id);
-  }
+  /**
+   * Procesa por tramo (cada source_file): meter_ids, matched count y perFileMatch.
+   * Cada query filtra por source_file para usar índice y no colapsar el servicio.
+   */
+  private async processByFile(
+    stagingFiles: DriveIngestFileSummary[],
+  ): Promise<{ stagingMeterIds: string[]; perFileMatch: DriveIngestFileMatch[]; readingsMatchedCount: number }> {
+    const meterIdSet = new Set<string>();
+    const perFileMatch: DriveIngestFileMatch[] = [];
+    let readingsMatchedCount = 0;
 
-  private async getReadingsMatchedCount(): Promise<number> {
-    const result = await this.dataSource.query<Array<{ cnt: string }>>(
-      `SELECT COUNT(*)::bigint AS cnt
-       FROM readings_import_staging s
-       INNER JOIN readings r ON r.meter_id = s.meter_id AND r.timestamp = s.timestamp`,
-    );
-    return Number(result[0]?.cnt ?? 0);
-  }
-
-  private async getReadingsTotalForStagingMeters(): Promise<number> {
-    const result = await this.dataSource.query<Array<{ cnt: string }>>(
-      `SELECT COUNT(*)::bigint AS cnt
-       FROM readings r
-       WHERE r.meter_id IN (SELECT DISTINCT meter_id FROM readings_import_staging)`,
-    );
-    return Number(result[0]?.cnt ?? 0);
-  }
-
-  private async getPerFileMatch(): Promise<DriveIngestFileMatch[]> {
-    type PerFileRow = { source_file: string; staging_rows: string; matched: string };
-    const rows = await this.dataSource.query<PerFileRow[]>(
-      `SELECT
-        s.source_file,
-        COUNT(DISTINCT s.id)::bigint AS staging_rows,
-        COUNT(DISTINCT r.id)::bigint AS matched
-       FROM readings_import_staging s
-       LEFT JOIN readings r ON r.meter_id = s.meter_id AND r.timestamp = s.timestamp
-       GROUP BY s.source_file
-       ORDER BY s.source_file`,
-    );
-    return rows.map((r) => {
-      const stagingRows = Number(r.staging_rows);
-      const matched = Number(r.matched);
+    for (const file of stagingFiles) {
+      const [meterIds, matched] = await Promise.all([
+        this.getMeterIdsForFile(file.sourceFile),
+        this.getMatchedCountForFile(file.sourceFile),
+      ]);
+      meterIds.forEach((id) => meterIdSet.add(id));
+      const stagingRows = file.rowCount;
       const missing = stagingRows - matched;
       const matchPercent = stagingRows > 0 ? (matched / stagingRows) * 100 : 0;
-      return {
-        sourceFile: r.source_file,
+      perFileMatch.push({
+        sourceFile: file.sourceFile,
         stagingRows,
         matchedInReadings: matched,
         missingInReadings: missing,
         matchPercent: Math.round(matchPercent * 10) / 10,
-      };
-    });
+      });
+      readingsMatchedCount += matched;
+    }
+
+    return {
+      stagingMeterIds: Array.from(meterIdSet).sort(),
+      perFileMatch,
+      readingsMatchedCount,
+    };
+  }
+
+  private async getMeterIdsForFile(sourceFile: string): Promise<string[]> {
+    const rows = await this.dataSource.query<Array<{ meter_id: string }>>(
+      'SELECT DISTINCT meter_id FROM readings_import_staging WHERE source_file = $1 ORDER BY meter_id',
+      [sourceFile],
+    );
+    return rows.map((r) => r.meter_id);
+  }
+
+  private async getMatchedCountForFile(sourceFile: string): Promise<number> {
+    const result = await this.dataSource.query<Array<{ cnt: string }>>(
+      `SELECT COUNT(*)::bigint AS cnt
+       FROM readings_import_staging s
+       INNER JOIN readings r ON r.meter_id = s.meter_id AND r.timestamp = s.timestamp
+       WHERE s.source_file = $1`,
+      [sourceFile],
+    );
+    return Number(result[0]?.cnt ?? 0);
+  }
+
+  private async getReadingsTotalForStagingMeters(meterIds: string[]): Promise<number> {
+    if (meterIds.length === 0) return 0;
+    const result = await this.dataSource.query<Array<{ cnt: string }>>(
+      'SELECT COUNT(*)::bigint AS cnt FROM readings r WHERE r.meter_id = ANY($1::text[])',
+      [meterIds],
+    );
+    return Number(result[0]?.cnt ?? 0);
   }
 }

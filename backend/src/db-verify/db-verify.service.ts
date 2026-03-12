@@ -49,6 +49,7 @@ ON CONFLICT (token_hash) DO UPDATE SET
   expires_at = now() + interval '1 year'`;
 
 export interface DbVerifyResult {
+  /** staging es estimado (pg_class) para no hacer COUNT(*) sobre millones de filas. */
   counts: { readings: number; meters: number; buildings: number; staging: number | null };
   metersPerBuilding: Array<{ building_id: string; meter_count: number }>;
   meterIdSample: string[];
@@ -92,10 +93,11 @@ export class DbVerifyService {
 
     let staging: number | null = null;
     try {
-      const stagingRes = await this.dataSource.query<CountRow[]>(
-        'SELECT COUNT(*)::bigint AS total FROM readings_import_staging',
+      const stagingRes = await this.dataSource.query<Array<{ reltuples: string }>>(
+        `SELECT COALESCE(reltuples::bigint, 0)::text AS reltuples
+         FROM pg_class WHERE relname = 'readings_import_staging'`,
       );
-      staging = countVal(stagingRes);
+      staging = stagingRes[0] ? Math.max(0, Math.round(Number(stagingRes[0].reltuples))) : null;
     } catch {
       // tabla puede no existir
     }

@@ -494,7 +494,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Entities con @ApiProperty({ example }).
 
-**Lambda:** serverless.ts cachea bootstrap; función `api` timeout 30s (cold start + consultas). offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI. DbVerifyService e IngestDiagnosticService con consultas defensivas (try/catch; opcional `errors[]`). Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
+**Lambda:** serverless.ts cachea bootstrap; función `api` timeout 30s (cold start + consultas). offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI. DbVerifyService e IngestDiagnosticService con consultas defensivas (try/catch; opcional `errors[]`). IngestDiagnosticService procesa por tramos (por source_file) para no hacer JOINs sobre millones de filas; cada archivo se consulta con WHERE source_file = $1 usando idx_readings_import_staging_source_file. Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
 
 **Error handling:** service retorna `null` para not-found y controller lanza `NotFoundException`; auth `verifyToken()` retorna `null` en failure; Nest maneja el resto como 500.
 
@@ -582,7 +582,7 @@ cd backend && npx sls offline
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/serverless.yml` | Lambda 256MB, api timeout 30s, VPC, env vars (api, offlineAlerts, dbVerify) |
-| `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings (Drive→RDS) |
+| `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings (Drive→RDS); consultas por tramo por source_file para no colapsar con millones de filas |
 | `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |

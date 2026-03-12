@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0-alpha.17] - 2026-03-12
+
+### Fixed
+
+- **GET /meters/overview 500 sin migración 013** — MetersService.getOverview deja de seleccionar store_type y store_name en la query; usa dataSource.query y devuelve storeType/storeName null. La API responde 200 aunque la migración 013 no esté aplicada.
+
+### Changed
+
+- **CLAUDE.md** — Compatibilidad sin 013: GET /meters/overview incluido; patrón MetersService.getOverview con raw query.
+
 ## [0.9.0-alpha.16] - 2026-03-12
 
 ### Fixed

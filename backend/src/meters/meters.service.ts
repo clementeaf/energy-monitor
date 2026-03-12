@@ -367,18 +367,20 @@ export class MetersService {
     return { total, byType: rows };
   }
 
+  /**
+   * Overview de medidores. No selecciona store_type/store_name para compatibilidad con BD sin migración 013.
+   */
   async getOverview(scope: AccessScope) {
     const scopedSiteIds = getScopedSiteIds(scope);
     const whereClause = scopedSiteIds ? 'WHERE m.building_id = ANY($1)' : '';
-    const rows = await this.readingRepo.query(`
+    const rows = await this.dataSource.query(
+      `
       SELECT
         m.id,
         m.building_id AS "buildingId",
         m.model,
         m.phase_type AS "phaseType",
         m.bus_id AS "busId",
-        m.store_type AS "storeType",
-        m.store_name AS "storeName",
         m.last_reading_at AS "lastReadingAt",
         COALESCE(alarm_counts.cnt, 0)::int AS "alarmCount30d",
         uptime_calc."uptimePercent"
@@ -409,7 +411,9 @@ export class MetersService {
       ) uptime_calc ON true
       ${whereClause}
       ORDER BY m.id ASC
-    `, scopedSiteIds ? [scopedSiteIds] : []);
+    `,
+      scopedSiteIds ? [scopedSiteIds] : [],
+    );
 
     return rows.map((r: Record<string, unknown>) => ({
       id: r.id,
@@ -417,8 +421,8 @@ export class MetersService {
       model: r.model,
       phaseType: r.phaseType,
       busId: r.busId,
-      storeType: r.storeType ?? null,
-      storeName: r.storeName ?? null,
+      storeType: null as string | null,
+      storeName: null as string | null,
       status: getMeterStatus(r.lastReadingAt as string | null),
       lastReadingAt: r.lastReadingAt,
       uptime24h: toNumberOrZero(r.uptimePercent),

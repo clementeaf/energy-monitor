@@ -333,7 +333,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 
 ### SQL Migrations
 `sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | `010_readings_import_staging.sql` → tabla staging para importación CSV | `013_center_and_store_fields.sql` → center_type en buildings, store_type/store_name en meters (docx)
-Todas las migraciones hasta `010` ya están aplicadas en producción (2026-03-10). Si `013` no está aplicada, `GET /buildings` y `GET /buildings/:id` siguen funcionando (BuildingsService usa raw query sin esas columnas; `centerType` se devuelve null).
+Todas las migraciones hasta `010` ya están aplicadas en producción (2026-03-10). Si `013` no está aplicada, `GET /buildings`, `GET /buildings/:id` y `GET /meters/overview` siguen funcionando (BuildingsService y MetersService.getOverview usan raw query sin center_type/store_type/store_name; esos campos se devuelven null).
 
 ## TypeScript Types
 
@@ -486,7 +486,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **NestJS module (4-file):** `<entity>.entity.ts` (@ApiProperty) → `<domain>.service.ts` (@Injectable) → `<domain>.controller.ts` (Swagger decorators) → `<domain>.module.ts` (TypeOrmModule.forFeature). Registrar en app.module.ts.
 
-**TypeORM:** autoLoadEntities: true, synchronize: false. Entities con `!` assertion. Raw SQL: `this.repo.query(sql, [params])` o `this.dataSource.query()`. Manual camelCase mapping: `rows.map(r => ({ field: Number(r.field) }))`. BuildingsService.findAll/findOne: raw query (id, name, address, total_area + subquery count) para compatibilidad con BD sin migración 013; evita 500 por columnas center_type/store_type/store_name ausentes.
+**TypeORM:** autoLoadEntities: true, synchronize: false. Entities con `!` assertion. Raw SQL: `this.repo.query(sql, [params])` o `this.dataSource.query()`. Manual camelCase mapping: `rows.map(r => ({ field: Number(r.field) }))`. BuildingsService.findAll/findOne: raw query (id, name, address, total_area + subquery count) para compatibilidad con BD sin migración 013. MetersService.getOverview: raw query sin store_type/store_name; evita 500 por columnas de 013 ausentes.
 
 **SQL patterns:** date_trunc aggregation, WITH RECURSIVE CTE (hierarchy), LATERAL subqueries (overview).
 

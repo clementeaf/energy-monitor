@@ -34,6 +34,7 @@ provider:
 functions:
   api:
     handler: dist/serverless.handler
+    timeout: 30
     events:
       - httpApi:
           method: '*'

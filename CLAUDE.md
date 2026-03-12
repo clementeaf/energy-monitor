@@ -278,10 +278,18 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 |---|---|---|---|
 | GET | `/views` | — | `ViewOption[]` |
 
-Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
-**users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
+### Admin / Diagnóstico — requiere Bearer + `ADMIN_USERS.view`
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/db-verify` | — | Conteos (readings, meters, buildings, staging), metersPerBuilding, timeRanges, hierarchy, buildings; opcional `errors[]` si alguna query falla (respuesta siempre 200). |
+| GET | `/db-verify/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
+| GET | `/ingest/diagnostic` | — | Diagnóstico Drive→RDS: staging vs readings, conclusion (full_match \| partial_match \| mismatch \| no_staging_data), perFileMatch, message. |
+| GET | `/ingest/diagnostic/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
 
-- `external_id` y `provider` quedan nulos en invitaciones pendientes y se completan en el primer login válido.
+Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
+**users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'|'invitation'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
+
+- Invitaciones: si en prod `external_id`/`provider` son NOT NULL, el backend usa centinela `provider='invitation'` y `external_id='inv:<hex>'` al crear la invitación; el primer login OAuth reemplaza por el valor real. La API sigue exponiendo `provider: null` para invitados pendientes.
 `sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación
 
 ## Database Schema
@@ -486,7 +494,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Entities con @ApiProperty({ example }).
 
-**Lambda:** serverless.ts cachea bootstrap. offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI, ejecuta consultas de verificación RDS (misma VPC/env que api). Usa `meters.id` (no `meter_id`); la tabla meters tiene PK `id`. Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
+**Lambda:** serverless.ts cachea bootstrap; función `api` timeout 30s (cold start + consultas). offline-alerts.ts NO cachea (tech debt). db-verify-lambda.ts: invocable con AWS CLI. DbVerifyService e IngestDiagnosticService con consultas defensivas (try/catch; opcional `errors[]`). Infra lambdas (synthetic-generator, backfill-gap) usan pg directo, independientes de NestJS.
 
 **Error handling:** service retorna `null` para not-found y controller lanza `NotFoundException`; auth `verifyToken()` retorna `null` en failure; Nest maneja el resto como 500.
 
@@ -573,7 +581,8 @@ cd backend && npx sls offline
 | `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
-| `backend/serverless.yml` | Lambda 256MB/10s, VPC, env vars (api, offlineAlerts, dbVerify) |
+| `backend/serverless.yml` | Lambda 256MB, api timeout 30s, VPC, env vars (api, offlineAlerts, dbVerify) |
+| `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings (Drive→RDS) |
 | `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
@@ -602,6 +611,7 @@ cd backend && npx sls offline
 - **Readings sin retention:** ~21,600 filas/día, sin partitioning.
 - **SSL rejectUnauthorized: false** en todas las conexiones DB.
 - **Token en sessionStorage:** Vulnerable a XSS.
+- **Producción sin 007:** Si `external_id`/`provider` siguen NOT NULL, las invitaciones usan centinela (`invitation`/`inv:...`); aplicar `sql/007_invite_first_users.sql` para permitir NULL.
 - **Sin rate limiting, sin security headers, sin structured logging.**
 - **Migraciones manuales:** no hay migration runner; las migraciones SQL se aplican manualmente. Verificar siempre que las tablas y columnas esperadas por el código existan en producción antes de deployar.
 

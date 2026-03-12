@@ -45,6 +45,9 @@ export interface CreateUserInvitationInput {
 
 const INVITATION_TTL_DAYS = 7;
 
+/** Provider centinela para usuarios invitados (evita NULL en external_id si la columna es NOT NULL en prod). */
+export const PROVIDER_INVITATION = 'invitation';
+
 function hashInvitationToken(token: string) {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -55,12 +58,17 @@ function buildInvitationExpiration() {
   return expiration;
 }
 
+/** Genera external_id único para invitación (UNIQUE(provider, external_id) y evita NULL). */
+function invitationExternalId(): string {
+  return 'inv:' + randomBytes(16).toString('hex');
+}
+
 function buildInvitationStatus(user: User): AdminUserSummary['invitationStatus'] {
   if (!user.isActive) {
     return 'disabled';
   }
 
-  if (user.externalId) {
+  if (user.provider !== PROVIDER_INVITATION && user.externalId) {
     return 'active';
   }
 
@@ -137,7 +145,10 @@ export class UsersService {
       return null;
     }
 
-    const requiresInvitationToken = !existing.externalId && !existing.provider && !!existing.invitationTokenHash;
+    const isInvitedUser =
+      (existing.provider === PROVIDER_INVITATION || (!existing.externalId && !existing.provider))
+      && !!existing.invitationTokenHash;
+    const requiresInvitationToken = isInvitedUser;
     if (requiresInvitationToken) {
       const invitationStatus = buildInvitationStatus(existing);
       const matchesInvitation = !!data.invitationToken
@@ -198,8 +209,8 @@ export class UsersService {
 
     const user = await this.userRepo.save(
       this.userRepo.create({
-        externalId: null,
-        provider: null,
+        externalId: invitationExternalId(),
+        provider: PROVIDER_INVITATION,
         email: normalizedEmail,
         name: data.name.trim(),
         avatarUrl: null,
@@ -284,7 +295,7 @@ export class UsersService {
         roleId: user.roleId,
         role: user.role.name,
         roleLabel: user.role.labelEs,
-        provider: (user.provider as 'microsoft' | 'google' | null) ?? null,
+        provider: user.provider === PROVIDER_INVITATION ? null : (user.provider as 'microsoft' | 'google' | null) ?? null,
         isActive: user.isActive,
         siteIds: siteMap.get(user.id) ?? [],
         invitationStatus: buildInvitationStatus(user),

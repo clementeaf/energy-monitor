@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0-alpha.13] - 2026-03-12
+
+### Added
+
+- **Diagnóstico Drive → RDS (API)** — `GET /api/ingest/diagnostic`: compara `readings_import_staging` con `readings` y devuelve conclusion (full_match | partial_match | mismatch | no_staging_data), perFileMatch, stagingFiles, message. Requiere ADMIN_USERS.view. `GET /api/ingest/diagnostic/local` sin auth en desarrollo.
+- **DbVerifyService defensivo** — Cada bloque de consultas en try/catch; si una query falla se devuelven valores por defecto y opcionalmente `errors[]` en la respuesta (nunca 500 en este endpoint).
+
+### Changed
+
+- **Lambda API timeout** — Aumentado a 30s en serverless.yml para evitar 500 por timeout en cold start (bootstrap Nest + TypeORM ~8s).
+- **Invitaciones sin NULL en external_id** — Si en producción `external_id`/`provider` son NOT NULL, al crear invitación se usan centinelas `provider='invitation'` y `external_id='inv:<hex>'`; el primer login OAuth reemplaza por el valor real. La API sigue exponiendo `provider: null` para invitados pendientes.
+
 ## [0.9.0-alpha.12] - 2026-03-12
 
 ### Added

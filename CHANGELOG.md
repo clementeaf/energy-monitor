@@ -5,10 +5,13 @@
 ### Added
 
 - **CLAUDE.md** — Sección "Frontend: vistas, gráficos, datos y flujo": catálogo de vistas (rutas, permisos, datos por vista), gráficos y visualizaciones (StockChart en edificio/medidor, DrilldownBars, tablas), datos por dominio y hooks, patrones de consumo (cache/refetch por query), flujo resumido. Patrones de frontend actualizados con referencia a la nueva sección y detalle de cache strategy.
+- **Jerarquía desde staging (Opción A)** — Script `infra/drive-import-staging/hierarchy-from-staging.mjs`: lee `readings_import_staging` (center_type, store_type, store_name, meter_id) y escribe `hierarchy_nodes` en 4 niveles (Building → Panel → Subpanel → Circuit) para edificios Drive sin jerarquía. Uso: `npm run hierarchy-from-staging`; mismo env que promote. Documentación en `docs/hierarchy-from-staging.md`.
+- **Plan de negocio consumo RDS** — `docs/plan-negocio-consumo-datos-rds.md`: contexto, brechas, fases (validación from/to, jerarquía Drive, escala/reporting), riesgos. Referencia a hierarchy-from-staging como Opción A implementada.
 
 ### Changed
 
 - **Frontend consumo y lecturas** — Las llamadas a consumo (edificio) y lecturas (medidor) envían siempre `from` y `to` al backend. Rango por defecto: últimos 7 días; al cambiar el rango en el gráfico (StockChart) se actualiza el estado y se refetcha con el nuevo intervalo. Hooks useBuildingConsumption y useMeterReadings requieren from/to (enabled solo con rango); evita peticiones sin acotar con muchos datos en RDS.
+- **CLAUDE.md Bulk CSV Ingest** — Alcance explícito: la carga desde Google Drive es un mecanismo de ingesta de datos (puntual u ocasional), no un puente operativo permanente; el producto opera sobre datos ya cargados en RDS.
 
 ## [0.9.0-alpha.11] - 2026-03-11
 

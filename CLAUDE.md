@@ -125,6 +125,8 @@ Medidor Siemens (PAC1670/PAC1651)
 - Historial: CSV Ene-Feb 2026 importado, gap Mar 2-5 backfilled, Mar 6+ generado en tiempo real.
 
 ## Bulk CSV Ingest — Sistema Incremental Automatizado
+
+- **Alcance:** La carga desde Google Drive es un **mecanismo de ingesta de datos** (puntual u ocasional), no un puente operativo permanente. Sirve para tener datos históricos o masivos en RDS; una vez cargados, el producto opera sobre lo que ya está en `readings`, `meters`, `buildings` y `hierarchy_nodes`. La telemetría en vivo y el uso normal de la app no dependen de Drive.
 - Última actualización operativa validada: `2026-03-11`.
 - **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso.
 - **Detección de cambios:** compara `driveModifiedTime` del manifest S3 más reciente contra el valor actual en Drive antes de descargar. Si no hubo cambios → `[skip]`. Soporta `FORCE_DOWNLOAD=true` para forzar descarga completa.
@@ -157,7 +159,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - `promote.mjs` auto-descubre `center_name` → crea buildings slugificados, auto-descubre meters → crea catalog entries.
 - Promotion usa `INSERT INTO readings SELECT FROM staging` con `NOT EXISTS` para idempotencia, batch por `source_file`.
 - Soporta `DRY_RUN=true` para inspección sin escritura.
-- Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`.
+- Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`. Jerarquía para sitios Drive: script `infra/drive-import-staging/hierarchy-from-staging.mjs` (lee staging: center_type, store_type, store_name, meter_id → escribe hierarchy_nodes en 4 niveles); uso `npm run hierarchy-from-staging`; ver `docs/hierarchy-from-staging.md`.
 
 ### Ejecución de la promotion
 ```bash

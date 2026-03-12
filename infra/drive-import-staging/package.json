@@ -5,7 +5,9 @@
   "scripts": {
     "migrate": "node apply-migration.mjs",
     "qa": "node qa-staging.mjs",
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "promote": "node promote.mjs",
+    "hierarchy-from-staging": "node hierarchy-from-staging.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1005.0",

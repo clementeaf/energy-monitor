@@ -153,7 +153,7 @@ jobs:
             body=$(echo "$out" | head -n -1)
             code=$(echo "$out" | tail -n1)
             echo "HTTP $code - $body"
-            if [ "$code" = "200" ]; then ok=1; break; fi
+            if [ "$code" = "200" ] || [ "$code" = "201" ]; then ok=1; break; fi
             [ $i -lt 3 ] && sleep 15
           done
           [ "$ok" = "1" ] || exit 1

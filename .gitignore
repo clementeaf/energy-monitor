@@ -30,3 +30,6 @@ backend/.serverless/
 
 # Local source artifacts
 docs/Archivos 15 equipos correccion de energia.zip
+
+# SSH key for RDS tunnel (private key, do not commit)
+scripts/*.pem

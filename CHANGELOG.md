@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.14] - 2026-03-12
+
+### Added
+
+- **Fuente de lecturas configurable (READINGS_SOURCE)** — Con `READINGS_SOURCE=staging`, las APIs de lecturas y consumo leen desde `readings_import_staging` en lugar de `readings`. Límites por consulta: 5000 filas por defecto, hasta 50000 con query `limit`; rango `from`/`to` obligatorio y máximo 90 días. Endpoints: `GET /meters/:id/readings`, `GET /buildings/:id/consumption`, consumo por nodo en hierarchy (drill-down). Config en `backend/src/readings-source.config.ts`; MetersService y HierarchyService consultan staging con subconsultas limitadas (thd/alarm null en staging).
+
+### Changed
+
+- **MetersController** — Parámetro opcional `limit` en `GET /meters/:id/readings`; documentación Swagger para uso con READINGS_SOURCE=staging.
+- **BuildingsController** — ApiOperation de consumption actualizado: from/to obligatorios cuando READINGS_SOURCE=staging.
+
 ## [0.9.0-alpha.13] - 2026-03-12
 
 ### Added

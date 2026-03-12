@@ -52,11 +52,15 @@ export class BuildingsController {
 
   @Get(':id/consumption')
   @RequirePermissions('BUILDING_DETAIL', 'view')
-  @ApiOperation({ summary: 'Consumo agregado de un edificio', description: 'Retorna serie temporal con potencia total, promedio y pico por intervalo.' })
+  @ApiOperation({
+    summary: 'Consumo agregado de un edificio',
+    description:
+      'Retorna serie temporal con potencia total, promedio y pico. Si READINGS_SOURCE=staging: from y to son obligatorios; rango máx. 90 días.',
+  })
   @ApiParam({ name: 'id', example: 'pac4220' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })
-  @ApiQuery({ name: 'from', required: false, description: 'Inicio del rango (ISO 8601)', example: '2026-01-01T00:00:00Z' })
-  @ApiQuery({ name: 'to', required: false, description: 'Fin del rango (ISO 8601)', example: '2026-03-06T23:59:59Z' })
+  @ApiQuery({ name: 'from', required: false, description: 'Inicio (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
+  @ApiQuery({ name: 'to', required: false, description: 'Fin (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
   @ApiOkResponse({ type: [ConsumptionPointDto] })
   findConsumption(
     @Param('id') id: string,

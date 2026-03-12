@@ -106,11 +106,16 @@ export class MetersController {
 
   @Get(':id/readings')
   @RequirePermissions('METER_DETAIL', 'view')
-  @ApiOperation({ summary: 'Obtener lecturas de un medidor', description: 'Retorna lecturas crudas o agregadas (promedio) por hora/día.' })
+  @ApiOperation({
+    summary: 'Obtener lecturas de un medidor',
+    description:
+      'Retorna lecturas crudas o agregadas por hora/día. Si READINGS_SOURCE=staging: from y to son obligatorios; se aplica límite por consulta (default 5000, max 50000).',
+  })
   @ApiParam({ name: 'id', example: 'M001' })
   @ApiQuery({ name: 'resolution', required: false, enum: ['raw', '15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })
-  @ApiQuery({ name: 'from', required: false, description: 'Inicio del rango (ISO 8601)', example: '2026-01-01T00:00:00Z' })
-  @ApiQuery({ name: 'to', required: false, description: 'Fin del rango (ISO 8601)', example: '2026-03-06T23:59:59Z' })
+  @ApiQuery({ name: 'from', required: false, description: 'Inicio del rango (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
+  @ApiQuery({ name: 'to', required: false, description: 'Fin del rango (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Máximo de filas (solo staging). Entre 1 y 50000, default 5000.' })
   @ApiOkResponse({ type: [Reading] })
   async findReadings(
     @Param('id') id: string,
@@ -118,8 +123,17 @@ export class MetersController {
     @Query('resolution') resolution?: 'raw' | '15min' | 'hourly' | 'daily',
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('limit') limitStr?: string,
   ) {
-    const readings = await this.metersService.findReadings(id, authContext, resolution ?? 'hourly', from, to);
+    const limit = limitStr != null ? parseInt(limitStr, 10) : undefined;
+    const readings = await this.metersService.findReadings(
+      id,
+      authContext,
+      resolution ?? 'hourly',
+      from,
+      to,
+      Number.isNaN(limit) ? undefined : limit,
+    );
     if (!readings) throw new NotFoundException();
     return readings;
   }

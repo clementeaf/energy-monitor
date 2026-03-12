@@ -27,9 +27,11 @@ import { SessionModule } from './session/session.module';
         password: config.get<string>('DB_PASSWORD') ?? '',
         autoLoadEntities: true,
         synchronize: false,
-        ssl: config.get<string>('NODE_ENV') === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
+        ssl:
+          config.get<string>('NODE_ENV') === 'production' ||
+          config.get<string>('DB_SSL') === 'true'
+            ? { rejectUnauthorized: false }
+            : false,
       }),
     }),
 

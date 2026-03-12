@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { HierarchyNode } from './hierarchy-node.entity';
 import { Meter } from '../meters/meter.entity';
 import { hasSiteAccess, type AccessScope } from '../auth/access-scope';
+import { useStaging, STAGING_LIMITS } from '../readings-source.config';
 
 @Injectable()
 export class HierarchyService {
@@ -83,6 +84,13 @@ export class HierarchyService {
     const node = await this.findNode(nodeId, scope);
     if (!node) return null;
 
+    if (useStaging()) {
+      if (!from || !to) return null;
+      const maxRangeMs = STAGING_LIMITS.maxRangeDays * 24 * 60 * 60 * 1000;
+      if (new Date(to).getTime() - new Date(from).getTime() > maxRangeMs) return null;
+      return this.findNodeConsumptionFromStaging(nodeId, resolution, from, to);
+    }
+
     const trunc = resolution === 'daily' ? 'day' : 'hour';
 
     let query = `
@@ -127,8 +135,78 @@ export class HierarchyService {
     }));
   }
 
+  private async findNodeConsumptionFromStaging(
+    nodeId: string,
+    resolution: 'hourly' | 'daily',
+    from: string,
+    to: string,
+  ): Promise<Array<{ timestamp: string; totalPowerKw: number; avgPowerKw: number; peakPowerKw: number }>> {
+    const trunc = resolution === 'daily' ? 'day' : 'hour';
+    const cap = STAGING_LIMITS.defaultMaxRows * 2;
+    const rows = await this.dataSource.query(
+      `WITH RECURSIVE subtree AS (
+         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+         UNION ALL
+         SELECT h.id, h.meter_id FROM hierarchy_nodes h
+         INNER JOIN subtree s ON h.parent_id = s.id
+       ),
+       capped AS (
+         SELECT r.timestamp, r.power_kw
+         FROM readings_import_staging r
+         INNER JOIN subtree s ON s.meter_id = r.meter_id
+         WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3
+         ORDER BY r.timestamp ASC
+         LIMIT $4
+       )
+       SELECT
+         date_trunc('${trunc}', r.timestamp) AS "timestamp",
+         SUM(r.power_kw)::double precision AS "totalPowerKw",
+         AVG(r.power_kw)::double precision AS "avgPowerKw",
+         MAX(r.power_kw)::double precision AS "peakPowerKw"
+       FROM capped r
+       GROUP BY 1 ORDER BY 1 ASC`,
+      [nodeId, from, to, cap],
+    );
+    return rows.map((r: Record<string, unknown>) => ({
+      timestamp: String(r.timestamp),
+      totalPowerKw: Number(Number(r.totalPowerKw ?? 0).toFixed(3)),
+      avgPowerKw: Number(Number(r.avgPowerKw ?? 0).toFixed(3)),
+      peakPowerKw: Number(Number(r.peakPowerKw ?? 0).toFixed(3)),
+    }));
+  }
+
   /** Get total kWh, avg/peak power for a subtree */
   private async getSubtreeConsumption(nodeId: string, from?: string, to?: string) {
+    if (useStaging()) {
+      if (!from || !to) return { totalKwh: 0, avgPowerKw: 0, peakPowerKw: 0 };
+      const cap = STAGING_LIMITS.defaultMaxRows;
+      const [row] = await this.dataSource.query(
+        `WITH RECURSIVE subtree AS (
+           SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+           UNION ALL
+           SELECT h.id, h.meter_id FROM hierarchy_nodes h
+           INNER JOIN subtree s ON h.parent_id = s.id
+         ),
+         capped AS (
+           SELECT r.power_kw FROM readings_import_staging r
+           INNER JOIN subtree s ON s.meter_id = r.meter_id
+           WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3
+           LIMIT $4
+         )
+         SELECT
+           COALESCE(SUM(c.power_kw), 0)::double precision AS "totalKwh",
+           COALESCE(AVG(c.power_kw), 0)::double precision AS "avgPowerKw",
+           COALESCE(MAX(c.power_kw), 0)::double precision AS "peakPowerKw"
+         FROM capped c`,
+        [nodeId, from, to, cap],
+      );
+      return {
+        totalKwh: Number(Number(row?.totalKwh ?? 0).toFixed(3)),
+        avgPowerKw: Number(Number(row?.avgPowerKw ?? 0).toFixed(3)),
+        peakPowerKw: Number(Number(row?.peakPowerKw ?? 0).toFixed(3)),
+      };
+    }
+
     let query = `
       WITH RECURSIVE subtree AS (
         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1

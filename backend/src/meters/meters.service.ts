@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Meter } from './meter.entity';
 import { Reading } from './reading.entity';
 import { getMeterStatus } from './meter-status.util';
 import { getScopedSiteIds, hasSiteAccess, type AccessScope } from '../auth/access-scope';
+import {
+  useStaging,
+  STAGING_LIMITS,
+  clampStagingLimit,
+} from '../readings-source.config';
 
 function toNullableNumber(value: unknown): number | null {
   return value == null ? null : Number(value);
@@ -14,6 +19,11 @@ function toNumberOrZero(value: unknown): number {
   return value == null ? 0 : Number(value);
 }
 
+/** Máximo rango en días para validar from/to cuando se usa staging. */
+function getMaxRangeDaysMs(): number {
+  return STAGING_LIMITS.maxRangeDays * 24 * 60 * 60 * 1000;
+}
+
 @Injectable()
 export class MetersService {
   constructor(
@@ -21,6 +31,7 @@ export class MetersService {
     private readonly meterRepo: Repository<Meter>,
     @InjectRepository(Reading)
     private readonly readingRepo: Repository<Reading>,
+    private readonly dataSource: DataSource,
   ) {}
 
   private async findAccessibleMeterEntity(id: string, scope: AccessScope) {
@@ -47,15 +58,106 @@ export class MetersService {
     return m;
   }
 
+  /**
+   * Lee desde readings_import_staging con límite de filas y from/to obligatorios.
+   * Devuelve el mismo formato que findReadings (thd/alarm null; staging no los tiene).
+   */
+  private async findReadingsFromStaging(
+    meterId: string,
+    resolution: 'raw' | '15min' | 'hourly' | 'daily',
+    from: string,
+    to: string,
+    limit: number,
+  ): Promise<unknown[]> {
+    const cap = Math.min(limit, STAGING_LIMITS.maxRowsPerQuery);
+    if (resolution === 'raw') {
+      const rows = await this.dataSource.query(
+        `SELECT timestamp, voltage_l1, voltage_l2, voltage_l3, current_l1, current_l2, current_l3,
+                power_kw, reactive_power_kvar, power_factor, frequency_hz, energy_kwh_total
+         FROM readings_import_staging
+         WHERE meter_id = $1 AND timestamp >= $2 AND timestamp <= $3
+         ORDER BY timestamp ASC
+         LIMIT $4`,
+        [meterId, from, to, cap],
+      );
+      return rows.map((r: Record<string, unknown>) => ({
+        timestamp: r.timestamp,
+        voltageL1: toNullableNumber(r.voltage_l1),
+        voltageL2: toNullableNumber(r.voltage_l2),
+        voltageL3: toNullableNumber(r.voltage_l3),
+        currentL1: toNullableNumber(r.current_l1),
+        currentL2: toNullableNumber(r.current_l2),
+        currentL3: toNullableNumber(r.current_l3),
+        powerKw: Number(r.power_kw),
+        reactivePowerKvar: toNullableNumber(r.reactive_power_kvar),
+        powerFactor: toNullableNumber(r.power_factor),
+        frequencyHz: toNullableNumber(r.frequency_hz),
+        energyKwhTotal: Number(r.energy_kwh_total),
+        thdVoltagePct: null,
+        thdCurrentPct: null,
+        phaseImbalancePct: null,
+      }));
+    }
+    const trunc = resolution === 'daily' ? 'day' : resolution === '15min' ? 'hour' : 'hour';
+    const truncExpr =
+      resolution === '15min'
+        ? `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`
+        : `date_trunc('${trunc}', r.timestamp)`;
+    const rows = await this.dataSource.query(
+      `SELECT ${truncExpr} AS timestamp,
+              AVG(r.voltage_l1) AS "voltageL1", AVG(r.voltage_l2) AS "voltageL2", AVG(r.voltage_l3) AS "voltageL3",
+              AVG(r.current_l1) AS "currentL1", AVG(r.current_l2) AS "currentL2", AVG(r.current_l3) AS "currentL3",
+              AVG(r.power_kw) AS "powerKw", AVG(r.reactive_power_kvar) AS "reactivePowerKvar",
+              AVG(r.power_factor) AS "powerFactor", AVG(r.frequency_hz) AS "frequencyHz",
+              MAX(r.energy_kwh_total) AS "energyKwhTotal"
+       FROM (
+         SELECT * FROM readings_import_staging
+         WHERE meter_id = $1 AND timestamp >= $2 AND timestamp <= $3
+         ORDER BY timestamp ASC
+         LIMIT $4
+       ) r
+       GROUP BY 1 ORDER BY 1 ASC`,
+      [meterId, from, to, cap],
+    );
+    return rows.map((r: Record<string, unknown>) => ({
+      timestamp: r.timestamp,
+      voltageL1: toNullableNumber(r.voltageL1),
+      voltageL2: toNullableNumber(r.voltageL2),
+      voltageL3: toNullableNumber(r.voltageL3),
+      currentL1: toNullableNumber(r.currentL1),
+      currentL2: toNullableNumber(r.currentL2),
+      currentL3: toNullableNumber(r.currentL3),
+      powerKw: Number(r.powerKw),
+      reactivePowerKvar: toNullableNumber(r.reactivePowerKvar),
+      powerFactor: toNullableNumber(r.powerFactor),
+      frequencyHz: toNullableNumber(r.frequencyHz),
+      energyKwhTotal: Number(r.energyKwhTotal),
+      thdVoltagePct: null,
+      thdCurrentPct: null,
+      phaseImbalancePct: null,
+    }));
+  }
+
   async findReadings(
     meterId: string,
     scope: AccessScope,
     resolution: 'raw' | '15min' | 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
+    limitParam?: number,
   ) {
     const meter = await this.findAccessibleMeterEntity(meterId, scope);
     if (!meter) return null;
+
+    if (useStaging()) {
+      if (!from || !to) return null;
+      const fromMs = new Date(from).getTime();
+      const toMs = new Date(to).getTime();
+      if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) return null;
+      if (toMs - fromMs > getMaxRangeDaysMs()) return null;
+      const limit = clampStagingLimit(limitParam);
+      return this.findReadingsFromStaging(meterId, resolution, from, to, limit);
+    }
 
     if (resolution === 'raw') {
       const qb = this.readingRepo.createQueryBuilder('r')
@@ -329,6 +431,15 @@ export class MetersService {
   ) {
     if (!hasSiteAccess(scope, buildingId)) return null;
 
+    if (useStaging()) {
+      if (!from || !to) return null;
+      const fromMs = new Date(from).getTime();
+      const toMs = new Date(to).getTime();
+      if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) return null;
+      if (toMs - fromMs > getMaxRangeDaysMs()) return null;
+      return this.findBuildingConsumptionFromStaging(buildingId, resolution, from, to);
+    }
+
     let truncExpr: string;
     if (resolution === '15min') {
       truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;
@@ -338,21 +449,16 @@ export class MetersService {
       truncExpr = `date_trunc('hour', r.timestamp)`;
     }
 
-    // Two-step aggregation: first AVG per meter per bucket (handles variable reading frequency),
-    // then SUM/AVG/MAX across meters per bucket.
     const conditions = ['m.building_id = $1'];
     const params: Array<string> = [buildingId];
-
     if (from) {
       params.push(from);
       conditions.push(`r.timestamp >= $${params.length}`);
     }
-
     if (to) {
       params.push(to);
       conditions.push(`r.timestamp <= $${params.length}`);
     }
-
     const whereClause = conditions.join(' AND ');
 
     const rows = await this.readingRepo.query(`
@@ -381,6 +487,51 @@ export class MetersService {
       totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
       avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),
       peakPowerKw: Number(Number(r.peakPowerKw).toFixed(3)),
+    }));
+  }
+
+  /**
+   * Consumo por edificio desde readings_import_staging. Solo medidores del edificio; límite interno.
+   */
+  private async findBuildingConsumptionFromStaging(
+    buildingId: string,
+    resolution: '15min' | 'hourly' | 'daily',
+    from: string,
+    to: string,
+  ): Promise<Array<{ timestamp: string; totalPowerKw: number; avgPowerKw: number; peakPowerKw: number }>> {
+    const truncExpr =
+      resolution === '15min'
+        ? `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`
+        : resolution === 'daily'
+          ? `date_trunc('day', r.timestamp)`
+          : `date_trunc('hour', r.timestamp)`;
+    const cap = STAGING_LIMITS.defaultMaxRows * 3;
+    const rows = await this.dataSource.query(
+      `WITH building_meters AS (
+         SELECT id FROM meters WHERE building_id = $1
+       ),
+       capped AS (
+         SELECT r.timestamp, r.power_kw
+         FROM readings_import_staging r
+         INNER JOIN building_meters m ON m.id = r.meter_id
+         WHERE r.timestamp >= $2 AND r.timestamp <= $3
+         ORDER BY r.timestamp ASC
+         LIMIT $4
+       )
+       SELECT
+         ${truncExpr} AS "timestamp",
+         SUM(r.power_kw)::double precision AS "totalPowerKw",
+         AVG(r.power_kw)::double precision AS "avgPowerKw",
+         MAX(r.power_kw)::double precision AS "peakPowerKw"
+       FROM capped r
+       GROUP BY 1 ORDER BY 1 ASC`,
+      [buildingId, from, to, cap],
+    );
+    return rows.map((r: Record<string, unknown>) => ({
+      timestamp: String(r.timestamp),
+      totalPowerKw: Number(Number(r.totalPowerKw ?? 0).toFixed(3)),
+      avgPowerKw: Number(Number(r.avgPowerKw ?? 0).toFixed(3)),
+      peakPowerKw: Number(Number(r.peakPowerKw ?? 0).toFixed(3)),
     }));
   }
 }

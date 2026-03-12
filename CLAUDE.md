@@ -181,6 +181,11 @@ DB_HOST=127.0.0.1 DB_PORT=5433 npm --prefix infra/drive-import-staging run promo
 - Considerar pausar `synthetic-readings-generator` y `offlineAlerts` durante la promotion para evitar contención.
 - Post-promotion: validar con `PHASE=verify` y reactivar procesos.
 
+### Fuente de lecturas para el frontend (READINGS_SOURCE)
+- **Variable de entorno:** `READINGS_SOURCE=readings` (default) | `staging`. Si es `staging`, las APIs de lecturas y consumo leen desde `readings_import_staging` en lugar de `readings`, con límites estrictos para no colapsar el servicio.
+- **Límites cuando READINGS_SOURCE=staging:** máximo 5000 filas por defecto por consulta, hasta 50000 si el cliente envía `limit`; rango `from`/`to` obligatorio y máximo 90 días. Endpoints afectados: `GET /meters/:id/readings`, `GET /buildings/:id/consumption`, `GET /hierarchy/node/:nodeId/consumption` y niños del drill-down (consumo por nodo).
+- **Implementación:** `backend/src/readings-source.config.ts` (constantes y `useStaging()`); en `MetersService` y `HierarchyService` se comprueba `useStaging()` y, si aplica, se consulta `readings_import_staging` con subconsultas limitadas (LIMIT) y from/to obligatorios. Staging no tiene thd/alarm: esos campos se devuelven null.
+
 ## Offline Alerts Flow
 ```
 Lambda offlineAlerts (EventBridge 5/min)
@@ -531,7 +536,7 @@ PRs:
 
 ## Environment Variables
 
-**Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV=production`
+**Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV=production`, `READINGS_SOURCE` (opcional: `readings` | `staging`; default `readings`)
 
 **Frontend (`VITE_*`):** `VITE_AUTH_MODE`, `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID`, `VITE_GOOGLE_CLIENT_ID`
 
@@ -561,6 +566,8 @@ cd frontend && npm ci && npm run dev
 cd backend && npm ci && npm run start:dev
 cd backend && npx sls offline
 ```
+
+**Backend local y RDS:** Por defecto el backend local **no** tiene acceso a AWS RDS (subnets privadas). Túnel listo: ejecutar `./scripts/tunnel-rds.sh` (bastion EC2 `energy-monitor-rds-tunnel`, key `scripts/energy-monitor-tunnel.pem`; la clave está en .gitignore). Con el túnel abierto, en backend `.env`: `DB_HOST=127.0.0.1`, `DB_PORT=5433`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` (mismos valores que Lambda/Secrets Manager). Alternativa: RDS "Publicly accessible" + SG con tu IP.
 
 ## Conventions
 - **Idioma:** Español en UI/labels/changelog. Inglés en código/variables/commits.

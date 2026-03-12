@@ -6,24 +6,18 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-const SQL_011_SESSIONS = `
-BEGIN;
-CREATE TABLE IF NOT EXISTS sessions (
+const SQL_011_TABLE = `CREATE TABLE IF NOT EXISTS sessions (
   id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token_hash VARCHAR(64)  NOT NULL,
   expires_at TIMESTAMPTZ  NOT NULL,
   created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
-COMMIT;
-`;
+)`;
+const SQL_011_IDX_USER = `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`;
+const SQL_011_IDX_EXPIRES = `CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`;
+const SQL_011_IDX_TOKEN = `CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash)`;
 
-const SQL_012_SEED_TEST_USER = `
-BEGIN;
-INSERT INTO users (id, email, name, role_id, is_active, external_id, provider)
+const SQL_012_USER = `INSERT INTO users (id, email, name, role_id, is_active, external_id, provider)
 VALUES (
   'a0000000-0000-4000-8000-000000000001',
   'test@energy-monitor.local',
@@ -37,25 +31,19 @@ ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
   name = EXCLUDED.name,
   role_id = EXCLUDED.role_id,
-  is_active = EXCLUDED.is_active;
-COMMIT;
-`;
+  is_active = EXCLUDED.is_active`;
 
-/* SHA256 hex de 'test-token-energy-monitor' (sin depender de pgcrypto en RDS) */
+/* SHA256 hex de 'test-token-energy-monitor' */
 const TEST_TOKEN_HASH = '078266506a1da526b982f09c831eedcef3ad02065ddfe562ec07f7427f37463e';
 
-const SQL_012_SEED_SESSION = `
-BEGIN;
-INSERT INTO sessions (user_id, token_hash, expires_at)
+const SQL_012_SESSION = `INSERT INTO sessions (user_id, token_hash, expires_at)
 VALUES (
   'a0000000-0000-4000-8000-000000000001',
   '${TEST_TOKEN_HASH}',
   now() + interval '1 year'
 )
 ON CONFLICT (token_hash) DO UPDATE SET
-  expires_at = now() + interval '1 year';
-COMMIT;
-`;
+  expires_at = now() + interval '1 year'`;
 
 export interface DbVerifyResult {
   counts: { readings: number; meters: number; buildings: number; staging: number | null };
@@ -159,15 +147,18 @@ export class DbVerifyService {
 
   /**
    * Aplica migraciones de auth: tabla sessions y seed usuario de prueba + sesión.
-   * Idempotente (IF NOT EXISTS / ON CONFLICT).
+   * Idempotente (IF NOT EXISTS / ON CONFLICT). Una sentencia por query para evitar errores en RDS.
    */
   async applyAuthMigrations(): Promise<{ applied: string[] }> {
     const applied: string[] = [];
-    await this.dataSource.query(SQL_011_SESSIONS);
+    await this.dataSource.query(SQL_011_TABLE);
+    await this.dataSource.query(SQL_011_IDX_USER);
+    await this.dataSource.query(SQL_011_IDX_EXPIRES);
+    await this.dataSource.query(SQL_011_IDX_TOKEN);
     applied.push('011_sessions');
-    await this.dataSource.query(SQL_012_SEED_TEST_USER);
+    await this.dataSource.query(SQL_012_USER);
     applied.push('012_seed_test_user');
-    await this.dataSource.query(SQL_012_SEED_SESSION);
+    await this.dataSource.query(SQL_012_SESSION);
     applied.push('012_seed_session');
     return { applied };
   }

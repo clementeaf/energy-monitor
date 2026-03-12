@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0-alpha.19] - 2026-03-12
+
+### Changed
+
+- **GET /buildings y GET /buildings/:id devuelven centerType desde BD** — BuildingsService.findAll y findOne intentan primero una query que incluye center_type; si la columna no existe (migración 013 no aplicada) hacen fallback a la query sin ella y devuelven null. Cuando 013 está aplicada, centerType refleja el valor de la base.
+- **CLAUDE.md** — BuildingsService: patrón try/fallback para center_type documentado.
+
 ## [0.9.0-alpha.18] - 2026-03-12
 
 ### Fixed

@@ -17,6 +17,7 @@ const SQL_011_IDX_USER = `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON ses
 const SQL_011_IDX_EXPIRES = `CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`;
 const SQL_011_IDX_TOKEN = `CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash)`;
 
+/** Usuario de prueba: external_id/provider con valor sentinela para cumplir NOT NULL si aplica. */
 const SQL_012_USER = `INSERT INTO users (id, email, name, role_id, is_active, external_id, provider)
 VALUES (
   'a0000000-0000-4000-8000-000000000001',
@@ -24,14 +25,16 @@ VALUES (
   'Usuario Prueba',
   1,
   true,
-  NULL,
-  NULL
+  'session-test',
+  'session'
 )
 ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
   name = EXCLUDED.name,
   role_id = EXCLUDED.role_id,
-  is_active = EXCLUDED.is_active`;
+  is_active = EXCLUDED.is_active,
+  external_id = EXCLUDED.external_id,
+  provider = EXCLUDED.provider`;
 
 /* SHA256 hex de 'test-token-energy-monitor' */
 const TEST_TOKEN_HASH = '078266506a1da526b982f09c831eedcef3ad02065ddfe562ec07f7427f37463e';

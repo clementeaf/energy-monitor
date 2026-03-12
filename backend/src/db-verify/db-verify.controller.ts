@@ -2,7 +2,7 @@
  * Endpoint de verificación RDS. Expone los mismos datos que la Lambda dbVerify y el script verify-rds.mjs.
  */
 
-import { Controller, Get, Post, Headers, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Headers, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags, ApiHeader } from '@nestjs/swagger';
 import { Public } from '../auth/public.decorator';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
@@ -29,7 +29,12 @@ export class DbVerifyController {
     if (expected && expected !== migrateSecret) {
       throw new ForbiddenException('X-Migrate-Secret inválido o faltante');
     }
-    return this.dbVerifyService.applyAuthMigrations();
+    try {
+      return await this.dbVerifyService.applyAuthMigrations();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new InternalServerErrorException(`apply-auth-migrations: ${message}`);
+    }
   }
 
   @Get()

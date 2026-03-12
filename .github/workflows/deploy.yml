@@ -143,14 +143,15 @@ jobs:
         run: |
           API_URL="${API_BASE_URL:-https://energymonitor.click}"
           sleep 10
+          ok=0
           for i in 1 2 3; do
             if [ -n "${{ secrets.MIGRATE_SECRET }}" ]; then
-              curl -sf -X POST -H "X-Migrate-Secret: ${{ secrets.MIGRATE_SECRET }}" "$API_URL/api/db-verify/apply-auth-migrations" && break
+              curl -sf -X POST -H "X-Migrate-Secret: ${{ secrets.MIGRATE_SECRET }}" "$API_URL/api/db-verify/apply-auth-migrations" && ok=1 && break
             else
-              curl -sf -X POST "$API_URL/api/db-verify/apply-auth-migrations" && break
+              curl -sf -X POST "$API_URL/api/db-verify/apply-auth-migrations" && ok=1 && break
             fi
             [ $i -lt 3 ] && sleep 15
           done
-          echo ""
+          [ "$ok" = "1" ] || exit 1
         env:
           API_BASE_URL: ${{ vars.API_BASE_URL }}

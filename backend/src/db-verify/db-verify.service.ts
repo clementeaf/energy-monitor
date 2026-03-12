@@ -41,13 +41,15 @@ ON CONFLICT (id) DO UPDATE SET
 COMMIT;
 `;
 
+/* SHA256 hex de 'test-token-energy-monitor' (sin depender de pgcrypto en RDS) */
+const TEST_TOKEN_HASH = '078266506a1da526b982f09c831eedcef3ad02065ddfe562ec07f7427f37463e';
+
 const SQL_012_SEED_SESSION = `
 BEGIN;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
 INSERT INTO sessions (user_id, token_hash, expires_at)
 VALUES (
   'a0000000-0000-4000-8000-000000000001',
-  encode(digest('test-token-energy-monitor', 'sha256'), 'hex'),
+  '${TEST_TOKEN_HASH}',
   now() + interval '1 year'
 )
 ON CONFLICT (token_hash) DO UPDATE SET

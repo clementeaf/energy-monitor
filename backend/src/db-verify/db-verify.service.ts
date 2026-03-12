@@ -56,69 +56,107 @@ export interface DbVerifyResult {
   timeRanges: Array<{ meter_id: string; min_ts: string; max_ts: string }>;
   hierarchy: Array<{ building_id: string; node_count: number }> | null;
   buildings: Array<{ id: string; name: string; meters_count: number }>;
+  /** Errores no fatales (consultas que fallaron; el resto del resultado sigue siendo válido). */
+  errors?: string[];
 }
 
 @Injectable()
 export class DbVerifyService {
   constructor(private readonly dataSource: DataSource) {}
 
+  /**
+   * Ejecuta consultas de verificación. Cada bloque está en try/catch para no devolver 500
+   * si una tabla no existe o falla una query; se devuelven valores por defecto y opcionalmente errors[].
+   */
   async run(): Promise<DbVerifyResult> {
-    const [readingsRes, metersRes, buildingsRes] = await Promise.all([
-      this.dataSource.query<{ total: string }>('SELECT COUNT(*)::bigint AS total FROM readings'),
-      this.dataSource.query<{ total: string }>('SELECT COUNT(*)::bigint AS total FROM meters'),
-      this.dataSource.query<{ total: string }>('SELECT COUNT(*)::bigint AS total FROM buildings'),
-    ]);
-
     type CountRow = { total: string };
     const countVal = (rows: CountRow[]): number => Number(rows[0]?.total ?? 0);
+    const errors: string[] = [];
+
+    let readingsCount = 0;
+    let metersCount = 0;
+    let buildingsCount = 0;
+    try {
+      const [readingsRes, metersRes, buildingsRes] = await Promise.all([
+        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM readings'),
+        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM meters'),
+        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM buildings'),
+      ]);
+      readingsCount = countVal(readingsRes);
+      metersCount = countVal(metersRes);
+      buildingsCount = countVal(buildingsRes);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`counts: ${msg}`);
+    }
+
     let staging: number | null = null;
     try {
-      const stagingRes = (await this.dataSource.query(
+      const stagingRes = await this.dataSource.query<CountRow[]>(
         'SELECT COUNT(*)::bigint AS total FROM readings_import_staging',
-      )) as CountRow[];
+      );
       staging = countVal(stagingRes);
     } catch {
       // tabla puede no existir
     }
 
     const counts = {
-      readings: countVal(readingsRes as unknown as CountRow[]),
-      meters: countVal(metersRes as unknown as CountRow[]),
-      buildings: countVal(buildingsRes as unknown as CountRow[]),
+      readings: readingsCount,
+      meters: metersCount,
+      buildings: buildingsCount,
       staging,
     };
 
     type MeterPerBuildingRow = { building_id: string; meter_count: string };
-    const metersPerBuildingRows = (await this.dataSource.query(
-      `SELECT building_id, COUNT(*)::int AS meter_count
-       FROM meters GROUP BY building_id ORDER BY meter_count DESC LIMIT 20`,
-    )) as MeterPerBuildingRow[];
-    const metersPerBuilding = metersPerBuildingRows.map((r: MeterPerBuildingRow) => ({
-      building_id: r.building_id,
-      meter_count: Number(r.meter_count),
-    }));
+    let metersPerBuilding: Array<{ building_id: string; meter_count: number }> = [];
+    try {
+      const rows = await this.dataSource.query<MeterPerBuildingRow[]>(
+        `SELECT building_id, COUNT(*)::int AS meter_count
+         FROM meters GROUP BY building_id ORDER BY meter_count DESC LIMIT 20`,
+      );
+      metersPerBuilding = rows.map((r) => ({
+        building_id: r.building_id,
+        meter_count: Number(r.meter_count),
+      }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`metersPerBuilding: ${msg}`);
+    }
 
     type MeterIdRow = { meter_id: string };
-    const meterIdRows = (await this.dataSource.query(
-      'SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50',
-    )) as MeterIdRow[];
-    const meterIdSample = meterIdRows.map((r: MeterIdRow) => r.meter_id);
-    const meterIdLengthWarning = meterIdSample.some((id: string) => id.length > 10);
+    let meterIdSample: string[] = [];
+    try {
+      const meterIdRows = await this.dataSource.query<MeterIdRow[]>(
+        'SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50',
+      );
+      meterIdSample = meterIdRows.map((r) => r.meter_id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`meterIdSample: ${msg}`);
+    }
+    const meterIdLengthWarning = meterIdSample.some((id) => id.length > 10);
 
     type TimeRangeRow = { meter_id: string; min_ts: string; max_ts: string };
-    const timeRanges = (await this.dataSource.query(
-      `SELECT meter_id, MIN(timestamp)::text AS min_ts, MAX(timestamp)::text AS max_ts
-       FROM readings GROUP BY meter_id ORDER BY meter_id LIMIT 20`,
-    )) as TimeRangeRow[];
+    let timeRanges: Array<{ meter_id: string; min_ts: string; max_ts: string }> = [];
+    try {
+      const rows = await this.dataSource.query<TimeRangeRow[]>(
+        `SELECT meter_id, MIN(timestamp)::text AS min_ts, MAX(timestamp)::text AS max_ts
+         FROM readings GROUP BY meter_id ORDER BY meter_id LIMIT 20`,
+      );
+      timeRanges = rows;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`timeRanges: ${msg}`);
+    }
 
     let hierarchy: DbVerifyResult['hierarchy'] = null;
     try {
       type HierarchyRow = { building_id: string; node_count: string };
-      const hierarchyRows = (await this.dataSource.query(
+      const hierarchyRows = await this.dataSource.query<HierarchyRow[]>(
         `SELECT building_id, COUNT(*)::int AS node_count
          FROM hierarchy_nodes GROUP BY building_id ORDER BY building_id`,
-      )) as HierarchyRow[];
-      hierarchy = hierarchyRows.map((r: HierarchyRow) => ({
+      );
+      hierarchy = hierarchyRows.map((r) => ({
         building_id: r.building_id,
         node_count: Number(r.node_count),
       }));
@@ -127,17 +165,23 @@ export class DbVerifyService {
     }
 
     type BuildingRow = { id: string; name: string; meters_count: string };
-    const buildingsRows = (await this.dataSource.query(
-      `SELECT b.id, b.name, (SELECT COUNT(*) FROM meters m WHERE m.building_id = b.id) AS meters_count
-       FROM buildings b ORDER BY b.id`,
-    )) as BuildingRow[];
-    const buildings = buildingsRows.map((r: BuildingRow) => ({
-      id: r.id,
-      name: r.name,
-      meters_count: Number(r.meters_count),
-    }));
+    let buildings: Array<{ id: string; name: string; meters_count: number }> = [];
+    try {
+      const buildingsRows = await this.dataSource.query<BuildingRow[]>(
+        `SELECT b.id, b.name, (SELECT COUNT(*) FROM meters m WHERE m.building_id = b.id) AS meters_count
+         FROM buildings b ORDER BY b.id`,
+      );
+      buildings = buildingsRows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        meters_count: Number(r.meters_count),
+      }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`buildings: ${msg}`);
+    }
 
-    return {
+    const result: DbVerifyResult = {
       counts,
       metersPerBuilding,
       meterIdSample,
@@ -146,6 +190,10 @@ export class DbVerifyService {
       hierarchy,
       buildings,
     };
+    if (errors.length > 0) {
+      result.errors = errors;
+    }
+    return result;
   }
 
   /**

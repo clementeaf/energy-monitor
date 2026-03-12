@@ -9,6 +9,7 @@ import { MetersModule } from './meters/meters.module';
 import { HierarchyModule } from './hierarchy/hierarchy.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { DbVerifyModule } from './db-verify/db-verify.module';
+import { IngestDiagnosticModule } from './ingest-diagnostic/ingest-diagnostic.module';
 import { SessionModule } from './session/session.module';
 
 @Module({
@@ -40,6 +41,7 @@ import { SessionModule } from './session/session.module';
     HierarchyModule,
     AlertsModule,
     DbVerifyModule,
+    IngestDiagnosticModule,
     SessionModule,
   ],
 })

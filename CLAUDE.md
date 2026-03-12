@@ -379,13 +379,79 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Layout** — shell principal con sidebar, banner de alertas y navegación por rol. Sidebar resuelve dinámicamente `:siteId` en rutas que lo requieren usando `selectedSiteId` o el primer building disponible.
 
+## Frontend: vistas, gráficos, datos y flujo
+
+### Catálogo de vistas (rutas y permisos)
+| Ruta | Vista | Permiso | En nav | Datos principales |
+|------|--------|---------|--------|--------------------|
+| `/login` | Login | público | — | — |
+| `/invite/:token` | Aceptar invitación | público | — | GET /invitations/:token |
+| `/unauthorized` | Sin acceso | público | — | — |
+| `/context/select` | Selección de sitio | CONTEXT_SELECT | — | GET /auth/me, GET /buildings |
+| `/` | Edificios | BUILDINGS_OVERVIEW | sí | GET /buildings, GET /alerts (activas, limit 12) |
+| `/buildings/:id` | Detalle edificio | BUILDING_DETAIL | — | GET /buildings/:id, GET /buildings/:id/consumption, GET /buildings/:id/meters, GET /alerts (activas, buildingId) |
+| `/meters/:meterId` | Detalle medidor | METER_DETAIL | — | GET /meters/:id, GET /meters/:id/readings, GET /meters/:id/alarm-events (30d) |
+| `/monitoring/realtime` | Monitoreo tiempo real | MONITORING_REALTIME | sí | GET /meters/overview, GET /alerts (activas, limit 20) |
+| `/monitoring/devices` | Dispositivos | MONITORING_DEVICES | sí | GET /meters/overview (tabla con más columnas que Realtime) |
+| `/alerts` | Alertas | ALERTS_OVERVIEW | sí | GET /alerts (filtro status), POST sync-offline |
+| `/alerts/:id` | Detalle alerta | ALERT_DETAIL | — | GET /alerts/:id, PATCH acknowledge |
+| `/monitoring/drilldown/:siteId` | Drill-down jerárquico | MONITORING_DRILLDOWN | sí | GET /hierarchy/node/:nodeId, GET /hierarchy/node/:nodeId/children |
+| `/admin/sites` | Admin sitios | ADMIN_SITES | sí | GET /buildings (CRUD según implementación) |
+| `/admin/users` | Admin usuarios | ADMIN_USERS | sí | GET /users, POST /users, GET /roles |
+| `/admin/meters` | Admin medidores | ADMIN_METERS | sí | GET /meters/overview + edificios |
+| `/admin/hierarchy/:siteId` | Admin jerarquía | ADMIN_HIERARCHY | sí | GET /hierarchy/:buildingId (árbol) |
+
+- Todas las vistas protegidas usan Bearer (JWT o session token). El contexto de sitio (`selectedSiteId` en useAppStore) filtra alertas y listas cuando el usuario no tiene acceso global; el backend aplica scope con `X-Site-Context` cuando se envía.
+- Rutas con `:siteId` (drilldown, admin hierarchy): el frontend usa `selectedSiteId` o el primer building del usuario para construir el link del sidebar.
+
+### Gráficos y visualizaciones
+| Ubicación | Componente | Datos | Tipo | Resolución dinámica |
+|-----------|------------|--------|------|---------------------|
+| **BuildingDetailPage** | BuildingConsumptionChart (StockChart) | ConsumptionPoint[] (totalPowerKw, peakPowerKw) | área + línea | Sí: pickResolution(rangeMs) → 15min / hourly / daily; keepPreviousData |
+| **MeterDetailPage** | 6× StockChart | Reading[] (powerKw, voltageL1–L3, currentL1–L3, pf, frequencyHz, energyKwhTotal, thd, phaseImbalance) | series temporales + flags de alarmas | Sí: misma lógica; alarmEvents últimos 30d |
+| **DrilldownPage** | DrilldownBars (Highcharts bar) | HierarchyChildSummary[] (totalKwh por hijo) | barras horizontales por nodo | No (children sin from/to en la llamada actual) |
+| **RealtimePage** | — | DataTable de MeterOverview | tabla | — |
+| **AlertsPage** | — | Tabla HTML de Alert[] | tabla | — |
+
+- **StockChart**: Highcharts Stock con navigator, range selector (1D / 1S / 1M / Todo), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
+- **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`; no se pasan `from`/`to` desde el frontend (backend usa rango por defecto).
+- **MeterDetailPage**: gráficos de Potencia (kW + kVAR), Voltaje L1/L2/L3, Corriente, PF+Frecuencia, Energía acumulada, Calidad (THD/desequilibrio solo 3P). Eventos de alarma como flags sobre las series.
+- **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount.
+
+### Datos por dominio y hooks
+- **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution). Consumption sin from/to en la llamada; resolución cambia según rango del chart.
+- **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings sin from/to; alarm events 30d fijo en MeterDetailPage.
+- **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
+- **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
+- **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
+
+### Patrones de consumo (cache y refetch)
+| Query / vista | staleTime | refetchInterval | placeholderData | Notas |
+|---------------|-----------|------------------|-----------------|--------|
+| buildings, building, auth/me | default (0) | — | — | Listas estáticas; auth 5min en useAuthQuery |
+| buildingConsumption, meterReadings | 0 | — | keepPreviousData | Refetch al cambiar resolution; mantener datos previos en pantalla |
+| metersOverview | 30_000 | — | — | Dispositivos y Realtime |
+| alerts (Layout, BuildingDetail, BuildingsPage) | 10_000–15_000 | 60_000 | — | Banner y listas |
+| alerts (RealtimePage, AlertsPage) | 10_000 | 30_000 | — | Actualización frecuente |
+| meterUptime, meterAlarmSummary | 60_000 | — | — | Menos volátil |
+| admin users/roles | Infinity | — | — | Catálogo administrativo |
+
+- Mutaciones (acknowledge, sync-offline, createUser): onSuccess → invalidateQueries(['alerts']) o equivalente para refrescar listas.
+
+### Flujo resumido
+1. **Entrada**: Login / Invite → sessionStorage token → GET /auth/me → useAuthStore + useAppStore (selectedSiteId según user.siteIds).
+2. **Navegación**: appRoutes + ProtectedRoute por rol; Layout sidebar con getNavItems(role) y links con :siteId reemplazado por selectedSiteId o primer building.
+3. **Vistas con series temporales**: StockChart dispara onRangeChange → estado local resolution → useBuildingConsumption(id, resolution) o useMeterReadings(id, resolution) → backend devuelve datos en el rango por defecto (from/to opcionales en API); keepPreviousData evita parpadeo.
+4. **Alertas**: Filtro por selectedSiteId (buildingId) cuando no es "*"; refetch periódico; mutaciones invalidan cache.
+5. **Drill-down**: Nodo raíz B-{siteId}; navegación por nodo actual → useHierarchyNode + useHierarchyChildren; tabla + barras por hijo; circuito con meterId → link a /meters/:meterId.
+
 ## Frontend Patterns
 
 **API layer (3-file):** `services/routes.ts` (URL builders) → `services/endpoints.ts` (Axios calls) → `hooks/queries/use<Entity>.ts` (TanStack Query)
 
-**State:** TanStack Query (server, staleTime: Infinity static / 30s live / 0+keepPreviousData charts) | Zustand useAuthStore (sessionStorage persist) | Zustand useAppStore (sessionStorage persist para contexto de sitio)
+**State:** TanStack Query (server; ver tabla "Patrones de consumo" en sección Frontend: vistas, gráficos, datos y flujo) | Zustand useAuthStore (sessionStorage persist) | Zustand useAppStore (sessionStorage persist para contexto de sitio).
 
-**Cache strategy:** buildings/building detail/auth me → `Infinity`; meters overview/alerts → `30s` + `30s`; consumption/readings → `0` + `keepPreviousData`.
+**Cache strategy:** Listas estáticas y auth sin staleTime explícito (auth 5–10 min en useAuthQuery); meters overview 30s; alerts 10–15s + refetch 30–60s; consumption/readings sin staleTime + keepPreviousData para gráficos; admin users/roles Infinity.
 
 **Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables. Sidebar muestra 9 ítems para `SUPER_ADMIN`: Edificios, Monitoreo en Tiempo Real, Dispositivos, Alertas, Drill-down, Admin Sitios, Admin Usuarios, Admin Medidores, Admin Jerarquía.
 
@@ -519,7 +585,7 @@ cd backend && npx sls offline
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |
 | `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
-| `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
+| `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles; ver sección "Frontend: vistas, gráficos, datos y flujo" para catálogo completo por vista |
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |

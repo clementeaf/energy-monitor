@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0-alpha.12] - 2026-03-12
+
+### Added
+
+- **CLAUDE.md** — Sección "Frontend: vistas, gráficos, datos y flujo": catálogo de vistas (rutas, permisos, datos por vista), gráficos y visualizaciones (StockChart en edificio/medidor, DrilldownBars, tablas), datos por dominio y hooks, patrones de consumo (cache/refetch por query), flujo resumido. Patrones de frontend actualizados con referencia a la nueva sección y detalle de cache strategy.
+
 ## [0.9.0-alpha.11] - 2026-03-11
 
 ### Fixed

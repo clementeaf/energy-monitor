@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { decodeJwt, createRemoteJWKSet, jwtVerify } from 'jose';
 import { UsersService } from '../users/users.service';
 import { RolesService, isGlobalSiteAccessRole } from '../roles/roles.service';
+import { SessionService } from '../session/session.service';
 import type { AccessScope } from './access-scope';
+
+export const SESSION_ISSUER = 'energy-monitor/session';
 
 export interface TokenPayload {
   sub: string;
@@ -16,7 +19,7 @@ export interface AuthorizationContext extends AccessScope {
   userId: string;
   roleId: number;
   role: string;
-  provider: 'microsoft' | 'google';
+  provider: 'microsoft' | 'google' | 'session';
   email: string;
   name: string;
   avatar?: string;
@@ -33,6 +36,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
+    private readonly sessionService: SessionService,
   ) {}
 
   async verifyToken(token: string): Promise<TokenPayload | null> {
@@ -75,8 +79,20 @@ export class AuthService {
       };
     } catch (err) {
       this.logger.warn(`Token verification failed: ${(err as Error).message}`);
-      return null;
     }
+
+    const session = await this.sessionService.findByTokenHash(
+      this.sessionService.hashToken(token),
+    );
+    if (session?.user) {
+      return {
+        sub: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        iss: SESSION_ISSUER,
+      };
+    }
+    return null;
   }
 
   detectProvider(issuer: string): 'microsoft' | 'google' | null {
@@ -88,6 +104,28 @@ export class AuthService {
   async resolveAuthorizationContext(
     payload: TokenPayload,
   ): Promise<AuthorizationContext | null> {
+    if (payload.iss === SESSION_ISSUER) {
+      const user = await this.usersService.findById(payload.sub);
+      if (!user?.isActive) return null;
+      const [permissions, siteIds] = await Promise.all([
+        this.rolesService.getPermissionsByRoleId(user.roleId),
+        this.usersService.getSiteIds(user.id),
+      ]);
+      const hasGlobalSiteAccess = isGlobalSiteAccessRole(user.role.name);
+      return {
+        userId: user.id,
+        roleId: user.roleId,
+        role: user.role.name,
+        provider: 'session',
+        email: user.email,
+        name: user.name,
+        avatar: user.avatarUrl ?? undefined,
+        siteIds,
+        hasGlobalSiteAccess,
+        permissions,
+      };
+    }
+
     const provider = this.detectProvider(payload.iss);
     if (!provider) return null;
 
@@ -115,6 +153,23 @@ export class AuthService {
   }
 
   async resolveUser(payload: TokenPayload, invitationToken?: string) {
+    if (payload.iss === SESSION_ISSUER) {
+      const authContext = await this.resolveAuthorizationContext(payload);
+      if (!authContext) return null;
+      return {
+        user: {
+          id: authContext.userId,
+          email: authContext.email,
+          name: authContext.name,
+          role: authContext.role,
+          provider: authContext.provider,
+          avatar: authContext.avatar,
+          siteIds: authContext.hasGlobalSiteAccess ? ['*'] : authContext.siteIds,
+        },
+        permissions: authContext.permissions,
+      };
+    }
+
     const provider = this.detectProvider(payload.iss);
     if (!provider) return null;
 

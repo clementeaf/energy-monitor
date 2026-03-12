@@ -92,6 +92,14 @@ export class UsersService {
     });
   }
 
+  /** Busca usuario por id (para resolución por token de sesión). */
+  findById(id: string) {
+    return this.userRepo.findOne({
+      where: { id },
+      relations: ['role'],
+    });
+  }
+
   findByEmail(email: string) {
     const normalizedEmail = this.normalizeEmail(email);
 

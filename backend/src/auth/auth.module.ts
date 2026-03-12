@@ -4,11 +4,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { RolesModule } from '../roles/roles.module';
+import { SessionModule } from '../session/session.module';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 
 @Module({
-  imports: [UsersModule, RolesModule],
+  imports: [UsersModule, RolesModule, SessionModule],
   controllers: [AuthController],
   providers: [
     AuthService,

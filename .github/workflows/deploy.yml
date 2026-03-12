@@ -133,7 +133,24 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           MICROSOFT_CLIENT_ID: ${{ secrets.VITE_MICROSOFT_CLIENT_ID }}
+          MIGRATE_SECRET: ${{ secrets.MIGRATE_SECRET }}
           VPC_SECURITY_GROUP_ID: ${{ secrets.VPC_SECURITY_GROUP_ID }}
           VPC_SUBNET_ID_1: ${{ secrets.VPC_SUBNET_ID_1 }}
           VPC_SUBNET_ID_2: ${{ secrets.VPC_SUBNET_ID_2 }}
           VPC_SUBNET_ID_3: ${{ secrets.VPC_SUBNET_ID_3 }}
+
+      - name: Aplicar migraciones de auth (sessions + usuario de prueba)
+        run: |
+          API_URL="${API_BASE_URL:-https://energymonitor.click}"
+          sleep 10
+          for i in 1 2 3; do
+            if [ -n "${{ secrets.MIGRATE_SECRET }}" ]; then
+              curl -sf -X POST -H "X-Migrate-Secret: ${{ secrets.MIGRATE_SECRET }}" "$API_URL/api/db-verify/apply-auth-migrations" && break
+            else
+              curl -sf -X POST "$API_URL/api/db-verify/apply-auth-migrations" && break
+            fi
+            [ $i -lt 3 ] && sleep 15
+          done
+          echo ""
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}

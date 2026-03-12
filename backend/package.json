@@ -11,9 +11,11 @@
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest",
     "deploy": "sls deploy",
-    "offline": "sls offline"
+    "offline": "sls offline",
+    "migrate:auth": "node scripts/run-auth-migrations.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1007.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -34,10 +36,10 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
     "@types/aws-lambda": "^8.10.161",
-    "@types/pg": "^8.11.10",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.10",
     "jest": "^29.7.0",
     "serverless": "^3.40.0",
     "serverless-offline": "^13.9.0",

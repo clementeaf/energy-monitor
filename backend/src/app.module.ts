@@ -8,6 +8,8 @@ import { BuildingsModule } from './buildings/buildings.module';
 import { MetersModule } from './meters/meters.module';
 import { HierarchyModule } from './hierarchy/hierarchy.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { DbVerifyModule } from './db-verify/db-verify.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AlertsModule } from './alerts/alerts.module';
     MetersModule,
     HierarchyModule,
     AlertsModule,
+    DbVerifyModule,
+    SessionModule,
   ],
 })
 export class AppModule {}

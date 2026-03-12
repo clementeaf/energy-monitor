@@ -2,11 +2,16 @@
  * Lambda handler para verificación RDS. Invocable con AWS CLI:
  *   aws lambda invoke --function-name power-digital-api-dev-dbVerify out.json && cat out.json
  *
- * Usa las mismas env vars que la API (DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD) en la VPC.
+ * Credenciales: env vars (DB_HOST, DB_USERNAME, DB_PASSWORD) o, si faltan, Secrets Manager
+ * (DB_SECRET_NAME, default energy-monitor/drive-ingest/db). Misma VPC que la API.
  */
 
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { Client } from 'pg';
 import type { Handler } from 'aws-lambda';
+
+const REGION = process.env.AWS_REGION || 'us-east-1';
+const DB_SECRET_NAME = process.env.DB_SECRET_NAME || 'energy-monitor/drive-ingest/db';
 
 interface DbVerifyResult {
   counts: { readings: number; meters: number; buildings: number; staging: number | null };
@@ -18,27 +23,79 @@ interface DbVerifyResult {
   buildings: Array<{ id: string; name: string; meters_count: number }>;
 }
 
-function getConfig() {
+interface PgConfig {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+  ssl: { rejectUnauthorized: false };
+}
+
+function hasEnvCredentials(): boolean {
   const host = process.env.DB_HOST;
-  const port = Number(process.env.DB_PORT || 5432);
-  const database = process.env.DB_NAME || 'energy_monitor';
   const user = process.env.DB_USERNAME || process.env.DB_USER;
   const password = process.env.DB_PASSWORD;
-  if (!host || !user || !password) {
-    throw new Error('Faltan DB_HOST, DB_USERNAME o DB_PASSWORD en el entorno de la Lambda');
+  return Boolean(host && user && password);
+}
+
+function pickSecret<T>(secret: Record<string, T>, ...keys: string[]): T | undefined {
+  for (const k of keys) {
+    const v = secret[k];
+    if (v !== undefined && v !== null && String(v).trim() !== '') return v as T;
   }
-  return {
-    host,
-    port,
-    database,
-    user,
-    password,
-    ssl: { rejectUnauthorized: false },
-  };
+  return undefined;
+}
+
+/** Extrae valor de secret con claves alternativas (misma lógica que drive-pipeline buildDbConfig). */
+function fromSecret(secret: Record<string, string | number | undefined>, envVal: string | undefined, ...keys: string[]): string {
+  const raw = envVal ?? keys.map((k) => secret[k]).find((v) => v !== undefined && v !== null && String(v).trim() !== '');
+  return raw != null ? String(raw).trim() : '';
+}
+
+async function getConfigFromSecret(): Promise<PgConfig> {
+  const sm = new SecretsManagerClient({ region: REGION });
+  const res = await sm.send(new GetSecretValueCommand({ SecretId: DB_SECRET_NAME }));
+  if (!res.SecretString) throw new Error(`Secret ${DB_SECRET_NAME} has no SecretString`);
+  const secret = JSON.parse(res.SecretString) as Record<string, string | number | undefined>;
+  const host = fromSecret(secret, process.env.DB_HOST, 'host', 'DB_HOST', 'Host');
+  const port = Number(process.env.DB_PORT ?? pickSecret(secret, 'port', 'DB_PORT', 'Port') ?? 5432);
+  const database = fromSecret(secret, process.env.DB_NAME, 'dbname', 'database', 'DB_NAME', 'dbName') || 'energy_monitor';
+  const user = fromSecret(secret, process.env.DB_USERNAME ?? process.env.DB_USER, 'username', 'user', 'DB_USERNAME', 'Username', 'User');
+  const password = fromSecret(secret, process.env.DB_PASSWORD, 'password', 'DB_PASSWORD', 'Password', 'pass', 'passwd', 'pwd');
+  if (!host || !user || !password) {
+    const missing = [(!host && 'host'), (!user && 'user'), (!password && 'password')].filter(Boolean).join(', ');
+    throw new Error(`Secret incompleto: faltan ${missing}. Claves en secret: ${Object.keys(secret).join(', ')}`);
+  }
+  return { host, port, database, user, password, ssl: { rejectUnauthorized: false } };
+}
+
+async function getConfig(): Promise<PgConfig> {
+  if (hasEnvCredentials()) {
+    return {
+      host: process.env.DB_HOST!,
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'energy_monitor',
+      user: process.env.DB_USERNAME || process.env.DB_USER!,
+      password: process.env.DB_PASSWORD!,
+      ssl: { rejectUnauthorized: false },
+    };
+  }
+  return getConfigFromSecret();
 }
 
 export const handler: Handler = async (): Promise<{ statusCode: number; body: string }> => {
-  const client = new Client(getConfig());
+  let config: PgConfig;
+  try {
+    config = await getConfig();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Config RDS no disponible', detail: message }),
+    };
+  }
+  const client = new Client(config);
 
   try {
     await client.connect();

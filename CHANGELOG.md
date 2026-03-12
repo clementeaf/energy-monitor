@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0-alpha.18] - 2026-03-12
+
+### Fixed
+
+- **Todos los endpoints de meters en 200 sin migración 013** — MetersService deja de cargar la entidad Meter en findOne y findByBuilding: getMeterRow(id) y getMeterRowsByBuilding(buildingId) con raw query (sin store_type/store_name); findAccessibleMeterEntity devuelve MeterRow. GET /buildings/:id/meters, GET /meters/:id, GET /meters/:id/readings, uptime, downtime-events, alarm-events, alarm-summary responden 200 aunque la migración 013 no esté aplicada.
+
+### Changed
+
+- **CLAUDE.md** — Compatibilidad sin 013: todos los endpoints buildings y meters documentados; patrón MeterRow y getMeterRow/getMeterRowsByBuilding.
+
 ## [0.9.0-alpha.17] - 2026-03-12
 
 ### Fixed

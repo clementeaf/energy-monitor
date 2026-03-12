@@ -24,6 +24,24 @@ function getMaxRangeDaysMs(): number {
   return STAGING_LIMITS.maxRangeDays * 24 * 60 * 60 * 1000;
 }
 
+/** Metro leído por raw query (sin store_type/store_name para compatibilidad sin migración 013). */
+export interface MeterRow {
+  id: string;
+  buildingId: string;
+  model: string;
+  phaseType: string;
+  busId: string;
+  modbusAddress: number;
+  uplinkRoute: string;
+  storeType: string | null;
+  storeName: string | null;
+  status: string;
+  lastReadingAt: Date | null;
+}
+
+const METER_COLS =
+  'id, building_id AS "buildingId", model, phase_type AS "phaseType", bus_id AS "busId", modbus_address AS "modbusAddress", uplink_route AS "uplinkRoute", status, last_reading_at AS "lastReadingAt"';
+
 @Injectable()
 export class MetersService {
   constructor(
@@ -34,28 +52,70 @@ export class MetersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  private async findAccessibleMeterEntity(id: string, scope: AccessScope) {
-    const meter = await this.meterRepo.findOne({ where: { id } });
-    if (!meter) return null;
-    return hasSiteAccess(scope, meter.buildingId) ? meter : null;
+  /** Obtiene un metro por id sin cargar entidad (compatible con BD sin migración 013). */
+  private async getMeterRow(id: string): Promise<MeterRow | null> {
+    const rows = await this.dataSource.query(
+      `SELECT ${METER_COLS} FROM meters WHERE id = $1`,
+      [id],
+    );
+    const r = rows[0] as Record<string, unknown> | undefined;
+    if (!r) return null;
+    return {
+      id: r.id as string,
+      buildingId: r.buildingId as string,
+      model: r.model as string,
+      phaseType: r.phaseType as string,
+      busId: r.busId as string,
+      modbusAddress: Number(r.modbusAddress),
+      uplinkRoute: r.uplinkRoute as string,
+      storeType: null,
+      storeName: null,
+      status: (r.status as string) ?? 'online',
+      lastReadingAt: r.lastReadingAt as Date | null,
+    };
   }
 
-  async findByBuilding(buildingId: string, scope: AccessScope) {
+  /** Lista metros de un edificio sin cargar entidad (compatible sin migración 013). */
+  private async getMeterRowsByBuilding(buildingId: string): Promise<MeterRow[]> {
+    const rows = await this.dataSource.query(
+      `SELECT ${METER_COLS} FROM meters WHERE building_id = $1 ORDER BY id ASC`,
+      [buildingId],
+    );
+    return (rows as Record<string, unknown>[]).map((r) => ({
+      id: r.id as string,
+      buildingId: r.buildingId as string,
+      model: r.model as string,
+      phaseType: r.phaseType as string,
+      busId: r.busId as string,
+      modbusAddress: Number(r.modbusAddress),
+      uplinkRoute: r.uplinkRoute as string,
+      storeType: null as string | null,
+      storeName: null as string | null,
+      status: (r.status as string) ?? 'online',
+      lastReadingAt: r.lastReadingAt as Date | null,
+    }));
+  }
+
+  private async findAccessibleMeterEntity(id: string, scope: AccessScope): Promise<MeterRow | null> {
+    const row = await this.getMeterRow(id);
+    if (!row) return null;
+    return hasSiteAccess(scope, row.buildingId) ? row : null;
+  }
+
+  async findByBuilding(buildingId: string, scope: AccessScope): Promise<MeterRow[] | null> {
     if (!hasSiteAccess(scope, buildingId)) return null;
-
-    const meters = await this.meterRepo.find({ where: { buildingId }, order: { id: 'ASC' } });
-    return meters.map((m) => this.withLiveStatus(m));
+    const rows = await this.getMeterRowsByBuilding(buildingId);
+    return rows.map((m) => this.withLiveStatus(m));
   }
 
-  async findOne(id: string, scope: AccessScope) {
+  async findOne(id: string, scope: AccessScope): Promise<MeterRow | null> {
     const meter = await this.findAccessibleMeterEntity(id, scope);
     return meter ? this.withLiveStatus(meter) : null;
   }
 
   /** Derive status from lastReadingAt: online if < 5 min ago */
-  private withLiveStatus(m: Meter) {
-    m.status = getMeterStatus(m.lastReadingAt);
-    return m;
+  private withLiveStatus<T extends { lastReadingAt: Date | null; status: string }>(m: T): T {
+    return { ...m, status: getMeterStatus(m.lastReadingAt) };
   }
 
   /**

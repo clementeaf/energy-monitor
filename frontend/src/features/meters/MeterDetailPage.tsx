@@ -12,6 +12,14 @@ import type { Reading, AlarmEvent } from '../../types';
 
 type Resolution = 'raw' | '15min' | 'hourly' | 'daily';
 
+const DEFAULT_RANGE_DAYS = 7;
+
+function defaultTimeRange(): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date(to.getTime() - DEFAULT_RANGE_DAYS * 24 * 60 * 60 * 1000);
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
 /** Pick resolution based on visible range duration */
 function pickResolution(rangeMs: number): Resolution {
   const hours = rangeMs / 3_600_000;
@@ -66,12 +74,14 @@ export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const { data: meter, isLoading } = useMeter(meterId!);
   const [resolution, setResolution] = useState<Resolution>('hourly');
+  const [range, setRange] = useState<{ from: string; to: string }>(defaultTimeRange);
 
   const handleRangeChange = useCallback((min: number, max: number) => {
+    setRange({ from: new Date(min).toISOString(), to: new Date(max).toISOString() });
     setResolution(pickResolution(max - min));
   }, []);
 
-  const { data: readings, isLoading: loadingReadings, isFetching: fetchingReadings } = useMeterReadings(meterId!, resolution);
+  const { data: readings, isLoading: loadingReadings, isFetching: fetchingReadings } = useMeterReadings(meterId!, resolution, range.from, range.to);
 
   const alarmRange = useMemo(() => {
     const to = new Date().toISOString();

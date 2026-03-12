@@ -13,6 +13,14 @@ import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
 import { MeterCard } from '../meters/components/MeterCard';
 import type { Alert } from '../../types';
 
+const DEFAULT_RANGE_DAYS = 7;
+
+function defaultTimeRange(): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date(to.getTime() - DEFAULT_RANGE_DAYS * 24 * 60 * 60 * 1000);
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
 type Resolution = '15min' | 'hourly' | 'daily';
 
 function pickResolution(rangeMs: number): Resolution {
@@ -28,7 +36,9 @@ export function BuildingDetailPage() {
   const { user } = useAuth();
   const { setSelectedSiteId } = useAppStore();
   const [resolution, setResolution] = useState<Resolution>('hourly');
+  const [range, setRange] = useState<{ from: string; to: string }>(defaultTimeRange);
   const handleRangeChange = useCallback((min: number, max: number) => {
+    setRange({ from: new Date(min).toISOString(), to: new Date(max).toISOString() });
     setResolution(pickResolution(max - min));
   }, []);
   useEffect(() => {
@@ -38,7 +48,7 @@ export function BuildingDetailPage() {
   }, [id, setSelectedSiteId]);
 
   const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
-  const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution);
+  const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution, range.from, range.to);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
   const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
   const canOpenDrilldown = !!user && canAccessRoute(user.role, appRoutes.drilldown);

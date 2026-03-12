@@ -157,7 +157,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - `promote.mjs` auto-descubre `center_name` → crea buildings slugificados, auto-descubre meters → crea catalog entries.
 - Promotion usa `INSERT INTO readings SELECT FROM staging` con `NOT EXISTS` para idempotencia, batch por `source_file`.
 - Soporta `DRY_RUN=true` para inspección sin escritura.
-- Base de especificación del import: `docs/drive-csv-import-spec.md`.
+- Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`.
 
 ### Ejecución de la promotion
 ```bash
@@ -419,8 +419,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount.
 
 ### Datos por dominio y hooks
-- **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution). Consumption sin from/to en la llamada; resolución cambia según rango del chart.
-- **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings sin from/to; alarm events 30d fijo en MeterDetailPage.
+- **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution, from?, to?). Consumption siempre con from/to: rango por defecto últimos 7 días; onRangeChange actualiza range y resolution. Query enabled solo si buildingId + from + to.
+- **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution, from?, to?) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings siempre con from/to: rango por defecto 7 días; onRangeChange actualiza range y resolution. Query enabled solo si meterId + from + to. Alarm events 30d fijo en MeterDetailPage.
 - **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
 - **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
 - **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
@@ -441,7 +441,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 ### Flujo resumido
 1. **Entrada**: Login / Invite → sessionStorage token → GET /auth/me → useAuthStore + useAppStore (selectedSiteId según user.siteIds).
 2. **Navegación**: appRoutes + ProtectedRoute por rol; Layout sidebar con getNavItems(role) y links con :siteId reemplazado por selectedSiteId o primer building.
-3. **Vistas con series temporales**: StockChart dispara onRangeChange → estado local resolution → useBuildingConsumption(id, resolution) o useMeterReadings(id, resolution) → backend devuelve datos en el rango por defecto (from/to opcionales en API); keepPreviousData evita parpadeo.
+3. **Vistas con series temporales**: Estado local range (from/to, default 7 días). StockChart dispara onRangeChange → se actualiza range y resolution → useBuildingConsumption(id, resolution, from, to) o useMeterReadings(id, resolution, from, to) → backend recibe from/to siempre; keepPreviousData evita parpadeo.
 4. **Alertas**: Filtro por selectedSiteId (buildingId) cuando no es "*"; refetch periódico; mutaciones invalidan cache.
 5. **Drill-down**: Nodo raíz B-{siteId}; navegación por nodo actual → useHierarchyNode + useHierarchyChildren; tabla + barras por hijo; circuito con meterId → link a /meters/:meterId.
 
@@ -608,5 +608,5 @@ cd backend && npx sls offline
 - **NO usar:** cpanel-runbook.md, git-deploy.md, server-runbook.md
 
 ## References
-- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Perfil de Datos](scripts/perfil_datos.py) | [Revisión datos Drive en RDS](docs/data-drive-aws-review.md)
+- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Perfil de Datos](scripts/perfil_datos.py) | [Revisión datos Drive en RDS](docs/data-drive-aws-review.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md)
 - `CLAUDE.md` debe mantenerse autocontenido; no depender de `patterns/` para contexto operativo base.

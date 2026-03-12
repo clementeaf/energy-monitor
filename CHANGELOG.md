@@ -6,6 +6,10 @@
 
 - **CLAUDE.md** — Sección "Frontend: vistas, gráficos, datos y flujo": catálogo de vistas (rutas, permisos, datos por vista), gráficos y visualizaciones (StockChart en edificio/medidor, DrilldownBars, tablas), datos por dominio y hooks, patrones de consumo (cache/refetch por query), flujo resumido. Patrones de frontend actualizados con referencia a la nueva sección y detalle de cache strategy.
 
+### Changed
+
+- **Frontend consumo y lecturas** — Las llamadas a consumo (edificio) y lecturas (medidor) envían siempre `from` y `to` al backend. Rango por defecto: últimos 7 días; al cambiar el rango en el gráfico (StockChart) se actualiza el estado y se refetcha con el nuevo intervalo. Hooks useBuildingConsumption y useMeterReadings requieren from/to (enabled solo con rango); evita peticiones sin acotar con muchos datos en RDS.
+
 ## [0.9.0-alpha.11] - 2026-03-11
 
 ### Fixed

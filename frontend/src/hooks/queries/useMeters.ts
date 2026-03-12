@@ -32,6 +32,7 @@ export function useMeterReadings(
   return useQuery({
     queryKey: ['readings', meterId, resolution, from, to],
     queryFn: () => fetchMeterReadings(meterId, resolution, from, to),
+    enabled: !!meterId && !!from && !!to,
     placeholderData: keepPreviousData,
   });
 }

@@ -23,6 +23,7 @@ provider:
     MICROSOFT_CLIENT_ID: ${env:MICROSOFT_CLIENT_ID, ''}
     MIGRATE_SECRET: ${env:MIGRATE_SECRET, ''}
     NODE_ENV: production
+    READINGS_SOURCE: staging
   vpc:
     securityGroupIds:
       - ${env:VPC_SECURITY_GROUP_ID}

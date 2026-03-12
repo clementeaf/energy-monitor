@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0-alpha.16] - 2026-03-12
+
+### Fixed
+
+- **GET /buildings y GET /buildings/:id 500 sin migración 013** — BuildingsService.findAll y findOne pasan a usar raw query (solo id, name, address, total_area y subquery de conteo de medidores) para no depender de las columnas de la migración 013 (center_type, store_type, store_name). La API responde 200 aunque la migración no esté aplicada en producción; centerType se devuelve null en ese caso.
+
+### Changed
+
+- **CLAUDE.md** — Nota de compatibilidad: GET /buildings funciona sin 013; patrón Backend BuildingsService con raw query.
+
 ## [0.9.0-alpha.15] - 2026-03-12
 
 ### Added

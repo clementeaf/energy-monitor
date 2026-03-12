@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Building } from './building.entity';
 import { MetersService } from '../meters/meters.service';
 import { getScopedSiteIds, hasSiteAccess, type AccessScope } from '../auth/access-scope';
@@ -11,36 +11,55 @@ export class BuildingsService {
     @InjectRepository(Building)
     private readonly buildingRepo: Repository<Building>,
     private readonly metersService: MetersService,
+    private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Lista edificios con conteo de medidores. Usa raw query para ser compatible
+   * con BD sin migración 013 (columnas center_type, store_type, store_name).
+   */
   async findAll(scope: AccessScope) {
     const scopedSiteIds = getScopedSiteIds(scope);
-    const buildings = await this.buildingRepo.find({
-      where: scopedSiteIds ? { id: In(scopedSiteIds) } : {},
-      relations: ['meters'],
-    });
-    return buildings.map((b) => ({
-      id: b.id,
-      name: b.name,
-      address: b.address,
-      centerType: b.centerType ?? null,
-      totalArea: Number(b.totalArea),
-      metersCount: b.meters.length,
+    const hasFilter = Array.isArray(scopedSiteIds) && scopedSiteIds.length > 0;
+    const rows = await this.dataSource.query(
+      `SELECT b.id, b.name, b.address, b.total_area,
+              (SELECT COUNT(*)::int FROM meters m WHERE m.building_id = b.id) AS meters_count
+       FROM buildings b
+       ${hasFilter ? 'WHERE b.id = ANY($1)' : ''}
+       ORDER BY b.id`,
+      hasFilter ? [scopedSiteIds] : [],
+    );
+    return rows.map((r: { id: string; name: string; address: string; total_area: string; meters_count: number }) => ({
+      id: r.id,
+      name: r.name,
+      address: r.address,
+      centerType: null as string | null,
+      totalArea: Number(r.total_area),
+      metersCount: r.meters_count,
     }));
   }
 
+  /**
+   * Obtiene un edificio por id. Usa raw query para compatibilidad con BD sin migración 013.
+   */
   async findOne(id: string, scope: AccessScope) {
     if (!hasSiteAccess(scope, id)) return null;
 
-    const b = await this.buildingRepo.findOne({ where: { id }, relations: ['meters'] });
-    if (!b) return null;
+    const rows = await this.dataSource.query(
+      `SELECT b.id, b.name, b.address, b.total_area,
+              (SELECT COUNT(*)::int FROM meters m WHERE m.building_id = b.id) AS meters_count
+       FROM buildings b WHERE b.id = $1`,
+      [id],
+    );
+    const r = rows[0] as { id: string; name: string; address: string; total_area: string; meters_count: number } | undefined;
+    if (!r) return null;
     return {
-      id: b.id,
-      name: b.name,
-      address: b.address,
-      centerType: b.centerType ?? null,
-      totalArea: Number(b.totalArea),
-      metersCount: b.meters.length,
+      id: r.id,
+      name: r.name,
+      address: r.address,
+      centerType: null as string | null,
+      totalArea: Number(r.total_area),
+      metersCount: r.meters_count,
     };
   }
 

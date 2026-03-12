@@ -349,6 +349,29 @@ async function phaseCatalog(client) {
   }
 
   log('catalog', `Catalog complete: ${buildingRows.filter(b => b.isNew).length} buildings, ${created} meters created`);
+
+  // Refresh staging_centers for API GET /buildings (evita GROUP BY sobre millones en cada request)
+  if (!DRY_RUN && buildingRows.length > 0) {
+    try {
+      const meterCountByBuilding = meterRows.reduce((acc, m) => {
+        acc[m.building_id] = (acc[m.building_id] ?? 0) + 1;
+        return acc;
+      }, {});
+      await client.query('TRUNCATE staging_centers');
+      for (const b of buildingRows) {
+        await client.query(
+          `INSERT INTO staging_centers (id, center_name, center_type, meters_count, updated_at)
+           VALUES ($1, $2, $3, $4, NOW())
+           ON CONFLICT (id) DO UPDATE SET center_name = EXCLUDED.center_name, center_type = EXCLUDED.center_type, meters_count = EXCLUDED.meters_count, updated_at = NOW()`,
+          [b.id, b.name, b.center_type || '', meterCountByBuilding[b.id] ?? 0],
+        );
+      }
+      log('catalog', `Refreshed staging_centers: ${buildingRows.length} row(s)`);
+    } catch (err) {
+      log('catalog', `staging_centers refresh skipped (table may not exist): ${err.message}`);
+    }
+  }
+
   return { buildingRows, meterRows };
 }
 

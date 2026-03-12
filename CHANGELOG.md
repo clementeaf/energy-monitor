@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0-alpha.20] - 2026-03-12
+
+### Changed
+
+- **GET /buildings prioriza staging_centers** — BuildingsService.findAll y findOne consultan primero staging_centers; si tiene filas devuelven esos centros (datos del import); si está vacía o no existe, fallback a tabla buildings. Ya no dependen de READINGS_SOURCE para el listado. Scoping por siteIds aplicado en ambos orígenes.
+- **Backfill staging_centers** — Script `infra/drive-import-staging/backfill-staging-centers.mjs` (`npm run backfill-staging-centers`): rellena staging_centers desde readings_import_staging (GROUP BY center_name, center_type). Útil cuando la migración 014 se aplicó después del import. DRY_RUN=true para solo inspeccionar.
+- **CLAUDE.md** — Listado edificios y staging_centers; backfill documentado; Promotion pipeline menciona staging_centers y backfill.
+
 ## [0.9.0-alpha.19] - 2026-03-12
 
 ### Changed

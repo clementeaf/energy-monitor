@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Building } from './building.entity';
 import { MetersService } from '../meters/meters.service';
 import { getScopedSiteIds, hasSiteAccess, type AccessScope } from '../auth/access-scope';
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 @Injectable()
 export class BuildingsService {
@@ -15,9 +24,13 @@ export class BuildingsService {
   ) {}
 
   /**
-   * Lista edificios con conteo de medidores. Incluye center_type si existe (migración 013).
+   * Lista edificios. Prioriza centros en staging_centers si la tabla tiene datos;
+   * si no, usa tabla buildings (con center_type si existe migración 013).
    */
   async findAll(scope: AccessScope) {
+    const fromStaging = await this.findAllFromStaging(scope);
+    if (fromStaging.length > 0) return fromStaging;
+
     const scopedSiteIds = getScopedSiteIds(scope);
     const hasFilter = Array.isArray(scopedSiteIds) && scopedSiteIds.length > 0;
     const withCenterType = `SELECT b.id, b.name, b.address, b.center_type, b.total_area,
@@ -47,10 +60,39 @@ export class BuildingsService {
     }));
   }
 
+  /** Centros desde tabla de resumen staging_centers (pocas filas). Respeta scope por siteIds. */
+  private async findAllFromStaging(scope: AccessScope): Promise<Array<{ id: string; name: string; address: string; centerType: string | null; totalArea: number; metersCount: number }>> {
+    try {
+      const scopedSiteIds = getScopedSiteIds(scope);
+      const hasFilter = Array.isArray(scopedSiteIds) && scopedSiteIds.length > 0;
+      const rows = await this.dataSource.query<Array<{ id: string; center_name: string; center_type: string; meters_count: number }>>(
+        hasFilter
+          ? `SELECT id, center_name, center_type, meters_count FROM staging_centers WHERE id = ANY($1) ORDER BY center_name`
+          : `SELECT id, center_name, center_type, meters_count FROM staging_centers ORDER BY center_name`,
+        hasFilter ? [scopedSiteIds] : [],
+      );
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.center_name,
+        address: '',
+        centerType: r.center_type ?? null,
+        totalArea: 0,
+        metersCount: Number(r.meters_count),
+      }));
+    } catch {
+      return [];
+    }
+  }
+
   /**
-   * Obtiene un edificio por id. Incluye center_type si existe (migración 013).
+   * Obtiene un edificio por id. Busca primero en staging_centers; si no existe, en buildings.
    */
   async findOne(id: string, scope: AccessScope) {
+    const fromStaging = await this.findOneFromStaging(id);
+    if (fromStaging) {
+      if (!hasSiteAccess(scope, id)) return null;
+      return fromStaging;
+    }
     if (!hasSiteAccess(scope, id)) return null;
 
     let rows: Array<Record<string, unknown>>;
@@ -79,6 +121,30 @@ export class BuildingsService {
       totalArea: Number(r.total_area),
       metersCount: Number(r.meters_count),
     };
+  }
+
+  /** Un centro por id desde staging_centers. */
+  private async findOneFromStaging(
+    id: string,
+  ): Promise<{ id: string; name: string; address: string; centerType: string | null; totalArea: number; metersCount: number } | null> {
+    try {
+      const rows = await this.dataSource.query<Array<{ id: string; center_name: string; center_type: string; meters_count: number }>>(
+        `SELECT id, center_name, center_type, meters_count FROM staging_centers WHERE id = $1`,
+        [id],
+      );
+      const r = rows[0];
+      if (!r) return null;
+      return {
+        id: r.id,
+        name: r.center_name,
+        address: '',
+        centerType: r.center_type ?? null,
+        totalArea: 0,
+        metersCount: Number(r.meters_count),
+      };
+    } catch {
+      return null;
+    }
   }
 
   async findMeters(buildingId: string, scope: AccessScope) {

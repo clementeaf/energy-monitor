@@ -159,6 +159,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - `promote.mjs` auto-descubre `center_name` → crea buildings slugificados, auto-descubre meters → crea catalog entries.
 - Promotion usa `INSERT INTO readings SELECT FROM staging` con `NOT EXISTS` para idempotencia, batch por `source_file`.
 - Soporta `DRY_RUN=true` para inspección sin escritura.
+- **staging_centers** se actualiza en fase catalog (TRUNCATE + INSERT desde buildingRows). Si la tabla está vacía y ya hay datos en staging, rellenar con `npm run backfill-staging-centers` en `infra/drive-import-staging`.
 - Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`. Jerarquía para sitios Drive: script `infra/drive-import-staging/hierarchy-from-staging.mjs` (lee staging: center_type, store_type, store_name, meter_id → escribe hierarchy_nodes en 4 niveles); uso `npm run hierarchy-from-staging`; ver `docs/hierarchy-from-staging.md`.
 
 ### Ejecución de la promotion
@@ -180,6 +181,10 @@ DB_HOST=127.0.0.1 DB_PORT=5433 npm --prefix infra/drive-import-staging run promo
 - Snapshot RDS recomendado antes de correr `PHASE=promote`.
 - Considerar pausar `synthetic-readings-generator` y `offlineAlerts` durante la promotion para evitar contención.
 - Post-promotion: validar con `PHASE=verify` y reactivar procesos.
+
+### Listado de edificios (GET /buildings) y staging_centers
+- **GET /buildings** y **GET /buildings/:id** priorizan siempre la tabla **staging_centers**: si tiene filas, devuelven esos centros (datos del import); si está vacía o no existe, hacen fallback a la tabla `buildings`. No dependen de `READINGS_SOURCE`. Scoping por `siteIds` se aplica en ambos orígenes.
+- **staging_centers** se rellena en la fase catalog de `promote.mjs` (Drive pipeline o local). Si la tabla existe pero está vacía (p. ej. migración 014 aplicada después del import), usar backfill: `npm run backfill-staging-centers` en `infra/drive-import-staging` (misma config DB que promote; `DRY_RUN=true` para solo inspeccionar). El script hace GROUP BY sobre `readings_import_staging` e inserta en `staging_centers`.
 
 ### Fuente de lecturas para el frontend (READINGS_SOURCE)
 - **Variable de entorno:** `READINGS_SOURCE=readings` (default) | `staging`. Si es `staging`, las APIs de lecturas y consumo leen desde `readings_import_staging` en lugar de `readings`, con límites estrictos para no colapsar el servicio.
@@ -594,6 +599,7 @@ cd backend && npx sls offline
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
+| `infra/drive-import-staging/backfill-staging-centers.mjs` | Rellena staging_centers desde readings_import_staging (GROUP BY); uso cuando la tabla está vacía |
 | `infra/drive-pipeline/index.mjs` | **Orquestador Fargate**: detecta cambios + ingest Drive→S3 + import S3→staging |
 | `infra/drive-pipeline/Dockerfile` | Imagen Docker del pipeline para ECS Fargate |
 | `infra/drive-pipeline/task-definition.json` | Task Definition ECS (`energy-monitor-drive-pipeline:1`) |

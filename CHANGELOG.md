@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0-alpha.32] - 2026-03-13
+
+### Fixed
+
+- **Drill-down gráfico "kWh por nodo" en 0** — El backend calcula totalKwh desde energía real: por cada medidor del subárbol, (MAX(energy_kwh_total) − MIN(energy_kwh_total)) en el rango from/to; suma = kWh consumidos. Antes usaba SUM(power_kw), incorrecto para kWh. Sin from/to se sigue devolviendo 0.
+
+### Added
+
+- **Drill-down: from/to y selector de rango** — El frontend envía from y to a GET /hierarchy/node/:nodeId/children (default últimos 30 días). Selector "1 Día", "1 Semana", "1 Mes" para ver totales diario/semanal/mensual.
+- **Scripts de verificación** — `scripts/verify-chart-endpoints.mjs` prueba endpoints que alimentan gráficos (BEARER_TOKEN, from/to). `infra/db-verify/query-readings-direct.mjs` consulta directa a BD (readings vs staging, potencia/energía/voltaje); soporta DB_USE_SECRET=1 + túnel y carga backend/.env.
+
+### Changed
+
+- **CLAUDE.md** — Hierarchy: children con from/to y cálculo totalKwh desde energy_kwh_total. DrilldownPage: selector 1 Día/Semana/Mes. Key Files: verify-chart-endpoints.mjs, query-readings-direct.mjs.
+
 ## [0.9.0-alpha.31] - 2026-03-12
 
 ### Added

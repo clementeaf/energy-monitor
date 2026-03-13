@@ -219,36 +219,37 @@ export class HierarchyService {
       };
     }
 
-    let query = `
+    if (!from || !to) {
+      return { totalKwh: 0, avgPowerKw: 0, peakPowerKw: 0 };
+    }
+
+    const query = `
       WITH RECURSIVE subtree AS (
         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
         UNION ALL
         SELECT h.id, h.meter_id FROM hierarchy_nodes h
         INNER JOIN subtree s ON h.parent_id = s.id
+      ),
+      meter_delta AS (
+        SELECT s.meter_id, MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta
+        FROM readings r
+        INNER JOIN subtree s ON s.meter_id = r.meter_id
+        WHERE s.meter_id IS NOT NULL
+          AND r.timestamp >= $2 AND r.timestamp <= $3
+        GROUP BY s.meter_id
+      ),
+      power_stats AS (
+        SELECT AVG(r.power_kw) AS avg_pw, MAX(r.power_kw) AS peak_pw
+        FROM readings r
+        INNER JOIN subtree s ON s.meter_id = r.meter_id
+        WHERE s.meter_id IS NOT NULL
+          AND r.timestamp >= $2 AND r.timestamp <= $3
       )
       SELECT
-        COALESCE(SUM(r.power_kw), 0) as "totalKwh",
-        COALESCE(AVG(r.power_kw), 0) as "avgPowerKw",
-        COALESCE(MAX(r.power_kw), 0) as "peakPowerKw"
-      FROM readings r
-      INNER JOIN subtree s ON s.meter_id = r.meter_id
-      WHERE s.meter_id IS NOT NULL`;
-
-    const params: (string | undefined)[] = [nodeId];
-    let paramIdx = 2;
-
-    if (from) {
-      query += ` AND r.timestamp >= $${paramIdx}`;
-      params.push(from);
-      paramIdx++;
-    }
-    if (to) {
-      query += ` AND r.timestamp <= $${paramIdx}`;
-      params.push(to);
-      paramIdx++;
-    }
-
-    const [row] = await this.dataSource.query(query, params);
+        COALESCE((SELECT SUM(delta) FROM meter_delta), 0) AS "totalKwh",
+        COALESCE((SELECT avg_pw FROM power_stats), 0) AS "avgPowerKw",
+        COALESCE((SELECT peak_pw FROM power_stats), 0) AS "peakPowerKw"`;
+    const [row] = await this.dataSource.query(query, [nodeId, from, to]);
     return {
       totalKwh: Number(Number(row.totalKwh).toFixed(3)),
       avgPowerKw: Number(Number(row.avgPowerKw).toFixed(3)),

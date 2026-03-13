@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Verificación de datos en RDS (conteos, distribución, jerarquía)",
   "scripts": {
-    "verify": "node verify-rds.mjs"
+    "verify": "node verify-rds.mjs",
+    "query-readings": "node query-readings-direct.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1005.0",

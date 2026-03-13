@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ChartSkeleton } from '../../components/ui/Skeleton';
@@ -7,16 +7,35 @@ import { DrilldownBreadcrumb } from './components/DrilldownBreadcrumb';
 import { DrilldownBars } from './components/DrilldownBars';
 import { DrilldownChildrenTable } from './components/DrilldownChildrenTable';
 
+const RANGE_OPTIONS = [
+  { days: 1, label: '1 Día' },
+  { days: 7, label: '1 Semana' },
+  { days: 30, label: '1 Mes' },
+] as const;
+
+function timeRangeForDays(days: number): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date(to.getTime() - days * 24 * 60 * 60 * 1000);
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
 export function DrilldownPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
+
+  const [rangeDays, setRangeDays] = useState<number>(30);
+  const range = useMemo(() => timeRangeForDays(rangeDays), [rangeDays]);
 
   // The root node ID convention: B-{BUILDING_ID_UPPER}
   const rootNodeId = `B-${siteId!.toUpperCase()}`;
   const [currentNodeId, setCurrentNodeId] = useState(rootNodeId);
 
   const { data: nodeData, isLoading: loadingNode } = useHierarchyNode(currentNodeId);
-  const { data: children, isLoading: loadingChildren } = useHierarchyChildren(currentNodeId);
+  const { data: children, isLoading: loadingChildren } = useHierarchyChildren(
+    currentNodeId,
+    range.from,
+    range.to,
+  );
 
   const handleDrill = (nodeId: string) => {
     setCurrentNodeId(nodeId);
@@ -64,6 +83,22 @@ export function DrilldownPage() {
   } else if (children && children.length > 0) {
     content = (
       <>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {RANGE_OPTIONS.map(({ days, label }) => (
+            <button
+              key={days}
+              type="button"
+              onClick={() => setRangeDays(days)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                rangeDays === days
+                  ? 'bg-accent text-white'
+                  : 'bg-raised text-muted hover:bg-border hover:text-text'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <DrilldownBars items={children} onDrill={handleDrill} />
         <DrilldownChildrenTable items={children} onDrill={handleDrill} />
       </>

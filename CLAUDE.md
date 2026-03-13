@@ -260,10 +260,11 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 |---|---|---|---|
 | GET | `/hierarchy/:buildingId` | — | `HierarchyNode[]` (tree) |
 | GET | `/hierarchy/node/:nodeId` | — | `{ node, path }` |
-| GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` | `HierarchyChildSummary[]` |
+| GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` (recomendado para totalKwh) | `HierarchyChildSummary[]` |
 | GET | `/hierarchy/node/:nodeId/consumption` | `resolution?` (`hourly`/`daily`), `from?`, `to?` | time-series |
 
 - Si el frontend envía nodo raíz `B-{SITE_ID}` en mayúsculas (ej. B-PARQUE-ARAUCO-KENNEDY) y en BD el id está en minúsculas/truncado (ej. B-parque-arauco-ken), HierarchyService.findNode resuelve por `building_id = nodeId.slice(2).toLowerCase()` para evitar 404. Children y consumption usan el id resuelto.
+- **Children con consumo:** sin `from`/`to` el backend devuelve totalKwh/avgPowerKw/peakPowerKw en 0. Con `from` y `to`, totalKwh se calcula como suma de (MAX(energy_kwh_total) − MIN(energy_kwh_total)) por medidor del subárbol en ese rango (energía real en kWh); avg/peak desde power_kw.
 
 ### Alerts (`/alerts`) — requiere Bearer
 | Method | Path | Query | Response |
@@ -458,7 +459,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 |-----------|------------|--------|------|---------------------|
 | **BuildingDetailPage** | BuildingConsumptionChart (StockChart) | ConsumptionPoint[] (totalPowerKw, peakPowerKw) | área + línea | Sí: pickResolution(rangeMs) → 15min / hourly / daily; keepPreviousData |
 | **MeterDetailPage** | 6× StockChart | Reading[] (powerKw, voltageL1–L3, currentL1–L3, pf, frequencyHz, energyKwhTotal, thd, phaseImbalance) | series temporales + flags de alarmas | Sí: misma lógica; alarmEvents últimos 30d |
-| **DrilldownPage** | DrilldownBars (Highcharts bar) | HierarchyChildSummary[] (totalKwh por hijo) | barras horizontales por nodo | No (children sin from/to en la llamada actual) |
+| **DrilldownPage** | DrilldownBars (Highcharts bar) | HierarchyChildSummary[] (totalKwh por hijo) | barras horizontales por nodo | Sí: from/to últimos 1/7/30 días; selector "1 Día", "1 Semana", "1 Mes" |
 | **RealtimePage** | — | DataTable de MeterOverview | tabla | — |
 | **AlertsPage** | — | Tabla HTML de Alert[] | tabla | — |
 
@@ -470,7 +471,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 ### Datos por dominio y hooks
 - **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution, from?, to?). Consumption siempre con from/to: rango por defecto últimos 7 días; onRangeChange actualiza range y resolution. Query enabled solo si buildingId + from + to.
 - **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution, from?, to?) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings siempre con from/to: rango por defecto 7 días; onRangeChange actualiza range y resolution. Query enabled solo si meterId + from + to. Alarm events 30d fijo en MeterDetailPage.
-- **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
+- **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown envía from/to (default 30 días) a children para obtener totalKwh; selector 1 Día / 1 Semana / 1 Mes.
 - **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
 - **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen en BillingPage: tabla pivote (una fila por centro y año, columnas Enero–Diciembre + Total kWh); detalle paginado 50 por página. BillingDetailTable agrupa filas por centro y muestra la columna Centro una sola vez por bloque (rowSpan), ordenando por centerName antes de agrupar. Tablas de facturación usan toNum() para normalizar valores numéricos que llegan como string desde la API (pg NUMERIC).
 - **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
@@ -648,7 +649,9 @@ cd backend && npx sls offline
 | `infra/drive-pipeline/task-definition.json` | Task Definition ECS (`energy-monitor-drive-pipeline:1`) |
 | `infra/drive-pipeline/task-role-s3-policy.json` | Política IAM inline para S3 (manifests/raw) del task role; aplicar con `aws iam put-role-policy` |
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
-| `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
+| `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico; rango 1 día/semana/mes para children |
+| `scripts/verify-chart-endpoints.mjs` | Verifica endpoints que alimentan gráficos (from/to, conteos) |
+| `infra/db-verify/query-readings-direct.mjs` | Consulta directa BD: readings vs staging, potencia/energía/voltaje; DB_USE_SECRET=1 + túnel |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |

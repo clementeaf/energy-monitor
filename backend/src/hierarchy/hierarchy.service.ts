@@ -231,6 +231,9 @@ export class HierarchyService {
       return { totalKwh: 0, avgPowerKw: 0, peakPowerKw: 0 };
     }
 
+    const originalFrom = from;
+    const originalTo = to;
+
     const maxTsRow = await this.dataSource.query<Array<{ max_ts: string | null }>>(
       `WITH RECURSIVE subtree AS (
         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
@@ -247,6 +250,10 @@ export class HierarchyService {
     const maxTs = maxTsRaw != null ? String(maxTsRaw).trim() : null;
     if (maxTs && new Date(to) > new Date(maxTs)) {
       to = maxTs;
+      if (new Date(from) > new Date(to)) {
+        const durationMs = new Date(originalTo).getTime() - new Date(originalFrom).getTime();
+        from = new Date(new Date(to).getTime() - durationMs).toISOString();
+      }
     }
 
     const query = `

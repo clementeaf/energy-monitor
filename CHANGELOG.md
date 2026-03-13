@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0-alpha.35] - 2026-03-13
+
+### Fixed
+
+- **Drill-down 1 Día / 1 Semana seguían en 0** — Tras limitar `to` al último timestamp en BD, si los datos acababan hace días quedaba `from > to` (rango invertido) y la query devolvía 0 filas. Ahora, cuando `from > to` tras el clamp, se recalcula `from = to - duración_original` para mostrar el último día o semana con datos sin invertir el rango.
+
+### Changed
+
+- **CLAUDE.md** — DrilldownBars/hierarchy.service: ajuste de `from` cuando from>to tras clamp para mantener duración.
+
 ## [0.9.0-alpha.34] - 2026-03-13
 
 ### Fixed

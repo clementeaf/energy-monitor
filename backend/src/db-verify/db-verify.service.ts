@@ -230,14 +230,14 @@ export class DbVerifyService {
           });
           continue;
         }
-        const placeholders = hIds.map((_, i) => `$${i + 1}`).join(',');
         const inReadings = await this.dataSource.query<{ meter_id: string }[]>(
-          `SELECT DISTINCT meter_id FROM readings WHERE meter_id IN (${placeholders})`,
+          `SELECT DISTINCT r.meter_id FROM readings r
+           WHERE TRIM(LOWER(r.meter_id)) IN (${hIds.map((_, i) => `TRIM(LOWER($${i + 1}))`).join(',')})`,
           hIds,
         );
-        const inReadingsSet = new Set(inReadings.map((r) => r.meter_id));
-        const inList = hIds.filter((id) => inReadingsSet.has(id));
-        const missingList = hIds.filter((id) => !inReadingsSet.has(id));
+        const inReadingsNorm = new Set(inReadings.map((r) => (r.meter_id ?? '').trim().toLowerCase()));
+        const inList = hIds.filter((id) => inReadingsNorm.has((id ?? '').trim().toLowerCase()));
+        const missingList = hIds.filter((id) => !inReadingsNorm.has((id ?? '').trim().toLowerCase()));
         rows.push({
           building_id,
           hierarchy_meter_count: hIds.length,

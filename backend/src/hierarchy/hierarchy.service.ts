@@ -6,6 +6,9 @@ import { Meter } from '../meters/meter.entity';
 import { hasSiteAccess, type AccessScope } from '../auth/access-scope';
 import { useStaging, STAGING_LIMITS } from '../readings-source.config';
 
+/** JOIN condition so hierarchy_nodes.meter_id matches readings.meter_id despite case/whitespace. */
+const METER_JOIN = `s.meter_id IS NOT NULL AND TRIM(LOWER(s.meter_id)) = TRIM(LOWER(r.meter_id))`;
+
 @Injectable()
 export class HierarchyService {
   constructor(
@@ -120,8 +123,7 @@ export class HierarchyService {
         AVG(r.power_kw) as "avgPowerKw",
         MAX(r.power_kw) as "peakPowerKw"
       FROM readings r
-      INNER JOIN subtree s ON s.meter_id = r.meter_id
-      WHERE s.meter_id IS NOT NULL`;
+      INNER JOIN subtree s ON ${METER_JOIN}`;
 
     const params: (string | undefined)[] = [resolvedId];
     let paramIdx = 2;
@@ -168,8 +170,7 @@ export class HierarchyService {
        capped AS (
          SELECT r.timestamp, r.power_kw
          FROM readings_import_staging r
-         INNER JOIN subtree s ON s.meter_id = r.meter_id
-         WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3
+         INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
          ORDER BY r.timestamp ASC
          LIMIT $4
        )
@@ -206,8 +207,7 @@ export class HierarchyService {
          ),
          capped AS (
            SELECT r.power_kw FROM readings_import_staging r
-           INNER JOIN subtree s ON s.meter_id = r.meter_id
-           WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3
+           INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
            LIMIT $4
          )
          SELECT
@@ -242,7 +242,7 @@ export class HierarchyService {
         INNER JOIN subtree s ON h.parent_id = s.id
       )
       SELECT MAX(r.timestamp)::text AS max_ts FROM readings r
-      INNER JOIN subtree s ON s.meter_id = r.meter_id WHERE s.meter_id IS NOT NULL`,
+      INNER JOIN subtree s ON ${METER_JOIN}`,
       [nodeId],
     );
     const r = maxTsRow[0] as Record<string, unknown> | undefined;
@@ -271,17 +271,13 @@ export class HierarchyService {
       meter_delta AS (
         SELECT s.meter_id, MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta
         FROM readings r
-        INNER JOIN subtree s ON s.meter_id = r.meter_id
-        WHERE s.meter_id IS NOT NULL
-          AND r.timestamp >= $2 AND r.timestamp <= $3
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
         GROUP BY s.meter_id
       ),
       power_stats AS (
         SELECT AVG(r.power_kw) AS avg_pw, MAX(r.power_kw) AS peak_pw
         FROM readings r
-        INNER JOIN subtree s ON s.meter_id = r.meter_id
-        WHERE s.meter_id IS NOT NULL
-          AND r.timestamp >= $2 AND r.timestamp <= $3
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
       )
       SELECT
         COALESCE((SELECT SUM(delta) FROM meter_delta), 0) AS "totalKwh",
@@ -291,16 +287,78 @@ export class HierarchyService {
     const raw = row as Record<string, unknown> | undefined;
     const num = (camel: string): number =>
       Number(Number(raw?.[camel] ?? raw?.[camel.toLowerCase()] ?? 0).toFixed(3));
+    const totalKwh = num('totalKwh');
+    if (totalKwh === 0) {
+      const fromStaging = await this.getSubtreeConsumptionFromStagingFallback(nodeId, from, to);
+      if (fromStaging.totalKwh > 0 || fromStaging.avgPowerKw > 0 || fromStaging.peakPowerKw > 0) {
+        return fromStaging;
+      }
+    }
     return {
-      totalKwh: num('totalKwh'),
+      totalKwh,
       avgPowerKw: num('avgPowerKw'),
       peakPowerKw: num('peakPowerKw'),
     };
   }
 
+  /**
+   * Fallback: consumption from readings_import_staging when readings has no data for this subtree.
+   * Used so drill-down shows data for Drive centres before promotion has been run.
+   */
+  private async getSubtreeConsumptionFromStagingFallback(
+    nodeId: string,
+    from: string,
+    to: string,
+  ): Promise<{ totalKwh: number; avgPowerKw: number; peakPowerKw: number }> {
+    const query = `
+      WITH RECURSIVE subtree AS (
+        SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+        UNION ALL
+        SELECT h.id, h.meter_id FROM hierarchy_nodes h
+        INNER JOIN subtree s ON h.parent_id = s.id
+      ),
+      meter_delta AS (
+        SELECT s.meter_id, MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta
+        FROM readings_import_staging r
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
+        GROUP BY s.meter_id
+      ),
+      power_stats AS (
+        SELECT AVG(r.power_kw) AS avg_pw, MAX(r.power_kw) AS peak_pw
+        FROM readings_import_staging r
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3
+      )
+      SELECT
+        COALESCE((SELECT SUM(delta) FROM meter_delta), 0) AS "totalKwh",
+        COALESCE((SELECT avg_pw FROM power_stats), 0) AS "avgPowerKw",
+        COALESCE((SELECT peak_pw FROM power_stats), 0) AS "peakPowerKw"`;
+    const [row] = await this.dataSource.query(query, [nodeId, from, to]);
+    const raw = row as Record<string, unknown> | undefined;
+    const n = (k: string): number =>
+      Number(Number(raw?.[k] ?? raw?.[k.toLowerCase()] ?? 0).toFixed(3));
+    return {
+      totalKwh: n('totalKwh'),
+      avgPowerKw: n('avgPowerKw'),
+      peakPowerKw: n('peakPowerKw'),
+    };
+  }
+
   /** Count readings rows in range for the subtree (diagnostic when totalKwh is 0). */
   private async getSubtreeReadingsCount(nodeId: string, from: string, to: string): Promise<number> {
-    const table = useStaging() ? 'readings_import_staging' : 'readings';
+    if (useStaging()) {
+      const [row] = await this.dataSource.query(
+        `WITH RECURSIVE subtree AS (
+          SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+          UNION ALL
+          SELECT h.id, h.meter_id FROM hierarchy_nodes h
+          INNER JOIN subtree s ON h.parent_id = s.id
+        )
+        SELECT COUNT(*)::bigint AS cnt FROM readings_import_staging r
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3`,
+        [nodeId, from, to],
+      );
+      return Number(row?.cnt ?? 0);
+    }
     const [row] = await this.dataSource.query(
       `WITH RECURSIVE subtree AS (
         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
@@ -308,12 +366,26 @@ export class HierarchyService {
         SELECT h.id, h.meter_id FROM hierarchy_nodes h
         INNER JOIN subtree s ON h.parent_id = s.id
       )
-      SELECT COUNT(*)::bigint AS cnt FROM ${table} r
-      INNER JOIN subtree s ON s.meter_id = r.meter_id
-      WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3`,
+      SELECT COUNT(*)::bigint AS cnt FROM readings r
+      INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3`,
       [nodeId, from, to],
     );
-    return Number(row?.cnt ?? 0);
+    let cnt = Number(row?.cnt ?? 0);
+    if (cnt === 0) {
+      const [stagingRow] = await this.dataSource.query(
+        `WITH RECURSIVE subtree AS (
+          SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+          UNION ALL
+          SELECT h.id, h.meter_id FROM hierarchy_nodes h
+          INNER JOIN subtree s ON h.parent_id = s.id
+        )
+        SELECT COUNT(*)::bigint AS cnt FROM readings_import_staging r
+        INNER JOIN subtree s ON ${METER_JOIN} AND r.timestamp >= $2 AND r.timestamp <= $3`,
+        [nodeId, from, to],
+      );
+      cnt = Number(stagingRow?.cnt ?? 0);
+    }
+    return cnt;
   }
 
   /** Count meters in a subtree */

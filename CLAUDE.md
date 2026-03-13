@@ -264,7 +264,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/hierarchy/node/:nodeId/consumption` | `resolution?` (`hourly`/`daily`), `from?`, `to?` | time-series |
 
 - Si el frontend envía nodo raíz `B-{SITE_ID}` en mayúsculas (ej. B-PARQUE-ARAUCO-KENNEDY) y en BD el id está en minúsculas/truncado (ej. B-parque-arauco-ken), HierarchyService.findNode resuelve por `building_id = nodeId.slice(2).toLowerCase()` para evitar 404. Children y consumption usan el id resuelto.
-- **Children con consumo:** sin `from`/`to` el backend devuelve totalKwh/avgPowerKw/peakPowerKw en 0. Con `from` y `to`, totalKwh se calcula como suma de (MAX(energy_kwh_total) − MIN(energy_kwh_total)) por medidor del subárbol en ese rango (energía real en kWh); avg/peak desde power_kw.
+- **Children con consumo:** sin `from`/`to` el backend devuelve totalKwh/avgPowerKw/peakPowerKw en 0. Con `from` y `to`, totalKwh se calcula como suma de (MAX(energy_kwh_total) − MIN(energy_kwh_total)) por medidor del subárbol en ese rango (energía real en kWh); avg/peak desde power_kw. El JOIN entre jerarquía y `readings` usa `TRIM(LOWER(meter_id))` para que coincidan aunque difieran en mayúsculas o espacios. Si `readings` devuelve 0 para el subárbol, se usa fallback a `readings_import_staging` (misma fórmula) para que el drill-down muestre datos antes de correr la promoción.
 
 ### Alerts (`/alerts`) — requiere Bearer
 | Method | Path | Query | Response |
@@ -624,7 +624,7 @@ cd backend && npx sls offline
 | `backend/src/serverless.ts` | Entry point Lambda (cached bootstrap) |
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
 | `backend/src/meters/meters.service.ts` | Core: lecturas, uptime, alarmas y consumo; rawVal() para leer resultados raw con fallback minúsculas (pg) y que gráficos Potencia/Voltaje del medidor muestren datos |
-| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down; lectura raw con fallback minúsculas (pg); clamp `to` al último timestamp y ajuste de `from` con duración explícita 1d/7d/30d cuando from>to |
+| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down; JOIN jerarquía–readings con TRIM(LOWER(meter_id)); fallback a readings_import_staging cuando readings devuelve 0; clamp `to` al último timestamp y ajuste de `from` 1d/7d/30d cuando from>to; raw con fallback minúsculas (pg) |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/common/utf8-json.interceptor.ts` | Interceptor global: Content-Type application/json; charset=utf-8 en respuestas API |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |

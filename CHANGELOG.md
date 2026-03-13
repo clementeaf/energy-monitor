@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.37] - 2026-03-13
+
+### Fixed
+
+- **Drill-down 0 kWh con datos en readings** — El JOIN entre `hierarchy_nodes` y `readings` usaba igualdad exacta de `meter_id`; en PostgreSQL el texto es sensible a mayúsculas y espacios, por lo que variaciones (ej. MG-001 vs mg-001) no hacían match y la API devolvía 0. HierarchyService ahora usa `TRIM(LOWER(meter_id))` en todos los JOINs jerarquía–readings/staging. Si `readings` sigue devolviendo 0 para el subárbol, se aplica fallback a `readings_import_staging` (misma fórmula de energía) para centros Drive antes de promoción.
+- **db-verify hierarchyVsReadings** — La comparación de meter_ids jerarquía vs readings usa la misma normalización (TRIM/LOWER) para que el diagnóstico sea coherente con el drill-down.
+
+### Changed
+
+- **CLAUDE.md** — Hierarchy: JOIN normalizado meter_id y fallback staging; Key Files hierarchy.service.
+
 ## [0.9.0-alpha.36] - 2026-03-13
 
 ### Fixed

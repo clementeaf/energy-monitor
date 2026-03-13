@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0-alpha.21] - 2026-03-13
+
+### Added
+
+- **Tablas tiendas y analisis** — Migraciones `sql/015_tiendas.sql` (locales por edificio: building_id, store_type, store_name) y `sql/016_analisis.sql` (agregados por edificio/tienda/medidor y período: consumption_kwh, avg_power_kw, peak_demand_kw). Sin datos; estructura para ingest controlado.
+- **Distribución staging → tablas** — Script `distribute-staging-to-tables.mjs`: llena tiendas (GROUP BY desde staging, ensureBuildingsFromStaging) y analisis (por día y batches, ensureMetersFromStaging). FROM_DATE/TO_DATE para ventana de fechas; BATCH_READ, PHASE=tiendas|analisis|all. `docs/distribuir-staging-a-tablas.md` con estrategia por trozos.
+- **Staging como buffer** — Doc `docs/staging-buffer-no-almacen.md`: staging no es almacén; tras distribuir se purga. Scripts `purge-staging.mjs` (PURGE_STAGING=1), `rds-free-space.mjs` (tamaños + VACUUM), `truncate-data-keep-tables.mjs` (CONFIRM=1 vacía readings, analisis, tiendas, meters, buildings, staging_centers, alerts, hierarchy_nodes, sessions; conserva users/roles/permisos).
+- **Backfill con migración 014** — `backfill-staging-centers.mjs` aplica CREATE TABLE staging_centers si no existe antes de rellenar.
+- **Prueba de APIs** — `scripts/test-all-apis.mjs`: llama todas las APIs con Bearer token; BEARER_TOKEN y API_BASE_URL opcionales.
+- **Apply 015-016** — `infra/drive-import-staging/apply-015-016.mjs` aplica migraciones tiendas y analisis contra RDS.
+
+### Changed
+
+- **CLAUDE.md** — Tablas tiendas y analisis; relaciones; estrategia de datos (staging buffer, truncate, Lambda 2 meses desde S3); scripts distribute, purge, rds-free-space, truncate-data-keep-tables; referencias a docs staging-buffer y distribuir-staging.
+
 ## [0.9.0-alpha.20] - 2026-03-12
 
 ### Changed

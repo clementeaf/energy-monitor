@@ -327,18 +327,25 @@ Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
 
 **alerts** — id: uuid PK auto, type: varchar(50) ['METER_OFFLINE'], severity: varchar(20) default 'high', status: varchar(20) ['active'|'acknowledged'|'resolved'], meter_id: varchar(10) FK→meters?, building_id: varchar(50)?, title: varchar(200), message: text, triggered_at: timestamptz default now(), acknowledged_at/resolved_at: timestamptz?, metadata: jsonb default '{}'
 
+**tiendas** — id: serial PK, building_id: varchar(50) FK→buildings, store_type: varchar(100), store_name: varchar(200), created_at, updated_at. UNIQUE(building_id, store_type, store_name). Migración 015.
+
+**analisis** — id: serial PK, building_id/tienda_id/meter_id (uno no null), period_type, period_start, period_end, consumption_kwh, avg_power_kw, peak_demand_kw, num_readings, created_at. Agregados precalculados por edificio/tienda/medidor y período. Migración 016.
+
+**readings (magnitudes eléctricas principales):** voltage_l1/l2/l3, current_l1/l2/l3, power_kw, reactive_power_kvar, power_factor, frequency_hz, energy_kwh_total (+ thd, phase_imbalance, alarm, etc.).
+
 ### Relations
 ```
 roles 1──N users, roles 1──N role_permissions
 users 1──N user_sites
-buildings 1──N meters
+buildings 1──N meters, buildings 1──N tiendas
 meters 1──N readings, meters 1──N alerts
+tiendas 1──N analisis (scope tienda), meters 1──N analisis (scope meter), buildings 1──N analisis (scope building)
 hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf only)
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas implementadas y acciones | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales y reseedea role_permissions | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | `010_readings_import_staging.sql` → tabla staging para importación CSV | `013_center_and_store_fields.sql` → center_type en buildings, store_type/store_name en meters (docx)
-Todas las migraciones hasta `010` ya están aplicadas en producción (2026-03-10). Si `013` no está aplicada, todos los endpoints de buildings y meters siguen en 200. BuildingsService.findAll/findOne: intentan SELECT con center_type; si falla (columna no existe), fallback a query sin ella; cuando 013 está aplicada, centerType sale de la BD.
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings | `005_hierarchy_nodes.sql` → hierarchy | `006_alerts.sql` → alerts | `007_invite_first_users.sql` | `008_views_catalog.sql` | `009_invitation_links.sql` | `010_readings_import_staging.sql` → staging CSV | `013_center_and_store_fields.sql` → center_type, store_type, store_name | `014_staging_centers.sql` → resumen centros | `015_tiendas.sql` → tiendas (locales por edificio) | `016_analisis.sql` → analisis (agregados por período).
+**Estrategia de datos:** Staging = buffer, no almacén. Tras distribuir a tablas finales se purga. Data actual truncada; tablas conservadas. Próximo paso: Lambda que consuma solo 2 meses desde S3 e inserte en RDS. Ver `docs/staging-buffer-no-almacen.md`, `docs/distribuir-staging-a-tablas.md`.
 
 ## TypeScript Types
 
@@ -555,7 +562,7 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ```
 infra/
   drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests (con detección de cambios driveModifiedTime)
-  drive-import-staging/  → S3 raw CSV → staging RDS con parseo streaming y validaciones base
+  drive-import-staging/  → S3 raw CSV → staging; backfill-staging-centers, distribute-staging (tiendas/analisis por trozos), purge-staging, rds-free-space (VACUUM), truncate-data-keep-tables, apply-015-016
   drive-pipeline/        → Orquestador unificado: detecta cambios + descarga Drive→S3 + importa S3→staging (Fargate)
   db-verify/             → Verificación RDS: script local (npm run verify) o Lambda invocable con AWS CLI (dbVerify)
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
@@ -599,7 +606,12 @@ cd backend && npx sls offline
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
-| `infra/drive-import-staging/backfill-staging-centers.mjs` | Rellena staging_centers desde readings_import_staging (GROUP BY); uso cuando la tabla está vacía |
+| `infra/drive-import-staging/backfill-staging-centers.mjs` | Rellena staging_centers desde readings_import_staging; incluye CREATE TABLE 014 si no existe |
+| `infra/drive-import-staging/distribute-staging-to-tables.mjs` | Distribuye staging → tiendas (GROUP BY) y analisis (por día/batch); FROM_DATE/TO_DATE; ensureBuildingsFromStaging, ensureMetersFromStaging |
+| `infra/drive-import-staging/truncate-data-keep-tables.mjs` | TRUNCATE tablas de datos (readings, analisis, tiendas, meters, buildings, staging_centers, alerts, hierarchy_nodes, sessions); no toca users/roles/permisos |
+| `infra/drive-import-staging/purge-staging.mjs` | PURGE_STAGING=1 para TRUNCATE readings_import_staging y liberar espacio |
+| `infra/drive-import-staging/rds-free-space.mjs` | Tamaños por tabla y VACUUM ANALYZE en RDS |
+| `scripts/test-all-apis.mjs` | Prueba todas las APIs con Bearer token; BEARER_TOKEN, API_BASE_URL |
 | `infra/drive-pipeline/index.mjs` | **Orquestador Fargate**: detecta cambios + ingest Drive→S3 + import S3→staging |
 | `infra/drive-pipeline/Dockerfile` | Imagen Docker del pipeline para ECS Fargate |
 | `infra/drive-pipeline/task-definition.json` | Task Definition ECS (`energy-monitor-drive-pipeline:1`) |
@@ -633,5 +645,5 @@ cd backend && npx sls offline
 - **NO usar:** cpanel-runbook.md, git-deploy.md, server-runbook.md
 
 ## References
-- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Revisión APIs vs docx](docs/revision-apis-vs-docx-bd.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md). Lectura docx: `node scripts/read-docx.mjs` (requiere `cd scripts && npm install`).
+- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Revisión APIs vs docx](docs/revision-apis-vs-docx-bd.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md) | [Staging como buffer](docs/staging-buffer-no-almacen.md) | [Distribución staging→tablas](docs/distribuir-staging-a-tablas.md). Lectura docx: `node scripts/read-docx.mjs` (requiere `cd scripts && npm install`).
 - `CLAUDE.md` debe mantenerse autocontenido; no depender de `patterns/` para contexto operativo base.

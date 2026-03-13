@@ -42,10 +42,24 @@ function buildDbConfig(secret) {
   };
 }
 
+const MIGRATION_014 = `
+CREATE TABLE IF NOT EXISTS staging_centers (
+  id             VARCHAR(100) PRIMARY KEY,
+  center_name    TEXT         NOT NULL,
+  center_type    TEXT         NOT NULL,
+  meters_count   INTEGER      NOT NULL DEFAULT 0,
+  updated_at     TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+`;
+
 async function main() {
   const secret = await getSecretJson(DB_SECRET_NAME);
   const client = new Client(buildDbConfig(secret));
   await client.connect();
+
+  console.log('Aplicando migración 014 (CREATE TABLE IF NOT EXISTS staging_centers)...');
+  await client.query(MIGRATION_014);
+  console.log('Tabla staging_centers lista.');
 
   const { rows } = await client.query(`
     SELECT center_name, center_type, COUNT(DISTINCT meter_id)::int AS meters_count

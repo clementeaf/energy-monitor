@@ -158,6 +158,56 @@ export interface AlertsSyncSummary {
   scannedAt: string;
 }
 
+// --- Billing ---
+
+export interface BillingCenterSummary {
+  id: number;
+  centerName: string;
+  year: number;
+  month: number;
+  totalConsumptionKwh: number | null;
+  peakMaxKw: number | null;
+  demandPuntaKwh: number | null;
+  pctPunta: number | null;
+  avgDailyKwh: number | null;
+  topConsumerLocal: string | null;
+}
+
+export interface BillingMonthlyDetail {
+  id: number;
+  centerName: string;
+  year: number;
+  month: number;
+  meterId: string;
+  storeType: string | null;
+  storeName: string | null;
+  phase: string | null;
+  consumptionKwh: number | null;
+  peakKw: number | null;
+  demandPuntaKwh: number | null;
+  pctPunta: number | null;
+  avgDailyKwh: number | null;
+  energyChargeClp: number | null;
+  demandMaxKw: number | null;
+  demandPuntaKw: number | null;
+  fixedChargeClp: number | null;
+  totalNetClp: number | null;
+  ivaClp: number | null;
+  totalWithIvaClp: number | null;
+}
+
+export interface BillingTariff {
+  id: number;
+  tariffName: string;
+  year: number;
+  month: number;
+  consumptionEnergyKwh: number | null;
+  demandMaxKw: number | null;
+  demandPuntaKw: number | null;
+  kwhTroncal: number | null;
+  fixedChargeClp: number | null;
+}
+
 // --- Domain types (future use) ---
 
 export interface Invoice {

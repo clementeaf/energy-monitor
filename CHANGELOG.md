@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.22] - 2026-03-12
+
+### Added
+
+- **Vista Facturación** — Ruta `/billing` con resumen por centro y mes (tabla BillingSummaryTable) y detalle por local y medidor (BillingDetailTable) con paginación (50 por página). Tipos BillingCenterSummary, BillingMonthlyDetail, BillingTariff; rutas y endpoints en `routes.ts` y `endpoints.ts`; hooks useBillingCenters, useBillingSummary, useBillingDetail, useBillingTariffs en `useBilling.ts`. Formato numérico es-CL y CLP en tablas.
+- **Paginación detalle facturación** — Backend GET `/billing/detail` acepta `limit` y `offset` (máx 500 por página); frontend usa placeholderData keepPreviousData al cambiar de página.
+
+### Changed
+
+- **CLAUDE.md** — Billing: APIs /billing/centers, /summary, /detail, /tariffs; tipos y hooks; vista Facturación en catálogo; RBAC BILLING_OVERVIEW; Key Files billing service/controller y BillingPage/useBilling; tablas billing_* y migraciones 017–018; sidebar 10 ítems con Facturación.
+
 ## [0.9.0-alpha.21] - 2026-03-13
 
 ### Added
@@ -10,6 +21,7 @@
 - **Backfill con migración 014** — `backfill-staging-centers.mjs` aplica CREATE TABLE staging_centers si no existe antes de rellenar.
 - **Prueba de APIs** — `scripts/test-all-apis.mjs`: llama todas las APIs con Bearer token; BEARER_TOKEN y API_BASE_URL opcionales.
 - **Apply 015-016** — `infra/drive-import-staging/apply-015-016.mjs` aplica migraciones tiendas y analisis contra RDS.
+- **Lambda CSV ingest (2 meses)** — `infra/csv-ingest-lambda/`: Lambda que consume CSV desde S3 (`raw/`), filtra por ventana fromDate/toDate (2 meses), inserta en `readings_import_staging`, ejecuta catalog (buildings, meters, staging_centers) y promote a `readings`. Invocación manual o EventBridge; payload `key`, `fromDate`, `toDate`. README con deploy e invocación.
 
 ### Changed
 

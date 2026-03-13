@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary, AdminUserAccount, RoleOption, CreateUserInvitationInput, CreateUserInvitationResult, InvitationValidationResult } from '../types';
+import type { Building, Meter, MeterOverview, Reading, ConsumptionPoint, HierarchyNode, HierarchyChildSummary, HierarchyNodeWithPath, UptimeAll, DowntimeEvent, AlarmEvent, AlarmSummary, Alert, AlertStatus, AlertsSyncSummary, AdminUserAccount, RoleOption, CreateUserInvitationInput, CreateUserInvitationResult, InvitationValidationResult, BillingCenterSummary, BillingMonthlyDetail, BillingTariff } from '../types';
 import type { AuthUser } from '../types/auth';
 
 interface AlertsParams {
@@ -82,6 +82,25 @@ export const fetchRoles = () =>
 
 export const fetchInvitation = (token: string) =>
   api.get<InvitationValidationResult>(routes.getInvitation(token)).then((r) => r.data);
+
+// Billing
+export const fetchBillingCenters = () =>
+  api.get<Array<{ centerName: string }>>(routes.getBillingCenters()).then((r) => r.data);
+
+export const fetchBillingSummary = (params?: { year?: number; centerName?: string }) =>
+  api.get<BillingCenterSummary[]>(routes.getBillingSummary(), { params }).then((r) => r.data);
+
+export const fetchBillingDetail = (params?: {
+  year?: number;
+  month?: number;
+  centerName?: string;
+  limit?: number;
+  offset?: number;
+}) =>
+  api.get<BillingMonthlyDetail[]>(routes.getBillingDetail(), { params }).then((r) => r.data);
+
+export const fetchBillingTariffs = (params?: { year?: number }) =>
+  api.get<BillingTariff[]>(routes.getBillingTariffs(), { params }).then((r) => r.data);
 
 // Auth
 export const fetchMe = (invitationToken?: string) =>

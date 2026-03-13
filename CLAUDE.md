@@ -76,7 +76,7 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 ### Mapa objetivo y backlog normalizados
 - El mapa objetivo de vistas derivado del XLSX se mantiene normalizado en `PLAN_ACCION.md`.
 - Agrupación canónica actual: Acceso y Contexto, Dashboard, Monitoreo, Facturación, Alertas, Reportes, Analítica, Administración, Auditoría, Integraciones.
-- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`, `/billing`.
 - Todo objetivo del XLSX que no exista en esas rutas debe tratarse como backlog funcional, no como funcionalidad asumida.
 
 ### Regla de planificación funcional
@@ -215,7 +215,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 - Regla funcional vigente: `módulo = vista`; los permisos deben interpretarse como acceso a vistas y acciones disponibles dentro de esas vistas.
 - La tabla `modules` ya persiste el catálogo de vistas/rutas reales implementadas con metadata de navegación (`route_path`, `navigation_group`, `show_in_nav`, `sort_order`, `is_public`).
 - Backend exige JWT válido en endpoints API mediante guard global y aplica RBAC por módulo/acción con metadata `@RequirePermissions(...)`
-- Mapeo RBAC actual backend: `BUILDINGS_OVERVIEW.view` para `GET /buildings`, `BUILDING_DETAIL.view` para `/buildings/:id*`, `MONITORING_DEVICES.view` para `GET /meters/overview`, `METER_DETAIL.view` para `/meters/:id*`, `MONITORING_DRILLDOWN.view` para `/hierarchy*`, `ALERTS_OVERVIEW.view/manage` para `/alerts` y `sync-offline`, `ALERT_DETAIL.view/manage` para `/alerts/:id*`
+- Mapeo RBAC actual backend: `BUILDINGS_OVERVIEW.view` para `GET /buildings`, `BUILDING_DETAIL.view` para `/buildings/:id*`, `MONITORING_DEVICES.view` para `GET /meters/overview`, `METER_DETAIL.view` para `/meters/:id*`, `MONITORING_DRILLDOWN.view` para `/hierarchy*`, `ALERTS_OVERVIEW.view/manage` para `/alerts` y `sync-offline`, `ALERT_DETAIL.view/manage` para `/alerts/:id*`, `BILLING_OVERVIEW.view` para `/billing/*`
 - Catálogo de vistas implementadas hoy en DB: `LOGIN`, `INVITATION_ACCEPT`, `UNAUTHORIZED`, `CONTEXT_SELECT`, `BUILDINGS_OVERVIEW`, `BUILDING_DETAIL`, `METER_DETAIL`, `MONITORING_REALTIME`, `MONITORING_DEVICES`, `ALERTS_OVERVIEW`, `ALERT_DETAIL`, `MONITORING_DRILLDOWN`, `ADMIN_SITES`, `ADMIN_USERS`, `ADMIN_METERS`, `ADMIN_HIERARCHY`.
 - Base vigente de onboarding: el login ya no autocrea usuarios no invitados; el acceso requiere un registro previo en `users` con rol preasignado y sitios opcionales/preasignados.
 - Admin base disponible: `/admin/users` permite provisionar invitaciones con rol y sitios, devolver un link firmado de activación y exponer su expiración; `GET /roles` expone el catálogo para esa vista.
@@ -288,6 +288,16 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 |---|---|---|---|
 | GET | `/views` | — | `ViewOption[]` |
 
+### Billing (`/billing`) — requiere Bearer + `BILLING_OVERVIEW.view`
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/billing/centers` | — | `{ centerName: string }[]` |
+| GET | `/billing/summary` | `year?`, `centerName?` | `BillingCenterSummary[]` |
+| GET | `/billing/detail` | `year?`, `month?`, `centerName?`, `limit?`, `offset?` | `BillingMonthlyDetail[]` |
+| GET | `/billing/tariffs` | `year?` | `BillingTariff[]` |
+
+- Resumen por centro y mes; detalle mensual por local/medidor con paginación (limit/offset, máx 500 por página).
+
 ### Admin / Diagnóstico — requiere Bearer + `ADMIN_USERS.view`
 | Method | Path | Params | Response |
 |---|---|---|---|
@@ -331,6 +341,8 @@ Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
 
 **analisis** — id: serial PK, building_id/tienda_id/meter_id (uno no null), period_type, period_start, period_end, consumption_kwh, avg_power_kw, peak_demand_kw, num_readings, created_at. Agregados precalculados por edificio/tienda/medidor y período. Migración 016.
 
+**billing_center_summary** — resumen por centro, año, mes (totalConsumptionKwh, peakMaxKw, topConsumerLocal, etc.). Migración 018. **billing_monthly_detail** — detalle por centro, año, mes, meter_id (consumptionKwh, peakKw, cargos CLP, totalNetClp, totalWithIvaClp). **billing_tariffs** — pliegos tarifarios por comuna/mes. Datos desde XLSX en S3 `billing/`; import con `infra/billing-xlsx-import`.
+
 **readings (magnitudes eléctricas principales):** voltage_l1/l2/l3, current_l1/l2/l3, power_kw, reactive_power_kvar, power_factor, frequency_hz, energy_kwh_total (+ thd, phase_imbalance, alarm, etc.).
 
 ### Relations
@@ -344,7 +356,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ### SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings | `005_hierarchy_nodes.sql` → hierarchy | `006_alerts.sql` → alerts | `007_invite_first_users.sql` | `008_views_catalog.sql` | `009_invitation_links.sql` | `010_readings_import_staging.sql` → staging CSV | `013_center_and_store_fields.sql` → center_type, store_type, store_name | `014_staging_centers.sql` → resumen centros | `015_tiendas.sql` → tiendas (locales por edificio) | `016_analisis.sql` → analisis (agregados por período).
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | … | `016_analisis.sql` → analisis | `017_billing.sql` → módulo BILLING_OVERVIEW y permisos | `018_billing_tables.sql` → billing_center_summary, billing_monthly_detail, billing_tariffs.
 **Estrategia de datos:** Staging = buffer, no almacén. Tras distribuir a tablas finales se purga. Data actual truncada; tablas conservadas. Próximo paso: Lambda que consuma solo 2 meses desde S3 e inserte en RDS. Ver `docs/staging-buffer-no-almacen.md`, `docs/distribuir-staging-a-tablas.md`.
 
 ## TypeScript Types
@@ -368,6 +380,9 @@ AlertSeverity = 'critical' | 'high' | 'medium' | 'low'
 AlertStatus = 'active' | 'acknowledged' | 'resolved'
 Alert { id, type, severity, status, meterId, buildingId, title, message, triggeredAt, acknowledgedAt, resolvedAt, metadata }
 AlertsSyncSummary { scannedMeters, createdAlerts, resolvedAlerts, activeOfflineAlerts, scannedAt }
+BillingCenterSummary { id, centerName, year, month, totalConsumptionKwh, peakMaxKw, demandPuntaKwh, pctPunta, avgDailyKwh, topConsumerLocal }
+BillingMonthlyDetail { id, centerName, year, month, meterId, storeType, storeName, phase, consumptionKwh, peakKw, …, totalNetClp, ivaClp, totalWithIvaClp }
+BillingTariff { id, tariffName, year, month, consumptionEnergyKwh, demandMaxKw, demandPuntaKw, kwhTroncal, fixedChargeClp }
 AdminUserAccount { id, email, name, roleId, role, roleLabel, provider, isActive, siteIds, invitationStatus, createdAt, updatedAt }
 RoleOption { id, name, labelEs, requiresSiteScope }
 ViewOption { id, code, label, routePath, navigationGroup, showInNav, sortOrder, isPublic }
@@ -375,7 +390,7 @@ Invoice { id, siteId, tenantId, period, kWh, kW, kVArh, energyCharge, demandChar
 Tenant { id, siteId, name, rut, localId, meterId, contractStart, contractEnd, status }
 Integration { id, name, type, status, lastSyncAt, recordsSynced, errors }
 AuditLog { id, userId, action, resource, resourceId, detail, ip, timestamp }
-- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`.
+- Frontend implementado hoy: `/login`, `/invite/:token`, `/unauthorized`, `/context/select`, `/`, `/buildings/:id`, `/meters/:meterId`, `/monitoring/realtime`, `/monitoring/devices`, `/alerts`, `/alerts/:id`, `/monitoring/drilldown/:siteId`, `/admin/sites`, `/admin/users`, `/admin/meters`, `/admin/hierarchy/:siteId`, `/billing`.
 ```
 
 ### Frontend types/auth.ts
@@ -427,6 +442,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 | `/admin/users` | Admin usuarios | ADMIN_USERS | sí | GET /users, POST /users, GET /roles |
 | `/admin/meters` | Admin medidores | ADMIN_METERS | sí | GET /meters/overview + edificios |
 | `/admin/hierarchy/:siteId` | Admin jerarquía | ADMIN_HIERARCHY | sí | GET /hierarchy/:buildingId (árbol) |
+| `/billing` | Facturación | BILLING_OVERVIEW | sí | GET /billing/centers, GET /billing/summary, GET /billing/detail (paginado), GET /billing/tariffs |
 
 - Todas las vistas protegidas usan Bearer (JWT o session token). El contexto de sitio (`selectedSiteId` en useAppStore) filtra alertas y listas cuando el usuario no tiene acceso global; el backend aplica scope con `X-Site-Context` cuando se envía.
 - Rutas con `:siteId` (drilldown, admin hierarchy): el frontend usa `selectedSiteId` o el primer building del usuario para construir el link del sidebar.
@@ -450,6 +466,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution, from?, to?) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings siempre con from/to: rango por defecto 7 días; onRangeChange actualiza range y resolution. Query enabled solo si meterId + from + to. Alarm events 30d fijo en MeterDetailPage.
 - **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
 - **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
+- **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen y detalle en BillingPage; detalle paginado 50 por página.
 - **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
 
 ### Patrones de consumo (cache y refetch)
@@ -461,6 +478,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 | alerts (Layout, BuildingDetail, BuildingsPage) | 10_000–15_000 | 60_000 | — | Banner y listas |
 | alerts (RealtimePage, AlertsPage) | 10_000 | 30_000 | — | Actualización frecuente |
 | meterUptime, meterAlarmSummary | 60_000 | — | — | Menos volátil |
+| billing centers, summary, tariffs | 60_000 | — | — | Datos de facturación |
+| billing detail (paginado) | 30_000 | — | keepPreviousData | Cambio de página sin flash |
 | admin users/roles | Infinity | — | — | Catálogo administrativo |
 
 - Mutaciones (acknowledge, sync-offline, createUser): onSuccess → invalidateQueries(['alerts']) o equivalente para refrescar listas.
@@ -480,7 +499,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Cache strategy:** Listas estáticas y auth sin staleTime explícito (auth 5–10 min en useAuthQuery); meters overview 30s; alerts 10–15s + refetch 30–60s; consumption/readings sin staleTime + keepPreviousData para gráficos; admin users/roles Infinity.
 
-**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables. Sidebar muestra 9 ítems para `SUPER_ADMIN`: Edificios, Monitoreo en Tiempo Real, Dispositivos, Alertas, Drill-down, Admin Sitios, Admin Usuarios, Admin Medidores, Admin Jerarquía.
+**Routing:** `appRoutes.ts` (centralized + allowedRoles alineados con `auth/permissions.ts`) → `router.tsx` (lazy(() => import().then(m => ({default: m.Page})))). Cada ruta: ErrorBoundary + Suspense(Skeleton) + ProtectedRoute. `ProtectedRoute` también fuerza selección de sitio cuando el usuario tiene múltiples sites. Links internos y CTAs deben respetar la misma matriz para no empujar usuarios a `403` evitables. Sidebar muestra 10 ítems para `SUPER_ADMIN`: Edificios, Monitoreo en Tiempo Real, Dispositivos, Alertas, Drill-down, Facturación, Admin Sitios, Admin Usuarios, Admin Medidores, Admin Jerarquía.
 
 **Feature folders:** `features/<domain>/<Domain>Page.tsx` (named export) + `components/` subdirectory.
 
@@ -561,6 +580,7 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ## Standalone Infra Scripts
 ```
 infra/
+  csv-ingest-lambda/     → Lambda: S3 CSV (ventana 2 meses) → readings_import_staging → catalog → readings (invocación manual o EventBridge; ver infra/csv-ingest-lambda/README.md)
   drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests (con detección de cambios driveModifiedTime)
   drive-import-staging/  → S3 raw CSV → staging; backfill-staging-centers, distribute-staging (tiendas/analisis por trozos), purge-staging, rds-free-space (VACUUM), truncate-data-keep-tables, apply-015-016
   drive-pipeline/        → Orquestador unificado: detecta cambios + descarga Drive→S3 + importa S3→staging (Fargate)
@@ -600,6 +620,8 @@ cd backend && npx sls offline
 | `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
+| `backend/src/billing/billing.service.ts` | Consultas billing_center_summary, billing_monthly_detail, billing_tariffs; scope por siteIds |
+| `backend/src/billing/billing.controller.ts` | GET /billing/centers, /summary, /detail (limit/offset), /tariffs |
 | `backend/serverless.yml` | Lambda 256MB, api timeout 30s, VPC, env vars (api, offlineAlerts, dbVerify) |
 | `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings (Drive→RDS); consultas por tramo por source_file para no colapsar con millones de filas |
 | `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
@@ -624,6 +646,8 @@ cd backend && npx sls offline
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles; ver sección "Frontend: vistas, gráficos, datos y flujo" para catálogo completo por vista |
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
+| `frontend/src/features/billing/BillingPage.tsx` | Vista facturación: resumen por centro/mes y detalle paginado por local/medidor |
+| `frontend/src/hooks/queries/useBilling.ts` | useBillingCenters, useBillingSummary, useBillingDetail, useBillingTariffs |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 | `infra/db-verify/verify-rds.mjs` | Verificación RDS: modo prueba (.env) o AWS Secrets Manager; carga dotenv; mensajes de error claros |
 | `docs/data-drive-aws-review.md` | Revisión: qué hay en RDS, cómo exponer por backend, vistas frontend, verificación (script o aws lambda invoke) |

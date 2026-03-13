@@ -54,6 +54,9 @@ export const PERMISSIONS: Record<string, Record<string, Role[]>> = {
   ADMIN_HIERARCHY: {
     view: SITE_ADMIN_ROLES,
   },
+  BILLING_OVERVIEW: {
+    view: SITE_ADMIN_ROLES,
+  },
 };
 
 export function hasPermission(role: Role, module: string, action: string): boolean {

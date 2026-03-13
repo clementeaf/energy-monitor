@@ -31,6 +31,12 @@ export const routes = {
   getRoles:                ()                       => '/roles',
   getInvitation:           (token: string)         => `/invitations/${token}`,
 
+  // Billing
+  getBillingCenters:       ()                       => '/billing/centers',
+  getBillingSummary:       ()                       => '/billing/summary',
+  getBillingDetail:        ()                       => '/billing/detail',
+  getBillingTariffs:       ()                       => '/billing/tariffs',
+
   // Auth
   getMe:                   ()                       => '/auth/me',
   getPermissions:          ()                       => '/auth/permissions',

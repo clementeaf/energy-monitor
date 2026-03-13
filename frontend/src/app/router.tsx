@@ -22,6 +22,7 @@ const AdminSitesPage = lazy(() => import('../features/admin/AdminSitesPage').the
 const AdminUsersPage = lazy(() => import('../features/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
 const AdminMetersPage = lazy(() => import('../features/admin/AdminMetersPage').then((m) => ({ default: m.AdminMetersPage })));
 const AdminHierarchyPage = lazy(() => import('../features/admin/AdminHierarchyPage').then((m) => ({ default: m.AdminHierarchyPage })));
+const BillingPage = lazy(() => import('../features/billing/BillingPage').then((m) => ({ default: m.BillingPage })));
 
 export const router = createBrowserRouter([
   {
@@ -170,6 +171,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute allowedRoles={[...appRoutes.adminHierarchy.allowedRoles]}>
             <ErrorBoundary>
               <Suspense fallback={<DrilldownSkeleton />}><AdminHierarchyPage /></Suspense>
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: appRoutes.billing.path,
+        element: (
+          <ProtectedRoute allowedRoles={[...appRoutes.billing.allowedRoles]}>
+            <ErrorBoundary>
+              <Suspense fallback={<BuildingsPageSkeleton />}><BillingPage /></Suspense>
             </ErrorBoundary>
           </ProtectedRoute>
         ),

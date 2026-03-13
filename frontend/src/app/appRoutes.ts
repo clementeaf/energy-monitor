@@ -95,6 +95,12 @@ export const appRoutes = {
     allowedRoles: PERMISSIONS.ADMIN_HIERARCHY.view,
     showInNav: true,
   },
+  billing: {
+    path: '/billing',
+    label: 'Facturación',
+    allowedRoles: PERMISSIONS.BILLING_OVERVIEW.view,
+    showInNav: true,
+  },
 } as const satisfies Record<string, AppRoute>;
 
 export function canAccessRoute(role: Role, route: AppRoute): boolean {

@@ -11,6 +11,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { DbVerifyModule } from './db-verify/db-verify.module';
 import { IngestDiagnosticModule } from './ingest-diagnostic/ingest-diagnostic.module';
 import { SessionModule } from './session/session.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SessionModule } from './session/session.module';
     DbVerifyModule,
     IngestDiagnosticModule,
     SessionModule,
+    BillingModule,
   ],
 })
 export class AppModule {}

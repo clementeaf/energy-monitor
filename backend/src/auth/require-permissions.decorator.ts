@@ -16,7 +16,8 @@ export type PermissionModule =
   | 'ADMIN_SITES'
   | 'ADMIN_USERS'
   | 'ADMIN_METERS'
-  | 'ADMIN_HIERARCHY';
+  | 'ADMIN_HIERARCHY'
+  | 'BILLING_OVERVIEW';
 
 export type PermissionAction = 'view' | 'manage' | 'export';
 

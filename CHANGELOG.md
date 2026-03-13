@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.0-alpha.31] - 2026-03-12
+
+### Added
+
+- **Pipeline ECS: jerarquía automática** — El drive-pipeline ejecuta `hierarchy-from-staging.mjs` tras `promote.mjs`; tras cada corrida los nodos quedan en `hierarchy_nodes` y el drill-down funciona para centros Drive sin paso manual.
+- **Política IAM S3 para task role** — `infra/drive-pipeline/task-role-s3-policy.json` con permisos ListBucket, GetObject/PutObject/DeleteObject en `manifests/*` y `raw/*`; aplicar con `aws iam put-role-policy` al rol `energy-monitor-drive-ingest-task-role`.
+
+### Fixed
+
+- **Total con IVA en tabla Facturación** — BillingDetailTable usa fallback `totalNetClp + ivaClp` cuando `totalWithIvaClp` es null; import XLSX reconoce más variantes de columna ("Total Con IVA", "Monto Total con IVA", etc.).
+- **StockChart: zoom trabado y etiqueta "Zoom"** — rangeSelector con config estable por ref para evitar reset de estado; `lang.rangeSelectorZoom: ''` para ocultar etiqueta; altura y espaciado ajustados.
+
+### Changed
+
+- **hierarchy-from-staging** — Carga de config: prioridad `.env` local (dotenv desde cwd, repo root o backend); fallback Secrets Manager en ECS. Script duplicado en `infra/drive-pipeline/` para imagen Docker; dependencia `dotenv` en ambos package.json.
+- **HierarchyService** — Eliminado nodo raíz sintético; si no hay nodos en BD se devuelve 404 (jerarquía solo desde datos reales en `hierarchy_nodes`).
+- **CLAUDE.md** — Pipeline CMD (index → promote → hierarchy-from-staging), IAM task role S3, Key Files task-role-s3-policy.json, jerarquía automática y uso del script (local/ECS).
+
 ## [0.9.0-alpha.30] - 2026-03-13
 
 ### Fixed

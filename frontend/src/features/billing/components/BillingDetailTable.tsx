@@ -40,6 +40,18 @@ function monthLabel(row: BillingMonthlyDetail): string {
 }
 
 /**
+ * Valor a mostrar como Total con IVA: usa totalWithIvaClp si existe; si no, totalNetClp + ivaClp cuando ambos estén disponibles.
+ */
+function effectiveTotalWithIva(row: BillingMonthlyDetail): number | null {
+  const fromDb = toNum(row.totalWithIvaClp);
+  if (fromDb !== null) return fromDb;
+  const net = toNum(row.totalNetClp);
+  const iva = toNum(row.ivaClp);
+  if (net !== null && iva !== null) return net + iva;
+  return null;
+}
+
+/**
  * Agrupa filas consecutivas por centerName para mostrar Centro una sola vez por bloque.
  */
 function groupByCenter(data: BillingMonthlyDetail[]): Array<{ centerName: string; rows: BillingMonthlyDetail[] }> {
@@ -165,7 +177,7 @@ export function BillingDetailTable({
                   <td className="px-4 py-3 text-right tabular-nums">{formatClp(row.fixedChargeClp)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatClp(row.totalNetClp)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatClp(row.ivaClp)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatClp(row.totalWithIvaClp)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatClp(effectiveTotalWithIva(row))}</td>
                 </tr>
               )),
             )}

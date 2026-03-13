@@ -128,7 +128,8 @@ Medidor Siemens (PAC1670/PAC1651)
 
 - **Alcance:** La carga desde Google Drive es un **mecanismo de ingesta de datos** (puntual u ocasional), no un puente operativo permanente. Sirve para tener datos históricos o masivos en RDS; una vez cargados, el producto opera sobre lo que ya está en `readings`, `meters`, `buildings` y `hierarchy_nodes`. La telemetría en vivo y el uso normal de la app no dependen de Drive.
 - Última actualización operativa validada: `2026-03-13`.
-- **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso.
+- **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso. CMD: `index.mjs` (Drive → S3 → staging) → `promote.mjs` (staging → readings + catalog) → `hierarchy-from-staging.mjs` (inserta nodos en `hierarchy_nodes` para centros Drive). Tras cada corrida, drill-down tiene jerarquía sin paso manual.
+- **IAM task role S3:** El rol `energy-monitor-drive-ingest-task-role` debe tener permisos S3 (ListBucket, GetObject/PutObject/DeleteObject en `manifests/*` y `raw/*`). Política en `infra/drive-pipeline/task-role-s3-policy.json`; aplicar con `aws iam put-role-policy --role-name energy-monitor-drive-ingest-task-role --policy-name DrivePipelineS3Access --policy-document file://infra/drive-pipeline/task-role-s3-policy.json`.
 - **Detección de cambios:** compara `driveModifiedTime` del manifest S3 más reciente contra el valor actual en Drive antes de descargar. Si no hubo cambios → `[skip]`. Soporta `FORCE_DOWNLOAD=true` para forzar descarga completa.
 - **Importación idempotente:** `INSERT ... ON CONFLICT (meter_id, timestamp, source_file) DO NOTHING` — re-correr no duplica filas; solo inserta datos nuevos.
 - **Codificación CSV:** La task definition ECS del drive-pipeline incluye `CSV_ENCODING=latin1` por defecto para que los acentos (ej. "Arauco Estación") se importen bien desde Excel/CSV en Latin-1. En ejecución local de drive-import-staging usar `CSV_ENCODING=latin1` si los acentos se ven corruptos. Backend fuerza `Content-Type: application/json; charset=utf-8` vía Utf8JsonInterceptor para que el navegador decodifique correctamente.
@@ -154,7 +155,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - **Ingesta por ventana (script):** Sin Lambda: ejecutar `ingest-two-months.sh` con `FROM_DATE`/`TO_DATE` (ISO) y opcionalmente `S3_KEY`; usa `index.mjs` (filtro por fechas) + `promote.mjs`. Requiere túnel RDS o acceso directo y AWS (S3 + Secrets Manager). Default 1 mes (Ene 2026). Más rápido que Lambda por ausencia de timeout y mejor throughput local/VPC.
 
 ### Promotion pipeline: staging → readings
-- El task Fargate ejecuta en secuencia: `index.mjs` (Drive → S3 → staging) y luego `promote.mjs` (staging → readings). Tras cada corrida diaria, la data queda en `readings` lista para NestJS/Lambda.
+- El task Fargate ejecuta en secuencia: `index.mjs` → `promote.mjs` → `hierarchy-from-staging.mjs`. Tras cada corrida diaria, la data queda en `readings` y los nodos de jerarquía en `hierarchy_nodes` para centros Drive (drill-down operativo sin script manual).
 - Script de promoción: `infra/drive-pipeline/promote.mjs` (mismo contenedor) y `infra/drive-import-staging/promote.mjs` (ejecución manual local).
 - Fases: `validate` → `catalog` → `promote` → `verify` (ejecutables independientemente con `PHASE=<fase>`). Si staging está vacío, promote sale en 0 sin error.
 - Estrategia de `meter_id` resuelta: expansión directa del catálogo — los meter_ids fuente (`MG-001`, `MM-045`, `OT-012`, `SC52-*`, `SC53-*`) se insertan tal cual en `meters` y `buildings`.
@@ -163,7 +164,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - Promotion usa `INSERT INTO readings SELECT FROM staging` con `NOT EXISTS` para idempotencia, batch por `source_file`.
 - Soporta `DRY_RUN=true` para inspección sin escritura.
 - **staging_centers** se actualiza en fase catalog (TRUNCATE + INSERT desde buildingRows). Si la tabla está vacía y ya hay datos en staging, rellenar con `npm run backfill-staging-centers` en `infra/drive-import-staging`.
-- Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`. Jerarquía para sitios Drive: script `infra/drive-import-staging/hierarchy-from-staging.mjs` (lee staging: center_type, store_type, store_name, meter_id → escribe hierarchy_nodes en 4 niveles); uso `npm run hierarchy-from-staging`; ver `docs/hierarchy-from-staging.md`.
+- Base de especificación del import: `docs/drive-csv-import-spec.md`. Plan de negocio para consumo backend de datos nuevos: `docs/plan-negocio-consumo-datos-rds.md`. Jerarquía para sitios Drive: script `infra/drive-import-staging/hierarchy-from-staging.mjs` (lee staging → escribe hierarchy_nodes en 4 niveles). Se ejecuta automáticamente al final del pipeline ECS; local: `npm run hierarchy-from-staging` en `infra/drive-import-staging` (config: .env o backend/.env con túnel, o Secrets Manager en ECS). Ver `docs/hierarchy-from-staging.md`. Copia del script en `infra/drive-pipeline/hierarchy-from-staging.mjs` para la imagen Docker.
 
 ### Ejecución de la promotion
 ```bash
@@ -645,6 +646,7 @@ cd backend && npx sls offline
 | `infra/drive-pipeline/index.mjs` | **Orquestador Fargate**: detecta cambios + ingest Drive→S3 + import S3→staging |
 | `infra/drive-pipeline/Dockerfile` | Imagen Docker del pipeline para ECS Fargate |
 | `infra/drive-pipeline/task-definition.json` | Task Definition ECS (`energy-monitor-drive-pipeline:1`) |
+| `infra/drive-pipeline/task-role-s3-policy.json` | Política IAM inline para S3 (manifests/raw) del task role; aplicar con `aws iam put-role-policy` |
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |

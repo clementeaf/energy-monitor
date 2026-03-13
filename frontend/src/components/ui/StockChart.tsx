@@ -2,6 +2,11 @@ import { useRef } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 
+// Quitar etiqueta "Zoom" del range selector (solo texto; los botones se mantienen)
+Highcharts.setOptions({
+  lang: { rangeSelectorZoom: '' },
+});
+
 // Patch: guard against "Cannot read properties of undefined (reading 'hoverPoint')"
 // https://github.com/highcharts/highcharts/issues/
 const proto = Highcharts.Pointer.prototype as unknown as Record<string, unknown>;
@@ -49,8 +54,8 @@ const darkTheme: Highcharts.Options = {
   scrollbar: { enabled: false },
   rangeSelector: {
     enabled: true,
-    height: 44,
-    buttonSpacing: 8,
+    height: 48,
+    buttonSpacing: 12,
     buttonTheme: {
       fill: '#21262d',
       stroke: '#30363d',
@@ -63,15 +68,13 @@ const darkTheme: Highcharts.Options = {
       },
     },
     inputStyle: { color: '#e6edf3', backgroundColor: '#1e2530' },
-    labelStyle: { color: '#8b949e' },
+    labelStyle: { color: '#8b949e', width: 0 },
     inputEnabled: false,
     buttons: [
       { type: 'day', count: 1, text: '1 Día' },
       { type: 'week', count: 1, text: '1 Semana' },
       { type: 'month', count: 1, text: '1 Mes' },
     ],
-    // NOTE: `selected` is NOT here — it's managed per-instance via initialSelected ref
-    // to prevent chart.update() from resetting the user's zoom on every re-render
   },
 };
 
@@ -84,7 +87,17 @@ interface StockChartProps {
 
 export function StockChart({ options, className = '', loading, onRangeChange }: StockChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
-  const initialSelected = useRef<number | undefined>(2); // 1M on first render only
+  // Config estable del rangeSelector: se fija en el primer render y no se vuelve a pasar,
+  // para que chart.update() no pise el estado interno del botón seleccionado y los botones no se traben.
+  const rangeSelectorConfigRef = useRef<Highcharts.RangeSelectorOptions | null>(null);
+  if (rangeSelectorConfigRef.current === null) {
+    rangeSelectorConfigRef.current = {
+      ...(darkTheme.rangeSelector as object),
+      ...(options.rangeSelector as object),
+      selected: 2,
+    } as Highcharts.RangeSelectorOptions;
+  }
+  const rangeSelector = rangeSelectorConfigRef.current;
 
   const xAxisWithEvent = {
     ...darkTheme.xAxis as object,
@@ -104,15 +117,6 @@ export function StockChart({ options, className = '', loading, onRangeChange }: 
   const mergedYAxis = Array.isArray(options.yAxis)
     ? options.yAxis.map((ax) => ({ ...themeY, ...ax }))
     : { ...themeY, ...options.yAxis as object };
-
-  // Build rangeSelector: include `selected` only on initial render
-  const rangeSelector = {
-    ...darkTheme.rangeSelector as object,
-    ...options.rangeSelector as object,
-    ...(initialSelected.current != null ? { selected: initialSelected.current } : {}),
-  };
-  // Clear after first use so chart.update() won't reset the user's zoom
-  if (initialSelected.current != null) initialSelected.current = undefined;
 
   const merged: Highcharts.Options = {
     ...darkTheme,

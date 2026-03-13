@@ -1,14 +1,8 @@
 /**
  * hierarchy-from-staging.mjs — Build and insert hierarchy_nodes for Drive buildings from staging.
+ * Copia para ejecución en ECS (drive-pipeline). Lee readings_import_staging e inserta en hierarchy_nodes.
  *
- * Reads readings_import_staging (center_name, center_type, store_type, store_name, meter_id),
- * builds a 4-level tree: Building → Panel (center_type) → Subpanel (store_type) → Circuit (meter_id),
- * and inserts into hierarchy_nodes. Skips buildings that already have hierarchy (e.g. legacy pac4220, s7-1200).
- *
- * Environment:
- *   Local (túnel): DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD (o .env en cwd o backend/).
- *   AWS: DB_SECRET_NAME (default energy-monitor/drive-ingest/db); DB_HOST/DB_PORT override.
- *   DRY_RUN=true to print planned inserts without writing.
+ * En ECS usa DB_SECRET_NAME (Secrets Manager). Local: DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD.
  */
 
 import { fileURLToPath } from 'url';
@@ -79,10 +73,6 @@ function log(msg) {
   console.log(`[hierarchy-from-staging] ${msg}`);
 }
 
-/**
- * @param {pg.Client} client
- * @returns {Promise<Array<{ buildingId: string, centerName: string }>>} Drive buildings with no hierarchy yet
- */
 async function getDriveBuildingsWithoutHierarchy(client) {
   const raw = await client.query(`
     SELECT DISTINCT center_name FROM readings_import_staging ORDER BY center_name
@@ -107,9 +97,6 @@ async function getDriveBuildingsWithoutHierarchy(client) {
     .map(([buildingId, centerName]) => ({ buildingId, centerName }));
 }
 
-/**
- * Load staging data for a building by center_name. Returns distinct center_type, panel keys, and circuits.
- */
 async function getStagingTree(client, centerName) {
   const all = await client.query(
     `SELECT center_type, store_type, store_name, meter_id
@@ -209,8 +196,7 @@ async function main() {
       const secret = await getSecretJson(DB_SECRET_NAME);
       config = buildDbConfig(secret);
     } catch (err) {
-      console.error('[hierarchy-from-staging] Sin config local (DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD).');
-      console.error('Use .env con túnel RDS o ejecute en ECS/VPC para usar Secrets Manager.');
+      console.error('[hierarchy-from-staging] Sin config local. En ECS se usa Secrets Manager.');
       console.error('Error:', err.message);
       process.exit(1);
     }

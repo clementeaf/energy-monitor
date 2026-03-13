@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3ListBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::energy-monitor-ingest-058310292956"]
+    },
+    {
+      "Sid": "S3GetPutManifestsAndRaw",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::energy-monitor-ingest-058310292956/manifests/*",
+        "arn:aws:s3:::energy-monitor-ingest-058310292956/raw/*"
+      ]
+    }
+  ]
+}

@@ -148,7 +148,8 @@ async function processResumenMensual(client, rows, year, sourceFile) {
     'Mes', 'N° Mes', 'Ubicación', 'ID Medidor', 'Tipo Local', 'Nombre Local', 'Fase',
     'Consumo Mensual', 'Peak Mensual', 'Demanda Hora', 'Punta', '% Punta',
     'Promedio', 'Diario', 'Consumo Energía', 'Dda. Máx. Suministrada', 'Dda. Máx. Hora Punta',
-    'KWH para Sistema Troncal', 'KWH para Serv. Público', 'Cargo Fijo', 'Total Neto', 'IVA', 'Monto Exento', 'Total con IVA',
+    'KWH para Sistema Troncal', 'KWH para Serv. Público', 'Cargo Fijo', 'Total Neto', 'IVA', 'Monto Exento',
+    'Total con IVA', 'Total Con IVA', 'Monto Total con IVA', 'Total + IVA', 'Total IVA',
   ]);
   const idx = (name) => {
     if (name === 'N° Mes' || name === 'month') return col('N° Mes') >= 0 ? col('N° Mes') : col('Mes');
@@ -171,7 +172,17 @@ async function processResumenMensual(client, rows, year, sourceFile) {
     if (name === 'Total Neto') return col('Total Neto');
     if (name === 'IVA') return col('IVA');
     if (name === 'Monto Exento') return col('Monto Exento');
-    if (name === 'Total con IVA') return col('Total con IVA');
+    if (name === 'Total con IVA') {
+      const a = col('Total con IVA');
+      if (a >= 0) return a;
+      const b = col('Total Con IVA');
+      if (b >= 0) return b;
+      const c = col('Monto Total con IVA');
+      if (c >= 0) return c;
+      const d = col('Total + IVA');
+      if (d >= 0) return d;
+      return col('Total IVA');
+    }
     return -1;
   };
   const iMonth = idx('month') >= 0 ? idx('month') : idx('Mes');

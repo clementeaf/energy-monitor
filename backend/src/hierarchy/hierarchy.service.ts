@@ -42,7 +42,7 @@ export class HierarchyService {
     if (rows.length === 0 && nodeId.startsWith('B-')) {
       const buildingIdSlug = nodeId.slice(2).toLowerCase();
       const rootRows = await this.dataSource.query(
-        `SELECT * FROM hierarchy_nodes WHERE building_id = $1 AND parent_id IS NULL`,
+        `SELECT * FROM hierarchy_nodes WHERE LOWER(TRIM(building_id)) = $1 AND parent_id IS NULL`,
         [buildingIdSlug],
       );
       if (rootRows.length > 0) rows = rootRows;

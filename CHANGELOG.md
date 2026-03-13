@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0-alpha.23] - 2026-03-12
+
+### Added
+
+- **Apply 017 y backfill facturación** — Script `apply-017-billing.mjs` aplica migración 017 (módulo BILLING_OVERVIEW y permisos). Script `backfill-summary-from-detail.mjs` rellena `billing_center_summary` desde `billing_monthly_detail` (agregados por centro/año/mes).
+
+### Changed
+
+- **Resumen facturación en pivote** — BillingSummaryTable: una fila por centro y año, columnas por mes (Enero–Diciembre) más Total (kWh); sin repetir nombre de centro.
+- **Valores numéricos desde API** — BillingSummaryTable y BillingDetailTable usan toNum() para normalizar valores que llegan como string (pg NUMERIC); formateo correcto de consumo, peak, % punta y CLP.
+- **Import XLSX facturación** — Resumen Ejecutivo: detección de fila de encabezados con findHeaderRowWithAll; más variantes de nombres de columna (Consumo Total Centro (kWh), etc.) para coincidir con XLSX.
+- **CLAUDE.md** — Facturación: resumen pivote, toNum en tablas; scripts apply-017 y backfill-summary-from-detail; Key Files BillingPage descripción actualizada.
+
 ## [0.9.0-alpha.22] - 2026-03-12
 
 ### Added

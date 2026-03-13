@@ -341,7 +341,7 @@ Resolutions: `raw`, `15min`, `hourly`, `daily`. Fechas ISO 8601.
 
 **analisis** — id: serial PK, building_id/tienda_id/meter_id (uno no null), period_type, period_start, period_end, consumption_kwh, avg_power_kw, peak_demand_kw, num_readings, created_at. Agregados precalculados por edificio/tienda/medidor y período. Migración 016.
 
-**billing_center_summary** — resumen por centro, año, mes (totalConsumptionKwh, peakMaxKw, topConsumerLocal, etc.). Migración 018. **billing_monthly_detail** — detalle por centro, año, mes, meter_id (consumptionKwh, peakKw, cargos CLP, totalNetClp, totalWithIvaClp). **billing_tariffs** — pliegos tarifarios por comuna/mes. Datos desde XLSX en S3 `billing/`; import con `infra/billing-xlsx-import`.
+**billing_center_summary** — resumen por centro, año, mes (totalConsumptionKwh, peakMaxKw, topConsumerLocal, etc.). Migración 018. Rellenable desde detalle con `backfill-summary-from-detail.mjs`; permiso 017 con `apply-017-billing.mjs`. **billing_monthly_detail** — detalle por centro, año, mes, meter_id (consumptionKwh, peakKw, cargos CLP, totalNetClp, totalWithIvaClp). **billing_tariffs** — pliegos tarifarios por comuna/mes. Datos desde XLSX en S3 `billing/`; import con `infra/billing-xlsx-import`.
 
 **readings (magnitudes eléctricas principales):** voltage_l1/l2/l3, current_l1/l2/l3, power_kw, reactive_power_kvar, power_factor, frequency_hz, energy_kwh_total (+ thd, phase_imbalance, alarm, etc.).
 
@@ -466,7 +466,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution, from?, to?) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings siempre con from/to: rango por defecto 7 días; onRangeChange actualiza range y resolution. Query enabled solo si meterId + from + to. Alarm events 30d fijo en MeterDetailPage.
 - **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
 - **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
-- **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen y detalle en BillingPage; detalle paginado 50 por página.
+- **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen en BillingPage: tabla pivote (una fila por centro y año, columnas Enero–Diciembre + Total kWh); detalle paginado 50 por página. Tablas de facturación usan toNum() para normalizar valores numéricos que llegan como string desde la API (pg NUMERIC).
 - **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
 
 ### Patrones de consumo (cache y refetch)
@@ -580,9 +580,9 @@ Secrets en GitHub Actions, `.env` local gitignored y Lambda env vars.
 ## Standalone Infra Scripts
 ```
 infra/
-  csv-ingest-lambda/     → Lambda: S3 CSV (ventana 2 meses) → readings_import_staging → catalog → readings (invocación manual o EventBridge; ver infra/csv-ingest-lambda/README.md)
+  csv-ingest-lambda/     → Lambda (opcional): S3 CSV 2 meses → staging → readings; preferir script si hay timeouts.
+  drive-import-staging/  → S3 → staging (index.mjs con FROM_DATE/TO_DATE); ingest-two-months.sh = 2 meses + promote; backfill-staging-centers, distribute-staging, purge-staging, rds-free-space, truncate-data-keep-tables, apply-015-016
   drive-ingest/          → Google Drive CSV ingest → S3 raw/manifests (con detección de cambios driveModifiedTime)
-  drive-import-staging/  → S3 raw CSV → staging; backfill-staging-centers, distribute-staging (tiendas/analisis por trozos), purge-staging, rds-free-space (VACUUM), truncate-data-keep-tables, apply-015-016
   drive-pipeline/        → Orquestador unificado: detecta cambios + descarga Drive→S3 + importa S3→staging (Fargate)
   db-verify/             → Verificación RDS: script local (npm run verify) o Lambda invocable con AWS CLI (dbVerify)
   synthetic-generator/   → EventBridge 1/min, pg directo, TEMPORAL
@@ -646,7 +646,7 @@ cd backend && npx sls offline
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles; ver sección "Frontend: vistas, gráficos, datos y flujo" para catálogo completo por vista |
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
-| `frontend/src/features/billing/BillingPage.tsx` | Vista facturación: resumen por centro/mes y detalle paginado por local/medidor |
+| `frontend/src/features/billing/BillingPage.tsx` | Vista facturación: resumen pivote (centro/año × meses) y detalle paginado por local/medidor |
 | `frontend/src/hooks/queries/useBilling.ts` | useBillingCenters, useBillingSummary, useBillingDetail, useBillingTariffs |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 | `infra/db-verify/verify-rds.mjs` | Verificación RDS: modo prueba (.env) o AWS Secrets Manager; carga dotenv; mensajes de error claros |

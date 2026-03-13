@@ -7,24 +7,33 @@ const MONTH_NAMES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
-function formatKwh(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return '—';
-  return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(value);
+function toNum(value: unknown): number | null {
+  if (value == null) return null;
+  const n = typeof value === 'string' ? parseFloat(value) : Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
-function formatKw(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return '—';
-  return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 }).format(value);
+function formatKwh(value: unknown): string {
+  const n = toNum(value);
+  if (n === null) return '—';
+  return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(n);
 }
 
-function formatClp(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return '—';
+function formatKw(value: unknown): string {
+  const n = toNum(value);
+  if (n === null) return '—';
+  return new Intl.NumberFormat('es-CL', { maximumFractionDigits: 2 }).format(n);
+}
+
+function formatClp(value: unknown): string {
+  const n = toNum(value);
+  if (n === null) return '—';
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(n);
 }
 
 const columns: ColumnDef<BillingMonthlyDetail, unknown>[] = [
@@ -32,7 +41,10 @@ const columns: ColumnDef<BillingMonthlyDetail, unknown>[] = [
   { accessorKey: 'year', header: 'Año' },
   {
     id: 'month',
-    accessorFn: (row) => MONTH_NAMES[row.month - 1] ?? row.month,
+    accessorFn: (row) => {
+      const m = toNum(row.month) ?? 0;
+      return (m >= 1 && m <= 12 ? MONTH_NAMES[m - 1] : null) ?? row.month;
+    },
     header: 'Mes',
   },
   { accessorKey: 'meterId', header: 'Medidor' },
@@ -42,32 +54,32 @@ const columns: ColumnDef<BillingMonthlyDetail, unknown>[] = [
   {
     accessorKey: 'consumptionKwh',
     header: 'Consumo (kWh)',
-    cell: ({ getValue }) => formatKwh(getValue() as number | null),
+    cell: ({ getValue }) => formatKwh(getValue()),
   },
   {
     accessorKey: 'peakKw',
     header: 'Peak (kW)',
-    cell: ({ getValue }) => formatKw(getValue() as number | null),
+    cell: ({ getValue }) => formatKw(getValue()),
   },
   {
     accessorKey: 'fixedChargeClp',
     header: 'Cargo fijo',
-    cell: ({ getValue }) => formatClp(getValue() as number | null),
+    cell: ({ getValue }) => formatClp(getValue()),
   },
   {
     accessorKey: 'totalNetClp',
     header: 'Total neto',
-    cell: ({ getValue }) => formatClp(getValue() as number | null),
+    cell: ({ getValue }) => formatClp(getValue()),
   },
   {
     accessorKey: 'ivaClp',
     header: 'IVA',
-    cell: ({ getValue }) => formatClp(getValue() as number | null),
+    cell: ({ getValue }) => formatClp(getValue()),
   },
   {
     accessorKey: 'totalWithIvaClp',
     header: 'Total con IVA',
-    cell: ({ getValue }) => formatClp(getValue() as number | null),
+    cell: ({ getValue }) => formatClp(getValue()),
   },
 ];
 

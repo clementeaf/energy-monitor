@@ -112,6 +112,16 @@ function findHeaderRow(rows, marker, marker2) {
   return -1;
 }
 
+/** Finds first row that contains all of the given markers (e.g. Mes and Consumo Total). */
+function findHeaderRowWithAll(rows, markers) {
+  for (let i = 0; i < Math.min(rows.length, 15); i++) {
+    const row = rows[i] || [];
+    const line = row.map((c) => norm(String(c))).join(' ');
+    if (markers.every((m) => line.includes(norm(m)))) return i;
+  }
+  return -1;
+}
+
 function colIndex(headerRow, headerNames) {
   const map = {};
   const row = headerRow || [];
@@ -282,18 +292,29 @@ async function processPliegos(client, rows, tariffName, year, sourceFile) {
 }
 
 async function processResumenEjecutivo(client, rows, centerName, year, sourceFile) {
-  let headerRowIdx = findHeaderRow(rows, 'Consumo Total', 'Centro (kWh)');
+  let headerRowIdx = findHeaderRowWithAll(rows, ['Mes', 'Consumo Total']);
+  if (headerRowIdx < 0) headerRowIdx = findHeaderRowWithAll(rows, ['N° Mes', 'Peak Máx']);
+  if (headerRowIdx < 0) headerRowIdx = findHeaderRow(rows, 'Consumo Total', 'Centro (kWh)');
   if (headerRowIdx < 0) headerRowIdx = findHeaderRow(rows, 'Peak Máx', 'N° Mes');
   if (headerRowIdx < 0) return 0;
   const headers = rows[headerRowIdx] || [];
-  const col = colIndex(headers, ['Mes', 'N° Mes', 'Consumo Total', 'Peak Máx', 'Demanda Punta', '% Punta', 'Promedio Diario', 'Local con Mayor']);
+  const headerCandidates = [
+    'Mes', 'N° Mes',
+    'Consumo Total', 'Consumo Total Centro (kWh)',
+    'Peak Máx', 'Peak Máx Centro (kW)',
+    'Demanda Punta', 'Demanda Punta Total (kWh)',
+    '% Punta',
+    'Promedio Diario', 'Promedio Diario Centro (kWh)', 'Promedio',
+    'Local con Mayor', 'Local con Mayor Consumo',
+  ];
+  const col = colIndex(headers, headerCandidates);
   const iMonth = col('N° Mes') >= 0 ? col('N° Mes') : col('Mes');
-  const iTotal = col('Consumo Total');
-  const iPeak = col('Peak Máx');
-  const iDemand = col('Demanda Punta');
+  const iTotal = col('Consumo Total') >= 0 ? col('Consumo Total') : col('Consumo Total Centro (kWh)');
+  const iPeak = col('Peak Máx') >= 0 ? col('Peak Máx') : col('Peak Máx Centro (kW)');
+  const iDemand = col('Demanda Punta') >= 0 ? col('Demanda Punta') : col('Demanda Punta Total (kWh)');
   const iPct = col('% Punta');
-  const iAvg = col('Promedio Diario') >= 0 ? col('Promedio Diario') : col('Promedio');
-  const iTop = col('Local con Mayor');
+  const iAvg = col('Promedio Diario') >= 0 ? col('Promedio Diario') : (col('Promedio Diario Centro (kWh)') >= 0 ? col('Promedio Diario Centro (kWh)') : col('Promedio'));
+  const iTop = col('Local con Mayor') >= 0 ? col('Local con Mayor') : col('Local con Mayor Consumo');
   if (iTotal < 0) return 0;
 
   let inserted = 0;

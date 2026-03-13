@@ -69,6 +69,8 @@ export interface HierarchyChildSummary extends HierarchyNode {
   peakPowerKw: number;
   meterCount: number;
   status: 'online' | 'offline' | 'partial';
+  /** Number of readings rows in range for this subtree (backend diagnostic). */
+  readingsInRange?: number;
 }
 
 export interface HierarchyNodeWithPath {

@@ -297,10 +297,108 @@ async function main() {
       console.log('  (tabla staging_centers no existe o sin acceso)');
     }
 
+    // ─── 7. Cruzar hierarchy_nodes vs readings: building_id y meter_id ─────
+    section('7. building_id en hierarchy_nodes vs buildings/staging');
+
+    rows = await run(
+      client,
+      `SELECT DISTINCT building_id FROM hierarchy_nodes ORDER BY building_id`,
+    );
+    console.log('  building_id distintos en [hierarchy_nodes]:', rows.length);
+    rows.forEach((r) => console.log('    ', JSON.stringify(r.building_id)));
+
+    rows = await run(client, `SELECT id FROM buildings ORDER BY id`);
+    console.log('  id en [buildings]:', rows.length);
+    rows.slice(0, 15).forEach((r) => console.log('    ', r.id));
+    if (rows.length > 15) console.log('    ... y', rows.length - 15, 'más');
+
+    try {
+      rows = await run(
+        client,
+        `SELECT DISTINCT center_name FROM staging_centers ORDER BY center_name`,
+      );
+      console.log('  center_name en [staging_centers]:', rows.length);
+      rows.forEach((r) => console.log('    ', JSON.stringify(r.center_name)));
+    } catch (_) {
+      console.log('  (staging_centers no disponible)');
+    }
+
+    // ─── 8. Para cada building_id de hierarchy: meter_ids en jerarquía vs en readings ─
+    section('8. Por building_id: meter_ids en hierarchy vs en readings');
+
+    const buildingIds = await run(
+      client,
+      `SELECT DISTINCT building_id FROM hierarchy_nodes ORDER BY building_id`,
+    );
+
+    for (const { building_id } of buildingIds) {
+      const bid = building_id;
+      console.log('\n  --- building_id:', JSON.stringify(bid), '---');
+
+      const hierarchyMeters = await run(
+        client,
+        `SELECT DISTINCT meter_id FROM hierarchy_nodes
+         WHERE building_id = $1 AND meter_id IS NOT NULL ORDER BY meter_id`,
+        [bid],
+      );
+      const hIds = hierarchyMeters.map((r) => r.meter_id);
+      console.log('  En hierarchy_nodes (meter_id no nulo):', hIds.length, 'medidores');
+      if (hIds.length <= 20) {
+        console.log('    ', hIds.join(', '));
+      } else {
+        console.log('    ', hIds.slice(0, 10).join(', '), '...', hIds.slice(-5).join(', '));
+      }
+
+      if (hIds.length === 0) {
+        console.log('  En readings: (sin meter_id en jerarquía)');
+        continue;
+      }
+
+      const placeholders = hIds.map((_, i) => `$${i + 1}`).join(',');
+      const inReadings = await run(
+        client,
+        `SELECT meter_id, COUNT(*)::bigint AS cnt
+         FROM readings WHERE meter_id IN (${placeholders})
+         GROUP BY meter_id ORDER BY meter_id`,
+        hIds,
+      );
+      const withData = inReadings.filter((r) => Number(r.cnt) > 0);
+      const withZero = hIds.filter((id) => !inReadings.find((r) => r.meter_id === id));
+
+      console.log('  En [readings] con datos (cnt>0):', withData.length, 'de', hIds.length);
+      if (withData.length > 0 && withData.length <= 15) {
+        withData.forEach((r) => console.log('    ', r.meter_id, '→', Number(r.cnt).toLocaleString('es-CL'), 'filas'));
+      } else if (withData.length > 15) {
+        withData.slice(0, 5).forEach((r) => console.log('    ', r.meter_id, '→', Number(r.cnt).toLocaleString('es-CL')));
+        console.log('    ... y', withData.length - 5, 'más');
+      }
+
+      if (withZero.length > 0) {
+        console.log('  Medidores de la jerarquía SIN filas en [readings]:', withZero.length);
+        if (withZero.length <= 25) {
+          console.log('    ', withZero.join(', '));
+        } else {
+          console.log('    ', withZero.slice(0, 12).join(', '), '...', withZero.slice(-5).join(', '));
+        }
+      }
+    }
+
+    // ─── 9. Todos los meter_id en readings (para comparar con hierarchy) ───
+    section('9. Todos los meter_id presentes en [readings]');
+
+    rows = await run(
+      client,
+      `SELECT meter_id, COUNT(*)::bigint AS cnt
+       FROM readings GROUP BY meter_id ORDER BY meter_id`,
+    );
+    console.log('  Total meter_id distintos en readings:', rows.length);
+    rows.forEach((r) => {
+      console.log('    ', r.meter_id, '→', Number(r.cnt).toLocaleString('es-CL'), 'filas');
+    });
+
     console.log('\n' + '='.repeat(60));
-    console.log('  Conclusión: si los datos están en staging y el backend usa');
-    console.log('  READINGS_SOURCE=readings (por defecto), la API lee de [readings]');
-    console.log('  vacía para esos meter_id. Revisar READINGS_SOURCE en Lambda.');
+    console.log('  Conclusión: si un building_id tiene medidores en hierarchy pero');
+    console.log('  ninguno aparece en readings, el drill-down devolverá 0 kWh.');
     console.log('='.repeat(60) + '\n');
   } finally {
     await client.end();

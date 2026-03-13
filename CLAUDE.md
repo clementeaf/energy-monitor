@@ -260,7 +260,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 |---|---|---|---|
 | GET | `/hierarchy/:buildingId` | — | `HierarchyNode[]` (tree) |
 | GET | `/hierarchy/node/:nodeId` | — | `{ node, path }` |
-| GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` (recomendado para totalKwh) | `HierarchyChildSummary[]` |
+| GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` (recomendado para totalKwh) | `HierarchyChildSummary[]` (incl. `readingsInRange` por hijo) |
 | GET | `/hierarchy/node/:nodeId/consumption` | `resolution?` (`hourly`/`daily`), `from?`, `to?` | time-series |
 
 - Si el frontend envía nodo raíz `B-{SITE_ID}` en mayúsculas (ej. B-PARQUE-ARAUCO-KENNEDY) y en BD el id está en minúsculas/truncado (ej. B-parque-arauco-ken), HierarchyService.findNode resuelve por `building_id = nodeId.slice(2).toLowerCase()` para evitar 404. Children y consumption usan el id resuelto.
@@ -308,7 +308,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 ### Admin / Diagnóstico — requiere Bearer + `ADMIN_USERS.view`
 | Method | Path | Params | Response |
 |---|---|---|---|
-| GET | `/db-verify` | — | Conteos (readings, meters, buildings, staging), stagingCentersCount (DISTINCT center_name en staging), metersPerBuilding, timeRanges, hierarchy, buildings; opcional `errors[]` si alguna query falla (respuesta siempre 200). |
+| GET | `/db-verify` | — | Conteos (readings, meters, buildings, staging), stagingCentersCount, metersPerBuilding, timeRanges, hierarchy, buildings, **hierarchyVsReadings** (por building_id: hierarchy_meter_count, in_readings_count, meter_ids_in_readings, meter_ids_missing_in_readings); opcional `errors[]` si alguna query falla (respuesta siempre 200). |
 | GET | `/db-verify/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
 | GET | `/ingest/diagnostic` | — | Diagnóstico Drive→RDS: staging vs readings, conclusion (full_match \| partial_match \| mismatch \| no_staging_data), perFileMatch, message. |
 | GET | `/ingest/diagnostic/local` | — | Mismo payload sin auth; solo cuando NODE_ENV !== production. |
@@ -375,7 +375,7 @@ Meter { id, buildingId, model, phaseType, busId, modbusAddress, uplinkRoute, sta
 Reading { timestamp, voltageL1-3, currentL1-3, powerKw, reactivePowerKvar, powerFactor, frequencyHz, energyKwhTotal, thdVoltagePct, thdCurrentPct, phaseImbalancePct, breakerStatus, digitalInput1-2, digitalOutput1-2, alarm, modbusCrcErrors }
 ConsumptionPoint { timestamp, totalPowerKw, avgPowerKw, peakPowerKw }
 HierarchyNode { id, parentId, buildingId, name, level, nodeType, meterId, sortOrder }
-HierarchyChildSummary extends HierarchyNode { totalKwh, avgPowerKw, peakPowerKw, meterCount, status }
+HierarchyChildSummary extends HierarchyNode { totalKwh, avgPowerKw, peakPowerKw, meterCount, status, readingsInRange? }
 HierarchyNodeWithPath { node, path }
 UptimeSummary { period, totalSeconds, uptimeSeconds, downtimeSeconds, uptimePercent, downtimeEvents }
 UptimeAll { daily, weekly, monthly }
@@ -466,7 +466,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **StockChart**: Highcharts Stock con navigator, range selector (1 Día / 1 Semana / 1 Mes; sin "Todo"), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
 - **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`, `from`, `to` (rango por defecto 30 días). Si el rango solicitado devuelve vacío, el backend hace fallback y devuelve los últimos 30 días de datos existentes para ese edificio (readings o staging). El gráfico siempre se muestra: si no hay datos se muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder.
 - **MeterDetailPage**: gráficos de Potencia (kW + kVAR), Voltaje L1/L2/L3, Corriente, PF+Frecuencia, Energía acumulada, Calidad (THD/desequilibrio solo 3P). Eventos de alarma como flags sobre las series.
-- **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount.
+- **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount, readingsInRange. Si todos los hijos tienen totalKwh 0 y readingsInRange 0, se muestra mensaje indicando que no hay lecturas en el rango para esos medidores.
 
 ### Datos por dominio y hooks
 - **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution, from?, to?). Consumption siempre con from/to: rango por defecto últimos 7 días; onRangeChange actualiza range y resolution. Query enabled solo si buildingId + from + to.
@@ -526,7 +526,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **TypeORM:** autoLoadEntities: true, synchronize: false. Entities con `!` assertion. Raw SQL: `this.repo.query(sql, [params])` o `this.dataSource.query()`. Manual camelCase mapping: `rows.map(r => ({ field: Number(r.field) }))`. BuildingsService.findAll/findOne: raw query con try/catch: primero SELECT incluyendo center_type; si falla, fallback sin center_type; centerType desde BD cuando la columna existe. MetersService: getMeterRow/getMeterRowsByBuilding (raw query sin store_type/store_name), findAccessibleMeterEntity/findOne/findByBuilding devuelven MeterRow; getOverview ya usaba raw query. Todos los endpoints de meters responden 200 sin 013.
 
-**SQL patterns:** date_trunc aggregation, WITH RECURSIVE CTE (hierarchy), LATERAL subqueries (overview).
+**SQL patterns:** date_trunc aggregation, WITH RECURSIVE CTE (hierarchy), LATERAL subqueries (overview). **Raw query results (pg):** el driver devuelve nombres de columna en minúsculas; al usar alias camelCase (ej. AS "totalKwh") hay que leer con fallback a minúsculas en el servicio (ej. HierarchyService getSubtreeConsumption y findNodeConsumption).
 
 **Auth:** Guard reusable valida Bearer token y adjunta payload al request. `@CurrentUser()` permite leerlo en controllers. `verifyToken()` retorna null on failure.
 **RBAC backend:** `@RequirePermissions(module, action)` define el permiso requerido por endpoint; `RolesGuard` global resuelve permisos efectivos desde DB y rechaza `403` cuando falta el permiso.
@@ -624,7 +624,7 @@ cd backend && npx sls offline
 | `backend/src/serverless.ts` | Entry point Lambda (cached bootstrap) |
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
 | `backend/src/meters/meters.service.ts` | Core: lecturas, uptime, alarmas y consumo |
-| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
+| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down; lectura de resultados raw con fallback a claves en minúsculas (pg devuelve columnas en minúsculas) |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/common/utf8-json.interceptor.ts` | Interceptor global: Content-Type application/json; charset=utf-8 en respuestas API |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
@@ -651,7 +651,7 @@ cd backend && npx sls offline
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta base de invitaciones con rol y sitios |
 | `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico; rango 1 día/semana/mes para children |
 | `scripts/verify-chart-endpoints.mjs` | Verifica endpoints que alimentan gráficos (from/to, conteos) |
-| `infra/db-verify/query-readings-direct.mjs` | Consulta directa BD: readings vs staging, potencia/energía/voltaje; DB_USE_SECRET=1 + túnel |
+| `infra/db-verify/query-readings-direct.mjs` | Consulta directa BD: readings vs staging, potencia/energía/voltaje; secc. 7–9: building_id en tablas, por building_id meter_ids en hierarchy vs en readings, todos los meter_id en readings; DB_USE_SECRET=1 + túnel |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |

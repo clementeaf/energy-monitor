@@ -81,6 +81,13 @@ export function DrilldownPage() {
       </>
     );
   } else if (children && children.length > 0) {
+    const allZeroKwh = children.every((c) => c.totalKwh === 0);
+    const totalReadingsInRange = children.reduce(
+      (sum, c) => sum + (typeof c.readingsInRange === 'number' ? c.readingsInRange : 0),
+      0,
+    );
+    const noReadingsInRange = allZeroKwh && totalReadingsInRange === 0;
+
     content = (
       <>
         <div className="mb-3 flex flex-wrap gap-2">
@@ -99,6 +106,15 @@ export function DrilldownPage() {
             </button>
           ))}
         </div>
+        {noReadingsInRange && (
+          <p className="mb-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            No hay lecturas en el rango seleccionado para los medidores de este nivel. Compruebe que
+            existan filas en la tabla <code className="rounded bg-black/20 px-1">readings</code> para
+            los <code className="rounded bg-black/20 px-1">meter_id</code> de esta jerarquía (por
+            ejemplo con el script <code className="rounded bg-black/20 px-1">query-readings-direct</code>
+            ).
+          </p>
+        )}
         <DrilldownBars items={children} onDrill={handleDrill} />
         <DrilldownChildrenTable items={children} onDrill={handleDrill} />
       </>

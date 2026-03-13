@@ -76,7 +76,9 @@ export class HierarchyService {
         const summary = await this.getSubtreeConsumption(child.id, from, to);
         const meterCount = await this.getSubtreeMeterCount(child.id);
         const status = await this.getSubtreeStatus(child.id);
-        return { ...child, ...summary, meterCount, status };
+        const readingsInRange =
+          from && to ? await this.getSubtreeReadingsCount(child.id, from, to) : 0;
+        return { ...child, ...summary, meterCount, status, readingsInRange };
       }),
     );
 
@@ -138,12 +140,13 @@ export class HierarchyService {
     query += ` GROUP BY 1 ORDER BY 1 ASC`;
 
     const rows = await this.dataSource.query(query, params);
-
+    const num = (rec: Record<string, unknown>, k: string): number =>
+      Number(Number(rec?.[k] ?? rec?.[k.toLowerCase()] ?? 0).toFixed(3));
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
-      totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
-      avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),
-      peakPowerKw: Number(Number(r.peakPowerKw).toFixed(3)),
+      totalPowerKw: num(r, 'totalPowerKw'),
+      avgPowerKw: num(r, 'avgPowerKw'),
+      peakPowerKw: num(r, 'peakPowerKw'),
     }));
   }
 
@@ -179,11 +182,13 @@ export class HierarchyService {
        GROUP BY 1 ORDER BY 1 ASC`,
       [nodeId, from, to, cap],
     );
+    const num = (rec: Record<string, unknown>, k: string): number =>
+      Number(Number(rec?.[k] ?? rec?.[k.toLowerCase()] ?? 0).toFixed(3));
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: String(r.timestamp),
-      totalPowerKw: Number(Number(r.totalPowerKw ?? 0).toFixed(3)),
-      avgPowerKw: Number(Number(r.avgPowerKw ?? 0).toFixed(3)),
-      peakPowerKw: Number(Number(r.peakPowerKw ?? 0).toFixed(3)),
+      totalPowerKw: num(r, 'totalPowerKw'),
+      avgPowerKw: num(r, 'avgPowerKw'),
+      peakPowerKw: num(r, 'peakPowerKw'),
     }));
   }
 
@@ -212,10 +217,13 @@ export class HierarchyService {
          FROM capped c`,
         [nodeId, from, to, cap],
       );
+      const raw = row as Record<string, unknown> | undefined;
+      const n = (k: string): number =>
+        Number(Number(raw?.[k] ?? raw?.[k.toLowerCase()] ?? 0).toFixed(3));
       return {
-        totalKwh: Number(Number(row?.totalKwh ?? 0).toFixed(3)),
-        avgPowerKw: Number(Number(row?.avgPowerKw ?? 0).toFixed(3)),
-        peakPowerKw: Number(Number(row?.peakPowerKw ?? 0).toFixed(3)),
+        totalKwh: n('totalKwh'),
+        avgPowerKw: n('avgPowerKw'),
+        peakPowerKw: n('peakPowerKw'),
       };
     }
 
@@ -250,11 +258,32 @@ export class HierarchyService {
         COALESCE((SELECT avg_pw FROM power_stats), 0) AS "avgPowerKw",
         COALESCE((SELECT peak_pw FROM power_stats), 0) AS "peakPowerKw"`;
     const [row] = await this.dataSource.query(query, [nodeId, from, to]);
+    const raw = row as Record<string, unknown> | undefined;
+    const num = (camel: string): number =>
+      Number(Number(raw?.[camel] ?? raw?.[camel.toLowerCase()] ?? 0).toFixed(3));
     return {
-      totalKwh: Number(Number(row.totalKwh).toFixed(3)),
-      avgPowerKw: Number(Number(row.avgPowerKw).toFixed(3)),
-      peakPowerKw: Number(Number(row.peakPowerKw).toFixed(3)),
+      totalKwh: num('totalKwh'),
+      avgPowerKw: num('avgPowerKw'),
+      peakPowerKw: num('peakPowerKw'),
     };
+  }
+
+  /** Count readings rows in range for the subtree (diagnostic when totalKwh is 0). */
+  private async getSubtreeReadingsCount(nodeId: string, from: string, to: string): Promise<number> {
+    const table = useStaging() ? 'readings_import_staging' : 'readings';
+    const [row] = await this.dataSource.query(
+      `WITH RECURSIVE subtree AS (
+        SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+        UNION ALL
+        SELECT h.id, h.meter_id FROM hierarchy_nodes h
+        INNER JOIN subtree s ON h.parent_id = s.id
+      )
+      SELECT COUNT(*)::bigint AS cnt FROM ${table} r
+      INNER JOIN subtree s ON s.meter_id = r.meter_id
+      WHERE s.meter_id IS NOT NULL AND r.timestamp >= $2 AND r.timestamp <= $3`,
+      [nodeId, from, to],
+    );
+    return Number(row?.cnt ?? 0);
   }
 
   /** Count meters in a subtree */

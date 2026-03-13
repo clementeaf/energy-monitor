@@ -48,6 +48,15 @@ VALUES (
 ON CONFLICT (token_hash) DO UPDATE SET
   expires_at = now() + interval '1 year'`;
 
+/** Por building_id: meter_ids en la jerarquía y cuáles tienen filas en readings. */
+export interface HierarchyVsReadingsRow {
+  building_id: string;
+  hierarchy_meter_count: number;
+  in_readings_count: number;
+  meter_ids_in_readings: string[];
+  meter_ids_missing_in_readings: string[];
+}
+
 export interface DbVerifyResult {
   /** staging es estimado (pg_class) para no hacer COUNT(*) sobre millones de filas. */
   counts: { readings: number; meters: number; buildings: number; staging: number | null };
@@ -59,6 +68,8 @@ export interface DbVerifyResult {
   timeRanges: Array<{ meter_id: string; min_ts: string; max_ts: string }>;
   hierarchy: Array<{ building_id: string; node_count: number }> | null;
   buildings: Array<{ id: string; name: string; meters_count: number }>;
+  /** Cruzado hierarchy_nodes.meter_id vs readings: por building_id, cuántos medidores de la jerarquía tienen datos. */
+  hierarchyVsReadings: HierarchyVsReadingsRow[] | null;
   /** Errores no fatales (consultas que fallaron; el resto del resultado sigue siendo válido). */
   errors?: string[];
 }
@@ -195,6 +206,53 @@ export class DbVerifyService {
       errors.push(`buildings: ${msg}`);
     }
 
+    let hierarchyVsReadings: DbVerifyResult['hierarchyVsReadings'] = null;
+    try {
+      type BidRow = { building_id: string };
+      const bidRows = await this.dataSource.query<BidRow[]>(
+        `SELECT DISTINCT building_id FROM hierarchy_nodes ORDER BY building_id`,
+      );
+      const rows: HierarchyVsReadingsRow[] = [];
+      for (const { building_id } of bidRows) {
+        const hierarchyMeters = await this.dataSource.query<{ meter_id: string }[]>(
+          `SELECT DISTINCT meter_id FROM hierarchy_nodes
+           WHERE building_id = $1 AND meter_id IS NOT NULL ORDER BY meter_id`,
+          [building_id],
+        );
+        const hIds = hierarchyMeters.map((r) => r.meter_id);
+        if (hIds.length === 0) {
+          rows.push({
+            building_id,
+            hierarchy_meter_count: 0,
+            in_readings_count: 0,
+            meter_ids_in_readings: [],
+            meter_ids_missing_in_readings: [],
+          });
+          continue;
+        }
+        const placeholders = hIds.map((_, i) => `$${i + 1}`).join(',');
+        const inReadings = await this.dataSource.query<{ meter_id: string }[]>(
+          `SELECT DISTINCT meter_id FROM readings WHERE meter_id IN (${placeholders})`,
+          hIds,
+        );
+        const inReadingsSet = new Set(inReadings.map((r) => r.meter_id));
+        const inList = hIds.filter((id) => inReadingsSet.has(id));
+        const missingList = hIds.filter((id) => !inReadingsSet.has(id));
+        rows.push({
+          building_id,
+          hierarchy_meter_count: hIds.length,
+          in_readings_count: inList.length,
+          meter_ids_in_readings: inList.length <= 30 ? inList : [...inList.slice(0, 15), `... +${inList.length - 15} más`],
+          meter_ids_missing_in_readings:
+            missingList.length <= 30 ? missingList : [...missingList.slice(0, 15), `... +${missingList.length - 15} más`],
+        });
+      }
+      hierarchyVsReadings = rows;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`hierarchyVsReadings: ${msg}`);
+    }
+
     const result: DbVerifyResult = {
       counts,
       stagingCentersCount,
@@ -204,6 +262,7 @@ export class DbVerifyService {
       timeRanges,
       hierarchy,
       buildings,
+      hierarchyVsReadings,
     };
     if (errors.length > 0) {
       result.errors = errors;

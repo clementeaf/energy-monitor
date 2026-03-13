@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0-alpha.33] - 2026-03-13
+
+### Fixed
+
+- **Drill-down "kWh por nodo" seguía en 0** — El driver pg devuelve nombres de columna en minúsculas; el backend leía `row.totalKwh` (undefined) y devolvía 0/NaN. HierarchyService ahora lee totalKwh, avgPowerKw y peakPowerKw (y series temporales) con fallback a la clave en minúsculas para que los valores sean correctos.
+
+### Added
+
+- **GET /db-verify: hierarchyVsReadings** — Por cada building_id en hierarchy_nodes: hierarchy_meter_count, in_readings_count, meter_ids_in_readings, meter_ids_missing_in_readings (diagnóstico de cruce jerarquía vs readings).
+- **Children del drill-down: readingsInRange** — Cada hijo incluye el número de filas en readings en el rango from/to para ese subárbol (diagnóstico cuando totalKwh es 0).
+- **DrilldownPage: mensaje cuando no hay lecturas** — Si todos los hijos tienen totalKwh 0 y readingsInRange 0, se muestra aviso en amarillo sugiriendo comprobar datos en `readings` para los meter_id de la jerarquía.
+- **query-readings-direct.mjs secciones 7–9** — building_id en hierarchy_nodes vs buildings/staging; por building_id: meter_ids en jerarquía vs en readings (con/sin datos); listado de todos los meter_id en readings.
+
+### Changed
+
+- **CLAUDE.md** — Hierarchy: children con readingsInRange; db-verify con hierarchyVsReadings; DrilldownBars mensaje sin lecturas; Backend: raw query pg y fallback minúsculas; Key Files query-readings-direct (secc. 7–9), hierarchy.service.
+
 ## [0.9.0-alpha.32] - 2026-03-13
 
 ### Fixed

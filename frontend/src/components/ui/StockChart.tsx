@@ -62,10 +62,9 @@ const darkTheme: Highcharts.Options = {
     labelStyle: { color: '#8b949e' },
     inputEnabled: false,
     buttons: [
-      { type: 'day', count: 1, text: '1D' },
-      { type: 'week', count: 1, text: '1S' },
-      { type: 'month', count: 1, text: '1M' },
-      { type: 'all', text: 'Todo' },
+      { type: 'day', count: 1, text: '1 Día' },
+      { type: 'week', count: 1, text: '1 Semana' },
+      { type: 'month', count: 1, text: '1 Mes' },
     ],
     // NOTE: `selected` is NOT here — it's managed per-instance via initialSelected ref
     // to prevent chart.update() from resetting the user's zoom on every re-render

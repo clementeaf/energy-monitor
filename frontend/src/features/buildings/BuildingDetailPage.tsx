@@ -13,7 +13,8 @@ import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
 import { MeterCard } from '../meters/components/MeterCard';
 import type { Alert } from '../../types';
 
-const DEFAULT_RANGE_DAYS = 7;
+/** Rango por defecto (días) para que el gráfico incluya al menos un mes de datos. */
+const DEFAULT_RANGE_DAYS = 30;
 
 function defaultTimeRange(): { from: string; to: string } {
   const to = new Date();

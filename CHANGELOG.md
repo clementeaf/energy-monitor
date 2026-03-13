@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0-alpha.28] - 2026-03-13
+
+### Changed
+
+- **Rango por defecto consumo edificio** — Frontend pide por defecto últimos 30 días (antes 7). Backend: si el rango solicitado devuelve vacío, fallback que devuelve los últimos 30 días de datos existentes para ese edificio (readings y staging).
+- **Range selector StockChart** — Botones en español: "1 Día", "1 Semana", "1 Mes". Eliminado el botón "Todo". Aplica a gráfico de edificio y detalle de medidor.
+- **CLAUDE.md** — StockChart (range selector), BuildingConsumptionChart (30 días + fallback), flujo series temporales.
+
 ## [0.9.0-alpha.27] - 2026-03-13
 
 ### Fixed

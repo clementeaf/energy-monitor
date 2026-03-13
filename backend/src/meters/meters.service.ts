@@ -505,7 +505,22 @@ export class MetersService {
       const toMs = new Date(to).getTime();
       if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) return null;
       if (toMs - fromMs > getMaxRangeDaysMs()) return null;
-      return this.findBuildingConsumptionFromStaging(buildingId, resolution, from, to);
+      const stagingRows = await this.findBuildingConsumptionFromStaging(buildingId, resolution, from, to);
+      if (stagingRows.length === 0) {
+        const rangeRow = await this.dataSource.query<Array<{ max_ts: string }>>(
+          `SELECT MAX(r.timestamp) AS max_ts FROM readings_import_staging r
+           INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
+          [buildingId],
+        );
+        const maxTs = rangeRow[0]?.max_ts;
+        if (maxTs) {
+          const maxDate = new Date(maxTs);
+          const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          const fallbackTo = new Date(maxTs).toISOString();
+          return this.findBuildingConsumptionFromStaging(buildingId, resolution, fallbackFrom, fallbackTo);
+        }
+      }
+      return stagingRows;
     }
 
     let truncExpr: string;
@@ -549,6 +564,49 @@ export class MetersService {
       GROUP BY bucket
       ORDER BY bucket ASC
     `, params);
+
+    if (rows.length === 0 && from && to) {
+      const rangeRow = await this.readingRepo.query<Array<{ max_ts: string }>>(
+        `SELECT MAX(r.timestamp) AS max_ts FROM readings r INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
+        [buildingId],
+      );
+      const maxTs = rangeRow[0]?.max_ts;
+      if (maxTs) {
+        const maxDate = new Date(maxTs);
+        const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const fallbackTo = new Date(maxTs).toISOString();
+        const fallbackParams = [buildingId, fallbackFrom, fallbackTo];
+        const fallbackRows = await this.readingRepo.query(
+          `
+      SELECT
+        bucket AS "timestamp",
+        SUM(avg_power) AS "totalPowerKw",
+        AVG(avg_power) AS "avgPowerKw",
+        MAX(max_power) AS "peakPowerKw"
+      FROM (
+        SELECT
+          ${truncExpr} AS bucket,
+          r.meter_id,
+          AVG(r.power_kw) AS avg_power,
+          MAX(r.power_kw) AS max_power
+        FROM readings r
+        INNER JOIN meters m ON m.id = r.meter_id
+        WHERE m.building_id = $1 AND r.timestamp >= $2 AND r.timestamp <= $3
+        GROUP BY bucket, r.meter_id
+      ) sub
+      GROUP BY bucket
+      ORDER BY bucket ASC
+    `,
+          fallbackParams,
+        );
+        return fallbackRows.map((r: Record<string, unknown>) => ({
+          timestamp: r.timestamp,
+          totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
+          avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),
+          peakPowerKw: Number(Number(r.peakPowerKw).toFixed(3)),
+        }));
+      }
+    }
 
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,

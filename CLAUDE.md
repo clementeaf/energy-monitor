@@ -459,8 +459,8 @@ AuthState { user, isAuthenticated, isLoading, error }
 | **RealtimePage** | — | DataTable de MeterOverview | tabla | — |
 | **AlertsPage** | — | Tabla HTML de Alert[] | tabla | — |
 
-- **StockChart**: Highcharts Stock con navigator, range selector (1D / 1S / 1M / Todo), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
-- **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`, `from`, `to` (rango por defecto 7 días). El gráfico siempre se muestra: si no hay datos se muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder para que ningún gráfico quede vacío.
+- **StockChart**: Highcharts Stock con navigator, range selector (1 Día / 1 Semana / 1 Mes; sin "Todo"), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
+- **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`, `from`, `to` (rango por defecto 30 días). Si el rango solicitado devuelve vacío, el backend hace fallback y devuelve los últimos 30 días de datos existentes para ese edificio (readings o staging). El gráfico siempre se muestra: si no hay datos se muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder.
 - **MeterDetailPage**: gráficos de Potencia (kW + kVAR), Voltaje L1/L2/L3, Corriente, PF+Frecuencia, Energía acumulada, Calidad (THD/desequilibrio solo 3P). Eventos de alarma como flags sobre las series.
 - **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount.
 
@@ -490,7 +490,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 ### Flujo resumido
 1. **Entrada**: Login / Invite → sessionStorage token → GET /auth/me → useAuthStore + useAppStore (selectedSiteId según user.siteIds).
 2. **Navegación**: appRoutes + ProtectedRoute por rol; Layout sidebar con getNavItems(role) y links con :siteId reemplazado por selectedSiteId o primer building.
-3. **Vistas con series temporales**: Estado local range (from/to, default 7 días). StockChart dispara onRangeChange → se actualiza range y resolution → useBuildingConsumption(id, resolution, from, to) o useMeterReadings(id, resolution, from, to) → backend recibe from/to siempre; keepPreviousData evita parpadeo.
+3. **Vistas con series temporales**: Estado local range (from/to, default 30 días en edificio). StockChart dispara onRangeChange → se actualiza range y resolution → useBuildingConsumption(id, resolution, from, to) o useMeterReadings(id, resolution, from, to) → backend recibe from/to siempre; keepPreviousData evita parpadeo. Consumo edificio: si el rango no tiene datos, backend devuelve últimos 30 días disponibles (fallback).
 4. **Alertas**: Filtro por selectedSiteId (buildingId) cuando no es "*"; refetch periódico; mutaciones invalidan cache.
 5. **Drill-down**: Nodo raíz B-{siteId}; navegación por nodo actual → useHierarchyNode + useHierarchyChildren; tabla + barras por hijo; circuito con meterId → link a /meters/:meterId.
 

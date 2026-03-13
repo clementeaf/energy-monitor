@@ -1,0 +1,17 @@
+{
+  "name": "csv-ingest-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Lambda: S3 CSV (2-month window) → staging → catalog → readings",
+  "main": "handler.mjs",
+  "scripts": {
+    "invoke": "node -e \"require('child_process').execSync('aws lambda invoke --function-name csv-ingest-lambda-dev-ingest --payload \\'{} \\' out.json', {stdio:'inherit'})\""
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1005.0",
+    "@aws-sdk/client-secrets-manager": "^3.1005.0",
+    "csv-parse": "^5.6.0",
+    "pg": "^8.13.1"
+  }
+}

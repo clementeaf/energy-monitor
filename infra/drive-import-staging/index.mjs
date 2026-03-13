@@ -12,6 +12,8 @@ const S3_KEY = process.env.S3_KEY || 'raw/MALL_GRANDE_446_completo.csv';
 const LIMIT_ROWS = parseLimit(process.env.LIMIT_ROWS);
 const BATCH_SIZE = parsePositiveInt(process.env.BATCH_SIZE, 1000);
 const TRUNCATE_BEFORE_LOAD = process.env.TRUNCATE_BEFORE_LOAD === 'true';
+const FROM_DATE = process.env.FROM_DATE || null;
+const TO_DATE = process.env.TO_DATE || null;
 
 const REQUIRED_HEADERS = [
   'timestamp',
@@ -209,6 +211,14 @@ function validateRecord(record, state) {
   return true;
 }
 
+function inDateRange(tsIso, fromDate, toDate) {
+  if (!fromDate && !toDate) return true;
+  const t = new Date(tsIso).getTime();
+  if (fromDate && t < new Date(fromDate).getTime()) return false;
+  if (toDate && t > new Date(toDate).getTime()) return false;
+  return true;
+}
+
 async function getSecretJson(secretId) {
   const response = await secretsClient.send(new GetSecretValueCommand({ SecretId: secretId }));
   if (!response.SecretString) {
@@ -321,6 +331,9 @@ async function main() {
       for await (const record of parser) {
         rowNumber += 1;
         const normalized = normalizeRecord(record, sourceFile, rowNumber);
+        if (FROM_DATE || TO_DATE) {
+          if (!inDateRange(normalized.timestamp, FROM_DATE, TO_DATE)) continue;
+        }
         const isValid = validateRecord(normalized, validationState);
         if (isValid) {
           batch.push(normalized);
@@ -353,6 +366,8 @@ async function main() {
       limitRows: LIMIT_ROWS,
       batchSize: BATCH_SIZE,
       truncatedBeforeLoad: TRUNCATE_BEFORE_LOAD,
+      fromDate: FROM_DATE || null,
+      toDate: TO_DATE || null,
       uniqueMeters: validationState.uniqueMeters.size,
       timestampStepMismatches: validationState.timestampStepMismatches,
     }, null, 2));

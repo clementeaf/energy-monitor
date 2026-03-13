@@ -13,6 +13,8 @@ Fuente operativa actual: `CLAUDE.md`.
 - `raw/SC52_StripCenter_anual.csv`
 - `raw/SC53_StripCenter_anual.csv`
 
+Rango temporal de la data (todos los CSV): **2026-01-01 00:00:00** a **2026-12-31 23:45:00** (año 2026 completo). Verificar con `npm run s3-csv-date-range` (definir `S3_KEY`).
+
 ## Contrato del CSV
 - Separador de columnas: `;`
 - Separador decimal: `,`
@@ -236,6 +238,21 @@ Variables soportadas por el importador:
 - `LIMIT_ROWS`
 - `BATCH_SIZE`
 - `TRUNCATE_BEFORE_LOAD`
+- `FROM_DATE`, `TO_DATE` (ISO 8601): si se definen, solo se insertan filas cuyo `timestamp` está en ese rango (ventana de 2 meses típica).
+
+### 5. Ingesta 2 meses + promote (script)
+Sin Lambda: ejecutar desde una máquina con AWS y acceso a RDS (túnel o red):
+
+```bash
+cd infra/drive-import-staging
+# Opción A: un solo archivo
+FROM_DATE=2025-01-01T00:00:00.000Z TO_DATE=2025-02-28T23:59:59.999Z S3_KEY=raw/MALL_GRANDE_446_completo.csv npm run ingest-two-months
+
+# Opción B: todos los CSV en raw/
+FROM_DATE=2025-01-01T00:00:00.000Z TO_DATE=2025-02-28T23:59:59.999Z npm run ingest-two-months
+```
+
+Con túnel RDS: `DB_HOST=127.0.0.1 DB_PORT=5433` en el mismo comando o en `.env`. El script ejecuta `index.mjs` (con filtro de fechas) y luego `promote.mjs` (catalog + staging → readings).
 
 ## Consultas mínimas útiles para QA
 - filas por archivo

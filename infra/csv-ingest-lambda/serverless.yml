@@ -1,0 +1,51 @@
+service: csv-ingest-lambda
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 900
+  environment:
+    S3_BUCKET: ${env:S3_BUCKET, 'energy-monitor-ingest-058310292956'}
+    DB_SECRET_NAME: ${env:DB_SECRET_NAME, 'energy-monitor/drive-ingest/db'}
+    FROM_DATE: ${env:FROM_DATE, ''}
+    TO_DATE: ${env:TO_DATE, ''}
+    BATCH_SIZE: ${env:BATCH_SIZE, '2000'}
+  vpc:
+    securityGroupIds:
+      - ${env:VPC_SECURITY_GROUP_ID}
+    subnetIds:
+      - ${env:VPC_SUBNET_ID_1}
+      - ${env:VPC_SUBNET_ID_2}
+      - ${env:VPC_SUBNET_ID_3}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: s3:GetObject
+          Resource: !Sub 'arn:aws:s3:::${self:provider.environment.S3_BUCKET}/raw/*'
+        - Effect: Allow
+          Action: s3:ListBucket
+          Resource: !Sub 'arn:aws:s3:::${self:provider.environment.S3_BUCKET}'
+          Condition:
+            StringLike:
+              s3:prefix: raw/*
+        - Effect: Allow
+          Action: secretsmanager:GetSecretValue
+          Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:energy-monitor/*'
+
+functions:
+  ingest:
+    handler: handler.handler
+    description: 'S3 CSV (2 months) → readings_import_staging → catalog → readings'
+    events:
+      - schedule:
+          rate: cron(0 8 * * ? *)
+          enabled: false
+          input:
+            fromDate: ''
+            toDate: ''
+
+plugins: []

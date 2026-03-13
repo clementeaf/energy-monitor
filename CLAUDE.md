@@ -149,6 +149,8 @@ Medidor Siemens (PAC1670/PAC1651)
 - Roles IAM: `energy-monitor-drive-ingest-task-execution-role`, `energy-monitor-drive-ingest-task-role`, `energy-monitor-eventbridge-drive-pipeline`.
 - Restricción operativa: no usar Lambda para mover CSV de 1.5 GB a 3.15 GB; el baseline aprobado es Fargate.
 - Objetos ya presentes en `raw/`: `MALL_GRANDE_446_completo.csv`, `MALL_MEDIANO_254_completo.csv`, `OUTLET_70_anual.csv`, `SC52_StripCenter_anual.csv`, `SC53_StripCenter_anual.csv`.
+- **Rango temporal de la data en S3:** 2026-01-01 a 2026-12-31 (año completo). Verificar con `npm run s3-csv-date-range` en `infra/drive-import-staging` (env `S3_KEY`).
+- **Ingesta por ventana (script):** Sin Lambda: ejecutar `ingest-two-months.sh` con `FROM_DATE`/`TO_DATE` (ISO) y opcionalmente `S3_KEY`; usa `index.mjs` (filtro por fechas) + `promote.mjs`. Requiere túnel RDS o acceso directo y AWS (S3 + Secrets Manager). Default 1 mes (Ene 2026). Más rápido que Lambda por ausencia de timeout y mejor throughput local/VPC.
 
 ### Promotion pipeline: staging → readings
 - El task Fargate ejecuta en secuencia: `index.mjs` (Drive → S3 → staging) y luego `promote.mjs` (staging → readings). Tras cada corrida diaria, la data queda en `readings` lista para NestJS/Lambda.
@@ -357,7 +359,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 
 ### SQL Migrations
 `sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | … | `016_analisis.sql` → analisis | `017_billing.sql` → módulo BILLING_OVERVIEW y permisos | `018_billing_tables.sql` → billing_center_summary, billing_monthly_detail, billing_tariffs.
-**Estrategia de datos:** Staging = buffer, no almacén. Tras distribuir a tablas finales se purga. Data actual truncada; tablas conservadas. Próximo paso: Lambda que consuma solo 2 meses desde S3 e inserte en RDS. Ver `docs/staging-buffer-no-almacen.md`, `docs/distribuir-staging-a-tablas.md`.
+**Estrategia de datos:** Staging = buffer, no almacén. Tras distribuir a tablas finales se purga. Ingesta por ventana: script `ingest-two-months.sh` (FROM_DATE/TO_DATE) o Lambda opcional; datos en S3 raw/ cubren 2026. Ver `docs/staging-buffer-no-almacen.md`, `docs/distribuir-staging-a-tablas.md`, `docs/drive-csv-import-spec.md`.
 
 ## TypeScript Types
 
@@ -627,7 +629,9 @@ cd backend && npx sls offline
 | `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
 | `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
-| `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging` |
+| `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging`; soporta FROM_DATE/TO_DATE para ventana temporal |
+| `infra/drive-import-staging/ingest-two-months.sh` | Script: ingesta 1–2 meses (FROM_DATE/TO_DATE) + promote; un archivo (S3_KEY) o todos en raw/ |
+| `infra/drive-import-staging/s3-csv-date-range.mjs` | Devuelve primera y última fecha de un CSV en S3 (Range request; sin descargar completo) |
 | `infra/drive-import-staging/backfill-staging-centers.mjs` | Rellena staging_centers desde readings_import_staging; incluye CREATE TABLE 014 si no existe |
 | `infra/drive-import-staging/distribute-staging-to-tables.mjs` | Distribuye staging → tiendas (GROUP BY) y analisis (por día/batch); FROM_DATE/TO_DATE; ensureBuildingsFromStaging, ensureMetersFromStaging |
 | `infra/drive-import-staging/truncate-data-keep-tables.mjs` | TRUNCATE tablas de datos (readings, analisis, tiendas, meters, buildings, staging_centers, alerts, hierarchy_nodes, sessions); no toca users/roles/permisos |

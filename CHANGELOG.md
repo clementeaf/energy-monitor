@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0-alpha.25] - 2026-03-13
+
+### Added
+
+- **Ingesta por ventana (script)** — `index.mjs` acepta `FROM_DATE` y `TO_DATE` (ISO); solo se insertan filas con `timestamp` en ese rango. Script `ingest-two-months.sh`: ejecuta index + promote para uno o todos los CSV en `raw/`; default Ene 2026 (1 mes). `npm run ingest-two-months` y `npm run s3-csv-date-range` en `infra/drive-import-staging`.
+- **Rango temporal de CSV en S3** — Script `s3-csv-date-range.mjs`: devuelve primera y última fecha de un CSV en S3 sin descargar (Range request). Documentado en `docs/drive-csv-import-spec.md`; data en raw/ es año 2026 completo.
+- **Lambda CSV ingest (opcional)** — `infra/csv-ingest-lambda/`: Lambda manual para S3 CSV → staging → catalog → readings; timeout 15 min; preferir script para cargas grandes.
+
+### Changed
+
+- **CLAUDE.md** — Ingesta por ventana (script, FROM_DATE/TO_DATE), rango 2026 en S3, s3-csv-date-range; Key Files ingest-two-months.sh y s3-csv-date-range.mjs; estrategia de datos actualizada.
+
 ## [0.9.0-alpha.24] - 2026-03-12
 
 ### Changed

@@ -209,7 +209,7 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
   → Axios interceptor inyecta Bearer → GET /api/auth/me
   → Backend: AuthGuard reusable extrae Bearer → detectProvider(iss) → jose.jwtVerify(jwks RS256)
   → RolesGuard global lee metadata @RequirePermissions(module, action) y aplica 403 por permiso faltante
-  → resolveUser(): enlaza identidad OAuth contra un usuario invitado/preprovisionado por email y luego carga permisos; soporta re-binding si el usuario cambia de provider (mismo email)
+  → resolveUser(): enlaza identidad OAuth contra un usuario invitado/preprovisionado por email y luego carga permisos; soporta re-binding si el usuario cambia de provider (mismo email). Token Microsoft puede no traer claim `email`; el backend usa `preferred_username` o `upn` como fallback para el lookup por email. Si con Microsoft ves datos vacíos y con Google no: ver `docs/auth-microsoft-data-scope.md` (email/UPN distinto, usuario sin siteIds).
   → Frontend: Zustand useAuthStore.setUser() + contexto de sitio en Zustand useAppStore
   → ProtectedRoute checks roles y fuerza selección de sitio cuando aplica
   → 401 Axios interceptor → limpia auth store + sessionStorage
@@ -510,7 +510,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 
 **Styling:** Tailwind v4 tokens: `text-text`, `text-muted`, `text-subtle`, `bg-base`, `bg-raised`, `bg-accent`, `border-border`. Grid: `grid-cols-1 sm:2 lg:3 xl:4`.
 
-**Resolución dinámica:** StockChart afterSetExtremes → pickResolution(rangeMs): ≤36h→15min, ≤7d→hourly, >7d→daily. keepPreviousData evita flash.
+**Resolución dinámica:** StockChart afterSetExtremes → pickResolution(rangeMs): ≤2 días→15min, ≤7d→hourly, >7d→daily. keepPreviousData evita flash.
 
 **Error handling:** ErrorBoundary por ruta; Axios 401 limpia auth store; TanStack Query maneja retry/error per query; auth usa try/catch manual con mensajes en español; `catch (err: unknown)` y cast explícito.
 
@@ -675,5 +675,5 @@ cd backend && npx sls offline
 - **NO usar:** cpanel-runbook.md, git-deploy.md, server-runbook.md
 
 ## References
-- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Revisión APIs vs docx](docs/revision-apis-vs-docx-bd.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md) | [Staging como buffer](docs/staging-buffer-no-almacen.md) | [Distribución staging→tablas](docs/distribuir-staging-a-tablas.md). Lectura docx: `node scripts/read-docx.mjs` (requiere `cd scripts && npm install`).
+- [CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Revisión APIs vs docx](docs/revision-apis-vs-docx-bd.md) | [Plan negocio consumo datos RDS](docs/plan-negocio-consumo-datos-rds.md) | [Staging como buffer](docs/staging-buffer-no-almacen.md) | [Distribución staging→tablas](docs/distribuir-staging-a-tablas.md) | [Login Microsoft y alcance de datos](docs/auth-microsoft-data-scope.md). Lectura docx: `node scripts/read-docx.mjs` (requiere `cd scripts && npm install`).
 - `CLAUDE.md` debe mantenerse autocontenido; no depender de `patterns/` para contexto operativo base.

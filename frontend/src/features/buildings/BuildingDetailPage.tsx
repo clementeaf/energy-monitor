@@ -24,10 +24,14 @@ function defaultTimeRange(): { from: string; to: string } {
 
 type Resolution = '15min' | 'hourly' | 'daily';
 
+const MS_PER_HOUR = 3_600_000;
+const HOURS_PER_DAY = 24;
+
+/** Resolución según rango visible: 1–2 días → 15 min; hasta 7 días → horaria; más → diaria. */
 function pickResolution(rangeMs: number): Resolution {
-  const hours = rangeMs / 3_600_000;
-  if (hours <= 36) return '15min';
-  if (hours <= 7 * 24) return 'hourly';
+  const hours = rangeMs / MS_PER_HOUR;
+  if (hours <= 2 * HOURS_PER_DAY) return '15min'; // 1 Día y hasta 2 días: datos cada 15 min
+  if (hours <= 7 * HOURS_PER_DAY) return 'hourly';
   return 'daily';
 }
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0-alpha.29] - 2026-03-13
+
+### Fixed
+
+- **Login Microsoft y datos vacíos** — Si el token de Microsoft no incluye el claim `email`, el backend usa `preferred_username` o `upn` como fallback para identificar al usuario por email y aplicar el mismo alcance (siteIds) que con Google. Doc `docs/auth-microsoft-data-scope.md` con causas y comprobaciones cuando con Microsoft se ven listas vacías.
+
+### Changed
+
+- **Resolución gráfico diario** — pickResolution: rango ≤2 días usa 15 min (antes ≤36 h) para que "1 Día" muestre datos cada 15 min cuando existan en BD.
+- **Estilo range selector (StockChart)** — Altura 44px, buttonSpacing 8, botones con r: 6, texto 12px y mejor contraste; estado seleccionado con borde coherente.
+- **CLAUDE.md** — Auth: fallback email Microsoft (preferred_username/upn) y ref a auth-microsoft-data-scope. Resolución dinámica ≤2 días→15min. References: auth-microsoft-data-scope.md.
+
 ## [0.9.0-alpha.28] - 2026-03-13
 
 ### Changed

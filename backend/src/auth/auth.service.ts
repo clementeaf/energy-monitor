@@ -68,12 +68,19 @@ export class AuthService {
 
       const { payload } = await jwtVerify(token, jwks, verifyOptions);
 
-      if (!payload.sub || !payload.email) return null;
+      if (!payload.sub) return null;
+
+      // Microsoft Entra may omit "email"; use preferred_username or upn so user lookup by email works.
+      const email =
+        (payload.email as string | undefined) ??
+        (payload.preferred_username as string | undefined) ??
+        (payload.upn as string | undefined);
+      if (!email) return null;
 
       return {
         sub: payload.sub,
-        email: payload.email as string,
-        name: ((payload.name ?? payload.email) as string),
+        email,
+        name: ((payload.name ?? payload.email ?? email) as string),
         picture: payload.picture as string | undefined,
         iss: payload.iss!,
       };

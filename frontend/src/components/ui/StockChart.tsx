@@ -49,13 +49,17 @@ const darkTheme: Highcharts.Options = {
   scrollbar: { enabled: false },
   rangeSelector: {
     enabled: true,
+    height: 44,
+    buttonSpacing: 8,
     buttonTheme: {
-      fill: '#1e2530',
+      fill: '#21262d',
       stroke: '#30363d',
-      style: { color: '#8b949e', fontSize: '11px' },
+      'stroke-width': 1,
+      r: 6,
+      style: { color: '#c9d1d9', fontSize: '12px', fontWeight: '500' },
       states: {
         hover: { fill: '#30363d', style: { color: '#e6edf3' } },
-        select: { fill: '#388bfd', style: { color: '#ffffff' } },
+        select: { fill: '#388bfd', stroke: '#388bfd', style: { color: '#ffffff' } },
       },
     },
     inputStyle: { color: '#e6edf3', backgroundColor: '#1e2530' },

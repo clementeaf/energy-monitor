@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0-alpha.24] - 2026-03-12
+
+### Changed
+
+- **Detalle por local y medidor** — BillingDetailTable deja de repetir la columna Centro en cada fila: agrupa por centerName, ordena por centro/año/mes y muestra Centro una sola vez por bloque (rowSpan). Tabla custom en lugar de DataTable para soportar rowSpan.
+- **CLAUDE.md** — Billing: BillingDetailTable agrupación por centro y rowSpan; Key Files BillingDetailTable.
+
 ## [0.9.0-alpha.23] - 2026-03-12
 
 ### Added

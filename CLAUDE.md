@@ -466,7 +466,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **Meters**: useMetersOverview (staleTime 30s), useMeter(id), useMeterReadings(id, resolution, from?, to?) (keepPreviousData), useMeterUptime (60s), useMeterDowntimeEvents/AlarmEvents/AlarmSummary(from, to). Readings siempre con from/to: rango por defecto 7 días; onRangeChange actualiza range y resolution. Query enabled solo si meterId + from + to. Alarm events 30d fijo en MeterDetailPage.
 - **Hierarchy**: useHierarchy(buildingId), useHierarchyNode(nodeId), useHierarchyChildren(nodeId, from?, to?), useHierarchyConsumption(nodeId, resolution, from?, to?). Drilldown no usa consumption en la UI actual; solo node + children.
 - **Alerts**: useAlerts(filters, options). Opciones típicas: refetchInterval 30–60s, staleTime 10–15s; filtro por status, buildingId, limit. useAcknowledgeAlert, useSyncOfflineAlerts invalidan ['alerts'].
-- **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen en BillingPage: tabla pivote (una fila por centro y año, columnas Enero–Diciembre + Total kWh); detalle paginado 50 por página. Tablas de facturación usan toNum() para normalizar valores numéricos que llegan como string desde la API (pg NUMERIC).
+- **Billing**: useBillingCenters(), useBillingSummary({ year?, centerName? }), useBillingDetail({ limit, offset, year?, month?, centerName? }) con placeholderData keepPreviousData para paginación, useBillingTariffs({ year? }). Resumen en BillingPage: tabla pivote (una fila por centro y año, columnas Enero–Diciembre + Total kWh); detalle paginado 50 por página. BillingDetailTable agrupa filas por centro y muestra la columna Centro una sola vez por bloque (rowSpan), ordenando por centerName antes de agrupar. Tablas de facturación usan toNum() para normalizar valores numéricos que llegan como string desde la API (pg NUMERIC).
 - **Auth**: useAuth (Zustand + useAuthQuery para GET /auth/me). useBuildings en Layout para visibleBuildings y selector de contexto.
 
 ### Patrones de consumo (cache y refetch)
@@ -647,6 +647,7 @@ cd backend && npx sls offline
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio post-login |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle operativo de alerta |
 | `frontend/src/features/billing/BillingPage.tsx` | Vista facturación: resumen pivote (centro/año × meses) y detalle paginado por local/medidor |
+| `frontend/src/features/billing/components/BillingDetailTable.tsx` | Detalle por local/medidor: tabla con rowSpan por centro (Centro una vez por bloque), ordenación por centerName |
 | `frontend/src/hooks/queries/useBilling.ts` | useBillingCenters, useBillingSummary, useBillingDetail, useBillingTariffs |
 | `infra/synthetic-generator/index.mjs` | TEMPORAL: lecturas sintéticas 1/min |
 | `infra/db-verify/verify-rds.mjs` | Verificación RDS: modo prueba (.env) o AWS Secrets Manager; carga dotenv; mensajes de error claros |

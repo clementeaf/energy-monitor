@@ -159,8 +159,8 @@ export class BuildingsService {
     resolution: '15min' | 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
-  ) {
-    if (!hasSiteAccess(scope, buildingId)) return null;
+  ): Promise<Array<{ timestamp: string | Date; totalPowerKw: number; avgPowerKw: number; peakPowerKw: number }>> {
+    if (!hasSiteAccess(scope, buildingId)) return [];
 
     return this.metersService.findBuildingConsumption(buildingId, scope, resolution, from, to);
   }

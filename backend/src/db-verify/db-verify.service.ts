@@ -79,138 +79,154 @@ export class DbVerifyService {
   constructor(private readonly dataSource: DataSource) {}
 
   /**
-   * Ejecuta consultas de verificación. Cada bloque está en try/catch para no devolver 500
-   * si una tabla no existe o falla una query; se devuelven valores por defecto y opcionalmente errors[].
+   * Ejecuta consultas de verificación en paralelo. Nunca lanza: ante cualquier excepción devuelve resultado mínimo con errors[].
    */
   async run(): Promise<DbVerifyResult> {
+    try {
+      return await this.runInternal();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return {
+        counts: { readings: 0, meters: 0, buildings: 0, staging: null },
+        stagingCentersCount: null,
+        metersPerBuilding: [],
+        meterIdSample: [],
+        meterIdLengthWarning: false,
+        timeRanges: [],
+        hierarchy: null,
+        buildings: [],
+        hierarchyVsReadings: null,
+        errors: [`run: ${msg}`],
+      };
+    }
+  }
+
+  private async runInternal(): Promise<DbVerifyResult> {
     type CountRow = { total: string };
     const countVal = (rows: CountRow[]): number => Number(rows[0]?.total ?? 0);
     const errors: string[] = [];
 
-    let readingsCount = 0;
-    let metersCount = 0;
-    let buildingsCount = 0;
-    try {
-      const [readingsRes, metersRes, buildingsRes] = await Promise.all([
-        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM readings'),
-        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM meters'),
-        this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM buildings'),
-      ]);
-      readingsCount = countVal(readingsRes);
-      metersCount = countVal(metersRes);
-      buildingsCount = countVal(buildingsRes);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`counts: ${msg}`);
-    }
-
-    let staging: number | null = null;
-    try {
-      const stagingRes = await this.dataSource.query<Array<{ reltuples: string }>>(
-        `SELECT COALESCE(reltuples::bigint, 0)::text AS reltuples
-         FROM pg_class WHERE relname = 'readings_import_staging'`,
-      );
-      staging = stagingRes[0] ? Math.max(0, Math.round(Number(stagingRes[0].reltuples))) : null;
-    } catch {
-      // tabla puede no existir
-    }
-
-    let stagingCentersCount: number | null = null;
-    try {
-      const centerRes = await this.dataSource.query<Array<{ count: string }>>(
-        `SELECT COUNT(DISTINCT center_name)::bigint AS count FROM readings_import_staging`,
-      );
-      stagingCentersCount = centerRes[0] ? Number(centerRes[0].count) : null;
-    } catch {
-      // puede ser costoso en tablas muy grandes
-    }
-
-    const counts = {
-      readings: readingsCount,
-      meters: metersCount,
-      buildings: buildingsCount,
-      staging,
+    const runCounts = async () => {
+      try {
+        const [readingsRes, metersRes, buildingsRes] = await Promise.all([
+          this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM readings'),
+          this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM meters'),
+          this.dataSource.query<CountRow[]>('SELECT COUNT(*)::bigint AS total FROM buildings'),
+        ]);
+        return {
+          readings: countVal(readingsRes),
+          meters: countVal(metersRes),
+          buildings: countVal(buildingsRes),
+          staging: null as number | null,
+        };
+      } catch (err) {
+        errors.push(`counts: ${err instanceof Error ? err.message : String(err)}`);
+        return { readings: 0, meters: 0, buildings: 0, staging: null as number | null };
+      }
+    };
+    const runStaging = async () => {
+      try {
+        const res = await this.dataSource.query<Array<{ reltuples: string }>>(
+          `SELECT COALESCE(reltuples::bigint, 0)::text AS reltuples FROM pg_class WHERE relname = 'readings_import_staging'`,
+        );
+        return res[0] ? Math.max(0, Math.round(Number(res[0].reltuples))) : null;
+      } catch {
+        return null;
+      }
+    };
+    const runStagingCenters = async () => {
+      try {
+        const res = await this.dataSource.query<Array<{ count: string }>>(
+          `SELECT COUNT(DISTINCT center_name)::bigint AS count FROM readings_import_staging`,
+        );
+        return res[0] ? Number(res[0].count) : null;
+      } catch {
+        return null;
+      }
+    };
+    type MeterPerBuildingRow = { building_id: string; meter_count: string };
+    const runMetersPerBuilding = async (): Promise<Array<{ building_id: string; meter_count: number }>> => {
+      try {
+        const rows = await this.dataSource.query<MeterPerBuildingRow[]>(
+          `SELECT building_id, COUNT(*)::int AS meter_count FROM meters GROUP BY building_id ORDER BY meter_count DESC LIMIT 20`,
+        );
+        return rows.map((r) => ({ building_id: r.building_id, meter_count: Number(r.meter_count) }));
+      } catch (err) {
+        errors.push(`metersPerBuilding: ${err instanceof Error ? err.message : String(err)}`);
+        return [];
+      }
+    };
+    type MeterIdRow = { meter_id: string };
+    const runMeterIdSample = async (): Promise<string[]> => {
+      try {
+        const rows = await this.dataSource.query<MeterIdRow[]>('SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50');
+        return rows.map((r) => r.meter_id);
+      } catch (err) {
+        errors.push(`meterIdSample: ${err instanceof Error ? err.message : String(err)}`);
+        return [];
+      }
+    };
+    type TimeRangeRow = { meter_id: string; min_ts: string; max_ts: string };
+    const runTimeRanges = async (): Promise<TimeRangeRow[]> => {
+      try {
+        return await this.dataSource.query<TimeRangeRow[]>(
+          `SELECT meter_id, MIN(timestamp)::text AS min_ts, MAX(timestamp)::text AS max_ts FROM readings GROUP BY meter_id ORDER BY meter_id LIMIT 20`,
+        );
+      } catch (err) {
+        errors.push(`timeRanges: ${err instanceof Error ? err.message : String(err)}`);
+        return [];
+      }
+    };
+    type HierarchyRow = { building_id: string; node_count: string };
+    const runHierarchy = async (): Promise<DbVerifyResult['hierarchy']> => {
+      try {
+        const rows = await this.dataSource.query<HierarchyRow[]>(
+          `SELECT building_id, COUNT(*)::int AS node_count FROM hierarchy_nodes GROUP BY building_id ORDER BY building_id`,
+        );
+        return rows.map((r) => ({ building_id: r.building_id, node_count: Number(r.node_count) }));
+      } catch {
+        return null;
+      }
+    };
+    type BuildingRow = { id: string; name: string; meters_count: string };
+    const runBuildings = async (): Promise<Array<{ id: string; name: string; meters_count: number }>> => {
+      try {
+        const rows = await this.dataSource.query<BuildingRow[]>(
+          `SELECT b.id, b.name, (SELECT COUNT(*) FROM meters m WHERE m.building_id = b.id) AS meters_count FROM buildings b ORDER BY b.id`,
+        );
+        return rows.map((r) => ({ id: r.id, name: r.name, meters_count: Number(r.meters_count) }));
+      } catch (err) {
+        errors.push(`buildings: ${err instanceof Error ? err.message : String(err)}`);
+        return [];
+      }
     };
 
-    type MeterPerBuildingRow = { building_id: string; meter_count: string };
-    let metersPerBuilding: Array<{ building_id: string; meter_count: number }> = [];
-    try {
-      const rows = await this.dataSource.query<MeterPerBuildingRow[]>(
-        `SELECT building_id, COUNT(*)::int AS meter_count
-         FROM meters GROUP BY building_id ORDER BY meter_count DESC LIMIT 20`,
-      );
-      metersPerBuilding = rows.map((r) => ({
-        building_id: r.building_id,
-        meter_count: Number(r.meter_count),
-      }));
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`metersPerBuilding: ${msg}`);
-    }
+    const [countsPartial, staging, stagingCentersCount, metersPerBuilding, meterIdSample, timeRanges, hierarchy, buildings] =
+      await Promise.all([
+        runCounts(),
+        runStaging(),
+        runStagingCenters(),
+        runMetersPerBuilding(),
+        runMeterIdSample(),
+        runTimeRanges(),
+        runHierarchy(),
+        runBuildings(),
+      ]);
 
-    type MeterIdRow = { meter_id: string };
-    let meterIdSample: string[] = [];
-    try {
-      const meterIdRows = await this.dataSource.query<MeterIdRow[]>(
-        'SELECT id AS meter_id FROM meters ORDER BY id LIMIT 50',
-      );
-      meterIdSample = meterIdRows.map((r) => r.meter_id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`meterIdSample: ${msg}`);
-    }
+    const counts = {
+      readings: countsPartial!.readings,
+      meters: countsPartial!.meters,
+      buildings: countsPartial!.buildings,
+      staging: staging ?? null,
+    };
     const meterIdLengthWarning = meterIdSample.some((id) => id.length > 10);
 
-    type TimeRangeRow = { meter_id: string; min_ts: string; max_ts: string };
-    let timeRanges: Array<{ meter_id: string; min_ts: string; max_ts: string }> = [];
-    try {
-      const rows = await this.dataSource.query<TimeRangeRow[]>(
-        `SELECT meter_id, MIN(timestamp)::text AS min_ts, MAX(timestamp)::text AS max_ts
-         FROM readings GROUP BY meter_id ORDER BY meter_id LIMIT 20`,
-      );
-      timeRanges = rows;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`timeRanges: ${msg}`);
-    }
-
-    let hierarchy: DbVerifyResult['hierarchy'] = null;
-    try {
-      type HierarchyRow = { building_id: string; node_count: string };
-      const hierarchyRows = await this.dataSource.query<HierarchyRow[]>(
-        `SELECT building_id, COUNT(*)::int AS node_count
-         FROM hierarchy_nodes GROUP BY building_id ORDER BY building_id`,
-      );
-      hierarchy = hierarchyRows.map((r) => ({
-        building_id: r.building_id,
-        node_count: Number(r.node_count),
-      }));
-    } catch {
-      // tabla puede no existir
-    }
-
-    type BuildingRow = { id: string; name: string; meters_count: string };
-    let buildings: Array<{ id: string; name: string; meters_count: number }> = [];
-    try {
-      const buildingsRows = await this.dataSource.query<BuildingRow[]>(
-        `SELECT b.id, b.name, (SELECT COUNT(*) FROM meters m WHERE m.building_id = b.id) AS meters_count
-         FROM buildings b ORDER BY b.id`,
-      );
-      buildings = buildingsRows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        meters_count: Number(r.meters_count),
-      }));
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`buildings: ${msg}`);
-    }
-
     let hierarchyVsReadings: DbVerifyResult['hierarchyVsReadings'] = null;
+    const HIERARCHY_VS_READINGS_MAX_BUILDINGS = 20;
     try {
       type BidRow = { building_id: string };
       const bidRows = await this.dataSource.query<BidRow[]>(
-        `SELECT DISTINCT building_id FROM hierarchy_nodes ORDER BY building_id`,
+        `SELECT DISTINCT building_id FROM hierarchy_nodes ORDER BY building_id LIMIT ${HIERARCHY_VS_READINGS_MAX_BUILDINGS}`,
       );
       const rows: HierarchyVsReadingsRow[] = [];
       for (const { building_id } of bidRows) {

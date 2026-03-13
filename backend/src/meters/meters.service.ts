@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Meter } from './meter.entity';
@@ -10,6 +10,10 @@ import {
   STAGING_LIMITS,
   clampStagingLimit,
 } from '../readings-source.config';
+
+/** Rango máximo en días para consumo por edificio (evita timeout Lambda). */
+const CONSUMPTION_MAX_RANGE_DAYS = 90;
+const CONSUMPTION_MAX_RANGE_MS = CONSUMPTION_MAX_RANGE_DAYS * 24 * 60 * 60 * 1000;
 
 function toNullableNumber(value: unknown): number | null {
   return value == null ? null : Number(value);
@@ -49,6 +53,8 @@ const METER_COLS =
 
 @Injectable()
 export class MetersService {
+  private readonly logger = new Logger(MetersService.name);
+
   constructor(
     @InjectRepository(Meter)
     private readonly meterRepo: Repository<Meter>,
@@ -502,55 +508,68 @@ export class MetersService {
     resolution: '15min' | 'hourly' | 'daily' = 'hourly',
     from?: string,
     to?: string,
-  ) {
-    if (!hasSiteAccess(scope, buildingId)) return null;
+  ): Promise<Array<{ timestamp: string | Date; totalPowerKw: number; avgPowerKw: number; peakPowerKw: number }>> {
+    try {
+      if (!hasSiteAccess(scope, buildingId)) return [];
 
-    if (useStaging()) {
-      if (!from || !to) return null;
-      const fromMs = new Date(from).getTime();
-      const toMs = new Date(to).getTime();
-      if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) return null;
-      if (toMs - fromMs > getMaxRangeDaysMs()) return null;
-      const stagingRows = await this.findBuildingConsumptionFromStaging(buildingId, resolution, from, to);
-      if (stagingRows.length === 0) {
-        const rangeRow = await this.dataSource.query<Array<{ max_ts: string }>>(
-          `SELECT MAX(r.timestamp) AS max_ts FROM readings_import_staging r
-           INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
-          [buildingId],
-        );
-        const maxTs = rangeRow[0]?.max_ts;
-        if (maxTs) {
-          const maxDate = new Date(maxTs);
-          const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-          const fallbackTo = new Date(maxTs).toISOString();
-          return this.findBuildingConsumptionFromStaging(buildingId, resolution, fallbackFrom, fallbackTo);
+      if (useStaging()) {
+        if (!from || !to) return [];
+        const fromMs = new Date(from).getTime();
+        const toMs = new Date(to).getTime();
+        if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) return [];
+        if (toMs - fromMs > getMaxRangeDaysMs()) return [];
+        const stagingRows = await this.findBuildingConsumptionFromStaging(buildingId, resolution, from, to);
+        if (stagingRows.length === 0) {
+          const rangeRow = await this.dataSource.query<Array<{ max_ts: string }>>(
+            `SELECT MAX(r.timestamp) AS max_ts FROM readings_import_staging r
+             INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
+            [buildingId],
+          );
+          const maxTs = rangeRow[0]?.max_ts;
+          if (maxTs) {
+            const maxDate = new Date(maxTs);
+            const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            const fallbackTo = new Date(maxTs).toISOString();
+            return this.findBuildingConsumptionFromStaging(buildingId, resolution, fallbackFrom, fallbackTo);
+          }
+        }
+        return stagingRows;
+      }
+
+      let fromClamped = from;
+      let toClamped = to;
+      if (from && to) {
+        const toMs = new Date(to).getTime();
+        const fromMs = new Date(from).getTime();
+        if (!Number.isNaN(toMs) && !Number.isNaN(fromMs) && toMs - fromMs > CONSUMPTION_MAX_RANGE_MS) {
+          fromClamped = new Date(toMs - CONSUMPTION_MAX_RANGE_MS).toISOString();
+          toClamped = to;
         }
       }
-      return stagingRows;
-    }
 
-    let truncExpr: string;
-    if (resolution === '15min') {
-      truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;
-    } else if (resolution === 'daily') {
-      truncExpr = `date_trunc('day', r.timestamp)`;
-    } else {
-      truncExpr = `date_trunc('hour', r.timestamp)`;
-    }
+      let truncExpr: string;
+      if (resolution === '15min') {
+        truncExpr = `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`;
+      } else if (resolution === 'daily') {
+        truncExpr = `date_trunc('day', r.timestamp)`;
+      } else {
+        truncExpr = `date_trunc('hour', r.timestamp)`;
+      }
 
-    const conditions = ['m.building_id = $1'];
-    const params: Array<string> = [buildingId];
-    if (from) {
-      params.push(from);
-      conditions.push(`r.timestamp >= $${params.length}`);
-    }
-    if (to) {
-      params.push(to);
-      conditions.push(`r.timestamp <= $${params.length}`);
-    }
-    const whereClause = conditions.join(' AND ');
+      const conditions = ['m.building_id = $1'];
+      const params: Array<string> = [buildingId];
+      if (fromClamped) {
+        params.push(fromClamped);
+        conditions.push(`r.timestamp >= $${params.length}`);
+      }
+      if (toClamped) {
+        params.push(toClamped);
+        conditions.push(`r.timestamp <= $${params.length}`);
+      }
+      const whereClause = conditions.join(' AND ');
 
-    const rows = await this.readingRepo.query(`
+      const rows = await this.readingRepo.query(
+        `
       SELECT
         bucket AS "timestamp",
         SUM(avg_power) AS "totalPowerKw",
@@ -569,21 +588,23 @@ export class MetersService {
       ) sub
       GROUP BY bucket
       ORDER BY bucket ASC
-    `, params);
-
-    if (rows.length === 0 && from && to) {
-      const rangeRow = await this.readingRepo.query<Array<{ max_ts: string }>>(
-        `SELECT MAX(r.timestamp) AS max_ts FROM readings r INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
-        [buildingId],
+    `,
+        params,
       );
-      const maxTs = rangeRow[0]?.max_ts;
-      if (maxTs) {
-        const maxDate = new Date(maxTs);
-        const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        const fallbackTo = new Date(maxTs).toISOString();
-        const fallbackParams = [buildingId, fallbackFrom, fallbackTo];
-        const fallbackRows = await this.readingRepo.query(
-          `
+
+      if (rows.length === 0 && fromClamped && toClamped) {
+        const rangeRow = await this.readingRepo.query<Array<{ max_ts: string }>>(
+          `SELECT MAX(r.timestamp) AS max_ts FROM readings r INNER JOIN meters m ON m.id = r.meter_id WHERE m.building_id = $1`,
+          [buildingId],
+        );
+        const maxTs = rangeRow[0]?.max_ts;
+        if (maxTs) {
+          const maxDate = new Date(maxTs);
+          const fallbackFrom = new Date(maxDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          const fallbackTo = new Date(maxTs).toISOString();
+          const fallbackParams = [buildingId, fallbackFrom, fallbackTo];
+          const fallbackRows = await this.readingRepo.query(
+            `
       SELECT
         bucket AS "timestamp",
         SUM(avg_power) AS "totalPowerKw",
@@ -603,27 +624,34 @@ export class MetersService {
       GROUP BY bucket
       ORDER BY bucket ASC
     `,
-          fallbackParams,
-        );
-        return fallbackRows.map((r: Record<string, unknown>) => ({
-          timestamp: r.timestamp,
-          totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
-          avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
-          peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
-        }));
+            fallbackParams,
+          );
+          return fallbackRows.map((r: Record<string, unknown>) => ({
+            timestamp: r.timestamp,
+            totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
+            avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
+            peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
+          }));
+        }
       }
-    }
 
-    return rows.map((r: Record<string, unknown>) => ({
-      timestamp: r.timestamp,
-      totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
-      avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
-      peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
-    }));
+      return rows.map((r: Record<string, unknown>) => ({
+        timestamp: r.timestamp,
+        totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
+        avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
+        peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
+      }));
+    } catch (err) {
+      this.logger.warn(
+        `findBuildingConsumption failed (buildingId=${buildingId}, resolution=${resolution}): ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return [];
+    }
   }
 
   /**
    * Consumo por edificio desde readings_import_staging. Solo medidores del edificio; límite interno.
+   * Nunca lanza: ante cualquier error devuelve [].
    */
   private async findBuildingConsumptionFromStaging(
     buildingId: string,
@@ -631,39 +659,46 @@ export class MetersService {
     from: string,
     to: string,
   ): Promise<Array<{ timestamp: string; totalPowerKw: number; avgPowerKw: number; peakPowerKw: number }>> {
-    const truncExpr =
-      resolution === '15min'
-        ? `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`
-        : resolution === 'daily'
-          ? `date_trunc('day', r.timestamp)`
-          : `date_trunc('hour', r.timestamp)`;
-    const cap = STAGING_LIMITS.defaultMaxRows * 3;
-    const rows = await this.dataSource.query(
-      `WITH building_meters AS (
-         SELECT id FROM meters WHERE building_id = $1
-       ),
-       capped AS (
-         SELECT r.timestamp, r.power_kw
-         FROM readings_import_staging r
-         INNER JOIN building_meters m ON m.id = r.meter_id
-         WHERE r.timestamp >= $2 AND r.timestamp <= $3
-         ORDER BY r.timestamp ASC
-         LIMIT $4
-       )
-       SELECT
-         ${truncExpr} AS "timestamp",
-         SUM(r.power_kw)::double precision AS "totalPowerKw",
-         AVG(r.power_kw)::double precision AS "avgPowerKw",
-         MAX(r.power_kw)::double precision AS "peakPowerKw"
-       FROM capped r
-       GROUP BY 1 ORDER BY 1 ASC`,
-      [buildingId, from, to, cap],
-    );
-    return rows.map((r: Record<string, unknown>) => ({
-      timestamp: String(r.timestamp),
-      totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw') ?? 0).toFixed(3)),
-      avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw') ?? 0).toFixed(3)),
-      peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw') ?? 0).toFixed(3)),
-    }));
+    try {
+      const truncExpr =
+        resolution === '15min'
+          ? `date_trunc('hour', r.timestamp) + interval '15 min' * floor(extract(minute from r.timestamp) / 15)`
+          : resolution === 'daily'
+            ? `date_trunc('day', r.timestamp)`
+            : `date_trunc('hour', r.timestamp)`;
+      const cap = STAGING_LIMITS.defaultMaxRows * 3;
+      const rows = await this.dataSource.query(
+        `WITH building_meters AS (
+           SELECT id FROM meters WHERE building_id = $1
+         ),
+         capped AS (
+           SELECT r.timestamp, r.power_kw
+           FROM readings_import_staging r
+           INNER JOIN building_meters m ON m.id = r.meter_id
+           WHERE r.timestamp >= $2 AND r.timestamp <= $3
+           ORDER BY r.timestamp ASC
+           LIMIT $4
+         )
+         SELECT
+           ${truncExpr} AS "timestamp",
+           SUM(r.power_kw)::double precision AS "totalPowerKw",
+           AVG(r.power_kw)::double precision AS "avgPowerKw",
+           MAX(r.power_kw)::double precision AS "peakPowerKw"
+         FROM capped r
+         GROUP BY 1 ORDER BY 1 ASC`,
+        [buildingId, from, to, cap],
+      );
+      return rows.map((r: Record<string, unknown>) => ({
+        timestamp: String(r.timestamp),
+        totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw') ?? 0).toFixed(3)),
+        avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw') ?? 0).toFixed(3)),
+        peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw') ?? 0).toFixed(3)),
+      }));
+    } catch (err) {
+      this.logger.warn(
+        `findBuildingConsumptionFromStaging failed (buildingId=${buildingId}): ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return [];
+    }
   }
 }

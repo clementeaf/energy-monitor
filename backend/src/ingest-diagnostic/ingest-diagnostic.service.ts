@@ -40,14 +40,14 @@ export class IngestDiagnosticService {
   constructor(private readonly dataSource: DataSource) {}
 
   /**
-   * Ejecuta el diagnóstico por tramos (por source_file) para no colapsar con tablas de millones de filas.
-   * Evita JOINs masivos: cada archivo se consulta por separado usando índice en source_file.
+   * Ejecuta el diagnóstico por tramos. Nunca lanza: ante error devuelve resultado parcial con message.
    */
   async runDiagnostic(): Promise<DriveIngestDiagnosticResult> {
     const generatedAt = new Date().toISOString();
-
-    const hasStagingTable = await this.checkStagingTableExists();
-    if (!hasStagingTable) {
+    try {
+      return await this.runDiagnosticInternal(generatedAt);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       return {
         hasStagingTable: false,
         stagingTotalRows: 0,
@@ -57,49 +57,42 @@ export class IngestDiagnosticService {
         readingsTotalForStagingMeters: 0,
         perFileMatch: [],
         conclusion: 'no_staging_data',
-        message: 'La tabla readings_import_staging no existe. No hay datos de Google Drive importados.',
+        message: `Diagnóstico falló: ${msg}`,
         generatedAt,
       };
+    }
+  }
+
+  private async runDiagnosticInternal(generatedAt: string): Promise<DriveIngestDiagnosticResult> {
+
+    const hasStagingTable = await this.checkStagingTableExists();
+    if (!hasStagingTable) {
+      return this.buildNoStagingResult(generatedAt, 'La tabla readings_import_staging no existe.');
     }
 
     const stagingFiles = await this.getStagingSummaryByFileChunked();
     if (stagingFiles.length === 0) {
-      return {
-        hasStagingTable: true,
-        stagingTotalRows: 0,
-        stagingFiles: [],
-        stagingMeterIds: [],
-        readingsMatchedCount: 0,
-        readingsTotalForStagingMeters: 0,
-        perFileMatch: [],
-        conclusion: 'no_staging_data',
-        message: 'readings_import_staging está vacía. No hay datos de Google Drive en staging.',
-        generatedAt,
-      };
+      return this.buildNoStagingResult(generatedAt, 'readings_import_staging está vacía.');
     }
 
     const stagingTotalRows = stagingFiles.reduce((sum, f) => sum + f.rowCount, 0);
-
     const { stagingMeterIds, perFileMatch, readingsMatchedCount } = await this.processByFile(stagingFiles);
     const readingsTotalForStagingMeters =
       stagingMeterIds.length > 0 ? await this.getReadingsTotalForStagingMeters(stagingMeterIds) : 0;
-
     const missingTotal = stagingTotalRows - readingsMatchedCount;
     let conclusion: DriveIngestDiagnosticResult['conclusion'];
     let message: string;
-
     if (missingTotal === 0) {
       conclusion = 'full_match';
-      message = `El 100% de los datos obtenidos de Google Drive (${stagingTotalRows.toLocaleString('es-CL')} filas) está presente en readings y es consumido por el backend.`;
+      message = `El 100% de los datos obtenidos de Google Drive (${stagingTotalRows.toLocaleString('es-CL')} filas) está presente en readings.`;
     } else if (readingsMatchedCount === 0) {
       conclusion = 'mismatch';
-      message = `Ninguna fila de staging tiene correspondencia en readings. Posible promoción no ejecutada o meter_id/timestamp no coinciden.`;
+      message = `Ninguna fila de staging tiene correspondencia en readings. Posible promoción no ejecutada.`;
     } else {
       conclusion = 'partial_match';
       const pct = ((readingsMatchedCount / stagingTotalRows) * 100).toFixed(1);
-      message = `Correspondencia parcial: ${readingsMatchedCount.toLocaleString('es-CL')} de ${stagingTotalRows.toLocaleString('es-CL')} filas de Drive (${pct}%) están en readings. Faltan ${missingTotal.toLocaleString('es-CL')} filas.`;
+      message = `Correspondencia parcial: ${readingsMatchedCount.toLocaleString('es-CL')} de ${stagingTotalRows.toLocaleString('es-CL')} (${pct}%).`;
     }
-
     return {
       hasStagingTable: true,
       stagingTotalRows,
@@ -109,6 +102,24 @@ export class IngestDiagnosticService {
       readingsTotalForStagingMeters,
       perFileMatch,
       conclusion,
+      message,
+      generatedAt,
+    };
+  }
+
+  private buildNoStagingResult(
+    generatedAt: string,
+    message: string,
+  ): DriveIngestDiagnosticResult {
+    return {
+      hasStagingTable: false,
+      stagingTotalRows: 0,
+      stagingFiles: [],
+      stagingMeterIds: [],
+      readingsMatchedCount: 0,
+      readingsTotalForStagingMeters: 0,
+      perFileMatch: [],
+      conclusion: 'no_staging_data',
       message,
       generatedAt,
     };

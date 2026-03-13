@@ -18,7 +18,7 @@ Rango temporal de la data (todos los CSV): **2026-01-01 00:00:00** a **2026-12-3
 ## Contrato del CSV
 - Separador de columnas: `;`
 - Separador decimal: `,`
-- Codificación: `UTF-8 with BOM` (`utf-8-sig`)
+- Codificación: `UTF-8 with BOM` (`utf-8-sig`). Si los CSV se exportaron desde Excel en español y los acentos (ej. "Estación") se ven corruptos en la app, los archivos pueden estar en Latin-1/Windows-1252: usar `CSV_ENCODING=latin1` al importar (drive-pipeline o drive-import-staging) y volver a cargar; por defecto se usa `utf8`.
 - Cabecera: primera fila contiene los nombres de las 21 columnas
 - Sin comillas en valores numéricos
 - Celdas vacías: `;;`

@@ -6,6 +6,11 @@ import { setupSwagger } from './swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const expressApp = app.getHttpAdapter().getInstance();
+  if (typeof expressApp.set === 'function') {
+    expressApp.set('json charset', 'utf-8');
+  }
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const corsOrigins: string[] = ['https://energymonitor.click'];

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0-alpha.26] - 2026-03-13
+
+### Fixed
+
+- **Acentos en nombres de centros** — Si los CSV están en Latin-1 (exportación Excel en español), los nombres (ej. "Arauco Estación") se mostraban corruptos. Variable de entorno `CSV_ENCODING=latin1` en drive-pipeline y drive-import-staging para interpretar correctamente; por defecto sigue `utf8`. Re-importar y volver a ejecutar promote/catalog para corregir datos ya cargados.
+- **Content-Type JSON** — Backend (main.ts y serverless.ts) envía `application/json; charset=utf-8` en respuestas JSON para que el navegador interprete correctamente caracteres acentuados.
+
+### Changed
+
+- **docs/drive-csv-import-spec.md** — Nota sobre uso de `CSV_ENCODING=latin1` cuando los acentos aparecen corruptos.
+- **CLAUDE.md** — Bullet "Codificación CSV" en Bulk CSV Ingest; fecha de validación operativa 2026-03-13.
+
 ## [0.9.0-alpha.25] - 2026-03-13
 
 ### Added

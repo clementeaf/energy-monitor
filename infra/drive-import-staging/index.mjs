@@ -14,6 +14,7 @@ const BATCH_SIZE = parsePositiveInt(process.env.BATCH_SIZE, 1000);
 const TRUNCATE_BEFORE_LOAD = process.env.TRUNCATE_BEFORE_LOAD === 'true';
 const FROM_DATE = process.env.FROM_DATE || null;
 const TO_DATE = process.env.TO_DATE || null;
+const CSV_ENCODING = (process.env.CSV_ENCODING || 'utf8').toLowerCase();
 
 const REQUIRED_HEADERS = [
   'timestamp',
@@ -306,6 +307,7 @@ async function main() {
     const sourceFile = S3_KEY.split('/').pop() || S3_KEY;
     const parser = parse({
       bom: true,
+      encoding: CSV_ENCODING === 'latin1' ? 'latin1' : 'utf8',
       columns: (header) => {
         assertHeaders(header);
         return header.map((value) => value.trim().replace(/^\uFEFF/, ''));

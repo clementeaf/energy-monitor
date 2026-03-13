@@ -15,6 +15,7 @@
  *   FORCE_DOWNLOAD          (default: false — si true, descarga todos sin chequear cambios)
  *   BATCH_SIZE              (default: 2500 — filas por INSERT a staging)
  *   LIMIT_ROWS              (opcional — limita filas para tests)
+ *   CSV_ENCODING            (default: utf8 — use 'latin1' si los acentos se ven corruptos, p. ej. Excel en español)
  */
 
 import { createHash } from 'crypto';
@@ -50,6 +51,7 @@ const SOURCE_FILES = (process.env.SOURCE_FILES || '')
 const FORCE_DOWNLOAD = process.env.FORCE_DOWNLOAD === 'true';
 const BATCH_SIZE = parsePositiveInt(process.env.BATCH_SIZE, 2500);
 const LIMIT_ROWS = parseLimit(process.env.LIMIT_ROWS);
+const CSV_ENCODING = (process.env.CSV_ENCODING || 'utf8').toLowerCase();
 
 // ─── AWS clients ─────────────────────────────────────────────────────────────
 
@@ -357,6 +359,7 @@ async function importFileToStaging(dbClient, s3Key) {
   const sourceFile = s3Key.split('/').pop() || s3Key;
   const parser = parse({
     bom: true,
+    encoding: CSV_ENCODING === 'latin1' ? 'latin1' : 'utf8',
     columns: (header) => {
       const normalized = new Set(header.map((h) => h.trim().replace(/^\uFEFF/, '')));
       const missing = REQUIRED_HEADERS.filter((h) => !normalized.has(h));

@@ -14,6 +14,7 @@ async function bootstrap() {
   const adapter = new ExpressAdapter(expressApp);
 
   const app = await NestFactory.create(AppModule, adapter);
+  expressApp.set('json charset', 'utf-8');
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const corsOrigins: string[] = ['https://energymonitor.click'];

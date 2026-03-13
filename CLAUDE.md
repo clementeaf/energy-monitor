@@ -127,10 +127,11 @@ Medidor Siemens (PAC1670/PAC1651)
 ## Bulk CSV Ingest — Sistema Incremental Automatizado
 
 - **Alcance:** La carga desde Google Drive es un **mecanismo de ingesta de datos** (puntual u ocasional), no un puente operativo permanente. Sirve para tener datos históricos o masivos en RDS; una vez cargados, el producto opera sobre lo que ya está en `readings`, `meters`, `buildings` y `hierarchy_nodes`. La telemetría en vivo y el uso normal de la app no dependen de Drive.
-- Última actualización operativa validada: `2026-03-11`.
+- Última actualización operativa validada: `2026-03-13`.
 - **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso.
 - **Detección de cambios:** compara `driveModifiedTime` del manifest S3 más reciente contra el valor actual en Drive antes de descargar. Si no hubo cambios → `[skip]`. Soporta `FORCE_DOWNLOAD=true` para forzar descarga completa.
 - **Importación idempotente:** `INSERT ... ON CONFLICT (meter_id, timestamp, source_file) DO NOTHING` — re-correr no duplica filas; solo inserta datos nuevos.
+- **Codificación CSV:** por defecto `utf8`. Si los nombres (ej. "Arauco Estación") muestran acentos corruptos en la app, los CSV pueden estar en Latin-1 (exportación Excel): usar `CSV_ENCODING=latin1` en drive-pipeline o drive-import-staging y re-ejecutar la ingesta; luego volver a correr promote/catalog para actualizar `staging_centers` y buildings.
 - **Runtime:** ECS Fargate dentro del VPC — S3→RDS sin latencia local, sin túnel SSH.
 - **Schedule:** EventBridge `cron(0 6 * * ? *)` = **03:00 Chile** diariamente.
 - **CI/CD imagen Docker:** `.github/workflows/drive-pipeline.yml` → build+push a ECR en cada push a main con cambios en `infra/drive-pipeline/**`.

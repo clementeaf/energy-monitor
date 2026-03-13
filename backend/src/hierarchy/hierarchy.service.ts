@@ -231,6 +231,24 @@ export class HierarchyService {
       return { totalKwh: 0, avgPowerKw: 0, peakPowerKw: 0 };
     }
 
+    const maxTsRow = await this.dataSource.query<Array<{ max_ts: string | null }>>(
+      `WITH RECURSIVE subtree AS (
+        SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1
+        UNION ALL
+        SELECT h.id, h.meter_id FROM hierarchy_nodes h
+        INNER JOIN subtree s ON h.parent_id = s.id
+      )
+      SELECT MAX(r.timestamp)::text AS max_ts FROM readings r
+      INNER JOIN subtree s ON s.meter_id = r.meter_id WHERE s.meter_id IS NOT NULL`,
+      [nodeId],
+    );
+    const r = maxTsRow[0] as Record<string, unknown> | undefined;
+    const maxTsRaw = r?.max_ts ?? (r && (r as Record<string, string>)['max_ts']);
+    const maxTs = maxTsRaw != null ? String(maxTsRaw).trim() : null;
+    if (maxTs && new Date(to) > new Date(maxTs)) {
+      to = maxTs;
+    }
+
     const query = `
       WITH RECURSIVE subtree AS (
         SELECT id, meter_id FROM hierarchy_nodes WHERE id = $1

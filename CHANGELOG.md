@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.34] - 2026-03-13
+
+### Fixed
+
+- **Drill-down "1 Día" y "1 Semana" sin lectura** — Si los datos en `readings` terminan antes que "ahora", el rango pedido quedaba en el futuro y devolvía 0. El backend ahora limita `to` al último timestamp existente en el subárbol, de modo que 1 día y 1 semana muestren el último día/semana con datos.
+- **Build frontend (CI)** — StockChart: eliminado `height` del rangeSelector (no existe en tipo `RangeSelectorOptions` de Highcharts); el build TypeScript pasaba en local pero fallaba en GitHub Actions.
+
+### Changed
+
+- **CLAUDE.md** — DrilldownBars: clamp de `to` al último timestamp; hierarchy.service y StockChart en Key Files.
+
 ## [0.9.0-alpha.33] - 2026-03-13
 
 ### Fixed

@@ -466,7 +466,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 - **StockChart**: Highcharts Stock con navigator, range selector (1 Día / 1 Semana / 1 Mes; sin "Todo"), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
 - **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`, `from`, `to` (rango por defecto 30 días). Si el rango solicitado devuelve vacío, el backend hace fallback y devuelve los últimos 30 días de datos existentes para ese edificio (readings o staging). El gráfico siempre se muestra: si no hay datos se muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder.
 - **MeterDetailPage**: gráficos de Potencia (kW + kVAR), Voltaje L1/L2/L3, Corriente, PF+Frecuencia, Energía acumulada, Calidad (THD/desequilibrio solo 3P). Eventos de alarma como flags sobre las series.
-- **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount, readingsInRange. Si todos los hijos tienen totalKwh 0 y readingsInRange 0, se muestra mensaje indicando que no hay lecturas en el rango para esos medidores.
+- **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount, readingsInRange. Si todos los hijos tienen totalKwh 0 y readingsInRange 0, se muestra mensaje indicando que no hay lecturas en el rango para esos medidores. Backend: si los datos en readings terminan antes que "ahora", el parámetro `to` se limita al último timestamp del subárbol para que "1 Día" y "1 Semana" muestren el último día/semana con datos en lugar de 0.
 
 ### Datos por dominio y hooks
 - **Buildings**: useBuildings (lista), useBuilding(id), useBuildingConsumption(buildingId, resolution, from?, to?). Consumption siempre con from/to: rango por defecto últimos 7 días; onRangeChange actualiza range y resolution. Query enabled solo si buildingId + from + to.
@@ -624,7 +624,7 @@ cd backend && npx sls offline
 | `backend/src/serverless.ts` | Entry point Lambda (cached bootstrap) |
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
 | `backend/src/meters/meters.service.ts` | Core: lecturas, uptime, alarmas y consumo |
-| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down; lectura de resultados raw con fallback a claves en minúsculas (pg devuelve columnas en minúsculas) |
+| `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down; lectura de resultados raw con fallback a claves en minúsculas (pg); clamp de `to` al último timestamp en readings para que 1 día/semana devuelvan datos |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
 | `backend/src/common/utf8-json.interceptor.ts` | Interceptor global: Content-Type application/json; charset=utf-8 en respuestas API |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
@@ -633,7 +633,7 @@ cd backend && npx sls offline
 | `backend/serverless.yml` | Lambda 256MB, api timeout 30s, VPC, env vars (api, offlineAlerts, dbVerify) |
 | `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings (Drive→RDS); consultas por tramo por source_file para no colapsar con millones de filas |
 | `backend/src/db-verify-lambda.ts` | Lambda invocable con AWS CLI: consultas de verificación RDS (conteos, distribución, jerarquía); consulta meters por columna `id` |
-| `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
+| `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper; rangeSelector sin `height` (tipos RangeSelectorOptions no lo incluyen) |
 | `infra/drive-ingest/index.mjs` | Ingesta por streaming desde Google Drive hacia S3 + manifests (con detección de cambios) |
 | `infra/drive-import-staging/index.mjs` | Importación streaming desde S3 hacia `readings_import_staging`; soporta FROM_DATE/TO_DATE para ventana temporal |
 | `infra/drive-import-staging/ingest-two-months.sh` | Script: ingesta 1–2 meses (FROM_DATE/TO_DATE) + promote; un archivo (S3_KEY) o todos en raw/ |

@@ -54,7 +54,6 @@ const darkTheme: Highcharts.Options = {
   scrollbar: { enabled: false },
   rangeSelector: {
     enabled: true,
-    height: 48,
     buttonSpacing: 12,
     buttonTheme: {
       fill: '#21262d',

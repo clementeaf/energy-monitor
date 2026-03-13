@@ -26,9 +26,9 @@ export class HierarchyService {
     });
   }
 
-  /** Get a single node with its ancestor path */
+  /** Get a single node with its ancestor path. Resolves B-{BUILDING_ID} to root node by building_id when id differs (e.g. frontend sends B-PARQUE-ARAUCO-KENNEDY, DB has B-parque-arauco-ken). */
   async findNode(nodeId: string, scope: AccessScope) {
-    const rows = await this.dataSource.query(
+    let rows = await this.dataSource.query(
       `WITH RECURSIVE ancestors AS (
         SELECT * FROM hierarchy_nodes WHERE id = $1
         UNION ALL
@@ -38,6 +38,15 @@ export class HierarchyService {
       SELECT * FROM ancestors ORDER BY level ASC`,
       [nodeId],
     );
+
+    if (rows.length === 0 && nodeId.startsWith('B-')) {
+      const buildingIdSlug = nodeId.slice(2).toLowerCase();
+      const rootRows = await this.dataSource.query(
+        `SELECT * FROM hierarchy_nodes WHERE building_id = $1 AND parent_id IS NULL`,
+        [buildingIdSlug],
+      );
+      if (rootRows.length > 0) rows = rootRows;
+    }
 
     if (rows.length === 0) return null;
     if (!hasSiteAccess(scope, rows[0].building_id as string)) return null;
@@ -51,11 +60,12 @@ export class HierarchyService {
 
   /** Get direct children of a node with aggregated consumption */
   async findChildrenWithConsumption(nodeId: string, scope: AccessScope, from?: string, to?: string) {
-    const node = await this.findNode(nodeId, scope);
-    if (!node) return null;
+    const nodeResult = await this.findNode(nodeId, scope);
+    if (!nodeResult) return null;
 
+    const resolvedId = nodeResult.node.id;
     const children = await this.nodeRepo.find({
-      where: { parentId: nodeId },
+      where: { parentId: resolvedId },
       order: { sortOrder: 'ASC' },
     });
 
@@ -81,14 +91,16 @@ export class HierarchyService {
     from?: string,
     to?: string,
   ) {
-    const node = await this.findNode(nodeId, scope);
-    if (!node) return null;
+    const nodeResult = await this.findNode(nodeId, scope);
+    if (!nodeResult) return null;
+
+    const resolvedId = nodeResult.node.id;
 
     if (useStaging()) {
       if (!from || !to) return null;
       const maxRangeMs = STAGING_LIMITS.maxRangeDays * 24 * 60 * 60 * 1000;
       if (new Date(to).getTime() - new Date(from).getTime() > maxRangeMs) return null;
-      return this.findNodeConsumptionFromStaging(nodeId, resolution, from, to);
+      return this.findNodeConsumptionFromStaging(resolvedId, resolution, from, to);
     }
 
     const trunc = resolution === 'daily' ? 'day' : 'hour';
@@ -109,7 +121,7 @@ export class HierarchyService {
       INNER JOIN subtree s ON s.meter_id = r.meter_id
       WHERE s.meter_id IS NOT NULL`;
 
-    const params: (string | undefined)[] = [nodeId];
+    const params: (string | undefined)[] = [resolvedId];
     let paramIdx = 2;
 
     if (from) {

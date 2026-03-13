@@ -131,7 +131,7 @@ Medidor Siemens (PAC1670/PAC1651)
 - **Pipeline incremental activo:** `infra/drive-pipeline/` orquesta el flujo completo en un único proceso.
 - **Detección de cambios:** compara `driveModifiedTime` del manifest S3 más reciente contra el valor actual en Drive antes de descargar. Si no hubo cambios → `[skip]`. Soporta `FORCE_DOWNLOAD=true` para forzar descarga completa.
 - **Importación idempotente:** `INSERT ... ON CONFLICT (meter_id, timestamp, source_file) DO NOTHING` — re-correr no duplica filas; solo inserta datos nuevos.
-- **Codificación CSV:** por defecto `utf8`. Si los nombres (ej. "Arauco Estación") muestran acentos corruptos en la app, los CSV pueden estar en Latin-1 (exportación Excel): usar `CSV_ENCODING=latin1` en drive-pipeline o drive-import-staging y re-ejecutar la ingesta; luego volver a correr promote/catalog para actualizar `staging_centers` y buildings.
+- **Codificación CSV:** La task definition ECS del drive-pipeline incluye `CSV_ENCODING=latin1` por defecto para que los acentos (ej. "Arauco Estación") se importen bien desde Excel/CSV en Latin-1. En ejecución local de drive-import-staging usar `CSV_ENCODING=latin1` si los acentos se ven corruptos. Backend fuerza `Content-Type: application/json; charset=utf-8` vía Utf8JsonInterceptor para que el navegador decodifique correctamente.
 - **Runtime:** ECS Fargate dentro del VPC — S3→RDS sin latencia local, sin túnel SSH.
 - **Schedule:** EventBridge `cron(0 6 * * ? *)` = **03:00 Chile** diariamente.
 - **CI/CD imagen Docker:** `.github/workflows/drive-pipeline.yml` → build+push a ECR en cada push a main con cambios en `infra/drive-pipeline/**`.
@@ -261,6 +261,8 @@ Login → Microsoft (MSAL redirect) | Google (credential/One Tap)
 | GET | `/hierarchy/node/:nodeId` | — | `{ node, path }` |
 | GET | `/hierarchy/node/:nodeId/children` | `from?`, `to?` | `HierarchyChildSummary[]` |
 | GET | `/hierarchy/node/:nodeId/consumption` | `resolution?` (`hourly`/`daily`), `from?`, `to?` | time-series |
+
+- Si el frontend envía nodo raíz `B-{SITE_ID}` en mayúsculas (ej. B-PARQUE-ARAUCO-KENNEDY) y en BD el id está en minúsculas/truncado (ej. B-parque-arauco-ken), HierarchyService.findNode resuelve por `building_id = nodeId.slice(2).toLowerCase()` para evitar 404. Children y consumption usan el id resuelto.
 
 ### Alerts (`/alerts`) — requiere Bearer
 | Method | Path | Query | Response |
@@ -622,6 +624,7 @@ cd backend && npx sls offline
 | `backend/src/meters/meters.service.ts` | Core: lecturas, uptime, alarmas y consumo |
 | `backend/src/hierarchy/hierarchy.service.ts` | CTE recursivos de drill-down |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification y binding de usuarios invitados |
+| `backend/src/common/utf8-json.interceptor.ts` | Interceptor global: Content-Type application/json; charset=utf-8 en respuestas API |
 | `backend/src/users/users.controller.ts` | Administración base de invitaciones y usuarios |
 | `backend/src/billing/billing.service.ts` | Consultas billing_center_summary, billing_monthly_detail, billing_tariffs; scope por siteIds |
 | `backend/src/billing/billing.controller.ts` | GET /billing/centers, /summary, /detail (limit/offset), /tariffs |

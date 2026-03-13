@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.30] - 2026-03-13
+
+### Fixed
+
+- **404 en drill-down para centros Drive** — El frontend envía nodo raíz `B-{SITE_ID}` en mayúsculas (ej. B-PARQUE-ARAUCO-KENNEDY); en BD el id puede estar en minúsculas y truncado a 20 chars (ej. B-parque-arauco-ken). HierarchyService.findNode ahora resuelve por `building_id` cuando no hay fila con ese id; children y consumption usan el id resuelto.
+- **Acentos � en la app** — Task definition ECS del drive-pipeline incluye `CSV_ENCODING=latin1` por defecto. Backend: interceptor global Utf8JsonInterceptor fuerza `Content-Type: application/json; charset=utf-8` en respuestas API para que el navegador decodifique correctamente. Datos ya corruptos en BD requieren re-importar con encoding correcto.
+
+### Changed
+
+- **CLAUDE.md** — Hierarchy: resolución B- nodeId por building_id. Codificación CSV: task def con latin1, Utf8JsonInterceptor. Key Files: utf8-json.interceptor.ts.
+
 ## [0.9.0-alpha.29] - 2026-03-13
 
 ### Fixed

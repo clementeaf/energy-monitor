@@ -5,6 +5,7 @@ import serverlessExpress from '@vendia/serverless-express';
 import express from 'express';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger';
+import { Utf8JsonInterceptor } from './common/utf8-json.interceptor';
 import type { Callback, Context, Handler } from 'aws-lambda';
 
 let cachedServer: Handler;
@@ -15,6 +16,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, adapter);
   expressApp.set('json charset', 'utf-8');
+  app.useGlobalInterceptors(new Utf8JsonInterceptor());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const corsOrigins: string[] = ['https://energymonitor.click'];

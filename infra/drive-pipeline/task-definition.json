@@ -19,7 +19,8 @@
         { "name": "GOOGLE_DRIVE_FOLDER_ID", "value": "1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V" },
         { "name": "BATCH_SIZE",             "value": "2500" },
         { "name": "FORCE_DOWNLOAD",         "value": "false" },
-        { "name": "SCRIPT",                 "value": "index.mjs" }
+        { "name": "SCRIPT",                 "value": "index.mjs" },
+        { "name": "CSV_ENCODING",           "value": "latin1" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",

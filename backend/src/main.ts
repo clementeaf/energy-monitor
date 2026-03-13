@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger';
+import { Utf8JsonInterceptor } from './common/utf8-json.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,7 @@ async function bootstrap() {
     expressApp.set('json charset', 'utf-8');
   }
 
+  app.useGlobalInterceptors(new Utf8JsonInterceptor());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const corsOrigins: string[] = ['https://energymonitor.click'];

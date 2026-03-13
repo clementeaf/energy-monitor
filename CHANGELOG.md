@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0-alpha.27] - 2026-03-13
+
+### Fixed
+
+- **Gráfico Potencia Total del Edificio vacío** — En detalle de edificio el gráfico de consumo siempre se muestra: se usa `consumption ?? []` y, cuando no hay datos, BuildingConsumptionChart muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder para que el gráfico no quede en blanco.
+
+### Changed
+
+- **CLAUDE.md** — BuildingConsumptionChart: descripción de from/to y estado vacío (siempre visible, mensaje + placeholder).
+
 ## [0.9.0-alpha.26] - 2026-03-13
 
 ### Fixed

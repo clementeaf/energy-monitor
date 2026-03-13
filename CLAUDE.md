@@ -460,7 +460,7 @@ AuthState { user, isAuthenticated, isLoading, error }
 | **AlertsPage** | — | Tabla HTML de Alert[] | tabla | — |
 
 - **StockChart**: Highcharts Stock con navigator, range selector (1D / 1S / 1M / Todo), tema oscuro. `onRangeChange(min, max)` → padre actualiza resolución → refetch con nueva resolución; `placeholderData: keepPreviousData` evita flash.
-- **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`; no se pasan `from`/`to` desde el frontend (backend usa rango por defecto).
+- **BuildingConsumptionChart**: una serie área (total edificio) y una línea (pico); backend `/buildings/:id/consumption` con `resolution`, `from`, `to` (rango por defecto 7 días). El gráfico siempre se muestra: si no hay datos se muestra subtítulo "Sin datos de consumo en el período seleccionado" y un punto placeholder para que ningún gráfico quede vacío.
 - **MeterDetailPage**: gráficos de Potencia (kW + kVAR), Voltaje L1/L2/L3, Corriente, PF+Frecuencia, Energía acumulada, Calidad (THD/desequilibrio solo 3P). Eventos de alarma como flags sobre las series.
 - **DrilldownBars**: Highcharts bar no-Stock; click en barra → navegación a nodo hijo (setCurrentNodeId); datos de hijos con totalKwh, avgPowerKw, peakPowerKw, meterCount.
 

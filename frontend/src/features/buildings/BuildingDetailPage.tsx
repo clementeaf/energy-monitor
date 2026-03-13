@@ -93,7 +93,15 @@ export function BuildingDetailPage() {
       </div>
 
       <div className="shrink-0">
-        {loadingConsumption ? <ChartSkeleton /> : consumption && <BuildingConsumptionChart data={consumption} loading={fetchingConsumption} onRangeChange={handleRangeChange} />}
+        {loadingConsumption ? (
+          <ChartSkeleton />
+        ) : (
+          <BuildingConsumptionChart
+            data={consumption ?? []}
+            loading={fetchingConsumption}
+            onRangeChange={handleRangeChange}
+          />
+        )}
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">

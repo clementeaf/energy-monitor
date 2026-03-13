@@ -251,7 +251,12 @@ export class HierarchyService {
     if (maxTs && new Date(to) > new Date(maxTs)) {
       to = maxTs;
       if (new Date(from) > new Date(to)) {
-        const durationMs = new Date(originalTo).getTime() - new Date(originalFrom).getTime();
+        const originalDurationMs = new Date(originalTo).getTime() - new Date(originalFrom).getTime();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        let durationMs = originalDurationMs;
+        if (durationMs <= 2 * oneDayMs) durationMs = oneDayMs;
+        else if (durationMs <= 10 * oneDayMs) durationMs = 7 * oneDayMs;
+        else if (durationMs < oneDayMs) durationMs = oneDayMs;
         from = new Date(new Date(to).getTime() - durationMs).toISOString();
       }
     }

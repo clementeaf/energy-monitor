@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-alpha.36] - 2026-03-13
+
+### Fixed
+
+- **Gráficos Potencia y Voltaje del medidor vacíos** — Mismo origen que el drill-down: pg devuelve columnas en minúsculas. MetersService ahora usa helper `rawVal(row, key)` en findReadings (getRawMany), findReadingsFromStaging, getOverview, getUptimeSummary, getDowntimeEvents, getAlarmEvents y findBuildingConsumption para que los gráficos del detalle de medidor muestren datos.
+- **Drill-down 1 Día / 1 Semana sin datos** — Al ajustar `from` tras limitar `to` al último timestamp, la duración se fija de forma explícita: rango original ≤2 días → 1 día, ≤10 días → 7 días; así "1 Día" y "1 Semana" muestran siempre el último día/semana con datos.
+
+### Changed
+
+- **CLAUDE.md** — Backend: raw query pg y MetersService rawVal; DrilldownBars duración explícita 1d/7d/30d; Key Files meters.service y hierarchy.service.
+
 ## [0.9.0-alpha.35] - 2026-03-13
 
 ### Fixed

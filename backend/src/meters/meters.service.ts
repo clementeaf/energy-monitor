@@ -19,6 +19,11 @@ function toNumberOrZero(value: unknown): number {
   return value == null ? 0 : Number(value);
 }
 
+/** pg returns lowercase column names; read with fallback for camelCase aliases. */
+function rawVal(row: Record<string, unknown>, key: string): unknown {
+  return row[key] ?? row[key.toLowerCase()];
+}
+
 /** Máximo rango en días para validar from/to cuando se usa staging. */
 function getMaxRangeDaysMs(): number {
   return STAGING_LIMITS.maxRangeDays * 24 * 60 * 60 * 1000;
@@ -181,17 +186,17 @@ export class MetersService {
     );
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
-      voltageL1: toNullableNumber(r.voltageL1),
-      voltageL2: toNullableNumber(r.voltageL2),
-      voltageL3: toNullableNumber(r.voltageL3),
-      currentL1: toNullableNumber(r.currentL1),
-      currentL2: toNullableNumber(r.currentL2),
-      currentL3: toNullableNumber(r.currentL3),
-      powerKw: Number(r.powerKw),
-      reactivePowerKvar: toNullableNumber(r.reactivePowerKvar),
-      powerFactor: toNullableNumber(r.powerFactor),
-      frequencyHz: toNullableNumber(r.frequencyHz),
-      energyKwhTotal: Number(r.energyKwhTotal),
+      voltageL1: toNullableNumber(rawVal(r, 'voltageL1')),
+      voltageL2: toNullableNumber(rawVal(r, 'voltageL2')),
+      voltageL3: toNullableNumber(rawVal(r, 'voltageL3')),
+      currentL1: toNullableNumber(rawVal(r, 'currentL1')),
+      currentL2: toNullableNumber(rawVal(r, 'currentL2')),
+      currentL3: toNullableNumber(rawVal(r, 'currentL3')),
+      powerKw: Number(rawVal(r, 'powerKw')),
+      reactivePowerKvar: toNullableNumber(rawVal(r, 'reactivePowerKvar')),
+      powerFactor: toNullableNumber(rawVal(r, 'powerFactor')),
+      frequencyHz: toNullableNumber(rawVal(r, 'frequencyHz')),
+      energyKwhTotal: Number(rawVal(r, 'energyKwhTotal')),
       thdVoltagePct: null,
       thdCurrentPct: null,
       phaseImbalancePct: null,
@@ -263,22 +268,22 @@ export class MetersService {
       .orderBy('1', 'ASC')
       .getRawMany();
 
-    return rows.map((r) => ({
+    return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
-      voltageL1: toNullableNumber(r.voltageL1),
-      voltageL2: toNullableNumber(r.voltageL2),
-      voltageL3: toNullableNumber(r.voltageL3),
-      currentL1: toNullableNumber(r.currentL1),
-      currentL2: toNullableNumber(r.currentL2),
-      currentL3: toNullableNumber(r.currentL3),
-      powerKw: Number(r.powerKw),
-      reactivePowerKvar: toNullableNumber(r.reactivePowerKvar),
-      powerFactor: toNullableNumber(r.powerFactor),
-      frequencyHz: toNullableNumber(r.frequencyHz),
-      energyKwhTotal: Number(r.energyKwhTotal),
-      thdVoltagePct: toNullableNumber(r.thdVoltagePct),
-      thdCurrentPct: toNullableNumber(r.thdCurrentPct),
-      phaseImbalancePct: toNullableNumber(r.phaseImbalancePct),
+      voltageL1: toNullableNumber(rawVal(r, 'voltageL1')),
+      voltageL2: toNullableNumber(rawVal(r, 'voltageL2')),
+      voltageL3: toNullableNumber(rawVal(r, 'voltageL3')),
+      currentL1: toNullableNumber(rawVal(r, 'currentL1')),
+      currentL2: toNullableNumber(rawVal(r, 'currentL2')),
+      currentL3: toNullableNumber(rawVal(r, 'currentL3')),
+      powerKw: Number(rawVal(r, 'powerKw')),
+      reactivePowerKvar: toNullableNumber(rawVal(r, 'reactivePowerKvar')),
+      powerFactor: toNullableNumber(rawVal(r, 'powerFactor')),
+      frequencyHz: toNullableNumber(rawVal(r, 'frequencyHz')),
+      energyKwhTotal: Number(rawVal(r, 'energyKwhTotal')),
+      thdVoltagePct: toNullableNumber(rawVal(r, 'thdVoltagePct')),
+      thdCurrentPct: toNullableNumber(rawVal(r, 'thdCurrentPct')),
+      phaseImbalancePct: toNullableNumber(rawVal(r, 'phaseImbalancePct')),
     }));
   }
 
@@ -308,9 +313,9 @@ export class MetersService {
       [meterId, from, to],
     );
     return rows.map((r: Record<string, unknown>) => ({
-      downtimeStart: r.downtimeStart,
-      downtimeEnd: r.downtimeEnd,
-      durationSeconds: Number(r.durationSeconds),
+      downtimeStart: rawVal(r, 'downtimeStart'),
+      downtimeEnd: rawVal(r, 'downtimeEnd'),
+      durationSeconds: Number(rawVal(r, 'durationSeconds')),
     }));
   }
 
@@ -345,8 +350,9 @@ export class MetersService {
       [meterId],
     );
 
-    const totalSeconds = Number(row.totalSeconds);
-    const downtimeSeconds = Number(row.downtimeSeconds);
+    const r = row as Record<string, unknown>;
+    const totalSeconds = Number(rawVal(r, 'totalSeconds'));
+    const downtimeSeconds = Number(rawVal(r, 'downtimeSeconds'));
     const uptimePercent = totalSeconds > 0
       ? Number((((totalSeconds - downtimeSeconds) / totalSeconds) * 100).toFixed(2))
       : 0;
@@ -357,7 +363,7 @@ export class MetersService {
       uptimeSeconds: totalSeconds - downtimeSeconds,
       downtimeSeconds,
       uptimePercent,
-      downtimeEvents: Number(row.downtimeEvents),
+      downtimeEvents: Number(rawVal(r, 'downtimeEvents')),
     };
   }
 
@@ -398,11 +404,11 @@ export class MetersService {
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
       alarm: r.alarm,
-      voltageL1: toNullableNumber(r.voltageL1),
-      currentL1: toNullableNumber(r.currentL1),
-      powerFactor: toNullableNumber(r.powerFactor),
-      thdCurrentPct: toNullableNumber(r.thdCurrentPct),
-      modbusCrcErrors: toNullableNumber(r.modbusCrcErrors),
+      voltageL1: toNullableNumber(rawVal(r, 'voltageL1')),
+      currentL1: toNullableNumber(rawVal(r, 'currentL1')),
+      powerFactor: toNullableNumber(rawVal(r, 'powerFactor')),
+      thdCurrentPct: toNullableNumber(rawVal(r, 'thdCurrentPct')),
+      modbusCrcErrors: toNullableNumber(rawVal(r, 'modbusCrcErrors')),
     }));
   }
 
@@ -477,16 +483,16 @@ export class MetersService {
 
     return rows.map((r: Record<string, unknown>) => ({
       id: r.id,
-      buildingId: r.buildingId,
+      buildingId: rawVal(r, 'buildingId'),
       model: r.model,
-      phaseType: r.phaseType,
-      busId: r.busId,
+      phaseType: rawVal(r, 'phaseType'),
+      busId: rawVal(r, 'busId'),
       storeType: null as string | null,
       storeName: null as string | null,
-      status: getMeterStatus(r.lastReadingAt as string | null),
-      lastReadingAt: r.lastReadingAt,
-      uptime24h: toNumberOrZero(r.uptimePercent),
-      alarmCount30d: Number(r.alarmCount30d),
+      status: getMeterStatus(rawVal(r, 'lastReadingAt') as string | null),
+      lastReadingAt: rawVal(r, 'lastReadingAt'),
+      uptime24h: toNumberOrZero(rawVal(r, 'uptimePercent')),
+      alarmCount30d: Number(rawVal(r, 'alarmCount30d')),
     }));
   }
 
@@ -601,18 +607,18 @@ export class MetersService {
         );
         return fallbackRows.map((r: Record<string, unknown>) => ({
           timestamp: r.timestamp,
-          totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
-          avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),
-          peakPowerKw: Number(Number(r.peakPowerKw).toFixed(3)),
+          totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
+          avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
+          peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
         }));
       }
     }
 
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: r.timestamp,
-      totalPowerKw: Number(Number(r.totalPowerKw).toFixed(3)),
-      avgPowerKw: Number(Number(r.avgPowerKw).toFixed(3)),
-      peakPowerKw: Number(Number(r.peakPowerKw).toFixed(3)),
+      totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw')).toFixed(3)),
+      avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw')).toFixed(3)),
+      peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw')).toFixed(3)),
     }));
   }
 
@@ -655,9 +661,9 @@ export class MetersService {
     );
     return rows.map((r: Record<string, unknown>) => ({
       timestamp: String(r.timestamp),
-      totalPowerKw: Number(Number(r.totalPowerKw ?? 0).toFixed(3)),
-      avgPowerKw: Number(Number(r.avgPowerKw ?? 0).toFixed(3)),
-      peakPowerKw: Number(Number(r.peakPowerKw ?? 0).toFixed(3)),
+      totalPowerKw: Number(Number(rawVal(r, 'totalPowerKw') ?? 0).toFixed(3)),
+      avgPowerKw: Number(Number(rawVal(r, 'avgPowerKw') ?? 0).toFixed(3)),
+      peakPowerKw: Number(Number(rawVal(r, 'peakPowerKw') ?? 0).toFixed(3)),
     }));
   }
 }

@@ -6,9 +6,10 @@ const PAGE_SIZE = 10;
 
 interface MetersTableProps {
   data: MeterListItem[];
+  buildingName: string;
 }
 
-export function MetersTable({ data }: MetersTableProps) {
+export function MetersTable({ data, buildingName }: MetersTableProps) {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
 
@@ -30,7 +31,7 @@ export function MetersTable({ data }: MetersTableProps) {
             {slice.map((row) => (
               <tr
                 key={row.meterId}
-                onClick={() => navigate(`/meters/${row.meterId}`)}
+                onClick={() => navigate(`/meters/${row.meterId}`, { state: { buildingName } })}
                 className="cursor-pointer border-b border-border/50 text-text transition-colors hover:bg-raised"
               >
                 <td className="whitespace-nowrap py-2 pr-6 font-medium">{row.meterId}</td>

@@ -81,7 +81,7 @@ export function BuildingDetailPage() {
                   <BillingTable data={billing} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
                 )}
                 {activeTab === 'meters' && meters && meters.length > 0 && (
-                  <MetersTable data={meters} />
+                  <MetersTable data={meters} buildingName={latest.buildingName} />
                 )}
                 {activeTab === 'meters' && (!meters || meters.length === 0) && (
                   <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>

@@ -22,6 +22,17 @@ export interface MeterListItem {
   storeType: string;
 }
 
+// Matches backend MeterMonthly entity (meter_monthly table)
+export interface MeterMonthly {
+  meterId: string;
+  month: string;
+  totalKwh: number | null;
+  avgPowerKw: number | null;
+  peakPowerKw: number | null;
+  totalReactiveKvar: number | null;
+  avgPowerFactor: number | null;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0-alpha.0] - 2026-03-14 — DETALLE DE REMARCADOR
+
+### Added
+
+- **MeterDetailPage:** vista de detalle con header (Volver + meterId) y gráfico de consumo mensual (kWh)
+- **MonthlyColumnChart:** componente genérico de gráfico de columnas por mes (`components/charts/`)
+- **MeterMonthly:** tipo, ruta, endpoint y hook `useMeterMonthly` — pipeline frontend completa
+- **MetersTable:** navegación a `/meters/:meterId` pasa `buildingName` en state
+
+### Changed
+
+- **BillingChart:** refactorizado a wrapper de MonthlyColumnChart (misma interfaz, sin cambio para consumidores)
+
+---
+
 ## [0.19.0-alpha.0] - 2026-03-14 — FILTRO DE MESES EN TABLA
 
 ### Added

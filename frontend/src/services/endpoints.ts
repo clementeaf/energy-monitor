@@ -1,6 +1,25 @@
 import api from './api';
 import { routes } from './routes';
+import type { AuthUser } from '../types/auth';
 import type { BuildingSummary, BillingMonthlySummary, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading } from '../types';
+
+interface MeResponse {
+  user: AuthUser;
+  permissions: Record<string, string[]>;
+}
+
+interface PermissionsResponse {
+  role: string;
+  permissions: Record<string, string[]>;
+}
+
+export const fetchMe = (invitationToken?: string) =>
+  api.get<MeResponse>(routes.getMe(), {
+    headers: invitationToken ? { 'x-invitation-token': invitationToken } : undefined,
+  }).then((r) => r.data);
+
+export const fetchPermissions = () =>
+  api.get<PermissionsResponse>(routes.getPermissions()).then((r) => r.data);
 
 export const fetchBuildings = () =>
   api.get<BuildingSummary[]>(routes.getBuildings()).then((r) => r.data);

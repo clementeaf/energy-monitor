@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.25.0-alpha.0] - 2026-03-14 — UNIFICACIÓN TABLAS CON DATATABLE
+
+### Changed
+
+- **DataTable:** `value()` y `total()` ahora retornan `ReactNode` (antes solo `string`). Nuevas props: `headerRender`, `cellClassName`, `className` por columna. `bg-white` → `bg-surface` en thead/tfoot
+- **MetersTable:** migrado de tabla manual con paginación propia a `PaginatedTable` + `Column<T>`
+- **BillingTable:** migrado de tabla manual a `DataTable`. Column highlighting y MonthFilterDropdown via `className` y `headerRender`
+- **MeterMonthlyTable:** migrado de tabla manual a `DataTable`. Column highlighting via `className`
+- **DailySummaryTable:** eliminado componente inline en MeterReadingsPage, reemplazado por `<DataTable>` directo
+- **RealtimePage:** migrado de tabla manual a `DataTable`. Status badges como `ReactNode` en `value()`
+
+### Fixed
+
+- **Auth endpoints:** agregados `fetchMe` y `fetchPermissions` faltantes en `services/endpoints.ts` y rutas en `services/routes.ts`
+
+---
+
 ## [0.24.0-alpha.0] - 2026-03-14 — MONITOREO EN TIEMPO REAL + COMPONENTES TABLA GENÉRICOS
 
 ### Added

@@ -1,8 +1,13 @@
+import type { ReactNode } from 'react';
+
 export interface Column<T> {
   label: string;
-  value: (row: T) => string;
-  total?: (data: T[]) => string;
+  value: (row: T) => ReactNode;
+  total?: (data: T[]) => ReactNode;
   align?: 'left' | 'right';
+  headerRender?: () => ReactNode;
+  cellClassName?: (row: T) => string;
+  className?: string;
 }
 
 interface DataTableProps<T> {
@@ -34,11 +39,11 @@ export function DataTable<T>({
             {columns.map((col, i) => (
               <th
                 key={i}
-                className={`sticky top-0 z-10 bg-white px-3 py-2 font-semibold text-text ${
+                className={`sticky top-0 z-10 bg-surface px-3 py-2 font-semibold text-text ${
                   (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
-                }`}
+                } ${col.className ?? ''}`}
               >
-                {col.label}
+                {col.headerRender ? col.headerRender() : col.label}
               </th>
             ))}
           </tr>
@@ -64,7 +69,7 @@ export function DataTable<T>({
                     key={i}
                     className={`px-3 py-2 ${
                       (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
-                    }`}
+                    } ${col.className ?? ''} ${col.cellClassName?.(row) ?? ''}`}
                   >
                     {col.value(row)}
                   </td>
@@ -79,9 +84,9 @@ export function DataTable<T>({
               {columns.map((col, i) => (
                 <td
                   key={i}
-                  className={`sticky bottom-0 z-10 bg-white px-3 py-2 font-semibold ${
+                  className={`sticky bottom-0 z-10 bg-surface px-3 py-2 font-semibold ${
                     (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
-                  }`}
+                  } ${col.className ?? ''}`}
                 >
                   {col.total ? col.total(data) : ''}
                 </td>

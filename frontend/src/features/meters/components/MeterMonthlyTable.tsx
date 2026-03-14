@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { DataTable, type Column } from '../../../components/ui/DataTable';
 import type { MeterMonthly } from '../../../types';
 import type { MeterMetricKey } from './meterMetrics';
 import { meterMetrics } from './meterMetrics';
@@ -17,22 +19,6 @@ function fmtNum(n: number | null, decimals = 1): string {
   return n.toLocaleString('es-CL', { maximumFractionDigits: decimals });
 }
 
-type Col = {
-  label: string;
-  value: (r: MeterMonthly) => string;
-  total: (data: MeterMonthly[]) => string;
-  align?: 'left' | 'right';
-};
-
-const columns: Col[] = [
-  { label: 'Mes', value: (r) => monthName(r.month), total: () => 'Total anual', align: 'left' },
-  { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)) },
-  { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerKw ?? 0), 0) / (d.filter((r) => r.avgPowerKw !== null).length || 1)) },
-  { label: 'Potencia peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(Math.max(...d.map((r) => r.peakPowerKw ?? 0))) },
-  { label: 'Reactiva (kVAr)', value: (r) => fmtNum(r.totalReactiveKvar), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalReactiveKvar ?? 0), 0)) },
-  { label: 'Factor potencia', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerFactor ?? 0), 0) / (d.filter((r) => r.avgPowerFactor !== null).length || 1), 3) },
-];
-
 interface MeterMonthlyTableProps {
   data: MeterMonthly[];
   highlightMetric?: MeterMetricKey;
@@ -50,52 +36,22 @@ export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric, onMont
     return '';
   }
 
+  const columns: Column<MeterMonthly>[] = useMemo(() => [
+    { label: 'Mes', value: (r) => monthName(r.month), total: () => 'Total anual', align: 'left' as const, className: colBg('Mes') },
+    { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)), className: colBg('Consumo (kWh)') },
+    { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerKw ?? 0), 0) / (d.filter((r) => r.avgPowerKw !== null).length || 1)), className: colBg('Potencia prom. (kW)') },
+    { label: 'Potencia peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(Math.max(...d.map((r) => r.peakPowerKw ?? 0))), className: colBg('Potencia peak (kW)') },
+    { label: 'Reactiva (kVAr)', value: (r) => fmtNum(r.totalReactiveKvar), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalReactiveKvar ?? 0), 0)), className: colBg('Reactiva (kVAr)') },
+    { label: 'Factor potencia', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerFactor ?? 0), 0) / (d.filter((r) => r.avgPowerFactor !== null).length || 1), 3), className: colBg('Factor potencia') },
+  ], [highlightLabel, hoveredLabel]);
+
   return (
-    <div className="max-h-72 overflow-auto">
-      <table className="min-w-full text-sm">
-        <thead className="sticky top-0 z-10 bg-white">
-          <tr className="border-b border-border text-xs text-muted">
-            {columns.map((col) => (
-              <th
-                key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 font-medium transition-colors ${col.align === 'left' ? 'text-left' : 'text-right'} ${colBg(col.label)} ${colBg(col.label) ? 'text-text' : ''}`}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row) => (
-            <tr
-              key={row.month}
-              onClick={() => onMonthClick?.(row.month)}
-              className={`border-b border-border/50 text-text ${onMonthClick ? 'cursor-pointer hover:bg-raised/50' : ''}`}
-            >
-              {columns.map((col) => (
-                <td
-                  key={col.label}
-                  className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
-                >
-                  {col.value(row)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-        <tfoot className="sticky bottom-0 z-10 bg-white">
-          <tr className="border-t border-border font-medium text-text">
-            {columns.map((col) => (
-              <td
-                key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
-              >
-                {col.total(data)}
-              </td>
-            ))}
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <DataTable
+      data={data}
+      columns={columns}
+      footer
+      rowKey={(r) => r.month}
+      onRowClick={onMonthClick ? (r) => onMonthClick(r.month) : undefined}
+    />
   );
 }

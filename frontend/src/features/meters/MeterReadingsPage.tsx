@@ -4,6 +4,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import HighchartsStock from 'highcharts/highstock';
 import { Card } from '../../components/ui/Card';
+import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MeterReadingsSkeleton } from '../../components/ui/Skeleton';
 import { useMeterReadings } from '../../hooks/queries/useMeters';
 import type { MeterReading } from '../../types';
@@ -107,14 +108,7 @@ function groupByHour(readings: MeterReading[], metric: ReadingMetricKey): [numbe
     .map(([ts, vals]) => [ts, avgNonNull(vals)]);
 }
 
-type DayCol = {
-  label: string;
-  value: (r: DaySummary) => string;
-  total: (data: DaySummary[]) => string;
-  align?: 'left' | 'right';
-};
-
-const dayColumns: DayCol[] = [
+const dayColumns: Column<DaySummary>[] = [
   { label: 'Día', value: (r) => r.label, total: () => 'Promedio mensual', align: 'left' },
   { label: 'Lecturas', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
   { label: 'Pot. prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))) },
@@ -125,53 +119,6 @@ const dayColumns: DayCol[] = [
   { label: 'FP', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerFactor)), 3) },
   { label: 'Frec. (Hz)', value: (r) => fmtNum(r.avgFrequencyHz), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgFrequencyHz))) },
 ];
-
-function DailySummaryTable({ data }: { data: DaySummary[] }) {
-  return (
-    <div className="max-h-72 overflow-auto">
-      <table className="min-w-full text-sm">
-        <thead className="sticky top-0 z-10 bg-white">
-          <tr className="border-b border-border text-xs text-muted">
-            {dayColumns.map((col) => (
-              <th
-                key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 font-medium ${col.align === 'left' ? 'text-left' : 'text-right'}`}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row) => (
-            <tr key={row.day} className="border-b border-border/50 text-text">
-              {dayColumns.map((col) => (
-                <td
-                  key={col.label}
-                  className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
-                >
-                  {col.value(row)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-        <tfoot className="sticky bottom-0 z-10 bg-white">
-          <tr className="border-t border-border font-medium text-text">
-            {dayColumns.map((col) => (
-              <td
-                key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
-              >
-                {col.total(data)}
-              </td>
-            ))}
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  );
-}
 
 export function MeterReadingsPage() {
   const { meterId, month } = useParams<{ meterId: string; month: string }>();
@@ -335,7 +282,7 @@ export function MeterReadingsPage() {
         {readings && readings.length > 0 && (
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Resumen diario</h2>
-            <DailySummaryTable data={groupByDay(readings)} />
+            <DataTable data={groupByDay(readings)} columns={dayColumns} footer rowKey={(r) => r.day} />
           </Card>
         )}
       </div>

@@ -1,4 +1,8 @@
 export const routes = {
+  // Auth
+  getMe: () => '/auth/me',
+  getPermissions: () => '/auth/permissions',
+
   // Buildings
   getBuildings: () => '/buildings',
   getBuilding:  (name: string) => `/buildings/${name}`,

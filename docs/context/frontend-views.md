@@ -21,17 +21,17 @@
 |------------|-----------|-----|
 | `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
-| `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>, footer opcional |
+| `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>: ReactNode values, headerRender, cellClassName, className por columna, footer opcional, bg-surface sticky |
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
-| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, sticky thead/tfoot, highlight columna, filtro de meses |
-| `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10, thead sticky, click → detalle medidor |
+| `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender` |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas, `cellClassName` para dim "Por censar", click → detalle medidor |
 | `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico por mes (Highcharts), toggle Barra/Línea, usado por BillingChart y MeterDetailPage |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
-| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | 6 columnas, sticky thead/tfoot, highlight columna, click fila → lecturas |
-| `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min de un medidor en un mes, gráfico Diario/15min, tabla resumen diario |
+| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 6 columnas, highlight columna via `className`, click fila → lecturas |
+| `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline |
 
 ## BuildingsPage
 
@@ -67,13 +67,13 @@
 - Gráfico con toggle Diario / 15 min:
   - **Diario:** Highcharts línea, 1 punto por hora (promedio), eje X = días del mes
   - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min, eje Y a la izquierda (`opposite: false`)
-- **DailySummaryTable:** una fila por día, 9 columnas (Día, Lecturas, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), sticky thead/tfoot, totales en footer
+- **Resumen diario:** DataTable inline, una fila por día, 9 columnas (Día, Lecturas, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), totales en footer
 - Datos vía `useMeterReadings(meterId, from, to)` → `GET /api/meter-readings/:meterId?from=&to=`
 
 ## RealtimePage
 
 - Sin título (el sidebar indica "Monitoreo")
-- Card con tabla: 7 columnas (Medidor, Tienda, Potencia kW, Voltaje L1, Corriente L1, FP, Estado)
+- Card con DataTable: 7 columnas (Medidor, Tienda, Potencia kW, Voltaje L1, Corriente L1, FP, Estado)
 - Datos vía `useMetersLatest(buildingName)` → `GET /api/meters/building/:name/latest` (refetch 60s)
 - Estado: badge Online (<30 min), Delay (<2h), Offline (>2h) según antigüedad de timestamp
 - Skeleton: 8 filas con pulso mientras carga

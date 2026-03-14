@@ -5,37 +5,28 @@
 |---|---|
 | `backend/src/serverless.ts` | Entry point Lambda (cached bootstrap) |
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
-| `backend/src/meters/meters.service.ts` | Listado medidores por edificio + última lectura por medidor (DISTINCT ON) |
-| `backend/src/hierarchy/hierarchy.service.ts` | Drill-down: children con consumo, node consumption |
-| `backend/src/common/range-guard.ts` | from/to obligatorios, max 31 días |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification, binding usuarios invitados |
+| `backend/src/auth/auth.controller.ts` | GET /auth/me, GET /auth/permissions |
+| `backend/src/common/range-guard.ts` | from/to obligatorios, max 31 días |
 | `backend/src/common/utf8-json.interceptor.ts` | Content-Type utf-8 en respuestas |
 | `backend/src/users/users.controller.ts` | Admin invitaciones y usuarios |
-| `backend/src/billing/billing.service.ts` | Consultas billing; scope por siteIds |
-| `backend/src/billing/billing.controller.ts` | GET /billing/* |
+| `backend/src/meters/meters.service.ts` | Listado medidores por edificio + última lectura (DISTINCT ON) |
 | `backend/serverless.yml` | Lambda 256MB, VPC, env vars |
-| `backend/src/ingest-diagnostic/ingest-diagnostic.service.ts` | Diagnóstico staging vs readings |
-| `backend/src/db-verify-lambda.ts` | Lambda verificación RDS |
 
 ## Frontend
 | Archivo | Propósito |
 |---|---|
-| `frontend/src/components/ui/StockChart.tsx` | Highcharts Stock wrapper |
+| `frontend/src/components/ui/DataTable.tsx` | Tabla genérica: Column<T> con ReactNode, headerRender, cellClassName, className, footer, bg-surface sticky |
+| `frontend/src/components/ui/PaginatedTable.tsx` | Wrapper DataTable con paginación client-side |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
+| `frontend/src/services/endpoints.ts` | Todas las llamadas API (auth, buildings, meters, billing) |
+| `frontend/src/services/routes.ts` | Paths de API centralizados |
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |
 | `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
-| `frontend/src/features/drilldown/DrilldownPage.tsx` | Drill-down jerárquico |
-| `frontend/src/features/billing/BillingPage.tsx` | Facturación: resumen pivote + detalle paginado |
-| `frontend/src/features/billing/components/BillingDetailTable.tsx` | Detalle por local/medidor con rowSpan |
-| `frontend/src/hooks/queries/useBilling.ts` | Hooks billing |
-| `frontend/src/features/admin/AdminUsersPage.tsx` | Alta invitaciones |
-| `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio |
+| `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: DataTable última lectura por medidor |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |
-| `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: tabla última lectura por medidor |
-| `frontend/src/components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T> |
-| `frontend/src/components/ui/PaginatedTable.tsx` | Wrapper DataTable con paginación client-side |
 
 ## Infra
 | Archivo | Propósito |

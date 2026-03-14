@@ -3,6 +3,7 @@ import { Card } from '../../components/ui/Card';
 import { MonthlyColumnChart } from '../../components/charts/MonthlyColumnChart';
 import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
 import { useMeterMonthly } from '../../hooks/queries/useMeters';
+import { MeterMonthlyTable } from './components/MeterMonthlyTable';
 
 export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
@@ -32,6 +33,12 @@ export function MeterDetailPage() {
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Consumo mensual (kWh)</h2>
             <MonthlyColumnChart data={chartData} label="Consumo (kWh)" unit="kWh" />
+          </Card>
+        )}
+        {monthly && monthly.length > 0 && (
+          <Card>
+            <h2 className="mb-3 text-sm font-semibold text-text">Detalle mensual</h2>
+            <MeterMonthlyTable data={monthly} />
           </Card>
         )}
       </div>

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.21.0-alpha.0] - 2026-03-14 — TABLA MENSUAL EN DETALLE REMARCADOR
+
+### Added
+
+- **MeterMonthlyTable:** tabla con 6 columnas (Mes, Consumo, Potencia prom., Peak, Reactiva, Factor potencia), sticky thead/tfoot, totales en footer
+- **MeterDetailPage:** tabla de detalle mensual debajo del gráfico
+
+---
+
 ## [0.20.0-alpha.0] - 2026-03-14 — DETALLE DE REMARCADOR
 
 ### Added

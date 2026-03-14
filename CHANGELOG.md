@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.0-alpha.0] - 2026-03-14 — BUILDINGS CARD + CSP FIX
+
+### Changed
+
+- **BuildingsPage:** refactorizada para usar componente `Card`, navegación a detalle, grid de stats (consumo, potencia, demanda peak, factor potencia), footer con tiendas y área
+- **Card:** hover cambiado de azul (`border-accent`) a gris sutil (`border-muted/50`), agregado `outline-none`
+- **CSP:** agregado `http://localhost:4000` a `connect-src` en `index.html` para permitir API local
+
+---
+
 ## [0.13.0-alpha.0] - 2026-03-14 — PURGA FRONTEND + CONEXIÓN BUILDINGS
 
 ### Changed

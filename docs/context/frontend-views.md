@@ -1,18 +1,33 @@
 # Frontend: Vistas y Datos
 
-> **Estado actual (2026-03-14):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Solo buildings conectado a backend. Theme light.
+> **Estado actual (2026-03-14):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Theme light.
 
 ## Vistas activas
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Edificios | si | si — `GET /api/buildings` |
+| `/` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:name` | Detalle edificio | — | si — `GET /api/buildings/:name` |
 | `/meters/:meterId` | Detalle medidor | — | no (shell) |
 | `/monitoring/realtime` | Monitoreo | si | no (shell) |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | no (shell) |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
+
+## Componentes UI
+
+| Componente | Ubicación | Uso |
+|------------|-----------|-----|
+| `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
+| `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista |
+
+## BuildingsPage
+
+- Usa `<Card>` con `onClick` → navega a `/buildings/:name`
+- Header: nombre edificio + badge gris "X medidores"
+- Grid 2x2: consumo (kWh), potencia prom. (kW), demanda peak (kW), factor potencia
+- Footer: tiendas + área (m²)
+- Formato numérico `es-CL`
 
 ## Hooks activos
 
@@ -35,8 +50,8 @@ BuildingSummary {
 ## API
 
 - Base: `http://localhost:4000/api`
+- CSP: `connect-src` incluye `http://localhost:4000`
 - Sin interceptors de auth
-- Sin headers custom
 
 ## Infra auth (conservada, no activa)
 
@@ -45,11 +60,3 @@ BuildingSummary {
 - `ProtectedRoute` — componente guard
 - `appRoutes` + `permissions` — rutas y RBAC
 - `types/auth.ts` — `Role`, `AuthUser`, `AuthProvider`
-
-## Eliminado en esta sesión
-
-- Features: admin, billing, drilldown, auth pages
-- Componentes: BuildingCard, MeterCard, charts, badges, tables, panels
-- Hooks: useAlerts, useMeters, useHierarchy, useAdminUsers, useBilling
-- Layout.tsx (reemplazado por TempLayout)
-- Tipos: todos excepto BuildingSummary

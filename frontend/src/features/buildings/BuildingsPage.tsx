@@ -1,8 +1,26 @@
+import { useNavigate } from 'react-router';
+import { Card } from '../../components/ui/Card';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import type { BuildingSummary } from '../../types';
 
+function fmt(n: number) {
+  return n.toLocaleString('es-CL', { maximumFractionDigits: 1 });
+}
+
+function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted">{label}</p>
+      <p className="text-sm font-medium text-text">
+        {value}{unit && <span className="ml-0.5 text-xs font-normal text-muted">{unit}</span>}
+      </p>
+    </div>
+  );
+}
+
 export function BuildingsPage() {
+  const navigate = useNavigate();
   const { data: buildings, isLoading } = useBuildings();
 
   if (isLoading) return <BuildingsPageSkeleton />;
@@ -20,16 +38,30 @@ export function BuildingsPage() {
       <div className="min-h-0 flex-1 overflow-y-auto pb-4">
         <div className="grid grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...latest.values()].map((b) => (
-            <div key={b.buildingName} className="rounded-lg border border-border bg-surface p-4">
-              <h3 className="font-semibold text-text">{b.buildingName}</h3>
-              <div className="mt-2 space-y-1 text-sm text-muted">
-                <div>Medidores: {b.totalMeters} ({b.assignedMeters} asignados)</div>
-                <div>Tiendas: {b.totalStores}</div>
-                {b.areaSqm && <div>Área: {b.areaSqm.toLocaleString()} m²</div>}
-                <div>Consumo: {b.totalKwh.toLocaleString()} kWh</div>
-                <div>Potencia promedio: {b.avgPowerKw.toFixed(1)} kW</div>
+            <Card
+              key={b.buildingName}
+              onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}
+              className="space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <h3 className="font-semibold text-text">{b.buildingName}</h3>
+                <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-muted">
+                  {b.totalMeters} medidores
+                </span>
               </div>
-            </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />
+                <Stat label="Potencia prom." value={fmt(b.avgPowerKw)} unit="kW" />
+                <Stat label="Demanda peak" value={fmt(b.peakDemandKw)} unit="kW" />
+                <Stat label="Factor potencia" value={b.avgPowerFactor.toFixed(2)} />
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted">
+                <span>{b.totalStores} tiendas</span>
+                {b.areaSqm && <span>{fmt(b.areaSqm)} m²</span>}
+              </div>
+            </Card>
           ))}
         </div>
       </div>

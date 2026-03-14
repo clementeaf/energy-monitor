@@ -1,13 +1,26 @@
 # Changelog
 
-## [0.12.1-alpha.0] - 2026-03-14 — THEME LIGHT
+## [0.13.0-alpha.0] - 2026-03-14 — PURGA FRONTEND + CONEXIÓN BUILDINGS
 
 ### Changed
 
-- **Theme:** palette cambiada de dark a light en `index.css`
-  - `--color-base` → `#ffffff`, `--color-surface` → `#f9fafb`, `--color-raised` → `#f3f4f6`
-  - `--color-border` → `#e5e7eb`, `--color-text` → `#111827`, `--color-muted` → `#6b7280`
-  - `--color-subtle` → `#9ca3af`, `--color-accent` → `#2563eb`
+- **API:** `api.ts` apunta a `http://localhost:4000/api`, sin interceptors de auth
+- **Tipos:** `types/index.ts` solo exporta `BuildingSummary` (matchea backend)
+- **Endpoints:** `routes.ts` y `endpoints.ts` solo buildings
+- **Hooks:** solo `useBuildings` y `useAuthQuery` activos
+- **BuildingsPage:** consume `GET /api/buildings` real, muestra cards con datos de pg-arauco
+- **BuildingDetailPage:** consume `GET /api/buildings/:name`, info básica
+- **Páginas shell:** MeterDetail, Realtime, Devices, Alerts, AlertDetail sin consumo API
+- **Router:** limpio, sin withAuth ni comentarios muertos
+- **Theme:** palette dark → light en `index.css`
+
+### Removed
+
+- Features completas: `admin/`, `billing/`, `drilldown/`, `auth/` (pages)
+- Componentes: BuildingCard, MeterCard, AlertsOverviewPanel, BuildingAlertsPanel, BuildingConsumptionChart, UptimeBadges, AlarmEventsTable, AlarmSummaryBadges, DowntimeEventsTable
+- Hooks: useAlerts, useMeters, useHierarchy, useAdminUsers, useBilling
+- `Layout.tsx` (reemplazado por TempLayout)
+- PageHeader eliminado de vistas principales (redundante con sidebar)
 
 ---
 

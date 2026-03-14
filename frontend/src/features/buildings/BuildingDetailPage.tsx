@@ -1,133 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { BuildingDetailSkeleton, ChartSkeleton, MetersGridSkeleton } from '../../components/ui/Skeleton';
-import { useAuth } from '../../hooks/auth/useAuth';
-import { useBuilding, useBuildingConsumption } from '../../hooks/queries/useBuildings';
-import { useAlerts } from '../../hooks/queries/useAlerts';
-import { useMetersByBuilding } from '../../hooks/queries/useMeters';
-import { useAppStore } from '../../store/useAppStore';
-import { appRoutes, canAccessRoute } from '../../app/appRoutes';
-import { BuildingConsumptionChart } from './components/BuildingConsumptionChart';
-import { BuildingAlertsPanel } from './components/BuildingAlertsPanel';
-import { MeterCard } from '../meters/components/MeterCard';
-import type { Alert } from '../../types';
-
-/** Rango por defecto (días) para que el gráfico incluya al menos un mes de datos. */
-const DEFAULT_RANGE_DAYS = 30;
-
-function defaultTimeRange(): { from: string; to: string } {
-  const to = new Date();
-  const from = new Date(to.getTime() - DEFAULT_RANGE_DAYS * 24 * 60 * 60 * 1000);
-  return { from: from.toISOString(), to: to.toISOString() };
-}
-
-type Resolution = '15min' | 'hourly' | 'daily';
-
-const MS_PER_HOUR = 3_600_000;
-const HOURS_PER_DAY = 24;
-
-/** Resolución según rango visible: 1–2 días → 15 min; hasta 7 días → horaria; más → diaria. */
-function pickResolution(rangeMs: number): Resolution {
-  const hours = rangeMs / MS_PER_HOUR;
-  if (hours <= 2 * HOURS_PER_DAY) return '15min'; // 1 Día y hasta 2 días: datos cada 15 min
-  if (hours <= 7 * HOURS_PER_DAY) return 'hourly';
-  return 'daily';
-}
+import { useBuilding } from '../../hooks/queries/useBuildings';
+import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 
 export function BuildingDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { setSelectedSiteId } = useAppStore();
-  const [resolution, setResolution] = useState<Resolution>('hourly');
-  const [range, setRange] = useState<{ from: string; to: string }>(defaultTimeRange);
-  const handleRangeChange = useCallback((min: number, max: number) => {
-    setRange({ from: new Date(min).toISOString(), to: new Date(max).toISOString() });
-    setResolution(pickResolution(max - min));
-  }, []);
-  useEffect(() => {
-    if (id) {
-      setSelectedSiteId(id);
-    }
-  }, [id, setSelectedSiteId]);
+  const { data: months, isLoading } = useBuilding(id!);
 
-  const { data: building, isLoading: loadingBuilding } = useBuilding(id!);
-  const { data: consumption, isLoading: loadingConsumption, isFetching: fetchingConsumption } = useBuildingConsumption(id!, resolution, range.from, range.to);
-  const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const canViewAlerts = !!user && canAccessRoute(user.role, appRoutes.alerts);
-  const canOpenDrilldown = !!user && canAccessRoute(user.role, appRoutes.drilldown);
-  const { data: activeAlerts } = useAlerts(
-    { status: 'active', buildingId: id, limit: 50 },
-    { enabled: !!id && canViewAlerts, refetchInterval: 60_000, staleTime: 15_000 },
-  );
+  if (isLoading) return <BuildingDetailSkeleton />;
+  if (!months || months.length === 0) return <p className="text-muted">Edificio no encontrado</p>;
 
-  const alertsByMeter = new Map<string, Alert[]>();
-  for (const alert of activeAlerts ?? []) {
-    if (!alert.meterId) continue;
-    const list = alertsByMeter.get(alert.meterId) ?? [];
-    list.push(alert);
-    alertsByMeter.set(alert.meterId, list);
-  }
-
-  if (loadingBuilding) return <BuildingDetailSkeleton />;
-  if (!building) return <p className="text-subtle">Edificio no encontrado</p>;
+  const latest = months[0];
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="shrink-0">
         <PageHeader
-          title={building.name}
+          title={latest.buildingName}
           showBack
           breadcrumbs={[
             { label: 'Edificios', to: '/' },
-            { label: building.name },
+            { label: latest.buildingName },
           ]}
         />
-        <div className="mb-3 flex items-center gap-3">
-          <p className="text-sm text-muted">{building.address} &middot; {building.totalArea} m²</p>
-          {canOpenDrilldown && (
-            <button
-              onClick={() => navigate(`/monitoring/drilldown/${id}`)}
-              className="rounded-lg border border-border px-3 py-1 text-xs text-muted hover:bg-raised hover:text-text"
-            >
-              Drill-down Jerárquico
-            </button>
-          )}
+        <div className="mb-4 text-sm text-muted">
+          {latest.areaSqm && <span>{latest.areaSqm.toLocaleString()} m²</span>}
+          {' · '}{latest.totalMeters} medidores · {latest.totalStores} tiendas
         </div>
       </div>
 
-      <div className="shrink-0">
-        {loadingConsumption ? (
-          <ChartSkeleton />
-        ) : (
-          <BuildingConsumptionChart
-            data={consumption ?? []}
-            loading={fetchingConsumption}
-            onRangeChange={handleRangeChange}
-          />
-        )}
-      </div>
-
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-        {canViewAlerts && (activeAlerts?.length ?? 0) > 0 && id && (
-          <BuildingAlertsPanel buildingId={id} alerts={activeAlerts ?? []} />
-        )}
-
-        <h2 className="mb-2 text-lg font-bold text-text">Medidores ({meters?.length ?? 0})</h2>
-        {loadingMeters ? (
-          <MetersGridSkeleton />
-        ) : (
-          <div className="grid grid-cols-1 content-start gap-3 pb-2 sm:grid-cols-2 lg:grid-cols-3">
-            {meters?.map((m) => (
-              <MeterCard
-                key={m.id}
-                meter={m}
-                activeAlerts={alertsByMeter.get(m.id) ?? []}
-              />
-            ))}
-          </div>
-        )}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="text-muted">
+          Detalle de edificio — pendiente de conectar gráficos y medidores
+        </div>
       </div>
     </div>
   );

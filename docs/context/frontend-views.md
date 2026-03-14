@@ -64,7 +64,7 @@
 - Selector de métrica (11 métricas de `meter_readings`)
 - Gráfico con toggle Diario / 15 min:
   - **Diario:** Highcharts línea, 1 punto por hora (promedio), eje X = días del mes
-  - **15 min:** StockChart con navigator, datos crudos cada 15 min, botones 6h/1d/1s/Todo
+  - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min
 - **DailySummaryTable:** una fila por día, 9 columnas (Día, Lecturas, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), sticky thead/tfoot, totales en footer
 - Datos vía `useMeterReadings(meterId, from, to)` → `GET /api/meter-readings/:meterId?from=&to=`
 

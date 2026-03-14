@@ -5,11 +5,12 @@
 ### Added
 
 - **MeterReadingsPage:** vista de lecturas de un medidor en un mes (`/meters/:meterId/readings/:month`)
-- **Gráfico con dos modos:** Diario (1 punto por hora, eje X = días) y 15 min (StockChart con navigator)
+- **Gráfico con dos modos:** Diario (1 punto por hora, eje X = días) y 15 min (Highcharts Stock light, navigator con rango default 2 días)
 - **DailySummaryTable:** resumen por día con 9 columnas, sticky thead/tfoot, totales en footer
 - **MeterReading type:** interface con 11 métricas + meterId + timestamp
 - **API layer:** ruta, endpoint y hook `useMeterReadings(meterId, from, to)`
 - **MeterMonthlyTable:** filas clickeables → navegan a vista de lecturas del mes
+- **Dropdown métrica:** cierre al hacer click fuera (mousedown listener)
 
 ---
 

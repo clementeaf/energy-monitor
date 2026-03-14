@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import HighchartsStock from 'highcharts/highstock';
 import { Card } from '../../components/ui/Card';
-import { StockChart } from '../../components/ui/StockChart';
 import { MeterReadingsSkeleton } from '../../components/ui/Skeleton';
 import { useMeterReadings } from '../../hooks/queries/useMeters';
 import type { MeterReading } from '../../types';
@@ -179,6 +179,15 @@ export function MeterReadingsPage() {
   const [metric, setMetric] = useState<ReadingMetricKey>('powerKw');
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [resolution, setResolution] = useState<ChartResolution>('daily');
+  const selectorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) setSelectorOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Parse month param (YYYY-MM) to from/to dates
   const { from, to, monthLabel } = useMemo(() => {
@@ -232,9 +241,11 @@ export function MeterReadingsPage() {
     credits: { enabled: false },
   };
 
-  // 15-min chart (StockChart con navigator): datos crudos
+  // 15-min chart (Highcharts Stock, light theme): datos crudos con navigator
   const stockChartOptions: Highcharts.Options = {
+    chart: { height: 360 },
     title: { text: undefined },
+    xAxis: { crosshair: true, range: 2 * 24 * 3600 * 1000 },
     yAxis: { title: { text: meta.unit } },
     tooltip: {
       xDateFormat: '%d/%m %H:%M',
@@ -242,16 +253,13 @@ export function MeterReadingsPage() {
       valueSuffix: meta.unit ? ` ${meta.unit}` : undefined,
     },
     series: [
-      { name: meta.label, type: 'line', data: rawData, marker: { enabled: false } },
+      { name: meta.label, type: 'line', data: rawData, color: '#374151', marker: { enabled: false } },
     ],
-    rangeSelector: {
-      buttons: [
-        { type: 'hour', count: 6, text: '6h' },
-        { type: 'day', count: 1, text: '1d' },
-        { type: 'week', count: 1, text: '1s' },
-        { type: 'all', text: 'Todo' },
-      ],
-    },
+    navigator: { enabled: true },
+    scrollbar: { enabled: false },
+    rangeSelector: { enabled: false },
+    legend: { enabled: false },
+    credits: { enabled: false },
   };
 
   return (
@@ -274,7 +282,7 @@ export function MeterReadingsPage() {
         {(hourlyData.length > 0 || rawData.length > 0) && (
           <Card>
             <div className="mb-3 flex items-center justify-between">
-              <div className="relative inline-block">
+              <div ref={selectorRef} className="relative inline-block">
                 <button
                   onClick={() => setSelectorOpen((o) => !o)}
                   className="flex items-center gap-1 text-sm font-semibold text-text transition-colors hover:text-muted"
@@ -319,7 +327,7 @@ export function MeterReadingsPage() {
             {resolution === 'daily' ? (
               <HighchartsReact highcharts={Highcharts} options={dailyChartOptions} />
             ) : (
-              <StockChart options={stockChartOptions} />
+              <HighchartsReact highcharts={HighchartsStock} constructorType="stockChart" options={stockChartOptions} />
             )}
           </Card>
         )}

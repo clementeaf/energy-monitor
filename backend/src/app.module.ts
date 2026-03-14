@@ -10,6 +10,7 @@ import { StoresModule } from './stores/stores.module';
 import { MeterMonthlyModule } from './meter-monthly/meter-monthly.module';
 import { MeterReadingsModule } from './meter-readings/meter-readings.module';
 import { RawReadingsModule } from './raw-readings/raw-readings.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { RawReadingsModule } from './raw-readings/raw-readings.module';
     MeterMonthlyModule,
     MeterReadingsModule,
     RawReadingsModule,
+    BillingModule,
   ],
 })
 export class AppModule {}

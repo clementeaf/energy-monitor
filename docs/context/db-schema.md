@@ -36,6 +36,22 @@
 
 **staging_centers** — 5 filas. Centros del import Drive.
 
+### pg-arauco (docker local)
+
+**store_type** — id: serial PK, name: varchar(100) unique. 20 tipos.
+
+**store** — meter_id: varchar(10) PK, store_type_id: int FK→store_type, store_name: varchar(200). 43 tiendas reales.
+
+**building_summary** — building_name: varchar(100), month: date, PK(building_name, month). Stats agregados: total_stores, store_types, total_meters, assigned_meters, unassigned_meters, area_sqm, total_kwh, total_power_kw, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor, peak_demand_kw. 12 filas.
+
+**meter_monthly** — PK(meter_id varchar(10), month date), FK meter_id → store. total_kwh, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor. 516 filas.
+
+**meter_monthly_billing** — PK(meter_id varchar(10), month date). building_name varchar(100), total_kwh numeric(14,3), energia_clp, dda_max_kw, dda_max_punta_kw, kwh_troncal, kwh_serv_publico, cargo_fijo_clp, total_neto_clp, iva_clp, monto_exento_clp, total_con_iva_clp. Todos numeric. 5,352 filas (446 medidores x 12 meses). Fuente: XLSX KPIs.
+
+**meter_readings** — particionada por meter_id. 1,506,720 filas (43 tiendas reales).
+
+**raw_readings** — 15,627,840 filas (446 medidores completo CSV).
+
 ### Tablas que NO existen en producción (migraciones pendientes)
 
 **agg_meter_hourly** — PK(meter_id, bucket TIMESTAMPTZ). Agregado por hora por medidor. Migración 019.

@@ -58,6 +58,11 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 |---|---|---|---|
 | GET | `/meter-readings/:meterId` | `from`, `to` (requeridos, ISO 8601, max 31 días), `limit?` (max 5000) | `MeterReading[]` |
 
+## Billing (`/billing`) — `@Public()`
+| Method | Path | Response |
+|---|---|---|
+| GET | `/billing/:buildingName` | `BillingMonthlySummary[]` (agregado mensual: totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp, totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp) |
+
 ## Raw Readings (`/raw-readings`) — `@Public()`
 | Method | Path | Query | Response |
 |---|---|---|---|

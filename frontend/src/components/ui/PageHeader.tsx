@@ -15,7 +15,7 @@ export function PageHeader({ title, breadcrumbs, showBack }: PageHeaderProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="mb-6">
+    <div className="mb-2">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="mb-2 text-sm text-subtle">
           {breadcrumbs.map((crumb, i) => (
@@ -44,7 +44,7 @@ export function PageHeader({ title, breadcrumbs, showBack }: PageHeaderProps) {
             &larr; Volver
           </button>
         )}
-        <h1 className="text-2xl font-bold text-text">{title}</h1>
+        {title && <h1 className="text-2xl font-bold text-text">{title}</h1>}
       </div>
     </div>
   );

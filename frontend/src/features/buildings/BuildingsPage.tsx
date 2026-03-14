@@ -43,12 +43,7 @@ export function BuildingsPage() {
               onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}
               className="space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <h3 className="font-semibold text-text">{b.buildingName}</h3>
-                <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-muted">
-                  {b.totalMeters} medidores
-                </span>
-              </div>
+              <h3 className="font-semibold text-text">{b.buildingName}</h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />
@@ -58,7 +53,7 @@ export function BuildingsPage() {
               </div>
 
               <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted">
-                <span>{b.totalStores} tiendas</span>
+                <span>{b.totalMeters} medidores</span>
                 {b.areaSqm && <span>{fmt(b.areaSqm)} m²</span>}
               </div>
             </Card>

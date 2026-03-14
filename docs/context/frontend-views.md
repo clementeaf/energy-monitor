@@ -7,7 +7,7 @@
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
 | `/` | Edificios | si | si — cards con stats, click navega a detalle |
-| `/buildings/:name` | Detalle edificio | — | si — `GET /api/buildings/:name` |
+| `/buildings/:id` | Detalle edificio | — | si — gráfico + tabla facturación |
 | `/meters/:meterId` | Detalle medidor | — | no (shell) |
 | `/monitoring/realtime` | Monitoreo | si | no (shell) |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
@@ -20,14 +20,23 @@
 |------------|-----------|-----|
 | `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista |
+| `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
+| `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas stacked (Neto + IVA) |
+| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, scroll horizontal, total anual |
 
 ## BuildingsPage
 
-- Usa `<Card>` con `onClick` → navega a `/buildings/:name`
-- Header: nombre edificio + badge gris "X medidores"
+- `<Card>` con `onClick` → navega a `/buildings/:name`
+- Header: nombre edificio
 - Grid 2x2: consumo (kWh), potencia prom. (kW), demanda peak (kW), factor potencia
-- Footer: tiendas + área (m²)
+- Footer: medidores + área (m²)
 - Formato numérico `es-CL`
+
+## BuildingDetailPage
+
+- Breadcrumbs (Edificios → nombre) + botón volver, sin título
+- `BillingChart`: columnas stacked por mes (Neto gris oscuro, IVA gris claro)
+- `BillingTable`: consumo kWh, energía $, dda. máx., dda. punta, kWh troncal, kWh serv. público, cargo fijo, neto, IVA, exento, total c/IVA — scroll horizontal, scroll vertical interno
 
 ## Hooks activos
 
@@ -35,8 +44,9 @@
 |------|----------|--------------|
 | `useBuildings()` | `GET /api/buildings` | `BuildingSummary[]` |
 | `useBuilding(name)` | `GET /api/buildings/:name` | `BuildingSummary[]` |
+| `useBilling(buildingName)` | `GET /api/billing/:buildingName` | `BillingMonthlySummary[]` |
 
-## Tipo único: BuildingSummary
+## Tipos
 
 ```
 BuildingSummary {
@@ -44,6 +54,12 @@ BuildingSummary {
   totalMeters, assignedMeters, unassignedMeters, areaSqm,
   totalKwh, totalPowerKw, avgPowerKw, peakPowerKw,
   totalReactiveKvar, avgPowerFactor, peakDemandKw
+}
+
+BillingMonthlySummary {
+  month, totalMeters, totalKwh, energiaClp, ddaMaxKw,
+  ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp,
+  totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp
 }
 ```
 

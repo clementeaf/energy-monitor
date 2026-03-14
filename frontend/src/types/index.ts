@@ -1,3 +1,20 @@
+// Matches backend billing aggregated response
+export interface BillingMonthlySummary {
+  month: string;
+  totalMeters: number;
+  totalKwh: number;
+  energiaClp: number;
+  ddaMaxKw: number;
+  ddaMaxPuntaKw: number;
+  kwhTroncal: number;
+  kwhServPublico: number;
+  cargoFijoClp: number;
+  totalNetoClp: number;
+  ivaClp: number;
+  montoExentoClp: number;
+  totalConIvaClp: number;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.15.0-alpha.0] - 2026-03-14 — BILLING: INGESTA, BACKEND, FRONTEND
+
+### Added
+
+- **DB:** tabla `meter_monthly_billing` con `total_kwh` + 10 columnas de facturación (5,352 filas, 446 medidores x 12 meses)
+- **Backend:** módulo `billing` — entity, service, controller `GET /api/billing/:buildingName`, `@Public()`
+- **Frontend:** tipo `BillingMonthlySummary` (13 campos), hook `useBilling`, ruta y endpoint
+- **BillingChart:** Highcharts columnas stacked (Neto + IVA) por mes
+- **BillingTable:** 12 columnas (consumo kWh, energía $, dda. máx., dda. punta, kWh troncal, kWh serv. público, cargo fijo, neto, IVA, exento, total c/IVA), scroll horizontal, fila total anual
+- **Scripts:** `ingest-billing-xlsx.py` para cargar XLSX a PostgreSQL
+
+### Changed
+
+- **BuildingDetailPage:** título grande eliminado, solo breadcrumbs + botón volver, spacing reducido
+- **BuildingsPage:** footer muestra medidores en vez de tiendas, badge eliminado
+- **PageHeader:** `mb-6` → `mb-2`, no renderiza `<h1>` si title vacío
+
+---
+
 ## [0.14.0-alpha.0] - 2026-03-14 — BUILDINGS CARD + CSP FIX
 
 ### Changed

@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import type { BillingMonthlySummary } from '../../../types';
 import type { BillingMetricKey } from './billingMetrics';
 import { billingMetrics } from './billingMetrics';
@@ -42,6 +43,81 @@ const columns: Col[] = [
   { label: 'Total c/IVA ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalConIvaClp, 0)) },
 ];
 
+function MonthFilterDropdown({
+  months,
+  visibleMonths,
+  onToggle,
+}: {
+  months: string[];
+  visibleMonths: Set<string>;
+  onToggle: (month: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const allSelected = months.length === visibleMonths.size;
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1 whitespace-nowrap font-medium transition-colors hover:text-text"
+      >
+        Mes
+        <svg className="h-3 w-3 shrink-0 opacity-40" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
+        {!allSelected && (
+          <span className="ml-0.5 text-[10px] text-blue-600">{visibleMonths.size}</span>
+        )}
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 z-30 mt-1 w-44 overflow-y-auto rounded border border-border bg-white py-1 shadow-lg">
+          <li className="border-b border-border/50">
+            <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-raised">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={() => {
+                  if (allSelected) onToggle(months[0]);
+                  else months.forEach((m) => { if (!visibleMonths.has(m)) onToggle(m); });
+                }}
+                className="h-3.5 w-3.5 rounded border-border accent-blue-600"
+              />
+              <span className="text-text">Todo</span>
+            </label>
+          </li>
+          {months.map((iso) => {
+            const checked = visibleMonths.has(iso);
+            return (
+              <li key={iso}>
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm transition-colors hover:bg-raised">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onToggle(iso)}
+                    className="h-3.5 w-3.5 rounded border-border accent-blue-600"
+                  />
+                  <span className={checked ? 'text-text' : 'text-muted'}>{monthName(iso)}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 interface BillingTableProps {
   data: BillingMonthlySummary[];
   highlightMetric?: BillingMetricKey;
@@ -49,6 +125,9 @@ interface BillingTableProps {
 }
 
 export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTableProps) {
+  const allMonths = data.map((r) => r.month);
+  const [visibleMonths, setVisibleMonths] = useState<Set<string>>(() => new Set(allMonths));
+
   const highlightLabel = highlightMetric ? billingMetrics[highlightMetric].label : null;
   const hoveredLabel = hoveredMetric ? billingMetrics[hoveredMetric].label : null;
 
@@ -57,6 +136,20 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
     if (label === highlightLabel) return 'bg-blue-50';
     return '';
   }
+
+  function handleToggleMonth(month: string) {
+    setVisibleMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(month)) {
+        if (next.size > 1) next.delete(month);
+      } else {
+        next.add(month);
+      }
+      return next;
+    });
+  }
+
+  const filtered = data.filter((r) => visibleMonths.has(r.month));
 
   return (
     <div className="max-h-72 overflow-auto">
@@ -68,13 +161,21 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
                 key={col.label}
                 className={`whitespace-nowrap py-2 pr-6 font-medium transition-colors ${col.align === 'left' ? 'text-left' : 'text-right'} ${colBg(col.label)} ${colBg(col.label) ? 'text-text' : ''}`}
               >
-                {col.label}
+                {col.label === 'Mes' ? (
+                  <MonthFilterDropdown
+                    months={allMonths}
+                    visibleMonths={visibleMonths}
+                    onToggle={handleToggleMonth}
+                  />
+                ) : (
+                  col.label
+                )}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
+          {filtered.map((row) => (
             <tr key={row.month} className="border-b border-border/50 text-text">
               {columns.map((col) => (
                 <td
@@ -94,7 +195,7 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
                 key={col.label}
                 className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
               >
-                {col.total(data)}
+                {col.total(filtered)}
               </td>
             ))}
           </tr>

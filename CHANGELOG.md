@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.19.0-alpha.0] - 2026-03-14 — FILTRO DE MESES EN TABLA
+
+### Added
+
+- **MonthFilterDropdown:** header "Mes" es un dropdown con checkboxes para filtrar filas por mes
+- Opción "Todo" para seleccionar/deseleccionar todos los meses
+- Badge con conteo de meses activos cuando hay filtro aplicado
+- Totales del tfoot se recalculan según meses visibles
+
+---
+
 ## [0.18.0-alpha.0] - 2026-03-14 — HIGHLIGHT COLUMNA EN TABLA
 
 ### Added

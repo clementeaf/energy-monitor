@@ -23,7 +23,7 @@
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
-| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, sticky thead/tfoot, highlight columna seleccionada y hover |
+| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, sticky thead/tfoot, highlight columna, filtro de meses |
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10, thead sticky |
 
 ## BuildingsPage
@@ -40,7 +40,7 @@
 - `BillingMetricSelector` + `BillingChart`: selector dropdown elige métrica, gráfico muestra columnas por mes
 - Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover en dropdown previsualiza columna (`bg-blue-50/60`)
 - Tabs en card inferior:
-  - **Detalle Facturación:** `BillingTable` — scroll interno, columnas y total anual siempre visibles (sticky)
+  - **Detalle Facturación:** `BillingTable` — scroll interno, sticky thead/tfoot, header "Mes" filtra filas por mes (checkboxes + "Todo")
   - **Listado Remarcadores:** `MetersTable` — paginación de 10, columnas y paginador siempre visibles, click → `/meters/:meterId`
 - Medidores sin tienda muestran "Por censar" (muted), sin tipo muestra "—"
 

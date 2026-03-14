@@ -1,4 +1,6 @@
 import type { BillingMonthlySummary } from '../../../types';
+import type { BillingMetricKey } from './billingMetrics';
+import { billingMetrics } from './billingMetrics';
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -42,9 +44,20 @@ const columns: Col[] = [
 
 interface BillingTableProps {
   data: BillingMonthlySummary[];
+  highlightMetric?: BillingMetricKey;
+  hoveredMetric?: BillingMetricKey | null;
 }
 
-export function BillingTable({ data }: BillingTableProps) {
+export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTableProps) {
+  const highlightLabel = highlightMetric ? billingMetrics[highlightMetric].label : null;
+  const hoveredLabel = hoveredMetric ? billingMetrics[hoveredMetric].label : null;
+
+  function colBg(label: string): string {
+    if (hoveredLabel && label === hoveredLabel) return 'bg-blue-50/60';
+    if (label === highlightLabel) return 'bg-blue-50';
+    return '';
+  }
+
   return (
     <div className="max-h-72 overflow-auto">
       <table className="min-w-full text-sm">
@@ -53,7 +66,7 @@ export function BillingTable({ data }: BillingTableProps) {
             {columns.map((col) => (
               <th
                 key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 font-medium ${col.align === 'left' ? 'text-left' : 'text-right'}`}
+                className={`whitespace-nowrap py-2 pr-6 font-medium transition-colors ${col.align === 'left' ? 'text-left' : 'text-right'} ${colBg(col.label)} ${colBg(col.label) ? 'text-text' : ''}`}
               >
                 {col.label}
               </th>
@@ -66,7 +79,7 @@ export function BillingTable({ data }: BillingTableProps) {
               {columns.map((col) => (
                 <td
                   key={col.label}
-                  className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
+                  className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
                 >
                   {col.value(row)}
                 </td>
@@ -79,7 +92,7 @@ export function BillingTable({ data }: BillingTableProps) {
             {columns.map((col) => (
               <td
                 key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
+                className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
               >
                 {col.total(data)}
               </td>

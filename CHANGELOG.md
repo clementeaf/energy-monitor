@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.18.0-alpha.0] - 2026-03-14 — HIGHLIGHT COLUMNA EN TABLA
+
+### Added
+
+- **BillingTable:** columna seleccionada en el selector se destaca con fondo azul (`bg-blue-50`)
+- **BillingMetricSelector:** `onHover` callback — hover en opciones del dropdown destaca la columna correspondiente en tiempo real (`bg-blue-50/60`)
+- Transición suave (`transition-colors`) en celdas de la tabla
+
+---
+
 ## [0.17.0-alpha.0] - 2026-03-14 — SELECTOR DE MÉTRICAS EN GRÁFICO
 
 ### Added

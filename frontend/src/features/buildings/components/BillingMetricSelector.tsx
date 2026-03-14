@@ -5,9 +5,10 @@ import { billingMetrics, billingMetricKeys } from './billingMetrics';
 interface BillingMetricSelectorProps {
   value: BillingMetricKey;
   onChange: (key: BillingMetricKey) => void;
+  onHover?: (key: BillingMetricKey | null) => void;
 }
 
-export function BillingMetricSelector({ value, onChange }: BillingMetricSelectorProps) {
+export function BillingMetricSelector({ value, onChange, onHover }: BillingMetricSelectorProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,7 +37,9 @@ export function BillingMetricSelector({ value, onChange }: BillingMetricSelector
           {billingMetricKeys.map((key) => (
             <li key={key}>
               <button
-                onClick={() => { onChange(key); setOpen(false); }}
+                onClick={() => { onChange(key); setOpen(false); onHover?.(null); }}
+                onMouseEnter={() => onHover?.(key)}
+                onMouseLeave={() => onHover?.(null)}
                 className={`block w-full px-3 py-1.5 text-left text-sm transition-colors ${
                   key === value ? 'bg-raised font-semibold text-text' : 'text-muted hover:bg-raised hover:text-text'
                 }`}

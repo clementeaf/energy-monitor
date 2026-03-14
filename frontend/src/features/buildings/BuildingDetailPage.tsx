@@ -26,6 +26,7 @@ export function BuildingDetailPage() {
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
   const [activeTab, setActiveTab] = useState<DetailTab>('billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
+  const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
 
   if (loadingBuilding || loadingBilling || loadingMeters) return <BuildingDetailSkeleton />;
   if (!months || months.length === 0) return <p className="text-muted">Edificio no encontrado</p>;
@@ -51,7 +52,7 @@ export function BuildingDetailPage() {
           <>
             <Card>
               <div className="mb-3">
-                <BillingMetricSelector value={chartMetric} onChange={setChartMetric} />
+                <BillingMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
               </div>
               <BillingChart data={billing} metric={chartMetric} />
             </Card>
@@ -77,7 +78,7 @@ export function BuildingDetailPage() {
 
               <div className="mt-3">
                 {activeTab === 'billing' && (
-                  <BillingTable data={billing} />
+                  <BillingTable data={billing} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
                 )}
                 {activeTab === 'meters' && meters && meters.length > 0 && (
                   <MetersTable data={meters} />

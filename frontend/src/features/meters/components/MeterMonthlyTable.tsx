@@ -1,4 +1,6 @@
 import type { MeterMonthly } from '../../../types';
+import type { MeterMetricKey } from './meterMetrics';
+import { meterMetrics } from './meterMetrics';
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -33,9 +35,20 @@ const columns: Col[] = [
 
 interface MeterMonthlyTableProps {
   data: MeterMonthly[];
+  highlightMetric?: MeterMetricKey;
+  hoveredMetric?: MeterMetricKey | null;
 }
 
-export function MeterMonthlyTable({ data }: MeterMonthlyTableProps) {
+export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric }: MeterMonthlyTableProps) {
+  const highlightLabel = highlightMetric ? meterMetrics[highlightMetric].label : null;
+  const hoveredLabel = hoveredMetric ? meterMetrics[hoveredMetric].label : null;
+
+  function colBg(label: string): string {
+    if (hoveredLabel && label === hoveredLabel) return 'bg-blue-50/60';
+    if (label === highlightLabel) return 'bg-blue-50';
+    return '';
+  }
+
   return (
     <div className="max-h-72 overflow-auto">
       <table className="min-w-full text-sm">
@@ -44,7 +57,7 @@ export function MeterMonthlyTable({ data }: MeterMonthlyTableProps) {
             {columns.map((col) => (
               <th
                 key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 font-medium ${col.align === 'left' ? 'text-left' : 'text-right'}`}
+                className={`whitespace-nowrap py-2 pr-6 font-medium transition-colors ${col.align === 'left' ? 'text-left' : 'text-right'} ${colBg(col.label)} ${colBg(col.label) ? 'text-text' : ''}`}
               >
                 {col.label}
               </th>
@@ -57,7 +70,7 @@ export function MeterMonthlyTable({ data }: MeterMonthlyTableProps) {
               {columns.map((col) => (
                 <td
                   key={col.label}
-                  className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
+                  className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
                 >
                   {col.value(row)}
                 </td>
@@ -70,7 +83,7 @@ export function MeterMonthlyTable({ data }: MeterMonthlyTableProps) {
             {columns.map((col) => (
               <td
                 key={col.label}
-                className={`whitespace-nowrap py-2 pr-6 tabular-nums ${col.align === 'left' ? '' : 'text-right'}`}
+                className={`whitespace-nowrap py-2 pr-6 tabular-nums transition-colors ${col.align === 'left' ? '' : 'text-right'} ${colBg(col.label)}`}
               >
                 {col.total(data)}
               </td>

@@ -17,7 +17,7 @@ export class MeterMonthlyService {
   async findByMeterId(meterId: string): Promise<MeterMonthly[]> {
     return this.repo.find({
       where: { meterId },
-      order: { month: 'DESC' },
+      order: { month: 'ASC' },
     });
   }
 }

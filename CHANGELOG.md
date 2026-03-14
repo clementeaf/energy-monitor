@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.22.0-alpha.0] - 2026-03-14 — SELECTOR MÉTRICAS Y TOGGLE BARRA/LÍNEA EN REMARCADOR
+
+### Added
+
+- **MeterMetricSelector:** dropdown con 5 métricas del medidor, mismo patrón que BillingMetricSelector
+- **meterMetrics.ts:** definición centralizada de métricas del medidor con label y unidad
+- **MonthlyColumnChart:** toggle Barra/Línea (absoluto esquina superior derecha, sin agregar altura)
+- **MeterMonthlyTable:** highlight de columna seleccionada (`bg-blue-50`) y hover preview (`bg-blue-50/60`)
+
+### Changed
+
+- **MeterDetailPage:** selector de métricas reemplaza título estático, gráfico dinámico según métrica
+- **meter-monthly backend:** orden de meses cambiado a ASC (Ene → Dic)
+
+---
+
 ## [0.21.0-alpha.0] - 2026-03-14 — TABLA MENSUAL EN DETALLE REMARCADOR
 
 ### Added

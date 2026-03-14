@@ -8,7 +8,7 @@
 |------|-------|--------|-----------|
 | `/` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
-| `/meters/:meterId` | Detalle medidor | — | si — gráfico + tabla consumo mensual |
+| `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
 | `/monitoring/realtime` | Monitoreo | si | no (shell) |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | no (shell) |
@@ -25,8 +25,9 @@
 | `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, sticky thead/tfoot, highlight columna, filtro de meses |
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10, thead sticky, click → detalle medidor |
-| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico de columnas por mes (Highcharts), usado por BillingChart y MeterDetailPage |
-| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | 6 columnas (Mes, Consumo, Potencia prom., Peak, Reactiva, Factor potencia), sticky thead/tfoot |
+| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico por mes (Highcharts), toggle Barra/Línea, usado por BillingChart y MeterDetailPage |
+| `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
+| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | 6 columnas, sticky thead/tfoot, highlight columna seleccionada + hover preview |
 
 ## BuildingsPage
 
@@ -49,9 +50,10 @@
 ## MeterDetailPage
 
 - Header: botón volver + meterId
-- Gráfico de consumo mensual (kWh) con `MonthlyColumnChart`
-- `MeterMonthlyTable` debajo del gráfico — detalle de las 5 métricas por mes, totales en footer
-- Datos vía `useMeterMonthly(meterId)` → `GET /api/meter-monthly/:meterId`
+- `MeterMetricSelector` + `MonthlyColumnChart`: selector elige métrica, gráfico dinámico con toggle Barra/Línea
+- Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
+- `MeterMonthlyTable` debajo del gráfico — 5 métricas por mes, totales en footer
+- Datos vía `useMeterMonthly(meterId)` → `GET /api/meter-monthly/:meterId` (orden ASC)
 
 ## Hooks activos
 

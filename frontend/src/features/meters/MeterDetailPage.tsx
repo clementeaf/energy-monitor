@@ -1,18 +1,25 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Card } from '../../components/ui/Card';
 import { MonthlyColumnChart } from '../../components/charts/MonthlyColumnChart';
 import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
 import { useMeterMonthly } from '../../hooks/queries/useMeters';
+import { MeterMetricSelector } from './components/MeterMetricSelector';
 import { MeterMonthlyTable } from './components/MeterMonthlyTable';
+import { meterMetrics } from './components/meterMetrics';
+import type { MeterMetricKey } from './components/meterMetrics';
 
 export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const navigate = useNavigate();
   const { data: monthly, isLoading } = useMeterMonthly(meterId!);
+  const [chartMetric, setChartMetric] = useState<MeterMetricKey>('totalKwh');
+  const [hoveredMetric, setHoveredMetric] = useState<MeterMetricKey | null>(null);
 
   if (isLoading) return <MeterDetailSkeleton />;
 
-  const chartData = (monthly ?? []).map((d) => ({ month: d.month, value: d.totalKwh }));
+  const meta = meterMetrics[chartMetric];
+  const chartData = (monthly ?? []).map((d) => ({ month: d.month, value: d[chartMetric] }));
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -31,14 +38,16 @@ export function MeterDetailPage() {
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
         {chartData.length > 0 && (
           <Card>
-            <h2 className="mb-3 text-sm font-semibold text-text">Consumo mensual (kWh)</h2>
-            <MonthlyColumnChart data={chartData} label="Consumo (kWh)" unit="kWh" />
+            <div className="mb-3">
+              <MeterMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
+            </div>
+            <MonthlyColumnChart data={chartData} label={meta.label} unit={meta.unit} />
           </Card>
         )}
         {monthly && monthly.length > 0 && (
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Detalle mensual</h2>
-            <MeterMonthlyTable data={monthly} />
+            <MeterMonthlyTable data={monthly} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
           </Card>
         )}
       </div>

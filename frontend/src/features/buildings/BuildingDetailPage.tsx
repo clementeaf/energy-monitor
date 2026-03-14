@@ -72,14 +72,10 @@ export function BuildingDetailPage() {
 
               <div className="mt-3">
                 {activeTab === 'billing' && (
-                  <div className="max-h-72 overflow-y-auto">
-                    <BillingTable data={billing} />
-                  </div>
+                  <BillingTable data={billing} />
                 )}
                 {activeTab === 'meters' && meters && meters.length > 0 && (
-                  <div className="max-h-72 overflow-y-auto">
-                    <MetersTable data={meters} />
-                  </div>
+                  <MetersTable data={meters} />
                 )}
                 {activeTab === 'meters' && (!meters || meters.length === 0) && (
                   <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>

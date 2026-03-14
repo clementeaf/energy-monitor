@@ -22,8 +22,8 @@
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas stacked (Neto + IVA) |
-| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, scroll horizontal, total anual |
-| `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10 |
+| `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, scroll horizontal+vertical, thead y tfoot sticky |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10, thead sticky |
 
 ## BuildingsPage
 
@@ -38,8 +38,8 @@
 - Header: botón volver + nombre edificio en línea
 - `BillingChart`: columnas stacked por mes (Neto gris oscuro, IVA gris claro)
 - Tabs en card inferior:
-  - **Detalle Facturación:** `BillingTable` con scroll interno
-  - **Listado Remarcadores:** `MetersTable` con paginación de 10, click → `/meters/:meterId`
+  - **Detalle Facturación:** `BillingTable` — scroll interno, columnas y total anual siempre visibles (sticky)
+  - **Listado Remarcadores:** `MetersTable` — paginación de 10, columnas y paginador siempre visibles, click → `/meters/:meterId`
 - Medidores sin tienda muestran "Por censar" (muted), sin tipo muestra "—"
 
 ## Hooks activos

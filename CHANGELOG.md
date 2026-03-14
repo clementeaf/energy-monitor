@@ -13,6 +13,8 @@
 
 - **BuildingDetailPage:** tabs en la card inferior — "Detalle Facturación" y "Listado Remarcadores"
 - **BuildingDetailPage:** header simplificado — botón volver + nombre edificio en línea, sin breadcrumbs
+- **BillingTable:** thead y tfoot sticky — columnas y total anual siempre visibles al scrollear
+- **MetersTable:** thead sticky + paginador fuera del scroll — columnas y paginador siempre visibles
 - **TempLayout:** `main` cambiado de `overflow-auto` a `overflow-hidden` — cada vista maneja su propio scroll
 
 ---

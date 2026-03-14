@@ -16,34 +16,36 @@ export function MetersTable({ data }: MetersTableProps) {
   const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
-    <div>
-      <table className="min-w-full text-sm">
-        <thead>
-          <tr className="border-b border-border text-xs text-muted">
-            <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Medidor</th>
-            <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Tienda</th>
-            <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Tipo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {slice.map((row) => (
-            <tr
-              key={row.meterId}
-              onClick={() => navigate(`/meters/${row.meterId}`)}
-              className="cursor-pointer border-b border-border/50 text-text transition-colors hover:bg-raised"
-            >
-              <td className="whitespace-nowrap py-2 pr-6 font-medium">{row.meterId}</td>
-              <td className={`whitespace-nowrap py-2 pr-6 ${row.storeName === 'Por censar' ? 'text-muted' : ''}`}>
-                {row.storeName}
-              </td>
-              <td className="whitespace-nowrap py-2 pr-6 text-muted">{row.storeType || '—'}</td>
+    <div className="flex max-h-72 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <table className="min-w-full text-sm">
+          <thead className="sticky top-0 bg-white">
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Medidor</th>
+              <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Tienda</th>
+              <th className="whitespace-nowrap py-2 pr-6 text-left font-medium">Tipo</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {slice.map((row) => (
+              <tr
+                key={row.meterId}
+                onClick={() => navigate(`/meters/${row.meterId}`)}
+                className="cursor-pointer border-b border-border/50 text-text transition-colors hover:bg-raised"
+              >
+                <td className="whitespace-nowrap py-2 pr-6 font-medium">{row.meterId}</td>
+                <td className={`whitespace-nowrap py-2 pr-6 ${row.storeName === 'Por censar' ? 'text-muted' : ''}`}>
+                  {row.storeName}
+                </td>
+                <td className="whitespace-nowrap py-2 pr-6 text-muted">{row.storeType || '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-muted">
+        <div className="shrink-0 flex items-center justify-between border-t border-border pt-3 text-xs text-muted">
           <span>{data.length} medidores</span>
           <div className="flex items-center gap-2">
             <button

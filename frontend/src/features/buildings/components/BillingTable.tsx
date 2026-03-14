@@ -46,9 +46,9 @@ interface BillingTableProps {
 
 export function BillingTable({ data }: BillingTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="max-h-72 overflow-auto">
       <table className="min-w-full text-sm">
-        <thead>
+        <thead className="sticky top-0 z-10 bg-white">
           <tr className="border-b border-border text-xs text-muted">
             {columns.map((col) => (
               <th
@@ -74,7 +74,7 @@ export function BillingTable({ data }: BillingTableProps) {
             </tr>
           ))}
         </tbody>
-        <tfoot>
+        <tfoot className="sticky bottom-0 z-10 bg-white">
           <tr className="border-t border-border font-medium text-text">
             {columns.map((col) => (
               <td

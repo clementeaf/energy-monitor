@@ -50,6 +50,17 @@ export interface MeterReading {
   energyKwhTotal: number | null;
 }
 
+// Matches backend MeterLatestReading (latest reading per meter)
+export interface MeterLatestReading {
+  meterId: string;
+  storeName: string;
+  powerKw: number | null;
+  voltageL1: number | null;
+  currentL1: number | null;
+  powerFactor: number | null;
+  timestamp: string;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

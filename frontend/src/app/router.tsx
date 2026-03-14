@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton } from '../components/ui/Skeleton';
+import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, IoTDevicesSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
 import { TempLayout } from '../components/ui/TempLayout';
 import { appRoutes } from './appRoutes';
 
@@ -16,11 +16,15 @@ const pages = {
   alertDetail:        lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage }))),
 };
 
-const skeletons: Partial<Record<string, ReactNode>> = {
-  buildings:      <BuildingsPageSkeleton />,
-  buildingDetail: <BuildingDetailSkeleton />,
-  meterDetail:    <MeterDetailSkeleton />,
-  meterReadings:  <MeterReadingsSkeleton />,
+const skeletons: Record<string, ReactNode> = {
+  buildings:          <BuildingsPageSkeleton />,
+  buildingDetail:     <BuildingDetailSkeleton />,
+  meterDetail:        <MeterDetailSkeleton />,
+  meterReadings:      <MeterReadingsSkeleton />,
+  monitoringRealtime: <RealtimeSkeleton />,
+  monitoringDevices:  <IoTDevicesSkeleton />,
+  alerts:             <AlertsSkeleton />,
+  alertDetail:        <AlertDetailSkeleton />,
 };
 
 const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }[] = [
@@ -45,7 +49,7 @@ export const router = createBrowserRouter([
         path: route.path,
         element: (
           <ErrorBoundary>
-            <Suspense fallback={skeletons[key] ?? <BuildingsPageSkeleton />}>
+            <Suspense fallback={skeletons[key] ?? null}>
               <Page />
             </Suspense>
           </ErrorBoundary>

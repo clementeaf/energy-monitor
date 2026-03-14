@@ -1,6 +1,6 @@
 import api from './api';
 import { routes } from './routes';
-import type { BuildingSummary, BillingMonthlySummary, MeterListItem, MeterMonthly, MeterReading } from '../types';
+import type { BuildingSummary, BillingMonthlySummary, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading } from '../types';
 
 export const fetchBuildings = () =>
   api.get<BuildingSummary[]>(routes.getBuildings()).then((r) => r.data);
@@ -10,6 +10,9 @@ export const fetchBuilding = (name: string) =>
 
 export const fetchMetersByBuilding = (buildingName: string) =>
   api.get<MeterListItem[]>(routes.getMetersByBuilding(buildingName)).then((r) => r.data);
+
+export const fetchMetersLatest = (buildingName: string) =>
+  api.get<MeterLatestReading[]>(routes.getMetersLatest(buildingName)).then((r) => r.data);
 
 export const fetchMeterMonthly = (meterId: string) =>
   api.get<MeterMonthly[]>(routes.getMeterMonthly(meterId)).then((r) => r.data);

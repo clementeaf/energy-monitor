@@ -10,7 +10,7 @@
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
 | `/meters/:meterId/readings/:month` | Lecturas medidor | — | si — gráfico Diario/15min, tabla resumen diario |
-| `/monitoring/realtime` | Monitoreo | si | no (shell) |
+| `/monitoring/realtime` | Monitoreo | si | si — tabla última lectura por medidor, refetch 60s |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | no (shell) |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
@@ -20,7 +20,9 @@
 | Componente | Ubicación | Uso |
 |------------|-----------|-----|
 | `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
-| `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista |
+| `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
+| `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>, footer opcional |
+| `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
@@ -68,6 +70,14 @@
 - **DailySummaryTable:** una fila por día, 9 columnas (Día, Lecturas, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), sticky thead/tfoot, totales en footer
 - Datos vía `useMeterReadings(meterId, from, to)` → `GET /api/meter-readings/:meterId?from=&to=`
 
+## RealtimePage
+
+- Sin título (el sidebar indica "Monitoreo")
+- Card con tabla: 7 columnas (Medidor, Tienda, Potencia kW, Voltaje L1, Corriente L1, FP, Estado)
+- Datos vía `useMetersLatest(buildingName)` → `GET /api/meters/building/:name/latest` (refetch 60s)
+- Estado: badge Online (<30 min), Delay (<2h), Offline (>2h) según antigüedad de timestamp
+- Skeleton: 8 filas con pulso mientras carga
+
 ## Hooks activos
 
 | Hook | Endpoint | Tipo retorno |
@@ -77,6 +87,7 @@
 | `useBilling(buildingName)` | `GET /api/billing/:buildingName` | `BillingMonthlySummary[]` |
 | `useMetersByBuilding(name)` | `GET /api/meters/building/:name` | `MeterListItem[]` |
 | `useMeterMonthly(meterId)` | `GET /api/meter-monthly/:meterId` | `MeterMonthly[]` |
+| `useMetersLatest(buildingName)` | `GET /api/meters/building/:name/latest` | `MeterLatestReading[]` (refetch 60s) |
 | `useMeterReadings(meterId, from, to)` | `GET /api/meter-readings/:meterId?from=&to=` | `MeterReading[]` |
 
 ## Tipos
@@ -102,6 +113,11 @@ MeterListItem {
 MeterMonthly {
   meterId, month, totalKwh, avgPowerKw, peakPowerKw,
   totalReactiveKvar, avgPowerFactor
+}
+
+MeterLatestReading {
+  meterId, storeName, powerKw, voltageL1, currentL1,
+  powerFactor, timestamp
 }
 
 MeterReading {

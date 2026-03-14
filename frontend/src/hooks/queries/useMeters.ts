@@ -1,11 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchMetersByBuilding, fetchMeterMonthly, fetchMeterReadings } from '../../services/endpoints';
+import { fetchMetersByBuilding, fetchMetersLatest, fetchMeterMonthly, fetchMeterReadings } from '../../services/endpoints';
 
 export function useMetersByBuilding(buildingName: string) {
   return useQuery({
     queryKey: ['meters', 'building', buildingName],
     queryFn: () => fetchMetersByBuilding(buildingName),
     enabled: !!buildingName,
+  });
+}
+
+export function useMetersLatest(buildingName: string) {
+  return useQuery({
+    queryKey: ['meters', 'latest', buildingName],
+    queryFn: () => fetchMetersLatest(buildingName),
+    enabled: !!buildingName,
+    refetchInterval: 60_000,
   });
 }
 

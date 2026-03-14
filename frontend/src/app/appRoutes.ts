@@ -44,7 +44,7 @@ export const appRoutes = {
   },
   monitoringRealtime: {
     path: '/monitoring/realtime',
-    label: 'Monitoreo en Tiempo Real',
+    label: 'Monitoreo',
     allowedRoles: PERMISSIONS.MONITORING_REALTIME.view,
     showInNav: true,
   },

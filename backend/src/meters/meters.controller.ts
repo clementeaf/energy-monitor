@@ -15,4 +15,13 @@ export class MetersController {
     }
     return results;
   }
+
+  @Get('building/:buildingName/latest')
+  async findLatestByBuilding(@Param('buildingName') buildingName: string) {
+    const results = await this.metersService.findLatestByBuilding(buildingName);
+    if (!results.length) {
+      throw new NotFoundException(`No latest readings for "${buildingName}"`);
+    }
+    return results;
+  }
 }

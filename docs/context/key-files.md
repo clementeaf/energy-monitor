@@ -5,7 +5,7 @@
 |---|---|
 | `backend/src/serverless.ts` | Entry point Lambda (cached bootstrap) |
 | `backend/src/offline-alerts.ts` | Lambda scheduled: offline meter detection |
-| `backend/src/meters/meters.service.ts` | Core: lecturas, overview, uptime, alarmas, consumo edificio; rawVal() |
+| `backend/src/meters/meters.service.ts` | Listado medidores por edificio + última lectura por medidor (DISTINCT ON) |
 | `backend/src/hierarchy/hierarchy.service.ts` | Drill-down: children con consumo, node consumption |
 | `backend/src/common/range-guard.ts` | from/to obligatorios, max 31 días |
 | `backend/src/auth/auth.service.ts` | JWT/JWKS verification, binding usuarios invitados |
@@ -33,6 +33,9 @@
 | `frontend/src/features/admin/AdminUsersPage.tsx` | Alta invitaciones |
 | `frontend/src/features/auth/ContextSelectPage.tsx` | Selección de sitio |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |
+| `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: tabla última lectura por medidor |
+| `frontend/src/components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T> |
+| `frontend/src/components/ui/PaginatedTable.tsx` | Wrapper DataTable con paginación client-side |
 
 ## Infra
 | Archivo | Propósito |

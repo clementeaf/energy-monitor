@@ -136,6 +136,66 @@ export function MeterReadingsSkeleton() {
   );
 }
 
+/** Skeleton for RealtimePage: card with table header + 8 skeleton rows */
+export function RealtimeSkeleton() {
+  const cols = 7;
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="mb-3 flex gap-6">
+          {Array.from({ length: cols }).map((_, i) => (
+            <Skeleton key={i} className={`h-3 ${i < 2 ? 'w-16' : 'w-12'}`} />
+          ))}
+        </div>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="flex gap-6 border-t border-border py-3">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-14 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton for IoTDevicesPage: placeholder */
+export function IoTDevicesSkeleton() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <Skeleton className="h-5 w-48" />
+    </div>
+  );
+}
+
+/** Skeleton for AlertsPage: placeholder */
+export function AlertsSkeleton() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <Skeleton className="h-5 w-40" />
+    </div>
+  );
+}
+
+/** Skeleton for AlertDetailPage: header + placeholder */
+export function AlertDetailSkeleton() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0">
+        <Skeleton className="mb-2 h-4 w-24" />
+        <Skeleton className="h-7 w-40" />
+      </div>
+      <div className="flex flex-1 items-center justify-center">
+        <Skeleton className="h-5 w-48" />
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for MeterDetailPage: header + chart(s) */
 export function MeterDetailSkeleton() {
   return (

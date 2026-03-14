@@ -5,6 +5,7 @@ export const routes = {
 
   // Meters
   getMetersByBuilding: (buildingName: string) => `/meters/building/${buildingName}`,
+  getMetersLatest: (buildingName: string) => `/meters/building/${buildingName}/latest`,
 
   // Meter monthly
   getMeterMonthly: (meterId: string) => `/meter-monthly/${meterId}`,

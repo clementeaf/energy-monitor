@@ -62,6 +62,7 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | Method | Path | Response |
 |---|---|---|
 | GET | `/meters/building/:buildingName` | `MeterListItem[]` (meterId, storeName, storeType — sin tienda = "Por censar") |
+| GET | `/meters/building/:buildingName/latest` | `MeterLatestReading[]` (última lectura por medidor: meterId, storeName, powerKw, voltageL1, currentL1, powerFactor, timestamp) |
 
 ## Billing (`/billing`) — `@Public()`
 | Method | Path | Response |

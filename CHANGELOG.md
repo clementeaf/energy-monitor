@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.24.0-alpha.0] - 2026-03-14 — MONITOREO EN TIEMPO REAL + COMPONENTES TABLA GENÉRICOS
+
+### Added
+
+- **RealtimePage:** tabla con última lectura por medidor (Potencia, Voltaje L1, Corriente L1, FP, Estado)
+- **Estado por medidor:** badge Online/Delay/Offline según antigüedad del timestamp
+- **Skeleton por fila:** 8 filas skeleton mientras carga, no un bloque completo
+- **Endpoint `GET /meters/building/:name/latest`:** última lectura por medidor con `DISTINCT ON`
+- **API layer:** ruta, endpoint y hook `useMetersLatest` con refetch cada 60s
+- **Tipo `MeterLatestReading`:** interface compartida backend/frontend
+- **DataTable genérico:** componente declarativo con Column<T>, footer opcional, sticky thead/tfoot
+- **PaginatedTable:** wrapper de DataTable con paginación client-side
+- **Skeletons por vista:** cada ruta tiene su propio skeleton (Realtime, IoTDevices, Alerts, AlertDetail)
+
+### Changed
+
+- **router.tsx:** fallback de Suspense usa skeleton específico por ruta en vez de BuildingsPageSkeleton genérico
+- **RealtimePage:** eliminado título "Monitoreo" (redundante con sidebar)
+
+---
+
 ## [0.23.0-alpha.0] - 2026-03-14 — LECTURAS 15 MIN POR MEDIDOR
 
 ### Fixed

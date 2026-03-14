@@ -163,15 +163,6 @@ export function RealtimeSkeleton() {
   );
 }
 
-/** Skeleton for IoTDevicesPage: placeholder */
-export function IoTDevicesSkeleton() {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <Skeleton className="h-5 w-48" />
-    </div>
-  );
-}
-
 /** Skeleton for AlertsPage: placeholder */
 export function AlertsSkeleton() {
   return (

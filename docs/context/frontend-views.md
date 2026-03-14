@@ -12,7 +12,7 @@
 | `/meters/:meterId/readings/:month` | Lecturas medidor | — | si — gráfico Diario/15min, tabla resumen diario |
 | `/monitoring/realtime` | Monitoreo | si | si — tabla última lectura por medidor, refetch 60s |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
-| `/alerts` | Alertas | si | no (shell) |
+| `/alerts` | Alertas | si | si — DataTable paginada con filtros avanzados |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
 
 ## Componentes UI
@@ -77,6 +77,21 @@
 - Datos vía `useMetersLatest(buildingName)` → `GET /api/meters/building/:name/latest` (refetch 60s)
 - Estado: badge Online (<30 min), Delay (<2h), Offline (>2h) según antigüedad de timestamp
 - Skeleton: 8 filas con pulso mientras carga
+
+## AlertsPage
+
+- DataTable paginada (10/pág), columnas anchos fijos via `table-fixed`
+- 8 columnas: Medidor, Fecha, Tipo, Severidad, Campo, Valor, Umbral, Mensaje
+- **Filtros checkbox (5 columnas):** Medidor, Tipo, Severidad, Campo, Umbral — dropdown con valores únicos y checkboxes. Renderizados via `createPortal` con `position: fixed`
+- **Filtro fecha (columna Fecha):** dropdown con 3 secciones:
+  - Ordenar: Ascendente / Descendente (checkbox toggle)
+  - Filtrar por fecha: exacta (`<input date>`) o rango (desde/hasta)
+  - Filtrar por hora: exacta (`<input time>`) o rango (desde/hasta)
+  - Todos deseleccionables al hacer click en checkbox activo
+  - Badge dinámico en header resume filtros activos
+- Severidad con colores: rojo (critical), ámbar (warning), azul (info)
+- Datos vía `useAlerts()` → `GET /api/alerts`
+- Pipeline de filtrado: checkbox filters → date/time filter → sort
 
 ## Hooks activos
 

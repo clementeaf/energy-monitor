@@ -85,6 +85,7 @@ export function RealtimePage() {
             columns={columns}
             rowKey={(r) => r.meterId}
             maxHeight=""
+            pageSize={10}
             emptyMessage={isError ? 'Error al cargar datos' : 'Sin datos'}
           />
         )}

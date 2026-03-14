@@ -69,6 +69,11 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 |---|---|---|
 | GET | `/billing/:buildingName` | `BillingMonthlySummary[]` (agregado mensual: totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp, totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp) |
 
+## Alerts (`/alerts`) — `@Public()`
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/alerts` | `severity?`, `meter_id?` | `Alert[]` (max 500, orden timestamp DESC). Campos: id, meterId, timestamp, alertType, severity, field, value, threshold, message, createdAt |
+
 ## Raw Readings (`/raw-readings`) — `@Public()`
 | Method | Path | Query | Response |
 |---|---|---|---|

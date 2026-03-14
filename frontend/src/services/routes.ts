@@ -20,4 +20,13 @@ export const routes = {
 
   // Billing
   getBilling: (buildingName: string) => `/billing/${buildingName}`,
+
+  // Alerts
+  getAlerts: (params?: { severity?: string; meter_id?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.severity) qs.set('severity', params.severity);
+    if (params?.meter_id) qs.set('meter_id', params.meter_id);
+    const s = qs.toString();
+    return `/alerts${s ? `?${s}` : ''}`;
+  },
 };

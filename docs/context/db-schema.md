@@ -50,6 +50,8 @@
 
 **meter_readings** — particionada por meter_id. 1,506,720 filas (43 tiendas reales).
 
+**alerts** (pg-arauco) — id: serial PK, meter_id: varchar(20), timestamp: timestamptz, alert_type: varchar(50) ['CURRENT_HIGH'|'CURRENT_NEGATIVE'|'VOLTAGE_OUT_OF_RANGE'|'POWER_FACTOR_LOW'], severity: varchar(10) ['critical'|'warning'|'info'], field: varchar(30), value: numeric(12,4), threshold: numeric(12,4), message: text, created_at: timestamptz. Índices: meter_id, alert_type, severity. 182 filas (detectadas desde meter_readings).
+
 **raw_readings** — 15,627,840 filas (446 medidores completo CSV).
 
 ### Tablas que NO existen en producción (migraciones pendientes)

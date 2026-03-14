@@ -27,9 +27,6 @@ export const PERMISSIONS: Record<string, Record<string, Role[]>> = {
   MONITORING_REALTIME: {
     view: TECHNICAL_ROLES,
   },
-  MONITORING_DEVICES: {
-    view: TECHNICAL_ROLES,
-  },
   ALERTS_OVERVIEW: {
     view: ALERTS_VIEW_ROLES,
     manage: SITE_ADMIN_ROLES,

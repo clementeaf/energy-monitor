@@ -25,17 +25,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-14)
-- PostgreSQL local (`pg-arauco`, docker, puerto 5434) con datos organizados de Parque Arauco Kennedy:
-  - `store_type` (20), `store` (43), `building_summary` (12), `meter_monthly` (516)
-  - `meter_readings` particionada por meter_id (1,506,720 filas, 43 tiendas reales)
-  - `raw_readings` (15,627,840 filas — CSV completo de 446 medidores)
-- Backend purgado: eliminados módulos de negocio (meters, buildings, hierarchy, alerts, billing, db-verify, ingest-diagnostic)
-- Backend queda solo con: auth (Microsoft+Google), roles, users, session, common
+- PostgreSQL local (`pg-arauco`, docker, puerto 5434) con datos de Parque Arauco Kennedy
+- Backend reconectado a pg-arauco con módulos: buildings, meters, meter-monthly, meter-readings, billing, stores, raw-readings, alerts + auth, roles, users, session, common
+- DataTable extendido (ReactNode, headerRender, cellClassName, className, tableClassName) y 5 tablas migradas
+- Auth endpoints (fetchMe, fetchPermissions) reparados en frontend API layer
+- Tabla `alerts` con 182 anomalías detectadas desde `meter_readings`
+- AlertsPage con DataTable paginada, filtros checkbox (5 columnas) y filtro fecha avanzado (sort, fecha, hora)
 
 ### Pendiente
-1. **Reconectar backend a pg-arauco** — apuntar a docker local y crear módulos nuevos sobre esquema limpio
-2. **Repetir para Mall Mediano** (Arauco Estación, 254 medidores)
-3. **Ingestar 3 centros faltantes**: Outlet (70), Express CE (52), Express El Carmen (53)
+- Sin tareas pendientes definidas
 
 ## Prioridad Actual de Acceso
 `rol → vistas → acciones`. Un usuario invitado entra con rol asignado que define qué vistas y acciones puede ejecutar.

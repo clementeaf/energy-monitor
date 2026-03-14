@@ -11,6 +11,7 @@
 | `backend/src/common/utf8-json.interceptor.ts` | Content-Type utf-8 en respuestas |
 | `backend/src/users/users.controller.ts` | Admin invitaciones y usuarios |
 | `backend/src/meters/meters.service.ts` | Listado medidores por edificio + última lectura (DISTINCT ON) |
+| `backend/src/alerts/alerts.controller.ts` | GET /alerts con filtros opcionales severity/meter_id |
 | `backend/serverless.yml` | Lambda 256MB, VPC, env vars |
 
 ## Frontend
@@ -26,7 +27,9 @@
 | `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
 | `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: DataTable última lectura por medidor |
+| `frontend/src/features/alerts/AlertsPage.tsx` | Alertas: DataTable con filtros checkbox + fecha avanzado |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |
+| `frontend/src/hooks/queries/useAlerts.ts` | Hook TanStack Query para alertas |
 
 ## Infra
 | Archivo | Propósito |

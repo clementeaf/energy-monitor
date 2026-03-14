@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.26.0-alpha.0] - 2026-03-14 — ALERTAS: TABLA CON FILTROS AVANZADOS
+
+### Added
+
+- **Tabla `alerts` en pg-arauco:** 182 alertas detectadas desde anomalías en `meter_readings` (12 CURRENT_HIGH critical, 170 CURRENT_NEGATIVE warning)
+- **Backend módulo `alerts`:** entity, service, controller, module. `GET /api/alerts` con query params `?severity=` y `?meter_id=`
+- **Frontend API layer:** ruta `getAlerts`, endpoint `fetchAlerts`, hook `useAlerts`
+- **Tipo `Alert`:** interface en `types/index.ts`
+- **AlertsPage:** DataTable paginada (10/pág) con 8 columnas de ancho fijo (`table-fixed`)
+- **Filtros por checkbox:** headers Medidor, Tipo, Severidad, Campo y Umbral son dropdowns con valores únicos seleccionables
+- **Filtro de fecha avanzado:** dropdown en header Fecha con 3 secciones — Ordenar (asc/desc), Filtrar por fecha (exacta o rango), Filtrar por hora (exacta o rango). Todos deseleccionables via checkbox toggle
+- **Dropdowns en portal:** ambos tipos de dropdown usan `createPortal` + `position: fixed` para escapar el `overflow-auto` de DataTable
+
+### Changed
+
+- **DataTable:** nueva prop `tableClassName` para pasar clases al `<table>` (e.g. `table-fixed`)
+
+---
+
 ## [0.25.0-alpha.0] - 2026-03-14 — UNIFICACIÓN TABLAS CON DATATABLE
 
 ### Changed

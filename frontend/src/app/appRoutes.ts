@@ -48,17 +48,6 @@ export const appRoutes = {
     allowedRoles: PERMISSIONS.MONITORING_REALTIME.view,
     showInNav: true,
   },
-  monitoringDevices: {
-    path: '/monitoring/devices',
-    label: 'Dispositivos',
-    allowedRoles: PERMISSIONS.MONITORING_DEVICES.view,
-    showInNav: true,
-  },
-  iotDevicesLegacy: {
-    path: '/iot-devices',
-    label: 'Dispositivos Legacy',
-    allowedRoles: PERMISSIONS.MONITORING_DEVICES.view,
-  },
   alerts: {
     path: '/alerts',
     label: 'Alertas',

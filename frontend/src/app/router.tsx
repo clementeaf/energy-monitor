@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, IoTDevicesSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
+import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
 import { TempLayout } from '../components/ui/TempLayout';
 import { appRoutes } from './appRoutes';
 
@@ -11,7 +11,6 @@ const pages = {
   meterDetail:        lazy(() => import('../features/meters/MeterDetailPage').then((m) => ({ default: m.MeterDetailPage }))),
   meterReadings:      lazy(() => import('../features/meters/MeterReadingsPage').then((m) => ({ default: m.MeterReadingsPage }))),
   monitoringRealtime: lazy(() => import('../features/monitoring/RealtimePage').then((m) => ({ default: m.RealtimePage }))),
-  monitoringDevices:  lazy(() => import('../features/iot-devices/IoTDevicesPage').then((m) => ({ default: m.IoTDevicesPage }))),
   alerts:             lazy(() => import('../features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage }))),
   alertDetail:        lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage }))),
 };
@@ -22,7 +21,6 @@ const skeletons: Record<string, ReactNode> = {
   meterDetail:        <MeterDetailSkeleton />,
   meterReadings:      <MeterReadingsSkeleton />,
   monitoringRealtime: <RealtimeSkeleton />,
-  monitoringDevices:  <IoTDevicesSkeleton />,
   alerts:             <AlertsSkeleton />,
   alertDetail:        <AlertDetailSkeleton />,
 };
@@ -33,7 +31,6 @@ const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }
   { key: 'meterDetail',        routeKey: 'meterDetail' },
   { key: 'meterReadings',      routeKey: 'meterReadings' },
   { key: 'monitoringRealtime', routeKey: 'monitoringRealtime' },
-  { key: 'monitoringDevices',  routeKey: 'monitoringDevices' },
   { key: 'alerts',             routeKey: 'alerts' },
   { key: 'alertDetail',        routeKey: 'alertDetail' },
 ];

@@ -61,6 +61,20 @@ export interface MeterLatestReading {
   timestamp: string;
 }
 
+// Matches backend Alert entity (alerts table)
+export interface Alert {
+  id: number;
+  meterId: string;
+  timestamp: string;
+  alertType: string;
+  severity: string;
+  field: string;
+  value: number | null;
+  threshold: number | null;
+  message: string | null;
+  createdAt: string;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

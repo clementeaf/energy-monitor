@@ -6,8 +6,10 @@ import { useBuilding } from '../../hooks/queries/useBuildings';
 import { useBilling } from '../../hooks/queries/useBilling';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BillingChart } from './components/BillingChart';
+import { BillingMetricSelector } from './components/BillingMetricSelector';
 import { BillingTable } from './components/BillingTable';
 import { MetersTable } from './components/MetersTable';
+import type { BillingMetricKey } from './components/billingMetrics';
 
 type DetailTab = 'billing' | 'meters';
 
@@ -23,6 +25,7 @@ export function BuildingDetailPage() {
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
   const [activeTab, setActiveTab] = useState<DetailTab>('billing');
+  const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
 
   if (loadingBuilding || loadingBilling || loadingMeters) return <BuildingDetailSkeleton />;
   if (!months || months.length === 0) return <p className="text-muted">Edificio no encontrado</p>;
@@ -47,8 +50,10 @@ export function BuildingDetailPage() {
         {billing && billing.length > 0 && (
           <>
             <Card>
-              <h2 className="mb-3 text-sm font-semibold text-text">Facturación mensual 2025</h2>
-              <BillingChart data={billing} />
+              <div className="mb-3">
+                <BillingMetricSelector value={chartMetric} onChange={setChartMetric} />
+              </div>
+              <BillingChart data={billing} metric={chartMetric} />
             </Card>
 
             <Card className="flex flex-col overflow-hidden">

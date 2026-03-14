@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.17.0-alpha.0] - 2026-03-14 — SELECTOR DE MÉTRICAS EN GRÁFICO
+
+### Added
+
+- **BillingMetricSelector:** dropdown custom para seleccionar métrica del gráfico (11 opciones, click-outside para cerrar)
+- **billingMetrics.ts:** definición centralizada de métricas con label y unidad
+
+### Changed
+
+- **BillingChart:** recibe métrica dinámica en vez de stacked fijo Neto+IVA, formato eje Y según unidad (CLP, kWh, kW)
+- **BuildingDetailPage:** título estático "Facturación mensual 2025" reemplazado por selector de métricas
+
+---
+
 ## [0.16.0-alpha.0] - 2026-03-14 — TABS DETALLE + LISTADO REMARCADORES
 
 ### Added

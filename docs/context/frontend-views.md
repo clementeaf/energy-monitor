@@ -21,7 +21,8 @@
 | `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
-| `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas stacked (Neto + IVA) |
+| `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
+| `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas de facturación |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, scroll horizontal+vertical, thead y tfoot sticky |
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10, thead sticky |
 
@@ -36,7 +37,7 @@
 ## BuildingDetailPage
 
 - Header: botón volver + nombre edificio en línea
-- `BillingChart`: columnas stacked por mes (Neto gris oscuro, IVA gris claro)
+- `BillingMetricSelector` + `BillingChart`: selector dropdown elige métrica, gráfico muestra columnas por mes
 - Tabs en card inferior:
   - **Detalle Facturación:** `BillingTable` — scroll interno, columnas y total anual siempre visibles (sticky)
   - **Listado Remarcadores:** `MetersTable` — paginación de 10, columnas y paginador siempre visibles, click → `/meters/:meterId`

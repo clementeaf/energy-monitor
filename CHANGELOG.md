@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.27.0-alpha.0] - 2026-03-14 — DASHBOARD HOLDING
+
+### Added
+
+- **DashboardPage:** vista principal del holding en `/` con data mock hardcodeada
+  - Tabla "Gasto y Consumo Mensual" con 15 edificios (consumo kWh, gasto $, superficie m², medidores) y totales en footer
+  - 3 cards resumen: Pagos Recibidos, Docs por Vencer, Docs Vencidos
+  - Tabla "Documentos Vencidos por Período" (5 rangos: 1-30, 31-60, 61-90, 91-120, >120 días) con totales
+- **Permiso `DASHBOARD_OVERVIEW`:** accesible por todos los roles invitados
+- **DashboardSkeleton:** skeleton propio (tabla + 3 cards + tabla)
+- **Mock data separada:** `features/dashboard/mockData.ts` con tipos y constantes
+
+### Changed
+
+- **BuildingsPage:** ruta movida de `/` a `/buildings`
+- **Sidebar:** Dashboard es primer item, Edificios segundo
+
+---
+
 ## [0.26.0-alpha.0] - 2026-03-14 — ALERTAS: TABLA CON FILTROS AVANZADOS
 
 ### Added

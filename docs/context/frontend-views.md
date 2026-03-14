@@ -6,7 +6,8 @@
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Edificios | si | si — cards con stats, click navega a detalle |
+| `/` | Dashboard | si | no — data mock hardcodeada (15 edificios, 3 cards, tabla períodos) |
+| `/buildings` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
 | `/meters/:meterId/readings/:month` | Lecturas medidor | — | si — gráfico Diario/15min, tabla resumen diario |
@@ -32,6 +33,15 @@
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
 | `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 6 columnas, highlight columna via `className`, click fila → lecturas |
 | `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline |
+
+## DashboardPage
+
+- Vista principal del holding (Parque Arauco S.A.)
+- Data 100% mock hardcodeada (sin hooks, sin API)
+- Tabla superior: 15 edificios con consumo kWh, gasto $, superficie m², medidores. Footer con totales
+- 3 cards: Pagos Recibidos, Docs por Vencer, Docs Vencidos
+- Tabla inferior: documentos vencidos por período (5 rangos de días, cantidad, saldo)
+- Usa `DataTable` y `Card` existentes
 
 ## BuildingsPage
 

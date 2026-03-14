@@ -8,6 +8,46 @@ export function Skeleton({ className = '' }: SkeletonProps) {
   );
 }
 
+/** Skeleton for DashboardPage: table + 3 cards + table */
+export function DashboardSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-6 overflow-hidden">
+      <Skeleton className="h-7 w-36" />
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <Skeleton className="mb-3 h-4 w-64" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex gap-6 border-t border-border py-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-14" />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="rounded-lg border border-border bg-surface p-4">
+            <Skeleton className="mb-2 h-4 w-24" />
+            <Skeleton className="mb-1 h-7 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <Skeleton className="mb-3 h-4 w-56" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex gap-6 border-t border-border py-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for BuildingsPage: title + grid of 4 building cards */
 export function BuildingsPageSkeleton() {
   return (

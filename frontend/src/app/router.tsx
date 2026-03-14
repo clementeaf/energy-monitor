@@ -1,11 +1,12 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
+import { DashboardSkeleton, BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
 import { TempLayout } from '../components/ui/TempLayout';
 import { appRoutes } from './appRoutes';
 
 const pages = {
+  dashboard:          lazy(() => import('../features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage }))),
   buildings:          lazy(() => import('../features/buildings/BuildingsPage').then((m) => ({ default: m.BuildingsPage }))),
   buildingDetail:     lazy(() => import('../features/buildings/BuildingDetailPage').then((m) => ({ default: m.BuildingDetailPage }))),
   meterDetail:        lazy(() => import('../features/meters/MeterDetailPage').then((m) => ({ default: m.MeterDetailPage }))),
@@ -16,6 +17,7 @@ const pages = {
 };
 
 const skeletons: Record<string, ReactNode> = {
+  dashboard:          <DashboardSkeleton />,
   buildings:          <BuildingsPageSkeleton />,
   buildingDetail:     <BuildingDetailSkeleton />,
   meterDetail:        <MeterDetailSkeleton />,
@@ -26,6 +28,7 @@ const skeletons: Record<string, ReactNode> = {
 };
 
 const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }[] = [
+  { key: 'dashboard',          routeKey: 'dashboard' },
   { key: 'buildings',          routeKey: 'buildings' },
   { key: 'buildingDetail',     routeKey: 'buildingDetail' },
   { key: 'meterDetail',        routeKey: 'meterDetail' },

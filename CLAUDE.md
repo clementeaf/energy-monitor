@@ -31,6 +31,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Auth endpoints (fetchMe, fetchPermissions) reparados en frontend API layer
 - Tabla `alerts` con 182 anomalías detectadas desde `meter_readings`
 - AlertsPage con DataTable paginada, filtros checkbox (5 columnas) y filtro fecha avanzado (sort, fecha, hora)
+- DashboardPage en `/` con data mock (15 edificios, 3 cards, tabla períodos). BuildingsPage movida a `/buildings`
 
 ### Pendiente
 - Sin tareas pendientes definidas

@@ -12,6 +12,9 @@ const ADMIN_USERS_MANAGE_ROLES: Role[] = ['SUPER_ADMIN'];
  * `module = vista`: cada código corresponde a una pantalla persistida en la tabla `modules`.
  */
 export const PERMISSIONS: Record<string, Record<string, Role[]>> = {
+  DASHBOARD_OVERVIEW: {
+    view: ALL_INVITED_ROLES,
+  },
   CONTEXT_SELECT: {
     view: ALL_INVITED_ROLES,
   },

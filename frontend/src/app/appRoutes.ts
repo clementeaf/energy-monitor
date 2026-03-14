@@ -16,13 +16,19 @@ export const appRoutes = {
   unauthorized: { path: '/unauthorized', label: 'Sin acceso' },
 
   // Protected
+  dashboard: {
+    path: '/',
+    label: 'Dashboard',
+    allowedRoles: PERMISSIONS.DASHBOARD_OVERVIEW.view,
+    showInNav: true,
+  },
   contextSelect: {
     path: '/context/select',
     label: 'Seleccionar sitio',
     allowedRoles: PERMISSIONS.CONTEXT_SELECT.view,
   },
   buildings: {
-    path: '/',
+    path: '/buildings',
     label: 'Edificios',
     allowedRoles: PERMISSIONS.BUILDINGS_OVERVIEW.view,
     showInNav: true,

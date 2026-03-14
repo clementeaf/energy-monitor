@@ -26,6 +26,8 @@
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |
 | `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
+| `frontend/src/features/dashboard/DashboardPage.tsx` | Dashboard holding: tablas + cards con data mock |
+| `frontend/src/features/dashboard/mockData.ts` | Data mock: 15 edificios, 3 cards resumen, 5 períodos vencidos |
 | `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: DataTable última lectura por medidor |
 | `frontend/src/features/alerts/AlertsPage.tsx` | Alertas: DataTable con filtros checkbox + fecha avanzado |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |

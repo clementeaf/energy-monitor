@@ -7,7 +7,7 @@
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
 | `/` | Edificios | si | si — cards con stats, click navega a detalle |
-| `/buildings/:id` | Detalle edificio | — | si — gráfico + tabla facturación |
+| `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | no (shell) |
 | `/monitoring/realtime` | Monitoreo | si | no (shell) |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
@@ -23,6 +23,7 @@
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas stacked (Neto + IVA) |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | 12 columnas, scroll horizontal, total anual |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | 3 columnas (Medidor, Tienda, Tipo), paginación de 10 |
 
 ## BuildingsPage
 
@@ -34,9 +35,12 @@
 
 ## BuildingDetailPage
 
-- Breadcrumbs (Edificios → nombre) + botón volver, sin título
+- Header: botón volver + nombre edificio en línea
 - `BillingChart`: columnas stacked por mes (Neto gris oscuro, IVA gris claro)
-- `BillingTable`: consumo kWh, energía $, dda. máx., dda. punta, kWh troncal, kWh serv. público, cargo fijo, neto, IVA, exento, total c/IVA — scroll horizontal, scroll vertical interno
+- Tabs en card inferior:
+  - **Detalle Facturación:** `BillingTable` con scroll interno
+  - **Listado Remarcadores:** `MetersTable` con paginación de 10, click → `/meters/:meterId`
+- Medidores sin tienda muestran "Por censar" (muted), sin tipo muestra "—"
 
 ## Hooks activos
 
@@ -45,6 +49,7 @@
 | `useBuildings()` | `GET /api/buildings` | `BuildingSummary[]` |
 | `useBuilding(name)` | `GET /api/buildings/:name` | `BuildingSummary[]` |
 | `useBilling(buildingName)` | `GET /api/billing/:buildingName` | `BillingMonthlySummary[]` |
+| `useMetersByBuilding(name)` | `GET /api/meters/building/:name` | `MeterListItem[]` |
 
 ## Tipos
 
@@ -60,6 +65,10 @@ BillingMonthlySummary {
   month, totalMeters, totalKwh, energiaClp, ddaMaxKw,
   ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp,
   totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp
+}
+
+MeterListItem {
+  meterId, storeName, storeType
 }
 ```
 

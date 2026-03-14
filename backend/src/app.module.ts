@@ -11,6 +11,7 @@ import { MeterMonthlyModule } from './meter-monthly/meter-monthly.module';
 import { MeterReadingsModule } from './meter-readings/meter-readings.module';
 import { RawReadingsModule } from './raw-readings/raw-readings.module';
 import { BillingModule } from './billing/billing.module';
+import { MetersModule } from './meters/meters.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { BillingModule } from './billing/billing.module';
     MeterReadingsModule,
     RawReadingsModule,
     BillingModule,
+    MetersModule,
   ],
 })
 export class AppModule {}

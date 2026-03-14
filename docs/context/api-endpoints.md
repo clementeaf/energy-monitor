@@ -58,6 +58,11 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 |---|---|---|---|
 | GET | `/meter-readings/:meterId` | `from`, `to` (requeridos, ISO 8601, max 31 días), `limit?` (max 5000) | `MeterReading[]` |
 
+## Meters (`/meters`) — `@Public()`
+| Method | Path | Response |
+|---|---|---|
+| GET | `/meters/building/:buildingName` | `MeterListItem[]` (meterId, storeName, storeType — sin tienda = "Por censar") |
+
 ## Billing (`/billing`) — `@Public()`
 | Method | Path | Response |
 |---|---|---|

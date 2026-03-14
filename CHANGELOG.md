@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.16.0-alpha.0] - 2026-03-14 — TABS DETALLE + LISTADO REMARCADORES
+
+### Added
+
+- **Backend:** módulo `meters` — `GET /api/meters/building/:buildingName` retorna 446 medidores con join store + store_type
+- **Frontend:** tipo `MeterListItem`, hook `useMetersByBuilding`, ruta y endpoint
+- **MetersTable:** tabla 3 columnas (Medidor, Tienda, Tipo), paginación de 10, click navega a `/meters/:meterId`
+- Medidores sin tienda asignada muestran "Por censar" en texto muted
+
+### Changed
+
+- **BuildingDetailPage:** tabs en la card inferior — "Detalle Facturación" y "Listado Remarcadores"
+- **BuildingDetailPage:** header simplificado — botón volver + nombre edificio en línea, sin breadcrumbs
+- **TempLayout:** `main` cambiado de `overflow-auto` a `overflow-hidden` — cada vista maneja su propio scroll
+
+---
+
 ## [0.15.0-alpha.0] - 2026-03-14 — BILLING: INGESTA, BACKEND, FRONTEND
 
 ### Added

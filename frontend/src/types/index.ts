@@ -15,6 +15,13 @@ export interface BillingMonthlySummary {
   totalConIvaClp: number;
 }
 
+// Matches backend meters list response
+export interface MeterListItem {
+  meterId: string;
+  storeName: string;
+  storeType: string;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

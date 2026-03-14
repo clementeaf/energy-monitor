@@ -246,7 +246,7 @@ export function MeterReadingsPage() {
     chart: { height: 360 },
     title: { text: undefined },
     xAxis: { crosshair: true, range: 2 * 24 * 3600 * 1000 },
-    yAxis: { title: { text: meta.unit } },
+    yAxis: { title: { text: meta.unit }, opposite: false },
     tooltip: {
       xDateFormat: '%d/%m %H:%M',
       valueDecimals: 2,

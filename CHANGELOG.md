@@ -2,6 +2,10 @@
 
 ## [0.23.0-alpha.0] - 2026-03-14 — LECTURAS 15 MIN POR MEDIDOR
 
+### Fixed
+
+- **MeterReadingsPage:** eje Y del gráfico Stock (15 min) ahora aparece a la izquierda, consistente con el modo Diario
+
 ### Added
 
 - **MeterReadingsPage:** vista de lecturas de un medidor en un mes (`/meters/:meterId/readings/:month`)

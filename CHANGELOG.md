@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.28.0-alpha.0] - 2026-03-14 — DASHBOARD: LAYOUT 2 COLUMNAS + GRÁFICO COMBO
+
+### Added
+
+- **Gráfico combo:** barras (consumo kWh, eje Y izq) + línea (gasto CLP, eje Y der) por edificio
+- **Selector de mes:** dropdown en el gráfico (Oct-25 a Mar-26) que filtra gráfico y tabla simultáneamente
+- **Data mensual:** `BUILDINGS_BY_MONTH` con variación estacional por mes para los 15 edificios
+- **Fecha de actualización:** cada card muestra "Actualizado: dd/mm/yyyy hh:mm"
+
+### Changed
+
+- **Layout 2 columnas:** grid `5fr_1fr` — col izquierda (gráfico + tabla edificios), col derecha (3 cards + tabla períodos)
+- **Cards compactas:** padding reducido, textos más pequeños, distribuidas en altura del gráfico
+- **Tabla edificios:** scroll interno (`max-h-[340px]`) con header y footer sticky
+- **Documentos Vencidos:** 7 intervalos (Dentro del plazo, 1-7, 8-15, 16-30, 31-60, 61-90, >90 días)
+- **Responsive:** 1 columna en mobile, 2 columnas en desktop
+
+---
+
 ## [0.27.0-alpha.0] - 2026-03-14 — DASHBOARD HOLDING
 
 ### Added

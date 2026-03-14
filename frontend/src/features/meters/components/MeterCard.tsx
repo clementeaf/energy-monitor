@@ -48,6 +48,9 @@ export function MeterCard({ meter, activeAlerts = [] }: Readonly<MeterCardProps>
           </span>
         </div>
       </div>
+      {meter.storeName && (
+        <p className="mt-1 text-sm text-text">{meter.storeName}{meter.storeType ? ` (${meter.storeType})` : ''}</p>
+      )}
       <p className="mt-1 text-sm text-muted">{meter.model} &middot; {meter.phaseType}</p>
       <div className="mt-2 flex justify-between text-sm text-subtle">
         <span>Bus: {meter.busId}</span>

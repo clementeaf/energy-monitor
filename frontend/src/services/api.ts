@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 10_000,
+  timeout: 25_000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -23,13 +23,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 → clear session (don't redirect during login flow)
+// Handle 401 → clear session; log 5xx for debugging
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().clearUser();
       sessionStorage.removeItem('access_token');
+    }
+    if (error.response?.status >= 500) {
+      console.error('[API]', error.response?.status, error.config?.url, error.message);
     }
     return Promise.reject(error);
   },

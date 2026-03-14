@@ -1,0 +1,14 @@
+{
+  "name": "aggregate-builder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-aggregates.mjs",
+    "incremental": "node incremental-hourly.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.x",
+    "pg": "^8.x"
+  }
+}

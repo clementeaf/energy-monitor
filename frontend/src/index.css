@@ -2,14 +2,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-base:    #0d1117;
-  --color-surface: #161b22;
-  --color-raised:  #1e2530;
-  --color-border:  #30363d;
-  --color-text:    #e6edf3;
-  --color-muted:   #8b949e;
-  --color-subtle:  #6e7681;
-  --color-accent:  #388bfd;
+  --color-base:    #ffffff;
+  --color-surface: #f9fafb;
+  --color-raised:  #f3f4f6;
+  --color-border:  #e5e7eb;
+  --color-text:    #111827;
+  --color-muted:   #6b7280;
+  --color-subtle:  #9ca3af;
+  --color-accent:  #2563eb;
 }
 
 
@@ -30,7 +30,7 @@ a {
   text-decoration: none;
 }
 
-/* Dark scrollbars */
+/* Scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;

@@ -1,74 +1,23 @@
-import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { Public } from '../auth/public.decorator';
 import { BuildingsService } from './buildings.service';
-import { BuildingSummaryDto, ConsumptionPointDto } from './dto/building-response.dto';
-import { Meter } from '../meters/meter.entity';
-import { RequirePermissions } from '../auth/require-permissions.decorator';
-import { CurrentAuthContext } from '../auth/current-auth-context.decorator';
-import type { AuthorizationContext } from '../auth/auth.service';
 
-@ApiTags('Buildings')
-@ApiBearerAuth()
+@Public()
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Get()
-  @RequirePermissions('BUILDINGS_OVERVIEW', 'view')
-  @ApiOperation({ summary: 'Listar edificios', description: 'Retorna todos los edificios con la cantidad de medidores.' })
-  @ApiOkResponse({ type: [BuildingSummaryDto] })
-  findAll(@CurrentAuthContext() authContext: AuthorizationContext) {
-    return this.buildingsService.findAll(authContext);
+  async findAll() {
+    return this.buildingsService.findAll();
   }
 
-  @Get(':id')
-  @RequirePermissions('BUILDING_DETAIL', 'view')
-  @ApiOperation({ summary: 'Obtener edificio por ID' })
-  @ApiParam({ name: 'id', example: 'pac4220' })
-  @ApiOkResponse({ type: BuildingSummaryDto })
-  @ApiNotFoundResponse({ description: 'Edificio no encontrado' })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentAuthContext() authContext: AuthorizationContext,
-  ) {
-    const building = await this.buildingsService.findOne(id, authContext);
-    if (!building) throw new NotFoundException();
-    return building;
-  }
-
-  @Get(':id/meters')
-  @RequirePermissions('BUILDING_DETAIL', 'view')
-  @ApiOperation({ summary: 'Listar medidores de un edificio' })
-  @ApiParam({ name: 'id', example: 'pac4220' })
-  @ApiOkResponse({ type: [Meter] })
-  async findMeters(
-    @Param('id') id: string,
-    @CurrentAuthContext() authContext: AuthorizationContext,
-  ) {
-    const meters = await this.buildingsService.findMeters(id, authContext);
-    if (!meters) throw new NotFoundException();
-    return meters;
-  }
-
-  @Get(':id/consumption')
-  @RequirePermissions('BUILDING_DETAIL', 'view')
-  @ApiOperation({
-    summary: 'Consumo agregado de un edificio',
-    description:
-      'Retorna serie temporal con potencia total, promedio y pico. Si READINGS_SOURCE=staging: from y to son obligatorios; rango máx. 90 días.',
-  })
-  @ApiParam({ name: 'id', example: 'pac4220' })
-  @ApiQuery({ name: 'resolution', required: false, enum: ['15min', 'hourly', 'daily'], description: 'Resolución temporal (default: hourly)' })
-  @ApiQuery({ name: 'from', required: false, description: 'Inicio (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
-  @ApiQuery({ name: 'to', required: false, description: 'Fin (ISO 8601). Obligatorio si READINGS_SOURCE=staging.' })
-  @ApiOkResponse({ type: [ConsumptionPointDto] })
-  findConsumption(
-    @Param('id') id: string,
-    @CurrentAuthContext() authContext: AuthorizationContext,
-    @Query('resolution') resolution?: '15min' | 'hourly' | 'daily',
-    @Query('from') from?: string,
-    @Query('to') to?: string,
-  ) {
-    return this.buildingsService.findConsumption(id, authContext, resolution ?? 'hourly', from, to);
+  @Get(':name')
+  async findByName(@Param('name') name: string) {
+    const results = await this.buildingsService.findByName(name);
+    if (!results.length) {
+      throw new NotFoundException(`Building "${name}" not found`);
+    }
+    return results;
   }
 }

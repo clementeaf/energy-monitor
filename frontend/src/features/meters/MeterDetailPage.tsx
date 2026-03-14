@@ -204,6 +204,12 @@ export function MeterDetailPage() {
           ]}
         />
         <div className="mb-3 flex flex-wrap gap-3 text-sm text-muted">
+          {meter.storeName && (
+            <>
+              <span className="text-text">{meter.storeName}{meter.storeType ? ` (${meter.storeType})` : ''}</span>
+              <span>&middot;</span>
+            </>
+          )}
           <span>{meter.model}</span>
           <span>&middot;</span>
           <span>{meter.phaseType}</span>

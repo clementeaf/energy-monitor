@@ -19,4 +19,5 @@ fi
 
 echo "Túnel: localhost:$LOCAL_PORT -> $RDS_HOST:5432 (vía $BASTION_USER@$BASTION_HOST)"
 echo "Mantén esta ventana abierta. Para el backend local: DB_HOST=127.0.0.1 DB_PORT=$LOCAL_PORT"
+echo "Si 5433 está ocupado: LOCAL_PORT=5434 ./scripts/tunnel-rds.sh y usa DB_PORT=5434"
 exec ssh -i "$KEY" -o StrictHostKeyChecking=accept-new -N -L "${LOCAL_PORT}:${RDS_HOST}:5432" "${BASTION_USER}@${BASTION_HOST}"

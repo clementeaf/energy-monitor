@@ -19,12 +19,24 @@ function timeRangeForDays(days: number): { from: string; to: string } {
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
+function dateRangeToIso(fromDate: string, toDate: string): { from: string; to: string } {
+  const from = new Date(fromDate + 'T00:00:00').toISOString();
+  const to = new Date(toDate + 'T23:59:59').toISOString();
+  return { from, to };
+}
+
 export function DrilldownPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
 
   const [rangeDays, setRangeDays] = useState<number>(30);
-  const range = useMemo(() => timeRangeForDays(rangeDays), [rangeDays]);
+  const [customFrom, setCustomFrom] = useState<string>('');
+  const [customTo, setCustomTo] = useState<string>('');
+
+  const range = useMemo((): { from: string; to: string } => {
+    if (customFrom && customTo) return dateRangeToIso(customFrom, customTo);
+    return timeRangeForDays(rangeDays);
+  }, [rangeDays, customFrom, customTo]);
 
   // The root node ID convention: B-{BUILDING_ID_UPPER}
   const rootNodeId = `B-${siteId!.toUpperCase()}`;
@@ -90,14 +102,18 @@ export function DrilldownPage() {
 
     content = (
       <>
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-3">
           {RANGE_OPTIONS.map(({ days, label }) => (
             <button
               key={days}
               type="button"
-              onClick={() => setRangeDays(days)}
+              onClick={() => {
+                setRangeDays(days);
+                setCustomFrom('');
+                setCustomTo('');
+              }}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                rangeDays === days
+                !customFrom && !customTo && rangeDays === days
                   ? 'bg-accent text-white'
                   : 'bg-raised text-muted hover:bg-border hover:text-text'
               }`}
@@ -105,14 +121,29 @@ export function DrilldownPage() {
               {label}
             </button>
           ))}
+          <span className="text-muted text-sm">Rango personalizado:</span>
+          <input
+            type="date"
+            value={customFrom}
+            onChange={(e) => setCustomFrom(e.target.value)}
+            className="rounded-lg border border-border bg-raised px-2 py-1.5 text-sm text-text"
+            max={customTo || undefined}
+          />
+          <span className="text-muted text-sm">a</span>
+          <input
+            type="date"
+            value={customTo}
+            onChange={(e) => setCustomTo(e.target.value)}
+            className="rounded-lg border border-border bg-raised px-2 py-1.5 text-sm text-text"
+            min={customFrom || undefined}
+          />
         </div>
         {noReadingsInRange && (
           <p className="mb-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-            No hay lecturas en el rango seleccionado para los medidores de este nivel. Compruebe que
-            existan filas en la tabla <code className="rounded bg-black/20 px-1">readings</code> para
-            los <code className="rounded bg-black/20 px-1">meter_id</code> de esta jerarquía (por
-            ejemplo con el script <code className="rounded bg-black/20 px-1">query-readings-direct</code>
-            ).
+            No hay lecturas en el rango seleccionado para los medidores de este nivel. Pruebe con
+            un rango anterior (por ejemplo enero 2026) usando <strong>Rango personalizado</strong>, o
+            compruebe que existan datos en <code className="rounded bg-black/20 px-1">readings</code>{' '}
+            para los <code className="rounded bg-black/20 px-1">meter_id</code> de esta jerarquía.
           </p>
         )}
         <DrilldownBars items={children} onDrill={handleDrill} />

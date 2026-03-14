@@ -35,6 +35,7 @@ provider:
 functions:
   api:
     handler: dist/serverless.handler
+    memorySize: 1024
     timeout: 30
     events:
       - httpApi:

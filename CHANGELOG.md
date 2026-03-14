@@ -1,5 +1,112 @@
 # Changelog
 
+## [0.12.1-alpha.0] - 2026-03-14 — THEME LIGHT
+
+### Changed
+
+- **Theme:** palette cambiada de dark a light en `index.css`
+  - `--color-base` → `#ffffff`, `--color-surface` → `#f9fafb`, `--color-raised` → `#f3f4f6`
+  - `--color-border` → `#e5e7eb`, `--color-text` → `#111827`, `--color-muted` → `#6b7280`
+  - `--color-subtle` → `#9ca3af`, `--color-accent` → `#2563eb`
+
+---
+
+## [0.12.0-alpha.0] - 2026-03-14 — MÓDULOS STORES + METER-MONTHLY + METER-READINGS + RAW-READINGS
+
+### Added
+
+- **`stores` module** — Entities `store` y `store_type`, service, controller `@Public()`
+  - `GET /api/stores` — 43 tiendas con tipo incluido (eager join)
+  - `GET /api/stores/types` — 20 tipos de tienda
+  - `GET /api/stores/types/:id` — Tiendas filtradas por tipo
+  - `GET /api/stores/:meterId` — Tienda por meter_id
+- **`meter-monthly` module** — Entity con `numericTransformer` en 5 columnas `numeric`
+  - `GET /api/meter-monthly` — 516 filas, ordenadas meterId ASC / month DESC
+  - `GET /api/meter-monthly/:meterId` — Historial mensual de un medidor
+- **`meter-readings` module** — Entity con `numericTransformer` en 11 columnas `numeric`, tabla particionada
+  - `GET /api/meter-readings/:meterId?from=&to=` — Lecturas en rango (max 31 días, max 5000 filas)
+  - Validación vía `enforceRange` (400 si falta from/to o rango excede 31 días)
+- **`raw-readings` module** — Entity con `numericTransformer` en 4 columnas `numeric`, 15.6M filas (446 medidores)
+  - `GET /api/raw-readings/:meterId?from=&to=` — Lecturas crudas en rango (max 31 días, max 5000 filas)
+  - Índice `(meter_id, timestamp)` creado para queries eficientes
+  - `NOT NULL` aplicado en `meter_id` y `timestamp`
+
+### Changed
+
+- **Frontend: auth deshabilitado temporalmente**
+  - `main.tsx` — MSAL provider y `validateEnv` comentados
+  - `router.tsx` — refactorizado a mapeo de objeto (`routeConfig` + `withAuth()` comentable)
+  - `TempLayout` — layout temporal sin auth, nav mapeado desde `appRoutes.showInNav`
+- **Frontend: vistas reducidas a las activas**
+  - Activas: edificios, detalle edificio, detalle medidor, monitoreo realtime, dispositivos, alertas
+  - Comentadas (no eliminadas): drilldown, admin (sitios, usuarios, medidores, jerarquía), billing
+
+---
+
+## [0.11.0-alpha.0] - 2026-03-14 — PURGA BACKEND + MÓDULO BUILDINGS (LOCAL)
+
+### Removed
+
+- Módulos de negocio eliminados: `alerts`, `billing`, `buildings` (viejo), `db-verify`, `hierarchy`, `ingest-diagnostic`, `meters`
+- Archivos eliminados: `db-verify-lambda.ts`, `offline-alerts.ts`, `readings-source.config.ts`
+
+### Added
+
+- **`buildings` module** — Entity, service, controller sobre tabla `building_summary` de pg-arauco
+  - `GET /api/buildings` — Todos los edificios con resumen mensual
+  - `GET /api/buildings/:name` — Resumen por nombre (404 si no existe)
+  - `numericTransformer` en columnas `numeric` para retornar `number` en JSON
+  - `@Public()` — Sin auth hasta nuevo aviso
+- **`area_sqm`** — Columna nueva en `building_summary` (120.000 m² para Parque Arauco Kennedy)
+
+### Changed
+
+- Backend apunta a docker local `pg-arauco` (puerto 5434, db `arauco`)
+
+---
+
+## [0.10.0-alpha.0] - 2026-03-13 — PRE-AGREGADOS (NO DESPLEGADO)
+
+### ⚠️ Requiere ejecución previa en RDS antes de deploy
+
+**Secuencia obligatoria:**
+1. Aplicar `sql/019_aggregates.sql` en RDS (crea `agg_meter_hourly`, `agg_node_daily`, indexes)
+2. Correr `infra/aggregate-builder/build-aggregates.mjs` (FROM_DATE=2026-01-01 TO_DATE=2026-03-13)
+3. Verificar conteos: `agg_meter_hourly` ~1.2M, `agg_node_daily` ~146K, `analisis` (daily+monthly)
+4. Deploy backend
+5. Configurar Lambda incremental (EventBridge hourly) con `incremental-hourly.mjs`
+
+### Added
+
+- **`sql/019_aggregates.sql`** — Migración: tablas `agg_meter_hourly` (PK meter_id+bucket), `agg_node_daily` (PK node_id+bucket DATE), indexes en `analisis`, partial index en `readings` para alarmas.
+- **`infra/aggregate-builder/build-aggregates.mjs`** — Población completa de agregados. Fases: hourly (día por día) → daily (analisis) → monthly (analisis) → node (agg_node_daily). FROM_DATE/TO_DATE, DRY_RUN, PHASE.
+- **`infra/aggregate-builder/incremental-hourly.mjs`** — Actualización incremental (últimas 2h con overlap). Exporta `handler()` para Lambda. LOOKBACK_HOURS configurable.
+- **`backend/src/common/range-guard.ts`** — Util: `enforceRange()` y `enforceOptionalRange()` validan from/to obligatorios, max 31 días. Lanza BadRequestException 400.
+
+### Changed
+
+- **MetersService** — `findReadings(hourly)` lee de `agg_meter_hourly`; `findReadings(daily)` lee de `analisis` (period_type=day); `findBuildingConsumption` lee de `agg_meter_hourly` JOIN meters; `getOverview` usa `agg_meter_hourly` para alarm_count y uptime; `getUptimeSummary`/`getDowntimeEvents` detectan gaps entre buckets horarios. Eliminado todo código de staging fallback (`findReadingsFromStaging`, `findBuildingConsumptionFromStaging`, imports de `readings-source.config`).
+- **HierarchyService** — `findChildrenWithConsumption` pasa de 3N+1 queries a 1 sola query batch sobre `agg_node_daily` WHERE node_id = ANY($children) + queries batch para meter counts y status. `findNodeConsumption(daily)` lee de `agg_node_daily`; `findNodeConsumption(hourly)` usa `agg_meter_hourly` JOIN subtree meters. Eliminado `getSubtreeConsumption`, `getSubtreeConsumptionFromStagingFallback`, `getSubtreeReadingsCount` y todo código de staging.
+- **MetersController** — `downtime-events`, `alarm-events`, `alarm-summary` y `readings` (excepto raw) usan `enforceRange`/`enforceOptionalRange` para validar rango ≤31 días.
+- **HierarchyController** — `children` y `consumption` usan `enforceOptionalRange`.
+- **CLAUDE.md** — Documentada arquitectura de tablas agregadas, qué lee de dónde, range guard, script de población e incremental.
+
+### Removed
+
+- Staging fallback en MetersService y HierarchyService (ya no leen de `readings_import_staging`).
+- Dependencia de `readings-source.config.ts` en MetersService.
+
+### Performance esperada
+
+| Query | Antes (filas escaneadas) | Después |
+|-------|--------------------------|---------|
+| getOverview (700 meters) | ~2.8M | ~17K |
+| findBuildingConsumption | ~260K+ | ~720 |
+| findReadings hourly | ~130K | ~720 |
+| getSubtreeConsumption | ~130K+ | ~30 |
+| findChildrenWithConsumption | N × 130K | ~300 |
+| getUptimeSummary | ~43K | ~720 |
+
 ## [0.9.0-alpha.37] - 2026-03-13
 
 ### Fixed

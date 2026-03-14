@@ -1,0 +1,64 @@
+# Database Schema
+
+## Tables
+
+**roles** — id: smallint PK, name: varchar(30) unique, label_es: varchar(50), is_active: bool, created_at: timestamptz
+
+**modules** — id: smallint PK, code: varchar(40) unique, label: varchar(60), route_path: varchar(120) unique, navigation_group: varchar(40), show_in_nav: bool, sort_order: smallint, is_public: bool, is_active: bool
+
+**actions** — id: smallint PK, code: varchar(20) unique
+
+**role_permissions** — PK(role_id, module_id, action_id), FK role_id → roles
+
+**users** — id: uuid PK auto, external_id: varchar(255)?, provider: varchar(20)? ['microsoft'|'google'|'invitation'], email: varchar(255), name: varchar(255), avatar_url: text?, role_id: smallint FK→roles default 4, is_active: bool default true, created_at/updated_at: timestamptz
+
+**user_sites** — PK(user_id, site_id), FK user_id → users CASCADE
+
+**buildings** — id: varchar(50) PK (e.g. 'parque-arauco-kennedy'), name: varchar(200), address: varchar(300), total_area: numeric(10,2). Nota: columna center_type no existe en producción (migración 013 no aplicada).
+
+**meters** — id: varchar(10) PK (e.g. 'MG-001'), building_id: varchar(50) FK→buildings, model: varchar(20) ['PAC1670'|'PAC1651'], phase_type: varchar(5) ['1P'|'3P'], bus_id: varchar(30), modbus_address: smallint, uplink_route: varchar(100), store_type: varchar(100) NULL, store_name: varchar(200) NULL (poblados desde billing_monthly_detail 2026-03-13), status: varchar(10) default 'online', last_reading_at: timestamptz?
+
+**readings** — id: integer PK auto, meter_id: varchar(10) FK→meters, timestamp: timestamptz, voltage_l1/l2/l3: numeric(7,2)?, current_l1/l2/l3: numeric(8,3)?, power_kw: numeric(10,3) NOT NULL, reactive_power_kvar: numeric(10,3)?, power_factor: numeric(5,3)?, frequency_hz: numeric(6,3)?, energy_kwh_total: numeric(14,3) NOT NULL acumulativo, thd_voltage_pct: numeric(5,2)?, thd_current_pct: numeric(5,2)?, phase_imbalance_pct: numeric(5,2)?, breaker_status: varchar(10)?, digital_input_1/2: smallint?, digital_output_1/2: smallint?, alarm: varchar(50)?, modbus_crc_errors: integer?
+
+**hierarchy_nodes** — id: varchar(20) PK (e.g. 'TG-PAC4220'), parent_id: varchar(20) FK→self?, building_id: varchar(50), name: varchar(100), level: smallint [1=Building,2=Panel,3=Subpanel,4=Circuit], node_type: varchar(20) ['building'|'panel'|'subpanel'|'circuit'], meter_id: varchar(10) FK→meters? (solo leaf), sort_order: smallint default 0
+
+**alerts** — id: uuid PK auto, type: varchar(50) ['METER_OFFLINE'], severity: varchar(20) default 'high', status: varchar(20) ['active'|'acknowledged'|'resolved'], meter_id: varchar(10) FK→meters?, building_id: varchar(50)?, title: varchar(200), message: text, triggered_at: timestamptz default now(), acknowledged_at/resolved_at: timestamptz?, metadata: jsonb default '{}'
+
+**tiendas** — id: serial PK, building_id: varchar(50) FK→buildings, store_type: varchar(100), store_name: varchar(200), created_at, updated_at. UNIQUE(building_id, store_type, store_name). Migración 015.
+
+**analisis** — id: serial PK, building_id/tienda_id/meter_id (uno no null), period_type, period_start, period_end, consumption_kwh, avg_power_kw, peak_demand_kw, num_readings, created_at. Agregados precalculados por edificio/tienda/medidor y período. Migración 016. Actualmente vacía.
+
+**billing_center_summary** — resumen por centro, año, mes (totalConsumptionKwh, peakMaxKw, topConsumerLocal, etc.). Migración 018. Rellenable desde detalle con `backfill-summary-from-detail.mjs`.
+
+**billing_monthly_detail** — PK(center_name, year, month, meter_id). consumptionKwh, peakKw, cargos CLP, totalNetClp, totalWithIvaClp. 10,636 filas.
+
+**billing_tariffs** — PK(tariff_name, year, month). Pliegos tarifarios por comuna/mes. Datos desde XLSX en S3 `billing/`; import con `infra/billing-xlsx-import`.
+
+**staging_centers** — 5 filas. Centros del import Drive.
+
+### Tablas que NO existen en producción (migraciones pendientes)
+
+**agg_meter_hourly** — PK(meter_id, bucket TIMESTAMPTZ). Agregado por hora por medidor. Migración 019.
+
+**agg_node_daily** — PK(node_id VARCHAR(20), bucket DATE). Agregado diario por nodo de jerarquía. Migración 019.
+
+### Tablas eliminadas
+- `readings_import_staging` — eliminada 2026-03-13 (vacía, staging promovido a readings).
+
+## Relations
+```
+roles 1──N users, roles 1──N role_permissions
+users 1──N user_sites
+buildings 1──N meters, buildings 1──N tiendas
+meters 1──N readings, meters 1──N alerts
+tiendas 1──N analisis (scope tienda), meters 1──N analisis (scope meter), buildings 1──N analisis (scope building)
+hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf only)
+```
+
+## SQL Migrations
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | … | `016_analisis.sql` → analisis | `017_billing.sql` → módulo BILLING_OVERVIEW y permisos | `018_billing_tables.sql` → billing_center_summary, billing_monthly_detail, billing_tariffs | `019_aggregates.sql` → agg_meter_hourly, agg_node_daily (NO APLICADA AÚN).
+
+Migraciones manuales: no hay migration runner; se aplican manualmente. Verificar siempre que tablas/columnas existan en producción antes de deployar.
+
+## Invitaciones
+Si en prod `external_id`/`provider` son NOT NULL, el backend usa centinela `provider='invitation'` y `external_id='inv:<hex>'` al crear la invitación; el primer login OAuth reemplaza por el valor real.

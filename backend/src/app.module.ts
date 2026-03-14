@@ -4,14 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
-import { BuildingsModule } from './buildings/buildings.module';
-import { MetersModule } from './meters/meters.module';
-import { HierarchyModule } from './hierarchy/hierarchy.module';
-import { AlertsModule } from './alerts/alerts.module';
-import { DbVerifyModule } from './db-verify/db-verify.module';
-import { IngestDiagnosticModule } from './ingest-diagnostic/ingest-diagnostic.module';
 import { SessionModule } from './session/session.module';
-import { BillingModule } from './billing/billing.module';
+import { BuildingsModule } from './buildings/buildings.module';
+import { StoresModule } from './stores/stores.module';
+import { MeterMonthlyModule } from './meter-monthly/meter-monthly.module';
+import { MeterReadingsModule } from './meter-readings/meter-readings.module';
+import { RawReadingsModule } from './raw-readings/raw-readings.module';
 
 @Module({
   imports: [
@@ -39,14 +37,12 @@ import { BillingModule } from './billing/billing.module';
     AuthModule,
     RolesModule,
     UsersModule,
-    BuildingsModule,
-    MetersModule,
-    HierarchyModule,
-    AlertsModule,
-    DbVerifyModule,
-    IngestDiagnosticModule,
     SessionModule,
-    BillingModule,
+    BuildingsModule,
+    StoresModule,
+    MeterMonthlyModule,
+    MeterReadingsModule,
+    RawReadingsModule,
   ],
 })
 export class AppModule {}

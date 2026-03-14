@@ -115,6 +115,15 @@ async function run() {
     await test('GET', `/hierarchy/node/${nodeId}`);
     await test('GET', `/hierarchy/node/${nodeId}/children?from=${from}&to=${to}`);
     await test('GET', `/hierarchy/node/${nodeId}/consumption?from=${from}&to=${to}&resolution=daily`);
+    const debugRes = await request('GET', `/hierarchy/node/${nodeId}/consumption-debug?from=${from}&to=${to}`);
+    if (debugRes.ok && debugRes.json) {
+      results.push({
+        method: 'GET',
+        path: `/hierarchy/node/:nodeId/consumption-debug`,
+        status: debugRes.status,
+        summary: debugRes.json.message || `${debugRes.json.readingsTotalRows} readings, ${debugRes.json.stagingTotalRows} staging`,
+      });
+    }
   } else {
     results.push({ method: 'GET', path: '/hierarchy/:buildingId (skip)', status: '-', summary: '-' });
     results.push({ method: 'GET', path: '/hierarchy/node/:nodeId (skip)', status: '-', summary: '-' });

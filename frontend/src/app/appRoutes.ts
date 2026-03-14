@@ -65,41 +65,42 @@ export const appRoutes = {
     label: 'Detalle Alerta',
     allowedRoles: PERMISSIONS.ALERT_DETAIL.view,
   },
+  // TODO: restore when needed
   drilldown: {
     path: '/monitoring/drilldown/:siteId',
     label: 'Drill-down',
     allowedRoles: PERMISSIONS.MONITORING_DRILLDOWN.view,
-    showInNav: true,
+    // showInNav: true,
   },
   adminSites: {
     path: '/admin/sites',
     label: 'Administrar Sitios',
     allowedRoles: PERMISSIONS.ADMIN_SITES.view,
-    showInNav: true,
+    // showInNav: true,
   },
   adminUsers: {
     path: '/admin/users',
     label: 'Administrar Usuarios',
     allowedRoles: PERMISSIONS.ADMIN_USERS.view,
-    showInNav: true,
+    // showInNav: true,
   },
   adminMeters: {
     path: '/admin/meters',
     label: 'Administrar Medidores',
     allowedRoles: PERMISSIONS.ADMIN_METERS.view,
-    showInNav: true,
+    // showInNav: true,
   },
   adminHierarchy: {
     path: '/admin/hierarchy/:siteId',
     label: 'Administrar Jerarquía',
     allowedRoles: PERMISSIONS.ADMIN_HIERARCHY.view,
-    showInNav: true,
+    // showInNav: true,
   },
   billing: {
     path: '/billing',
     label: 'Facturación',
     allowedRoles: PERMISSIONS.BILLING_OVERVIEW.view,
-    showInNav: true,
+    // showInNav: true,
   },
 } as const satisfies Record<string, AppRoute>;
 

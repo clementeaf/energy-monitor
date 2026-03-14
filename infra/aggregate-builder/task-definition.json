@@ -1,0 +1,32 @@
+{
+  "family": "energy-monitor-aggregate-builder",
+  "taskRoleArn": "arn:aws:iam::058310292956:role/energy-monitor-drive-ingest-task-role",
+  "executionRoleArn": "arn:aws:iam::058310292956:role/energy-monitor-drive-ingest-task-execution-role",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "containerDefinitions": [
+    {
+      "name": "aggregate-builder",
+      "image": "058310292956.dkr.ecr.us-east-1.amazonaws.com/energy-monitor-aggregate-builder:latest",
+      "essential": true,
+      "environment": [
+        { "name": "AWS_REGION",     "value": "us-east-1" },
+        { "name": "DB_SECRET_NAME", "value": "energy-monitor/drive-ingest/db" },
+        { "name": "PHASE",          "value": "all" },
+        { "name": "FROM_DATE",      "value": "2026-01-01" },
+        { "name": "TO_DATE",        "value": "2026-03-14" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/energy-monitor-aggregate-builder",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}

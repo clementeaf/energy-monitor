@@ -14,6 +14,8 @@ export interface Meter {
   busId: string;
   modbusAddress: number;
   uplinkRoute: string;
+  storeType: string | null;
+  storeName: string | null;
   status: string;
   lastReadingAt: string | null;
 }

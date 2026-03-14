@@ -9,6 +9,10 @@ export const routes = {
   // Meter monthly
   getMeterMonthly: (meterId: string) => `/meter-monthly/${meterId}`,
 
+  // Meter readings (15-min)
+  getMeterReadings: (meterId: string, from: string, to: string) =>
+    `/meter-readings/${meterId}?from=${from}&to=${to}`,
+
   // Billing
   getBilling: (buildingName: string) => `/billing/${buildingName}`,
 };

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.0-alpha.0] - 2026-03-14 — LECTURAS 15 MIN POR MEDIDOR
+
+### Added
+
+- **MeterReadingsPage:** vista de lecturas de un medidor en un mes (`/meters/:meterId/readings/:month`)
+- **Gráfico con dos modos:** Diario (1 punto por hora, eje X = días) y 15 min (StockChart con navigator)
+- **DailySummaryTable:** resumen por día con 9 columnas, sticky thead/tfoot, totales en footer
+- **MeterReading type:** interface con 11 métricas + meterId + timestamp
+- **API layer:** ruta, endpoint y hook `useMeterReadings(meterId, from, to)`
+- **MeterMonthlyTable:** filas clickeables → navegan a vista de lecturas del mes
+
+---
+
 ## [0.22.0-alpha.0] - 2026-03-14 — SELECTOR MÉTRICAS Y TOGGLE BARRA/LÍNEA EN REMARCADOR
 
 ### Added

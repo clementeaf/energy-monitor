@@ -115,6 +115,27 @@ export function DrilldownSkeleton() {
   );
 }
 
+/** Skeleton for MeterReadingsPage: header + chart + table */
+export function MeterReadingsSkeleton() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="shrink-0">
+        <div className="mb-2 flex items-center gap-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-40" />
+        </div>
+        <div className="mb-3 flex gap-2">
+          <Skeleton className="h-7 w-48" />
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 space-y-4">
+        <Skeleton className="h-[380px] w-full" />
+        <Skeleton className="h-[300px] w-full" />
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for MeterDetailPage: header + chart(s) */
 export function MeterDetailSkeleton() {
   return (

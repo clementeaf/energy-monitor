@@ -47,7 +47,12 @@ export function MeterDetailPage() {
         {monthly && monthly.length > 0 && (
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Detalle mensual</h2>
-            <MeterMonthlyTable data={monthly} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
+            <MeterMonthlyTable
+              data={monthly}
+              highlightMetric={chartMetric}
+              hoveredMetric={hoveredMetric}
+              onMonthClick={(month) => navigate(`/meters/${meterId}/readings/${month.slice(0, 7)}`)}
+            />
           </Card>
         )}
       </div>

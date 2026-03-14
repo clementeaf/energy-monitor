@@ -33,6 +33,23 @@ export interface MeterMonthly {
   avgPowerFactor: number | null;
 }
 
+// Matches backend MeterReading entity (meter_readings table)
+export interface MeterReading {
+  meterId: string;
+  timestamp: string;
+  voltageL1: number | null;
+  voltageL2: number | null;
+  voltageL3: number | null;
+  currentL1: number | null;
+  currentL2: number | null;
+  currentL3: number | null;
+  powerKw: number | null;
+  reactivePowerKvar: number | null;
+  powerFactor: number | null;
+  frequencyHz: number | null;
+  energyKwhTotal: number | null;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

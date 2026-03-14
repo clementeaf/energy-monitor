@@ -37,9 +37,10 @@ interface MeterMonthlyTableProps {
   data: MeterMonthly[];
   highlightMetric?: MeterMetricKey;
   hoveredMetric?: MeterMetricKey | null;
+  onMonthClick?: (month: string) => void;
 }
 
-export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric }: MeterMonthlyTableProps) {
+export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric, onMonthClick }: MeterMonthlyTableProps) {
   const highlightLabel = highlightMetric ? meterMetrics[highlightMetric].label : null;
   const hoveredLabel = hoveredMetric ? meterMetrics[hoveredMetric].label : null;
 
@@ -66,7 +67,11 @@ export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric }: Mete
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={row.month} className="border-b border-border/50 text-text">
+            <tr
+              key={row.month}
+              onClick={() => onMonthClick?.(row.month)}
+              className={`border-b border-border/50 text-text ${onMonthClick ? 'cursor-pointer hover:bg-raised/50' : ''}`}
+            >
               {columns.map((col) => (
                 <td
                   key={col.label}

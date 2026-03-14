@@ -37,6 +37,11 @@ export const appRoutes = {
     label: 'Detalle Medidor',
     allowedRoles: PERMISSIONS.METER_DETAIL.view,
   },
+  meterReadings: {
+    path: '/meters/:meterId/readings/:month',
+    label: 'Lecturas Medidor',
+    allowedRoles: PERMISSIONS.METER_DETAIL.view,
+  },
   monitoringRealtime: {
     path: '/monitoring/realtime',
     label: 'Monitoreo en Tiempo Real',

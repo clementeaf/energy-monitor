@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.31.1-alpha.0] - 2026-03-15 — FIX DATOS SC53 + DOCUMENTACIÓN INGESTA
+
+### Fixed
+
+- **Cards "Demanda Peak / Potencia prom. / Factor potencia"** mostraban "—" para MM y SC53 — columnas `peak_demand_kw`, `avg_power_kw`, `avg_power_factor` en `building_summary` estaban NULL
+- **SC53 billing incompleto** — script leía XLSX de MG en vez de SC53 → 10 columnas CLP/demanda NULL. Re-ingestado desde `SC53_KPIs_mensuales_2025_M.xlsx` (636 filas completas)
+
+### Added
+
+- Checklist de ingesta (9 pasos) en `docs/context/ingest-pipeline.md`
+- Query de verificación post-ingesta para detectar NULLs
+- Documentación de errores conocidos y lecciones
+
+### Changed
+
+- `docs/context/db-schema.md` — conteos actualizados a estado real
+
+---
+
 ## [0.31.0-alpha.0] - 2026-03-14 — CARGA MALL MEDIANO (MM254)
 
 ### Added

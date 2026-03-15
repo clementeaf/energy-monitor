@@ -24,14 +24,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-14)
-- PostgreSQL local con 3 edificios, 700 medidores, 24.5M lecturas
-- Mall Mediano (MM254) ingesta completa: `ingest-mm254-full.py`
-- Tabla `tariff` con columna `location` — soporta múltiples pliegos (Las Condes + Santiago)
-- Query LATERAL optimizada, null-safety frontend, módulos backend completos
+### Completado (2026-03-15)
+- 3 edificios en pg-arauco: MG (446), MM (254), SC53 (53) — 700 medidores, 24.5M lecturas
+- Tariff con location, query LATERAL, null-safety frontend, módulos backend completos
+- SC53 billing re-ingestado desde XLSX correcto (636 filas, 22 columnas completas)
+- KPIs `building_summary` poblados para los 3 edificios (cards frontend operativas)
+- Checklist de ingesta de 9 pasos documentado en `docs/context/ingest-pipeline.md`
 
 ### Pendiente
 - Sin tareas pendientes definidas
+
+### Prompt de retoma
+```
+Read CLAUDE.md. Retomando sesión.
+
+Estado: 3 edificios en pg-arauco (MG 446 + MM 254 + SC53 53 = 700 medidores, 24.5M lecturas).
+Tablas clave: store (700), meter_monthly (8,400), meter_readings (24.5M, 700 particiones),
+meter_monthly_billing (9,036), building_summary (36), tariff (24, con location).
+Último commit: a0b87b3.
+
+Archivos no trackeados: CSVs fuente, XLSX fuente, scripts exploratorios en scripts/.
+```
 
 ## Prioridad Actual de Acceso
 `rol → vistas → acciones`. Un usuario invitado entra con rol asignado que define qué vistas y acciones puede ejecutar.

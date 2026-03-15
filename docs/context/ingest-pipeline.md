@@ -83,3 +83,108 @@ GET /buildings prioriza staging_centers si tiene filas; fallback a buildings si 
 - Lee XLSX desde S3 `billing/`, parsea 3 sheets → billing_monthly_detail, billing_tariffs, billing_center_summary
 - Idempotente: ON CONFLICT DO UPDATE
 - Backfill summary: `backfill-summary-from-detail.mjs`
+
+## Ingesta Local pg-arauco — Scripts Python
+
+### Scripts disponibles
+| Script | Edificio | Fuente | Tablas destino |
+|--------|----------|--------|----------------|
+| `ingest-403-meter-readings.py` | MG (446) | CSV | raw_readings, store, meter_readings |
+| `ingest-403-stores-monthly.py` | MG (446) | CSV | meter_monthly |
+| `ingest-billing-xlsx.py` | MG (446) | XLSX Resumen Mensual | meter_monthly_billing (base) |
+| `ingest-kpis-xlsx.py` | MG (446) | XLSX Resumen Mensual | meter_monthly_billing (KPIs: peak, demanda, pct, promedio) |
+| `ingest-sc53-arauco-express.py` | SC53 (53) | XLSX Consumo por Local | meter_monthly_billing, building_summary, store |
+| `ingest-mm254-full.py` | MM (254) | CSV + XLSX | raw_readings, store, meter_monthly, meter_readings, meter_monthly_billing, tariff, building_summary |
+| `ingest-tariffs.py` | — | XLSX Pliegos | tariff |
+
+### Checklist de ingesta para un edificio nuevo
+
+**Archivos requeridos:**
+1. `{PREFIJO}_{N}_completo.csv` — lecturas brutas (latin1, 35K filas/medidor/año)
+2. `{PREFIJO}{N}_KPIs_mensuales_{YEAR}_M.xlsx` — billing + KPIs mensuales
+
+**Pasos obligatorios (en orden):**
+
+| # | Paso | Tabla destino | Fuente | Notas |
+|---|------|--------------|--------|-------|
+| 1 | CSV → raw_readings | `raw_readings` | CSV | COPY con latin1, batch 5000 |
+| 2 | CSV → store + store_type | `store`, `store_type` | CSV | Extraer tipos únicos, MAX(id)+1 para store_type.id |
+| 3 | raw_readings → meter_monthly | `meter_monthly` | SQL aggregation | `SUM(kwh)`, `AVG(power_kw)`, `MAX(power_kw)`, `AVG(power_factor)` agrupado por (meter_id, month) |
+| 4 | raw_readings → meter_readings | `meter_readings` | SQL particionado | Crear partición LIST por meter_id, INSERT desde raw |
+| 5 | XLSX → meter_monthly_billing (base) | `meter_monthly_billing` | XLSX Resumen Mensual | Columnas CLP + energía |
+| 6 | XLSX → meter_monthly_billing (KPIs) | `meter_monthly_billing` | XLSX Resumen Mensual | UPDATE: peak_mensual_kw, demanda_hora_punta_kwh, pct_punta_consumo, promedio_diario_kwh |
+| 7 | XLSX → tariff (si location nueva) | `tariff` | XLSX Pliegos Tarifarios | PK (month, location) — solo si comuna nueva |
+| 8 | Agregar building_summary | `building_summary` | SQL aggregation | Ver fórmulas abajo |
+| **9** | **Calcular KPIs building_summary** | `building_summary` | SQL UPDATE | **CRÍTICO — sin esto las cards frontend muestran "—"** |
+
+### Cálculo KPIs building_summary (paso 9)
+
+Las 3 columnas `peak_demand_kw`, `avg_power_kw`, `avg_power_factor` en `building_summary` alimentan las cards "Demanda Peak", "Potencia prom." y "Factor potencia" en la vista Edificio.
+
+**Si el edificio tiene `meter_monthly` (CSV ingestado):**
+```sql
+UPDATE building_summary bs SET
+  peak_demand_kw = sub.sum_peak,
+  avg_power_kw   = sub.avg_pw,
+  avg_power_factor = sub.avg_pf
+FROM (
+  SELECT mm.month,
+    SUM(mm.peak_power_kw)    AS sum_peak,
+    AVG(mm.avg_power_kw)     AS avg_pw,
+    AVG(mm.avg_power_factor)  AS avg_pf
+  FROM meter_monthly mm
+  WHERE mm.meter_id LIKE '{PREFIX}%'
+  GROUP BY mm.month
+) sub
+WHERE bs.building_name = '{BUILDING_NAME}'
+  AND bs.month = sub.month;
+-- Nota: si meter_monthly usa fechas +1 año respecto a building_summary,
+-- usar: bs.month = sub.month - INTERVAL '1 year'
+```
+
+**Si el edificio NO tiene `meter_monthly` (solo billing):**
+```sql
+UPDATE building_summary bs SET
+  peak_demand_kw   = sub.sum_peak,
+  avg_power_kw     = sub.avg_kw,
+  avg_power_factor = 0.920
+FROM (
+  SELECT month,
+    SUM(peak_mensual_kw) AS sum_peak,
+    AVG(total_kwh / (EXTRACT(DAY FROM (month + INTERVAL '1 month') - month) * 24.0)) AS avg_kw
+  FROM meter_monthly_billing
+  WHERE building_name = '{BUILDING_NAME}'
+    AND total_kwh > 0
+  GROUP BY month
+) sub
+WHERE bs.building_name = '{BUILDING_NAME}'
+  AND bs.month = sub.month;
+```
+
+**Fórmulas:**
+- `peak_demand_kw` = SUM de peak_power_kw (meter_monthly) o SUM de peak_mensual_kw (billing)
+- `avg_power_kw` = AVG de avg_power_kw (meter_monthly) o AVG de (total_kwh / horas_del_mes) por medidor (billing)
+- `avg_power_factor` = AVG de avg_power_factor (meter_monthly) o 0.920 constante (billing, cuando no hay dato real)
+
+### Offset de fechas
+- CSV/meter_monthly/meter_readings usan rango **2026** (sintético)
+- XLSX/billing/building_summary usan rango **2025** (real)
+- Al cruzar meter_monthly con building_summary, ajustar con `- INTERVAL '1 year'`
+
+### Errores conocidos en ingestas pasadas
+- `ingest-mm254-full.py` paso 8: insertó building_summary **sin** peak_demand_kw, avg_power_kw, avg_power_factor → se corrigió manualmente con UPDATE desde meter_monthly
+- `ingest-sc53-arauco-express.py`: insertó building_summary **sin** los 3 KPIs → se corrigió con UPDATE desde meter_monthly_billing
+- **`ingest-sc53-arauco-express.py` línea 11: leía del XLSX equivocado** (`MG446_KPIs_mensuales_2025_M.xlsx` en vez de `SC53_KPIs_mensuales_2025_M.xlsx`). Solo parseaba "Consumo por Local (Pivot)" (3 métricas: kWh, Peak, Demanda Punta). Resultado: meter_monthly_billing con 10 columnas CLP/demanda en NULL (energia_clp, dda_max_kw, dda_max_punta_kw, kwh_troncal, kwh_serv_publico, cargo_fijo_clp, total_neto_clp, iva_clp, monto_exento_clp, total_con_iva_clp). **Corregido 2026-03-15:** re-ingesta desde XLSX correcto usando sheet "Resumen Mensual" (22 columnas completas, 636 filas).
+- **Lección:** cada edificio tiene su propio XLSX (`{PREFIJO}{N}_KPIs_mensuales_{YEAR}_M.xlsx`). NUNCA reutilizar el XLSX de otro edificio — las sheets pueden tener estructura similar pero datos distintos o parciales.
+
+### Verificación post-ingesta
+```sql
+-- Verificar que NO haya NULLs en las 3 columnas KPI
+SELECT building_name, COUNT(*) as months,
+  COUNT(peak_demand_kw) as has_peak,
+  COUNT(avg_power_kw) as has_avg,
+  COUNT(avg_power_factor) as has_pf
+FROM building_summary
+GROUP BY building_name;
+-- Las 3 columnas has_* deben ser = months para cada edificio
+```

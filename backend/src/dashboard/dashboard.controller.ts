@@ -1,5 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param } from '@nestjs/common';
+import { ApiOperation, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/public.decorator';
 import { DashboardService } from './dashboard.service';
 
@@ -21,5 +21,13 @@ export class DashboardController {
   @ApiOkResponse({ description: 'Cards de pago + tabla de vencidos por período' })
   async getPayments() {
     return this.dashboardService.getPaymentSummary();
+  }
+
+  @Get('documents/:status')
+  @ApiOperation({ summary: 'Lista de documentos de cobro por estado' })
+  @ApiParam({ name: 'status', enum: ['pagado', 'por_vencer', 'vencido'] })
+  @ApiOkResponse({ description: 'Documentos con detalle de edificio, vencimiento, neto, IVA y total' })
+  async getDocumentsByStatus(@Param('status') status: string) {
+    return this.dashboardService.getDocumentsByStatus(status);
   }
 }

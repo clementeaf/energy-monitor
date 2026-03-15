@@ -33,6 +33,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Tabla `billing_document` con 60 registros sintéticos de pagos (pagado/por_vencer/vencido)
 - Cards dashboard: Pagos Recibidos, Docs por Vencer, Docs Vencidos — con datos reales y colores
 - Tabla "Documentos Vencidos por Período" — 4 rangos de días con conteo y montos
+- Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
+- Drawers en dashboard: click en cards "Docs por Vencer" y "Docs Vencidos" abre drawer con tabla detallada (Edificio, N° Doc, Vencimiento, Neto, IVA, Total)
+- Endpoint `GET /dashboard/documents/:status` para detalle de documentos por estado
 
 ### Prompt de retoma
 ```
@@ -40,9 +43,10 @@ Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
 Dashboard completo: gráfico, tabla edificios, cards de pago y tabla vencidos con datos reales.
+Cards "Docs por Vencer" y "Docs Vencidos" clickeables → Drawer con tabla detallada.
 Comparativas con datos reales.
 Incidencias en medidor con navegación a Alertas.
-Tabla billing_document con 60 registros sintéticos de pagos.
+Componente Drawer reutilizable.
 ```
 
 ## Prioridad Actual de Acceso

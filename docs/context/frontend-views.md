@@ -25,6 +25,7 @@
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
 | `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>: ReactNode values, headerRender, cellClassName, className por columna, footer opcional, bg-surface sticky |
 | `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usado en Comparativas |
+| `Drawer` | `components/ui/Drawer.tsx` | Panel lateral/superior/inferior con portal, overlay, Escape, lock scroll. Props: side, size, title, overlayClose |
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
@@ -41,11 +42,12 @@
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
 - **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Barra/Línea y selector de mes
-- **Fila 1 — col der:** 3 cards de pago con datos reales — Pagos Recibidos (verde), Docs por Vencer (ámbar), Docs Vencidos (rojo). Monto + conteo de documentos
+- **Fila 1 — col der:** 3 cards de pago con datos reales — Pagos Recibidos (verde), Docs por Vencer (ámbar, clickeable → Drawer), Docs Vencidos (rojo, clickeable → Drawer). Monto + conteo de documentos
 - **Fila 2 — col izq:** tabla edificios (5 reales, scroll interno 340px, header/footer sticky)
 - **Fila 2 — col der:** tabla "Documentos Vencidos por Período" — DataTable con 4 rangos (1-30, 31-60, 61-90, 90+ días), columnas Período/Docs/Monto, footer con totales
 - Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
 - Datos de pago vía `useDashboardPayments` → `GET /api/dashboard/payments`
+- **Drawers de documentos:** click en cards "Docs por Vencer" o "Docs Vencidos" abre `Drawer` size `lg` con DataTable (Edificio, N° Doc, Vencimiento, Neto, IVA, Total + footer totales). Datos vía `useDashboardDocuments(status)` → `GET /api/dashboard/documents/:status` (fetch lazy al abrir)
 - Selector de mes derivado de los meses disponibles en la API
 
 ## BuildingsPage
@@ -126,6 +128,7 @@
 | Hook | Endpoint | Tipo retorno |
 |------|----------|--------------|
 | `useDashboardPayments()` | `GET /api/dashboard/payments` | `PaymentSummary` |
+| `useDashboardDocuments(status, enabled)` | `GET /api/dashboard/documents/:status` | `BillingDocumentDetail[]` |
 | `useBuildings()` | `GET /api/buildings` | `BuildingSummary[]` |
 | `useBuilding(name)` | `GET /api/buildings/:name` | `BuildingSummary[]` |
 | `useBilling(buildingName)` | `GET /api/billing/:buildingName` | `BillingMonthlySummary[]` |
@@ -166,6 +169,12 @@ MeterMonthly {
 MeterLatestReading {
   meterId, storeName, powerKw, voltageL1, currentL1,
   powerFactor, timestamp
+}
+
+BillingDocumentDetail {
+  id, buildingName, month, docNumber, dueDate,
+  totalNetoClp: number | null, ivaClp: number | null,
+  totalClp, meterCount
 }
 
 PaymentSummary {

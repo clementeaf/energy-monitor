@@ -24,6 +24,7 @@ export const routes = {
   // Dashboard
   getDashboardSummary: () => '/dashboard/summary',
   getDashboardPayments: () => '/dashboard/payments',
+  getDashboardDocuments: (status: string) => `/dashboard/documents/${status}`,
 
   // Comparisons
   getComparisonFilters: () => '/comparisons/filters',

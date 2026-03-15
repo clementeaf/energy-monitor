@@ -113,6 +113,19 @@ export interface PaymentSummary {
   vencidosPorPeriodo: OverdueBucket[];
 }
 
+// Matches backend dashboard/documents/:status endpoint
+export interface BillingDocumentDetail {
+  id: number;
+  buildingName: string;
+  month: string;
+  docNumber: string;
+  dueDate: string;
+  totalNetoClp: number | null;
+  ivaClp: number | null;
+  totalClp: number;
+  meterCount: number;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

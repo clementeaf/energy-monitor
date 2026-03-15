@@ -2,9 +2,10 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
-import { useDashboardSummary, useDashboardPayments } from '../../hooks/queries/useDashboard';
+import { Drawer } from '../../components/ui/Drawer';
+import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
-import type { DashboardBuildingMonth, OverdueBucket } from '../../types';
+import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket } from '../../types';
 
 const MONTH_NAMES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -157,9 +158,27 @@ const overdueCols: Column<OverdueBucket>[] = [
   { label: 'Monto', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
 ];
 
+const fmtDate = (iso: string) => {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+};
+
+const docCols: Column<BillingDocumentDetail>[] = [
+  { label: 'Edificio', value: (r) => SHORT_NAMES[r.buildingName] ?? r.buildingName, align: 'left' },
+  { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' },
+  { label: 'Vencimiento', value: (r) => fmtDate(r.dueDate), className: 'whitespace-nowrap' },
+  { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },
+  { label: 'IVA', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.ivaClp ?? 0), 0)) },
+  { label: 'Total', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
+];
+
 export function DashboardPage() {
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
+  const [drawerPorVencer, setDrawerPorVencer] = useState(false);
+  const [drawerVencidos, setDrawerVencidos] = useState(false);
+  const { data: porVencerDocs } = useDashboardDocuments('por_vencer', drawerPorVencer);
+  const { data: vencidosDocs } = useDashboardDocuments('vencido', drawerVencidos);
 
   // Derive months and group by month
   const { months, byMonth } = useMemo(() => {
@@ -238,11 +257,11 @@ export function DashboardPage() {
 
         <div className="flex flex-col gap-2">
           {[
-            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, color: 'text-green-400' },
-            { label: 'Docs por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, color: 'text-amber-400' },
-            { label: 'Docs Vencidos', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, color: 'text-red-400' },
+            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, color: 'text-green-400', onClick: undefined },
+            { label: 'Docs por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, color: 'text-amber-400', onClick: () => setDrawerPorVencer(true) },
+            { label: 'Docs Vencidos', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, color: 'text-red-400', onClick: () => setDrawerVencidos(true) },
           ].map((c) => (
-            <Card key={c.label} className="flex-1 flex flex-col justify-center !py-2 !px-3">
+            <Card key={c.label} onClick={c.onClick} className="flex-1 flex flex-col justify-center !py-2 !px-3">
               <p className="text-xs text-muted">{c.label}</p>
               <p className={`text-lg font-bold ${c.color}`}>{c.value}</p>
               <p className="text-[10px] text-muted">{c.desc}</p>
@@ -279,6 +298,32 @@ export function DashboardPage() {
           )}
         </Card>
       </div>
+
+      <Drawer open={drawerPorVencer} onClose={() => setDrawerPorVencer(false)} title="Documentos por Vencer" size="lg">
+        {porVencerDocs ? (
+          <DataTable
+            data={porVencerDocs}
+            columns={docCols}
+            rowKey={(r) => r.docNumber}
+            footer
+          />
+        ) : (
+          <p className="text-sm text-muted">Cargando...</p>
+        )}
+      </Drawer>
+
+      <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Documentos Vencidos" size="lg">
+        {vencidosDocs ? (
+          <DataTable
+            data={vencidosDocs}
+            columns={docCols}
+            rowKey={(r) => r.docNumber}
+            footer
+          />
+        ) : (
+          <p className="text-sm text-muted">Cargando...</p>
+        )}
+      </Drawer>
     </div>
   );
 }

@@ -23,6 +23,18 @@ export interface PaymentSummary {
   vencidosPorPeriodo: OverdueBucket[];
 }
 
+export interface BillingDocumentDetail {
+  id: number;
+  buildingName: string;
+  month: string;
+  docNumber: string;
+  dueDate: string;
+  totalNetoClp: number | null;
+  ivaClp: number | null;
+  totalClp: number;
+  meterCount: number;
+}
+
 @Injectable()
 export class DashboardService {
   constructor(private readonly dataSource: DataSource) {}
@@ -113,5 +125,36 @@ export class DashboardService {
       vencidos: byStatus['vencido'] ?? { count: 0, totalClp: 0 },
       vencidosPorPeriodo,
     };
+  }
+
+  async getDocumentsByStatus(status: string): Promise<BillingDocumentDetail[]> {
+    const rows = await this.dataSource.query(
+      `SELECT
+         id,
+         building_name   AS "buildingName",
+         month,
+         doc_number      AS "docNumber",
+         due_date        AS "dueDate",
+         total_neto_clp  AS "totalNetoClp",
+         iva_clp         AS "ivaClp",
+         total_clp       AS "totalClp",
+         meter_count     AS "meterCount"
+       FROM billing_document
+       WHERE status = $1
+       ORDER BY due_date`,
+      [status],
+    );
+
+    return rows.map((r: Record<string, unknown>) => ({
+      id: r.id as number,
+      buildingName: r.buildingName as string,
+      month: r.month as string,
+      docNumber: r.docNumber as string,
+      dueDate: r.dueDate as string,
+      totalNetoClp: r.totalNetoClp !== null ? parseFloat(String(r.totalNetoClp)) : null,
+      ivaClp: r.ivaClp !== null ? parseFloat(String(r.ivaClp)) : null,
+      totalClp: parseFloat(String(r.totalClp)),
+      meterCount: parseInt(String(r.meterCount), 10),
+    }));
   }
 }

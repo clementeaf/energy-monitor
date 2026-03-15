@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.38.0-alpha.0] - 2026-03-15 — DRAWER DE DOCUMENTOS EN DASHBOARD
+
+### Added
+
+- **Componente `Drawer`** (`components/ui/Drawer.tsx`) — componente reutilizable con portal, overlay, cierre por Escape/click, lock scroll, animación slide. Props: `side` (4 lados), `size` (sm/md/lg/xl/full), `title`, `overlayClose`. Tamaños lg/xl usan `w-fit max-w-[90vw]` para adaptarse al contenido sin scroll horizontal
+- **Endpoint `GET /dashboard/documents/:status`** — retorna documentos de cobro filtrados por estado (pagado, por_vencer, vencido) con edificio, N° doc, vencimiento, neto, IVA y total
+- **Drawer "Docs por Vencer"** — click en card ámbar abre drawer con tabla de documentos por vencer
+- **Drawer "Docs Vencidos"** — click en card roja abre drawer con tabla de documentos vencidos
+- Tipo `BillingDocumentDetail`, hook `useDashboardDocuments(status, enabled)` con fetch lazy
+
+---
+
 ## [0.37.0-alpha.0] - 2026-03-15 — DATOS DE PAGOS Y DOCUMENTOS EN DASHBOARD
 
 ### Added

@@ -25,28 +25,22 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-15)
-- 5 edificios en pg-arauco, 875 medidores, 30.7M lecturas — todos alineados a 2025
-- Dashboard: datos reales completos — gráfico, tabla, cards de pago y tabla de vencidos
-- Comparativas: datos reales. Toggle Por Tipo / Por Tienda, MultiSelect, gráfico toggle Barra/Línea
-- Incidencias en medidor: líneas rojas en gráfico 15 min, columna Incidencias en tablas mensual y diaria
-- Click en incidencia → navega a `/alerts` con filtros pre-aplicados (meter_id + fecha)
-- Tabla `billing_document` con 60 registros sintéticos de pagos (pagado/por_vencer/vencido)
-- Cards dashboard: Pagos Recibidos, Docs por Vencer, Docs Vencidos — con datos reales y colores
-- Tabla "Documentos Vencidos por Período" — 4 rangos de días con conteo y montos
+- 5 edificios, 875 medidores, 30.7M lecturas — alineados a 2025
+- Dashboard completo: gráfico, tabla edificios, cards de pago, tabla vencidos, drawers de detalle
+- Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea
+- Incidencias en medidor con navegación a Alertas (filtros pre-aplicados)
 - Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
-- Drawers en dashboard: click en cards "Docs por Vencer" y "Docs Vencidos" abre drawer con tabla detallada (Edificio, N° Doc, Vencimiento, Neto, IVA, Total)
-- Endpoint `GET /dashboard/documents/:status` para detalle de documentos por estado
+- Design system PA: `pa-ui-references/PA_DESIGN_SYSTEM.md` — paleta, tipografía, layout, componentes, patrones, mapping Tailwind v4
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
-Dashboard completo: gráfico, tabla edificios, cards de pago y tabla vencidos con datos reales.
-Cards "Docs por Vencer" y "Docs Vencidos" clickeables → Drawer con tabla detallada.
+Dashboard completo con drawers de detalle.
 Comparativas con datos reales.
-Incidencias en medidor con navegación a Alertas.
-Componente Drawer reutilizable.
+Incidencias con navegación a Alertas.
+Design system PA extraído (PA_DESIGN_SYSTEM.md).
 ```
 
 ## Prioridad Actual de Acceso

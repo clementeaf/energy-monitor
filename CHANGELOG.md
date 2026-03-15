@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.39.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PARQUE ARAUCO
+
+### Added
+
+- **Script `extract-pa-design.py`** — extrae patrones de diseño/UI de `Memoria PA.pdf` y genera `PA_DESIGN_SYSTEM.md`
+- **`PA_DESIGN_SYSTEM.md`** — referencia de diseño con paleta de colores (brand, sección, país, charts, UI), tipografía, layout, 13 componentes, 5 patrones de composición, iconografía, efectos y mapping a Tailwind v4
+
+---
+
 ## [0.38.0-alpha.0] - 2026-03-15 — DRAWER DE DOCUMENTOS EN DASHBOARD
 
 ### Added

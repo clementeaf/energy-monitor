@@ -4,8 +4,8 @@ import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import type { BuildingSummary } from '../../types';
 
-function fmt(n: number) {
-  return n.toLocaleString('es-CL', { maximumFractionDigits: 1 });
+function fmt(n: number | null | undefined) {
+  return n != null ? n.toLocaleString('es-CL', { maximumFractionDigits: 1 }) : '—';
 }
 
 function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -49,7 +49,7 @@ export function BuildingsPage() {
                 <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />
                 <Stat label="Potencia prom." value={fmt(b.avgPowerKw)} unit="kW" />
                 <Stat label="Demanda peak" value={fmt(b.peakDemandKw)} unit="kW" />
-                <Stat label="Factor potencia" value={b.avgPowerFactor.toFixed(2)} />
+                <Stat label="Factor potencia" value={b.avgPowerFactor != null ? b.avgPowerFactor.toFixed(2) : '—'} />
               </div>
 
               <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted">

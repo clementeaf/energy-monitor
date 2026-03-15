@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.30.0-alpha.0] - 2026-03-14 — CARGA DATOS COMPLETA + OPTIMIZACIÓN QUERIES
+
+### Added
+
+- **5 scripts de carga de datos** (`scripts/`):
+  - `ingest-403-stores-monthly.py` — 403 stores "Local no sensado" + 4,836 filas meter_monthly
+  - `ingest-403-meter-readings.py` — 403 particiones + 14.1M filas en meter_readings
+  - `ingest-kpis-xlsx.py` — 4 columnas KPI en meter_monthly_billing (peak, demanda punta, % punta, promedio diario)
+  - `ingest-tariffs.py` — tabla `tariff` con 12 filas de pliegos tarifarios
+  - `ingest-sc53-arauco-express.py` — 636 filas billing + 12 filas building_summary para Arauco Express
+- **Tabla `tariff`** en pg-arauco: pliegos tarifarios mensuales (Las Condes, 2025)
+- **Índice `meter_readings_ts_desc`** en meter_readings `(meter_id, timestamp DESC)`
+
+### Changed
+
+- **`findLatestByBuilding`** reescrita con `LEFT JOIN LATERAL` — de 36s a 49ms
+- **Null-safety en frontend**: `BuildingsPage`, `BillingTable` y tipos TS manejan campos numéricos nullable
+  - `fmt()`, `fmtClp()`, `fmtNum()` aceptan `null` y muestran "—"
+  - Helpers `sumN`/`maxN` null-safe para totales en footer
+  - Tipos `BillingMonthlySummary` y `BuildingSummary` actualizados con `number | null`
+
+### Data (pg-arauco)
+
+- `store`: 43 → 446 filas
+- `meter_monthly`: 516 → 5,352 filas
+- `meter_readings`: 1.5M → 15.6M filas (446 particiones)
+- `meter_monthly_billing`: 5,352 → 5,988 filas (+ SC53)
+- `building_summary`: 12 → 24 filas (+ Arauco Express)
+- `tariff`: 12 filas (nueva)
+
+---
+
 ## [0.29.0-alpha.0] - 2026-03-14 — VISTA COMPARATIVA DE TIENDAS
 
 ### Added

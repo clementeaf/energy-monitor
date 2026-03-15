@@ -44,18 +44,26 @@ export class MetersService {
 
   async findLatestByBuilding(buildingName: string): Promise<MeterLatestReading[]> {
     const rows = await this.dataSource.query(
-      `SELECT DISTINCT ON (r.meter_id)
-         r.meter_id        AS "meterId",
+      `SELECT
+         m.meter_id        AS "meterId",
          COALESCE(s.store_name, 'Por censar') AS "storeName",
          r.power_kw        AS "powerKw",
          r.voltage_l1      AS "voltageL1",
          r.current_l1      AS "currentL1",
          r.power_factor    AS "powerFactor",
          r.timestamp        AS "timestamp"
-       FROM meter_readings r
-       JOIN meter_monthly_billing b ON b.meter_id = r.meter_id AND b.building_name = $1
-       LEFT JOIN store s ON s.meter_id = r.meter_id
-       ORDER BY r.meter_id, r.timestamp DESC`,
+       FROM (
+         SELECT DISTINCT meter_id FROM meter_monthly_billing WHERE building_name = $1
+       ) m
+       LEFT JOIN LATERAL (
+         SELECT power_kw, voltage_l1, current_l1, power_factor, timestamp
+         FROM meter_readings
+         WHERE meter_id = m.meter_id
+         ORDER BY timestamp DESC
+         LIMIT 1
+       ) r ON true
+       LEFT JOIN store s ON s.meter_id = m.meter_id
+       ORDER BY m.meter_id`,
       [buildingName],
     );
 

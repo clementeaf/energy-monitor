@@ -25,14 +25,12 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-14)
-- PostgreSQL local (`pg-arauco`, docker, puerto 5434) con datos de Parque Arauco Kennedy
-- Backend reconectado a pg-arauco con módulos: buildings, meters, meter-monthly, meter-readings, billing, stores, raw-readings, alerts + auth, roles, users, session, common
-- DataTable extendido (ReactNode, headerRender, cellClassName, className, tableClassName) y 5 tablas migradas
-- Auth endpoints (fetchMe, fetchPermissions) reparados en frontend API layer
-- Tabla `alerts` con 182 anomalías detectadas desde `meter_readings`
-- AlertsPage con DataTable paginada, filtros checkbox (5 columnas) y filtro fecha avanzado (sort, fecha, hora)
-- DashboardPage en `/` con data mock (15 edificios, 3 cards, tabla períodos). BuildingsPage movida a `/buildings`
-- ComparisonsPage en `/comparisons` con mock multi-edificio (10 marcas, 6 edificios, gráfico combo + tabla)
+- PostgreSQL local con datos completos: 446 medidores, 2 edificios, 15.6M lecturas
+- Carga completa de datos pendientes (5 scripts): stores, meter_monthly, meter_readings, KPIs, tariffs, SC53
+- Query `findLatestByBuilding` optimizada con LATERAL (36s → 49ms) + índice `(meter_id, timestamp DESC)`
+- Null-safety en frontend: tipos TS, formatters y totales manejan campos nullable
+- Backend con módulos: buildings, meters, meter-monthly, meter-readings, billing, stores, raw-readings, alerts
+- UI: Dashboard (mock), Edificios, Comparativas (mock), Alertas, Monitoreo
 
 ### Pendiente
 - Sin tareas pendientes definidas

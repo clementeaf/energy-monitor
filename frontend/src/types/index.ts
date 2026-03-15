@@ -2,17 +2,17 @@
 export interface BillingMonthlySummary {
   month: string;
   totalMeters: number;
-  totalKwh: number;
-  energiaClp: number;
-  ddaMaxKw: number;
-  ddaMaxPuntaKw: number;
-  kwhTroncal: number;
-  kwhServPublico: number;
-  cargoFijoClp: number;
-  totalNetoClp: number;
-  ivaClp: number;
-  montoExentoClp: number;
-  totalConIvaClp: number;
+  totalKwh: number | null;
+  energiaClp: number | null;
+  ddaMaxKw: number | null;
+  ddaMaxPuntaKw: number | null;
+  kwhTroncal: number | null;
+  kwhServPublico: number | null;
+  cargoFijoClp: number | null;
+  totalNetoClp: number | null;
+  ivaClp: number | null;
+  montoExentoClp: number | null;
+  totalConIvaClp: number | null;
 }
 
 // Matches backend meters list response
@@ -85,11 +85,11 @@ export interface BuildingSummary {
   assignedMeters: number;
   unassignedMeters: number;
   areaSqm: number | null;
-  totalKwh: number;
-  totalPowerKw: number;
-  avgPowerKw: number;
-  peakPowerKw: number;
-  totalReactiveKvar: number;
-  avgPowerFactor: number;
-  peakDemandKw: number;
+  totalKwh: number | null;
+  totalPowerKw: number | null;
+  avgPowerKw: number | null;
+  peakPowerKw: number | null;
+  totalReactiveKvar: number | null;
+  avgPowerFactor: number | null;
+  peakDemandKw: number | null;
 }

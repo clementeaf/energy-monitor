@@ -135,15 +135,19 @@
 ```
 BuildingSummary {
   buildingName, month, totalStores, storeTypes,
-  totalMeters, assignedMeters, unassignedMeters, areaSqm,
+  totalMeters, assignedMeters, unassignedMeters,
+  areaSqm: number | null,
   totalKwh, totalPowerKw, avgPowerKw, peakPowerKw,
   totalReactiveKvar, avgPowerFactor, peakDemandKw
+  — campos numéricos son number | null
 }
 
 BillingMonthlySummary {
-  month, totalMeters, totalKwh, energiaClp, ddaMaxKw,
-  ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp,
+  month, totalMeters,
+  totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw,
+  kwhTroncal, kwhServPublico, cargoFijoClp,
   totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp
+  — campos numéricos son number | null (SC53 tiene billing parcial)
 }
 
 MeterListItem {

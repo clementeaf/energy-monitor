@@ -1,6 +1,6 @@
 # Frontend: Vistas y Datos
 
-> **Estado actual (2026-03-15):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Design system PA aplicado (sidebar, dashboard, edificios, detalle edificio).
+> **Estado actual (2026-03-15):** Auth deshabilitado. TempLayout sin auth. API usa `VITE_API_BASE_URL` (dev: `localhost:4000/api`, prod: `/api` vía CloudFront). Frontend desplegado en S3 `energy-monitor-hoktus-mvp` → CloudFront `energymonitor.click`. Design system PA aplicado en todas las vistas.
 
 ## Vistas activas
 

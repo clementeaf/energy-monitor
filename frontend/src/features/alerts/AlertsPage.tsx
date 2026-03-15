@@ -45,7 +45,7 @@ function ChevronDown({ className = 'h-3 w-3 opacity-50' }: { className?: string 
 // useAnchorPos — compute fixed position from a button ref
 // =============================================================================
 
-function useAnchorPos(btnRef: RefObject<HTMLElement | null>, open: boolean) {
+function useAnchorPos(btnRef: React.RefObject<HTMLElement | null>, open: boolean) {
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {

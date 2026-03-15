@@ -25,26 +25,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-15)
-- 5 edificios, 875 medidores, 30.7M lecturas — alineados a 2025
-- Dashboard completo: gráfico, tablas, cards de pago, drawers de detalle
-- Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea/Área
-- Incidencias en medidor con navegación a Alertas (filtros pre-aplicados)
-- Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
-- Design system PA aplicado en todas las vistas: sidebar, dashboard, edificios, detalle edificio, monitoreo, alertas, comparativas
-- Controles PA: dropdowns custom pill, toggles pill, banners `w-fit`, layout sin scroll
-- Extracción componentes/utilidades compartidas: `lib/` (formatters, constants, aggregations, chartConfig), `hooks/useClickOutside`, `components/ui/` (PillButton, SectionBanner, TogglePills, PillDropdown)
-- Tokens PA unificados en todas las vistas — sin tokens legacy (`text-muted`, `border-border`, `bg-surface`, `bg-raised`, `text-accent`)
+- Deploy AWS completo: CloudFront `energymonitor.click` → S3 (frontend) + API Gateway → Lambda → RDS
+- Frontend `api.ts` usa `VITE_API_BASE_URL` con fallback `/api` (relativo para CloudFront en prod)
+- Lambda `DB_PASSWORD` actualizado en 3 funciones (api, offlineAlerts, dbVerify)
+- Frontend build + deploy S3 + invalidación CloudFront
+- Fix TS: `aggregations.ts` tipos genéricos, `AlertsPage.tsx` RefObject
+
+### Pendiente
+- Migración RDS en curso (ECS Fargate restore desde S3, ~15-20 min)
+- Validar conteos RDS post-restore (store=875, meter_readings~30.7M, building_summary=60)
+- Revertir infra temporal: route rtb→NAT, revocar SG cidr local, RDS no-publicly-accessible
+- `gh secret set DB_PASSWORD -b EmAdmin2026Prod`
+- Limpiar: S3 dump, task-defs, log-group
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-5 edificios, 875 medidores, 30.7M lecturas.
-Design system PA aplicado en todas las vistas (sidebar, dashboard, edificios, detalle, monitoreo, alertas, comparativas).
-Tokens PA unificados: text-pa-text, text-pa-text-muted, text-pa-navy, border-pa-border, text-pa-blue, bg-white.
-Charts usan CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE de lib/chartConfig.
-Utilidades compartidas en lib/ y components/ui/.
-Push en main c654b42.
+Deploy AWS en curso. CloudFront energymonitor.click → S3 + API GW → Lambda → RDS.
+Frontend desplegado en S3 con baseURL=/api. Lambda con DB_PASSWORD=EmAdmin2026Prod.
+RDS: migración ECS Fargate (task energy-monitor-db-restore:3).
+Pendiente: validar conteos, revertir infra temporal, gh secret, limpiar recursos.
 ```
 
 ## Prioridad Actual de Acceso

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.46.0-alpha.0] - 2026-03-15 — DEPLOY AWS: RDS, LAMBDA, FRONTEND
+
+### Infrastructure
+- **RDS PostgreSQL** — migración de datos desde Docker local a RDS (`energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com`)
+- **ECS Fargate** — restore via task en VPC (S3 → pg_restore -j4 → RDS) para latencia mínima
+- **Lambda** — actualizado `DB_PASSWORD` en 3 funciones (`api`, `offlineAlerts`, `dbVerify`)
+
+### Fixed
+- **Frontend `api.ts`** — baseURL hardcodeado `localhost:4000` → usa `VITE_API_BASE_URL` o fallback `/api` (relativo para CloudFront)
+- **`aggregations.ts`** — fix tipos genéricos `sumByKey`/`maxByKey` (cast `as unknown[]` para compatibilidad con interfaces)
+- **`AlertsPage.tsx`** — `RefObject` → `React.RefObject` (import implícito)
+
+### Changed
+- **Frontend `.env`** — `VITE_API_BASE_URL=http://localhost:4000/api` (solo dev local)
+- **Frontend deploy** — build + S3 sync + CloudFront invalidation
+
+---
+
 ## [0.45.0-alpha.0] - 2026-03-15 — FIX COMPARATIVAS: LAYOUT, CHART Y TÍTULOS
 
 ### Fixed

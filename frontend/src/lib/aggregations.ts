@@ -14,11 +14,11 @@ export function avgNonNull(values: (number | null)[]): number | null {
 }
 
 export function sumByKey<T>(data: T[], key: keyof T): number | null {
-  const vals = data.map((r) => r[key]).filter((v): v is number => v != null);
+  const vals = (data.map((r) => r[key]) as unknown[]).filter((v): v is number => typeof v === 'number');
   return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) : null;
 }
 
 export function maxByKey<T>(data: T[], key: keyof T): number | null {
-  const vals = data.map((r) => r[key]).filter((v): v is number => v != null);
+  const vals = (data.map((r) => r[key]) as unknown[]).filter((v): v is number => typeof v === 'number');
   return vals.length > 0 ? Math.max(...vals) : null;
 }

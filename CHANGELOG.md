@@ -1,17 +1,19 @@
 # Changelog
 
-## [0.36.0-alpha.0] - 2026-03-15 — ALERTAS EN GRÁFICO Y TABLAS DE MEDIDOR
+## [0.36.0-alpha.0] - 2026-03-15 — INCIDENCIAS EN MEDIDOR CON NAVEGACIÓN A ALERTAS
 
 ### Added
 
-- **Líneas de incidencia en navigator** — Al seleccionar resolución 15 min en lecturas del medidor, el navigator del gráfico Stock muestra líneas rojas verticales en cada alerta registrada
-- **Columna "Incidencias" en detalle mensual** — `MeterMonthlyTable` muestra conteo de alertas por mes con total anual en footer
-- **Columna "Incidencias" en resumen diario** — Tabla de lecturas diarias muestra conteo de alertas por día con total mensual en footer
+- **Líneas de incidencia en gráfico 15 min** — Líneas rojas verticales en navigator y xAxis principal. Click en línea navega a vista Alertas filtrada por medidor y día
+- **Columna "Incidencias" en detalle mensual** — Conteo de alertas por mes, clickeable → navega a Alertas filtrada por medidor y rango del mes
+- **Columna "Incidencias" en resumen diario** — Conteo de alertas por día, clickeable → navega a Alertas filtrada por medidor y fecha exacta
+- **Pre-filtrado en AlertsPage vía URL** — Acepta query params `meter_id`, `date`, `date_from`, `date_to` para abrir la vista con filtros aplicados
 
 ### Changed
 
 - `MeterDetailPage` y `MeterReadingsPage` consumen `useAlerts({ meter_id })` para obtener alertas del medidor
 - `groupByDay()` recibe alertas como segundo parámetro para calcular incidencias por día
+- `AlertsPage` lee `useSearchParams` al montar para inicializar filtros de medidor y fecha
 
 ---
 

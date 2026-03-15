@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import HighchartsStock from 'highcharts/highstock';
@@ -117,18 +117,26 @@ function groupByHour(readings: MeterReading[], metric: ReadingMetricKey): [numbe
     .map(([ts, vals]) => [ts, avgNonNull(vals)]);
 }
 
-const dayColumns: Column<DaySummary>[] = [
-  { label: 'Día', value: (r) => r.label, total: () => 'Total mensual', align: 'left' },
-  { label: 'Lecturas', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
-  { label: 'Incidencias', value: (r) => r.alertCount > 0 ? String(r.alertCount) : '—', total: (d) => String(d.reduce((s, r) => s + r.alertCount, 0)) },
-  { label: 'Pot. prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))) },
-  { label: 'Pot. peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(maxNonNull(d.map((r) => r.peakPowerKw))) },
-  { label: 'Volt. L1 (V)', value: (r) => fmtNum(r.avgVoltageL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL1))) },
-  { label: 'Corr. L1 (A)', value: (r) => fmtNum(r.avgCurrentL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL1))) },
-  { label: 'React. (kVAr)', value: (r) => fmtNum(r.avgReactivePowerKvar), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgReactivePowerKvar))) },
-  { label: 'FP', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerFactor)), 3) },
-  { label: 'Frec. (Hz)', value: (r) => fmtNum(r.avgFrequencyHz), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgFrequencyHz))) },
-];
+function buildDayColumns(meterId: string): Column<DaySummary>[] {
+  return [
+    { label: 'Día', value: (r) => r.label, total: () => 'Total mensual', align: 'left' },
+    { label: 'Lecturas', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
+    {
+      label: 'Incidencias',
+      value: (r) => r.alertCount > 0
+        ? <Link to={`/alerts?meter_id=${meterId}&date=${r.day}`} className="text-red-500 underline hover:text-red-400">{r.alertCount}</Link>
+        : '—',
+      total: (d) => String(d.reduce((s, r) => s + r.alertCount, 0)),
+    },
+    { label: 'Pot. prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))) },
+    { label: 'Pot. peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(maxNonNull(d.map((r) => r.peakPowerKw))) },
+    { label: 'Volt. L1 (V)', value: (r) => fmtNum(r.avgVoltageL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL1))) },
+    { label: 'Corr. L1 (A)', value: (r) => fmtNum(r.avgCurrentL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL1))) },
+    { label: 'React. (kVAr)', value: (r) => fmtNum(r.avgReactivePowerKvar), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgReactivePowerKvar))) },
+    { label: 'FP', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerFactor)), 3) },
+    { label: 'Frec. (Hz)', value: (r) => fmtNum(r.avgFrequencyHz), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgFrequencyHz))) },
+  ];
+}
 
 export function MeterReadingsPage() {
   const { meterId, month } = useParams<{ meterId: string; month: string }>();
@@ -183,6 +191,24 @@ export function MeterReadingsPage() {
     [alerts],
   );
 
+  // PlotLines clickeables para el xAxis principal del stock chart
+  const alertPlotLinesMain = useMemo(
+    () => (alerts ?? []).map((a) => {
+      const ts = new Date(a.timestamp);
+      const day = ts.toISOString().slice(0, 10);
+      return {
+        value: ts.getTime(),
+        color: '#ef4444',
+        width: 2,
+        zIndex: 5,
+        events: {
+          click() { navigate(`/alerts?meter_id=${meterId}&date=${day}`); },
+        },
+      } as Highcharts.XAxisPlotLinesOptions;
+    }),
+    [alerts, meterId, navigate],
+  );
+
   if (isLoading) return <MeterReadingsSkeleton />;
 
   const meta = readingMetrics[metric];
@@ -214,7 +240,7 @@ export function MeterReadingsPage() {
   const stockChartOptions: Highcharts.Options = {
     chart: { height: 360 },
     title: { text: undefined },
-    xAxis: { crosshair: true, range: 2 * 24 * 3600 * 1000 },
+    xAxis: { crosshair: true, range: 2 * 24 * 3600 * 1000, plotLines: alertPlotLinesMain },
     yAxis: { title: { text: meta.unit }, opposite: false },
     tooltip: {
       xDateFormat: '%d/%m %H:%M',
@@ -307,7 +333,7 @@ export function MeterReadingsPage() {
         {readings && readings.length > 0 && (
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Resumen diario</h2>
-            <DataTable data={groupByDay(readings, alerts ?? [])} columns={dayColumns} footer rowKey={(r) => r.day} />
+            <DataTable data={groupByDay(readings, alerts ?? [])} columns={buildDayColumns(meterId!)} footer rowKey={(r) => r.day} />
           </Card>
         )}
       </div>

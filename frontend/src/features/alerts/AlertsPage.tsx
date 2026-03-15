@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import type { Alert } from '../../types';
@@ -471,19 +472,31 @@ type Filters = Record<FilterKey, Set<string>>;
 // =============================================================================
 
 export function AlertsPage() {
+  const [searchParams] = useSearchParams();
   const { data: alerts = [], isLoading } = useAlerts();
 
+  // Pre-set filters from URL query params (?meter_id=X&date=YYYY-MM-DD or &date_from=&date_to=)
+  const initialFilters = useMemo((): Filters => {
+    const base: Filters = { meterId: new Set(), alertType: new Set(), severity: new Set(), field: new Set(), threshold: new Set() };
+    const qMeterId = searchParams.get('meter_id');
+    if (qMeterId) base.meterId = new Set([qMeterId]);
+    return base;
+  }, [searchParams]);
+
+  const initialDateFilter = useMemo((): DateFilterState => {
+    const qDate = searchParams.get('date');
+    const qDateFrom = searchParams.get('date_from');
+    const qDateTo = searchParams.get('date_to');
+    if (qDate) return { ...EMPTY_DATE_FILTER, dateMode: 'exact', dateExact: qDate };
+    if (qDateFrom || qDateTo) return { ...EMPTY_DATE_FILTER, dateMode: 'range', dateFrom: qDateFrom ?? '', dateTo: qDateTo ?? '' };
+    return EMPTY_DATE_FILTER;
+  }, [searchParams]);
+
   // Checkbox filters
-  const [filters, setFilters] = useState<Filters>({
-    meterId: new Set(),
-    alertType: new Set(),
-    severity: new Set(),
-    field: new Set(),
-    threshold: new Set(),
-  });
+  const [filters, setFilters] = useState<Filters>(initialFilters);
 
   // Date column filter
-  const [dateFilter, setDateFilter] = useState<DateFilterState>(EMPTY_DATE_FILTER);
+  const [dateFilter, setDateFilter] = useState<DateFilterState>(initialDateFilter);
 
   // Unique values per filterable column
   const uniqueValues = useMemo(() => {

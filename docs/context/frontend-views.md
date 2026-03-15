@@ -71,6 +71,7 @@
 - `MeterMetricSelector` + `MonthlyColumnChart`: selector elige métrica, gráfico dinámico con toggle Barra/Línea
 - Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
 - `MeterMonthlyTable` debajo del gráfico — 5 métricas + columna Incidencias por mes, totales en footer
+- Incidencias clickeable → navega a `/alerts?meter_id=X&date_from=YYYY-MM-01&date_to=YYYY-MM-end`
 - Datos vía `useMeterMonthly(meterId)` + `useAlerts({ meter_id })` para conteo de alertas por mes
 - Click en fila de tabla → navega a `/meters/:meterId/readings/:month`
 
@@ -80,9 +81,10 @@
 - Selector de métrica (11 métricas de `meter_readings`)
 - Gráfico con toggle Diario / 15 min:
   - **Diario:** Highcharts línea, 1 punto por hora (promedio), eje X = días del mes
-  - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min, eje Y a la izquierda (`opposite: false`). Líneas rojas verticales en el navigator marcan alertas del medidor
+  - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min, eje Y a la izquierda (`opposite: false`). Líneas rojas verticales en navigator y xAxis principal marcan alertas. Click en línea → navega a `/alerts?meter_id=X&date=YYYY-MM-DD`
 - **Resumen diario:** DataTable inline, una fila por día, 10 columnas (Día, Lecturas, Incidencias, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), totales en footer
-- Alertas vía `useAlerts({ meter_id })` — alimentan plotLines del navigator y columna Incidencias
+- Incidencias clickeable → navega a `/alerts?meter_id=X&date=YYYY-MM-DD`
+- Alertas vía `useAlerts({ meter_id })` — alimentan plotLines y columna Incidencias
 - Datos vía `useMeterReadings(meterId, from, to)` → `GET /api/meter-readings/:meterId?from=&to=`
 
 ## RealtimePage
@@ -106,6 +108,7 @@
   - Badge dinámico en header resume filtros activos
 - Severidad con colores: rojo (critical), ámbar (warning), azul (info)
 - Datos vía `useAlerts()` → `GET /api/alerts`
+- **Pre-filtrado vía URL:** acepta query params `meter_id`, `date`, `date_from`, `date_to` para inicializar filtros al abrir la vista (usado por links de Incidencias en medidor)
 - Pipeline de filtrado: checkbox filters → date/time filter → sort
 
 ## ComparisonsPage

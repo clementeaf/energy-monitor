@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router';
 import { DataTable, type Column } from '../../../components/ui/DataTable';
 import type { Alert, MeterMonthly } from '../../../types';
 import type { MeterMetricKey } from './meterMetrics';
@@ -49,7 +50,18 @@ export function MeterMonthlyTable({ data, alerts = [], highlightMetric, hoveredM
 
   const columns: Column<MeterMonthly>[] = useMemo(() => [
     { label: 'Mes', value: (r) => monthName(r.month), total: () => 'Total anual', align: 'left' as const, className: colBg('Mes') },
-    { label: 'Incidencias', value: (r) => { const c = alertsByMonth.get(r.month.slice(0, 7)) ?? 0; return c > 0 ? String(c) : '—'; }, total: (d) => String(d.reduce((s, r) => s + (alertsByMonth.get(r.month.slice(0, 7)) ?? 0), 0)), className: colBg('Incidencias') },
+    {
+      label: 'Incidencias',
+      value: (r) => {
+        const c = alertsByMonth.get(r.month.slice(0, 7)) ?? 0;
+        if (c === 0) return '—';
+        const ym = r.month.slice(0, 7);
+        const lastDay = new Date(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0).getDate();
+        return <Link to={`/alerts?meter_id=${r.meterId}&date_from=${ym}-01&date_to=${ym}-${lastDay}`} className="text-red-500 underline hover:text-red-400" onClick={(e) => e.stopPropagation()}>{c}</Link>;
+      },
+      total: (d) => String(d.reduce((s, r) => s + (alertsByMonth.get(r.month.slice(0, 7)) ?? 0), 0)),
+      className: colBg('Incidencias'),
+    },
     { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)), className: colBg('Consumo (kWh)') },
     { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerKw ?? 0), 0) / (d.filter((r) => r.avgPowerKw !== null).length || 1)), className: colBg('Potencia prom. (kW)') },
     { label: 'Potencia peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(Math.max(...d.map((r) => r.peakPowerKw ?? 0))), className: colBg('Potencia peak (kW)') },

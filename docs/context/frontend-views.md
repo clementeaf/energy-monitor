@@ -6,7 +6,7 @@
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Dashboard | si | parcial — gráfico combo + tabla edificios con datos reales vía API; cards resumen + tabla vencidos aún mock |
+| `/` | Dashboard | si | parcial — gráfico + tabla edificios con datos reales; cards resumen + tabla vencidos sin datos (placeholder "—") |
 | `/buildings` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
@@ -39,13 +39,12 @@
 
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
-- **Fila 1 — col izq:** gráfico combo Highcharts (barras consumo kWh + línea gasto CLP) con selector de mes dinámico
-- **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) — mock
+- **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Barra/Línea y selector de mes
+- **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) — placeholder "—" (sin datos de pago)
 - **Fila 2 — col izq:** tabla edificios (5 reales, scroll interno 340px, header/footer sticky)
-- **Fila 2 — col der:** tabla documentos vencidos por período — mock
-- Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses)
+- **Fila 2 — col der:** tabla documentos vencidos por período — placeholder "—" (sin datos de pago)
+- Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
 - Selector de mes derivado de los meses disponibles en la API
-- Mock residual: `SUMMARY_CARDS`, `OVERDUE_BY_PERIOD` (sin backend)
 
 ## BuildingsPage
 

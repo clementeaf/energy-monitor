@@ -5,11 +5,6 @@ import { DataTable, type Column } from '../../components/ui/DataTable';
 import { useDashboardSummary } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
 import type { DashboardBuildingMonth } from '../../types';
-import {
-  SUMMARY_CARDS,
-  OVERDUE_BY_PERIOD,
-  type OverduePeriod,
-} from './mockData';
 
 const MONTH_NAMES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -40,11 +35,6 @@ const buildingCols: Column<BuildingRow>[] = [
   { label: 'Medidores', value: (r) => fmt(r.totalMeters), total: (d) => fmt(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
-const overdueCols: Column<OverduePeriod>[] = [
-  { label: 'Período', value: (r) => r.range, align: 'left', className: 'whitespace-nowrap text-xs' },
-  { label: 'Cant.', value: (r) => fmt(r.cantidad), total: (d) => fmt(d.reduce((s, r) => s + r.cantidad, 0)), className: 'text-xs' },
-  { label: 'Saldo ($)', value: (r) => fmtClp(r.saldoClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.saldoClp, 0)), className: 'text-xs' },
-];
 
 const SHORT_NAMES: Record<string, string> = {
   'Parque Arauco Kennedy': 'P. Arauco Kennedy',
@@ -60,7 +50,7 @@ function fmtAxis(val: number): string {
   return String(val);
 }
 
-function ComboChart({ data }: { data: BuildingRow[] }) {
+function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'column' | 'line' }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<Highcharts.Chart | null>(null);
 
@@ -73,13 +63,15 @@ function ComboChart({ data }: { data: BuildingRow[] }) {
 
     if (chartRef.current) {
       chartRef.current.xAxis[0].setCategories(categories, false);
+      chartRef.current.series[0].update({ type: chartType } as Highcharts.SeriesOptionsType, false);
+      chartRef.current.series[1].update({ type: chartType } as Highcharts.SeriesOptionsType, false);
       chartRef.current.series[0].setData(consumo, false);
       chartRef.current.series[1].setData(gasto, true);
       return;
     }
 
     chartRef.current = Highcharts.chart(containerRef.current, {
-      chart: { height: 320, backgroundColor: 'transparent' },
+      chart: { height: 384, backgroundColor: 'transparent' },
       title: { text: undefined },
       xAxis: {
         categories,
@@ -129,22 +121,22 @@ function ComboChart({ data }: { data: BuildingRow[] }) {
       },
       plotOptions: {
         column: { borderRadius: 3, borderWidth: 0 },
+        line: { marker: { radius: 3 } },
       },
       series: [
         {
-          type: 'column',
+          type: chartType,
           name: 'Consumo (kWh)',
           data: consumo,
           color: '#60a5fa',
           yAxis: 0,
         },
         {
-          type: 'line',
+          type: chartType,
           name: 'Gasto (CLP)',
           data: gasto,
           color: '#f59e0b',
           yAxis: 1,
-          marker: { radius: 3 },
         },
       ],
       credits: { enabled: false },
@@ -154,7 +146,7 @@ function ComboChart({ data }: { data: BuildingRow[] }) {
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-  }, [data]);
+  }, [data, chartType]);
 
   return <div ref={containerRef} />;
 }
@@ -188,6 +180,7 @@ export function DashboardPage() {
   }, [summary]);
 
   const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [chartType, setChartType] = useState<'column' | 'line'>('column');
 
   // Set default to latest month once data loads
   useEffect(() => {
@@ -207,26 +200,45 @@ export function DashboardPage() {
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-muted">Consumo y Gasto por Edificio</h2>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-muted"
-            >
-              {months.map((m) => (
-                <option key={m} value={m}>{monthLabel(m)}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <div className="flex rounded border border-border text-xs">
+                <button
+                  onClick={() => setChartType('column')}
+                  className={`px-2 py-1 transition-colors ${chartType === 'column' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
+                >
+                  Barra
+                </button>
+                <button
+                  onClick={() => setChartType('line')}
+                  className={`px-2 py-1 transition-colors ${chartType === 'line' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
+                >
+                  Línea
+                </button>
+              </div>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-muted"
+              >
+                {months.map((m) => (
+                  <option key={m} value={m}>{monthLabel(m)}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <ComboChart data={monthData} />
+          <ComboChart data={monthData} chartType={chartType} />
         </Card>
 
         <div className="flex flex-col gap-2">
-          {SUMMARY_CARDS.map((c) => (
+          {[
+            { label: 'Pagos Recibidos', desc: 'Mes actual' },
+            { label: 'Docs por Vencer', desc: 'Próximos 30 días' },
+            { label: 'Docs Vencidos', desc: 'Total pendiente' },
+          ].map((c) => (
             <Card key={c.label} className="flex-1 flex flex-col justify-center !py-2 !px-3">
               <p className="text-xs text-muted">{c.label}</p>
-              <p className="text-xl font-bold text-text">{c.value}</p>
-              <p className="text-[10px] text-muted">{c.description}</p>
-              <p className="mt-1 text-[10px] text-muted/60">Actualizado: {c.updatedAt}</p>
+              <p className="text-xl font-bold text-muted/40">—</p>
+              <p className="text-[10px] text-muted">{c.desc}</p>
             </Card>
           ))}
         </div>
@@ -247,13 +259,7 @@ export function DashboardPage() {
 
         <Card>
           <h2 className="mb-3 text-sm font-semibold text-muted">Documentos Vencidos por Período</h2>
-          <DataTable
-            data={OVERDUE_BY_PERIOD}
-            columns={overdueCols}
-            rowKey={(r) => r.range}
-            footer
-            maxHeight="max-h-[340px]"
-          />
+          <p className="text-sm text-muted/40">—</p>
         </Card>
       </div>
     </div>

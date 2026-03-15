@@ -25,21 +25,22 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-15)
-- 5 edificios en pg-arauco: MG (446), MM (254), OT (70), SC52 (52), SC53 (53) — 875 medidores, 30.7M lecturas
-- Tariff con 4 locations: Las Condes, Santiago, Quilicura, Huechuraba (48 filas)
-- Todos los edificios con KPIs building_summary completos (12/12)
-- SC53 ahora con datos CSV reales (raw_readings + meter_monthly + meter_readings)
+- 5 edificios en pg-arauco, 875 medidores, 30.7M lecturas — todos alineados a 2025
+- Dashboard: gráfico con toggle Barra/Línea, tabla edificios, selector mes — datos reales
+- Cards resumen y tabla vencidos: placeholder "—" (sin datos de pago en fuentes)
+- MetersTable: placeholders atenuados, altura corregida
+- Eliminada data mock de DashboardPage
 
 ### Pendiente
-- Sin tareas pendientes definidas
+- Cards y tabla vencidos requieren fuente de datos de pagos (no existe aún)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-5 edificios en pg-arauco (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53 = 875 medidores).
-30.7M lecturas, 10,500 billing, 48 tariff (4 locations). KPIs 12/12 en los 5.
-Último commit: da98901.
+5 edificios, 875 medidores, 30.7M lecturas. building_summary alineado a 2025.
+Dashboard con datos reales (gráfico toggle Barra/Línea + tabla). Sin mock.
+Cards resumen y tabla vencidos en placeholder "—" (sin datos de pago).
 ```
 
 ## Prioridad Actual de Acceso

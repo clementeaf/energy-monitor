@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.34.0-alpha.0] - 2026-03-15 — DASHBOARD: 5 EDIFICIOS + LIMPIEZA MOCK
+
+### Fixed
+
+- **building_summary** — Parque Arauco Kennedy alineado a 2025 (antes 2026 por ingesta CSV sintética). Los 5 edificios ahora comparten el mismo rango de meses
+
+### Changed
+
+- **Gráfico Dashboard** — altura +20% (320→384px), toggle Barra/Línea (ambas series usan el mismo tipo)
+- **Cards resumen** (Pagos, Docs por Vencer, Docs Vencidos) — reemplazadas de mock a placeholder "—" (sin datos de pago en fuentes actuales)
+- **Tabla Documentos Vencidos** — reemplazada de mock a placeholder "—"
+- Eliminada dependencia de `mockData.ts` en DashboardPage
+
+---
+
 ## [0.33.0-alpha.0] - 2026-03-15 — DASHBOARD CON DATOS REALES
 
 ### Added

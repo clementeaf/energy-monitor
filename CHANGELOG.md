@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.32.1-alpha.0] - 2026-03-15 — FIX TABLA REMARCADORES
+
+### Fixed
+
+- **MetersTable:** medidores placeholder ("Sin informacion", "Local no sensado", "Local NNN") ahora se muestran en texto atenuado (`text-muted`) para distinguirlos de tiendas reales
+- **BuildingDetailPage:** tab "Listado Remarcadores" ya no agranda la Card ni provoca scrollbar — ajustada altura interna de la tabla paginada
+
+---
+
 ## [0.32.0-alpha.0] - 2026-03-15 — CARGA OT70 + SC52 + SC53 CSV
 
 ### Added

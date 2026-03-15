@@ -29,7 +29,7 @@
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender` |
-| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas, `cellClassName` para dim "Por censar", click → detalle medidor |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders (Sin informacion, Local no sensado, Local NNN, Por censar), `maxHeight="max-h-60"`, click → detalle medidor |
 | `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico por mes (Highcharts), toggle Barra/Línea, usado por BillingChart y MeterDetailPage |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
 | `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 6 columnas, highlight columna via `className`, click fila → lecturas |
@@ -64,7 +64,7 @@
 - Tabs en card inferior:
   - **Detalle Facturación:** `BillingTable` — scroll interno, sticky thead/tfoot, header "Mes" filtra filas por mes (checkboxes + "Todo")
   - **Listado Remarcadores:** `MetersTable` — paginación de 10, columnas y paginador siempre visibles, click → `/meters/:meterId`
-- Medidores sin tienda muestran "Por censar" (muted), sin tipo muestra "—"
+- Medidores sin tienda real muestran su placeholder en texto atenuado: "Sin informacion", "Local no sensado", "Local NNN" o "Por censar". Sin tipo muestra "—"
 
 ## MeterDetailPage
 

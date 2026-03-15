@@ -17,7 +17,13 @@ export function MetersTable({ data, buildingName }: MetersTableProps) {
       label: 'Tienda',
       value: (r) => r.storeName,
       align: 'left',
-      cellClassName: (r) => (r.storeName === 'Por censar' ? 'text-muted' : ''),
+      cellClassName: (r) =>
+        r.storeName === 'Por censar' ||
+        r.storeName === 'Sin informacion' ||
+        r.storeName === 'Local no sensado' ||
+        r.storeName.startsWith('Local ')
+          ? 'text-muted'
+          : '',
     },
     { label: 'Tipo', value: (r) => r.storeType || '—', align: 'left' },
   ];
@@ -28,6 +34,7 @@ export function MetersTable({ data, buildingName }: MetersTableProps) {
       columns={columns}
       rowKey={(r) => r.meterId}
       onRowClick={(r) => navigate(`/meters/${r.meterId}`, { state: { buildingName } })}
+      maxHeight="max-h-60"
       pageSize={10}
       itemLabel="medidores"
     />

@@ -15,6 +15,7 @@
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | si — DataTable paginada con filtros avanzados |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
+| `/comparisons` | Comparativas | si | no — mock. Selectores marca+mes, gráfico combo, tabla por edificio |
 
 ## Componentes UI
 
@@ -38,6 +39,7 @@
 
 - Vista principal del holding (Parque Arauco S.A.)
 - Data 100% mock hardcodeada (sin hooks, sin API)
+- Sin título `<h1>` (el sidebar indica la vista activa)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
 - **Fila 1 — col izq:** gráfico combo Highcharts (barras consumo kWh + línea gasto CLP) con selector de mes (Oct-25 a Mar-26)
 - **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) con fecha de última actualización
@@ -105,6 +107,16 @@
 - Severidad con colores: rojo (critical), ámbar (warning), azul (info)
 - Datos vía `useAlerts()` → `GET /api/alerts`
 - Pipeline de filtrado: checkbox filters → date/time filter → sort
+
+## ComparisonsPage
+
+- Compara una marca de tienda a través de distintos edificios
+- Data 100% mock hardcodeada (sin hooks, sin API)
+- Selectores inline: marca (10 marcas) + mes (Oct-25 a Mar-26)
+- Gráfico combo Highcharts (barras consumo kWh + línea gasto CLP), eje X = edificios
+- DataTable: Edificio, Consumo (kWh), Gasto ($), Superficie (m²), footer con totales
+- Mock data: 10 marcas en 6 edificios, factores por edificio y estacionales
+- Sin título `<h1>` (el sidebar indica la vista activa)
 
 ## Hooks activos
 

@@ -148,8 +148,6 @@ export function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col gap-6 overflow-auto">
-      <h1 className="text-xl font-bold text-text">Dashboard</h1>
-
       {/* Fila 1: gráfico + cards */}
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card>

@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { DashboardSkeleton, BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton } from '../components/ui/Skeleton';
+import { DashboardSkeleton, BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton, ComparisonsSkeleton } from '../components/ui/Skeleton';
 import { TempLayout } from '../components/ui/TempLayout';
 import { appRoutes } from './appRoutes';
 
@@ -14,6 +14,7 @@ const pages = {
   monitoringRealtime: lazy(() => import('../features/monitoring/RealtimePage').then((m) => ({ default: m.RealtimePage }))),
   alerts:             lazy(() => import('../features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage }))),
   alertDetail:        lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage }))),
+  comparisons:        lazy(() => import('../features/comparisons/ComparisonsPage').then((m) => ({ default: m.ComparisonsPage }))),
 };
 
 const skeletons: Record<string, ReactNode> = {
@@ -25,6 +26,7 @@ const skeletons: Record<string, ReactNode> = {
   monitoringRealtime: <RealtimeSkeleton />,
   alerts:             <AlertsSkeleton />,
   alertDetail:        <AlertDetailSkeleton />,
+  comparisons:        <ComparisonsSkeleton />,
 };
 
 const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }[] = [
@@ -36,6 +38,7 @@ const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }
   { key: 'monitoringRealtime', routeKey: 'monitoringRealtime' },
   { key: 'alerts',             routeKey: 'alerts' },
   { key: 'alertDetail',        routeKey: 'alertDetail' },
+  { key: 'comparisons',        routeKey: 'comparisons' },
 ];
 
 export const router = createBrowserRouter([

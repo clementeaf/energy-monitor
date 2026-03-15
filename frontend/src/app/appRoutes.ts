@@ -65,6 +65,12 @@ export const appRoutes = {
     label: 'Detalle Alerta',
     allowedRoles: PERMISSIONS.ALERT_DETAIL.view,
   },
+  comparisons: {
+    path: '/comparisons',
+    label: 'Comparativas',
+    allowedRoles: PERMISSIONS.COMPARISONS_OVERVIEW.view,
+    showInNav: true,
+  },
   // TODO: restore when needed
   drilldown: {
     path: '/monitoring/drilldown/:siteId',

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.29.0-alpha.0] - 2026-03-14 — VISTA COMPARATIVA DE TIENDAS
+
+### Added
+
+- **ComparisonsPage:** vista `/comparisons` para comparar una marca a través de distintos edificios
+  - Selectores inline de marca (10 marcas) y mes (Oct-25 a Mar-26)
+  - Gráfico combo Highcharts (barras consumo kWh + línea gasto CLP) por edificio
+  - DataTable con columnas Edificio, Consumo, Gasto, Superficie y totales en footer
+- **Mock data multi-edificio:** 10 marcas distribuidas en 6 edificios con factores por edificio y estacionales
+- **Permiso `COMPARISONS_OVERVIEW`:** accesible por todos los roles invitados
+- **ComparisonsSkeleton:** skeleton propio (2 selects + gráfico + tabla)
+
+### Changed
+
+- **Dashboard y Comparativas:** removidos títulos `<h1>` (el sidebar ya indica la vista activa)
+
+---
+
 ## [0.28.0-alpha.0] - 2026-03-14 — DASHBOARD: LAYOUT 2 COLUMNAS + GRÁFICO COMBO
 
 ### Added

@@ -227,6 +227,34 @@ export function AlertDetailSkeleton() {
   );
 }
 
+/** Skeleton for ComparisonsPage: selects + chart + table */
+export function ComparisonsSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-6 overflow-hidden">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-7 w-36" />
+        <Skeleton className="h-7 w-28" />
+        <Skeleton className="h-7 w-24" />
+      </div>
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <Skeleton className="mb-3 h-4 w-64" />
+        <Skeleton className="h-[320px] w-full" />
+      </div>
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <Skeleton className="mb-3 h-4 w-56" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex gap-6 border-t border-border py-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton for MeterDetailPage: header + chart(s) */
 export function MeterDetailSkeleton() {
   return (

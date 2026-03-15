@@ -26,21 +26,19 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Completado (2026-03-15)
 - 5 edificios, 875 medidores, 30.7M lecturas — alineados a 2025
-- Dashboard completo: gráfico, tabla edificios, cards de pago, tabla vencidos, drawers de detalle
+- Dashboard completo: gráfico, tablas, cards de pago, drawers de detalle
 - Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea
 - Incidencias en medidor con navegación a Alertas (filtros pre-aplicados)
 - Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
-- Design system PA: `pa-ui-references/PA_DESIGN_SYSTEM.md` — paleta, tipografía, layout, componentes, patrones, mapping Tailwind v4
+- Design system PA aplicado en sidebar y dashboard: tokens, colores, kpi_cards, data_table, títulos banner
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
-Dashboard completo con drawers de detalle.
-Comparativas con datos reales.
-Incidencias con navegación a Alertas.
-Design system PA extraído (PA_DESIGN_SYSTEM.md).
+Design system PA aplicado: sidebar (logo, nav numerada pill), dashboard (gráfico, cards, tablas).
+Tokens PA en index.css. Card sin borde. DataTable estilo PA.
 ```
 
 ## Prioridad Actual de Acceso

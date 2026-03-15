@@ -10,6 +10,18 @@
   --color-muted:   #6b7280;
   --color-subtle:  #9ca3af;
   --color-accent:  #2563eb;
+
+  /* PA Brand */
+  --color-pa-navy:       #1B1464;
+  --color-pa-blue:       #3D3BF3;
+  --color-pa-blue-light: #5B59F5;
+  --color-pa-coral:      #E84C6F;
+  --color-pa-green:      #2D9F5D;
+  --color-pa-amber:      #F5A623;
+  --color-pa-bg-alt:     #F3F4F6;
+  --color-pa-border:     #E5E7EB;
+  --color-pa-text:       #1F2937;
+  --color-pa-text-muted: #6B7280;
 }
 
 

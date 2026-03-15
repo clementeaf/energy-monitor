@@ -78,39 +78,43 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
         categories,
         labels: {
           rotation: -45,
-          style: { fontSize: '10px', color: '#94a3b8' },
+          style: { fontSize: '11px', color: '#6B7280' },
         },
-        lineColor: '#334155',
+        lineColor: '#E5E7EB',
+        tickColor: '#E5E7EB',
       },
       yAxis: [
         {
-          title: { text: 'Consumo (kWh)', style: { color: '#60a5fa' } },
+          title: { text: 'Consumo (kWh)', style: { color: '#3D3BF3', fontSize: '11px' } },
           labels: {
             formatter() { return fmtAxis(this.value as number); },
-            style: { color: '#94a3b8' },
+            style: { color: '#6B7280', fontSize: '11px' },
           },
-          gridLineColor: '#1e293b',
+          gridLineColor: '#F3F4F6',
         },
         {
-          title: { text: 'Gasto (CLP)', style: { color: '#f59e0b' } },
+          title: { text: 'Gasto (CLP)', style: { color: '#E84C6F', fontSize: '11px' } },
           labels: {
             formatter() { return `$${fmtAxis(this.value as number)}`; },
-            style: { color: '#94a3b8' },
+            style: { color: '#6B7280', fontSize: '11px' },
           },
           opposite: true,
           gridLineWidth: 0,
         },
       ],
       legend: {
-        itemStyle: { color: '#94a3b8' },
-        itemHoverStyle: { color: '#e2e8f0' },
+        itemStyle: { color: '#1F2937', fontSize: '12px' },
+        itemHoverStyle: { color: '#3D3BF3' },
       },
       tooltip: {
         shared: true,
         useHTML: true,
+        backgroundColor: '#FFFFFF',
+        borderColor: '#E5E7EB',
+        style: { color: '#1F2937' },
         formatter() {
           const points = this.points!;
-          let html = `<b>${this.x}</b><br/>`;
+          let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
           for (const p of points) {
             const val = p.series.name === 'Consumo (kWh)'
               ? `${(p.y ?? 0).toLocaleString('es-CL')} kWh`
@@ -121,22 +125,22 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
         },
       },
       plotOptions: {
-        column: { borderRadius: 3, borderWidth: 0 },
-        line: { marker: { radius: 3 } },
+        column: { borderRadius: 4, borderWidth: 0 },
+        line: { marker: { radius: 4, symbol: 'circle' }, lineWidth: 2.5 },
       },
       series: [
         {
           type: chartType,
           name: 'Consumo (kWh)',
           data: consumo,
-          color: '#60a5fa',
+          color: '#3D3BF3',
           yAxis: 0,
         },
         {
           type: chartType,
           name: 'Gasto (CLP)',
           data: gasto,
-          color: '#f59e0b',
+          color: '#E84C6F',
           yAxis: 1,
         },
       ],
@@ -220,12 +224,12 @@ export function DashboardPage() {
   const monthData = byMonth[selectedMonth] ?? [];
 
   return (
-    <div className="flex h-full flex-col gap-6 overflow-auto">
+    <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
-      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-muted">Consumo y Gasto por Edificio</h2>
+          <div className="mb-3 flex items-center justify-between rounded-lg bg-pa-bg-alt px-4 py-2.5">
+            <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">Consumo y Gasto por Edificio</h2>
             <div className="flex items-center gap-2">
               <div className="flex rounded border border-border text-xs">
                 <button
@@ -255,47 +259,64 @@ export function DashboardPage() {
           <ComboChart data={monthData} chartType={chartType} />
         </Card>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {[
-            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, color: 'text-green-400', onClick: undefined },
-            { label: 'Docs por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, color: 'text-amber-400', onClick: () => setDrawerPorVencer(true) },
-            { label: 'Docs Vencidos', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, color: 'text-red-400', onClick: () => setDrawerVencidos(true) },
+            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, accent: 'text-pa-green', onVerMas: undefined },
+            { label: 'Facturas por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, accent: 'text-pa-amber', onVerMas: () => setDrawerPorVencer(true) },
+            { label: 'Facturas Vencidas', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, accent: 'text-pa-coral', onVerMas: () => setDrawerVencidos(true) },
           ].map((c) => (
-            <Card key={c.label} onClick={c.onClick} className="flex-1 flex flex-col justify-center !py-2 !px-3">
-              <p className="text-xs text-muted">{c.label}</p>
-              <p className={`text-lg font-bold ${c.color}`}>{c.value}</p>
-              <p className="text-[10px] text-muted">{c.desc}</p>
-            </Card>
+            <div
+              key={c.label}
+              className="flex flex-1 flex-col justify-center rounded-xl bg-white px-4 py-3"
+            >
+              <p className="text-xs font-medium text-pa-text-muted">{c.label}</p>
+              <p className={`text-2xl font-bold ${c.accent}`}>{c.value}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-pa-text-muted">{c.desc}</p>
+                {c.onVerMas && (
+                  <button
+                    onClick={c.onVerMas}
+                    className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
+                  >
+                    Ver más +
+                  </button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Fila 2: ambas tablas alineadas, misma altura */}
-      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
-        <Card>
-          <h2 className="mb-3 text-sm font-semibold text-muted">Consumo Mensual por Edificio — {monthLabel(selectedMonth)}</h2>
-          <DataTable
-            data={monthData}
-            columns={buildingCols}
-            rowKey={(r) => r.name}
-            footer
-            maxHeight="max-h-[340px]"
-          />
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
+        <Card className="flex flex-col">
+          <h2 className="mb-3 inline-block rounded-lg bg-pa-bg-alt px-4 py-2.5 text-[13px] font-bold uppercase tracking-wide text-pa-navy">Consumo Mensual por Edificio — {monthLabel(selectedMonth)}</h2>
+          <div className="min-h-0 flex-1">
+            <DataTable
+              data={monthData}
+              columns={buildingCols}
+              rowKey={(r) => r.name}
+              footer
+              maxHeight="max-h-full"
+            />
+          </div>
         </Card>
 
-        <Card>
-          <h2 className="mb-3 text-sm font-semibold text-muted">Documentos Vencidos por Período</h2>
-          {payments ? (
-            <DataTable
-              data={payments.vencidosPorPeriodo}
-              columns={overdueCols}
-              rowKey={(r) => r.range}
-              footer
-              maxHeight="max-h-[340px]"
-            />
-          ) : (
-            <p className="text-sm text-muted/40">—</p>
-          )}
+        <Card className="flex flex-col">
+          <h2 className="mb-3 inline-block whitespace-nowrap rounded-lg bg-pa-bg-alt px-4 py-2.5 text-[13px] font-bold uppercase tracking-wide text-pa-navy">Documentos Vencidos por Período</h2>
+          <div className="min-h-0 flex-1">
+            {payments ? (
+              <DataTable
+                data={payments.vencidosPorPeriodo}
+                columns={overdueCols}
+                rowKey={(r) => r.range}
+                footer
+                maxHeight="max-h-full"
+              />
+            ) : (
+              <p className="text-sm text-muted/40">—</p>
+            )}
+          </div>
         </Card>
       </div>
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.40.0-alpha.0] - 2026-03-15 — APLICACIÓN DESIGN SYSTEM PA EN DASHBOARD
+
+### Changed
+
+- **Sidebar** — fondo `#F3F4F6`, logo PA (flor recortada) + texto "Parque Arauco / Energy Monitor", nav items con número en círculo outlined (01–05) y fondo pill blanco, activo en `#3D3BF3` con texto blanco
+- **Gráfico dashboard** — colores PA: consumo `#3D3BF3` (pa-blue), gasto `#E84C6F` (pa-coral), gridlines sutiles, labels en `#6B7280`, tooltip fondo blanco
+- **Cards de pago** — patrón `kpi_card` PA: sin borde, fondo blanco, número grande en color de acento (verde/ámbar/coral), botón pill "Ver más +" para abrir drawers
+- **Tablas** — patrón `data_table` PA: header fondo blanco con texto navy semibold, filas separadas por línea fina `#E5E7EB`, footer fondo gris claro con texto bold navy
+- **Títulos de tabla** — banner inline con fondo gris `#F3F4F6`, texto navy bold uppercase
+- **Card genérico** — sin borde, fondo blanco, `rounded-xl`
+- **Layout dashboard** — sin scroll, ambas filas `flex-1` ocupan alto disponible
+- Labels: "Docs por Vencer" → "Facturas por Vencer", "Docs Vencidos" → "Facturas Vencidas"
+
+### Added
+
+- Tokens PA en `index.css`: `pa-navy`, `pa-blue`, `pa-blue-light`, `pa-coral`, `pa-green`, `pa-amber`, `pa-bg-alt`, `pa-border`, `pa-text`, `pa-text-muted`
+- `pa-icon.png` en `frontend/src/assets/`
+
+---
+
 ## [0.39.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PARQUE ARAUCO
 
 ### Added

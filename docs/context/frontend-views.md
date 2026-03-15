@@ -1,6 +1,6 @@
 # Frontend: Vistas y Datos
 
-> **Estado actual (2026-03-14):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Theme light.
+> **Estado actual (2026-03-15):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Design system PA aplicado (sidebar, dashboard).
 
 ## Vistas activas
 
@@ -21,9 +21,9 @@
 
 | Componente | Ubicación | Uso |
 |------------|-----------|-----|
-| `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
+| `Card` | `components/ui/Card.tsx` | Container sin borde, fondo blanco, rounded-xl. Hover gris sutil si clickeable |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
-| `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>: ReactNode values, headerRender, cellClassName, className por columna, footer opcional, bg-surface sticky |
+| `DataTable` | `components/ui/DataTable.tsx` | Tabla PA: header blanco texto navy semibold, filas con línea fina #E5E7EB, footer bg gris claro bold navy, h-full para igualar alturas en grid |
 | `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usado en Comparativas |
 | `Drawer` | `components/ui/Drawer.tsx` | Panel lateral/superior/inferior con portal, overlay, Escape, lock scroll. Props: side, size, title, overlayClose |
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
@@ -42,12 +42,13 @@
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
 - **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Barra/Línea y selector de mes
-- **Fila 1 — col der:** 3 cards de pago con datos reales — Pagos Recibidos (verde), Docs por Vencer (ámbar, clickeable → Drawer), Docs Vencidos (rojo, clickeable → Drawer). Monto + conteo de documentos
-- **Fila 2 — col izq:** tabla edificios (5 reales, scroll interno 340px, header/footer sticky)
-- **Fila 2 — col der:** tabla "Documentos Vencidos por Período" — DataTable con 4 rangos (1-30, 31-60, 61-90, 90+ días), columnas Período/Docs/Monto, footer con totales
+- **Fila 1 — col der:** 3 kpi_cards PA — Pagos Recibidos (verde), Facturas por Vencer (ámbar), Facturas Vencidas (coral). Número grande + label + botón pill "Ver más +" abre Drawer
+- **Fila 2 — col izq:** tabla edificios con título banner PA, misma altura que col der
+- **Fila 2 — col der:** tabla "Documentos Vencidos por Período" con título banner PA, misma altura que col izq
 - Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
 - Datos de pago vía `useDashboardPayments` → `GET /api/dashboard/payments`
-- **Drawers de documentos:** click en cards "Docs por Vencer" o "Docs Vencidos" abre `Drawer` size `lg` con DataTable (Edificio, N° Doc, Vencimiento, Neto, IVA, Total + footer totales). Datos vía `useDashboardDocuments(status)` → `GET /api/dashboard/documents/:status` (fetch lazy al abrir)
+- **Drawers de documentos:** botón "Ver más +" en cards abre `Drawer` size `lg` con DataTable detalle. Datos vía `useDashboardDocuments(status)` (fetch lazy al abrir)
+- **Layout:** sin scroll en vista, ambas filas flex-1 ocupan alto disponible
 - Selector de mes derivado de los meses disponibles en la API
 
 ## BuildingsPage

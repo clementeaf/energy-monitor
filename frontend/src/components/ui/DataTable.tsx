@@ -40,15 +40,15 @@ export function DataTable<T>({
   const totalPages = pageSize ? Math.ceil(data.length / pageSize) : 1;
 
   return (
-    <div>
-      <div className={`overflow-auto ${maxHeight}`}>
-        <table className={`min-w-full text-sm ${tableClassName ?? ''}`}>
+    <div className="h-full flex flex-col">
+      <div className={`overflow-auto flex-1 ${maxHeight}`}>
+        <table className={`min-w-full h-full text-[13px] ${tableClassName ?? ''}`}>
           <thead>
-            <tr className="border-b border-border">
+            <tr>
               {columns.map((col, i) => (
                 <th
                   key={i}
-                  className={`sticky top-0 z-10 bg-surface px-3 py-2 font-semibold text-text ${
+                  className={`sticky top-0 z-10 border-b border-pa-border bg-white px-3 py-2.5 text-[13px] font-semibold text-pa-navy ${
                     (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
                   } ${col.className ?? ''}`}
                 >
@@ -60,7 +60,7 @@ export function DataTable<T>({
           <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-6 text-center text-muted">
+                <td colSpan={columns.length} className="px-3 py-6 text-center text-pa-text-muted">
                   {emptyMessage}
                 </td>
               </tr>
@@ -68,15 +68,15 @@ export function DataTable<T>({
               paginated.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className={`border-b border-border transition-colors hover:bg-raised ${
-                    onRowClick ? 'cursor-pointer' : ''
+                  className={`border-b border-pa-border ${
+                    onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
                   }`}
                   onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col, i) => (
                     <td
                       key={i}
-                      className={`px-3 py-2 ${
+                      className={`px-3 py-3 text-pa-text ${
                         (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
                       } ${col.className ?? ''} ${col.cellClassName?.(row) ?? ''}`}
                     >
@@ -89,11 +89,11 @@ export function DataTable<T>({
           </tbody>
           {hasFooter && (
             <tfoot>
-              <tr className="border-t border-border">
+              <tr className="border-t border-pa-border">
                 {columns.map((col, i) => (
                   <td
                     key={i}
-                    className={`sticky bottom-0 z-10 bg-surface px-3 py-2 font-semibold ${
+                    className={`sticky bottom-0 z-10 bg-pa-bg-alt px-3 py-2.5 font-bold text-pa-navy ${
                       (col.align ?? 'right') === 'right' ? 'text-right' : 'text-left'
                     } ${col.className ?? ''}`}
                   >
@@ -106,20 +106,20 @@ export function DataTable<T>({
         </table>
       </div>
       {pageSize && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-sm text-muted">
+        <div className="flex items-center justify-between border-t border-pa-border px-3 py-2 text-[13px] text-pa-text-muted">
           <span>
             {page * pageSize + 1}–{Math.min((page + 1) * pageSize, data.length)} de {data.length}
           </span>
           <div className="flex gap-1">
             <button
-              className="rounded px-2 py-1 hover:bg-raised disabled:opacity-40"
+              className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
               disabled={page === 0}
               onClick={() => setPage(page - 1)}
             >
               ‹
             </button>
             <button
-              className="rounded px-2 py-1 hover:bg-raised disabled:opacity-40"
+              className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
               disabled={page >= totalPages - 1}
               onClick={() => setPage(page + 1)}
             >

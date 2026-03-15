@@ -3,22 +3,16 @@ import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
+import { PillButton } from '../../components/ui/PillButton';
+import { PillDropdown } from '../../components/ui/PillDropdown';
+import { SectionBanner } from '../../components/ui/SectionBanner';
+import { TogglePills } from '../../components/ui/TogglePills';
 import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
+import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel } from '../../lib/formatters';
+import { SHORT_BUILDING_NAMES } from '../../lib/constants';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket } from '../../types';
-
-const MONTH_NAMES = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
-
-function monthLabel(iso: string): string {
-  const d = new Date(iso);
-  return `${MONTH_NAMES[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
-}
-
-const fmt = (n: number | null) => (n != null ? n.toLocaleString('es-CL') : '—');
-const fmtClp = (n: number | null) => (n != null ? `$${n.toLocaleString('es-CL', { maximumFractionDigits: 0 })}` : '—');
 
 interface BuildingRow {
   name: string;
@@ -36,73 +30,20 @@ const buildingCols: Column<BuildingRow>[] = [
   { label: 'Medidores', value: (r) => fmt(r.totalMeters), total: (d) => fmt(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
+const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+  { value: 'column', label: 'Barra' },
+  { value: 'line', label: 'Línea' },
+  { value: 'area', label: 'Área' },
+];
 
-const SHORT_NAMES: Record<string, string> = {
-  'Parque Arauco Kennedy': 'P. Arauco Kennedy',
-  'Arauco Premium Outlet Buenaventura': 'Outlet Buenaventura',
-  'Arauco Express Ciudad Empresarial': 'Express C. Empresarial',
-  'Arauco Express El Carmen de Huechuraba': 'Express Huechuraba',
-  'Arauco Estación': 'Arauco Estación',
-};
-
-function fmtAxis(val: number): string {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-  return String(val);
-}
-
-function MonthDropdown({ months, value, onChange }: { months: string[]; value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex cursor-pointer items-center gap-1.5 rounded-full border border-pa-border bg-white px-3 py-1 text-[12px] font-semibold text-pa-navy transition-colors hover:border-pa-blue"
-      >
-        {monthLabel(value)}
-        <svg className="h-3 w-3 shrink-0 text-pa-blue" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-        </svg>
-      </button>
-
-      {open && (
-        <ul className="absolute right-0 z-20 mt-1.5 max-h-60 w-36 overflow-y-auto rounded-xl border border-pa-border bg-white py-1 shadow-lg">
-          {months.map((m) => (
-            <li key={m}>
-              <button
-                onClick={() => { onChange(m); setOpen(false); }}
-                className={`block w-full px-3 py-1.5 text-left text-[13px] transition-colors ${
-                  m === value ? 'bg-pa-bg-alt font-semibold text-pa-navy' : 'text-pa-text-muted hover:bg-pa-bg-alt hover:text-pa-navy'
-                }`}
-              >
-                {monthLabel(m)}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'column' | 'line' }) {
+function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: ChartType }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<Highcharts.Chart | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const categories = data.map((b) => SHORT_NAMES[b.name] ?? b.name);
+    const categories = data.map((b) => SHORT_BUILDING_NAMES[b.name] ?? b.name);
     const consumo = data.map((b) => b.totalKwh ?? 0);
     const gasto = data.map((b) => b.totalConIvaClp ?? 0);
 
@@ -129,7 +70,7 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
       },
       yAxis: [
         {
-          title: { text: 'Consumo (kWh)', style: { color: '#3D3BF3', fontSize: '11px' } },
+          title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
           labels: {
             formatter() { return fmtAxis(this.value as number); },
             style: { color: '#6B7280', fontSize: '11px' },
@@ -137,7 +78,7 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
           gridLineColor: '#F3F4F6',
         },
         {
-          title: { text: 'Gasto (CLP)', style: { color: '#E84C6F', fontSize: '11px' } },
+          title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
           labels: {
             formatter() { return `$${fmtAxis(this.value as number)}`; },
             style: { color: '#6B7280', fontSize: '11px' },
@@ -148,14 +89,12 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
       ],
       legend: {
         itemStyle: { color: '#1F2937', fontSize: '12px' },
-        itemHoverStyle: { color: '#3D3BF3' },
+        itemHoverStyle: { color: CHART_COLORS.blue },
       },
       tooltip: {
         shared: true,
         useHTML: true,
-        backgroundColor: '#FFFFFF',
-        borderColor: '#E5E7EB',
-        style: { color: '#1F2937' },
+        ...LIGHT_TOOLTIP_STYLE,
         formatter() {
           const points = this.points!;
           let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
@@ -168,23 +107,20 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
           return html;
         },
       },
-      plotOptions: {
-        column: { borderRadius: 4, borderWidth: 0 },
-        line: { marker: { radius: 4, symbol: 'circle' }, lineWidth: 2.5 },
-      },
+      plotOptions: LIGHT_PLOT_OPTIONS,
       series: [
         {
           type: chartType,
           name: 'Consumo (kWh)',
           data: consumo,
-          color: '#3D3BF3',
+          color: CHART_COLORS.blue,
           yAxis: 0,
         },
         {
           type: chartType,
           name: 'Gasto (CLP)',
           data: gasto,
-          color: '#E84C6F',
+          color: CHART_COLORS.coral,
           yAxis: 1,
         },
       ],
@@ -206,13 +142,8 @@ const overdueCols: Column<OverdueBucket>[] = [
   { label: 'Monto', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
 ];
 
-const fmtDate = (iso: string) => {
-  const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-};
-
 const docCols: Column<BillingDocumentDetail>[] = [
-  { label: 'Edificio', value: (r) => SHORT_NAMES[r.buildingName] ?? r.buildingName, align: 'left' },
+  { label: 'Edificio', value: (r) => SHORT_BUILDING_NAMES[r.buildingName] ?? r.buildingName, align: 'left' },
   { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' },
   { label: 'Vencimiento', value: (r) => fmtDate(r.dueDate), className: 'whitespace-nowrap' },
   { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },
@@ -254,7 +185,7 @@ export function DashboardPage() {
   }, [summary]);
 
   const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [chartType, setChartType] = useState<'column' | 'line'>('column');
+  const [chartType, setChartType] = useState<ChartType>('column');
 
   // Set default to latest month once data loads
   useEffect(() => {
@@ -266,32 +197,24 @@ export function DashboardPage() {
   if (isLoading) return <DashboardSkeleton />;
 
   const monthData = byMonth[selectedMonth] ?? [];
+  const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
       <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card>
-          <div className="mb-3 flex items-center justify-between rounded-lg bg-pa-bg-alt px-4 py-2.5">
-            <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">Consumo y Gasto por Edificio</h2>
+          <SectionBanner title="Consumo y Gasto por Edificio" className="mb-3 justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex rounded-full border border-pa-border text-[12px]">
-                <button
-                  onClick={() => setChartType('column')}
-                  className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${chartType === 'column' ? 'bg-pa-navy text-white' : 'text-pa-navy hover:bg-pa-navy/10'}`}
-                >
-                  Barra
-                </button>
-                <button
-                  onClick={() => setChartType('line')}
-                  className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${chartType === 'line' ? 'bg-pa-navy text-white' : 'text-pa-navy hover:bg-pa-navy/10'}`}
-                >
-                  Línea
-                </button>
-              </div>
-              <MonthDropdown months={months} value={selectedMonth} onChange={setSelectedMonth} />
+              <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
+              <PillDropdown
+                items={monthItems}
+                value={selectedMonth}
+                onChange={setSelectedMonth}
+                listWidth="w-36"
+              />
             </div>
-          </div>
+          </SectionBanner>
           <ComboChart data={monthData} chartType={chartType} />
         </Card>
 
@@ -310,12 +233,7 @@ export function DashboardPage() {
               <div className="flex items-center justify-between">
                 <p className="text-[11px] text-pa-text-muted">{c.desc}</p>
                 {c.onVerMas && (
-                  <button
-                    onClick={c.onVerMas}
-                    className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
-                  >
-                    Ver más +
-                  </button>
+                  <PillButton onClick={c.onVerMas}>Ver más +</PillButton>
                 )}
               </div>
             </div>
@@ -326,7 +244,7 @@ export function DashboardPage() {
       {/* Fila 2: ambas tablas alineadas, misma altura */}
       <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card className="flex flex-col">
-          <h2 className="mb-3 inline-block rounded-lg bg-pa-bg-alt px-4 py-2.5 text-[13px] font-bold uppercase tracking-wide text-pa-navy">Consumo Mensual por Edificio — {monthLabel(selectedMonth)}</h2>
+          <SectionBanner title={`Consumo Mensual por Edificio — ${monthLabel(selectedMonth)}`} inline className="mb-3" />
           <div className="min-h-0 flex-1">
             <DataTable
               data={monthData}
@@ -339,7 +257,7 @@ export function DashboardPage() {
         </Card>
 
         <Card className="flex flex-col">
-          <h2 className="mb-3 inline-block whitespace-nowrap rounded-lg bg-pa-bg-alt px-4 py-2.5 text-[13px] font-bold uppercase tracking-wide text-pa-navy">Documentos Vencidos por Período</h2>
+          <SectionBanner title="Documentos Vencidos por Período" inline className="mb-3 whitespace-nowrap" />
           <div className="min-h-0 flex-1">
             {payments ? (
               <DataTable

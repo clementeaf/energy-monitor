@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -6,16 +6,15 @@ import HighchartsStock from 'highcharts/highstock';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MeterReadingsSkeleton } from '../../components/ui/Skeleton';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { useMeterReadings } from '../../hooks/queries/useMeters';
 import { useAlerts } from '../../hooks/queries/useAlerts';
+import { fmtNum } from '../../lib/formatters';
+import { MONTH_NAMES_FULL } from '../../lib/constants';
+import { avgNonNull, maxNonNull, sumNonNull } from '../../lib/aggregations';
 import type { Alert, MeterReading } from '../../types';
 
 type ChartResolution = 'daily' | '15min';
-
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
 
 type ReadingMetricKey = keyof Omit<MeterReading, 'meterId' | 'timestamp'>;
 
@@ -40,11 +39,6 @@ const readingMetrics: Record<ReadingMetricKey, MetricMeta> = {
 
 const metricKeys = Object.keys(readingMetrics) as ReadingMetricKey[];
 
-function fmtNum(n: number | null, decimals = 2): string {
-  if (n === null) return '—';
-  return n.toLocaleString('es-CL', { maximumFractionDigits: decimals });
-}
-
 interface DaySummary {
   day: string; // YYYY-MM-DD
   label: string; // "01", "02", etc.
@@ -58,21 +52,6 @@ interface DaySummary {
   avgCurrentL1: number | null;
   avgReactivePowerKvar: number | null;
   avgFrequencyHz: number | null;
-}
-
-function avgNonNull(values: (number | null)[]): number | null {
-  const valid = values.filter((v): v is number => v !== null);
-  return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
-}
-
-function maxNonNull(values: (number | null)[]): number | null {
-  const valid = values.filter((v): v is number => v !== null);
-  return valid.length ? Math.max(...valid) : null;
-}
-
-function sumNonNull(values: (number | null)[]): number | null {
-  const valid = values.filter((v): v is number => v !== null);
-  return valid.length ? valid.reduce((a, b) => a + b, 0) : null;
 }
 
 function groupByDay(readings: MeterReading[], alerts: Alert[] = []): DaySummary[] {
@@ -145,21 +124,14 @@ export function MeterReadingsPage() {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [resolution, setResolution] = useState<ChartResolution>('daily');
   const selectorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) setSelectorOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  useClickOutside(selectorRef, () => setSelectorOpen(false), selectorOpen);
 
   // Parse month param (YYYY-MM) to from/to dates
   const { from, to, monthLabel } = useMemo(() => {
     const [y, m] = (month ?? '2026-01').split('-').map(Number);
     const fromDate = new Date(y, m - 1, 1);
     const toDate = new Date(y, m, 0); // last day of month
-    const label = `${MONTH_NAMES[m - 1]} ${y}`;
+    const label = `${MONTH_NAMES_FULL[m - 1]} ${y}`;
     return {
       from: fromDate.toISOString().slice(0, 10),
       to: toDate.toISOString().slice(0, 10),

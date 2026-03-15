@@ -1,22 +1,28 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Card } from '../../components/ui/Card';
+import { PillButton } from '../../components/ui/PillButton';
+import { PillDropdown } from '../../components/ui/PillDropdown';
+import { SectionBanner } from '../../components/ui/SectionBanner';
+import { TogglePills } from '../../components/ui/TogglePills';
 import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding } from '../../hooks/queries/useBuildings';
 import { useBilling } from '../../hooks/queries/useBilling';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { BillingChart } from './components/BillingChart';
-import { BillingMetricSelector } from './components/BillingMetricSelector';
 import { BillingTable } from './components/BillingTable';
 import { MetersTable } from './components/MetersTable';
 import type { BillingMetricKey } from './components/billingMetrics';
+import { billingMetrics, billingMetricKeys } from './components/billingMetrics';
 
 type DetailTab = 'billing' | 'meters';
 
-const tabs: { key: DetailTab; label: string }[] = [
-  { key: 'billing', label: 'Detalle Facturación' },
-  { key: 'meters', label: 'Listado Remarcadores' },
+const TAB_OPTIONS: { value: DetailTab; label: string }[] = [
+  { value: 'billing', label: 'Detalle Facturación' },
+  { value: 'meters', label: 'Listado Remarcadores' },
 ];
+
+const metricDropdownItems = billingMetricKeys.map((k) => ({ value: k, label: billingMetrics[k].label }));
 
 export function BuildingDetailPage() {
   const navigate = useNavigate();
@@ -36,12 +42,7 @@ export function BuildingDetailPage() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mb-3 flex shrink-0 items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
-        >
-          &larr; Volver
-        </button>
+        <PillButton onClick={() => navigate(-1)}>&larr; Volver</PillButton>
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
       </div>
 
@@ -49,30 +50,22 @@ export function BuildingDetailPage() {
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
           {/* Fila 1: gráfico */}
           <Card className="flex shrink-0 flex-col">
-            <div className="mb-3 flex w-fit items-center gap-3 rounded-lg bg-pa-bg-alt px-4 py-2.5">
-              <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">Facturación Mensual</h2>
-              <BillingMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
-            </div>
+            <SectionBanner title="Facturación Mensual" inline className="mb-3">
+              <PillDropdown
+                items={metricDropdownItems}
+                value={chartMetric}
+                onChange={setChartMetric}
+                onHover={setHoveredMetric}
+              />
+            </SectionBanner>
             <BillingChart data={billing} metric={chartMetric} />
           </Card>
 
           {/* Fila 2: tabla, ocupa resto */}
           <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="mb-3 flex w-fit shrink-0 items-center gap-2 rounded-lg bg-pa-bg-alt px-4 py-2.5">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`rounded-full px-3 py-1 text-[13px] font-bold uppercase tracking-wide transition-colors ${
-                    activeTab === tab.key
-                      ? 'bg-pa-navy text-white'
-                      : 'text-pa-navy hover:bg-pa-navy/10'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            <SectionBanner title="" inline className="mb-3">
+              <TogglePills options={TAB_OPTIONS} value={activeTab} onChange={setActiveTab} />
+            </SectionBanner>
 
             <div className="min-h-0 flex-1 overflow-hidden">
               {activeTab === 'billing' && (

@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, useMemo, useCallback, type RefObject } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { DataTable, type Column } from '../../components/ui/DataTable';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import type { Alert } from '../../types';
 
 // =============================================================================
@@ -38,23 +39,6 @@ function ChevronDown({ className = 'h-3 w-3 opacity-50' }: { className?: string 
       <path d="M3 5l3 3 3-3" />
     </svg>
   );
-}
-
-// =============================================================================
-// useClickOutside — supports multiple refs (button + portal panel)
-// =============================================================================
-
-function useClickOutside(refs: RefObject<HTMLElement | null>[], onClose: () => void, active: boolean) {
-  useEffect(() => {
-    if (!active) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const inside = refs.some((r) => r.current?.contains(target));
-      if (!inside) onClose();
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [refs, onClose, active]);
 }
 
 // =============================================================================

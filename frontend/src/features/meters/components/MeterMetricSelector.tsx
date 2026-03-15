@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useClickOutside } from '../../../hooks/useClickOutside';
 import type { MeterMetricKey } from './meterMetrics';
 import { meterMetrics, meterMetricKeys } from './meterMetrics';
 
@@ -11,14 +12,7 @@ interface MeterMetricSelectorProps {
 export function MeterMetricSelector({ value, onChange, onHover }: MeterMetricSelectorProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false), open);
 
   return (
     <div ref={ref} className="relative inline-block">

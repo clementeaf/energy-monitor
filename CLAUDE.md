@@ -32,6 +32,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
 - Design system PA aplicado en sidebar, dashboard, edificios y detalle edificio
 - Controles PA: dropdowns custom pill, toggles pill, banners `w-fit`, layout sin scroll
+- Extracción componentes/utilidades compartidas: `lib/` (formatters, constants, aggregations, chartConfig), `hooks/useClickOutside`, `components/ui/` (PillButton, SectionBanner, TogglePills, PillDropdown)
 
 ### Prompt de retoma
 ```
@@ -39,8 +40,9 @@ Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
 Design system PA aplicado: sidebar, dashboard, edificios, detalle edificio.
-Controles PA: dropdowns pill, toggles pill, banners w-fit bg-pa-bg-alt.
-Tokens PA en index.css. Card sin borde. DataTable estilo PA.
+Utilidades compartidas en lib/ (formatters, constants, aggregations, chartConfig).
+Componentes UI compartidos: PillButton, SectionBanner, TogglePills, PillDropdown.
+Hook useClickOutside compartido en 7 componentes.
 ```
 
 ## Prioridad Actual de Acceso
@@ -73,6 +75,9 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 - **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
+- **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
+- **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown` en `components/ui/`
+- **Shared hooks:** `useClickOutside` en `hooks/`
 - **Styling:** Tailwind v4 tokens: `text-text`, `text-muted`, `bg-base`, `bg-raised`, `border-border`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
 

@@ -1,12 +1,10 @@
 import { useNavigate } from 'react-router';
 import { Card } from '../../components/ui/Card';
+import { PillButton } from '../../components/ui/PillButton';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useBuildings } from '../../hooks/queries/useBuildings';
+import { fmt } from '../../lib/formatters';
 import type { BuildingSummary } from '../../types';
-
-function fmt(n: number | null | undefined) {
-  return n != null ? n.toLocaleString('es-CL', { maximumFractionDigits: 1 }) : '—';
-}
 
 function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
@@ -44,12 +42,9 @@ export function BuildingsPage() {
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-text">{b.buildingName}</h3>
-                <button
-                  onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}
-                  className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
-                >
+                <PillButton onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}>
                   Ver más +
-                </button>
+                </PillButton>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

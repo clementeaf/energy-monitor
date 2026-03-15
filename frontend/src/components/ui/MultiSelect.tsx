@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 interface MultiSelectProps {
   options: { value: string; label: string }[];
@@ -11,14 +12,7 @@ export function MultiSelect({ options, selected, onChange, placeholder = 'Selecc
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  useClickOutside(ref, () => setOpen(false), open);
 
   const filtered = search
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))

@@ -1,24 +1,11 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { DataTable, type Column } from '../../../components/ui/DataTable';
+import { fmtNum, monthName } from '../../../lib/formatters';
+import { avgNonNull } from '../../../lib/aggregations';
 import type { Alert, MeterMonthly } from '../../../types';
 import type { MeterMetricKey } from './meterMetrics';
 import { meterMetrics } from './meterMetrics';
-
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
-
-function monthName(iso: string): string {
-  const m = new Date(iso).getMonth();
-  return MONTH_NAMES[m] ?? iso;
-}
-
-function fmtNum(n: number | null, decimals = 1): string {
-  if (n === null) return '—';
-  return n.toLocaleString('es-CL', { maximumFractionDigits: decimals });
-}
 
 interface MeterMonthlyTableProps {
   data: MeterMonthly[];
@@ -63,10 +50,10 @@ export function MeterMonthlyTable({ data, alerts = [], highlightMetric, hoveredM
       className: colBg('Incidencias'),
     },
     { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)), className: colBg('Consumo (kWh)') },
-    { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerKw ?? 0), 0) / (d.filter((r) => r.avgPowerKw !== null).length || 1)), className: colBg('Potencia prom. (kW)') },
+    { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))), className: colBg('Potencia prom. (kW)') },
     { label: 'Potencia peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(Math.max(...d.map((r) => r.peakPowerKw ?? 0))), className: colBg('Potencia peak (kW)') },
     { label: 'Reactiva (kVAr)', value: (r) => fmtNum(r.totalReactiveKvar), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalReactiveKvar ?? 0), 0)), className: colBg('Reactiva (kVAr)') },
-    { label: 'Factor potencia', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerFactor ?? 0), 0) / (d.filter((r) => r.avgPowerFactor !== null).length || 1), 3), className: colBg('Factor potencia') },
+    { label: 'Factor potencia', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerFactor)), 3), className: colBg('Factor potencia') },
   ], [highlightLabel, hoveredLabel, alertsByMonth]);
 
   return (

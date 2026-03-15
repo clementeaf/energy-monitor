@@ -24,18 +24,36 @@
 | `Card` | `components/ui/Card.tsx` | Container sin borde, fondo blanco, rounded-xl. Hover gris sutil si clickeable |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
 | `DataTable` | `components/ui/DataTable.tsx` | Tabla PA: header blanco texto navy semibold, filas con línea fina #E5E7EB, footer bg gris claro bold navy, h-full para igualar alturas en grid |
-| `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usado en Comparativas |
+| `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usa `useClickOutside` compartido |
 | `Drawer` | `components/ui/Drawer.tsx` | Panel lateral/superior/inferior con portal, overlay, Escape, lock scroll. Props: side, size, title, overlayClose |
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
+| `PillButton` | `components/ui/PillButton.tsx` | Botón pill PA: `rounded-full border-pa-blue`, hover bg-pa-blue text-white. Usado en "Ver más +", "Volver" |
+| `SectionBanner` | `components/ui/SectionBanner.tsx` | Banner título PA: `bg-pa-bg-alt`, texto uppercase navy. Props: `title`, `children` (controles derecha), `inline` |
+| `TogglePills` | `components/ui/TogglePills.tsx` | Toggle genérico `<T extends string>`: opciones pill PA, activo `bg-pa-navy text-white`. Usado en Dashboard (Barra/Línea/Área) y BuildingDetail (tabs) |
+| `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`. Reemplaza BillingMetricSelector y MonthDropdown |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
-| `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown PA pill (`rounded-full`, `pa-border`, `pa-navy`), 11 métricas, `onHover` para preview en tabla |
-| `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender` |
+| `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender`. Usa `sumByKey`/`maxByKey` de `lib/aggregations` |
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders, `maxHeight="max-h-full"`, click → detalle medidor |
-| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico PA por mes (Highcharts), color `#3D3BF3`, bg transparente, toggle pill Barra/Línea, usado por BillingChart y MeterDetailPage |
-| `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
-| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 7 columnas (incluye Incidencias), highlight columna via `className`, click fila → lecturas. Recibe `alerts` para conteo por mes |
-| `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline |
+| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico PA por mes (Highcharts), usa `CHART_COLORS`/`LIGHT_PLOT_OPTIONS`/`LIGHT_TOOLTIP_STYLE` de `lib/chartConfig`, toggle pill Barra/Línea/Área |
+| `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla. Usa `useClickOutside` compartido |
+| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 7 columnas (incluye Incidencias), highlight columna via `className`, click fila → lecturas. Usa formatters y aggregations de `lib/` |
+| `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline. Usa `useClickOutside` y aggregations de `lib/` |
+
+## Utilidades compartidas (`lib/`)
+
+| Archivo | Exports |
+|---------|---------|
+| `lib/formatters.ts` | `fmt`, `fmtNum`, `fmtClp`, `fmtAxis`, `monthLabel`, `monthName`, `fmtDate` |
+| `lib/constants.ts` | `MONTH_NAMES_SHORT`, `MONTH_NAMES_FULL`, `SHORT_BUILDING_NAMES` |
+| `lib/aggregations.ts` | `sumNonNull`, `maxNonNull`, `avgNonNull`, `sumByKey`, `maxByKey` |
+| `lib/chartConfig.ts` | `ChartType`, `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE` |
+
+## Hooks compartidos
+
+| Hook | Ubicación | Uso |
+|------|-----------|-----|
+| `useClickOutside` | `hooks/useClickOutside.ts` | Acepta ref único o array de refs, parámetro `active` (default `true`). Usado en 7 componentes |
 
 ## DashboardPage
 

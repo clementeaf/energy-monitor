@@ -1,38 +1,11 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { DataTable, type Column } from '../../../components/ui/DataTable';
+import { useClickOutside } from '../../../hooks/useClickOutside';
+import { fmtClp, fmtNum, monthName } from '../../../lib/formatters';
+import { sumByKey, maxByKey } from '../../../lib/aggregations';
 import type { BillingMonthlySummary } from '../../../types';
 import type { BillingMetricKey } from './billingMetrics';
 import { billingMetrics } from './billingMetrics';
-
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
-
-function monthName(iso: string): string {
-  const m = new Date(iso).getMonth();
-  return MONTH_NAMES[m] ?? iso;
-}
-
-type NumKey = keyof { [K in keyof BillingMonthlySummary as BillingMonthlySummary[K] extends number | null ? K : never]: 1 };
-
-function sumN(d: BillingMonthlySummary[], k: NumKey): number | null {
-  const vals = d.map((r) => (r as Record<string, unknown>)[k]).filter((v): v is number => v != null);
-  return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) : null;
-}
-
-function maxN(d: BillingMonthlySummary[], k: NumKey): number | null {
-  const vals = d.map((r) => (r as Record<string, unknown>)[k]).filter((v): v is number => v != null);
-  return vals.length > 0 ? Math.max(...vals) : null;
-}
-
-function fmtClp(n: number | null | undefined): string {
-  return n != null ? '$' + n.toLocaleString('es-CL', { maximumFractionDigits: 0 }) : '—';
-}
-
-function fmtNum(n: number | null | undefined, decimals = 1): string {
-  return n != null ? n.toLocaleString('es-CL', { maximumFractionDigits: decimals }) : '—';
-}
 
 function MonthFilterDropdown({
   months,
@@ -45,14 +18,7 @@ function MonthFilterDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false), open);
 
   const allSelected = months.length === visibleMonths.size;
 
@@ -153,17 +119,17 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
       ),
       className: colBg('Mes'),
     },
-    { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(sumN(d, 'totalKwh')), className: colBg('Consumo (kWh)') },
-    { label: 'Energía ($)', value: (r) => fmtClp(r.energiaClp), total: (d) => fmtClp(sumN(d, 'energiaClp')), className: colBg('Energía ($)') },
-    { label: 'Dda. máx. (kW)', value: (r) => fmtNum(r.ddaMaxKw), total: (d) => fmtNum(maxN(d, 'ddaMaxKw')), className: colBg('Dda. máx. (kW)') },
-    { label: 'Dda. punta (kW)', value: (r) => fmtNum(r.ddaMaxPuntaKw), total: (d) => fmtNum(maxN(d, 'ddaMaxPuntaKw')), className: colBg('Dda. punta (kW)') },
-    { label: 'kWh troncal', value: (r) => fmtNum(r.kwhTroncal), total: (d) => fmtNum(sumN(d, 'kwhTroncal')), className: colBg('kWh troncal') },
-    { label: 'kWh serv. público', value: (r) => fmtNum(r.kwhServPublico), total: (d) => fmtNum(sumN(d, 'kwhServPublico')), className: colBg('kWh serv. público') },
-    { label: 'Cargo fijo ($)', value: (r) => fmtClp(r.cargoFijoClp), total: (d) => fmtClp(sumN(d, 'cargoFijoClp')), className: colBg('Cargo fijo ($)') },
-    { label: 'Neto ($)', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(sumN(d, 'totalNetoClp')), className: colBg('Neto ($)') },
-    { label: 'IVA ($)', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(sumN(d, 'ivaClp')), className: colBg('IVA ($)') },
-    { label: 'Exento ($)', value: (r) => fmtClp(r.montoExentoClp), total: (d) => fmtClp(sumN(d, 'montoExentoClp')), className: colBg('Exento ($)') },
-    { label: 'Total c/IVA ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(sumN(d, 'totalConIvaClp')), className: colBg('Total c/IVA ($)') },
+    { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(sumByKey(d, 'totalKwh')), className: colBg('Consumo (kWh)') },
+    { label: 'Energía ($)', value: (r) => fmtClp(r.energiaClp), total: (d) => fmtClp(sumByKey(d, 'energiaClp')), className: colBg('Energía ($)') },
+    { label: 'Dda. máx. (kW)', value: (r) => fmtNum(r.ddaMaxKw), total: (d) => fmtNum(maxByKey(d, 'ddaMaxKw')), className: colBg('Dda. máx. (kW)') },
+    { label: 'Dda. punta (kW)', value: (r) => fmtNum(r.ddaMaxPuntaKw), total: (d) => fmtNum(maxByKey(d, 'ddaMaxPuntaKw')), className: colBg('Dda. punta (kW)') },
+    { label: 'kWh troncal', value: (r) => fmtNum(r.kwhTroncal), total: (d) => fmtNum(sumByKey(d, 'kwhTroncal')), className: colBg('kWh troncal') },
+    { label: 'kWh serv. público', value: (r) => fmtNum(r.kwhServPublico), total: (d) => fmtNum(sumByKey(d, 'kwhServPublico')), className: colBg('kWh serv. público') },
+    { label: 'Cargo fijo ($)', value: (r) => fmtClp(r.cargoFijoClp), total: (d) => fmtClp(sumByKey(d, 'cargoFijoClp')), className: colBg('Cargo fijo ($)') },
+    { label: 'Neto ($)', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(sumByKey(d, 'totalNetoClp')), className: colBg('Neto ($)') },
+    { label: 'IVA ($)', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(sumByKey(d, 'ivaClp')), className: colBg('IVA ($)') },
+    { label: 'Exento ($)', value: (r) => fmtClp(r.montoExentoClp), total: (d) => fmtClp(sumByKey(d, 'montoExentoClp')), className: colBg('Exento ($)') },
+    { label: 'Total c/IVA ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(sumByKey(d, 'totalConIvaClp')), className: colBg('Total c/IVA ($)') },
   ], [allMonths, visibleMonths, highlightLabel, hoveredLabel]);
 
   return (

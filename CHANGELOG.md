@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.42.0-alpha.0] - 2026-03-15 — EXTRACCIÓN DE COMPONENTES Y UTILIDADES COMPARTIDAS
+
+### Added
+
+- `lib/formatters.ts` — funciones `fmt`, `fmtNum`, `fmtClp`, `fmtAxis`, `monthLabel`, `monthName`, `fmtDate`
+- `lib/constants.ts` — `MONTH_NAMES_SHORT`, `MONTH_NAMES_FULL`, `SHORT_BUILDING_NAMES`
+- `lib/aggregations.ts` — `sumNonNull`, `maxNonNull`, `avgNonNull`, `sumByKey`, `maxByKey`
+- `lib/chartConfig.ts` — `ChartType`, `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`
+- `hooks/useClickOutside.ts` — acepta ref único o array, parámetro `active` (default `true`)
+- `components/ui/PillButton.tsx` — botón pill PA reutilizable ("Ver más +", "Volver")
+- `components/ui/SectionBanner.tsx` — banner título PA (`bg-pa-bg-alt`, uppercase navy)
+- `components/ui/TogglePills.tsx` — toggle genérico `<T>` con estilo pill PA
+- `components/ui/PillDropdown.tsx` — dropdown genérico `<T>` con estilo pill PA, `onHover`
+
+### Changed
+
+- **DashboardPage** — usa `SectionBanner`, `TogglePills`, `PillDropdown`, `PillButton`; importa formatters/constants/chartConfig desde `lib/`
+- **ComparisonsPage** — importa formatters, constants, `ChartType` desde `lib/`
+- **BuildingsPage** — usa `PillButton`; importa `fmt` desde `lib/`
+- **BuildingDetailPage** — usa `PillButton`, `PillDropdown`, `SectionBanner`, `TogglePills`; elimina import de `BillingMetricSelector`
+- **BillingTable** — usa `useClickOutside`, `sumByKey`/`maxByKey`, formatters desde `lib/`
+- **MeterMonthlyTable** — usa `monthName`, `fmtNum`, `avgNonNull` desde `lib/`
+- **MeterReadingsPage** — usa `useClickOutside`, `MONTH_NAMES_FULL`, aggregations desde `lib/`
+- **MonthlyColumnChart** — usa `MONTH_NAMES_SHORT`, `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`
+- **MultiSelect** — usa `useClickOutside` compartido
+- **MeterMetricSelector** — usa `useClickOutside` compartido
+- **AlertsPage** — importa `useClickOutside` compartido, elimina definición inline
+
+### Removed
+
+- `BillingMetricSelector.tsx` — reemplazado por `PillDropdown` genérico
+
+---
+
 ## [0.41.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PA EN SUBVISTAS DE EDIFICIO
 
 ### Changed

@@ -4,29 +4,10 @@ import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MultiSelect } from '../../components/ui/MultiSelect';
 import { useComparisonFilters, useComparisonByStoreType, useComparisonByStoreName } from '../../hooks/queries/useComparisons';
+import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
+import { SHORT_BUILDING_NAMES } from '../../lib/constants';
+import type { ChartType } from '../../lib/chartConfig';
 import type { ComparisonRow } from '../../types';
-
-const fmt = (n: number | null) => n !== null ? n.toLocaleString('es-CL') : '—';
-const fmtClp = (n: number | null) => n !== null ? `$${n.toLocaleString('es-CL')}` : '—';
-
-function fmtAxis(val: number): string {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-  return String(val);
-}
-
-function fmtMonth(iso: string): string {
-  const d = new Date(iso + 'T12:00:00');
-  const m = d.toLocaleString('es-CL', { month: 'short' });
-  return `${m.charAt(0).toUpperCase()}${m.slice(1)}-${String(d.getFullYear()).slice(2)}`;
-}
-
-const SHORT_NAMES: Record<string, string> = {
-  'Parque Arauco Kennedy': 'P. Arauco Kennedy',
-  'Arauco Premium Outlet Buenaventura': 'Outlet Buenaventura',
-  'Arauco Express Ciudad Empresarial': 'Express C. Empresarial',
-  'Arauco Express El Carmen de Huechuraba': 'Express Huechuraba',
-};
 
 const columns: Column<ComparisonRow>[] = [
   { label: 'Edificio', value: (r) => r.buildingName, align: 'left' },
@@ -35,7 +16,6 @@ const columns: Column<ComparisonRow>[] = [
   { label: 'Medidores', value: (r) => String(r.totalMeters), total: (d) => String(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
-type ChartType = 'column' | 'line';
 type CompareMode = 'type' | 'name';
 
 function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType: ChartType }) {
@@ -45,7 +25,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const categories = data.map((d) => SHORT_NAMES[d.buildingName] ?? d.buildingName);
+    const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
     const consumo = data.map((d) => d.totalKwh ?? 0);
     const gasto = data.map((d) => d.totalConIvaClp ?? 0);
 
@@ -103,6 +83,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
       },
       plotOptions: {
         column: { borderRadius: 3, borderWidth: 0 },
+        area: { marker: { radius: 3, symbol: 'circle' }, lineWidth: 2, fillOpacity: 0.15 },
       },
       series: [
         {
@@ -111,10 +92,10 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
           data: consumo,
           color: '#60a5fa',
           yAxis: 0,
-          marker: chartType === 'line' ? { radius: 3 } : undefined,
+          marker: chartType !== 'column' ? { radius: 3 } : undefined,
         },
         {
-          type: chartType === 'column' ? 'line' : 'column',
+          type: chartType === 'column' ? 'line' : chartType,
           name: 'Gasto (CLP)',
           data: gasto,
           color: '#f59e0b',
@@ -171,7 +152,7 @@ export function ComparisonsPage() {
   const label = mode === 'type'
     ? selectedTypeIds.map((id) => filters?.storeTypes.find((st) => st.id === Number(id))?.name).filter(Boolean).join(', ') || 'Tipo de Tienda'
     : selectedNames.join(', ') || 'Tienda';
-  const monthLabel = selectedMonth ? fmtMonth(selectedMonth) : '';
+  const selectedMonthLabel = selectedMonth ? monthLabel(selectedMonth) : '';
 
   const typeOptions = (filters?.storeTypes ?? []).map((st) => ({ value: String(st.id), label: st.name }));
   const nameOptions = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
@@ -212,19 +193,20 @@ export function ComparisonsPage() {
           className={selectClass}
         >
           {filters?.months.map((m) => (
-            <option key={m} value={m}>{fmtMonth(m)}</option>
+            <option key={m} value={m}>{monthLabel(m)}</option>
           ))}
         </select>
 
         <div className="ml-auto flex gap-1">
           <button className={toggleBtn(chartType === 'column')} onClick={() => setChartType('column')}>Barra</button>
-          <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Linea</button>
+          <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Línea</button>
+          <button className={toggleBtn(chartType === 'area')} onClick={() => setChartType('area')}>Área</button>
         </div>
       </div>
 
       <Card>
         <h2 className="mb-3 text-sm font-semibold text-muted">
-          {label} — Consumo y Gasto por Edificio — {monthLabel}
+          {label} — Consumo y Gasto por Edificio — {selectedMonthLabel}
         </h2>
         {noSelection
           ? <div className="flex h-[320px] items-center justify-center text-sm text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
@@ -238,7 +220,7 @@ export function ComparisonsPage() {
 
       <Card>
         <h2 className="mb-3 text-sm font-semibold text-muted">
-          {label} — Detalle por Edificio — {monthLabel}
+          {label} — Detalle por Edificio — {selectedMonthLabel}
         </h2>
         {noSelection
           ? <div className="p-4 text-sm text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>

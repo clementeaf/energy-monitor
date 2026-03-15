@@ -1,18 +1,13 @@
 import { useState } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-
-const MONTH_LABELS = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
+import { MONTH_NAMES_SHORT } from '../../lib/constants';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 
 function monthLabel(iso: string): string {
   const m = new Date(iso).getMonth();
-  return MONTH_LABELS[m] ?? iso;
+  return MONTH_NAMES_SHORT[m] ?? iso;
 }
-
-type ChartMode = 'column' | 'line';
 
 interface MonthlyColumnChartProps {
   data: { month: string; value: number | null }[];
@@ -21,7 +16,7 @@ interface MonthlyColumnChartProps {
 }
 
 export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProps) {
-  const [mode, setMode] = useState<ChartMode>('column');
+  const [mode, setMode] = useState<ChartType>('column');
   const isCurrency = unit === 'CLP ($)';
   const categories = data.map((d) => monthLabel(d.month));
   const values = data.map((d) => d.value);
@@ -37,7 +32,7 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
       tickColor: '#E5E7EB',
     },
     yAxis: {
-      title: { text: unit, style: { color: '#3D3BF3', fontSize: '11px' } },
+      title: { text: unit, style: { color: CHART_COLORS.blue, fontSize: '11px' } },
       labels: {
         formatter() {
           const v = this.value as number;
@@ -57,16 +52,11 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
     tooltip: {
       valuePrefix: isCurrency ? '$' : undefined,
       valueDecimals: isCurrency ? 0 : 1,
-      backgroundColor: '#FFFFFF',
-      borderColor: '#E5E7EB',
-      style: { color: '#1F2937' },
+      ...LIGHT_TOOLTIP_STYLE,
     },
-    plotOptions: {
-      column: { borderRadius: 4, borderWidth: 0 },
-      line: { marker: { radius: 4, symbol: 'circle' }, lineWidth: 2.5 },
-    },
+    plotOptions: LIGHT_PLOT_OPTIONS,
     series: [
-      { name: label, type: mode, data: values, color: '#3D3BF3' },
+      { name: label, type: mode, data: values, color: CHART_COLORS.blue },
     ],
     legend: { enabled: false },
     credits: { enabled: false },
@@ -86,6 +76,12 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
           className={`px-2 py-1 transition-colors ${mode === 'line' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
         >
           Línea
+        </button>
+        <button
+          onClick={() => setMode('area')}
+          className={`px-2 py-1 transition-colors ${mode === 'area' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
+        >
+          Área
         </button>
       </div>
       <HighchartsReact highcharts={Highcharts} options={options} />

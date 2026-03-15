@@ -19,8 +19,18 @@
 ## Frontend
 | Archivo | Propósito |
 |---|---|
+| `frontend/src/lib/formatters.ts` | Formatters compartidos: `fmt`, `fmtNum`, `fmtClp`, `fmtAxis`, `monthLabel`, `monthName`, `fmtDate` |
+| `frontend/src/lib/constants.ts` | Constantes: `MONTH_NAMES_SHORT`, `MONTH_NAMES_FULL`, `SHORT_BUILDING_NAMES` |
+| `frontend/src/lib/aggregations.ts` | Agregaciones null-safe: `sumNonNull`, `maxNonNull`, `avgNonNull`, `sumByKey`, `maxByKey` |
+| `frontend/src/lib/chartConfig.ts` | Config charts: `ChartType`, `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE` |
+| `frontend/src/hooks/useClickOutside.ts` | Hook click-outside: ref único o array, parámetro `active` |
 | `frontend/src/components/ui/DataTable.tsx` | Tabla genérica: Column<T> con ReactNode, headerRender, cellClassName, className, footer, bg-surface sticky |
+| `frontend/src/components/ui/PillButton.tsx` | Botón pill PA reutilizable |
+| `frontend/src/components/ui/SectionBanner.tsx` | Banner título PA con controles opcionales |
+| `frontend/src/components/ui/TogglePills.tsx` | Toggle genérico pill PA |
+| `frontend/src/components/ui/PillDropdown.tsx` | Dropdown genérico pill PA con `onHover` |
 | `frontend/src/components/ui/PaginatedTable.tsx` | Wrapper DataTable con paginación client-side |
+| `frontend/src/components/ui/MultiSelect.tsx` | Dropdown búsqueda + checkboxes multi-selección |
 | `frontend/src/hooks/auth/useAuth.ts` | Fachada auth |
 | `frontend/src/services/api.ts` | Axios Bearer + 401 interceptor |
 | `frontend/src/services/endpoints.ts` | Todas las llamadas API (auth, buildings, meters, billing) |
@@ -28,14 +38,13 @@
 | `frontend/src/store/useAuthStore.ts` | Zustand persist → sessionStorage |
 | `frontend/src/store/useAppStore.ts` | Estado UI + contexto de sitio |
 | `frontend/src/app/appRoutes.ts` | Rutas + RBAC roles |
-| `frontend/src/features/dashboard/DashboardPage.tsx` | Dashboard holding: tablas + cards con data mock |
+| `frontend/src/features/dashboard/DashboardPage.tsx` | Dashboard: gráfico combo + tablas + cards pago + drawers |
 | `frontend/src/features/dashboard/mockData.ts` | Data mock: 15 edificios, 3 cards resumen, 5 períodos vencidos |
 | `frontend/src/features/monitoring/RealtimePage.tsx` | Monitoreo: DataTable última lectura por medidor |
 | `frontend/src/features/alerts/AlertsPage.tsx` | Alertas: DataTable con filtros checkbox + fecha avanzado |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |
 | `frontend/src/hooks/queries/useAlerts.ts` | Hook TanStack Query para alertas |
 | `frontend/src/hooks/queries/useComparisons.ts` | Hooks TanStack Query para comparativas (filters, by-type, by-name) |
-| `frontend/src/components/ui/MultiSelect.tsx` | Dropdown búsqueda + checkboxes multi-selección |
 
 ## Infra
 | Archivo | Propósito |

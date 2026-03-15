@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.44.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PA EN ALERTAS Y COMPARATIVAS
+
+### Changed
+
+- **AlertsPage** — tokens PA en contenedor, dropdowns de filtro, inputs, loading state. Sin borde exterior (alineado con Card)
+- **ComparisonsPage** chart — migrado de `Highcharts.chart()` manual a `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`
+- **ComparisonsPage** controles — tokens PA en select, toggles (`bg-pa-navy`), textos (`text-pa-text-muted`, `text-[13px]`)
+
+---
+
 ## [0.43.0-alpha.0] - 2026-03-15 — TOKENS PA EN MONITOREO Y PAGINACIÓN
 
 ### Changed

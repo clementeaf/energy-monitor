@@ -88,7 +88,7 @@ function FilterDropdown({
         ref={btnRef}
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 ${active ? 'text-accent' : ''}`}
+        className={`flex items-center gap-1 ${active ? 'text-pa-blue' : ''}`}
       >
         {label}
         {active && <span className="text-xs font-normal">({selected.size})</span>}
@@ -97,19 +97,19 @@ function FilterDropdown({
       {open && createPortal(
         <div
           ref={panelRef}
-          className="fixed z-50 max-h-60 min-w-40 overflow-auto rounded border border-border bg-surface shadow-lg"
+          className="fixed z-50 max-h-60 min-w-40 overflow-auto rounded border border-pa-border bg-white shadow-lg"
           style={{ top: pos.top, left: pos.left }}
         >
           {options.map((opt) => (
             <label
               key={opt}
-              className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm font-normal text-text hover:bg-raised"
+              className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] font-normal text-pa-text hover:bg-gray-100"
             >
               <input
                 type="checkbox"
                 checked={selected.has(opt)}
                 onChange={() => onToggle(opt)}
-                className="accent-accent"
+                className="accent-pa-blue"
               />
               {displayFn ? displayFn(opt) : opt}
             </label>
@@ -161,10 +161,10 @@ function isDateFilterActive(f: DateFilterState): boolean {
 // DateFilterDropdown
 // =============================================================================
 
-const sectionTitle = 'mb-1 text-xs font-semibold uppercase tracking-wide text-muted';
-const radioBtn = 'flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm text-text hover:bg-raised';
-const inputClass = 'w-full rounded border border-border bg-base px-2 py-1 text-sm text-text focus:border-accent focus:outline-none';
-const clearBtn = 'mt-2 w-full rounded bg-raised px-2 py-1.5 text-xs text-muted hover:text-text transition-colors';
+const sectionTitle = 'mb-1 text-xs font-semibold uppercase tracking-wide text-pa-text-muted';
+const radioBtn = 'flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-[13px] text-pa-text hover:bg-gray-100';
+const inputClass = 'w-full rounded border border-pa-border bg-white px-2 py-1 text-[13px] text-pa-text focus:border-pa-blue focus:outline-none';
+const clearBtn = 'mt-2 w-full rounded bg-gray-100 px-2 py-1.5 text-xs text-pa-text-muted hover:text-pa-text transition-colors';
 
 function DateFilterDropdown({
   state,
@@ -227,7 +227,7 @@ function DateFilterDropdown({
         ref={btnRef}
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 ${active ? 'text-accent' : ''}`}
+        className={`flex items-center gap-1 ${active ? 'text-pa-blue' : ''}`}
       >
         Fecha
         {badge && <span className="text-xs font-normal">({badge})</span>}
@@ -237,7 +237,7 @@ function DateFilterDropdown({
       {open && createPortal(
         <div
           ref={panelRef}
-          className="fixed z-50 w-64 rounded border border-border bg-surface shadow-lg"
+          className="fixed z-50 w-64 rounded border border-pa-border bg-white shadow-lg"
           style={{ top: pos.top, left: pos.left }}
         >
           <div className="space-y-3 p-3">
@@ -251,7 +251,7 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.sort === 'asc'}
                     onChange={() => setSortDir('asc')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Ascendente
                 </label>
@@ -260,14 +260,14 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.sort === 'desc'}
                     onChange={() => setSortDir('desc')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Descendente
                 </label>
               </div>
             </div>
 
-            <hr className="border-border" />
+            <hr className="border-pa-border" />
 
             {/* ---- Date filter ---- */}
             <div>
@@ -278,7 +278,7 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.dateMode === 'exact'}
                     onChange={() => setDateMode('exact')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Fecha exacta
                 </label>
@@ -296,7 +296,7 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.dateMode === 'range'}
                     onChange={() => setDateMode('range')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Rango de fechas
                 </label>
@@ -309,7 +309,7 @@ function DateFilterDropdown({
                       className={inputClass}
                       placeholder="Desde"
                     />
-                    <span className="text-xs text-muted">–</span>
+                    <span className="text-xs text-pa-text-muted">–</span>
                     <input
                       type="date"
                       value={state.dateTo}
@@ -322,7 +322,7 @@ function DateFilterDropdown({
               </div>
             </div>
 
-            <hr className="border-border" />
+            <hr className="border-pa-border" />
 
             {/* ---- Time filter ---- */}
             <div>
@@ -333,7 +333,7 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.timeMode === 'exact'}
                     onChange={() => setTimeMode('exact')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Hora exacta
                 </label>
@@ -351,7 +351,7 @@ function DateFilterDropdown({
                     type="checkbox"
                     checked={state.timeMode === 'range'}
                     onChange={() => setTimeMode('range')}
-                    className="accent-accent"
+                    className="accent-pa-blue"
                   />
                   Rango de horas
                 </label>
@@ -363,7 +363,7 @@ function DateFilterDropdown({
                       onChange={(e) => patch({ timeFrom: e.target.value })}
                       className={inputClass}
                     />
-                    <span className="text-xs text-muted">–</span>
+                    <span className="text-xs text-pa-text-muted">–</span>
                     <input
                       type="time"
                       value={state.timeTo}
@@ -605,7 +605,7 @@ export function AlertsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center text-muted">
+      <div className="flex h-full items-center justify-center text-pa-text-muted">
         Cargando alertas...
       </div>
     );
@@ -613,7 +613,7 @@ export function AlertsPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="rounded-lg border border-border bg-surface">
+      <div className="rounded-xl bg-white p-4">
         <DataTable
           data={processed}
           columns={columns}

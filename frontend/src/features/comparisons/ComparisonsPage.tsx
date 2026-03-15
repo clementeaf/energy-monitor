@@ -1,12 +1,13 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MultiSelect } from '../../components/ui/MultiSelect';
 import { useComparisonFilters, useComparisonByStoreType, useComparisonByStoreName } from '../../hooks/queries/useComparisons';
 import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
-import type { ChartType } from '../../lib/chartConfig';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import type { ComparisonRow } from '../../types';
 
 const columns: Column<ComparisonRow>[] = [
@@ -19,105 +20,86 @@ const columns: Column<ComparisonRow>[] = [
 type CompareMode = 'type' | 'name';
 
 function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType: ChartType }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<Highcharts.Chart | null>(null);
+  const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
+  const consumo = data.map((d) => d.totalKwh ?? 0);
+  const gasto = data.map((d) => d.totalConIvaClp ?? 0);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
-    const consumo = data.map((d) => d.totalKwh ?? 0);
-    const gasto = data.map((d) => d.totalConIvaClp ?? 0);
-
-    chartRef.current?.destroy();
-    chartRef.current = null;
-
-    chartRef.current = Highcharts.chart(containerRef.current, {
-      chart: { height: 320, backgroundColor: 'transparent' },
-      title: { text: undefined },
-      xAxis: {
-        categories,
+  const options: Highcharts.Options = {
+    chart: { height: 384, backgroundColor: 'transparent' },
+    title: { text: undefined },
+    xAxis: {
+      categories,
+      crosshair: true,
+      labels: { rotation: -45, style: { fontSize: '11px', color: '#6B7280' } },
+      lineColor: '#E5E7EB',
+      tickColor: '#E5E7EB',
+    },
+    yAxis: [
+      {
+        title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
         labels: {
-          rotation: -45,
-          style: { fontSize: '10px', color: '#94a3b8' },
+          formatter() { return fmtAxis(this.value as number); },
+          style: { color: '#6B7280', fontSize: '11px' },
         },
-        lineColor: '#334155',
+        gridLineColor: '#F3F4F6',
       },
-      yAxis: [
-        {
-          title: { text: 'Consumo (kWh)', style: { color: '#60a5fa' } },
-          labels: {
-            formatter() { return fmtAxis(this.value as number); },
-            style: { color: '#94a3b8' },
-          },
-          gridLineColor: '#1e293b',
+      {
+        title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
+        labels: {
+          formatter() { return `$${fmtAxis(this.value as number)}`; },
+          style: { color: '#6B7280', fontSize: '11px' },
         },
-        {
-          title: { text: 'Gasto (CLP)', style: { color: '#f59e0b' } },
-          labels: {
-            formatter() { return `$${fmtAxis(this.value as number)}`; },
-            style: { color: '#94a3b8' },
-          },
-          opposite: true,
-          gridLineWidth: 0,
-        },
-      ],
-      legend: {
-        itemStyle: { color: '#94a3b8' },
-        itemHoverStyle: { color: '#e2e8f0' },
+        opposite: true,
+        gridLineWidth: 0,
       },
-      tooltip: {
-        shared: true,
-        useHTML: true,
-        formatter() {
-          const points = this.points!;
-          let html = `<b>${this.x}</b><br/>`;
-          for (const p of points) {
-            const val = p.series.name === 'Consumo (kWh)'
-              ? `${fmt(p.y!)} kWh`
-              : fmtClp(p.y!);
-            html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
-          }
-          return html;
-        },
+    ],
+    legend: {
+      itemStyle: { color: '#6B7280', fontSize: '11px' },
+      itemHoverStyle: { color: '#1E3A5F' },
+    },
+    tooltip: {
+      shared: true,
+      useHTML: true,
+      ...LIGHT_TOOLTIP_STYLE,
+      formatter() {
+        const points = this.points!;
+        let html = `<b>${this.x}</b><br/>`;
+        for (const p of points) {
+          const val = p.series.name === 'Consumo (kWh)'
+            ? `${fmt(p.y!)} kWh`
+            : fmtClp(p.y!);
+          html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
+        }
+        return html;
       },
-      plotOptions: {
-        column: { borderRadius: 3, borderWidth: 0 },
-        area: { marker: { radius: 3, symbol: 'circle' }, lineWidth: 2, fillOpacity: 0.15 },
+    },
+    plotOptions: LIGHT_PLOT_OPTIONS,
+    series: [
+      {
+        type: chartType,
+        name: 'Consumo (kWh)',
+        data: consumo,
+        color: CHART_COLORS.blue,
+        yAxis: 0,
       },
-      series: [
-        {
-          type: chartType,
-          name: 'Consumo (kWh)',
-          data: consumo,
-          color: '#60a5fa',
-          yAxis: 0,
-          marker: chartType !== 'column' ? { radius: 3 } : undefined,
-        },
-        {
-          type: chartType === 'column' ? 'line' : chartType,
-          name: 'Gasto (CLP)',
-          data: gasto,
-          color: '#f59e0b',
-          yAxis: 1,
-          marker: { radius: 3 },
-        },
-      ],
-      credits: { enabled: false },
-    });
+      {
+        type: chartType === 'column' ? 'line' : chartType,
+        name: 'Gasto (CLP)',
+        data: gasto,
+        color: CHART_COLORS.coral,
+        yAxis: 1,
+        marker: { radius: 4 },
+      },
+    ],
+    credits: { enabled: false },
+  };
 
-    return () => {
-      chartRef.current?.destroy();
-      chartRef.current = null;
-    };
-  }, [data, chartType]);
-
-  return <div ref={containerRef} />;
+  return <HighchartsReact highcharts={Highcharts} options={options} />;
 }
 
-const selectClass = 'rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-muted';
+const selectClass = 'rounded border border-pa-border bg-white px-2 py-1 text-xs text-pa-text outline-none focus:border-pa-blue';
 const toggleBtn = (active: boolean) =>
-  `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-blue-600 text-white' : 'bg-surface text-muted hover:text-text'}`;
+  `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
 export function ComparisonsPage() {
   const { data: filters, isLoading: loadingFilters } = useComparisonFilters();
@@ -160,7 +142,7 @@ export function ComparisonsPage() {
   const noSelection = mode === 'type' ? selectedTypeIds.length === 0 : selectedNames.length === 0;
 
   if (loadingFilters) {
-    return <div className="p-4 text-sm text-muted">Cargando filtros...</div>;
+    return <div className="p-4 text-[13px] text-pa-text-muted">Cargando filtros...</div>;
   }
 
   return (
@@ -205,27 +187,27 @@ export function ComparisonsPage() {
       </div>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-muted">
+        <h2 className="mb-3 text-[13px] font-semibold text-pa-text-muted">
           {label} — Consumo y Gasto por Edificio — {selectedMonthLabel}
         </h2>
         {noSelection
-          ? <div className="flex h-[320px] items-center justify-center text-sm text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+          ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
           : loadingRows
-            ? <div className="flex h-[320px] items-center justify-center text-sm text-muted">Cargando...</div>
+            ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
             : rows.length === 0
-              ? <div className="flex h-[320px] items-center justify-center text-sm text-muted">Sin datos para esta seleccion y mes</div>
+              ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Sin datos para esta seleccion y mes</div>
               : <ComparisonChart data={rows} chartType={chartType} />
         }
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-muted">
+        <h2 className="mb-3 text-[13px] font-semibold text-pa-text-muted">
           {label} — Detalle por Edificio — {selectedMonthLabel}
         </h2>
         {noSelection
-          ? <div className="p-4 text-sm text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+          ? <div className="p-4 text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
           : loadingRows
-            ? <div className="p-4 text-sm text-muted">Cargando...</div>
+            ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
             : <DataTable
                 data={rows}
                 columns={columns}

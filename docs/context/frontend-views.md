@@ -129,6 +129,7 @@
   - Todos deseleccionables al hacer click en checkbox activo
   - Badge dinámico en header resume filtros activos
 - Severidad con colores: rojo (critical), ámbar (warning), azul (info)
+- Tokens PA en contenedor, dropdowns, inputs, loading. Sin borde exterior (alineado con Card)
 - Datos vía `useAlerts()` → `GET /api/alerts`
 - **Pre-filtrado vía URL:** acepta query params `meter_id`, `date`, `date_from`, `date_to` para inicializar filtros al abrir la vista (usado por links de Incidencias en medidor)
 - Pipeline de filtrado: checkbox filters → date/time filter → sort
@@ -138,7 +139,7 @@
 - Compara tiendas o tipos de tienda a través de distintos edificios
 - Toggle "Por Tipo" (42 tipos) / "Por Tienda" (309 nombres) con MultiSelect y búsqueda
 - Selector de mes dinámico derivado de la API
-- Gráfico toggle Barra/Línea (consumo kWh + gasto CLP), eje X = edificios
+- Gráfico via `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`. Toggle Barra/Línea/Área, dual axis (consumo + gasto)
 - DataTable: Edificio, Consumo (kWh), Gasto ($), footer con totales
 - Datos reales vía `useComparisonFilters`, `useComparisonByStoreType`, `useComparisonByStoreName`
 

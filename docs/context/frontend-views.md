@@ -139,7 +139,9 @@
 - Compara tiendas o tipos de tienda a través de distintos edificios
 - Toggle "Por Tipo" (42 tipos) / "Por Tienda" (309 nombres) con MultiSelect y búsqueda
 - Selector de mes dinámico derivado de la API
-- Gráfico via `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`. Toggle Barra/Línea/Área, dual axis (consumo + gasto)
+- Gráfico via `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`. Toggle Barra/Línea/Área, dual axis (consumo + gasto). Alto dinámico (100% del contenedor)
+- Layout `overflow-hidden` con cards `flex-[3]` (chart) / `flex-[2]` (tabla), sin scrollbar vertical
+- Títulos con `SectionBanner inline` (estilo PA: `bg-pa-bg-alt`, navy uppercase, `w-fit`)
 - DataTable: Edificio, Consumo (kWh), Gasto ($), footer con totales
 - Datos reales vía `useComparisonFilters`, `useComparisonByStoreType`, `useComparisonByStoreName`
 

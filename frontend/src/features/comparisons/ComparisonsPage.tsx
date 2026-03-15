@@ -8,6 +8,7 @@ import { useComparisonFilters, useComparisonByStoreType, useComparisonByStoreNam
 import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
+import { SectionBanner } from '../../components/ui/SectionBanner';
 import type { ComparisonRow } from '../../types';
 
 const columns: Column<ComparisonRow>[] = [
@@ -25,7 +26,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
   const gasto = data.map((d) => d.totalConIvaClp ?? 0);
 
   const options: Highcharts.Options = {
-    chart: { height: 384, backgroundColor: 'transparent' },
+    chart: { height: null as unknown as number, backgroundColor: 'transparent' },
     title: { text: undefined },
     xAxis: {
       categories,
@@ -83,7 +84,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
         yAxis: 0,
       },
       {
-        type: chartType === 'column' ? 'line' : chartType,
+        type: chartType,
         name: 'Gasto (CLP)',
         data: gasto,
         color: CHART_COLORS.coral,
@@ -94,7 +95,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
     credits: { enabled: false },
   };
 
-  return <HighchartsReact highcharts={Highcharts} options={options} />;
+  return <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: '100%' } }} />;
 }
 
 const selectClass = 'rounded border border-pa-border bg-white px-2 py-1 text-xs text-pa-text outline-none focus:border-pa-blue';
@@ -146,7 +147,7 @@ export function ComparisonsPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-6 overflow-auto">
+    <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="flex items-center gap-4">
         <div className="flex gap-1">
           <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
@@ -186,36 +187,35 @@ export function ComparisonsPage() {
         </div>
       </div>
 
-      <Card>
-        <h2 className="mb-3 text-[13px] font-semibold text-pa-text-muted">
-          {label} — Consumo y Gasto por Edificio — {selectedMonthLabel}
-        </h2>
-        {noSelection
-          ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
-          : loadingRows
-            ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
-            : rows.length === 0
-              ? <div className="flex h-[320px] items-center justify-center text-[13px] text-pa-text-muted">Sin datos para esta seleccion y mes</div>
-              : <ComparisonChart data={rows} chartType={chartType} />
-        }
+      <Card className="min-h-0 flex-[3] flex flex-col">
+        <SectionBanner title={`${label} — Consumo y Gasto por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
+        <div className="min-h-0 flex-1">
+          {noSelection
+            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+            : loadingRows
+              ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
+              : rows.length === 0
+                ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Sin datos para esta seleccion y mes</div>
+                : <ComparisonChart data={rows} chartType={chartType} />
+          }
+        </div>
       </Card>
 
-      <Card>
-        <h2 className="mb-3 text-[13px] font-semibold text-pa-text-muted">
-          {label} — Detalle por Edificio — {selectedMonthLabel}
-        </h2>
-        {noSelection
-          ? <div className="p-4 text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
-          : loadingRows
-            ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
-            : <DataTable
-                data={rows}
-                columns={columns}
-                rowKey={(r) => r.buildingName}
-                footer
-                maxHeight="max-h-[340px]"
-              />
-        }
+      <Card className="min-h-0 flex-[2] flex flex-col">
+        <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
+        <div className="min-h-0 flex-1 overflow-auto">
+          {noSelection
+            ? <div className="p-4 text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+            : loadingRows
+              ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
+              : <DataTable
+                  data={rows}
+                  columns={columns}
+                  rowKey={(r) => r.buildingName}
+                  footer
+                />
+          }
+        </div>
       </Card>
     </div>
   );

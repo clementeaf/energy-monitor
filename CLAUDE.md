@@ -27,22 +27,24 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Completado (2026-03-15)
 - 5 edificios, 875 medidores, 30.7M lecturas — alineados a 2025
 - Dashboard completo: gráfico, tablas, cards de pago, drawers de detalle
-- Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea
+- Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea/Área
 - Incidencias en medidor con navegación a Alertas (filtros pre-aplicados)
 - Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
-- Design system PA aplicado en sidebar, dashboard, edificios y detalle edificio
+- Design system PA aplicado en todas las vistas: sidebar, dashboard, edificios, detalle edificio, monitoreo, alertas, comparativas
 - Controles PA: dropdowns custom pill, toggles pill, banners `w-fit`, layout sin scroll
 - Extracción componentes/utilidades compartidas: `lib/` (formatters, constants, aggregations, chartConfig), `hooks/useClickOutside`, `components/ui/` (PillButton, SectionBanner, TogglePills, PillDropdown)
+- Tokens PA unificados en todas las vistas — sin tokens legacy (`text-muted`, `border-border`, `bg-surface`, `bg-raised`, `text-accent`)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
-Design system PA aplicado: sidebar, dashboard, edificios, detalle edificio.
-Utilidades compartidas en lib/ (formatters, constants, aggregations, chartConfig).
-Componentes UI compartidos: PillButton, SectionBanner, TogglePills, PillDropdown.
-Hook useClickOutside compartido en 7 componentes.
+Design system PA aplicado en todas las vistas (sidebar, dashboard, edificios, detalle, monitoreo, alertas, comparativas).
+Tokens PA unificados: text-pa-text, text-pa-text-muted, text-pa-navy, border-pa-border, text-pa-blue, bg-white.
+Charts usan CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE de lib/chartConfig.
+Utilidades compartidas en lib/ y components/ui/.
+Push en main c654b42.
 ```
 
 ## Prioridad Actual de Acceso
@@ -78,7 +80,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
 - **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown` en `components/ui/`
 - **Shared hooks:** `useClickOutside` en `hooks/`
-- **Styling:** Tailwind v4 tokens: `text-text`, `text-muted`, `bg-base`, `bg-raised`, `border-border`
+- **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
 
 ## Backend Patterns

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.0-alpha.0] - 2026-03-15 — FIX COMPARATIVAS: LAYOUT, CHART Y TÍTULOS
+
+### Fixed
+
+- **ComparisonsPage** layout — eliminado scrollbar vertical (`overflow-auto` → `overflow-hidden`), cards distribuidas con `flex-[3]`/`flex-[2]` + `min-h-0`
+- **ComparisonsPage** chart — serie Gasto ya no se fuerza a línea en modo Barra; ambas series usan el `chartType` seleccionado
+- **ComparisonsPage** chart — alto dinámico (`height: 100%`) en vez de fijo 384px
+
+### Changed
+
+- **ComparisonsPage** títulos — reemplazados `<h2>` planos por `SectionBanner inline` (fondo `bg-pa-bg-alt`, texto navy uppercase, `w-fit`)
+
+---
+
 ## [0.44.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PA EN ALERTAS Y COMPARATIVAS
 
 ### Changed

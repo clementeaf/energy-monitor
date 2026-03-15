@@ -7,7 +7,8 @@ import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MeterReadingsSkeleton } from '../../components/ui/Skeleton';
 import { useMeterReadings } from '../../hooks/queries/useMeters';
-import type { MeterReading } from '../../types';
+import { useAlerts } from '../../hooks/queries/useAlerts';
+import type { Alert, MeterReading } from '../../types';
 
 type ChartResolution = 'daily' | '15min';
 
@@ -48,6 +49,7 @@ interface DaySummary {
   day: string; // YYYY-MM-DD
   label: string; // "01", "02", etc.
   count: number;
+  alertCount: number;
   avgPowerKw: number | null;
   peakPowerKw: number | null;
   totalEnergyKwh: number | null;
@@ -73,17 +75,24 @@ function sumNonNull(values: (number | null)[]): number | null {
   return valid.length ? valid.reduce((a, b) => a + b, 0) : null;
 }
 
-function groupByDay(readings: MeterReading[]): DaySummary[] {
+function groupByDay(readings: MeterReading[], alerts: Alert[] = []): DaySummary[] {
   const groups = new Map<string, MeterReading[]>();
   for (const r of readings) {
     const day = r.timestamp.slice(0, 10);
     const arr = groups.get(day);
     if (arr) arr.push(r); else groups.set(day, [r]);
   }
+  // Alertas por día
+  const alertsByDay = new Map<string, number>();
+  for (const a of alerts) {
+    const day = a.timestamp.slice(0, 10);
+    alertsByDay.set(day, (alertsByDay.get(day) ?? 0) + 1);
+  }
   return Array.from(groups.entries()).map(([day, rows]) => ({
     day,
     label: day.slice(8, 10),
     count: rows.length,
+    alertCount: alertsByDay.get(day) ?? 0,
     avgPowerKw: avgNonNull(rows.map((r) => r.powerKw)),
     peakPowerKw: maxNonNull(rows.map((r) => r.powerKw)),
     totalEnergyKwh: sumNonNull(rows.map((r) => r.energyKwhTotal)),
@@ -109,8 +118,9 @@ function groupByHour(readings: MeterReading[], metric: ReadingMetricKey): [numbe
 }
 
 const dayColumns: Column<DaySummary>[] = [
-  { label: 'Día', value: (r) => r.label, total: () => 'Promedio mensual', align: 'left' },
+  { label: 'Día', value: (r) => r.label, total: () => 'Total mensual', align: 'left' },
   { label: 'Lecturas', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
+  { label: 'Incidencias', value: (r) => r.alertCount > 0 ? String(r.alertCount) : '—', total: (d) => String(d.reduce((s, r) => s + r.alertCount, 0)) },
   { label: 'Pot. prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))) },
   { label: 'Pot. peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(maxNonNull(d.map((r) => r.peakPowerKw))) },
   { label: 'Volt. L1 (V)', value: (r) => fmtNum(r.avgVoltageL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL1))) },
@@ -150,6 +160,7 @@ export function MeterReadingsPage() {
   }, [month]);
 
   const { data: readings, isLoading } = useMeterReadings(meterId!, from, to);
+  const { data: alerts } = useAlerts({ meter_id: meterId! });
 
   const hourlyData = useMemo(
     () => readings ? groupByHour(readings, metric) : [],
@@ -159,6 +170,17 @@ export function MeterReadingsPage() {
   const rawData: [number, number | null][] = useMemo(
     () => (readings ?? []).map((r) => [new Date(r.timestamp).getTime(), r[metric]]),
     [readings, metric],
+  );
+
+  // PlotLines de alertas para el navigator (debe estar antes del early return)
+  const alertPlotLines: Highcharts.XAxisPlotLinesOptions[] = useMemo(
+    () => (alerts ?? []).map((a) => ({
+      value: new Date(a.timestamp).getTime(),
+      color: '#ef4444',
+      width: 2,
+      zIndex: 5,
+    })),
+    [alerts],
   );
 
   if (isLoading) return <MeterReadingsSkeleton />;
@@ -202,7 +224,10 @@ export function MeterReadingsPage() {
     series: [
       { name: meta.label, type: 'line', data: rawData, color: '#374151', marker: { enabled: false } },
     ],
-    navigator: { enabled: true },
+    navigator: {
+      enabled: true,
+      xAxis: { plotLines: alertPlotLines },
+    },
     scrollbar: { enabled: false },
     rangeSelector: { enabled: false },
     legend: { enabled: false },
@@ -282,7 +307,7 @@ export function MeterReadingsPage() {
         {readings && readings.length > 0 && (
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-text">Resumen diario</h2>
-            <DataTable data={groupByDay(readings)} columns={dayColumns} footer rowKey={(r) => r.day} />
+            <DataTable data={groupByDay(readings, alerts ?? [])} columns={dayColumns} footer rowKey={(r) => r.day} />
           </Card>
         )}
       </div>

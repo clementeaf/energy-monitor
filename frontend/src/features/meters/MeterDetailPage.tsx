@@ -4,6 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { MonthlyColumnChart } from '../../components/charts/MonthlyColumnChart';
 import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
 import { useMeterMonthly } from '../../hooks/queries/useMeters';
+import { useAlerts } from '../../hooks/queries/useAlerts';
 import { MeterMetricSelector } from './components/MeterMetricSelector';
 import { MeterMonthlyTable } from './components/MeterMonthlyTable';
 import { meterMetrics } from './components/meterMetrics';
@@ -13,6 +14,7 @@ export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const navigate = useNavigate();
   const { data: monthly, isLoading } = useMeterMonthly(meterId!);
+  const { data: alerts } = useAlerts({ meter_id: meterId! });
   const [chartMetric, setChartMetric] = useState<MeterMetricKey>('totalKwh');
   const [hoveredMetric, setHoveredMetric] = useState<MeterMetricKey | null>(null);
 
@@ -49,6 +51,7 @@ export function MeterDetailPage() {
             <h2 className="mb-3 text-sm font-semibold text-text">Detalle mensual</h2>
             <MeterMonthlyTable
               data={monthly}
+              alerts={alerts ?? []}
               highlightMetric={chartMetric}
               hoveredMetric={hoveredMetric}
               onMonthClick={(month) => navigate(`/meters/${meterId}/readings/${month.slice(0, 7)}`)}

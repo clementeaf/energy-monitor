@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { DataTable, type Column } from '../../../components/ui/DataTable';
-import type { MeterMonthly } from '../../../types';
+import type { Alert, MeterMonthly } from '../../../types';
 import type { MeterMetricKey } from './meterMetrics';
 import { meterMetrics } from './meterMetrics';
 
@@ -21,14 +21,25 @@ function fmtNum(n: number | null, decimals = 1): string {
 
 interface MeterMonthlyTableProps {
   data: MeterMonthly[];
+  alerts?: Alert[];
   highlightMetric?: MeterMetricKey;
   hoveredMetric?: MeterMetricKey | null;
   onMonthClick?: (month: string) => void;
 }
 
-export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric, onMonthClick }: MeterMonthlyTableProps) {
+export function MeterMonthlyTable({ data, alerts = [], highlightMetric, hoveredMetric, onMonthClick }: MeterMonthlyTableProps) {
   const highlightLabel = highlightMetric ? meterMetrics[highlightMetric].label : null;
   const hoveredLabel = hoveredMetric ? meterMetrics[hoveredMetric].label : null;
+
+  // Alertas agrupadas por mes (YYYY-MM)
+  const alertsByMonth = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const a of alerts) {
+      const ym = a.timestamp.slice(0, 7); // YYYY-MM
+      map.set(ym, (map.get(ym) ?? 0) + 1);
+    }
+    return map;
+  }, [alerts]);
 
   function colBg(label: string): string {
     if (hoveredLabel && label === hoveredLabel) return 'bg-blue-50/60';
@@ -38,12 +49,13 @@ export function MeterMonthlyTable({ data, highlightMetric, hoveredMetric, onMont
 
   const columns: Column<MeterMonthly>[] = useMemo(() => [
     { label: 'Mes', value: (r) => monthName(r.month), total: () => 'Total anual', align: 'left' as const, className: colBg('Mes') },
+    { label: 'Incidencias', value: (r) => { const c = alertsByMonth.get(r.month.slice(0, 7)) ?? 0; return c > 0 ? String(c) : '—'; }, total: (d) => String(d.reduce((s, r) => s + (alertsByMonth.get(r.month.slice(0, 7)) ?? 0), 0)), className: colBg('Incidencias') },
     { label: 'Consumo (kWh)', value: (r) => fmtNum(r.totalKwh), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)), className: colBg('Consumo (kWh)') },
     { label: 'Potencia prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerKw ?? 0), 0) / (d.filter((r) => r.avgPowerKw !== null).length || 1)), className: colBg('Potencia prom. (kW)') },
     { label: 'Potencia peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(Math.max(...d.map((r) => r.peakPowerKw ?? 0))), className: colBg('Potencia peak (kW)') },
     { label: 'Reactiva (kVAr)', value: (r) => fmtNum(r.totalReactiveKvar), total: (d) => fmtNum(d.reduce((s, r) => s + (r.totalReactiveKvar ?? 0), 0)), className: colBg('Reactiva (kVAr)') },
     { label: 'Factor potencia', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(d.reduce((s, r) => s + (r.avgPowerFactor ?? 0), 0) / (d.filter((r) => r.avgPowerFactor !== null).length || 1), 3), className: colBg('Factor potencia') },
-  ], [highlightLabel, hoveredLabel]);
+  ], [highlightLabel, hoveredLabel, alertsByMonth]);
 
   return (
     <DataTable

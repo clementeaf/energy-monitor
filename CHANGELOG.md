@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.36.0-alpha.0] - 2026-03-15 — ALERTAS EN GRÁFICO Y TABLAS DE MEDIDOR
+
+### Added
+
+- **Líneas de incidencia en navigator** — Al seleccionar resolución 15 min en lecturas del medidor, el navigator del gráfico Stock muestra líneas rojas verticales en cada alerta registrada
+- **Columna "Incidencias" en detalle mensual** — `MeterMonthlyTable` muestra conteo de alertas por mes con total anual en footer
+- **Columna "Incidencias" en resumen diario** — Tabla de lecturas diarias muestra conteo de alertas por día con total mensual en footer
+
+### Changed
+
+- `MeterDetailPage` y `MeterReadingsPage` consumen `useAlerts({ meter_id })` para obtener alertas del medidor
+- `groupByDay()` recibe alertas como segundo parámetro para calcular incidencias por día
+
+---
+
 ## [0.35.0-alpha.0] - 2026-03-15 — COMPARATIVAS CON DATOS REALES
 
 ### Added

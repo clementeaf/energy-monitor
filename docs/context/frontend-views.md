@@ -33,7 +33,7 @@
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders (Sin informacion, Local no sensado, Local NNN, Por censar), `maxHeight="max-h-60"`, click → detalle medidor |
 | `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico por mes (Highcharts), toggle Barra/Línea, usado por BillingChart y MeterDetailPage |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
-| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 6 columnas, highlight columna via `className`, click fila → lecturas |
+| `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 7 columnas (incluye Incidencias), highlight columna via `className`, click fila → lecturas. Recibe `alerts` para conteo por mes |
 | `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline |
 
 ## DashboardPage
@@ -70,8 +70,8 @@
 - Header: botón volver + meterId
 - `MeterMetricSelector` + `MonthlyColumnChart`: selector elige métrica, gráfico dinámico con toggle Barra/Línea
 - Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
-- `MeterMonthlyTable` debajo del gráfico — 5 métricas por mes, totales en footer
-- Datos vía `useMeterMonthly(meterId)` → `GET /api/meter-monthly/:meterId` (orden ASC)
+- `MeterMonthlyTable` debajo del gráfico — 5 métricas + columna Incidencias por mes, totales en footer
+- Datos vía `useMeterMonthly(meterId)` + `useAlerts({ meter_id })` para conteo de alertas por mes
 - Click en fila de tabla → navega a `/meters/:meterId/readings/:month`
 
 ## MeterReadingsPage
@@ -80,8 +80,9 @@
 - Selector de métrica (11 métricas de `meter_readings`)
 - Gráfico con toggle Diario / 15 min:
   - **Diario:** Highcharts línea, 1 punto por hora (promedio), eje X = días del mes
-  - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min, eje Y a la izquierda (`opposite: false`)
-- **Resumen diario:** DataTable inline, una fila por día, 9 columnas (Día, Lecturas, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), totales en footer
+  - **15 min:** Highcharts Stock light theme, navigator con rango default 2 días, datos crudos cada 15 min, eje Y a la izquierda (`opposite: false`). Líneas rojas verticales en el navigator marcan alertas del medidor
+- **Resumen diario:** DataTable inline, una fila por día, 10 columnas (Día, Lecturas, Incidencias, Pot. prom., Pot. peak, Volt. L1, Corr. L1, React., FP, Frec.), totales en footer
+- Alertas vía `useAlerts({ meter_id })` — alimentan plotLines del navigator y columna Incidencias
 - Datos vía `useMeterReadings(meterId, from, to)` → `GET /api/meter-readings/:meterId?from=&to=`
 
 ## RealtimePage
@@ -109,13 +110,12 @@
 
 ## ComparisonsPage
 
-- Compara una marca de tienda a través de distintos edificios
-- Data 100% mock hardcodeada (sin hooks, sin API)
-- Selectores inline: marca (10 marcas) + mes (Oct-25 a Mar-26)
-- Gráfico combo Highcharts (barras consumo kWh + línea gasto CLP), eje X = edificios
-- DataTable: Edificio, Consumo (kWh), Gasto ($), Superficie (m²), footer con totales
-- Mock data: 10 marcas en 6 edificios, factores por edificio y estacionales
-- Sin título `<h1>` (el sidebar indica la vista activa)
+- Compara tiendas o tipos de tienda a través de distintos edificios
+- Toggle "Por Tipo" (42 tipos) / "Por Tienda" (309 nombres) con MultiSelect y búsqueda
+- Selector de mes dinámico derivado de la API
+- Gráfico toggle Barra/Línea (consumo kWh + gasto CLP), eje X = edificios
+- DataTable: Edificio, Consumo (kWh), Gasto ($), footer con totales
+- Datos reales vía `useComparisonFilters`, `useComparisonByStoreType`, `useComparisonByStoreName`
 
 ## Hooks activos
 

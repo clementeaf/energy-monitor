@@ -95,6 +95,8 @@ GET /buildings prioriza staging_centers si tiene filas; fallback a buildings si 
 | `ingest-kpis-xlsx.py` | MG (446) | XLSX Resumen Mensual | meter_monthly_billing (KPIs: peak, demanda, pct, promedio) |
 | `ingest-sc53-arauco-express.py` | SC53 (53) | XLSX Consumo por Local | meter_monthly_billing, building_summary, store |
 | `ingest-mm254-full.py` | MM (254) | CSV + XLSX | raw_readings, store, meter_monthly, meter_readings, meter_monthly_billing, tariff, building_summary |
+| `ingest-ot70-outlet.py` | OT (70) | CSV + XLSX | raw_readings, store, meter_monthly, meter_readings, meter_monthly_billing, tariff (Quilicura), building_summary |
+| `ingest-sc52-sc53-strip-centers.py` | SC52 (52) + SC53 (53) | CSV + XLSX | raw_readings, store, meter_monthly, meter_readings, meter_monthly_billing (SC52), tariff (Huechuraba), building_summary (SC52) |
 | `ingest-tariffs.py` | — | XLSX Pliegos | tariff |
 
 ### Checklist de ingesta para un edificio nuevo
@@ -107,7 +109,7 @@ GET /buildings prioriza staging_centers si tiene filas; fallback a buildings si 
 
 | # | Paso | Tabla destino | Fuente | Notas |
 |---|------|--------------|--------|-------|
-| 1 | CSV → raw_readings | `raw_readings` | CSV | COPY con latin1, batch 5000 |
+| 1 | CSV → raw_readings | `raw_readings` | CSV | Batch 5000. Encoding: `latin1` (MG, MM) o `utf-8-sig` (OT, SC52, SC53) |
 | 2 | CSV → store + store_type | `store`, `store_type` | CSV | Extraer tipos únicos, MAX(id)+1 para store_type.id |
 | 3 | raw_readings → meter_monthly | `meter_monthly` | SQL aggregation | `SUM(kwh)`, `AVG(power_kw)`, `MAX(power_kw)`, `AVG(power_factor)` agrupado por (meter_id, month) |
 | 4 | raw_readings → meter_readings | `meter_readings` | SQL particionado | Crear partición LIST por meter_id, INSERT desde raw |

@@ -25,11 +25,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-15)
-- 3 edificios en pg-arauco: MG (446), MM (254), SC53 (53) — 700 medidores, 24.5M lecturas
-- Tariff con location, query LATERAL, null-safety frontend, módulos backend completos
-- SC53 billing re-ingestado desde XLSX correcto (636 filas, 22 columnas completas)
-- KPIs `building_summary` poblados para los 3 edificios (cards frontend operativas)
-- Checklist de ingesta de 9 pasos documentado en `docs/context/ingest-pipeline.md`
+- 5 edificios en pg-arauco: MG (446), MM (254), OT (70), SC52 (52), SC53 (53) — 875 medidores, 30.7M lecturas
+- Tariff con 4 locations: Las Condes, Santiago, Quilicura, Huechuraba (48 filas)
+- Todos los edificios con KPIs building_summary completos (12/12)
+- SC53 ahora con datos CSV reales (raw_readings + meter_monthly + meter_readings)
 
 ### Pendiente
 - Sin tareas pendientes definidas
@@ -38,19 +37,16 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md. Retomando sesión.
 
-Estado: 3 edificios en pg-arauco (MG 446 + MM 254 + SC53 53 = 700 medidores, 24.5M lecturas).
-Tablas clave: store (700), meter_monthly (8,400), meter_readings (24.5M, 700 particiones),
-meter_monthly_billing (9,036), building_summary (36), tariff (24, con location).
-Último commit: a0b87b3.
-
-Archivos no trackeados: CSVs fuente, XLSX fuente, scripts exploratorios en scripts/.
+5 edificios en pg-arauco (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53 = 875 medidores).
+30.7M lecturas, 10,500 billing, 48 tariff (4 locations). KPIs 12/12 en los 5.
+Último commit: da98901.
 ```
 
 ## Prioridad Actual de Acceso
 `rol → vistas → acciones`. Un usuario invitado entra con rol asignado que define qué vistas y acciones puede ejecutar.
 
 ## Project Overview
-Plataforma de monitoreo energético en tiempo real para edificios comerciales. 700 medidores en 3 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.
+Plataforma de monitoreo energético en tiempo real para edificios comerciales. 875 medidores en 5 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.
 
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7

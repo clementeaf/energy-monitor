@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.32.0-alpha.0] - 2026-03-15 — CARGA OT70 + SC52 + SC53 CSV
+
+### Added
+
+- **Script `ingest-ot70-outlet.py`** — ingesta completa de Arauco Premium Outlet Buenaventura (OT, 70 medidores) en 9 pasos
+- **Script `ingest-sc52-sc53-strip-centers.py`** — ingesta combinada:
+  - SC52 (Arauco Express Ciudad Empresarial, 52 medidores) — 9 pasos completos
+  - SC53 (Arauco Express El Carmen de Huechuraba, 53 medidores) — CSV-only (steps 1-4) + recálculo KPIs con datos reales
+- **Tarifas Quilicura** (12 filas) y **Huechuraba** (12 filas) en tabla `tariff`
+- SC53 ahora tiene raw_readings, meter_monthly y meter_readings (antes solo billing)
+
+### Data (pg-arauco)
+
+- `raw_readings`: 24.5M → 30.6M (+6.1M: OT 2.45M + SC52 1.82M + SC53 1.86M)
+- `store`: 700 → 875 (+175: OT 70 + SC52 52 + SC53 53 existentes)
+- `meter_monthly`: 8,400 → 10,500 (+2,100: OT 840 + SC52 624 + SC53 636)
+- `meter_readings`: 24.5M → 30.7M (+6.1M, 175 particiones nuevas → 875 total)
+- `meter_monthly_billing`: 9,036 → 10,500 (+1,464: OT 840 + SC52 624)
+- `building_summary`: 36 → 60 (+24: OT 12 + SC52 12)
+- `tariff`: 24 → 48 (+24: Quilicura 12 + Huechuraba 12)
+- **5 edificios activos**, todos con KPIs 12/12
+
+---
+
 ## [0.31.1-alpha.0] - 2026-03-15 — FIX DATOS SC53 + DOCUMENTACIÓN INGESTA
 
 ### Fixed

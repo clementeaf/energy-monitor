@@ -38,23 +38,23 @@
 
 ### pg-arauco (docker local)
 
-**store_type** — id: serial PK, name: varchar(100) unique. 20 tipos.
+**store_type** — id: serial PK, name: varchar(100) unique. 42 tipos.
 
-**store** — meter_id: varchar(10) PK, store_type_id: int FK→store_type, store_name: varchar(200). 700 filas (MG 446 + MM 254 + SC53 53).
+**store** — meter_id: varchar(10) PK, store_type_id: int FK→store_type, store_name: varchar(200). 875 filas (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53).
 
-**building_summary** — building_name: text NOT NULL, month: date NOT NULL, PK(building_name, month). Stats agregados: total_stores, store_types, total_meters, assigned_meters, unassigned_meters, area_sqm, total_kwh, total_power_kw, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor, peak_demand_kw, demanda_punta_kwh, pct_punta, promedio_diario_kwh. 36 filas (12 × 3 edificios). **Columnas KPI críticas para cards frontend:** `peak_demand_kw`, `avg_power_kw`, `avg_power_factor` — ver sección "Cálculo KPIs building_summary" en ingest-pipeline.md.
+**building_summary** — building_name: text NOT NULL, month: date NOT NULL, PK(building_name, month). Stats agregados: total_stores, store_types, total_meters, assigned_meters, unassigned_meters, area_sqm, total_kwh, total_power_kw, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor, peak_demand_kw, demanda_punta_kwh, pct_punta, promedio_diario_kwh. 60 filas (12 × 5 edificios). **Columnas KPI críticas para cards frontend:** `peak_demand_kw`, `avg_power_kw`, `avg_power_factor` — ver sección "Cálculo KPIs building_summary" en ingest-pipeline.md.
 
-**meter_monthly** — PK(meter_id varchar(10), month date), FK meter_id → store. total_kwh, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor. 8,400 filas (MG 446 + MM 254 = 700 medidores × 12 meses). Nota: SC53 no tiene meter_monthly (solo billing).
+**meter_monthly** — PK(meter_id varchar(10), month date), FK meter_id → store. total_kwh, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor. 10,500 filas (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53 = 875 medidores × 12 meses).
 
-**meter_monthly_billing** — PK(meter_id varchar(10), month date). building_name varchar(100), total_kwh, energia_clp, dda_max_kw, dda_max_punta_kw, kwh_troncal, kwh_serv_publico, cargo_fijo_clp, total_neto_clp, iva_clp, monto_exento_clp, total_con_iva_clp, peak_mensual_kw, demanda_hora_punta_kwh, pct_punta_consumo, promedio_diario_kwh. Todos numeric, nullable. 9,036 filas (5,352 MG + 3,048 MM + 636 SC53). Fuente: XLSX KPIs.
+**meter_monthly_billing** — PK(meter_id varchar(10), month date). building_name varchar(100), total_kwh, energia_clp, dda_max_kw, dda_max_punta_kw, kwh_troncal, kwh_serv_publico, cargo_fijo_clp, total_neto_clp, iva_clp, monto_exento_clp, total_con_iva_clp, peak_mensual_kw, demanda_hora_punta_kwh, pct_punta_consumo, promedio_diario_kwh. Todos numeric, nullable. 10,500 filas (MG 5,352 + MM 3,048 + OT 840 + SC52 624 + SC53 636). Fuente: XLSX KPIs.
 
-**tariff** — PK(month date, location varchar(50)). consumo_energia_kwh, dda_max_suministrada_kw, dda_max_hora_punta_kw, kwh_sistema_troncal, kwh_serv_publico_iva1..5, cargo_fijo_clp. Todos numeric(10,3). 24 filas (12 Las Condes + 12 Santiago). Fuente: XLSX Pliegos Tarifarios.
+**tariff** — PK(month date, location varchar(50)). consumo_energia_kwh, dda_max_suministrada_kw, dda_max_hora_punta_kw, kwh_sistema_troncal, kwh_serv_publico_iva1..5, cargo_fijo_clp. Todos numeric(10,3). 48 filas (12 × 4 locations: Las Condes, Santiago, Quilicura, Huechuraba). Fuente: XLSX Pliegos Tarifarios.
 
-**meter_readings** — particionada por meter_id (LIST). 700 particiones, 24.5M filas. Índice: `meter_readings_ts_desc (meter_id, timestamp DESC)`.
+**meter_readings** — particionada por meter_id (LIST). 875 particiones, 30.7M filas. Índice: `meter_readings_ts_desc (meter_id, timestamp DESC)`.
 
 **alerts** (pg-arauco) — id: serial PK, meter_id: varchar(20), timestamp: timestamptz, alert_type: varchar(50) ['CURRENT_HIGH'|'CURRENT_NEGATIVE'|'VOLTAGE_OUT_OF_RANGE'|'POWER_FACTOR_LOW'], severity: varchar(10) ['critical'|'warning'|'info'], field: varchar(30), value: numeric(12,4), threshold: numeric(12,4), message: text, created_at: timestamptz. Índices: meter_id, alert_type, severity. 182 filas (detectadas desde meter_readings).
 
-**raw_readings** — 24.5M filas (700 medidores completo CSV).
+**raw_readings** — 30.6M filas (875 medidores completo CSV).
 
 ### Tablas que NO existen en producción (migraciones pendientes)
 

@@ -26,22 +26,23 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Completado (2026-03-15)
 - 5 edificios en pg-arauco, 875 medidores, 30.7M lecturas — todos alineados a 2025
-- Dashboard: datos reales (gráfico toggle Barra/Línea + tabla). Sin mock
-- Comparativas: datos reales. Toggle Por Tipo / Por Tienda, MultiSelect con búsqueda, multi-selección, gráfico toggle Barra/Línea
-- Componente `MultiSelect` reutilizable (búsqueda + checkboxes)
-- Cards resumen y tabla vencidos: placeholder "—" (sin datos de pago en fuentes)
-
-### Pendiente
-- Cards y tabla vencidos requieren fuente de datos de pagos (no existe aún)
+- Dashboard: datos reales completos — gráfico, tabla, cards de pago y tabla de vencidos
+- Comparativas: datos reales. Toggle Por Tipo / Por Tienda, MultiSelect, gráfico toggle Barra/Línea
+- Incidencias en medidor: líneas rojas en gráfico 15 min, columna Incidencias en tablas mensual y diaria
+- Click en incidencia → navega a `/alerts` con filtros pre-aplicados (meter_id + fecha)
+- Tabla `billing_document` con 60 registros sintéticos de pagos (pagado/por_vencer/vencido)
+- Cards dashboard: Pagos Recibidos, Docs por Vencer, Docs Vencidos — con datos reales y colores
+- Tabla "Documentos Vencidos por Período" — 4 rangos de días con conteo y montos
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
-Dashboard y Comparativas con datos reales — sin mock.
-Comparativas: Por Tipo (42) / Por Tienda (309), MultiSelect, multi-selección.
-Cards resumen y tabla vencidos en placeholder "—" (sin datos de pago).
+Dashboard completo: gráfico, tabla edificios, cards de pago y tabla vencidos con datos reales.
+Comparativas con datos reales.
+Incidencias en medidor con navegación a Alertas.
+Tabla billing_document con 60 registros sintéticos de pagos.
 ```
 
 ## Prioridad Actual de Acceso

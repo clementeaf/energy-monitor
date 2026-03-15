@@ -15,4 +15,11 @@ export class DashboardController {
   async getSummary() {
     return this.dashboardService.getSummary();
   }
+
+  @Get('payments')
+  @ApiOperation({ summary: 'Resumen de pagos, documentos por vencer y vencidos' })
+  @ApiOkResponse({ description: 'Cards de pago + tabla de vencidos por período' })
+  async getPayments() {
+    return this.dashboardService.getPaymentSummary();
+  }
 }

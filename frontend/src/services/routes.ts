@@ -23,6 +23,7 @@ export const routes = {
 
   // Dashboard
   getDashboardSummary: () => '/dashboard/summary',
+  getDashboardPayments: () => '/dashboard/payments',
 
   // Comparisons
   getComparisonFilters: () => '/comparisons/filters',

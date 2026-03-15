@@ -37,6 +37,7 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | Method | Path | Response |
 |---|---|---|
 | GET | `/dashboard/summary` | `DashboardBuildingMonth[]` (5 edificios × 12 meses: buildingName, month, totalKwh, totalConIvaClp, totalMeters, areaSqm) |
+| GET | `/dashboard/payments` | `PaymentSummary` (pagosRecibidos, porVencer, vencidos: {count, totalClp}, vencidosPorPeriodo: OverdueBucket[]) |
 
 ## Comparisons (`/comparisons`) — `@Public()`
 | Method | Path | Params | Response |

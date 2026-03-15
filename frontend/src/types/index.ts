@@ -99,6 +99,20 @@ export interface ComparisonFilters {
   months: string[];
 }
 
+// Matches backend dashboard/payments endpoint
+export interface OverdueBucket {
+  range: string;
+  count: number;
+  totalClp: number;
+}
+
+export interface PaymentSummary {
+  pagosRecibidos: { count: number; totalClp: number };
+  porVencer: { count: number; totalClp: number };
+  vencidos: { count: number; totalClp: number };
+  vencidosPorPeriodo: OverdueBucket[];
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

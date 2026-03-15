@@ -10,6 +10,19 @@ export interface DashboardBuildingMonth {
   areaSqm: number | null;
 }
 
+export interface OverdueBucket {
+  range: string;
+  count: number;
+  totalClp: number;
+}
+
+export interface PaymentSummary {
+  pagosRecibidos: { count: number; totalClp: number };
+  porVencer: { count: number; totalClp: number };
+  vencidos: { count: number; totalClp: number };
+  vencidosPorPeriodo: OverdueBucket[];
+}
+
 @Injectable()
 export class DashboardService {
   constructor(private readonly dataSource: DataSource) {}
@@ -47,5 +60,58 @@ export class DashboardService {
       totalMeters: parseInt(String(r.totalMeters), 10),
       areaSqm: r.areaSqm !== null ? parseFloat(String(r.areaSqm)) : null,
     }));
+  }
+
+  async getPaymentSummary(): Promise<PaymentSummary> {
+    const [statusRows] = await Promise.all([
+      this.dataSource.query(`
+        SELECT status,
+               COUNT(*)::int AS count,
+               COALESCE(SUM(total_clp), 0)::numeric AS "totalClp"
+        FROM billing_document
+        GROUP BY status
+      `),
+    ]);
+
+    const byStatus: Record<string, { count: number; totalClp: number }> = {};
+    for (const r of statusRows) {
+      byStatus[r.status] = { count: r.count, totalClp: parseFloat(r.totalClp) };
+    }
+
+    const bucketRows = await this.dataSource.query(`
+      SELECT
+        CASE
+          WHEN days_overdue BETWEEN 1 AND 30 THEN '1-30 días'
+          WHEN days_overdue BETWEEN 31 AND 60 THEN '31-60 días'
+          WHEN days_overdue BETWEEN 61 AND 90 THEN '61-90 días'
+          WHEN days_overdue > 90 THEN '90+ días'
+        END AS range,
+        COUNT(*)::int AS count,
+        COALESCE(SUM(total_clp), 0)::numeric AS "totalClp"
+      FROM billing_document
+      WHERE status = 'vencido'
+      GROUP BY 1
+      ORDER BY MIN(days_overdue)
+    `);
+
+    const allBuckets = ['1-30 días', '31-60 días', '61-90 días', '90+ días'];
+    const bucketMap = new Map<string, { range: string; count: number; totalClp: string }>(
+      bucketRows.map((r: { range: string; count: number; totalClp: string }) => [r.range, r]),
+    );
+    const vencidosPorPeriodo: OverdueBucket[] = allBuckets.map((range) => {
+      const r = bucketMap.get(range);
+      return {
+        range,
+        count: r ? r.count : 0,
+        totalClp: r ? parseFloat(String(r.totalClp)) : 0,
+      };
+    });
+
+    return {
+      pagosRecibidos: byStatus['pagado'] ?? { count: 0, totalClp: 0 },
+      porVencer: byStatus['por_vencer'] ?? { count: 0, totalClp: 0 },
+      vencidos: byStatus['vencido'] ?? { count: 0, totalClp: 0 },
+      vencidosPorPeriodo,
+    };
   }
 }

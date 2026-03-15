@@ -2,9 +2,9 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
-import { useDashboardSummary } from '../../hooks/queries/useDashboard';
+import { useDashboardSummary, useDashboardPayments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
-import type { DashboardBuildingMonth } from '../../types';
+import type { DashboardBuildingMonth, OverdueBucket } from '../../types';
 
 const MONTH_NAMES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -151,8 +151,15 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'colu
   return <div ref={containerRef} />;
 }
 
+const overdueCols: Column<OverdueBucket>[] = [
+  { label: 'Período', value: (r) => r.range, align: 'left', className: 'whitespace-nowrap' },
+  { label: 'Docs', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
+  { label: 'Monto', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
+];
+
 export function DashboardPage() {
   const { data: summary, isLoading } = useDashboardSummary();
+  const { data: payments } = useDashboardPayments();
 
   // Derive months and group by month
   const { months, byMonth } = useMemo(() => {
@@ -231,13 +238,13 @@ export function DashboardPage() {
 
         <div className="flex flex-col gap-2">
           {[
-            { label: 'Pagos Recibidos', desc: 'Mes actual' },
-            { label: 'Docs por Vencer', desc: 'Próximos 30 días' },
-            { label: 'Docs Vencidos', desc: 'Total pendiente' },
+            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, color: 'text-green-400' },
+            { label: 'Docs por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, color: 'text-amber-400' },
+            { label: 'Docs Vencidos', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, color: 'text-red-400' },
           ].map((c) => (
             <Card key={c.label} className="flex-1 flex flex-col justify-center !py-2 !px-3">
               <p className="text-xs text-muted">{c.label}</p>
-              <p className="text-xl font-bold text-muted/40">—</p>
+              <p className={`text-lg font-bold ${c.color}`}>{c.value}</p>
               <p className="text-[10px] text-muted">{c.desc}</p>
             </Card>
           ))}
@@ -259,7 +266,17 @@ export function DashboardPage() {
 
         <Card>
           <h2 className="mb-3 text-sm font-semibold text-muted">Documentos Vencidos por Período</h2>
-          <p className="text-sm text-muted/40">—</p>
+          {payments ? (
+            <DataTable
+              data={payments.vencidosPorPeriodo}
+              columns={overdueCols}
+              rowKey={(r) => r.range}
+              footer
+              maxHeight="max-h-[340px]"
+            />
+          ) : (
+            <p className="text-sm text-muted/40">—</p>
+          )}
         </Card>
       </div>
     </div>

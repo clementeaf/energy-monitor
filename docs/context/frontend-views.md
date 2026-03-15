@@ -6,7 +6,7 @@
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Dashboard | si | parcial — gráfico + tabla edificios con datos reales; cards resumen + tabla vencidos sin datos (placeholder "—") |
+| `/` | Dashboard | si | si — gráfico + tabla edificios + cards de pago + tabla vencidos, todos con datos reales |
 | `/buildings` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
@@ -41,10 +41,11 @@
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
 - **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Barra/Línea y selector de mes
-- **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) — placeholder "—" (sin datos de pago)
+- **Fila 1 — col der:** 3 cards de pago con datos reales — Pagos Recibidos (verde), Docs por Vencer (ámbar), Docs Vencidos (rojo). Monto + conteo de documentos
 - **Fila 2 — col izq:** tabla edificios (5 reales, scroll interno 340px, header/footer sticky)
-- **Fila 2 — col der:** tabla documentos vencidos por período — placeholder "—" (sin datos de pago)
+- **Fila 2 — col der:** tabla "Documentos Vencidos por Período" — DataTable con 4 rangos (1-30, 31-60, 61-90, 90+ días), columnas Período/Docs/Monto, footer con totales
 - Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
+- Datos de pago vía `useDashboardPayments` → `GET /api/dashboard/payments`
 - Selector de mes derivado de los meses disponibles en la API
 
 ## BuildingsPage
@@ -124,6 +125,7 @@
 
 | Hook | Endpoint | Tipo retorno |
 |------|----------|--------------|
+| `useDashboardPayments()` | `GET /api/dashboard/payments` | `PaymentSummary` |
 | `useBuildings()` | `GET /api/buildings` | `BuildingSummary[]` |
 | `useBuilding(name)` | `GET /api/buildings/:name` | `BuildingSummary[]` |
 | `useBilling(buildingName)` | `GET /api/billing/:buildingName` | `BillingMonthlySummary[]` |
@@ -164,6 +166,14 @@ MeterMonthly {
 MeterLatestReading {
   meterId, storeName, powerKw, voltageL1, currentL1,
   powerFactor, timestamp
+}
+
+PaymentSummary {
+  pagosRecibidos: { count, totalClp }
+  porVencer: { count, totalClp }
+  vencidos: { count, totalClp }
+  vencidosPorPeriodo: OverdueBucket[]
+  — OverdueBucket: { range, count, totalClp }
 }
 
 MeterReading {

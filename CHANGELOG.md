@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.37.0-alpha.0] - 2026-03-15 — DATOS DE PAGOS Y DOCUMENTOS EN DASHBOARD
+
+### Added
+
+- **Tabla `billing_document`** — 60 registros sintéticos (1 por edificio × 12 meses) generados desde `meter_monthly_billing`. Estados: pagado (48), por_vencer (3), vencido (9). Vencidos distribuidos en rangos 1-30, 31-60, 61-90, 90+ días
+- **Endpoint `GET /dashboard/payments`** — resumen de pagos recibidos, documentos por vencer, vencidos y desglose por período de vencimiento
+- **Cards de pago con datos reales** — Pagos Recibidos (verde), Docs por Vencer (ámbar), Docs Vencidos (rojo) con montos y conteo de documentos
+- **Tabla "Documentos Vencidos por Período"** — DataTable con columnas Período, Docs, Monto y footer con totales
+
+### Changed
+
+- Cards de pago pasan de placeholder "—" a datos reales con colores por estado
+- Tabla vencidos pasa de placeholder "—" a DataTable con 4 rangos de días
+
+---
+
 ## [0.36.0-alpha.0] - 2026-03-15 — INCIDENCIAS EN MEDIDOR CON NAVEGACIÓN A ALERTAS
 
 ### Added

@@ -54,6 +54,8 @@
 
 **alerts** (pg-arauco) — id: serial PK, meter_id: varchar(20), timestamp: timestamptz, alert_type: varchar(50) ['CURRENT_HIGH'|'CURRENT_NEGATIVE'|'VOLTAGE_OUT_OF_RANGE'|'POWER_FACTOR_LOW'], severity: varchar(10) ['critical'|'warning'|'info'], field: varchar(30), value: numeric(12,4), threshold: numeric(12,4), message: text, created_at: timestamptz. Índices: meter_id, alert_type, severity. 182 filas (detectadas desde meter_readings).
 
+**billing_document** — id: serial PK, building_name: varchar(100), month: date, doc_number: varchar(20), doc_type: varchar(20) default 'factura', issue_date: date, due_date: date, total_neto_clp: numeric(16,2), iva_clp: numeric(16,2), total_clp: numeric(16,2), status: varchar(20) ['pagado'|'por_vencer'|'vencido'], payment_date: date?, payment_amount: numeric(16,2)?, days_overdue: int default 0, meter_count: int. UNIQUE(building_name, month). 60 filas (5 edificios × 12 meses). Generada sintéticamente desde meter_monthly_billing.
+
 **raw_readings** — 30.6M filas (875 medidores completo CSV).
 
 ### Tablas que NO existen en producción (migraciones pendientes)

@@ -41,7 +41,7 @@ export function DataTable<T>({
 
   return (
     <div className="h-full flex flex-col">
-      <div className={`overflow-auto flex-1 ${maxHeight}`}>
+      <div className={`overflow-auto flex-1 min-h-0 ${maxHeight}`}>
         <table className={`min-w-full h-full text-[13px] ${tableClassName ?? ''}`}>
           <thead>
             <tr>

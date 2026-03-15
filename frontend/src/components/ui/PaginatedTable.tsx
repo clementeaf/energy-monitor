@@ -29,7 +29,7 @@ export function PaginatedTable<T>({
   const sliced = data.slice(page * pageSize, (page + 1) * pageSize);
 
   return (
-    <div>
+    <div className="flex h-full min-h-0 flex-col">
       <DataTable
         data={sliced}
         columns={columns}

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.0-alpha.0] - 2026-03-15 — SCROLLBAR REMARCADORES + RESTORE READINGS RDS
+
+### Infrastructure
+- **RDS restore readings** — script `scripts/restore-readings-rds.sh` para cargar meter_readings (30.7M) y raw_readings (30.7M) via ECS Fargate
+- **Flujo**: pg_dump en Docker → S3 → escalar RDS a t3.medium → ECS Fargate pg_restore → bajar a t3.micro
+- **IAM** — agregado prefix `readings-restore/*` a policy S3 del task role
+- **CloudWatch** — log group `/ecs/energy-monitor-readings-restore` creado
+
+### Fixed
+- **MetersTable scrollbar** — tabla "Listado Remarcadores" no tenía scroll; `PaginatedTable` wrapper ahora participa en flex layout (`h-full min-h-0 flex-col`), `DataTable` scroll div con `min-h-0`
+
+---
+
 ## [0.46.0-alpha.0] - 2026-03-15 — DEPLOY AWS: RDS, LAMBDA, FRONTEND
 
 ### Infrastructure

@@ -25,27 +25,23 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-15)
-- Deploy AWS completo: CloudFront `energymonitor.click` → S3 (frontend) + API Gateway → Lambda → RDS
-- Frontend `api.ts` usa `VITE_API_BASE_URL` con fallback `/api` (relativo para CloudFront en prod)
-- Lambda `DB_PASSWORD` actualizado en 3 funciones (api, offlineAlerts, dbVerify)
-- Frontend build + deploy S3 + invalidación CloudFront
-- Fix TS: `aggregations.ts` tipos genéricos, `AlertsPage.tsx` RefObject
-- RDS migración: 8 tablas operativas restauradas (store, store_type, building_summary, meter_monthly, meter_monthly_billing, tariff, alerts, billing_document)
-- Infra temporal revertida: route→NAT, SG sin CIDRs públicos, RDS no-publicly-accessible
-- GitHub secret `DB_PASSWORD` configurado
-- Limpieza: S3 dump, task definitions, log group eliminados
+- Deploy AWS completo: CloudFront → S3 + API GW → Lambda → RDS (8 tablas operativas)
+- Restore readings en progreso: script `scripts/restore-readings-rds.sh`, dumps en S3, RDS escalado a t3.medium, ECS task corriendo
+- Fix scrollbar tabla "Listado Remarcadores" en BuildingDetailPage (PaginatedTable + DataTable flex layout)
+- Frontend desplegado manualmente (S3 + CloudFront invalidation)
 
 ### Pendiente
-- Cargar meter_readings y raw_readings (~30M rows cada una). Plan: escalar RDS a db.t3.medium, restore selectivo, bajar a micro.
+- Verificar que ECS task completó restore de meter_readings y raw_readings (30M+ rows cada una)
+- Bajar RDS de db.t3.medium a db.t3.micro post-restore
+- Limpiar S3 prefix `readings-restore/` y ECR repo `energy-monitor-readings-restore`
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-Deploy AWS completo. CloudFront energymonitor.click → S3 + API GW → Lambda → RDS.
-8 tablas operativas en RDS con datos verificados.
-Pendiente: cargar meter_readings y raw_readings (30M+ rows).
-Plan: escalar RDS a db.t3.medium → restore selectivo desde Docker → bajar a micro.
+Restore de meter_readings y raw_readings via ECS Fargate en progreso (o completado).
+Verificar: aws ecs describe-tasks / aws logs tail /ecs/energy-monitor-readings-restore
+Post-restore: bajar RDS a t3.micro, limpiar S3 y ECR.
 ```
 
 ## Prioridad Actual de Acceso

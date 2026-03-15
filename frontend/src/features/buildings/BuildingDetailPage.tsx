@@ -35,62 +35,59 @@ export function BuildingDetailPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0">
-        <div className="mb-2 flex items-center gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-3 py-1 text-sm text-muted hover:text-text"
-          >
-            &larr; Volver
-          </button>
-          <span className="text-sm font-semibold text-text">{latest.buildingName}</span>
+      <div className="mb-3 flex shrink-0 items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
+        >
+          &larr; Volver
+        </button>
+        <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
+      </div>
+
+      {billing && billing.length > 0 && (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+          {/* Fila 1: gráfico */}
+          <Card className="flex shrink-0 flex-col">
+            <div className="mb-3 flex w-fit items-center gap-3 rounded-lg bg-pa-bg-alt px-4 py-2.5">
+              <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">Facturación Mensual</h2>
+              <BillingMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
+            </div>
+            <BillingChart data={billing} metric={chartMetric} />
+          </Card>
+
+          {/* Fila 2: tabla, ocupa resto */}
+          <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="mb-3 flex w-fit shrink-0 items-center gap-2 rounded-lg bg-pa-bg-alt px-4 py-2.5">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`rounded-full px-3 py-1 text-[13px] font-bold uppercase tracking-wide transition-colors ${
+                    activeTab === tab.key
+                      ? 'bg-pa-navy text-white'
+                      : 'text-pa-navy hover:bg-pa-navy/10'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-hidden">
+              {activeTab === 'billing' && (
+                <BillingTable data={billing} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
+              )}
+              {activeTab === 'meters' && meters && meters.length > 0 && (
+                <MetersTable data={meters} buildingName={latest.buildingName} />
+              )}
+              {activeTab === 'meters' && (!meters || meters.length === 0) && (
+                <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>
+              )}
+            </div>
+          </Card>
         </div>
-      </div>
-
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
-        {billing && billing.length > 0 && (
-          <>
-            <Card>
-              <div className="mb-3">
-                <BillingMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
-              </div>
-              <BillingChart data={billing} metric={chartMetric} />
-            </Card>
-
-            <Card className="flex flex-col overflow-hidden">
-              <div className="shrink-0 border-b border-border">
-                <nav className="flex gap-4">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
-                      className={`pb-2 text-sm font-semibold transition-colors ${
-                        activeTab === tab.key
-                          ? 'border-b-2 border-text text-text'
-                          : 'text-muted hover:text-text'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-
-              <div className="mt-3">
-                {activeTab === 'billing' && (
-                  <BillingTable data={billing} highlightMetric={chartMetric} hoveredMetric={hoveredMetric} />
-                )}
-                {activeTab === 'meters' && meters && meters.length > 0 && (
-                  <MetersTable data={meters} buildingName={latest.buildingName} />
-                )}
-                {activeTab === 'meters' && (!meters || meters.length === 0) && (
-                  <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>
-                )}
-              </div>
-            </Card>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }

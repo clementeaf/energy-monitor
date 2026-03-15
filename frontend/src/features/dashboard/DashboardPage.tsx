@@ -51,6 +51,50 @@ function fmtAxis(val: number): string {
   return String(val);
 }
 
+function MonthDropdown({ months, value, onChange }: { months: string[]; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex cursor-pointer items-center gap-1.5 rounded-full border border-pa-border bg-white px-3 py-1 text-[12px] font-semibold text-pa-navy transition-colors hover:border-pa-blue"
+      >
+        {monthLabel(value)}
+        <svg className="h-3 w-3 shrink-0 text-pa-blue" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute right-0 z-20 mt-1.5 max-h-60 w-36 overflow-y-auto rounded-xl border border-pa-border bg-white py-1 shadow-lg">
+          {months.map((m) => (
+            <li key={m}>
+              <button
+                onClick={() => { onChange(m); setOpen(false); }}
+                className={`block w-full px-3 py-1.5 text-left text-[13px] transition-colors ${
+                  m === value ? 'bg-pa-bg-alt font-semibold text-pa-navy' : 'text-pa-text-muted hover:bg-pa-bg-alt hover:text-pa-navy'
+                }`}
+              >
+                {monthLabel(m)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: 'column' | 'line' }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<Highcharts.Chart | null>(null);
@@ -231,29 +275,21 @@ export function DashboardPage() {
           <div className="mb-3 flex items-center justify-between rounded-lg bg-pa-bg-alt px-4 py-2.5">
             <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">Consumo y Gasto por Edificio</h2>
             <div className="flex items-center gap-2">
-              <div className="flex rounded border border-border text-xs">
+              <div className="flex rounded-full border border-pa-border text-[12px]">
                 <button
                   onClick={() => setChartType('column')}
-                  className={`px-2 py-1 transition-colors ${chartType === 'column' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
+                  className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${chartType === 'column' ? 'bg-pa-navy text-white' : 'text-pa-navy hover:bg-pa-navy/10'}`}
                 >
                   Barra
                 </button>
                 <button
                   onClick={() => setChartType('line')}
-                  className={`px-2 py-1 transition-colors ${chartType === 'line' ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`}
+                  className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${chartType === 'line' ? 'bg-pa-navy text-white' : 'text-pa-navy hover:bg-pa-navy/10'}`}
                 >
                   Línea
                 </button>
               </div>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-muted"
-              >
-                {months.map((m) => (
-                  <option key={m} value={m}>{monthLabel(m)}</option>
-                ))}
-              </select>
+              <MonthDropdown months={months} value={selectedMonth} onChange={setSelectedMonth} />
             </div>
           </div>
           <ComboChart data={monthData} chartType={chartType} />

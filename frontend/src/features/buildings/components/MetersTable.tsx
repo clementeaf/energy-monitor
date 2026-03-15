@@ -34,7 +34,7 @@ export function MetersTable({ data, buildingName }: MetersTableProps) {
       columns={columns}
       rowKey={(r) => r.meterId}
       onRowClick={(r) => navigate(`/meters/${r.meterId}`, { state: { buildingName } })}
-      maxHeight="max-h-60"
+      maxHeight="max-h-full"
       pageSize={10}
       itemLabel="medidores"
     />

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.41.0-alpha.0] - 2026-03-15 — DESIGN SYSTEM PA EN SUBVISTAS DE EDIFICIO
+
+### Changed
+
+- **BuildingsPage** — card ya no es clickeable completa; botón pill "Ver más +" navega al detalle
+- **BuildingDetailPage** — header con botón pill "Volver" + nombre uppercase navy. Gráfico con banner PA (`bg-pa-bg-alt`) título + selector métrica. Tabs como pills en banner PA (activo `bg-pa-navy text-white`). Layout sin scroll: gráfico `shrink-0`, tabla `flex-1` con scroll interno
+- **MonthlyColumnChart** — color `#3D3BF3` (pa-blue), bg transparente, ejes/tooltip estilo PA, toggle Barra/Línea pill con `bg-primary/20`
+- **BillingMetricSelector** — custom dropdown PA: botón pill `rounded-full` border `pa-border`, dropdown `rounded-xl` con items `pa-bg-alt`/`pa-navy`
+- **Dashboard MonthDropdown** — reemplaza `<select>` nativo por custom dropdown PA (mismo estilo pill)
+- **Dashboard toggle Barra/Línea** — pill `rounded-full` con activo `bg-pa-navy text-white`
+- **Selectores** — todos con `cursor-pointer`
+
+---
+
 ## [0.40.0-alpha.0] - 2026-03-15 — APLICACIÓN DESIGN SYSTEM PA EN DASHBOARD
 
 ### Changed

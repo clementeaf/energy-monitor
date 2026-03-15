@@ -30,14 +30,16 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Comparativas con datos reales, toggle Tipo/Tienda, MultiSelect, Barra/Línea
 - Incidencias en medidor con navegación a Alertas (filtros pre-aplicados)
 - Componente `Drawer` reutilizable (portal, overlay, Escape, 4 lados, 5 tamaños)
-- Design system PA aplicado en sidebar y dashboard: tokens, colores, kpi_cards, data_table, títulos banner
+- Design system PA aplicado en sidebar, dashboard, edificios y detalle edificio
+- Controles PA: dropdowns custom pill, toggles pill, banners `w-fit`, layout sin scroll
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 5 edificios, 875 medidores, 30.7M lecturas.
-Design system PA aplicado: sidebar (logo, nav numerada pill), dashboard (gráfico, cards, tablas).
+Design system PA aplicado: sidebar, dashboard, edificios, detalle edificio.
+Controles PA: dropdowns pill, toggles pill, banners w-fit bg-pa-bg-alt.
 Tokens PA en index.css. Card sin borde. DataTable estilo PA.
 ```
 

@@ -172,6 +172,7 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
       columns={columns}
       footer
       rowKey={(r) => r.month}
+      maxHeight="max-h-full"
     />
   );
 }

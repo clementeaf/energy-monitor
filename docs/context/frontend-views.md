@@ -1,6 +1,6 @@
 # Frontend: Vistas y Datos
 
-> **Estado actual (2026-03-15):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Design system PA aplicado (sidebar, dashboard).
+> **Estado actual (2026-03-15):** Auth deshabilitado. TempLayout sin auth. API apunta a `localhost:4000`. Design system PA aplicado (sidebar, dashboard, edificios, detalle edificio).
 
 ## Vistas activas
 
@@ -29,10 +29,10 @@
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
-| `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown custom con 11 métricas, `onHover` para preview en tabla |
+| `BillingMetricSelector` | `features/buildings/components/BillingMetricSelector.tsx` | Dropdown PA pill (`rounded-full`, `pa-border`, `pa-navy`), 11 métricas, `onHover` para preview en tabla |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender` |
-| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders (Sin informacion, Local no sensado, Local NNN, Por censar), `maxHeight="max-h-60"`, click → detalle medidor |
-| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico genérico por mes (Highcharts), toggle Barra/Línea, usado por BillingChart y MeterDetailPage |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders, `maxHeight="max-h-full"`, click → detalle medidor |
+| `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico PA por mes (Highcharts), color `#3D3BF3`, bg transparente, toggle pill Barra/Línea, usado por BillingChart y MeterDetailPage |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla |
 | `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 7 columnas (incluye Incidencias), highlight columna via `className`, click fila → lecturas. Recibe `alerts` para conteo por mes |
 | `MeterReadingsPage` | `features/meters/MeterReadingsPage.tsx` | Lecturas 15 min, gráfico Diario/15min, resumen diario via DataTable inline |
@@ -41,7 +41,7 @@
 
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
-- **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Barra/Línea y selector de mes
+- **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle pill Barra/Línea (`bg-pa-navy`) y `MonthDropdown` custom PA
 - **Fila 1 — col der:** 3 kpi_cards PA — Pagos Recibidos (verde), Facturas por Vencer (ámbar), Facturas Vencidas (coral). Número grande + label + botón pill "Ver más +" abre Drawer
 - **Fila 2 — col izq:** tabla edificios con título banner PA, misma altura que col der
 - **Fila 2 — col der:** tabla "Documentos Vencidos por Período" con título banner PA, misma altura que col izq
@@ -53,21 +53,21 @@
 
 ## BuildingsPage
 
-- `<Card>` con `onClick` → navega a `/buildings/:name`
-- Header: nombre edificio
-- Grid 2x2: consumo (kWh), potencia prom. (kW), demanda peak (kW), factor potencia
-- Footer: medidores + área (m²)
+- Cards con stats (consumo, potencia, demanda, FP), botón pill "Ver más +" navega a detalle
+- Grid 2x2 stats + footer (medidores + área m²)
 - Formato numérico `es-CL`
 
 ## BuildingDetailPage
 
-- Header: botón volver + nombre edificio en línea
-- `BillingMetricSelector` + `BillingChart`: selector dropdown elige métrica, gráfico muestra columnas por mes
-- Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover en dropdown previsualiza columna (`bg-blue-50/60`)
-- Tabs en card inferior:
-  - **Detalle Facturación:** `BillingTable` — scroll interno, sticky thead/tfoot, header "Mes" filtra filas por mes (checkboxes + "Todo")
-  - **Listado Remarcadores:** `MetersTable` — paginación de 10, columnas y paginador siempre visibles, click → `/meters/:meterId`
-- Medidores sin tienda real muestran su placeholder en texto atenuado: "Sin informacion", "Local no sensado", "Local NNN" o "Por censar". Sin tipo muestra "—"
+- Header: botón pill "Volver" + nombre edificio uppercase navy
+- **Gráfico:** Card con banner PA `w-fit` (título "Facturación Mensual" + `BillingMetricSelector` dropdown PA pill)
+- **Tabla:** Card con tabs PA en banner `w-fit` (pills `rounded-full`, activo `bg-pa-navy text-white`)
+- Layout sin scroll: gráfico `shrink-0`, tabla `flex-1 min-h-0` con scroll interno
+- Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
+- Tabs:
+  - **Detalle Facturación:** `BillingTable` — `max-h-full`, sticky thead/tfoot, filtro meses
+  - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 10, click → `/meters/:meterId`
+- Medidores sin tienda real muestran placeholder en texto atenuado
 
 ## MeterDetailPage
 

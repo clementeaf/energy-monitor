@@ -40,10 +40,17 @@ export function BuildingsPage() {
           {[...latest.values()].map((b) => (
             <Card
               key={b.buildingName}
-              onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}
               className="space-y-3"
             >
-              <h3 className="font-semibold text-text">{b.buildingName}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-text">{b.buildingName}</h3>
+                <button
+                  onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}
+                  className="rounded-full border border-pa-blue px-2.5 py-0.5 text-[11px] font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
+                >
+                  Ver más +
+                </button>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />

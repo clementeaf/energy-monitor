@@ -23,12 +23,12 @@ function SkeletonRows() {
   return (
     <div className="overflow-auto">
       <table className="min-w-full text-sm">
-        <thead className="sticky top-0 z-10 bg-surface">
-          <tr className="border-b border-border text-xs text-muted">
+        <thead className="sticky top-0 z-10 bg-white">
+          <tr className="border-b border-pa-border">
             {skeletonColumns.map((col, i) => (
               <th
                 key={col}
-                className={`whitespace-nowrap py-2 pr-6 font-medium ${i === 0 || i === 1 ? 'text-left' : 'text-right'}`}
+                className={`whitespace-nowrap px-3 py-2.5 text-[13px] font-semibold text-pa-navy ${i === 0 || i === 1 ? 'text-left' : 'text-right'}`}
               >
                 {col}
               </th>
@@ -37,9 +37,9 @@ function SkeletonRows() {
         </thead>
         <tbody>
           {Array.from({ length: 8 }).map((_, i) => (
-            <tr key={i} className="border-b border-border">
+            <tr key={i} className="border-b border-pa-border">
               {skeletonColumns.map((col, j) => (
-                <td key={col} className={`py-3 pr-6 ${j === 0 || j === 1 ? 'text-left' : 'text-right'}`}>
+                <td key={col} className={`px-3 py-3 ${j === 0 || j === 1 ? 'text-left' : 'text-right'}`}>
                   <Skeleton className={`inline-block h-4 ${j === 0 ? 'w-16' : j === 1 ? 'w-28' : j === 6 ? 'w-14 rounded-full' : 'w-12'}`} />
                 </td>
               ))}

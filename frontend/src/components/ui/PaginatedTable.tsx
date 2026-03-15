@@ -40,13 +40,13 @@ export function PaginatedTable<T>({
         emptyMessage={emptyMessage}
       />
       {data.length > pageSize && (
-        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-sm text-muted">
+        <div className="flex items-center justify-between border-t border-pa-border px-3 py-2 text-[13px] text-pa-text-muted">
           <span>
             {data.length} {itemLabel}
           </span>
           <div className="flex items-center gap-3">
             <button
-              className="rounded px-2 py-1 hover:bg-raised disabled:opacity-40"
+              className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
               disabled={page === 0}
               onClick={() => setPage((p) => p - 1)}
             >
@@ -56,7 +56,7 @@ export function PaginatedTable<T>({
               {page + 1} de {totalPages}
             </span>
             <button
-              className="rounded px-2 py-1 hover:bg-raised disabled:opacity-40"
+              className="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}
             >

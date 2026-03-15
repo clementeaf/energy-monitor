@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.43.0-alpha.0] - 2026-03-15 — TOKENS PA EN MONITOREO Y PAGINACIÓN
+
+### Changed
+
+- **RealtimePage** skeleton — tokens PA: `border-pa-border`, `text-pa-navy`, `font-semibold`, `bg-white`, padding `px-3`
+- **PaginatedTable** paginación — tokens PA: `border-pa-border`, `text-pa-text-muted`, `text-[13px]`, `hover:bg-gray-100`
+
+---
+
 ## [0.42.0-alpha.0] - 2026-03-15 — EXTRACCIÓN DE COMPONENTES Y UTILIDADES COMPARTIDAS
 
 ### Added

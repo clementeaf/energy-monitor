@@ -26,10 +26,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Completado (2026-03-15)
 - 5 edificios en pg-arauco, 875 medidores, 30.7M lecturas — todos alineados a 2025
-- Dashboard: gráfico con toggle Barra/Línea, tabla edificios, selector mes — datos reales
+- Dashboard: datos reales (gráfico toggle Barra/Línea + tabla). Sin mock
+- Comparativas: datos reales. Toggle Por Tipo / Por Tienda, MultiSelect con búsqueda, multi-selección, gráfico toggle Barra/Línea
+- Componente `MultiSelect` reutilizable (búsqueda + checkboxes)
 - Cards resumen y tabla vencidos: placeholder "—" (sin datos de pago en fuentes)
-- MetersTable: placeholders atenuados, altura corregida
-- Eliminada data mock de DashboardPage
 
 ### Pendiente
 - Cards y tabla vencidos requieren fuente de datos de pagos (no existe aún)
@@ -38,8 +38,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md. Retomando sesión.
 
-5 edificios, 875 medidores, 30.7M lecturas. building_summary alineado a 2025.
-Dashboard con datos reales (gráfico toggle Barra/Línea + tabla). Sin mock.
+5 edificios, 875 medidores, 30.7M lecturas.
+Dashboard y Comparativas con datos reales — sin mock.
+Comparativas: Por Tipo (42) / Por Tienda (309), MultiSelect, multi-selección.
 Cards resumen y tabla vencidos en placeholder "—" (sin datos de pago).
 ```
 

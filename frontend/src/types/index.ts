@@ -85,6 +85,20 @@ export interface DashboardBuildingMonth {
   areaSqm: number | null;
 }
 
+// Matches backend comparisons endpoints
+export interface ComparisonRow {
+  buildingName: string;
+  totalKwh: number | null;
+  totalConIvaClp: number | null;
+  totalMeters: number;
+}
+
+export interface ComparisonFilters {
+  storeTypes: { id: number; name: string }[];
+  storeNames: string[];
+  months: string[];
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

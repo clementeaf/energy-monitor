@@ -24,6 +24,13 @@ export const routes = {
   // Dashboard
   getDashboardSummary: () => '/dashboard/summary',
 
+  // Comparisons
+  getComparisonFilters: () => '/comparisons/filters',
+  getComparisonByStoreType: (storeTypeIds: number[], month: string) =>
+    `/comparisons/by-store-type?storeTypeIds=${storeTypeIds.join(',')}&month=${month}`,
+  getComparisonByStoreName: (storeNames: string[], month: string) =>
+    `/comparisons/by-store-name?storeNames=${storeNames.map(encodeURIComponent).join(',')}&month=${month}`,
+
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {
     const qs = new URLSearchParams();

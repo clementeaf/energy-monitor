@@ -15,7 +15,7 @@
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | si — DataTable paginada con filtros avanzados |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
-| `/comparisons` | Comparativas | si | no — mock. Selectores marca+mes, gráfico combo, tabla por edificio |
+| `/comparisons` | Comparativas | si | si — datos reales. Toggle Por Tipo/Por Tienda, MultiSelect con búsqueda, selector mes, gráfico toggle Barra/Línea, tabla por edificio |
 
 ## Componentes UI
 
@@ -24,6 +24,7 @@
 | `Card` | `components/ui/Card.tsx` | Container clickeable con hover gris sutil |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
 | `DataTable` | `components/ui/DataTable.tsx` | Tabla declarativa genérica con Column<T>: ReactNode values, headerRender, cellClassName, className por columna, footer opcional, bg-surface sticky |
+| `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usado en Comparativas |
 | `PaginatedTable` | `components/ui/PaginatedTable.tsx` | Wrapper de DataTable con paginación client-side |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |

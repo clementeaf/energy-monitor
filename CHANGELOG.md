@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.35.0-alpha.0] - 2026-03-15 — COMPARATIVAS CON DATOS REALES
+
+### Added
+
+- **Módulo backend `comparisons`** — service + controller + module (raw SQL, patrón DataSource)
+- **Endpoint `GET /api/comparisons/filters`** — retorna tipos de tienda (42), nombres de tienda (309) y meses disponibles (12)
+- **Endpoint `GET /api/comparisons/by-store-type`** — comparativa entre edificios para uno o más tipos de tienda en un mes dado
+- **Endpoint `GET /api/comparisons/by-store-name`** — comparativa entre edificios para uno o más nombres de tienda en un mes dado
+- **Componente `MultiSelect`** (`components/ui/MultiSelect.tsx`) — dropdown con input de búsqueda, checkboxes y botón limpiar
+- **Hook `useComparisonFilters`** + `useComparisonByStoreType` + `useComparisonByStoreName` — TanStack Query
+
+### Changed
+
+- **ComparisonsPage** — reescrita con datos reales. Toggle "Por Tipo" / "Por Tienda", MultiSelect con búsqueda, selector mes dinámico, gráfico toggle Barra/Línea, tabla sin columna Superficie
+- Eliminada `mockData.ts` de comparisons (marcas ficticias Adidas/Nike/etc.)
+- Endpoints aceptan selección múltiple (comma-separated → SQL `ANY($1)`)
+
+---
+
 ## [0.34.0-alpha.0] - 2026-03-15 — DASHBOARD: 5 EDIFICIOS + LIMPIEZA MOCK
 
 ### Fixed

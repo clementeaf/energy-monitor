@@ -12,6 +12,8 @@
 | `backend/src/users/users.controller.ts` | Admin invitaciones y usuarios |
 | `backend/src/meters/meters.service.ts` | Listado medidores por edificio + última lectura (DISTINCT ON) |
 | `backend/src/alerts/alerts.controller.ts` | GET /alerts con filtros opcionales severity/meter_id |
+| `backend/src/comparisons/comparisons.service.ts` | Comparativas: by-store-type, by-store-name, filters (raw SQL) |
+| `backend/src/comparisons/comparisons.controller.ts` | GET /comparisons/* (3 endpoints) |
 | `backend/serverless.yml` | Lambda 256MB, VPC, env vars |
 
 ## Frontend
@@ -32,6 +34,8 @@
 | `frontend/src/features/alerts/AlertsPage.tsx` | Alertas: DataTable con filtros checkbox + fecha avanzado |
 | `frontend/src/features/alerts/AlertDetailPage.tsx` | Detalle alerta |
 | `frontend/src/hooks/queries/useAlerts.ts` | Hook TanStack Query para alertas |
+| `frontend/src/hooks/queries/useComparisons.ts` | Hooks TanStack Query para comparativas (filters, by-type, by-name) |
+| `frontend/src/components/ui/MultiSelect.tsx` | Dropdown búsqueda + checkboxes multi-selección |
 
 ## Infra
 | Archivo | Propósito |

@@ -38,6 +38,13 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 |---|---|---|
 | GET | `/dashboard/summary` | `DashboardBuildingMonth[]` (5 edificios × 12 meses: buildingName, month, totalKwh, totalConIvaClp, totalMeters, areaSqm) |
 
+## Comparisons (`/comparisons`) — `@Public()`
+| Method | Path | Params | Response |
+|---|---|---|---|
+| GET | `/comparisons/filters` | — | `{ storeTypes: [{id, name}], storeNames: [string], months: [string] }` |
+| GET | `/comparisons/by-store-type` | `storeTypeIds` (comma-sep), `month` | `ComparisonRow[]` (buildingName, totalKwh, totalConIvaClp, totalMeters) |
+| GET | `/comparisons/by-store-name` | `storeNames` (comma-sep), `month` | `ComparisonRow[]` (misma estructura) |
+
 ## Buildings (`/buildings`) — `@Public()`
 | Method | Path | Response |
 |---|---|---|

@@ -3,9 +3,12 @@
 ## [0.46.0-alpha.0] - 2026-03-15 — DEPLOY AWS: RDS, LAMBDA, FRONTEND
 
 ### Infrastructure
-- **RDS PostgreSQL** — migración de datos desde Docker local a RDS (`energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com`)
-- **ECS Fargate** — restore via task en VPC (S3 → pg_restore -j4 → RDS) para latencia mínima
+- **RDS PostgreSQL** — migración de datos desde Docker local a RDS vía ECS Fargate (S3 → pg_restore → RDS)
+- **Tablas operativas** — 8 tablas restauradas: store (875), building_summary (60), meter_monthly (10,500), meter_monthly_billing (10,500), tariff (48), alerts (182), billing_document (60), store_type (42)
+- **Tablas pendientes** — meter_readings y raw_readings (30M+ rows) pendientes de carga en background
 - **Lambda** — actualizado `DB_PASSWORD` en 3 funciones (`api`, `offlineAlerts`, `dbVerify`)
+- **Seguridad** — RDS no-publicly-accessible, SG sin CIDRs públicos, route table via NAT
+- **GitHub secret** — `DB_PASSWORD` configurado
 
 ### Fixed
 - **Frontend `api.ts`** — baseURL hardcodeado `localhost:4000` → usa `VITE_API_BASE_URL` o fallback `/api` (relativo para CloudFront)

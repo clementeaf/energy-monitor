@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.31.0-alpha.0] - 2026-03-14 — CARGA MALL MEDIANO (MM254)
+
+### Added
+
+- **Script `ingest-mm254-full.py`** — ingesta completa de Mall Mediano (Arauco Estación) en 8 pasos:
+  CSV → raw_readings → stores → meter_monthly → meter_readings → billing → KPIs → tariffs → building_summary
+- **22 nuevos `store_type`** (Supermercado, Tecnología, Ropa deportiva, Gimnasio, etc.)
+- **Tarifas Santiago** en tabla `tariff` (12 filas, locación separada de Las Condes)
+- **Columna `location`** en tabla `tariff` — PK ahora es `(month, location)`
+
+### Data (pg-arauco)
+
+- `raw_readings`: 15.6M → 24.5M (+8.9M MM)
+- `store`: 446 → 700 (+254 MM)
+- `store_type`: 20 → 42 (+22 nuevos)
+- `meter_monthly`: 5,352 → 8,400 (+3,048 MM)
+- `meter_readings`: 15.6M → 24.5M (+8.9M, 254 particiones nuevas → 700 total)
+- `meter_monthly_billing`: 5,988 → 9,036 (+3,048 MM)
+- `building_summary`: 24 → 36 (+12 Arauco Estación)
+- `tariff`: 12 → 24 (+12 Santiago)
+- **3 edificios activos:** Parque Arauco Kennedy (7.3M kWh), Arauco Estación (3.2M kWh), Arauco Express (591K kWh)
+
+---
+
 ## [0.30.0-alpha.0] - 2026-03-14 — CARGA DATOS COMPLETA + OPTIMIZACIÓN QUERIES
 
 ### Added

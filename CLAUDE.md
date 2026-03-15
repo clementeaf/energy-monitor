@@ -25,12 +25,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-14)
-- PostgreSQL local con datos completos: 446 medidores, 2 edificios, 15.6M lecturas
-- Carga completa de datos pendientes (5 scripts): stores, meter_monthly, meter_readings, KPIs, tariffs, SC53
-- Query `findLatestByBuilding` optimizada con LATERAL (36s → 49ms) + índice `(meter_id, timestamp DESC)`
-- Null-safety en frontend: tipos TS, formatters y totales manejan campos nullable
-- Backend con módulos: buildings, meters, meter-monthly, meter-readings, billing, stores, raw-readings, alerts
-- UI: Dashboard (mock), Edificios, Comparativas (mock), Alertas, Monitoreo
+- PostgreSQL local con 3 edificios, 700 medidores, 24.5M lecturas
+- Mall Mediano (MM254) ingesta completa: `ingest-mm254-full.py`
+- Tabla `tariff` con columna `location` — soporta múltiples pliegos (Las Condes + Santiago)
+- Query LATERAL optimizada, null-safety frontend, módulos backend completos
 
 ### Pendiente
 - Sin tareas pendientes definidas
@@ -39,7 +37,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 `rol → vistas → acciones`. Un usuario invitado entra con rol asignado que define qué vistas y acciones puede ejecutar.
 
 ## Project Overview
-Plataforma de monitoreo energético en tiempo real para edificios comerciales. 700 medidores en 2 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.
+Plataforma de monitoreo energético en tiempo real para edificios comerciales. 700 medidores en 3 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.
 
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7

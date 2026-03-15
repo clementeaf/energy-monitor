@@ -75,6 +75,16 @@ export interface Alert {
   createdAt: string;
 }
 
+// Matches backend dashboard/summary endpoint
+export interface DashboardBuildingMonth {
+  buildingName: string;
+  month: string;
+  totalKwh: number | null;
+  totalConIvaClp: number | null;
+  totalMeters: number;
+  areaSqm: number | null;
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

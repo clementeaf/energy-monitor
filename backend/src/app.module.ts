@@ -13,6 +13,7 @@ import { RawReadingsModule } from './raw-readings/raw-readings.module';
 import { BillingModule } from './billing/billing.module';
 import { MetersModule } from './meters/meters.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AlertsModule } from './alerts/alerts.module';
     BillingModule,
     MetersModule,
     AlertsModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

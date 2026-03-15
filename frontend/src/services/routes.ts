@@ -21,6 +21,9 @@ export const routes = {
   // Billing
   getBilling: (buildingName: string) => `/billing/${buildingName}`,
 
+  // Dashboard
+  getDashboardSummary: () => '/dashboard/summary',
+
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {
     const qs = new URLSearchParams();

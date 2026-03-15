@@ -33,6 +33,11 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | PATCH | `/session/:id` | Actualizar sesión |
 | DELETE | `/session/:id` | Eliminar sesión |
 
+## Dashboard (`/dashboard`) — `@Public()`
+| Method | Path | Response |
+|---|---|---|
+| GET | `/dashboard/summary` | `DashboardBuildingMonth[]` (5 edificios × 12 meses: buildingName, month, totalKwh, totalConIvaClp, totalMeters, areaSqm) |
+
 ## Buildings (`/buildings`) — `@Public()`
 | Method | Path | Response |
 |---|---|---|

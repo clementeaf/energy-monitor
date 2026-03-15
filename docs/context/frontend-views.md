@@ -6,7 +6,7 @@
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Dashboard | si | no — mock. Layout 2 col, gráfico combo + selector mes, 3 cards, 2 tablas |
+| `/` | Dashboard | si | parcial — gráfico combo + tabla edificios con datos reales vía API; cards resumen + tabla vencidos aún mock |
 | `/buildings` | Edificios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
@@ -38,15 +38,14 @@
 ## DashboardPage
 
 - Vista principal del holding (Parque Arauco S.A.)
-- Data 100% mock hardcodeada (sin hooks, sin API)
-- Sin título `<h1>` (el sidebar indica la vista activa)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
-- **Fila 1 — col izq:** gráfico combo Highcharts (barras consumo kWh + línea gasto CLP) con selector de mes (Oct-25 a Mar-26)
-- **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) con fecha de última actualización
-- **Fila 2 — col izq:** tabla edificios (15 filas, scroll interno 340px, header/footer sticky)
-- **Fila 2 — col der:** tabla documentos vencidos por período (7 intervalos: dentro del plazo hasta >90 días)
-- Selector de mes filtra gráfico y tabla edificios simultáneamente
-- Mock data: `BUILDINGS_BY_MONTH` (variación estacional), `MONTHS`, `SUMMARY_CARDS`, `OVERDUE_BY_PERIOD`
+- **Fila 1 — col izq:** gráfico combo Highcharts (barras consumo kWh + línea gasto CLP) con selector de mes dinámico
+- **Fila 1 — col der:** 3 cards (Pagos, Docs por Vencer, Docs Vencidos) — mock
+- **Fila 2 — col izq:** tabla edificios (5 reales, scroll interno 340px, header/footer sticky)
+- **Fila 2 — col der:** tabla documentos vencidos por período — mock
+- Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses)
+- Selector de mes derivado de los meses disponibles en la API
+- Mock residual: `SUMMARY_CARDS`, `OVERDUE_BY_PERIOD` (sin backend)
 
 ## BuildingsPage
 

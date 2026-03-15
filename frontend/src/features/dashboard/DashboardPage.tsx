@@ -1,25 +1,43 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
+import { useDashboardSummary } from '../../hooks/queries/useDashboard';
+import { DashboardSkeleton } from '../../components/ui/Skeleton';
+import type { DashboardBuildingMonth } from '../../types';
 import {
-  BUILDINGS_BY_MONTH,
-  MONTHS,
   SUMMARY_CARDS,
   OVERDUE_BY_PERIOD,
-  type BuildingMonthly,
   type OverduePeriod,
 } from './mockData';
 
-const fmt = (n: number) => n.toLocaleString('es-CL');
-const fmtClp = (n: number) => `$${n.toLocaleString('es-CL')}`;
+const MONTH_NAMES = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+];
 
-const buildingCols: Column<BuildingMonthly>[] = [
+function monthLabel(iso: string): string {
+  const d = new Date(iso);
+  return `${MONTH_NAMES[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
+}
+
+const fmt = (n: number | null) => (n != null ? n.toLocaleString('es-CL') : '—');
+const fmtClp = (n: number | null) => (n != null ? `$${n.toLocaleString('es-CL', { maximumFractionDigits: 0 })}` : '—');
+
+interface BuildingRow {
+  name: string;
+  totalKwh: number | null;
+  totalConIvaClp: number | null;
+  areaSqm: number | null;
+  totalMeters: number;
+}
+
+const buildingCols: Column<BuildingRow>[] = [
   { label: 'Edificio', value: (r) => r.name, align: 'left' },
-  { label: 'Consumo (kWh)', value: (r) => fmt(r.consumoKwh), total: (d) => fmt(d.reduce((s, r) => s + r.consumoKwh, 0)) },
-  { label: 'Gasto ($)', value: (r) => fmtClp(r.gastoClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.gastoClp, 0)) },
-  { label: 'Superficie (m²)', value: (r) => fmt(r.metros), total: (d) => fmt(d.reduce((s, r) => s + r.metros, 0)) },
-  { label: 'Medidores', value: (r) => fmt(r.medidores), total: (d) => fmt(d.reduce((s, r) => s + r.medidores, 0)) },
+  { label: 'Consumo (kWh)', value: (r) => fmt(r.totalKwh), total: (d) => fmt(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)) },
+  { label: 'Gasto ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)) },
+  { label: 'Superficie (m²)', value: (r) => fmt(r.areaSqm), total: (d) => fmt(d.reduce((s, r) => s + (r.areaSqm ?? 0), 0)) },
+  { label: 'Medidores', value: (r) => fmt(r.totalMeters), total: (d) => fmt(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
 const overdueCols: Column<OverduePeriod>[] = [
@@ -31,10 +49,9 @@ const overdueCols: Column<OverduePeriod>[] = [
 const SHORT_NAMES: Record<string, string> = {
   'Parque Arauco Kennedy': 'P. Arauco Kennedy',
   'Arauco Premium Outlet Buenaventura': 'Outlet Buenaventura',
-  'Arauco Premium Outlet San Pedro': 'Outlet San Pedro',
-  'Arauco Premium Outlet Curauma': 'Outlet Curauma',
-  'Arauco Premium Outlet Coquimbo': 'Outlet Coquimbo',
-  'Puerto Nuevo Antofagasta': 'P. Nuevo Antofagasta',
+  'Arauco Express Ciudad Empresarial': 'Express C. Empresarial',
+  'Arauco Express El Carmen de Huechuraba': 'Express Huechuraba',
+  'Arauco Estación': 'Arauco Estación',
 };
 
 function fmtAxis(val: number): string {
@@ -43,7 +60,7 @@ function fmtAxis(val: number): string {
   return String(val);
 }
 
-function ComboChart({ data }: { data: BuildingMonthly[] }) {
+function ComboChart({ data }: { data: BuildingRow[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<Highcharts.Chart | null>(null);
 
@@ -51,8 +68,8 @@ function ComboChart({ data }: { data: BuildingMonthly[] }) {
     if (!containerRef.current) return;
 
     const categories = data.map((b) => SHORT_NAMES[b.name] ?? b.name);
-    const consumo = data.map((b) => b.consumoKwh);
-    const gasto = data.map((b) => b.gastoClp);
+    const consumo = data.map((b) => b.totalKwh ?? 0);
+    const gasto = data.map((b) => b.totalConIvaClp ?? 0);
 
     if (chartRef.current) {
       chartRef.current.xAxis[0].setCategories(categories, false);
@@ -103,8 +120,8 @@ function ComboChart({ data }: { data: BuildingMonthly[] }) {
           let html = `<b>${this.x}</b><br/>`;
           for (const p of points) {
             const val = p.series.name === 'Consumo (kWh)'
-              ? `${fmt(p.y!)} kWh`
-              : fmtClp(p.y!);
+              ? `${(p.y ?? 0).toLocaleString('es-CL')} kWh`
+              : fmtClp(p.y ?? 0);
             html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
           }
           return html;
@@ -143,8 +160,45 @@ function ComboChart({ data }: { data: BuildingMonthly[] }) {
 }
 
 export function DashboardPage() {
-  const [selectedMonth, setSelectedMonth] = useState<string>(MONTHS[MONTHS.length - 1]);
-  const monthData = BUILDINGS_BY_MONTH[selectedMonth];
+  const { data: summary, isLoading } = useDashboardSummary();
+
+  // Derive months and group by month
+  const { months, byMonth } = useMemo(() => {
+    if (!summary) return { months: [] as string[], byMonth: {} as Record<string, BuildingRow[]> };
+
+    const grouped: Record<string, DashboardBuildingMonth[]> = {};
+    for (const row of summary) {
+      const key = row.month;
+      (grouped[key] ??= []).push(row);
+    }
+
+    const sortedMonths = Object.keys(grouped).sort();
+    const mapped: Record<string, BuildingRow[]> = {};
+    for (const m of sortedMonths) {
+      mapped[m] = grouped[m].map((r) => ({
+        name: r.buildingName,
+        totalKwh: r.totalKwh,
+        totalConIvaClp: r.totalConIvaClp,
+        areaSqm: r.areaSqm,
+        totalMeters: r.totalMeters,
+      }));
+    }
+
+    return { months: sortedMonths, byMonth: mapped };
+  }, [summary]);
+
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+
+  // Set default to latest month once data loads
+  useEffect(() => {
+    if (months.length > 0 && !selectedMonth) {
+      setSelectedMonth(months[months.length - 1]);
+    }
+  }, [months, selectedMonth]);
+
+  if (isLoading) return <DashboardSkeleton />;
+
+  const monthData = byMonth[selectedMonth] ?? [];
 
   return (
     <div className="flex h-full flex-col gap-6 overflow-auto">
@@ -158,8 +212,8 @@ export function DashboardPage() {
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="rounded border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-muted"
             >
-              {MONTHS.map((m) => (
-                <option key={m} value={m}>{m}</option>
+              {months.map((m) => (
+                <option key={m} value={m}>{monthLabel(m)}</option>
               ))}
             </select>
           </div>
@@ -181,7 +235,7 @@ export function DashboardPage() {
       {/* Fila 2: ambas tablas alineadas, misma altura */}
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card>
-          <h2 className="mb-3 text-sm font-semibold text-muted">Consumo Mensual por Edificio — {selectedMonth}</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted">Consumo Mensual por Edificio — {monthLabel(selectedMonth)}</h2>
           <DataTable
             data={monthData}
             columns={buildingCols}

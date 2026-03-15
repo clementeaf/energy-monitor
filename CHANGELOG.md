@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.33.0-alpha.0] - 2026-03-15 — DASHBOARD CON DATOS REALES
+
+### Added
+
+- **Endpoint `GET /api/dashboard/summary`** — resumen mensual por edificio (consumo kWh, gasto CLP, medidores, superficie) en una sola llamada
+- **Módulo backend `dashboard`** — service + controller + module (patrón raw SQL con DataSource)
+- **Hook `useDashboardSummary`** — TanStack Query para el nuevo endpoint
+
+### Changed
+
+- **DashboardPage** — gráfico combo y tabla de edificios ahora consumen datos reales vía API (antes 100% mock)
+- Selector de mes derivado dinámicamente de los meses disponibles en la API
+- Cards de resumen y tabla de vencidos mantienen mock (sin backend aún)
+
+---
+
 ## [0.32.1-alpha.0] - 2026-03-15 — FIX TABLA REMARCADORES
 
 ### Fixed

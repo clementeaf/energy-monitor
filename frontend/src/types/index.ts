@@ -143,6 +143,14 @@ export interface BillingDocumentDetail {
   meterCount: number;
 }
 
+// Matches backend Store entity (store table)
+export interface StoreItem {
+  meterId: string;
+  storeName: string;
+  storeTypeId: number;
+  storeType: { id: number; name: string };
+}
+
 // Matches backend BuildingSummary entity (building_summary table)
 export interface BuildingSummary {
   buildingName: string;

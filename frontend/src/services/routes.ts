@@ -37,6 +37,9 @@ export const routes = {
   getComparisonByStoreName: (storeNames: string[], month: string) =>
     `/comparisons/by-store-name?storeNames=${storeNames.map(encodeURIComponent).join(',')}&month=${month}`,
 
+  // Stores
+  getStores: () => '/stores',
+
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {
     const qs = new URLSearchParams();

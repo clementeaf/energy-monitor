@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.57.0-alpha.0] - 2026-03-16 — MULTI OPERADOR: VISIBILIDAD CONDICIONAL
+
+### Added
+- **Selector de operador** en sidebar — segundo PillDropdown visible solo en modo Multi Operador, con lista de nombres de tienda desde `/comparisons/filters`
+- **Estado `selectedOperator`** en `useAppStore` — persistido en sessionStorage, se limpia al cambiar de modo
+- **Hook `useOperatorFilter`** — provee `operatorMeterIds` y `operatorBuildings` para filtrado client-side en todas las vistas
+- **Hook `useStores`** + endpoint `GET /stores` en frontend — obtiene todos los stores para mapear operador → meterIds
+- **Prop `placeholder`** en `PillDropdown` — texto por defecto cuando no hay valor seleccionado
+
+### Changed
+- **Dashboard** — oculta completamente gráfico, cards de pagos, tablas y drawers en modo Multi Operador; muestra mensaje indicando navegar a otras vistas
+- **Edificios** — filtra cards a solo edificios donde el operador tiene tiendas; muestra mensaje si no hay operador seleccionado
+- **Detalle Edificio** — oculta gráfico y tab Facturación; inicia en tab Remarcadores; filtra medidores y drawer de tiendas al operador
+- **Comparativas** — fuerza modo "Por Tienda", auto-selecciona el operador, oculta toggle de modo y selector de nombres
+- **Monitoreo** — filtra tabla de lecturas a medidores del operador
+- **Alertas** — filtra alertas a medidores del operador
+
+### Types
+- **`StoreItem`** — nueva interfaz frontend (meterId, storeName, storeTypeId, storeType)
+
+---
+
+## [0.56.0-alpha.0] - 2026-03-16 — DASHBOARD: CARDS PAGOS Y DRAWER POR PERÍODO
+
+### Added
+- **Click en fila** de tabla "Documentos Vencidos por Período" abre drawer Facturas Vencidas con el período ya seleccionado (1-30, 31-60, 61-90, 90+ días)
+
+### Changed
+- **Cards Pagos Recibidos / Facturas por Vencer / Facturas Vencidas**: borde `border-pa-navy/30`, sin padding interno, altura por contenido (sin estirar)
+- **Card (componente)** — borde por defecto `border border-pa-navy/30` en todas las cards
+
+---
+
 ## [0.55.0-alpha.0] - 2026-03-16 — DASHBOARD: VISTA ANUAL, PDF LOCAL Y MEJORAS
 
 ### Added

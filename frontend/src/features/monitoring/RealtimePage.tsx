@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { useMetersLatest } from '../../hooks/queries/useMeters';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { MeterLatestReading } from '../../types';
 
 const BUILDING = 'Parque Arauco Kennedy';
@@ -73,6 +75,23 @@ const columns: Column<MeterLatestReading>[] = [
 
 export function RealtimePage() {
   const { data, isLoading, isError } = useMetersLatest(BUILDING);
+  const { isMultiOp, hasOperator, operatorMeterIds } = useOperatorFilter();
+
+  const filteredData = useMemo(() => {
+    if (!data) return data;
+    if (isMultiOp && hasOperator && operatorMeterIds) {
+      return data.filter((m) => operatorMeterIds.has(m.meterId));
+    }
+    return data;
+  }, [data, isMultiOp, hasOperator, operatorMeterIds]);
+
+  if (isMultiOp && !hasOperator) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en el sidebar para ver sus medidores.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -81,7 +100,7 @@ export function RealtimePage() {
           <SkeletonRows />
         ) : (
           <DataTable
-            data={data ?? []}
+            data={filteredData ?? []}
             columns={columns}
             rowKey={(r) => r.meterId}
             maxHeight=""

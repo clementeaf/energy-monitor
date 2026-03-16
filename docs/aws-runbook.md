@@ -1,119 +1,352 @@
 # AWS Runbook
 
-## Services Used
+## Inventario de Recursos
 
-| Servicio | Recurso | Propósito |
-|---|---|---|
-| Lambda | `power-digital-api-dev-api` | API NestJS (256MB, Node 20, VPC) |
-| Lambda | `power-digital-api-dev-offlineAlerts` | Detección de medidores offline (30s timeout, cada 5 min) |
-| Lambda | `synthetic-readings-generator` | Genera 15 lecturas/min con perfiles estadísticos (128MB) |
-| API Gateway | HTTP API `626lq125eh` | Proxy HTTP → Lambda API (`/api/*`) |
-| RDS | `energy-monitor-db` | PostgreSQL 16, db.t3.micro, 20GB gp3, encrypted, single-AZ |
-| S3 | Bucket frontend | SPA estática (Vite build) |
-| CloudFront | Distribution `energymonitor.click` | CDN: `/*` → S3, `/api/*` → API Gateway |
-| EventBridge | `synthetic-readings-every-1min` | Trigger Lambda generador cada 1 min |
-| EventBridge | Schedule en serverless.yml | Trigger offlineAlerts cada 5 min |
+| Servicio | Recurso | ID / ARN | Propósito |
+|---|---|---|---|
+| Lambda | `power-digital-api-dev-api` | Managed by Serverless Framework | API NestJS (1024MB, Node 20, VPC, 30s timeout) |
+| Lambda | `power-digital-api-dev-offlineAlerts` | Managed by Serverless Framework | Detección medidores offline (256MB, 30s, cada 5 min) |
+| Lambda | `power-digital-api-dev-dbVerify` | Managed by Serverless Framework | Migraciones SQL y verificación DB (256MB) |
+| Lambda | `billing-pdf-generator` | Deploy manual (Python 3.12, 512MB) | Genera PDFs de facturación |
+| Lambda | `synthetic-readings-generator` | Standalone (128MB) | Genera 15 lecturas/min con perfiles estadísticos |
+| API Gateway | HTTP API | `626lq125eh` | Proxy HTTP → Lambda API (`/api/*`) |
+| RDS | PostgreSQL 16 | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` | db.t3.micro, 20GB gp3, encrypted, single-AZ |
+| S3 | Frontend bucket | `energy-monitor-hoktus-mvp` | SPA estática (Vite build) |
+| CloudFront | Distribution | `ECR03RA6F872Q` | CDN: `/*` → S3, `/api/*` → API Gateway |
+| EventBridge | Trigger 1 min | `synthetic-readings-every-1min` | Trigger Lambda generador cada 1 min |
+| EventBridge | Trigger 5 min | Definido en serverless.yml | Trigger offlineAlerts cada 5 min |
 
-## Environments
+### Región
+**`us-east-1`** — todos los recursos están en esta región.
+
+### VPC
+| Recurso | Valor |
+|---|---|
+| Security Group | `sg-0adda6a999e8d5d9a` (TCP 5432 inbound desde VPC) |
+| Subnet 1 | Configurada en GitHub Secrets `VPC_SUBNET_ID_1` |
+| Subnet 2 | Configurada en GitHub Secrets `VPC_SUBNET_ID_2` |
+| Subnet 3 | Configurada en GitHub Secrets `VPC_SUBNET_ID_3` |
+| CIDR | `172.31.0.0/16` |
+
+> Las Lambdas corren dentro de la VPC para acceder a RDS. RDS no es publicly-accessible.
+
+### URLs de Producción
+| Recurso | URL |
+|---|---|
+| Frontend | `https://energymonitor.click` |
+| API (via CloudFront) | `https://energymonitor.click/api/` |
+| API (directo) | `https://626lq125eh.execute-api.us-east-1.amazonaws.com/api/` |
+| Swagger | `https://energymonitor.click/api/docs` |
+| RDS | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com:5432` |
+
+### Credenciales RDS Prod
+| Campo | Valor |
+|---|---|
+| Host | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` |
+| Port | `5432` |
+| Database | `energy_monitor` |
+| Username | `emadmin` |
+| Password | Almacenada en GitHub Secret `DB_PASSWORD` |
+
+---
+
+## Entornos
 
 | Entorno | Stage | URL | Notas |
 |---|---|---|---|
 | Production | `dev` (único stage) | `https://energymonitor.click` | Frontend + API unificados bajo CloudFront |
-| Local | — | `http://localhost:5173` (frontend), `:4000` (backend) | Vite proxy `/api` → API Gateway |
+| Local | — | `localhost:5173` (frontend), `:4000` (backend) | Docker pg-arauco, puerto 5434 |
 
-### Endpoints
-- **API Gateway:** `https://626lq125eh.execute-api.us-east-1.amazonaws.com/api/`
-- **CloudFront API:** `https://energymonitor.click/api/`
-- **RDS:** `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com:5432`
-- **Swagger:** `https://energymonitor.click/api/docs`
+> **Nota:** El stage se llama `dev` pero ES producción. No hay ambiente de staging.
 
-### VPC
-- Security Group: `sg-0adda6a999e8d5d9a` (TCP 5432 desde VPC)
-- 3 subnets privadas: us-east-1a, us-east-1c, us-east-1d
-- Lambda en VPC para acceder a RDS
+---
 
-## GitHub Secrets & Variables
+## Deploy
 
-### Secrets
-| Nombre | Descripción |
-|---|---|
-| `AWS_ACCESS_KEY_ID` | IAM deploy key |
-| `AWS_SECRET_ACCESS_KEY` | IAM deploy secret |
-| `DB_HOST` | RDS endpoint |
-| `DB_USERNAME` | RDS username |
-| `DB_PASSWORD` | RDS password |
-| `VITE_MICROSOFT_CLIENT_ID` | Microsoft Entra app ID |
-| `VITE_MICROSOFT_TENANT_ID` | Microsoft Entra tenant ID |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `VPC_SECURITY_GROUP_ID` | SG para Lambda en VPC |
-| `VPC_SUBNET_ID_1/2/3` | 3 subnets privadas |
+### Flujo de Decisión
 
-### Variables
-| Nombre | Valor |
-|---|---|
-| `AWS_REGION` | `us-east-1` |
-| `S3_BUCKET` | Bucket name del frontend |
-| `CLOUDFRONT_DISTRIBUTION_ID` | Distribution ID |
-| `VITE_AUTH_MODE` | `microsoft` |
-
-## Common Operations
-
-### Deploy Frontend (automático)
-Push a `main` → GitHub Actions → `npm run build` → S3 sync → CloudFront invalidation `/index.html`.
-
-### Deploy Backend (automático)
-Push a `main` → GitHub Actions → `npm run build` → `npx sls deploy --stage dev` con env vars inyectadas.
-
-### Deploy Backend (manual)
-```bash
-cd backend
-npm run build
-export DB_HOST=... DB_PASSWORD=... VPC_SECURITY_GROUP_ID=... VPC_SUBNET_ID_1=... VPC_SUBNET_ID_2=... VPC_SUBNET_ID_3=... GOOGLE_CLIENT_ID=... MICROSOFT_CLIENT_ID=...
-npx sls deploy --stage dev
+```
+¿Qué cambió?
+├── Solo frontend (src/, components/, views/) → Deploy Frontend
+├── Solo backend (controllers, services, entities, serverless.yml) → Deploy Backend (Serverless)
+├── billing-pdf-lambda/ (handler.py, requirements.txt) → Deploy PDF Lambda
+├── Ambos frontend + backend → Deploy Backend PRIMERO, luego Frontend
+└── Cambios de schema DB → Ejecutar migración ANTES de cualquier deploy
 ```
 
-### Ejecutar SQL en RDS
-Conectar via `psql` desde una instancia en la VPC o usar Lambda temporal:
+### Método Automático (Recomendado)
+Push a `main` → GitHub Actions ejecuta automáticamente:
+1. Build + type-check frontend (`tsc --noEmit` + `npm run build`)
+2. Build + type-check backend (`tsc --noEmit` + `npm run build`)
+3. Si es push (no PR): deploy frontend a S3 + invalidación CloudFront
+4. Si es push (no PR): deploy backend via `npx sls deploy --stage dev`
+
+**Workflow:** `.github/workflows/deploy.yml`
+
+> **billing-pdf-generator NO se deploya automáticamente.** Requiere deploy manual (ver abajo).
+
+### Método Manual — Frontend
+
+**Pre-checks:**
 ```bash
-psql -h energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com -U <user> -d energy_monitor
+cd frontend && npm ci && npx tsc --noEmit && npm run build
 ```
 
-### Ver logs de Lambda
+**Deploy:**
 ```bash
-aws logs tail /aws/lambda/power-digital-api-dev-api --follow
-aws logs tail /aws/lambda/power-digital-api-dev-offlineAlerts --follow
-aws logs tail /aws/lambda/synthetic-readings-generator --follow
+# Variables reales — NO son placeholders
+S3_BUCKET="energy-monitor-hoktus-mvp"
+CF_DIST_ID="ECR03RA6F872Q"
+
+# Sync assets (hashed filenames → cache inmutable)
+aws s3 sync dist/ s3://$S3_BUCKET/ \
+  --delete \
+  --cache-control "public,max-age=31536000,immutable" \
+  --exclude "index.html" \
+  --exclude "*.json"
+
+# index.html sin cache (siempre fresco)
+aws s3 cp dist/index.html s3://$S3_BUCKET/index.html \
+  --cache-control "no-cache,no-store,must-revalidate"
+
+# Invalidar CloudFront
+aws cloudfront create-invalidation \
+  --distribution-id $CF_DIST_ID \
+  --paths "/index.html"
+```
+
+**Variables de entorno requeridas para build:**
+```bash
+export VITE_AUTH_MODE=microsoft
+export VITE_MICROSOFT_CLIENT_ID=<desde GitHub Secrets>
+export VITE_MICROSOFT_TENANT_ID=<desde GitHub Secrets>
+export VITE_GOOGLE_CLIENT_ID=<desde GitHub Secrets>
+```
+
+### Método Manual — Backend (Serverless)
+
+**Pre-checks:**
+```bash
+cd backend && npm ci && npx tsc --noEmit && npm run build
+```
+
+**Deploy:**
+```bash
+# Todas las env vars necesarias
+export DB_HOST="energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com"
+export DB_USERNAME="emadmin"
+export DB_PASSWORD="<desde GitHub Secrets>"
+export GOOGLE_CLIENT_ID="<desde GitHub Secrets>"
+export MICROSOFT_CLIENT_ID="<desde GitHub Secrets>"
+export MIGRATE_SECRET="<desde GitHub Secrets>"
+export VPC_SECURITY_GROUP_ID="sg-0adda6a999e8d5d9a"
+export VPC_SUBNET_ID_1="<desde GitHub Secrets>"
+export VPC_SUBNET_ID_2="<desde GitHub Secrets>"
+export VPC_SUBNET_ID_3="<desde GitHub Secrets>"
+
+cd backend && npx sls deploy --stage dev
+```
+
+> **Esto deploya 3 Lambdas:** `api`, `offlineAlerts`, `dbVerify`. La Lambda `billing-pdf-generator` es independiente.
+
+### Método Manual — billing-pdf-generator (Python)
+
+**Pre-requisitos:** Docker instalado (compila deps para Linux).
+
+```bash
+# Env vars necesarias
+export LAMBDA_ROLE_ARN="<rol IAM de la Lambda>"
+export DB_HOST="energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com"
+export DB_NAME="energy_monitor"
+export DB_USERNAME="emadmin"
+export DB_PASSWORD="<desde GitHub Secrets>"
+export VPC_SECURITY_GROUP_ID="sg-0adda6a999e8d5d9a"
+export VPC_SUBNET_ID_1="<desde GitHub Secrets>"
+export VPC_SUBNET_ID_2="<desde GitHub Secrets>"
+export VPC_SUBNET_ID_3="<desde GitHub Secrets>"
+
+cd backend/billing-pdf-lambda
+./deploy.sh update  # o "create" para primera vez
+```
+
+### Migraciones de Base de Datos
+
+Si el deploy incluye cambios de schema (nuevas columnas, tablas, índices):
+
+1. **TypeORM synchronize está DESHABILITADO en prod.** Las migraciones se ejecutan manualmente.
+2. Invocar Lambda `dbVerify` que ejecuta SQL de migración:
+```bash
+aws lambda invoke \
+  --function-name power-digital-api-dev-dbVerify \
+  --payload '{}' \
+  --region us-east-1 \
+  /tmp/db-verify-response.json
+
+cat /tmp/db-verify-response.json
+```
+3. **Orden:** migración PRIMERO → deploy backend DESPUÉS.
+
+---
+
+## Verificación Post-Deploy
+
+```bash
+# 1. Frontend accesible
+curl -sI https://energymonitor.click | head -5
+# Esperar: HTTP/2 200
+
+# 2. API responde (401 = OK, significa que Lambda arrancó)
+curl -s https://energymonitor.click/api/auth/me
+# Esperar: {"statusCode":401,...}
+
+# 3. Swagger accesible
+curl -sI https://energymonitor.click/api/docs
+# Esperar: HTTP/2 200
+
+# 4. Logs sin errores (primeros 30s post-deploy)
+aws logs tail /aws/lambda/power-digital-api-dev-api --since 1m --region us-east-1
+```
+
+---
+
+## Operaciones Comunes
+
+### Ver Logs
+```bash
+# API principal
+aws logs tail /aws/lambda/power-digital-api-dev-api --follow --region us-east-1
+
+# Alertas offline
+aws logs tail /aws/lambda/power-digital-api-dev-offlineAlerts --follow --region us-east-1
+
+# Generador sintético
+aws logs tail /aws/lambda/synthetic-readings-generator --follow --region us-east-1
+
+# PDF generator
+aws logs tail /aws/lambda/billing-pdf-generator --follow --region us-east-1
 ```
 
 ### Invalidar CloudFront
 ```bash
-aws cloudfront create-invalidation --distribution-id <DIST_ID> --paths "/index.html"
+aws cloudfront create-invalidation \
+  --distribution-id ECR03RA6F872Q \
+  --paths "/index.html"
 ```
 
-### Desactivar generador sintético
-Cuando se conecte MQTT real, ejecutar `infra/synthetic-generator/teardown.sh`:
+### Conectar a RDS (desde instancia en VPC)
+```bash
+psql -h energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com \
+  -U emadmin -d energy_monitor
+```
+
+> RDS no es publicly-accessible. Solo se puede acceder desde dentro de la VPC (Lambda, ECS, EC2 en la misma VPC).
+
+### Desactivar Generador Sintético
 ```bash
 bash infra/synthetic-generator/teardown.sh
 ```
 
+### Estado de los Recursos
+```bash
+# Estado de las Lambdas
+aws lambda get-function --function-name power-digital-api-dev-api --query 'Configuration.{State:State,Memory:MemorySize,Timeout:Timeout,Runtime:Runtime,LastModified:LastModified}' --region us-east-1
+aws lambda get-function --function-name power-digital-api-dev-offlineAlerts --query 'Configuration.{State:State,Memory:MemorySize,Timeout:Timeout,LastModified:LastModified}' --region us-east-1
+aws lambda get-function --function-name billing-pdf-generator --query 'Configuration.{State:State,Memory:MemorySize,Timeout:Timeout,Runtime:Runtime,LastModified:LastModified}' --region us-east-1
+
+# Estado RDS
+aws rds describe-db-instances --db-instance-identifier energy-monitor-db --query 'DBInstances[0].{Status:DBInstanceStatus,Class:DBInstanceClass,Engine:Engine,EngineVersion:EngineVersion,Storage:AllocatedStorage}' --region us-east-1
+
+# Distribución CloudFront
+aws cloudfront get-distribution --id ECR03RA6F872Q --query 'Distribution.{Status:Status,DomainName:DomainName,Enabled:DistributionConfig.Enabled}' --region us-east-1
+
+# Contenido bucket S3 (últimos archivos)
+aws s3 ls s3://energy-monitor-hoktus-mvp/ --region us-east-1
+```
+
+---
+
+## Rollback
+
+### Frontend
+```bash
+# Opción 1: revertir commit y push (CI redeploya)
+git revert HEAD && git push origin main
+
+# Opción 2: sync manual desde build anterior
+aws s3 sync <backup-local>/ s3://energy-monitor-hoktus-mvp/ --delete
+aws cloudfront create-invalidation --distribution-id ECR03RA6F872Q --paths "/*"
+```
+
+### Backend
+```bash
+# Serverless rollback al deploy anterior
+cd backend && npx sls rollback --stage dev
+
+# O revertir commit y push
+git revert HEAD && git push origin main
+```
+
+### billing-pdf-generator
+```bash
+# No tiene rollback automático. Redeploy con versión anterior del código:
+git checkout <commit-anterior> -- backend/billing-pdf-lambda/
+cd backend/billing-pdf-lambda && ./deploy.sh update
+```
+
+---
+
 ## Troubleshooting
 
 ### Lambda timeout / cold start
-- API Lambda: 10s timeout, 256MB. Si hay cold start largo, aumentar `memorySize` en `serverless.yml`
-- offlineAlerts: 30s timeout (queries pueden ser pesadas con muchos medidores)
+- API Lambda: 30s timeout, 1024MB. Cold start ~3-5s.
+- Si cold start es muy largo, aumentar `memorySize` en `serverless.yml`.
+- offlineAlerts: 30s timeout (queries pueden ser pesadas con muchos medidores).
 
 ### RDS connection refused
-- Verificar que Lambda está en la VPC correcta (mismos SG y subnets que RDS)
-- Verificar SG permite TCP 5432 inbound desde el SG de Lambda
+- Verificar Lambda en VPC correcta (mismos SG y subnets que RDS).
+- SG debe permitir TCP 5432 inbound desde el SG de Lambda.
 
 ### CORS errors
-- `localhost:5173` solo se incluye cuando `NODE_ENV !== 'production'` (ver `main.ts` y `serverless.ts`)
-- En producción, CloudFront unifica dominio → no hay CORS
+- `localhost:5173` solo se incluye cuando `NODE_ENV !== 'production'`.
+- En producción, CloudFront unifica dominio → no hay CORS.
 
 ### Readings gap / datos faltantes
-- El generador sintético corre cada 1 min. Si hay gap > 90 min, se detecta como downtime
-- Para backfill: usar scripts en `infra/backfill-gap/` o `infra/reimport-readings/`
+- Generador sintético corre cada 1 min. Gap > 90 min = downtime detectado.
+- Para backfill: scripts en `infra/backfill-gap/` o `infra/reimport-readings/`.
 
 ### Frontend build falla en CI
-- Verificar que los secrets `VITE_*` están configurados en GitHub (el build necesita las variables de auth)
-- `npx tsc --noEmit` corre antes del build → errores TypeScript bloquean el deploy
+- Verificar secrets `VITE_*` en GitHub (el build necesita variables de auth).
+- `npx tsc --noEmit` corre antes del build → errores TS bloquean deploy.
+
+### Deploy backend falla por env vars
+- Todas las env vars de VPC son **obligatorias**. Sin ellas, Serverless Framework falla.
+- Verificar que `VPC_SUBNET_ID_1/2/3` y `VPC_SECURITY_GROUP_ID` están seteadas.
+
+---
+
+## GitHub Secrets & Variables
+
+### Secrets (valores sensibles)
+| Nombre | Descripción |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | IAM deploy key |
+| `AWS_SECRET_ACCESS_KEY` | IAM deploy secret |
+| `DB_HOST` | RDS endpoint (`energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com`) |
+| `DB_USERNAME` | `emadmin` |
+| `DB_PASSWORD` | Password RDS prod |
+| `VITE_MICROSOFT_CLIENT_ID` | Microsoft Entra app ID |
+| `VITE_MICROSOFT_TENANT_ID` | Microsoft Entra tenant ID |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `VPC_SECURITY_GROUP_ID` | `sg-0adda6a999e8d5d9a` |
+| `VPC_SUBNET_ID_1` | Subnet privada us-east-1a |
+| `VPC_SUBNET_ID_2` | Subnet privada us-east-1c |
+| `VPC_SUBNET_ID_3` | Subnet privada us-east-1d |
+| `MIGRATE_SECRET` | Secret para invocar migraciones |
+
+### Variables (valores no sensibles)
+| Nombre | Valor |
+|---|---|
+| `AWS_REGION` | `us-east-1` |
+| `S3_BUCKET` | `energy-monitor-hoktus-mvp` |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `ECR03RA6F872Q` |
+| `VITE_AUTH_MODE` | `microsoft` |

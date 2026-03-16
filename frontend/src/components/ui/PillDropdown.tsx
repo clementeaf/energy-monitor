@@ -9,6 +9,7 @@ interface PillDropdownProps<T extends string> {
   displayValue?: string;
   listWidth?: string;
   align?: 'left' | 'right';
+  placeholder?: string;
 }
 
 export function PillDropdown<T extends string>({
@@ -19,18 +20,19 @@ export function PillDropdown<T extends string>({
   displayValue,
   listWidth = 'w-56',
   align = 'right',
+  placeholder,
 }: PillDropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false), open);
 
-  const currentLabel = displayValue ?? items.find((i) => i.value === value)?.label ?? value;
+  const currentLabel = displayValue ?? items.find((i) => i.value === value)?.label ?? placeholder ?? value;
 
   return (
     <div ref={ref} className="relative inline-block">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex cursor-pointer items-center gap-1.5 rounded-full border border-pa-border bg-white px-3 py-1 text-[12px] font-semibold text-pa-navy transition-colors hover:border-pa-blue"
+        className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-pa-border bg-white px-3 py-1 text-[12px] font-semibold text-pa-navy transition-colors hover:border-pa-blue"
       >
         {currentLabel}
         <svg className="h-3 w-3 shrink-0 text-pa-blue" viewBox="0 0 20 20" fill="currentColor">

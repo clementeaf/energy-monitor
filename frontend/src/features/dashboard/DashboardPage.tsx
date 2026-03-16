@@ -11,6 +11,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { TogglePills } from '../../components/ui/TogglePills';
 import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
+import { useAppStore } from '../../store/useAppStore';
 import { fetchBillingPdf } from '../../services/endpoints';
 import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
@@ -264,6 +265,15 @@ const OVERDUE_PERIODS = [
   { value: '90+', label: '90+ días' },
 ];
 
+/** Maps backend range label (e.g. "1-30 días") to filter value ("1-30"). */
+function rangeToPeriodValue(range: string): string {
+  if (range.startsWith('1-30')) return '1-30';
+  if (range.startsWith('31-60')) return '31-60';
+  if (range.startsWith('61-90')) return '61-90';
+  if (range.startsWith('90+')) return '90+';
+  return 'all';
+}
+
 function daysOverdue(dueDate: string): number {
   const due = new Date(dueDate);
   const now = new Date();
@@ -280,15 +290,28 @@ function matchesPeriod(dueDate: string, period: string): boolean {
   return true;
 }
 
-function DocTableWithFilter({ data, showPeriodFilter }: { data: BillingDocumentDetail[]; showPeriodFilter?: boolean }) {
+function DocTableWithFilter({
+  data,
+  showPeriodFilter,
+  initialPeriod,
+}: {
+  data: BillingDocumentDetail[];
+  showPeriodFilter?: boolean;
+  initialPeriod?: string | null;
+}) {
   const buildings = useMemo(() => [...new Set(data.map((r) => r.buildingName))].sort(), [data]);
   const [visibleBuildings, setVisibleBuildings] = useState<Set<string>>(() => new Set(buildings));
-  const [period, setPeriod] = useState('all');
+  const [period, setPeriod] = useState(initialPeriod ?? 'all');
 
   // Sync filter when data changes (e.g. drawer re-opened)
   useEffect(() => {
     setVisibleBuildings(new Set(buildings));
   }, [buildings]);
+
+  // When parent passes a new initialPeriod (e.g. opened from table row), apply it
+  useEffect(() => {
+    if (initialPeriod != null) setPeriod(initialPeriod);
+  }, [initialPeriod]);
 
   function handleToggle(b: string) {
     setVisibleBuildings((prev) => {
@@ -350,10 +373,13 @@ function DocTableWithFilter({ data, showPeriodFilter }: { data: BillingDocumentD
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { userMode } = useAppStore();
+  const isMultiOp = userMode === 'multi_operador';
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
   const [drawerPorVencer, setDrawerPorVencer] = useState(false);
   const [drawerVencidos, setDrawerVencidos] = useState(false);
+  const [drawerVencidosInitialPeriod, setDrawerVencidosInitialPeriod] = useState<string | null>(null);
   const { data: porVencerDocs } = useDashboardDocuments('por_vencer', drawerPorVencer);
   const { data: vencidosDocs } = useDashboardDocuments('vencido', drawerVencidos);
 
@@ -406,6 +432,22 @@ export function DashboardPage() {
   const activeData = viewMode === 'anual' ? yearlyData : (byMonth[selectedMonth] ?? []);
   const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
+  if (isMultiOp) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-navy">Modo Multi Operador</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            El dashboard de costos por edificio no está disponible en este modo.
+          </p>
+          <p className="mt-0.5 text-sm text-pa-text-muted">
+            Navega a Edificios, Comparativas o Monitoreo para ver datos de tu operación.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
@@ -436,11 +478,11 @@ export function DashboardPage() {
           {[
             { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, accent: 'text-pa-green', onVerMas: undefined },
             { label: 'Facturas por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, accent: 'text-pa-amber', onVerMas: () => setDrawerPorVencer(true) },
-            { label: 'Facturas Vencidas', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, accent: 'text-pa-coral', onVerMas: () => setDrawerVencidos(true) },
+            { label: 'Facturas Vencidas', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, accent: 'text-pa-coral', onVerMas: () => { setDrawerVencidosInitialPeriod(null); setDrawerVencidos(true); } },
           ].map((c) => (
             <div
               key={c.label}
-              className="flex flex-1 flex-col justify-center rounded-xl bg-white px-4 py-3"
+              className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-pa-navy/30 bg-white py-6 px-3"
             >
               <p className="text-xs font-medium text-pa-text-muted">{c.label}</p>
               <p className={`text-2xl font-bold ${c.accent}`}>{c.value}</p>
@@ -485,6 +527,10 @@ export function DashboardPage() {
                 data={payments.vencidosPorPeriodo}
                 columns={overdueCols}
                 rowKey={(r) => r.range}
+                onRowClick={(r) => {
+                  setDrawerVencidosInitialPeriod(rangeToPeriodValue(r.range));
+                  setDrawerVencidos(true);
+                }}
                 footer
                 maxHeight="max-h-full"
               />
@@ -505,7 +551,12 @@ export function DashboardPage() {
 
       <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Facturas Vencidas" size="lg">
         {vencidosDocs ? (
-          <DocTableWithFilter data={vencidosDocs} showPeriodFilter />
+          <DocTableWithFilter
+            key={drawerVencidos ? (drawerVencidosInitialPeriod ?? 'all') : 'closed'}
+            data={vencidosDocs}
+            showPeriodFilter
+            initialPeriod={drawerVencidosInitialPeriod}
+          />
         ) : (
           <p className="text-sm text-muted">Cargando...</p>
         )}

@@ -25,31 +25,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Gráfico Torta en Comparativas (modo "Por Tipo", dos pies: Consumo + Gasto)
-- Selector modo usuario en sidebar (`PillDropdown`: Holding, Operador, Técnico)
-- Drawer desglose por tienda en BuildingDetailPage
-- Filtro por edificio en drawers documentos Dashboard
-- Deploy completo prod: backend + frontend + Lambda PDF + RDS
+- Multi Operador: visibilidad condicional completa — selector operador en sidebar, ocultamiento/filtrado en 6 vistas
+- Hook centralizado `useOperatorFilter` para filtrado client-side por operador
+- Dashboard, Buildings, BuildingDetail, Comparisons, Monitoring, Alerts filtran/ocultan según modo
 
 ### Pendiente
-- Deploy cambios pendientes
+- Deploy cambios a prod (incluye commits previos + multi-operador)
 - Test end-to-end descarga PDF en prod
-- Lógica condicional por `userMode` (filtrar vistas/nav según modo)
-- [siguiente tarea]
+- Lógica condicional para modos `operador` y `tecnico`
+- Nav items condicionales por modo (ocultar rutas según rol)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Gráfico Torta en Comparativas + selector modo usuario en sidebar
-- Commits pendientes de deploy a prod
-- Prod: 4 Lambdas, RDS 30.66M readings, 5,676 billing docs
+- Multi Operador implementado: selector operador en sidebar, 6 vistas con filtrado/ocultamiento
+- useOperatorFilter centraliza lógica (operatorMeterIds, operatorBuildings)
+- Modos operador y tecnico aún sin lógica específica
+- PDF local funcional, pendiente deploy a prod
 
-Pendiente:
-1. Deploy cambios (backend + frontend)
-2. Test end-to-end en prod
-3. Lógica condicional por userMode
+Pendiente: deploy prod, test PDF, modos operador/tecnico, nav condicional
 ```
 
 ## Prioridad Actual de Acceso
@@ -79,12 +75,12 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 
 ## Frontend Patterns
 - **API layer (3-file):** `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use<Entity>.ts`
-- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode)
+- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
 - **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown` en `components/ui/`
-- **Shared hooks:** `useClickOutside` en `hooks/`
+- **Shared hooks:** `useClickOutside`, `useOperatorFilter` en `hooks/`
 - **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
 

@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { Alert } from '../../types';
 
 // =============================================================================
@@ -457,7 +458,16 @@ type Filters = Record<FilterKey, Set<string>>;
 
 export function AlertsPage() {
   const [searchParams] = useSearchParams();
-  const { data: alerts = [], isLoading } = useAlerts();
+  const { isMultiOp, hasOperator, operatorMeterIds } = useOperatorFilter();
+  const { data: rawAlerts = [], isLoading } = useAlerts();
+
+  // Filter alerts to operator's meters in multi_operador mode
+  const alerts = useMemo(() => {
+    if (isMultiOp && hasOperator && operatorMeterIds) {
+      return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
+    }
+    return rawAlerts;
+  }, [rawAlerts, isMultiOp, hasOperator, operatorMeterIds]);
 
   // Pre-set filters from URL query params (?meter_id=X&date=YYYY-MM-DD or &date_from=&date_to=)
   const initialFilters = useMemo((): Filters => {
@@ -602,6 +612,14 @@ export function AlertsPage() {
     },
     { label: 'Mensaje', value: (r) => r.message ?? '–', align: 'left', className: 'w-[33%] truncate' },
   ], [makeHeaderRender, dateFilter]);
+
+  if (isMultiOp && !hasOperator) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en el sidebar para ver sus alertas.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

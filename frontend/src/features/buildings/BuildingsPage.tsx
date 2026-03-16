@@ -3,6 +3,7 @@ import { Card } from '../../components/ui/Card';
 import { PillButton } from '../../components/ui/PillButton';
 import { BuildingsPageSkeleton } from '../../components/ui/Skeleton';
 import { useBuildings } from '../../hooks/queries/useBuildings';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fmt } from '../../lib/formatters';
 import type { BuildingSummary } from '../../types';
 
@@ -20,6 +21,7 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 export function BuildingsPage() {
   const navigate = useNavigate();
   const { data: buildings, isLoading } = useBuildings();
+  const { isMultiOp, hasOperator, operatorBuildings } = useOperatorFilter();
 
   if (isLoading) return <BuildingsPageSkeleton />;
 
@@ -31,11 +33,26 @@ export function BuildingsPage() {
     }
   }
 
+  let cards = [...latest.values()];
+
+  // Filter to operator's buildings in multi_operador mode
+  if (isMultiOp && hasOperator && operatorBuildings) {
+    cards = cards.filter((b) => operatorBuildings.has(b.buildingName));
+  }
+
+  if (isMultiOp && !hasOperator) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en el sidebar para ver sus edificios.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto pb-4">
         <div className="grid grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[...latest.values()].map((b) => (
+          {cards.map((b) => (
             <Card
               key={b.buildingName}
               className="space-y-3 !rounded-2xl border border-pa-navy/30"

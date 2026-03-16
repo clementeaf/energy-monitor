@@ -11,6 +11,7 @@ import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding } from '../../hooks/queries/useBuildings';
 import { useBilling, useBillingStores } from '../../hooks/queries/useBilling';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fmtClp, fmtNum, monthName } from '../../lib/formatters';
 import { sumByKey, maxByKey } from '../../lib/aggregations';
 import { BillingChart } from './components/BillingChart';
@@ -35,12 +36,31 @@ export function BuildingDetailPage() {
   const { data: months, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const [activeTab, setActiveTab] = useState<DetailTab>('billing');
+  const { isMultiOp, operatorMeterIds, selectedOperator } = useOperatorFilter();
+  const [activeTab, setActiveTab] = useState<DetailTab>(isMultiOp ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const { data: storeBreakdown, isLoading: loadingStores } = useBillingStores(id!, selectedMonth);
+
+  // Filter meters to operator's meters in multi_operador mode
+  const filteredMeters = useMemo(() => {
+    if (!meters) return meters;
+    if (isMultiOp && operatorMeterIds) {
+      return meters.filter((m) => operatorMeterIds.has(m.meterId));
+    }
+    return meters;
+  }, [meters, isMultiOp, operatorMeterIds]);
+
+  // Filter store breakdown to operator's stores in multi_operador mode
+  const filteredStoreBreakdown = useMemo(() => {
+    if (!storeBreakdown) return storeBreakdown;
+    if (isMultiOp && selectedOperator) {
+      return storeBreakdown.filter((s) => s.storeName === selectedOperator);
+    }
+    return storeBreakdown;
+  }, [storeBreakdown, isMultiOp, selectedOperator]);
 
   const drawerColumns: Column<BillingStoreBreakdown>[] = useMemo(() => [
     { label: 'Tienda', value: (r) => r.storeName, total: () => 'Total', align: 'left' as const },
@@ -58,6 +78,11 @@ export function BuildingDetailPage() {
 
   const latest = months[0];
 
+  // In multi_operador mode, hide billing tab
+  const tabOptions = isMultiOp
+    ? TAB_OPTIONS.filter((t) => t.value !== 'billing')
+    : TAB_OPTIONS;
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mb-3 flex shrink-0 items-center gap-3">
@@ -67,27 +92,29 @@ export function BuildingDetailPage() {
 
       {billing && billing.length > 0 && (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Fila 1: gráfico */}
-          <Card className="flex shrink-0 flex-col">
-            <SectionBanner title="" inline className="mb-3">
-              <PillDropdown
-                items={metricDropdownItems}
-                value={chartMetric}
-                onChange={setChartMetric}
-                onHover={setHoveredMetric}
-              />
-            </SectionBanner>
-            <BillingChart data={billing} metric={chartMetric} />
-          </Card>
+          {/* Fila 1: gráfico (hidden in multi_operador) */}
+          {!isMultiOp && (
+            <Card className="flex shrink-0 flex-col">
+              <SectionBanner title="" inline className="mb-3">
+                <PillDropdown
+                  items={metricDropdownItems}
+                  value={chartMetric}
+                  onChange={setChartMetric}
+                  onHover={setHoveredMetric}
+                />
+              </SectionBanner>
+              <BillingChart data={billing} metric={chartMetric} />
+            </Card>
+          )}
 
           {/* Fila 2: tabla, ocupa resto */}
           <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <SectionBanner title="" inline className="mb-3">
-              <TogglePills options={TAB_OPTIONS} value={activeTab} onChange={setActiveTab} />
+              <TogglePills options={tabOptions} value={activeTab} onChange={setActiveTab} />
             </SectionBanner>
 
             <div className="min-h-0 flex-1 overflow-hidden">
-              {activeTab === 'billing' && (
+              {activeTab === 'billing' && !isMultiOp && (
                 <BillingTable
                   data={billing}
                   highlightMetric={chartMetric}
@@ -95,10 +122,10 @@ export function BuildingDetailPage() {
                   onRowClick={(row) => setSelectedMonth(row.month)}
                 />
               )}
-              {activeTab === 'meters' && meters && meters.length > 0 && (
-                <MetersTable data={meters} buildingName={latest.buildingName} />
+              {activeTab === 'meters' && filteredMeters && filteredMeters.length > 0 && (
+                <MetersTable data={filteredMeters} buildingName={latest.buildingName} />
               )}
-              {activeTab === 'meters' && (!meters || meters.length === 0) && (
+              {activeTab === 'meters' && (!filteredMeters || filteredMeters.length === 0) && (
                 <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>
               )}
             </div>
@@ -113,16 +140,16 @@ export function BuildingDetailPage() {
         size="lg"
       >
         {loadingStores && <p className="py-8 text-center text-sm text-pa-text-muted">Cargando...</p>}
-        {!loadingStores && storeBreakdown && storeBreakdown.length > 0 && (
+        {!loadingStores && filteredStoreBreakdown && filteredStoreBreakdown.length > 0 && (
           <DataTable
-            data={storeBreakdown}
+            data={filteredStoreBreakdown}
             columns={drawerColumns}
             footer
             rowKey={(r) => r.storeName}
             maxHeight="max-h-[70vh]"
           />
         )}
-        {!loadingStores && storeBreakdown && storeBreakdown.length === 0 && (
+        {!loadingStores && filteredStoreBreakdown && filteredStoreBreakdown.length === 0 && (
           <p className="py-8 text-center text-sm text-pa-text-muted">Sin desglose para este mes</p>
         )}
       </Drawer>

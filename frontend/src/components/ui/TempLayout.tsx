@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router';
 import { appRoutes, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
+import { useComparisonFilters } from '../../hooks/queries/useComparisons';
 import { PillDropdown } from './PillDropdown';
 
 const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
@@ -11,7 +12,10 @@ const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showIn
 export function TempLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userMode, setUserMode } = useAppStore();
+  const { userMode, setUserMode, selectedOperator, setSelectedOperator } = useAppStore();
+  const { data: filters } = useComparisonFilters();
+
+  const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
   return (
     <div className="flex h-screen overflow-hidden bg-base">
@@ -45,9 +49,24 @@ export function TempLayout() {
             items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
             value={userMode}
             onChange={setUserMode}
-            listWidth="w-full"
+            listWidth="w-44"
+            align="left"
           />
         </div>
+
+        {/* Operator selector (multi_operador only) */}
+        {userMode === 'multi_operador' && (
+          <div className="px-3 pt-2">
+            <PillDropdown
+              items={operatorItems}
+              value={selectedOperator ?? ''}
+              onChange={(v) => setSelectedOperator(v || null)}
+              listWidth="w-44"
+              align="left"
+              placeholder="Seleccionar operador"
+            />
+          </div>
+        )}
 
         {/* Nav — PA numbered items with pill bg */}
         <nav className="flex-1 space-y-2.5 px-3 pt-4">

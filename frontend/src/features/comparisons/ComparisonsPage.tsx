@@ -9,6 +9,7 @@ import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import { SectionBanner } from '../../components/ui/SectionBanner';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { ComparisonRow } from '../../types';
 
 const columns: Column<ComparisonRow>[] = [
@@ -156,9 +157,10 @@ const toggleBtn = (active: boolean) =>
   `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
 export function ComparisonsPage() {
+  const { isMultiOp, hasOperator, selectedOperator } = useOperatorFilter();
   const { data: filters, isLoading: loadingFilters } = useComparisonFilters();
 
-  const [mode, setMode] = useState<CompareMode>('type');
+  const [mode, setMode] = useState<CompareMode>(isMultiOp ? 'name' : 'type');
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string | undefined>(undefined);
@@ -172,28 +174,34 @@ export function ComparisonsPage() {
     }
   }, [filters, selectedMonth]);
 
+  // In multi_operador mode, force name mode and pre-select operator
+  const effectiveMode = isMultiOp ? 'name' : mode;
+  const effectiveNames = isMultiOp && hasOperator ? [selectedOperator!] : selectedNames;
+
   const typeIds = selectedTypeIds.map(Number);
   const typeQuery = useComparisonByStoreType(
-    mode === 'type' ? typeIds : [],
-    mode === 'type' ? selectedMonth : undefined,
+    effectiveMode === 'type' ? typeIds : [],
+    effectiveMode === 'type' ? selectedMonth : undefined,
   );
   const nameQuery = useComparisonByStoreName(
-    mode === 'name' ? selectedNames : [],
-    mode === 'name' ? selectedMonth : undefined,
+    effectiveMode === 'name' ? effectiveNames : [],
+    effectiveMode === 'name' ? selectedMonth : undefined,
   );
 
-  const rows = mode === 'type' ? (typeQuery.data ?? []) : (nameQuery.data ?? []);
-  const loadingRows = mode === 'type' ? typeQuery.isLoading : nameQuery.isLoading;
+  const rows = effectiveMode === 'type' ? (typeQuery.data ?? []) : (nameQuery.data ?? []);
+  const loadingRows = effectiveMode === 'type' ? typeQuery.isLoading : nameQuery.isLoading;
 
-  const label = mode === 'type'
+  const label = effectiveMode === 'type'
     ? selectedTypeIds.map((id) => filters?.storeTypes.find((st) => st.id === Number(id))?.name).filter(Boolean).join(', ') || 'Tipo de Tienda'
-    : selectedNames.join(', ') || 'Tienda';
+    : (isMultiOp && hasOperator ? selectedOperator! : effectiveNames.join(', ') || 'Tienda');
   const selectedMonthLabel = selectedMonth ? monthLabel(selectedMonth) : '';
 
   const typeOptions = (filters?.storeTypes ?? []).map((st) => ({ value: String(st.id), label: st.name }));
   const nameOptions = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
-  const noSelection = mode === 'type' ? selectedTypeIds.length === 0 : selectedNames.length === 0;
+  const noSelection = isMultiOp
+    ? !hasOperator
+    : effectiveMode === 'type' ? selectedTypeIds.length === 0 : selectedNames.length === 0;
 
   if (loadingFilters) {
     return <div className="p-4 text-[13px] text-pa-text-muted">Cargando filtros...</div>;
@@ -202,12 +210,16 @@ export function ComparisonsPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="flex items-center gap-4">
-        <div className="flex gap-1">
-          <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
-          <button className={toggleBtn(mode === 'name')} onClick={() => { setMode('name'); if (chartType === 'pie') setChartType('column'); }}>Por Tienda</button>
-        </div>
+        {!isMultiOp && (
+          <div className="flex gap-1">
+            <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
+            <button className={toggleBtn(mode === 'name')} onClick={() => { setMode('name'); if (chartType === 'pie') setChartType('column'); }}>Por Tienda</button>
+          </div>
+        )}
 
-        {mode === 'type' ? (
+        {isMultiOp ? (
+          <span className="text-xs font-medium text-pa-navy">{hasOperator ? selectedOperator : 'Selecciona un operador'}</span>
+        ) : effectiveMode === 'type' ? (
           <MultiSelect
             options={typeOptions}
             selected={selectedTypeIds}
@@ -237,7 +249,7 @@ export function ComparisonsPage() {
           <button className={toggleBtn(chartType === 'column')} onClick={() => setChartType('column')}>Barra</button>
           <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Línea</button>
           <button className={toggleBtn(chartType === 'area')} onClick={() => setChartType('area')}>Área</button>
-          {mode === 'type' && (
+          {effectiveMode === 'type' && (
             <button className={toggleBtn(chartType === 'pie')} onClick={() => setChartType('pie')}>Torta</button>
           )}
         </div>
@@ -247,7 +259,7 @@ export function ComparisonsPage() {
         <SectionBanner title={`${label} — Consumo y Gasto por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
         <div className="min-h-0 flex-1">
           {noSelection
-            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isMultiOp ? 'Selecciona un operador en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
               : rows.length === 0
@@ -261,7 +273,7 @@ export function ComparisonsPage() {
         <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
         <div className="min-h-0 flex-1 overflow-auto">
           {noSelection
-            ? <div className="p-4 text-[13px] text-pa-text-muted">Selecciona al menos un {mode === 'type' ? 'tipo' : 'nombre'}</div>
+            ? <div className="p-4 text-[13px] text-pa-text-muted">{isMultiOp ? 'Selecciona un operador en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
               : <DataTable

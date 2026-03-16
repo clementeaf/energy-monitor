@@ -25,26 +25,22 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- UI building cards: borde redondeado tenue, títulos y botones en una línea
-- Facturación: eliminado título redundante del gráfico
-- Documentos vencidos: columna "Operador" con nombre de tienda (billing_document regenerada a nivel store)
-- ECS Fargate restore de meter_readings en progreso (raw_readings pendiente de verificar)
+- RDS prod: billing_document migrada (5,676 docs a nivel tienda con operator_name) via Lambda dbVerify
+- Backend Lambda deployado con operatorName en endpoint documents
+- building_summary: áreas actualizadas (MM 68k, SC52 5.3k, SC53 5.6k, OT 50k m²)
+- Script `generate-billing-pdf.py`: genera PDFs formato Globe Power desde pg-arauco
 
 ### Pendiente
-- Verificar ECS task completó restore de meter_readings y raw_readings
-- Bajar RDS de db.t3.medium a db.t3.micro post-restore
-- Limpiar S3 prefix `readings-restore/` y ECR repo `energy-monitor-readings-restore`
-- Desplegar cambios de billing_document (operator_name) a RDS prod
-- Deploy backend Lambda con nuevo campo operatorName
+- Aplicar áreas building_summary en RDS prod
+- Subir billing_document actualizada a RDS prod (si se regenera localmente)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-1. Verificar ECS restore: aws ecs describe-tasks --cluster energy-monitor-cluster --tasks ecc1d75cf7c3429bbe4c6edb356e0247
-2. Post-restore: bajar RDS a t3.micro, limpiar S3 y ECR
-3. Aplicar cambios billing_document (operator_name) en RDS prod
-4. Deploy backend Lambda
+RDS prod operativo. billing_document y operatorName en prod.
+Áreas building_summary actualizadas en local, pendiente en RDS.
+Script PDF facturas listo en scripts/generate-billing-pdf.py.
 ```
 
 ## Prioridad Actual de Acceso

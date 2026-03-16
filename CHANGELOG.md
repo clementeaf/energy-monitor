@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.49.0-alpha.0] - 2026-03-16 — PROD BILLING + PDF FACTURAS + ÁREAS EDIFICIOS
+
+### Infrastructure
+- **RDS prod billing_document** — migración via Lambda `dbVerify`: DROP + CREATE con `operator_name`, INSERT 5,676 docs a nivel tienda
+- **Lambda deploy** — backend deployado con endpoint `operatorName` en `/dashboard/documents/:status`
+- **Lambda dbVerify** — nuevo handler `db-verify-lambda.ts` para migraciones SQL contra RDS
+
+### Data
+- **building_summary** — áreas actualizadas: MM 68,000 m², SC52 5,302 m², SC53 5,650 m², OT 50,000 m²
+
+### Added
+- **Script `generate-billing-pdf.py`** — genera PDFs de cobro formato Globe Power desde pg-arauco
+  - Layout: header, detalle consumo, tabla ítems con precios unitarios de tarifa, totales, gráfico 13 meses, datos bancarios
+  - Soporta generación individual (`--meter_id`) o masiva (`--building`)
+  - Lecturas: inicial del mes anterior, final del mes actual (con offset +1 año para datos sintéticos)
+
+---
+
 ## [0.48.0-alpha.0] - 2026-03-16 — UI CARDS EDIFICIOS + DOCUMENTOS POR OPERADOR
 
 ### Changed

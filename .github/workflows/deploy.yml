@@ -139,23 +139,3 @@ jobs:
           VPC_SUBNET_ID_2: ${{ secrets.VPC_SUBNET_ID_2 }}
           VPC_SUBNET_ID_3: ${{ secrets.VPC_SUBNET_ID_3 }}
 
-      - name: Aplicar migraciones de auth (sessions + usuario de prueba)
-        run: |
-          API_URL="${API_BASE_URL:-https://energymonitor.click}"
-          sleep 10
-          ok=0
-          for i in 1 2 3; do
-            if [ -n "${{ secrets.MIGRATE_SECRET }}" ]; then
-              out=$(curl -s -w "\n%{http_code}" -X POST -H "X-Migrate-Secret: ${{ secrets.MIGRATE_SECRET }}" "$API_URL/api/db-verify/apply-auth-migrations") || true
-            else
-              out=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/db-verify/apply-auth-migrations") || true
-            fi
-            body=$(echo "$out" | head -n -1)
-            code=$(echo "$out" | tail -n1)
-            echo "HTTP $code - $body"
-            if [ "$code" = "200" ] || [ "$code" = "201" ]; then ok=1; break; fi
-            [ $i -lt 3 ] && sleep 15
-          done
-          [ "$ok" = "1" ] || exit 1
-        env:
-          API_BASE_URL: ${{ vars.API_BASE_URL }}

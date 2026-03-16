@@ -58,8 +58,8 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: Chart
       return;
     }
 
-    chartRef.current = Highcharts.chart(containerRef.current, {
-      chart: { height: 384, backgroundColor: 'transparent' },
+    chartRef.current = Highcharts.chart({
+      chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current! },
       title: { text: undefined },
       xAxis: {
         categories,
@@ -112,14 +112,14 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: Chart
       plotOptions: LIGHT_PLOT_OPTIONS,
       series: [
         {
-          type: chartType,
+          type: chartType as 'column' | 'line' | 'area',
           name: 'Consumo (kWh)',
           data: consumo,
           color: CHART_COLORS.blue,
           yAxis: 0,
         },
         {
-          type: chartType,
+          type: chartType as 'column' | 'line' | 'area',
           name: 'Gasto (CLP)',
           data: gasto,
           color: CHART_COLORS.coral,

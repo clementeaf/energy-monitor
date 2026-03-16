@@ -20,6 +20,8 @@ export const routes = {
 
   // Billing
   getBilling: (buildingName: string) => `/billing/${buildingName}`,
+  getBillingStores: (buildingName: string, month: string) =>
+    `/billing/${buildingName}/stores?month=${month}`,
   getBillingPdf: (storeName: string, buildingName: string, month: string) =>
     `/billing/pdf?storeName=${encodeURIComponent(storeName)}&buildingName=${encodeURIComponent(buildingName)}&month=${month}`,
 

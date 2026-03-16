@@ -15,6 +15,22 @@ export interface BillingMonthlySummary {
   totalConIvaClp: number | null;
 }
 
+// Matches backend billing store breakdown response
+export interface BillingStoreBreakdown {
+  storeName: string;
+  totalKwh: number | null;
+  energiaClp: number | null;
+  ddaMaxKw: number | null;
+  ddaMaxPuntaKw: number | null;
+  kwhTroncal: number | null;
+  kwhServPublico: number | null;
+  cargoFijoClp: number | null;
+  totalNetoClp: number | null;
+  ivaClp: number | null;
+  montoExentoClp: number | null;
+  totalConIvaClp: number | null;
+}
+
 // Matches backend meters list response
 export interface MeterListItem {
   meterId: string;

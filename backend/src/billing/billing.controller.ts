@@ -37,6 +37,17 @@ export class BillingController {
     }
   }
 
+  @Get(':buildingName/stores')
+  async findByBuildingAndMonth(
+    @Param('buildingName') buildingName: string,
+    @Query('month') month: string,
+  ) {
+    if (!month) {
+      throw new NotFoundException('month query parameter is required');
+    }
+    return this.billingService.findByBuildingAndMonth(buildingName, month);
+  }
+
   @Get(':buildingName')
   async findByBuilding(@Param('buildingName') buildingName: string) {
     const results = await this.billingService.findByBuilding(buildingName);

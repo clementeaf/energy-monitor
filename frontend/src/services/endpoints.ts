@@ -1,7 +1,7 @@
 import api from './api';
 import { routes } from './routes';
 import type { AuthUser } from '../types/auth';
-import type { Alert, BillingDocumentDetail, BuildingSummary, BillingMonthlySummary, ComparisonFilters, ComparisonRow, DashboardBuildingMonth, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading, PaymentSummary } from '../types';
+import type { Alert, BillingDocumentDetail, BillingStoreBreakdown, BuildingSummary, BillingMonthlySummary, ComparisonFilters, ComparisonRow, DashboardBuildingMonth, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading, PaymentSummary } from '../types';
 
 interface MeResponse {
   user: AuthUser;
@@ -41,6 +41,9 @@ export const fetchMeterReadings = (meterId: string, from: string, to: string) =>
 
 export const fetchBilling = (buildingName: string) =>
   api.get<BillingMonthlySummary[]>(routes.getBilling(buildingName)).then((r) => r.data);
+
+export const fetchBillingStores = (buildingName: string, month: string) =>
+  api.get<BillingStoreBreakdown[]>(routes.getBillingStores(buildingName, month)).then((r) => r.data);
 
 export const fetchDashboardSummary = () =>
   api.get<DashboardBuildingMonth[]>(routes.getDashboardSummary()).then((r) => r.data);

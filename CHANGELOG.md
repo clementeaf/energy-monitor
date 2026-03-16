@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.52.0-alpha.0] - 2026-03-16 — DRAWER DESGLOSE TIENDAS + FILTRO EDIFICIO
+
+### Added
+- **Endpoint `GET /billing/:buildingName/stores?month=`** — desglose facturación por tienda para un mes, JOIN con `store` para nombre tienda
+- **Drawer desglose por tienda** en BuildingDetailPage — click en fila de tabla facturación abre Drawer con DataTable (8 columnas + footer totales), lazy fetch via `useBillingStores`
+- **Filtro por edificio** en drawers de documentos (Dashboard) — columna "Edificio" con `ColumnFilterDropdown` (checkbox multi-select, misma UX que filtro de meses)
+- **Columna "Edificio"** en tablas de documentos por vencer y vencidos
+
+### Changed
+- **Drawers documentos (Dashboard)** — DataTable ahora usa `maxHeight="max-h-full"` para ocupar toda la altura del drawer con scroll interno
+- **`BillingTable`** — nueva prop `onRowClick` pasada a DataTable
+
+### Types
+- **`BillingStoreBreakdown`** — nueva interfaz frontend (storeName + 11 campos numéricos)
+
+---
+
 ## [0.51.0-alpha.0] - 2026-03-16 — DEPLOY COMPLETO PROD
 
 ### Infrastructure

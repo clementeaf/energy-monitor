@@ -79,9 +79,10 @@ interface BillingTableProps {
   data: BillingMonthlySummary[];
   highlightMetric?: BillingMetricKey;
   hoveredMetric?: BillingMetricKey | null;
+  onRowClick?: (row: BillingMonthlySummary) => void;
 }
 
-export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTableProps) {
+export function BillingTable({ data, highlightMetric, hoveredMetric, onRowClick }: BillingTableProps) {
   const allMonths = data.map((r) => r.month);
   const [visibleMonths, setVisibleMonths] = useState<Set<string>>(() => new Set(allMonths));
 
@@ -137,6 +138,7 @@ export function BillingTable({ data, highlightMetric, hoveredMetric }: BillingTa
       data={filtered}
       columns={columns}
       footer
+      onRowClick={onRowClick}
       rowKey={(r) => r.month}
       maxHeight="max-h-full"
     />

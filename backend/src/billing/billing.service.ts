@@ -65,6 +65,45 @@ export class BillingService {
     }));
   }
 
+  async findByBuildingAndMonth(buildingName: string, month: string) {
+    const rows = await this.dataSource.query(
+      `SELECT
+         s.store_name                                   AS "storeName",
+         ROUND(SUM(m.total_kwh)::numeric, 2)            AS "totalKwh",
+         ROUND(SUM(m.energia_clp)::numeric, 0)          AS "energiaClp",
+         ROUND(MAX(m.dda_max_kw)::numeric, 2)           AS "ddaMaxKw",
+         ROUND(MAX(m.dda_max_punta_kw)::numeric, 2)     AS "ddaMaxPuntaKw",
+         ROUND(SUM(m.kwh_troncal)::numeric, 2)          AS "kwhTroncal",
+         ROUND(SUM(m.kwh_serv_publico)::numeric, 2)     AS "kwhServPublico",
+         ROUND(SUM(m.cargo_fijo_clp)::numeric, 0)       AS "cargoFijoClp",
+         ROUND(SUM(m.total_neto_clp)::numeric, 0)       AS "totalNetoClp",
+         ROUND(SUM(m.iva_clp)::numeric, 0)              AS "ivaClp",
+         ROUND(SUM(m.monto_exento_clp)::numeric, 0)     AS "montoExentoClp",
+         ROUND(SUM(m.total_con_iva_clp)::numeric, 0)    AS "totalConIvaClp"
+       FROM meter_monthly_billing m
+       JOIN store s ON s.meter_id = m.meter_id
+       WHERE m.building_name = $1 AND m.month = $2
+       GROUP BY s.store_name
+       ORDER BY s.store_name`,
+      [buildingName, month],
+    );
+
+    return rows.map((r: Record<string, string>) => ({
+      storeName: r.storeName,
+      totalKwh: parseFloat(r.totalKwh),
+      energiaClp: parseFloat(r.energiaClp),
+      ddaMaxKw: parseFloat(r.ddaMaxKw),
+      ddaMaxPuntaKw: parseFloat(r.ddaMaxPuntaKw),
+      kwhTroncal: parseFloat(r.kwhTroncal),
+      kwhServPublico: parseFloat(r.kwhServPublico),
+      cargoFijoClp: parseFloat(r.cargoFijoClp),
+      totalNetoClp: parseFloat(r.totalNetoClp),
+      ivaClp: parseFloat(r.ivaClp),
+      montoExentoClp: parseFloat(r.montoExentoClp),
+      totalConIvaClp: parseFloat(r.totalConIvaClp),
+    }));
+  }
+
   async generatePdf(
     storeName: string,
     buildingName: string,

@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
@@ -184,15 +185,129 @@ function DownloadPdfButton({ row }: { row: BillingDocumentDetail }) {
   );
 }
 
-const docCols: Column<BillingDocumentDetail>[] = [
-  { label: 'Operador', value: (r) => r.operatorName, align: 'left' },
-  { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' },
-  { label: 'Vencimiento', value: (r) => fmtDate(r.dueDate), className: 'whitespace-nowrap' },
-  { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },
-  { label: 'IVA', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.ivaClp ?? 0), 0)) },
-  { label: 'Total', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
-  { label: 'PDF', value: (r) => <DownloadPdfButton row={r} />, className: 'w-10' },
-];
+function ColumnFilterDropdown({
+  label,
+  items,
+  visible,
+  onToggle,
+}: {
+  label: string;
+  items: string[];
+  visible: Set<string>;
+  onToggle: (item: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false), open);
+
+  const allSelected = items.length === visible.size;
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1 whitespace-nowrap font-medium transition-colors hover:text-text"
+      >
+        {label}
+        <svg className="h-3 w-3 shrink-0 opacity-40" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
+        {!allSelected && (
+          <span className="ml-0.5 text-[10px] text-blue-600">{visible.size}</span>
+        )}
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 z-30 mt-1 w-52 max-h-64 overflow-y-auto rounded border border-border bg-white py-1 shadow-lg">
+          <li className="border-b border-border/50">
+            <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-raised">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={() => {
+                  if (allSelected) onToggle(items[0]);
+                  else items.forEach((i) => { if (!visible.has(i)) onToggle(i); });
+                }}
+                className="h-3.5 w-3.5 rounded border-border accent-blue-600"
+              />
+              <span className="text-text">Todo</span>
+            </label>
+          </li>
+          {items.map((item) => {
+            const checked = visible.has(item);
+            return (
+              <li key={item}>
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm transition-colors hover:bg-raised">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onToggle(item)}
+                    className="h-3.5 w-3.5 rounded border-border accent-blue-600"
+                  />
+                  <span className={checked ? 'text-text' : 'text-muted'}>{item}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function DocTableWithFilter({ data }: { data: BillingDocumentDetail[] }) {
+  const buildings = useMemo(() => [...new Set(data.map((r) => r.buildingName))].sort(), [data]);
+  const [visibleBuildings, setVisibleBuildings] = useState<Set<string>>(() => new Set(buildings));
+
+  // Sync filter when data changes (e.g. drawer re-opened)
+  useEffect(() => {
+    setVisibleBuildings(new Set(buildings));
+  }, [buildings]);
+
+  function handleToggle(b: string) {
+    setVisibleBuildings((prev) => {
+      const next = new Set(prev);
+      if (next.has(b)) {
+        if (next.size > 1) next.delete(b);
+      } else {
+        next.add(b);
+      }
+      return next;
+    });
+  }
+
+  const filtered = data.filter((r) => visibleBuildings.has(r.buildingName));
+
+  const columns: Column<BillingDocumentDetail>[] = useMemo(() => [
+    {
+      label: 'Edificio',
+      value: (r) => r.buildingName,
+      align: 'left' as const,
+      headerRender: () => (
+        <ColumnFilterDropdown label="Edificio" items={buildings} visible={visibleBuildings} onToggle={handleToggle} />
+      ),
+    },
+    { label: 'Operador', value: (r) => r.operatorName, align: 'left' as const },
+    { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' as const },
+    { label: 'Vencimiento', value: (r) => fmtDate(r.dueDate), className: 'whitespace-nowrap' },
+    { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },
+    { label: 'IVA', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.ivaClp ?? 0), 0)) },
+    { label: 'Total', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
+    { label: 'PDF', value: (r) => <DownloadPdfButton row={r} />, className: 'w-10' },
+  ], [buildings, visibleBuildings]);
+
+  return (
+    <div className="h-full">
+      <DataTable
+        data={filtered}
+        columns={columns}
+        rowKey={(r) => r.docNumber}
+        footer
+        maxHeight="max-h-full"
+      />
+    </div>
+  );
+}
 
 export function DashboardPage() {
   const { data: summary, isLoading } = useDashboardSummary();
@@ -319,12 +434,7 @@ export function DashboardPage() {
 
       <Drawer open={drawerPorVencer} onClose={() => setDrawerPorVencer(false)} title="Documentos por Vencer" size="lg">
         {porVencerDocs ? (
-          <DataTable
-            data={porVencerDocs}
-            columns={docCols}
-            rowKey={(r) => r.docNumber}
-            footer
-          />
+          <DocTableWithFilter data={porVencerDocs} />
         ) : (
           <p className="text-sm text-muted">Cargando...</p>
         )}
@@ -332,12 +442,7 @@ export function DashboardPage() {
 
       <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Documentos Vencidos" size="lg">
         {vencidosDocs ? (
-          <DataTable
-            data={vencidosDocs}
-            columns={docCols}
-            rowKey={(r) => r.docNumber}
-            footer
-          />
+          <DocTableWithFilter data={vencidosDocs} />
         ) : (
           <p className="text-sm text-muted">Cargando...</p>
         )}

@@ -82,6 +82,7 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/billing/pdf` | `storeName`, `buildingName`, `month` | Binary PDF (`application/pdf`). Invoca Lambda Python `billing-pdf-generator` |
+| GET | `/billing/:buildingName/stores` | `month` (requerido) | `BillingStoreBreakdown[]` (desglose por tienda: storeName + 11 campos numéricos). JOIN con `store` para nombre |
 | GET | `/billing/:buildingName` | — | `BillingMonthlySummary[]` (agregado mensual: totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp, totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp) |
 
 ## Alerts (`/alerts`) — `@Public()`

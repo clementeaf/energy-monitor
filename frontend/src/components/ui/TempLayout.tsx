@@ -1,13 +1,17 @@
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { appRoutes, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
+import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
+import { PillDropdown } from './PillDropdown';
 
 const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
 
 /** Temporary layout without auth. Replace with <Layout /> when re-enabling login. */
+
 export function TempLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userMode, setUserMode } = useAppStore();
 
   return (
     <div className="flex h-screen overflow-hidden bg-base">
@@ -33,6 +37,16 @@ export function TempLayout() {
               </span>
             </div>
           </button>
+        </div>
+
+        {/* Mode selector */}
+        <div className="px-3">
+          <PillDropdown
+            items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
+            value={userMode}
+            onChange={setUserMode}
+            listWidth="w-full"
+          />
         </div>
 
         {/* Nav — PA numbered items with pill bg */}

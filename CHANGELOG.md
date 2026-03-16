@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.53.0-alpha.0] - 2026-03-16 — SELECTOR MODO USUARIO EN SIDEBAR
+
+### Added
+- **Selector modo usuario** en sidebar — `PillDropdown` debajo del logo con 3 modos: Holding, Operador, Técnico
+- **Estado `userMode`** en `useAppStore` (Zustand) — persistido en sessionStorage
+- **Tipo `UserMode`** y constante `USER_MODE_LABELS` exportados desde `useAppStore`
+
+---
+
 ## [0.52.0-alpha.0] - 2026-03-16 — DRAWER DESGLOSE TIENDAS + FILTRO EDIFICIO
 
 ### Added

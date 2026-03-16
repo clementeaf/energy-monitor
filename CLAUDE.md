@@ -25,27 +25,31 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Lambda Python `billing-pdf-generator` deployada en AWS (Python 3.12, VPC, 512 MB)
-- Backend redeployado (3 Lambdas, 28 MB) + Frontend en S3 + CloudFront invalidado
-- Áreas building_summary verificadas en RDS prod (60/60 rows)
-- Endpoint `GET /billing/pdf` + botón descarga PDF en dashboard operativos
+- Selector modo usuario en sidebar (`PillDropdown`: Holding, Operador, Técnico)
+- Estado `userMode` en `useAppStore` persistido en sessionStorage
+- Drawer desglose por tienda en BuildingDetailPage
+- Filtro por edificio en drawers documentos Dashboard
+- Deploy completo prod: backend + frontend + Lambda PDF + RDS
 
 ### Pendiente
-- Probar descarga PDF end-to-end en prod (energymonitor.click)
-- Verificar que Lambda PDF responde correctamente desde VPC
+- Deploy cambios pendientes (drawer tiendas + filtro edificio + selector modo)
+- Test end-to-end descarga PDF en prod
+- Lógica condicional por `userMode` (filtrar vistas/nav según modo)
+- [siguiente tarea]
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Prod 100% deployado: backend + frontend + Lambda PDF
-- RDS prod: 30.66M readings, 5,676 billing docs, áreas OK
-- 4 Lambdas activas: api, offlineAlerts, dbVerify, billing-pdf-generator
+- Selector modo usuario (Holding/Operador/Técnico) en sidebar con PillDropdown
+- Commits pendientes de deploy a prod
+- Prod: 4 Lambdas, RDS 30.66M readings, 5,676 billing docs
 
 Pendiente:
-1. Test end-to-end descarga PDF en prod
-2. [siguiente tarea]
+1. Deploy cambios (backend + frontend)
+2. Test end-to-end en prod
+3. Lógica condicional por userMode
 ```
 
 ## Prioridad Actual de Acceso
@@ -75,7 +79,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 
 ## Frontend Patterns
 - **API layer (3-file):** `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use<Entity>.ts`
-- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage)
+- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`

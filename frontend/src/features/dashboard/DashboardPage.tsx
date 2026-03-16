@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import Highcharts from 'highcharts';
 import { Card } from '../../components/ui/Card';
@@ -255,9 +256,34 @@ function ColumnFilterDropdown({
   );
 }
 
-function DocTableWithFilter({ data }: { data: BillingDocumentDetail[] }) {
+const OVERDUE_PERIODS = [
+  { value: 'all', label: 'Todos' },
+  { value: '1-30', label: '1-30 días' },
+  { value: '31-60', label: '31-60 días' },
+  { value: '61-90', label: '61-90 días' },
+  { value: '90+', label: '90+ días' },
+];
+
+function daysOverdue(dueDate: string): number {
+  const due = new Date(dueDate);
+  const now = new Date();
+  return Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000));
+}
+
+function matchesPeriod(dueDate: string, period: string): boolean {
+  if (period === 'all') return true;
+  const days = daysOverdue(dueDate);
+  if (period === '1-30') return days >= 1 && days <= 30;
+  if (period === '31-60') return days >= 31 && days <= 60;
+  if (period === '61-90') return days >= 61 && days <= 90;
+  if (period === '90+') return days > 90;
+  return true;
+}
+
+function DocTableWithFilter({ data, showPeriodFilter }: { data: BillingDocumentDetail[]; showPeriodFilter?: boolean }) {
   const buildings = useMemo(() => [...new Set(data.map((r) => r.buildingName))].sort(), [data]);
   const [visibleBuildings, setVisibleBuildings] = useState<Set<string>>(() => new Set(buildings));
+  const [period, setPeriod] = useState('all');
 
   // Sync filter when data changes (e.g. drawer re-opened)
   useEffect(() => {
@@ -276,7 +302,7 @@ function DocTableWithFilter({ data }: { data: BillingDocumentDetail[] }) {
     });
   }
 
-  const filtered = data.filter((r) => visibleBuildings.has(r.buildingName));
+  const filtered = data.filter((r) => visibleBuildings.has(r.buildingName) && (!showPeriodFilter || matchesPeriod(r.dueDate, period)));
 
   const columns: Column<BillingDocumentDetail>[] = useMemo(() => [
     {
@@ -297,19 +323,33 @@ function DocTableWithFilter({ data }: { data: BillingDocumentDetail[] }) {
   ], [buildings, visibleBuildings]);
 
   return (
-    <div className="h-full">
-      <DataTable
-        data={filtered}
-        columns={columns}
-        rowKey={(r) => r.docNumber}
-        footer
-        maxHeight="max-h-full"
-      />
+    <div className="flex h-full flex-col gap-2">
+      {showPeriodFilter && (
+        <div className="flex items-center gap-2">
+          <PillDropdown
+            items={OVERDUE_PERIODS}
+            value={period}
+            onChange={setPeriod}
+            listWidth="w-36"
+            align="left"
+          />
+        </div>
+      )}
+      <div className="min-h-0 flex-1">
+        <DataTable
+          data={filtered}
+          columns={columns}
+          rowKey={(r) => r.docNumber}
+          footer
+          maxHeight="max-h-full"
+        />
+      </div>
     </div>
   );
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
   const [drawerPorVencer, setDrawerPorVencer] = useState(false);
@@ -430,6 +470,7 @@ export function DashboardPage() {
               data={activeData}
               columns={buildingCols}
               rowKey={(r) => r.name}
+              onRowClick={(r) => navigate(`/buildings/${encodeURIComponent(r.name)}`)}
               footer
               maxHeight="max-h-full"
             />
@@ -464,7 +505,7 @@ export function DashboardPage() {
 
       <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Facturas Vencidas" size="lg">
         {vencidosDocs ? (
-          <DocTableWithFilter data={vencidosDocs} />
+          <DocTableWithFilter data={vencidosDocs} showPeriodFilter />
         ) : (
           <p className="text-sm text-muted">Cargando...</p>
         )}

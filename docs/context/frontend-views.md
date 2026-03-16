@@ -31,11 +31,11 @@
 | `PillButton` | `components/ui/PillButton.tsx` | Botón pill PA: `rounded-full border-pa-blue`, hover bg-pa-blue text-white. Usado en "Ver más +", "Volver" |
 | `SectionBanner` | `components/ui/SectionBanner.tsx` | Banner título PA: `bg-pa-bg-alt`, texto uppercase navy. Props: `title`, `children` (controles derecha), `inline` |
 | `TogglePills` | `components/ui/TogglePills.tsx` | Toggle genérico `<T extends string>`: opciones pill PA, activo `bg-pa-navy text-white`. Usado en Dashboard (Barra/Línea/Área) y BuildingDetail (tabs) |
-| `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`. Reemplaza BillingMetricSelector y MonthDropdown |
+| `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`, `align` (`left`/`right`). Reemplaza BillingMetricSelector y MonthDropdown |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender`, `onRowClick` abre drawer desglose. Usa `sumByKey`/`maxByKey` de `lib/aggregations` |
 | `ColumnFilterDropdown` | `features/dashboard/DashboardPage.tsx` | Dropdown genérico checkbox multi-select para filtrar columnas en DataTable. Misma UX que MonthFilterDropdown |
-| `DocTableWithFilter` | `features/dashboard/DashboardPage.tsx` | Wrapper DataTable con filtro edificio integrado. Usado en drawers documentos Dashboard |
+| `DocTableWithFilter` | `features/dashboard/DashboardPage.tsx` | Wrapper DataTable con filtro edificio integrado. Prop `showPeriodFilter` agrega PillDropdown de períodos vencimiento. Usado en drawers documentos Dashboard |
 | `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa PaginatedTable. 3 columnas (Medidor, Tienda, Tipo), `cellClassName` atenúa placeholders, `maxHeight="max-h-full"`, click → detalle medidor |
 | `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico PA por mes (Highcharts), usa `CHART_COLORS`/`LIGHT_PLOT_OPTIONS`/`LIGHT_TOOLTIP_STYLE` de `lib/chartConfig`, toggle pill Barra/Línea/Área |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla. Usa `useClickOutside` compartido |
@@ -61,13 +61,13 @@
 
 - Vista principal del holding (Parque Arauco S.A.)
 - Layout 2 columnas (`grid 5fr_1fr`), responsive a 1 columna en mobile
-- **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle pill Barra/Línea (`bg-pa-navy`) y `MonthDropdown` custom PA
+- **Fila 1 — col izq:** gráfico Highcharts (consumo kWh + gasto CLP) con toggle Anual/Mensual, toggle Barra/Línea (`bg-pa-navy`) y `PillDropdown` mes (solo en modo mensual)
 - **Fila 1 — col der:** 3 kpi_cards PA — Pagos Recibidos (verde), Facturas por Vencer (ámbar), Facturas Vencidas (coral). Número grande + label + botón pill "Ver más +" abre Drawer
-- **Fila 2 — col izq:** tabla edificios con título banner PA, misma altura que col der
+- **Fila 2 — col izq:** tabla edificios con título banner PA, click en fila navega a detalle edificio, misma altura que col der
 - **Fila 2 — col der:** tabla "Documentos Vencidos por Período" con título banner PA, misma altura que col izq
 - Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
 - Datos de pago vía `useDashboardPayments` → `GET /api/dashboard/payments`
-- **Drawers de documentos:** boton "Ver mas +" en cards abre `Drawer` size `lg` con `DocTableWithFilter`. Columna "Edificio" con `ColumnFilterDropdown` (checkbox multi-select), DataTable `max-h-full` con scroll interno. Datos via `useDashboardDocuments(status)` (fetch lazy al abrir). Columna "PDF" con boton descarga que invoca `GET /billing/pdf`
+- **Drawers de documentos:** botón "Ver más +" en cards abre `Drawer` size `lg` con `DocTableWithFilter`. Columna "Edificio" con `ColumnFilterDropdown` (checkbox multi-select), DataTable `max-h-full` con scroll interno. Datos via `useDashboardDocuments(status)` (fetch lazy al abrir). Columna "PDF" con botón descarga que invoca `GET /billing/pdf`. Drawer "Facturas Vencidas" incluye filtro por período de vencimiento (PillDropdown: Todos, 1-30, 31-60, 61-90, 90+ días)
 - **Layout:** sin scroll en vista, ambas filas flex-1 ocupan alto disponible
 - Selector de mes derivado de los meses disponibles en la API
 

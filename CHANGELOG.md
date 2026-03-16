@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.55.0-alpha.0] - 2026-03-16 — DASHBOARD: VISTA ANUAL, PDF LOCAL Y MEJORAS
+
+### Added
+- **Toggle Anual/Mensual** en gráfico Dashboard — vista anual agrega totales por edificio, mensual mantiene comportamiento previo
+- **Generación PDF local** — en dev, billing service ejecuta Python handler vía subprocess (sin Lambda)
+- **Filtro por período** en drawer Facturas Vencidas — PillDropdown con 5 opciones: Todos, 1-30, 31-60, 61-90, 90+ días
+- **Navegación a detalle edificio** desde tabla Dashboard — click en fila navega a `/buildings/:id`
+- **Prop `align`** en PillDropdown — `left` o `right` para controlar dirección de apertura del listado
+
+### Fixed
+- **Import handler PDF** — corregido `lambda_handler` → `handler` en billing service
+- **Labels gráfico PDF** — meses en eje horizontal ya no se superponen con barras (translate offset ajustado)
+- **Filename PDF** — mes normalizado a `YYYY-MM` en nombre de descarga
+
+### Changed
+- Drawers renombrados: "Facturas por Vencer" / "Facturas Vencidas"
+
+---
+
 ## [0.54.0-alpha.0] - 2026-03-16 — GRÁFICO TORTA EN COMPARATIVAS
 
 ### Added

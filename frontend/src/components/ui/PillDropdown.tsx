@@ -8,6 +8,7 @@ interface PillDropdownProps<T extends string> {
   onHover?: (value: T | null) => void;
   displayValue?: string;
   listWidth?: string;
+  align?: 'left' | 'right';
 }
 
 export function PillDropdown<T extends string>({
@@ -17,6 +18,7 @@ export function PillDropdown<T extends string>({
   onHover,
   displayValue,
   listWidth = 'w-56',
+  align = 'right',
 }: PillDropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,7 +39,7 @@ export function PillDropdown<T extends string>({
       </button>
 
       {open && (
-        <ul className={`absolute right-0 z-20 mt-1.5 max-h-60 ${listWidth} overflow-y-auto rounded-xl border border-pa-border bg-white py-1 shadow-lg`}>
+        <ul className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-20 mt-1.5 max-h-60 ${listWidth} overflow-y-auto rounded-xl border border-pa-border bg-white py-1 shadow-lg`}>
           {items.map((item) => (
             <li key={item.value}>
               <button

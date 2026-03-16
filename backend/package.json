@@ -15,6 +15,7 @@
     "migrate:auth": "node scripts/run-auth-migrations.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.1009.0",
     "@aws-sdk/client-secrets-manager": "^3.1007.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",

@@ -65,7 +65,7 @@
 - **Fila 2 — col der:** tabla "Documentos Vencidos por Período" con título banner PA, misma altura que col izq
 - Datos reales vía `useDashboardSummary` → `GET /api/dashboard/summary` (5 edificios × 12 meses, todos 2025)
 - Datos de pago vía `useDashboardPayments` → `GET /api/dashboard/payments`
-- **Drawers de documentos:** botón "Ver más +" en cards abre `Drawer` size `lg` con DataTable detalle. Datos vía `useDashboardDocuments(status)` (fetch lazy al abrir)
+- **Drawers de documentos:** boton "Ver mas +" en cards abre `Drawer` size `lg` con DataTable detalle. Datos via `useDashboardDocuments(status)` (fetch lazy al abrir). Columna "PDF" con boton descarga que invoca `GET /billing/pdf` y descarga el archivo
 - **Layout:** sin scroll en vista, ambas filas flex-1 ocupan alto disponible
 - Selector de mes derivado de los meses disponibles en la API
 

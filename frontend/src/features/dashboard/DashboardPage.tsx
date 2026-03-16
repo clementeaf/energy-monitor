@@ -9,6 +9,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { TogglePills } from '../../components/ui/TogglePills';
 import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
+import { fetchBillingPdf } from '../../services/endpoints';
 import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
@@ -142,6 +143,47 @@ const overdueCols: Column<OverdueBucket>[] = [
   { label: 'Monto', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
 ];
 
+function DownloadPdfButton({ row }: { row: BillingDocumentDetail }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const blob = await fetchBillingPdf(row.operatorName, row.buildingName, row.month);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${row.operatorName}-${row.month}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent fail — could add toast later
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="text-pa-blue hover:text-pa-navy disabled:opacity-40"
+      title="Descargar PDF"
+    >
+      {loading ? (
+        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
+      ) : (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M6 21h12a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 const docCols: Column<BillingDocumentDetail>[] = [
   { label: 'Operador', value: (r) => r.operatorName, align: 'left' },
   { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' },
@@ -149,6 +191,7 @@ const docCols: Column<BillingDocumentDetail>[] = [
   { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },
   { label: 'IVA', value: (r) => fmtClp(r.ivaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.ivaClp ?? 0), 0)) },
   { label: 'Total', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
+  { label: 'PDF', value: (r) => <DownloadPdfButton row={r} />, className: 'w-10' },
 ];
 
 export function DashboardPage() {

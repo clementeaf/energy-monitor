@@ -15,6 +15,8 @@
 | `backend/src/comparisons/comparisons.service.ts` | Comparativas: by-store-type, by-store-name, filters (raw SQL) |
 | `backend/src/comparisons/comparisons.controller.ts` | GET /comparisons/* (3 endpoints) |
 | `backend/serverless.yml` | Lambda 256MB, VPC, env vars |
+| `backend/billing-pdf-lambda/handler.py` | Lambda Python: genera PDF billing Globe Power |
+| `backend/billing-pdf-lambda/deploy.sh` | Deploy script Lambda Python (Docker build + AWS CLI) |
 
 ## Frontend
 | Archivo | Propósito |

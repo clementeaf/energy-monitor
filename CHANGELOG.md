@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.50.0-alpha.0] - 2026-03-16 — LAMBDA PDF BILLING + DESCARGA FRONTEND
+
+### Added
+- **Python Lambda `billing-pdf-generator`** — genera PDFs de cobro formato Globe Power on-demand desde RDS
+  - Handler recibe `{ storeName, buildingName, month }`, retorna `{ pdf: base64, filename }`
+  - Deploy independiente via `backend/billing-pdf-lambda/deploy.sh` (Docker build + AWS CLI)
+- **Endpoint `GET /billing/pdf`** — proxy NestJS que invoca Lambda Python, decodifica base64 y responde `application/pdf`
+  - Query params: `storeName`, `buildingName`, `month`
+- **Boton descarga PDF** — columna "PDF" en tablas de documentos por vencer y vencidos (DashboardPage drawers)
+  - Icono descarga con spinner durante generacion, descarga directa al browser
+
+### Infrastructure
+- **IAM** — `lambda:InvokeFunction` sobre `billing-pdf-generator` agregado al rol de la Lambda API
+- **Dependencia** — `@aws-sdk/client-lambda` agregado al backend
+
+---
+
 ## [0.49.0-alpha.0] - 2026-03-16 — PROD BILLING + PDF FACTURAS + ÁREAS EDIFICIOS
 
 ### Infrastructure

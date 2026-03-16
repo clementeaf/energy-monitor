@@ -20,6 +20,8 @@ export const routes = {
 
   // Billing
   getBilling: (buildingName: string) => `/billing/${buildingName}`,
+  getBillingPdf: (storeName: string, buildingName: string, month: string) =>
+    `/billing/pdf?storeName=${encodeURIComponent(storeName)}&buildingName=${encodeURIComponent(buildingName)}&month=${month}`,
 
   // Dashboard
   getDashboardSummary: () => '/dashboard/summary',

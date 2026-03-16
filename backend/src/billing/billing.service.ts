@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 export interface BillingMonthlySummary {
   month: string;
@@ -19,6 +20,9 @@ export interface BillingMonthlySummary {
 
 @Injectable()
 export class BillingService {
+  private readonly logger = new Logger(BillingService.name);
+  private readonly lambda = new LambdaClient({ region: 'us-east-1' });
+
   constructor(private readonly dataSource: DataSource) {}
 
   async findByBuilding(buildingName: string): Promise<BillingMonthlySummary[]> {
@@ -59,5 +63,35 @@ export class BillingService {
       montoExentoClp: parseFloat(r.montoExentoClp),
       totalConIvaClp: parseFloat(r.totalConIvaClp),
     }));
+  }
+
+  async generatePdf(
+    storeName: string,
+    buildingName: string,
+    month: string,
+  ): Promise<{ pdf: Buffer; filename: string }> {
+    const payload = JSON.stringify({ storeName, buildingName, month });
+
+    const command = new InvokeCommand({
+      FunctionName: 'billing-pdf-generator',
+      Payload: new TextEncoder().encode(payload),
+    });
+
+    const result = await this.lambda.send(command);
+    const responseStr = new TextDecoder().decode(result.Payload);
+    const response = JSON.parse(responseStr);
+
+    if (result.FunctionError || response.statusCode !== 200) {
+      const body = response.body ? JSON.parse(response.body) : response;
+      const errorMsg = body.error || 'PDF generation failed';
+      this.logger.error(`PDF Lambda error: ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+
+    const body = JSON.parse(response.body);
+    return {
+      pdf: Buffer.from(body.pdf, 'base64'),
+      filename: body.filename,
+    };
   }
 }

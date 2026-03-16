@@ -79,9 +79,10 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | GET | `/meters/building/:buildingName/latest` | `MeterLatestReading[]` (última lectura por medidor: meterId, storeName, powerKw, voltageL1, currentL1, powerFactor, timestamp) |
 
 ## Billing (`/billing`) — `@Public()`
-| Method | Path | Response |
-|---|---|---|
-| GET | `/billing/:buildingName` | `BillingMonthlySummary[]` (agregado mensual: totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp, totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp) |
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/billing/pdf` | `storeName`, `buildingName`, `month` | Binary PDF (`application/pdf`). Invoca Lambda Python `billing-pdf-generator` |
+| GET | `/billing/:buildingName` | — | `BillingMonthlySummary[]` (agregado mensual: totalKwh, energiaClp, ddaMaxKw, ddaMaxPuntaKw, kwhTroncal, kwhServPublico, cargoFijoClp, totalNetoClp, ivaClp, montoExentoClp, totalConIvaClp) |
 
 ## Alerts (`/alerts`) — `@Public()`
 | Method | Path | Query | Response |

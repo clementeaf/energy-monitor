@@ -62,3 +62,6 @@ export const fetchComparisonByStoreName = (storeNames: string[], month: string) 
 
 export const fetchAlerts = (params?: { severity?: string; meter_id?: string }) =>
   api.get<Alert[]>(routes.getAlerts(params)).then((r) => r.data);
+
+export const fetchBillingPdf = (storeName: string, buildingName: string, month: string) =>
+  api.get<Blob>(routes.getBillingPdf(storeName, buildingName, month), { responseType: 'blob' }).then((r) => r.data);

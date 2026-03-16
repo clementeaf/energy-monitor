@@ -25,22 +25,30 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- RDS prod: billing_document migrada (5,676 docs a nivel tienda con operator_name) via Lambda dbVerify
-- Backend Lambda deployado con operatorName en endpoint documents
-- building_summary: áreas actualizadas (MM 68k, SC52 5.3k, SC53 5.6k, OT 50k m²)
-- Script `generate-billing-pdf.py`: genera PDFs formato Globe Power desde pg-arauco
+- Lambda Python `billing-pdf-generator` creada (Globe Power PDF on-demand)
+- Endpoint `GET /billing/pdf` en NestJS (proxy Lambda, retorna PDF binary)
+- Boton descarga PDF en drawers documentos (DashboardPage)
+- IAM `lambda:InvokeFunction` agregado en serverless.yml
 
 ### Pendiente
-- Aplicar áreas building_summary en RDS prod
-- Subir billing_document actualizada a RDS prod (si se regenera localmente)
+- Deploy Lambda Python: `backend/billing-pdf-lambda/deploy.sh create`
+- Redeploy backend + frontend
+- Aplicar areas building_summary en RDS prod
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-RDS prod operativo. billing_document y operatorName en prod.
-Áreas building_summary actualizadas en local, pendiente en RDS.
-Script PDF facturas listo en scripts/generate-billing-pdf.py.
+Estado:
+- Lambda Python billing-pdf-generator lista, sin deploy
+- Endpoint GET /billing/pdf en NestJS (invoca Lambda, retorna PDF)
+- Frontend: boton PDF en drawers documentos por vencer/vencidos
+- RDS prod operativo (30.66M readings + 5,676 billing docs)
+
+Pendiente:
+1. Deploy Lambda Python (billing-pdf-lambda/deploy.sh create)
+2. Deploy backend (sls deploy) + frontend (S3)
+3. Aplicar areas building_summary en RDS prod
 ```
 
 ## Prioridad Actual de Acceso

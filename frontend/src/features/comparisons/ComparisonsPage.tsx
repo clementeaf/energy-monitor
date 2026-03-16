@@ -54,14 +54,14 @@ function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hi
       {
         type: 'pie',
         name: 'Consumo (kWh)',
-        center: hideFinancial ? ['50%', '50%'] : ['25%', '50%'],
+        center: (hideFinancial ? ['50%', '50%'] : ['25%', '50%']) as [string, string],
         size: '80%',
         data: points.map((p) => ({ name: p.name, y: p.kwh, color: p.color, kwh: p.kwh, clp: p.clp })),
       },
       ...(!hideFinancial ? [{
         type: 'pie' as const,
         name: 'Gasto (CLP)',
-        center: ['75%', '50%'],
+        center: ['75%', '50%'] as [string, string],
         size: '80%',
         data: points.map((p) => ({ name: p.name, y: p.clp, color: p.color, kwh: p.kwh, clp: p.clp })),
       }] : []),

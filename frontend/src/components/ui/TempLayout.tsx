@@ -8,7 +8,7 @@ import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useStores } from '../../hooks/queries/useStores';
 import { PillDropdown } from './PillDropdown';
 
-const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
+const allNavItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
 
 /** Temporary layout without auth. Replace with <Layout /> when re-enabling login. */
 
@@ -21,9 +21,15 @@ export function TempLayout() {
     selectedBuilding, setSelectedBuilding,
     selectedStoreMeterId, setSelectedStoreMeterId,
   } = useAppStore();
+  const isTecnico = userMode === 'tecnico';
   const { data: filters } = useComparisonFilters();
   const { data: buildings } = useBuildings();
   const { data: stores } = useStores();
+
+  // Hide Dashboard nav item for tecnico mode (financial-only view)
+  const navItems = isTecnico
+    ? allNavItems.filter((r) => r.path !== '/')
+    : allNavItems;
 
   const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
@@ -94,8 +100,9 @@ export function TempLayout() {
             items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
             value={userMode}
             onChange={setUserMode}
-            listWidth="w-44"
+            listWidth="w-full"
             align="left"
+            fullWidth
           />
         </div>
 
@@ -106,9 +113,10 @@ export function TempLayout() {
               items={operatorItems}
               value={selectedOperator ?? ''}
               onChange={(v) => setSelectedOperator(v || null)}
-              listWidth="w-44"
+              listWidth="w-full"
               align="left"
               placeholder="Seleccionar operador"
+              fullWidth
             />
           </div>
         )}
@@ -121,9 +129,10 @@ export function TempLayout() {
                 items={buildingItems}
                 value={selectedBuilding ?? ''}
                 onChange={(v) => setSelectedBuilding(v || null)}
-                listWidth="w-44"
+                listWidth="w-full"
                 align="left"
                 placeholder="Seleccionar edificio"
+                fullWidth
               />
             </div>
             <div className="px-3 pt-2">
@@ -131,9 +140,10 @@ export function TempLayout() {
                 items={storeItems}
                 value={selectedStoreMeterId ?? ''}
                 onChange={(v) => setSelectedStoreMeterId(v || null)}
-                listWidth="w-44"
+                listWidth="w-full"
                 align="left"
                 placeholder={selectedBuilding ? 'Seleccionar tienda' : 'Primero selecciona edificio'}
+                fullWidth
               />
             </div>
           </>

@@ -25,6 +25,7 @@ export function useOperatorFilter() {
   const { userMode, selectedOperator, selectedBuilding, selectedStoreMeterId } = useAppStore();
   const isMultiOp = userMode === 'multi_operador';
   const isOperadorMode = userMode === 'operador';
+  const isTecnico = userMode === 'tecnico';
   const isFilteredMode = isMultiOp || isOperadorMode;
   const hasOperator = isMultiOp && !!selectedOperator;
   const hasStore = isOperadorMode && !!selectedStoreMeterId;
@@ -86,6 +87,7 @@ export function useOperatorFilter() {
   return {
     isMultiOp,
     isOperadorMode,
+    isTecnico,
     isFilteredMode,
     hasOperator,
     hasStore,

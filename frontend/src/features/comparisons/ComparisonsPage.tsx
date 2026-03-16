@@ -12,7 +12,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { ComparisonRow } from '../../types';
 
-const columns: Column<ComparisonRow>[] = [
+const baseColumns: Column<ComparisonRow>[] = [
   { label: 'Edificio', value: (r) => r.buildingName, align: 'left' },
   { label: 'Consumo (kWh)', value: (r) => fmt(r.totalKwh), total: (d) => fmt(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)) },
   { label: 'Gasto ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)) },
@@ -23,7 +23,7 @@ type CompareMode = 'type' | 'name';
 
 const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
 
-function ComparisonPieChart({ data }: { data: ComparisonRow[] }) {
+function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hideFinancial?: boolean }) {
   const points = data.map((d, i) => ({
     name: SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName,
     color: PIE_COLORS[i % PIE_COLORS.length],
@@ -54,17 +54,17 @@ function ComparisonPieChart({ data }: { data: ComparisonRow[] }) {
       {
         type: 'pie',
         name: 'Consumo (kWh)',
-        center: ['25%', '50%'],
+        center: hideFinancial ? ['50%', '50%'] : ['25%', '50%'],
         size: '80%',
         data: points.map((p) => ({ name: p.name, y: p.kwh, color: p.color, kwh: p.kwh, clp: p.clp })),
       },
-      {
-        type: 'pie',
+      ...(!hideFinancial ? [{
+        type: 'pie' as const,
         name: 'Gasto (CLP)',
         center: ['75%', '50%'],
         size: '80%',
         data: points.map((p) => ({ name: p.name, y: p.clp, color: p.color, kwh: p.kwh, clp: p.clp })),
-      },
+      }] : []),
     ],
     credits: { enabled: false },
   };
@@ -72,12 +72,34 @@ function ComparisonPieChart({ data }: { data: ComparisonRow[] }) {
   return <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: '100%' } }} />;
 }
 
-function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType: ChartType }) {
-  if (chartType === 'pie') return <ComparisonPieChart data={data} />;
+function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonRow[]; chartType: ChartType; hideFinancial?: boolean }) {
+  if (chartType === 'pie') return <ComparisonPieChart data={data} hideFinancial={hideFinancial} />;
 
   const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
   const consumo = data.map((d) => d.totalKwh ?? 0);
   const gasto = data.map((d) => d.totalConIvaClp ?? 0);
+
+  const yAxes: Highcharts.YAxisOptions[] = [
+    {
+      title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
+      labels: {
+        formatter() { return fmtAxis(this.value as number); },
+        style: { color: '#6B7280', fontSize: '11px' },
+      },
+      gridLineColor: '#F3F4F6',
+    },
+  ];
+  if (!hideFinancial) {
+    yAxes.push({
+      title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
+      labels: {
+        formatter() { return `$${fmtAxis(this.value as number)}`; },
+        style: { color: '#6B7280', fontSize: '11px' },
+      },
+      opposite: true,
+      gridLineWidth: 0,
+    });
+  }
 
   const options: Highcharts.Options = {
     chart: { height: null as unknown as number, backgroundColor: 'transparent' },
@@ -89,25 +111,7 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
       lineColor: '#E5E7EB',
       tickColor: '#E5E7EB',
     },
-    yAxis: [
-      {
-        title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
-        labels: {
-          formatter() { return fmtAxis(this.value as number); },
-          style: { color: '#6B7280', fontSize: '11px' },
-        },
-        gridLineColor: '#F3F4F6',
-      },
-      {
-        title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
-        labels: {
-          formatter() { return `$${fmtAxis(this.value as number)}`; },
-          style: { color: '#6B7280', fontSize: '11px' },
-        },
-        opposite: true,
-        gridLineWidth: 0,
-      },
-    ],
+    yAxis: yAxes,
     legend: {
       itemStyle: { color: '#6B7280', fontSize: '11px' },
       itemHoverStyle: { color: '#1E3A5F' },
@@ -137,14 +141,14 @@ function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType
         color: CHART_COLORS.blue,
         yAxis: 0,
       },
-      {
+      ...(!hideFinancial ? [{
         type: chartType,
         name: 'Gasto (CLP)',
         data: gasto,
         color: CHART_COLORS.coral,
         yAxis: 1,
         marker: { radius: 4 },
-      },
+      }] : []),
     ],
     credits: { enabled: false },
   };
@@ -157,7 +161,7 @@ const toggleBtn = (active: boolean) =>
   `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
 export function ComparisonsPage() {
-  const { isFilteredMode, needsSelection, hasOperator, hasStore, selectedOperator, selectedStoreName } = useOperatorFilter();
+  const { isFilteredMode, isTecnico, needsSelection, hasOperator, hasStore, selectedOperator, selectedStoreName } = useOperatorFilter();
   const { data: filters, isLoading: loadingFilters } = useComparisonFilters();
 
   const [mode, setMode] = useState<CompareMode>(isFilteredMode ? 'name' : 'type');
@@ -165,6 +169,10 @@ export function ComparisonsPage() {
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string | undefined>(undefined);
   const [chartType, setChartType] = useState<ChartType>('column');
+
+  const columns = isTecnico
+    ? baseColumns.filter((c) => c.label !== 'Gasto ($)')
+    : baseColumns;
 
   // Set default month when filters load
   useEffect(() => {
@@ -256,7 +264,7 @@ export function ComparisonsPage() {
       </div>
 
       <Card className="min-h-0 flex-[3] flex flex-col">
-        <SectionBanner title={`${label} — Consumo y Gasto por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
+        <SectionBanner title={`${label} — ${isTecnico ? 'Consumo por Edificio' : 'Consumo y Gasto por Edificio'} — ${selectedMonthLabel}`} inline className="mb-3" />
         <div className="min-h-0 flex-1">
           {noSelection
             ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
@@ -264,7 +272,7 @@ export function ComparisonsPage() {
               ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
               : rows.length === 0
                 ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Sin datos para esta seleccion y mes</div>
-                : <ComparisonChart data={rows} chartType={chartType} />
+                : <ComparisonChart data={rows} chartType={chartType} hideFinancial={isTecnico} />
           }
         </div>
       </Card>

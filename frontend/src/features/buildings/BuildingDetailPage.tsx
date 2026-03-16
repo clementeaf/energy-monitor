@@ -36,8 +36,9 @@ export function BuildingDetailPage() {
   const { data: months, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const { isFilteredMode, operatorMeterIds, selectedOperator } = useOperatorFilter();
-  const [activeTab, setActiveTab] = useState<DetailTab>(isFilteredMode ? 'meters' : 'billing');
+  const { isFilteredMode, isTecnico, operatorMeterIds, selectedOperator } = useOperatorFilter();
+  const hideBilling = isFilteredMode || isTecnico;
+  const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export function BuildingDetailPage() {
   const latest = months[0];
 
   // In filtered modes, hide billing tab
-  const tabOptions = isFilteredMode
+  const tabOptions = hideBilling
     ? TAB_OPTIONS.filter((t) => t.value !== 'billing')
     : TAB_OPTIONS;
 
@@ -93,7 +94,7 @@ export function BuildingDetailPage() {
       {billing && billing.length > 0 && (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
           {/* Fila 1: gráfico (hidden in filtered modes) */}
-          {!isFilteredMode && (
+          {!hideBilling && (
             <Card className="flex shrink-0 flex-col">
               <SectionBanner title="" inline className="mb-3">
                 <PillDropdown
@@ -114,7 +115,7 @@ export function BuildingDetailPage() {
             </SectionBanner>
 
             <div className="min-h-0 flex-1 overflow-hidden">
-              {activeTab === 'billing' && !isFilteredMode && (
+              {activeTab === 'billing' && !hideBilling && (
                 <BillingTable
                   data={billing}
                   highlightMetric={chartMetric}

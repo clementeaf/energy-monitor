@@ -31,7 +31,7 @@
 | `PillButton` | `components/ui/PillButton.tsx` | Botón pill PA: `rounded-full border-pa-blue`, hover bg-pa-blue text-white. Usado en "Ver más +", "Volver" |
 | `SectionBanner` | `components/ui/SectionBanner.tsx` | Banner título PA: `bg-pa-bg-alt`, texto uppercase navy. Props: `title`, `children` (controles derecha), `inline` |
 | `TogglePills` | `components/ui/TogglePills.tsx` | Toggle genérico `<T extends string>`: opciones pill PA, activo `bg-pa-navy text-white`. Usado en Dashboard (Barra/Línea/Área) y BuildingDetail (tabs) |
-| `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`, `align` (`left`/`right`). Reemplaza BillingMetricSelector y MonthDropdown |
+| `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`, `align` (`left`/`right`), `fullWidth`, `placeholder`. Items truncan con tooltip |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender`, `onRowClick` abre drawer desglose. Usa `sumByKey`/`maxByKey` de `lib/aggregations` |
 | `ColumnFilterDropdown` | `features/dashboard/DashboardPage.tsx` | Dropdown genérico checkbox multi-select para filtrar columnas en DataTable. Misma UX que MonthFilterDropdown |
@@ -56,7 +56,7 @@
 | Hook | Ubicación | Uso |
 |------|-----------|-----|
 | `useClickOutside` | `hooks/useClickOutside.ts` | Acepta ref único o array de refs, parámetro `active` (default `true`). Usado en 7 componentes |
-| `useOperatorFilter` | `hooks/useOperatorFilter.ts` | Filtrado por modo. Retorna `isFilteredMode`, `needsSelection`, `operatorMeterIds`, `operatorBuildings`, `selectedStoreName`. Soporta Multi Operador (por storeName) y Operador (por meterId → 1 tienda en 1 edificio) |
+| `useOperatorFilter` | `hooks/useOperatorFilter.ts` | Filtrado por modo. Retorna `isFilteredMode`, `isTecnico`, `needsSelection`, `operatorMeterIds`, `operatorBuildings`, `selectedStoreName`. Soporta Multi Operador, Operador y Técnico |
 
 ## Modos de filtrado
 
@@ -65,9 +65,9 @@
 | Holding | — | Todo | Sin filtro |
 | Multi Operador | Operador (storeName) | N meters en M edificios | `operatorMeterIds` = meters del operador, `operatorBuildings` = edificios donde opera |
 | Operador | Edificio → Tienda | 1 meter en 1 edificio | `operatorMeterIds` = Set(1), `operatorBuildings` = Set(1) |
-| Técnico | (pendiente) | (pendiente) | (pendiente) |
+| Técnico | — | Todo (sin data financiera) | Oculta: Dashboard, columnas CLP, series Gasto, billing tab, PDFs |
 
-Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alerts) consumen `useOperatorFilter` y usan `isFilteredMode` para decidir si filtrar. Dashboard se oculta completamente en cualquier modo filtrado.
+Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alerts) consumen `useOperatorFilter`. Flags: `isFilteredMode` para filtrado por operador, `isTecnico` para ocultar data financiera. Dashboard se oculta en modo filtrado y en modo Técnico.
 
 ## DashboardPage
 

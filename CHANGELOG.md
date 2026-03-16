@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.60.0-alpha.0] - 2026-03-16 — MODO TÉCNICO + SIDEBAR RESPONSIVE
+
+### Added
+- **Modo Técnico** — ve toda la data técnica (edificios, medidores, monitoreo, alertas, comparativas) pero oculta todo lo financiero
+- **Flag `isTecnico`** en `useOperatorFilter` — disponible para todas las vistas
+- **Prop `fullWidth`** en `PillDropdown` — botón ocupa 100% del contenedor, labels largos se truncan con tooltip
+
+### Changed
+- **Dashboard** — bloqueado en modo Técnico con mensaje específico
+- **Nav sidebar** — oculta Dashboard en modo Técnico
+- **BuildingDetail** — oculta gráfico facturación y tab billing en modo Técnico (mismo patrón que modos filtrados)
+- **Comparativas** — oculta columna Gasto ($), eje CLP en gráficos, pie Gasto (CLP) y ajusta títulos de sección
+- **Sidebar dropdowns** — todos usan `fullWidth` para respetar el ancho del sidebar sin desbordarse
+
+---
+
 ## [0.59.0-alpha.0] - 2026-03-16 — FIX PDF EN PROD + TEST ENDPOINTS
 
 ### Fixed

@@ -373,7 +373,7 @@ function DocTableWithFilter({
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { isFilteredMode } = useOperatorFilter();
+  const { isFilteredMode, isTecnico } = useOperatorFilter();
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
   const [drawerPorVencer, setDrawerPorVencer] = useState(false);
@@ -431,13 +431,15 @@ export function DashboardPage() {
   const activeData = viewMode === 'anual' ? yearlyData : (byMonth[selectedMonth] ?? []);
   const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
-  if (isFilteredMode) {
+  if (isFilteredMode || isTecnico) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <p className="text-lg font-semibold text-pa-navy">Dashboard no disponible</p>
           <p className="mt-1 text-sm text-pa-text-muted">
-            El dashboard de costos por edificio no está disponible en este modo.
+            {isTecnico
+              ? 'El dashboard financiero no está disponible en modo técnico.'
+              : 'El dashboard de costos por edificio no está disponible en este modo.'}
           </p>
           <p className="mt-0.5 text-sm text-pa-text-muted">
             Navega a Edificios, Comparativas o Monitoreo para ver datos de tu operación.

@@ -25,25 +25,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Multi Operador + Modo Operador implementados con `useOperatorFilter`
+- Multi Operador + Modo Operador + Modo Técnico implementados con `useOperatorFilter`
+- Técnico: oculta Dashboard, columnas CLP, series Gasto, billing tab en BuildingDetail
+- Sidebar dropdowns responsive con `fullWidth` (sin desborde)
 - PDF en prod — fix interceptor, binary settings, psycopg2 x86_64
 - 24 endpoints verificados en prod, todos OK
-- Deploy backend (CI) + billing-pdf-generator (manual Docker)
 
 ### Pendiente
-- Lógica condicional para modo `tecnico`
-- Nav items condicionales por modo (ocultar rutas según rol)
+- Deploy frontend a S3/CloudFront con cambios de modo Técnico
+- Nav items condicionales por rol (cuando auth se reactive)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Multi Operador y Operador implementados — useOperatorFilter unifica ambos modos
-- PDF en prod funcionando (fix interceptor + binary settings + psycopg2 x86_64)
+- 4 modos implementados: Holding, Multi Operador, Operador, Técnico
+- useOperatorFilter unifica filtrado (isFilteredMode) y visibilidad financiera (isTecnico)
+- PDF en prod funcionando
 - 24 endpoints verificados OK en prod
 
-Pendiente: modo tecnico, nav condicional por rol
+Pendiente: deploy frontend, nav condicional por rol con auth
 ```
 
 ## Prioridad Actual de Acceso

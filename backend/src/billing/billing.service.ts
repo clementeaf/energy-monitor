@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import * as path from 'path';
+
+const execFileAsync = promisify(execFile);
 
 export interface BillingMonthlySummary {
   month: string;
@@ -105,6 +110,61 @@ export class BillingService {
   }
 
   async generatePdf(
+    storeName: string,
+    buildingName: string,
+    month: string,
+  ): Promise<{ pdf: Buffer; filename: string }> {
+    // Normalize month: strip ISO timestamp to YYYY-MM-DD
+    const normalizedMonth = month.slice(0, 10);
+
+    if (process.env.NODE_ENV !== 'production') {
+      return this.generatePdfLocal(storeName, buildingName, normalizedMonth);
+    }
+    return this.generatePdfLambda(storeName, buildingName, normalizedMonth);
+  }
+
+  private async generatePdfLocal(
+    storeName: string,
+    buildingName: string,
+    month: string,
+  ): Promise<{ pdf: Buffer; filename: string }> {
+    const handlerPath = path.resolve(__dirname, '../../billing-pdf-lambda/handler.py');
+    const script = `
+import sys, json
+sys.path.insert(0, '${path.dirname(handlerPath).replace(/'/g, "\\'")}')
+from handler import handler as lambda_handler
+event = json.loads(sys.argv[1])
+result = lambda_handler(event, None)
+print(json.dumps(result))
+`;
+    const event = JSON.stringify({ storeName, buildingName, month });
+
+    const { stdout } = await execFileAsync('python3', ['-c', script, event], {
+      env: {
+        ...process.env,
+        DB_HOST: process.env.DB_HOST || '127.0.0.1',
+        DB_PORT: process.env.DB_PORT || '5434',
+        DB_NAME: process.env.DB_NAME || 'arauco',
+        DB_USERNAME: process.env.DB_USERNAME || 'postgres',
+        DB_PASSWORD: process.env.DB_PASSWORD || 'arauco',
+      },
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    const response = JSON.parse(stdout.trim());
+    if (response.statusCode !== 200) {
+      const body = response.body ? JSON.parse(response.body) : response;
+      throw new Error(body.error || 'Local PDF generation failed');
+    }
+
+    const body = JSON.parse(response.body);
+    return {
+      pdf: Buffer.from(body.pdf, 'base64'),
+      filename: body.filename,
+    };
+  }
+
+  private async generatePdfLambda(
     storeName: string,
     buildingName: string,
     month: string,

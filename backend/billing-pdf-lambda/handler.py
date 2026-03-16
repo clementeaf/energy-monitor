@@ -567,7 +567,7 @@ class BillingPDF:
 
             label = fmt_month_label(slot_month)
             self.c.saveState()
-            self.c.translate(bx + bar_w / 2, chart_y - 5)
+            self.c.translate(bx + bar_w / 2, chart_y - 18)
             self.c.rotate(45)
             self._text(0, 0, label, size=5.5)
             self.c.restoreState()

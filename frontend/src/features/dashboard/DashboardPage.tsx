@@ -154,7 +154,7 @@ function DownloadPdfButton({ row }: { row: BillingDocumentDetail }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${row.operatorName}-${row.month}.pdf`;
+      a.download = `${row.operatorName}-${row.month.slice(0, 7)}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -317,9 +317,9 @@ export function DashboardPage() {
   const { data: porVencerDocs } = useDashboardDocuments('por_vencer', drawerPorVencer);
   const { data: vencidosDocs } = useDashboardDocuments('vencido', drawerVencidos);
 
-  // Derive months and group by month
-  const { months, byMonth } = useMemo(() => {
-    if (!summary) return { months: [] as string[], byMonth: {} as Record<string, BuildingRow[]> };
+  // Derive months, group by month, and compute yearly totals
+  const { months, byMonth, yearlyData } = useMemo(() => {
+    if (!summary) return { months: [] as string[], byMonth: {} as Record<string, BuildingRow[]>, yearlyData: [] as BuildingRow[] };
 
     const grouped: Record<string, DashboardBuildingMonth[]> = {};
     for (const row of summary) {
@@ -339,9 +339,18 @@ export function DashboardPage() {
       }));
     }
 
-    return { months: sortedMonths, byMonth: mapped };
+    // Aggregate yearly totals per building
+    const acc: Record<string, BuildingRow> = {};
+    for (const row of summary) {
+      const b = acc[row.buildingName] ??= { name: row.buildingName, totalKwh: 0, totalConIvaClp: 0, areaSqm: row.areaSqm, totalMeters: row.totalMeters };
+      b.totalKwh = (b.totalKwh ?? 0) + (row.totalKwh ?? 0);
+      b.totalConIvaClp = (b.totalConIvaClp ?? 0) + (row.totalConIvaClp ?? 0);
+    }
+
+    return { months: sortedMonths, byMonth: mapped, yearlyData: Object.values(acc) };
   }, [summary]);
 
+  const [viewMode, setViewMode] = useState<'anual' | 'mensual'>('anual');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [chartType, setChartType] = useState<ChartType>('column');
 
@@ -354,7 +363,7 @@ export function DashboardPage() {
 
   if (isLoading) return <DashboardSkeleton />;
 
-  const monthData = byMonth[selectedMonth] ?? [];
+  const activeData = viewMode === 'anual' ? yearlyData : (byMonth[selectedMonth] ?? []);
   const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
   return (
@@ -364,16 +373,23 @@ export function DashboardPage() {
         <Card>
           <SectionBanner title="Consumo y Gasto por Edificio" className="mb-3 justify-between">
             <div className="flex items-center gap-2">
-              <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
-              <PillDropdown
-                items={monthItems}
-                value={selectedMonth}
-                onChange={setSelectedMonth}
-                listWidth="w-36"
+              <TogglePills
+                options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
+                value={viewMode}
+                onChange={setViewMode}
               />
+              <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
+              {viewMode === 'mensual' && (
+                <PillDropdown
+                  items={monthItems}
+                  value={selectedMonth}
+                  onChange={setSelectedMonth}
+                  listWidth="w-36"
+                />
+              )}
             </div>
           </SectionBanner>
-          <ComboChart data={monthData} chartType={chartType} />
+          <ComboChart data={activeData} chartType={chartType} />
         </Card>
 
         <div className="flex flex-col gap-3">
@@ -402,10 +418,16 @@ export function DashboardPage() {
       {/* Fila 2: ambas tablas alineadas, misma altura */}
       <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card className="flex flex-col">
-          <SectionBanner title={`Consumo Mensual por Edificio — ${monthLabel(selectedMonth)}`} inline className="mb-3" />
+          <SectionBanner
+            title={viewMode === 'anual'
+              ? 'Consumo Anual por Edificio'
+              : `Consumo Mensual por Edificio — ${monthLabel(selectedMonth)}`}
+            inline
+            className="mb-3"
+          />
           <div className="min-h-0 flex-1">
             <DataTable
-              data={monthData}
+              data={activeData}
               columns={buildingCols}
               rowKey={(r) => r.name}
               footer
@@ -432,7 +454,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <Drawer open={drawerPorVencer} onClose={() => setDrawerPorVencer(false)} title="Documentos por Vencer" size="lg">
+      <Drawer open={drawerPorVencer} onClose={() => setDrawerPorVencer(false)} title="Facturas por Vencer" size="lg">
         {porVencerDocs ? (
           <DocTableWithFilter data={porVencerDocs} />
         ) : (
@@ -440,7 +462,7 @@ export function DashboardPage() {
         )}
       </Drawer>
 
-      <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Documentos Vencidos" size="lg">
+      <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Facturas Vencidas" size="lg">
         {vencidosDocs ? (
           <DocTableWithFilter data={vencidosDocs} />
         ) : (

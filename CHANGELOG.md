@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.58.0-alpha.0] - 2026-03-16 — MODO OPERADOR
+
+### Added
+- **Modo Operador** — usuario selecciona edificio → tienda en sidebar, todas las vistas filtran a ese 1 medidor
+- **Selectores edificio + tienda** en sidebar (`PillDropdown`) — visibles solo en modo Operador, tienda se habilita al elegir edificio
+- **Campos `selectedBuilding` y `selectedStoreMeterId`** en `useAppStore` — persistidos en sessionStorage, se limpian al cambiar modo
+- **Flags `isFilteredMode`, `needsSelection`, `hasStore`, `isOperadorMode`** en `useOperatorFilter` — unifican la lógica de filtrado para ambos modos (Multi Operador y Operador)
+- **`selectedStoreName`** en `useOperatorFilter` — lookup del nombre de tienda desde meterId para compatibilidad con API de comparativas
+
+### Changed
+- **6 vistas** actualizadas: reemplazan checks `isMultiOp` por `isFilteredMode` — ambos modos (Multi Operador y Operador) comparten la misma lógica de filtrado
+- **`useOperatorFilter`** — extendido para cubrir ambos modos; outputs unificados (`operatorMeterIds`, `operatorBuildings`) alimentados por cualquiera de los dos modos
+- **`setUserMode`** — ahora resetea también `selectedBuilding` y `selectedStoreMeterId`
+
+---
+
 ## [0.57.0-alpha.0] - 2026-03-16 — MULTI OPERADOR: VISIBILIDAD CONDICIONAL
 
 ### Added

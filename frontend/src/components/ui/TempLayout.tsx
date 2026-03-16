@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { appRoutes, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
 import { useComparisonFilters } from '../../hooks/queries/useComparisons';
+import { useBuildings } from '../../hooks/queries/useBuildings';
+import { useStores } from '../../hooks/queries/useStores';
 import { PillDropdown } from './PillDropdown';
 
 const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
@@ -12,10 +15,52 @@ const navItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showIn
 export function TempLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userMode, setUserMode, selectedOperator, setSelectedOperator } = useAppStore();
+  const {
+    userMode, setUserMode,
+    selectedOperator, setSelectedOperator,
+    selectedBuilding, setSelectedBuilding,
+    selectedStoreMeterId, setSelectedStoreMeterId,
+  } = useAppStore();
   const { data: filters } = useComparisonFilters();
+  const { data: buildings } = useBuildings();
+  const { data: stores } = useStores();
 
   const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
+
+  // Building dropdown items for operador mode — unique building names
+  const buildingItems = useMemo(() => {
+    if (!buildings) return [];
+    const seen = new Set<string>();
+    const items: { value: string; label: string }[] = [];
+    for (const b of buildings) {
+      if (!seen.has(b.buildingName)) {
+        seen.add(b.buildingName);
+        items.push({ value: b.buildingName, label: b.buildingName });
+      }
+    }
+    return items;
+  }, [buildings]);
+
+  // Store dropdown items for operador mode — filtered by selected building prefix
+  const storeItems = useMemo(() => {
+    if (!stores || !selectedBuilding) return [];
+    return stores
+      .filter((s) => {
+        // Match stores whose building matches selectedBuilding
+        // Building name is in buildingItems, we need to match meter prefix to building
+        // Use the same mapping as useOperatorFilter
+        const prefix = s.meterId.match(/^(SC\d+|[A-Z]+)/)?.[1] ?? '';
+        const BUILDING_PREFIX_MAP: Record<string, string> = {
+          MG: 'Mallplaza Gestión',
+          MM: 'Mallplaza Mirador',
+          OT: 'Oficina Transoceánica',
+          SC52: 'SC 52',
+          SC53: 'SC 53',
+        };
+        return BUILDING_PREFIX_MAP[prefix] === selectedBuilding;
+      })
+      .map((s) => ({ value: s.meterId, label: `${s.storeName} (${s.meterId})` }));
+  }, [stores, selectedBuilding]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-base">
@@ -66,6 +111,32 @@ export function TempLayout() {
               placeholder="Seleccionar operador"
             />
           </div>
+        )}
+
+        {/* Building + Store selectors (operador only) */}
+        {userMode === 'operador' && (
+          <>
+            <div className="px-3 pt-2">
+              <PillDropdown
+                items={buildingItems}
+                value={selectedBuilding ?? ''}
+                onChange={(v) => setSelectedBuilding(v || null)}
+                listWidth="w-44"
+                align="left"
+                placeholder="Seleccionar edificio"
+              />
+            </div>
+            <div className="px-3 pt-2">
+              <PillDropdown
+                items={storeItems}
+                value={selectedStoreMeterId ?? ''}
+                onChange={(v) => setSelectedStoreMeterId(v || null)}
+                listWidth="w-44"
+                align="left"
+                placeholder={selectedBuilding ? 'Seleccionar tienda' : 'Primero selecciona edificio'}
+              />
+            </div>
+          </>
         )}
 
         {/* Nav — PA numbered items with pill bg */}

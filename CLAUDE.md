@@ -25,14 +25,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Multi Operador: visibilidad condicional completa — selector operador en sidebar, ocultamiento/filtrado en 6 vistas
-- Hook centralizado `useOperatorFilter` para filtrado client-side por operador
-- Dashboard, Buildings, BuildingDetail, Comparisons, Monitoring, Alerts filtran/ocultan según modo
+- Multi Operador + Modo Operador implementados
+- `useOperatorFilter` unifica filtrado para ambos modos (`isFilteredMode`, `needsSelection`)
+- 6 vistas usan `isFilteredMode` en vez de `isMultiOp` — soportan ambos modos sin duplicar lógica
+- Sidebar: selector operador (multi_operador) o edificio+tienda (operador)
 
 ### Pendiente
-- Deploy cambios a prod (incluye commits previos + multi-operador)
+- Deploy cambios a prod (incluye commits previos + multi-operador + operador)
 - Test end-to-end descarga PDF en prod
-- Lógica condicional para modos `operador` y `tecnico`
+- Lógica condicional para modo `tecnico`
 - Nav items condicionales por modo (ocultar rutas según rol)
 
 ### Prompt de retoma
@@ -40,12 +41,13 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Multi Operador implementado: selector operador en sidebar, 6 vistas con filtrado/ocultamiento
-- useOperatorFilter centraliza lógica (operatorMeterIds, operatorBuildings)
-- Modos operador y tecnico aún sin lógica específica
+- Multi Operador y Operador implementados — useOperatorFilter unifica ambos modos
+- Sidebar: operador PillDropdown (multi_operador) o edificio+tienda PillDropdowns (operador)
+- 6 vistas usan isFilteredMode/needsSelection — soportan ambos modos
+- Modo tecnico aún sin lógica específica
 - PDF local funcional, pendiente deploy a prod
 
-Pendiente: deploy prod, test PDF, modos operador/tecnico, nav condicional
+Pendiente: deploy prod, test PDF, modo tecnico, nav condicional
 ```
 
 ## Prioridad Actual de Acceso
@@ -75,7 +77,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 
 ## Frontend Patterns
 - **API layer (3-file):** `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use<Entity>.ts`
-- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator)
+- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator + selectedBuilding + selectedStoreMeterId)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`

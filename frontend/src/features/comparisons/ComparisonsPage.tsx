@@ -157,10 +157,10 @@ const toggleBtn = (active: boolean) =>
   `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
 export function ComparisonsPage() {
-  const { isMultiOp, hasOperator, selectedOperator } = useOperatorFilter();
+  const { isFilteredMode, needsSelection, hasOperator, hasStore, selectedOperator, selectedStoreName } = useOperatorFilter();
   const { data: filters, isLoading: loadingFilters } = useComparisonFilters();
 
-  const [mode, setMode] = useState<CompareMode>(isMultiOp ? 'name' : 'type');
+  const [mode, setMode] = useState<CompareMode>(isFilteredMode ? 'name' : 'type');
   const [selectedTypeIds, setSelectedTypeIds] = useState<string[]>([]);
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string | undefined>(undefined);
@@ -174,9 +174,9 @@ export function ComparisonsPage() {
     }
   }, [filters, selectedMonth]);
 
-  // In multi_operador mode, force name mode and pre-select operator
-  const effectiveMode = isMultiOp ? 'name' : mode;
-  const effectiveNames = isMultiOp && hasOperator ? [selectedOperator!] : selectedNames;
+  // In filtered modes, force name mode and pre-select operator/store
+  const effectiveMode = isFilteredMode ? 'name' : mode;
+  const effectiveNames = hasOperator ? [selectedOperator!] : hasStore && selectedStoreName ? [selectedStoreName] : isFilteredMode ? [] : selectedNames;
 
   const typeIds = selectedTypeIds.map(Number);
   const typeQuery = useComparisonByStoreType(
@@ -193,14 +193,14 @@ export function ComparisonsPage() {
 
   const label = effectiveMode === 'type'
     ? selectedTypeIds.map((id) => filters?.storeTypes.find((st) => st.id === Number(id))?.name).filter(Boolean).join(', ') || 'Tipo de Tienda'
-    : (isMultiOp && hasOperator ? selectedOperator! : effectiveNames.join(', ') || 'Tienda');
+    : (effectiveNames.join(', ') || 'Tienda');
   const selectedMonthLabel = selectedMonth ? monthLabel(selectedMonth) : '';
 
   const typeOptions = (filters?.storeTypes ?? []).map((st) => ({ value: String(st.id), label: st.name }));
   const nameOptions = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
-  const noSelection = isMultiOp
-    ? !hasOperator
+  const noSelection = isFilteredMode
+    ? needsSelection
     : effectiveMode === 'type' ? selectedTypeIds.length === 0 : selectedNames.length === 0;
 
   if (loadingFilters) {
@@ -210,15 +210,15 @@ export function ComparisonsPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="flex items-center gap-4">
-        {!isMultiOp && (
+        {!isFilteredMode && (
           <div className="flex gap-1">
             <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
             <button className={toggleBtn(mode === 'name')} onClick={() => { setMode('name'); if (chartType === 'pie') setChartType('column'); }}>Por Tienda</button>
           </div>
         )}
 
-        {isMultiOp ? (
-          <span className="text-xs font-medium text-pa-navy">{hasOperator ? selectedOperator : 'Selecciona un operador'}</span>
+        {isFilteredMode ? (
+          <span className="text-xs font-medium text-pa-navy">{needsSelection ? 'Selecciona en el sidebar' : effectiveNames.join(', ')}</span>
         ) : effectiveMode === 'type' ? (
           <MultiSelect
             options={typeOptions}
@@ -259,7 +259,7 @@ export function ComparisonsPage() {
         <SectionBanner title={`${label} — Consumo y Gasto por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
         <div className="min-h-0 flex-1">
           {noSelection
-            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isMultiOp ? 'Selecciona un operador en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
+            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
               : rows.length === 0
@@ -273,7 +273,7 @@ export function ComparisonsPage() {
         <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
         <div className="min-h-0 flex-1 overflow-auto">
           {noSelection
-            ? <div className="p-4 text-[13px] text-pa-text-muted">{isMultiOp ? 'Selecciona un operador en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
+            ? <div className="p-4 text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona en el sidebar' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
               : <DataTable

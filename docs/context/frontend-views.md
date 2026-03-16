@@ -56,6 +56,18 @@
 | Hook | Ubicación | Uso |
 |------|-----------|-----|
 | `useClickOutside` | `hooks/useClickOutside.ts` | Acepta ref único o array de refs, parámetro `active` (default `true`). Usado en 7 componentes |
+| `useOperatorFilter` | `hooks/useOperatorFilter.ts` | Filtrado por modo. Retorna `isFilteredMode`, `needsSelection`, `operatorMeterIds`, `operatorBuildings`, `selectedStoreName`. Soporta Multi Operador (por storeName) y Operador (por meterId → 1 tienda en 1 edificio) |
+
+## Modos de filtrado
+
+| Modo | Selector sidebar | Scope | Datos filtrados |
+|------|-----------------|-------|-----------------|
+| Holding | — | Todo | Sin filtro |
+| Multi Operador | Operador (storeName) | N meters en M edificios | `operatorMeterIds` = meters del operador, `operatorBuildings` = edificios donde opera |
+| Operador | Edificio → Tienda | 1 meter en 1 edificio | `operatorMeterIds` = Set(1), `operatorBuildings` = Set(1) |
+| Técnico | (pendiente) | (pendiente) | (pendiente) |
+
+Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alerts) consumen `useOperatorFilter` y usan `isFilteredMode` para decidir si filtrar. Dashboard se oculta completamente en cualquier modo filtrado.
 
 ## DashboardPage
 

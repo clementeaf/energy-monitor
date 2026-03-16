@@ -36,8 +36,8 @@ export function BuildingDetailPage() {
   const { data: months, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const { isMultiOp, operatorMeterIds, selectedOperator } = useOperatorFilter();
-  const [activeTab, setActiveTab] = useState<DetailTab>(isMultiOp ? 'meters' : 'billing');
+  const { isFilteredMode, operatorMeterIds, selectedOperator } = useOperatorFilter();
+  const [activeTab, setActiveTab] = useState<DetailTab>(isFilteredMode ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -47,20 +47,20 @@ export function BuildingDetailPage() {
   // Filter meters to operator's meters in multi_operador mode
   const filteredMeters = useMemo(() => {
     if (!meters) return meters;
-    if (isMultiOp && operatorMeterIds) {
+    if (isFilteredMode && operatorMeterIds) {
       return meters.filter((m) => operatorMeterIds.has(m.meterId));
     }
     return meters;
-  }, [meters, isMultiOp, operatorMeterIds]);
+  }, [meters, isFilteredMode, operatorMeterIds]);
 
   // Filter store breakdown to operator's stores in multi_operador mode
   const filteredStoreBreakdown = useMemo(() => {
     if (!storeBreakdown) return storeBreakdown;
-    if (isMultiOp && selectedOperator) {
+    if (isFilteredMode && selectedOperator) {
       return storeBreakdown.filter((s) => s.storeName === selectedOperator);
     }
     return storeBreakdown;
-  }, [storeBreakdown, isMultiOp, selectedOperator]);
+  }, [storeBreakdown, isFilteredMode, selectedOperator]);
 
   const drawerColumns: Column<BillingStoreBreakdown>[] = useMemo(() => [
     { label: 'Tienda', value: (r) => r.storeName, total: () => 'Total', align: 'left' as const },
@@ -78,8 +78,8 @@ export function BuildingDetailPage() {
 
   const latest = months[0];
 
-  // In multi_operador mode, hide billing tab
-  const tabOptions = isMultiOp
+  // In filtered modes, hide billing tab
+  const tabOptions = isFilteredMode
     ? TAB_OPTIONS.filter((t) => t.value !== 'billing')
     : TAB_OPTIONS;
 
@@ -92,8 +92,8 @@ export function BuildingDetailPage() {
 
       {billing && billing.length > 0 && (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Fila 1: gráfico (hidden in multi_operador) */}
-          {!isMultiOp && (
+          {/* Fila 1: gráfico (hidden in filtered modes) */}
+          {!isFilteredMode && (
             <Card className="flex shrink-0 flex-col">
               <SectionBanner title="" inline className="mb-3">
                 <PillDropdown
@@ -114,7 +114,7 @@ export function BuildingDetailPage() {
             </SectionBanner>
 
             <div className="min-h-0 flex-1 overflow-hidden">
-              {activeTab === 'billing' && !isMultiOp && (
+              {activeTab === 'billing' && !isFilteredMode && (
                 <BillingTable
                   data={billing}
                   highlightMetric={chartMetric}

@@ -75,20 +75,20 @@ const columns: Column<MeterLatestReading>[] = [
 
 export function RealtimePage() {
   const { data, isLoading, isError } = useMetersLatest(BUILDING);
-  const { isMultiOp, hasOperator, operatorMeterIds } = useOperatorFilter();
+  const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
 
   const filteredData = useMemo(() => {
     if (!data) return data;
-    if (isMultiOp && hasOperator && operatorMeterIds) {
+    if (isFilteredMode && operatorMeterIds) {
       return data.filter((m) => operatorMeterIds.has(m.meterId));
     }
     return data;
-  }, [data, isMultiOp, hasOperator, operatorMeterIds]);
+  }, [data, isFilteredMode, operatorMeterIds]);
 
-  if (isMultiOp && !hasOperator) {
+  if (needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-pa-text-muted">Selecciona un operador en el sidebar para ver sus medidores.</p>
+        <p className="text-sm text-pa-text-muted">Selecciona un operador o tienda en el sidebar para ver sus medidores.</p>
       </div>
     );
   }

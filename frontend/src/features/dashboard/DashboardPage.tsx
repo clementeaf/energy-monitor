@@ -11,7 +11,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { TogglePills } from '../../components/ui/TogglePills';
 import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
-import { useAppStore } from '../../store/useAppStore';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fetchBillingPdf } from '../../services/endpoints';
 import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
@@ -373,8 +373,7 @@ function DocTableWithFilter({
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { userMode } = useAppStore();
-  const isMultiOp = userMode === 'multi_operador';
+  const { isFilteredMode } = useOperatorFilter();
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
   const [drawerPorVencer, setDrawerPorVencer] = useState(false);
@@ -432,11 +431,11 @@ export function DashboardPage() {
   const activeData = viewMode === 'anual' ? yearlyData : (byMonth[selectedMonth] ?? []);
   const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
-  if (isMultiOp) {
+  if (isFilteredMode) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-semibold text-pa-navy">Modo Multi Operador</p>
+          <p className="text-lg font-semibold text-pa-navy">Dashboard no disponible</p>
           <p className="mt-1 text-sm text-pa-text-muted">
             El dashboard de costos por edificio no está disponible en este modo.
           </p>

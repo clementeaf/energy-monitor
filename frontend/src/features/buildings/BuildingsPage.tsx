@@ -21,7 +21,7 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 export function BuildingsPage() {
   const navigate = useNavigate();
   const { data: buildings, isLoading } = useBuildings();
-  const { isMultiOp, hasOperator, operatorBuildings } = useOperatorFilter();
+  const { isFilteredMode, needsSelection, operatorBuildings } = useOperatorFilter();
 
   if (isLoading) return <BuildingsPageSkeleton />;
 
@@ -35,15 +35,15 @@ export function BuildingsPage() {
 
   let cards = [...latest.values()];
 
-  // Filter to operator's buildings in multi_operador mode
-  if (isMultiOp && hasOperator && operatorBuildings) {
+  // Filter to operator's buildings in filtered modes
+  if (isFilteredMode && operatorBuildings) {
     cards = cards.filter((b) => operatorBuildings.has(b.buildingName));
   }
 
-  if (isMultiOp && !hasOperator) {
+  if (needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-pa-text-muted">Selecciona un operador en el sidebar para ver sus edificios.</p>
+        <p className="text-sm text-pa-text-muted">Selecciona un operador o tienda en el sidebar para ver sus edificios.</p>
       </div>
     );
   }

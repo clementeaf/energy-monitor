@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.62.0-alpha.0] - 2026-03-16 — REFACTOR: IF-CHAINS → MAPPINGS DECLARATIVOS
+
+### Changed
+- **Badge builder** — `badgeRules` array declarativo en AlertsPage y RealtimePage (reemplaza 5 `if` consecutivos)
+- **`getStatus()`** — `STATUS_THRESHOLDS` array con `.find()` en RealtimePage (reemplaza 3 `if`-return)
+- **`parseDateFilterFromParams()`** — función extraída en AlertsPage y RealtimePage (elimina duplicación URL→DateFilterState)
+- **Filter predicates** — `FILTER_CHECKS` array con `.every()` en ambas vistas de alertas (reemplaza 5-7 `if` consecutivos)
+- **`rangeToPeriodValue()`** — `PERIOD_PREFIXES.find()` en DashboardPage (reemplaza 4 `if`)
+- **`matchesPeriod()`** — `PERIOD_RANGES` record con funciones predicado en DashboardPage (reemplaza 4 `if`)
+- **MetersTable** — `UNOCCUPIED_NAMES` Set module-level (reemplaza 4 `||` encadenados)
+
+---
+
+## [0.61.0-alpha.0] - 2026-03-16 — PIE CHARTS + INFINITE SCROLL GLOBAL
+
+### Added
+- **Torta** como modo de gráfico en MonthlyColumnChart, Dashboard ComboChart y Comparativas
+- **PillDropdown** para selector de mes en Comparativas (reemplaza `<select>`)
+
+### Changed
+- **DataTable** — simplificado a infinite scroll global cuando se pasa `pageSize` (eliminada paginación clásica y prop `infiniteScroll`)
+- **MetersTable** — usa DataTable directo con `pageSize={20}` (antes usaba PaginatedTable)
+
+### Removed
+- **PaginatedTable** — componente eliminado, sin usos restantes
+
+---
+
 ## [0.60.0-alpha.0] - 2026-03-16 — MODO TÉCNICO + SIDEBAR RESPONSIVE
 
 ### Added

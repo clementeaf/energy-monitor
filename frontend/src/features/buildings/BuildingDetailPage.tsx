@@ -9,7 +9,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { TogglePills } from '../../components/ui/TogglePills';
 import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding } from '../../hooks/queries/useBuildings';
-import { useBilling, useBillingStores } from '../../hooks/queries/useBilling';
+import { useBilling, useBillingStores, useBillingAllStores } from '../../hooks/queries/useBilling';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fmtClp, fmtNum, monthName } from '../../lib/formatters';
@@ -36,14 +36,51 @@ export function BuildingDetailPage() {
   const { data: months, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const { isFilteredMode, isTecnico, operatorMeterIds, selectedOperator } = useOperatorFilter();
-  const hideBilling = isFilteredMode || isTecnico;
+  const { isFilteredMode, isTecnico, operatorMeterIds, selectedOperator, selectedStoreName } = useOperatorFilter();
+  const hideBilling = isTecnico;
   const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const { data: storeBreakdown, isLoading: loadingStores } = useBillingStores(id!, selectedMonth);
+
+  // Operator name for filtering store breakdowns
+  const filterOpName = selectedOperator ?? selectedStoreName ?? null;
+
+  // Fetch all months' store breakdowns when in filtered mode to compute operator-level billing
+  const billingMonths = useMemo(() => billing?.map((b) => b.month) ?? [], [billing]);
+  const { data: allStoresData } = useBillingAllStores(id!, billingMonths, isFilteredMode && !!filterOpName);
+
+  // Aggregate store breakdowns into BillingMonthlySummary per month, filtered by operator
+  const operatorBilling = useMemo(() => {
+    if (!allStoresData || !filterOpName) return null;
+    return allStoresData.map(({ month, stores }) => {
+      const opStores = stores.filter((s) => s.storeName === filterOpName);
+      const sum = (key: keyof BillingStoreBreakdown) =>
+        opStores.reduce((acc, s) => acc + ((s[key] as number) ?? 0), 0);
+      const max = (key: keyof BillingStoreBreakdown) =>
+        opStores.reduce((acc, s) => Math.max(acc, (s[key] as number) ?? 0), 0);
+      return {
+        month,
+        totalMeters: opStores.length,
+        totalKwh: sum('totalKwh'),
+        energiaClp: sum('energiaClp'),
+        ddaMaxKw: max('ddaMaxKw'),
+        ddaMaxPuntaKw: max('ddaMaxPuntaKw'),
+        kwhTroncal: sum('kwhTroncal'),
+        kwhServPublico: sum('kwhServPublico'),
+        cargoFijoClp: sum('cargoFijoClp'),
+        totalNetoClp: sum('totalNetoClp'),
+        ivaClp: sum('ivaClp'),
+        montoExentoClp: sum('montoExentoClp'),
+        totalConIvaClp: sum('totalConIvaClp'),
+      };
+    });
+  }, [allStoresData, filterOpName]);
+
+  // Use operator-level billing in filtered mode, building-level otherwise
+  const effectiveBilling = (isFilteredMode && operatorBilling) ? operatorBilling : billing;
 
   // Filter meters to operator's meters in multi_operador mode
   const filteredMeters = useMemo(() => {
@@ -91,7 +128,7 @@ export function BuildingDetailPage() {
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
       </div>
 
-      {billing && billing.length > 0 && (
+      {effectiveBilling && effectiveBilling.length > 0 && (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
           {/* Fila 1: gráfico (hidden in filtered modes) */}
           {!hideBilling && (
@@ -104,7 +141,7 @@ export function BuildingDetailPage() {
                   onHover={setHoveredMetric}
                 />
               </SectionBanner>
-              <BillingChart data={billing} metric={chartMetric} />
+              <BillingChart data={effectiveBilling} metric={chartMetric} />
             </Card>
           )}
 
@@ -117,7 +154,7 @@ export function BuildingDetailPage() {
             <div className="min-h-0 flex-1 overflow-hidden">
               {activeTab === 'billing' && !hideBilling && (
                 <BillingTable
-                  data={billing}
+                  data={effectiveBilling}
                   highlightMetric={chartMetric}
                   hoveredMetric={hoveredMetric}
                   onRowClick={(row) => setSelectedMonth(row.month)}

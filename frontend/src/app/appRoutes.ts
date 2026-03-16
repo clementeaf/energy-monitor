@@ -58,7 +58,7 @@ export const appRoutes = {
     path: '/alerts',
     label: 'Alertas',
     allowedRoles: PERMISSIONS.ALERTS_OVERVIEW.view,
-    showInNav: true,
+    // Merged into Monitoreo page as a tab
   },
   alertDetail: {
     path: '/alerts/:id',

@@ -10,6 +10,7 @@ export interface MeterListItem {
 export interface MeterLatestReading {
   meterId: string;
   storeName: string;
+  buildingName: string;
   powerKw: number | null;
   voltageL1: number | null;
   currentL1: number | null;
@@ -47,6 +48,7 @@ export class MetersService {
       `SELECT
          m.meter_id        AS "meterId",
          COALESCE(s.store_name, 'Por censar') AS "storeName",
+         $1                AS "buildingName",
          r.power_kw        AS "powerKw",
          r.voltage_l1      AS "voltageL1",
          r.current_l1      AS "currentL1",
@@ -70,6 +72,7 @@ export class MetersService {
     return rows.map((r: Record<string, unknown>) => ({
       meterId: r.meterId as string,
       storeName: r.storeName as string,
+      buildingName: r.buildingName as string,
       powerKw: r.powerKw !== null ? parseFloat(String(r.powerKw)) : null,
       voltageL1: r.voltageL1 !== null ? parseFloat(String(r.voltageL1)) : null,
       currentL1: r.currentL1 !== null ? parseFloat(String(r.currentL1)) : null,

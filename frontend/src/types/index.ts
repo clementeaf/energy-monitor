@@ -70,6 +70,7 @@ export interface MeterReading {
 export interface MeterLatestReading {
   meterId: string;
   storeName: string;
+  buildingName: string;
   powerKw: number | null;
   voltageL1: number | null;
   currentL1: number | null;
@@ -89,6 +90,8 @@ export interface Alert {
   threshold: number | null;
   message: string | null;
   createdAt: string;
+  storeName: string;
+  buildingName: string;
 }
 
 // Matches backend dashboard/summary endpoint
@@ -107,6 +110,11 @@ export interface ComparisonRow {
   totalKwh: number | null;
   totalConIvaClp: number | null;
   totalMeters: number;
+  ddaMaxKw: number | null;
+  ddaMaxPuntaKw: number | null;
+  kwhTroncal: number | null;
+  kwhServPublico: number | null;
+  energiaClp: number | null;
 }
 
 export interface ComparisonFilters {

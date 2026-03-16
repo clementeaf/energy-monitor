@@ -6,6 +6,11 @@ export interface ComparisonRow {
   totalKwh: number | null;
   totalConIvaClp: number | null;
   totalMeters: number;
+  ddaMaxKw: number | null;
+  ddaMaxPuntaKw: number | null;
+  kwhTroncal: number | null;
+  kwhServPublico: number | null;
+  energiaClp: number | null;
 }
 
 export interface ComparisonFilters {
@@ -22,10 +27,15 @@ export class ComparisonsService {
     if (storeTypeIds.length === 0) return [];
     const rows = await this.dataSource.query(
       `SELECT
-         mmb.building_name          AS "buildingName",
-         SUM(mmb.total_kwh)         AS "totalKwh",
-         SUM(mmb.total_con_iva_clp) AS "totalConIvaClp",
-         COUNT(DISTINCT s.meter_id) AS "totalMeters"
+         mmb.building_name              AS "buildingName",
+         SUM(mmb.total_kwh)             AS "totalKwh",
+         SUM(mmb.total_con_iva_clp)     AS "totalConIvaClp",
+         COUNT(DISTINCT s.meter_id)     AS "totalMeters",
+         SUM(mmb.dda_max_kw)            AS "ddaMaxKw",
+         SUM(mmb.dda_max_punta_kw)      AS "ddaMaxPuntaKw",
+         SUM(mmb.kwh_troncal)           AS "kwhTroncal",
+         SUM(mmb.kwh_serv_publico)      AS "kwhServPublico",
+         SUM(mmb.energia_clp)           AS "energiaClp"
        FROM store s
        JOIN meter_monthly_billing mmb ON s.meter_id = mmb.meter_id
        WHERE s.store_type_id = ANY($1) AND mmb.month = $2
@@ -34,22 +44,22 @@ export class ComparisonsService {
       [storeTypeIds, month],
     );
 
-    return rows.map((r: Record<string, unknown>) => ({
-      buildingName: r.buildingName as string,
-      totalKwh: r.totalKwh !== null ? parseFloat(String(r.totalKwh)) : null,
-      totalConIvaClp: r.totalConIvaClp !== null ? parseFloat(String(r.totalConIvaClp)) : null,
-      totalMeters: parseInt(String(r.totalMeters), 10),
-    }));
+    return rows.map((r: Record<string, unknown>) => this.parseRow(r));
   }
 
   async getByStoreName(storeNames: string[], month: string): Promise<ComparisonRow[]> {
     if (storeNames.length === 0) return [];
     const rows = await this.dataSource.query(
       `SELECT
-         mmb.building_name          AS "buildingName",
-         SUM(mmb.total_kwh)         AS "totalKwh",
-         SUM(mmb.total_con_iva_clp) AS "totalConIvaClp",
-         COUNT(DISTINCT s.meter_id) AS "totalMeters"
+         mmb.building_name              AS "buildingName",
+         SUM(mmb.total_kwh)             AS "totalKwh",
+         SUM(mmb.total_con_iva_clp)     AS "totalConIvaClp",
+         COUNT(DISTINCT s.meter_id)     AS "totalMeters",
+         SUM(mmb.dda_max_kw)            AS "ddaMaxKw",
+         SUM(mmb.dda_max_punta_kw)      AS "ddaMaxPuntaKw",
+         SUM(mmb.kwh_troncal)           AS "kwhTroncal",
+         SUM(mmb.kwh_serv_publico)      AS "kwhServPublico",
+         SUM(mmb.energia_clp)           AS "energiaClp"
        FROM store s
        JOIN meter_monthly_billing mmb ON s.meter_id = mmb.meter_id
        WHERE s.store_name = ANY($1) AND mmb.month = $2
@@ -58,12 +68,22 @@ export class ComparisonsService {
       [storeNames, month],
     );
 
-    return rows.map((r: Record<string, unknown>) => ({
+    return rows.map((r: Record<string, unknown>) => this.parseRow(r));
+  }
+
+  private parseRow(r: Record<string, unknown>): ComparisonRow {
+    const num = (v: unknown) => (v !== null && v !== undefined ? parseFloat(String(v)) : null);
+    return {
       buildingName: r.buildingName as string,
-      totalKwh: r.totalKwh !== null ? parseFloat(String(r.totalKwh)) : null,
-      totalConIvaClp: r.totalConIvaClp !== null ? parseFloat(String(r.totalConIvaClp)) : null,
+      totalKwh: num(r.totalKwh),
+      totalConIvaClp: num(r.totalConIvaClp),
       totalMeters: parseInt(String(r.totalMeters), 10),
-    }));
+      ddaMaxKw: num(r.ddaMaxKw),
+      ddaMaxPuntaKw: num(r.ddaMaxPuntaKw),
+      kwhTroncal: num(r.kwhTroncal),
+      kwhServPublico: num(r.kwhServPublico),
+      energiaClp: num(r.energiaClp),
+    };
   }
 
   async getFilters(): Promise<ComparisonFilters> {

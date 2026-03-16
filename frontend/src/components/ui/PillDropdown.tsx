@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
 interface PillDropdownProps<T extends string> {
@@ -12,6 +12,8 @@ interface PillDropdownProps<T extends string> {
   placeholder?: string;
   /** Makes button fill container width and truncates long labels */
   fullWidth?: boolean;
+  /** Shows a search input at the top of the dropdown list */
+  searchable?: boolean;
 }
 
 export function PillDropdown<T extends string>({
@@ -24,12 +26,29 @@ export function PillDropdown<T extends string>({
   align = 'right',
   placeholder,
   fullWidth,
+  searchable,
 }: PillDropdownProps<T>) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useClickOutside(ref, () => setOpen(false), open);
 
   const currentLabel = displayValue ?? items.find((i) => i.value === value)?.label ?? placeholder ?? value;
+
+  // Reset search and focus input when opening
+  useEffect(() => {
+    if (open && searchable) {
+      setSearch('');
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [open, searchable]);
+
+  const filtered = useMemo(() => {
+    if (!searchable || !search) return items;
+    const q = search.toLowerCase();
+    return items.filter((i) => i.label.toLowerCase().includes(q));
+  }, [items, search, searchable]);
 
   return (
     <div ref={ref} className={`relative ${fullWidth ? 'block' : 'inline-block'}`}>
@@ -44,23 +63,40 @@ export function PillDropdown<T extends string>({
       </button>
 
       {open && (
-        <ul className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-20 mt-1.5 max-h-60 ${listWidth} overflow-y-auto rounded-xl border border-pa-border bg-white py-1 shadow-lg`}>
-          {items.map((item) => (
-            <li key={item.value}>
-              <button
-                onClick={() => { onChange(item.value); setOpen(false); onHover?.(null); }}
-                onMouseEnter={() => onHover?.(item.value)}
-                onMouseLeave={() => onHover?.(null)}
-                className={`block w-full truncate px-3 py-1.5 text-left text-[13px] transition-colors ${
-                  item.value === value ? 'bg-pa-bg-alt font-semibold text-pa-navy' : 'text-pa-text-muted hover:bg-pa-bg-alt hover:text-pa-navy'
-                }`}
-                title={item.label}
-              >
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-20 mt-1.5 ${listWidth} rounded-xl border border-pa-border bg-white shadow-lg`}>
+          {searchable && (
+            <div className="px-2 pt-2 pb-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full rounded-lg border border-pa-border px-2.5 py-1.5 text-[12px] text-pa-text outline-none focus:border-pa-blue"
+              />
+            </div>
+          )}
+          <ul className="max-h-60 overflow-y-auto py-1">
+            {filtered.length === 0 && (
+              <li className="px-3 py-1.5 text-[12px] text-pa-text-muted">Sin resultados</li>
+            )}
+            {filtered.map((item) => (
+              <li key={item.value}>
+                <button
+                  onClick={() => { onChange(item.value); setOpen(false); setSearch(''); onHover?.(null); }}
+                  onMouseEnter={() => onHover?.(item.value)}
+                  onMouseLeave={() => onHover?.(null)}
+                  className={`block w-full truncate px-3 py-1.5 text-left text-[13px] transition-colors ${
+                    item.value === value ? 'bg-pa-bg-alt font-semibold text-pa-navy' : 'text-pa-text-muted hover:bg-pa-bg-alt hover:text-pa-navy'
+                  }`}
+                  title={item.label}
+                >
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

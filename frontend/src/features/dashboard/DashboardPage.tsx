@@ -575,8 +575,8 @@ export function DashboardPage() {
         <Card className="flex flex-col">
           <SectionBanner
             title={viewMode === 'anual'
-              ? 'Consumo Anual por Edificio'
-              : `Consumo Mensual por Edificio — ${monthLabel(selectedMonth)}`}
+              ? `Consumo Anual por Edificio${selectedOperator ? ` — ${selectedOperator}` : ''}`
+              : `Consumo Mensual por Edificio — ${monthLabel(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}`}
             inline
             className="mb-3"
           />

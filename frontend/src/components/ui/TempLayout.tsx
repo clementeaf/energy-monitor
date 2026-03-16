@@ -82,7 +82,7 @@ export function TempLayout() {
         </div>
 
         {/* Mode selector */}
-        <div className="px-3">
+        <div className="relative z-30 px-3">
           <PillDropdown
             items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
             value={userMode}
@@ -95,7 +95,7 @@ export function TempLayout() {
 
         {/* Operator selector (multi_operador only) */}
         {userMode === 'multi_operador' && (
-          <div className="px-3 pt-2">
+          <div className="relative z-20 px-3 pt-2">
             <PillDropdown
               items={operatorItems}
               value={selectedOperator ?? ''}
@@ -111,7 +111,7 @@ export function TempLayout() {
         {/* Building + Store selectors (operador only) */}
         {userMode === 'operador' && (
           <>
-            <div className="px-3 pt-2">
+            <div className="relative z-20 px-3 pt-2">
               <PillDropdown
                 items={buildingItems}
                 value={selectedBuilding ?? ''}
@@ -122,7 +122,7 @@ export function TempLayout() {
                 fullWidth
               />
             </div>
-            <div className="px-3 pt-2">
+            <div className="relative z-10 px-3 pt-2">
               <PillDropdown
                 items={storeItems}
                 value={selectedStoreMeterId ?? ''}
@@ -131,6 +131,7 @@ export function TempLayout() {
                 align="left"
                 placeholder={selectedBuilding ? 'Seleccionar tienda' : 'Primero selecciona edificio'}
                 fullWidth
+                searchable
               />
             </div>
           </>

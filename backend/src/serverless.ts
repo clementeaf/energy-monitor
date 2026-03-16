@@ -28,7 +28,12 @@ async function bootstrap() {
   setupSwagger(app);
 
   await app.init();
-  return serverlessExpress({ app: expressApp });
+  return serverlessExpress({
+    app: expressApp,
+    binarySettings: {
+      contentTypes: ['application/pdf', 'application/octet-stream'],
+    },
+  });
 }
 
 export const handler: Handler = async (event: unknown, context: Context, callback: Callback) => {

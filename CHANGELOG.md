@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.54.0-alpha.0] - 2026-03-16 — GRÁFICO TORTA EN COMPARATIVAS
+
+### Added
+- **Gráfico Torta** en Comparativas (modo "Por Tipo") — dos pies lado a lado: Consumo kWh y Gasto CLP
+- **Botón "Torta"** condicional en selector de tipo de gráfico (solo visible en modo "Por Tipo")
+- **`ChartType`** extendido con `'pie'`
+
+### Changed
+- Al cambiar de "Por Tipo" a "Por Tienda" con torta activa, resetea a barra automáticamente
+
+---
+
 ## [0.53.0-alpha.0] - 2026-03-16 — SELECTOR MODO USUARIO EN SIDEBAR
 
 ### Added

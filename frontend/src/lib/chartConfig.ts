@@ -1,4 +1,4 @@
-export type ChartType = 'column' | 'line' | 'area';
+export type ChartType = 'column' | 'line' | 'area' | 'pie';
 
 export const CHART_COLORS = {
   blue: '#3D3BF3',

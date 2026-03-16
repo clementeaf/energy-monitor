@@ -25,14 +25,14 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
+- Gráfico Torta en Comparativas (modo "Por Tipo", dos pies: Consumo + Gasto)
 - Selector modo usuario en sidebar (`PillDropdown`: Holding, Operador, Técnico)
-- Estado `userMode` en `useAppStore` persistido en sessionStorage
 - Drawer desglose por tienda en BuildingDetailPage
 - Filtro por edificio en drawers documentos Dashboard
 - Deploy completo prod: backend + frontend + Lambda PDF + RDS
 
 ### Pendiente
-- Deploy cambios pendientes (drawer tiendas + filtro edificio + selector modo)
+- Deploy cambios pendientes
 - Test end-to-end descarga PDF en prod
 - Lógica condicional por `userMode` (filtrar vistas/nav según modo)
 - [siguiente tarea]
@@ -42,7 +42,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Selector modo usuario (Holding/Operador/Técnico) en sidebar con PillDropdown
+- Gráfico Torta en Comparativas + selector modo usuario en sidebar
 - Commits pendientes de deploy a prod
 - Prod: 4 Lambdas, RDS 30.66M readings, 5,676 billing docs
 

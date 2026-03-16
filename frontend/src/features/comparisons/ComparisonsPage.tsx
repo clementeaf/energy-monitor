@@ -20,7 +20,60 @@ const columns: Column<ComparisonRow>[] = [
 
 type CompareMode = 'type' | 'name';
 
+const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
+
+function ComparisonPieChart({ data }: { data: ComparisonRow[] }) {
+  const points = data.map((d, i) => ({
+    name: SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName,
+    color: PIE_COLORS[i % PIE_COLORS.length],
+    kwh: d.totalKwh ?? 0,
+    clp: d.totalConIvaClp ?? 0,
+  }));
+
+  const options: Highcharts.Options = {
+    chart: { height: null as unknown as number, backgroundColor: 'transparent' },
+    title: { text: undefined },
+    tooltip: {
+      useHTML: true,
+      ...LIGHT_TOOLTIP_STYLE,
+      pointFormatter() {
+        const p = this as Highcharts.Point & { kwh?: number; clp?: number };
+        return p.series.name === 'Consumo (kWh)'
+          ? `<b>${fmt(p.y!)} kWh</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`
+          : `<b>${fmtClp(p.y!)}</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`;
+      },
+    },
+    plotOptions: {
+      pie: {
+        borderWidth: 0,
+        dataLabels: { enabled: true, format: '{point.name}', style: { fontSize: '11px', color: '#6B7280', textOutline: 'none' } },
+      },
+    },
+    series: [
+      {
+        type: 'pie',
+        name: 'Consumo (kWh)',
+        center: ['25%', '50%'],
+        size: '80%',
+        data: points.map((p) => ({ name: p.name, y: p.kwh, color: p.color, kwh: p.kwh, clp: p.clp })),
+      },
+      {
+        type: 'pie',
+        name: 'Gasto (CLP)',
+        center: ['75%', '50%'],
+        size: '80%',
+        data: points.map((p) => ({ name: p.name, y: p.clp, color: p.color, kwh: p.kwh, clp: p.clp })),
+      },
+    ],
+    credits: { enabled: false },
+  };
+
+  return <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: '100%' } }} />;
+}
+
 function ComparisonChart({ data, chartType }: { data: ComparisonRow[]; chartType: ChartType }) {
+  if (chartType === 'pie') return <ComparisonPieChart data={data} />;
+
   const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
   const consumo = data.map((d) => d.totalKwh ?? 0);
   const gasto = data.map((d) => d.totalConIvaClp ?? 0);
@@ -151,7 +204,7 @@ export function ComparisonsPage() {
       <div className="flex items-center gap-4">
         <div className="flex gap-1">
           <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
-          <button className={toggleBtn(mode === 'name')} onClick={() => setMode('name')}>Por Tienda</button>
+          <button className={toggleBtn(mode === 'name')} onClick={() => { setMode('name'); if (chartType === 'pie') setChartType('column'); }}>Por Tienda</button>
         </div>
 
         {mode === 'type' ? (
@@ -184,6 +237,9 @@ export function ComparisonsPage() {
           <button className={toggleBtn(chartType === 'column')} onClick={() => setChartType('column')}>Barra</button>
           <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Línea</button>
           <button className={toggleBtn(chartType === 'area')} onClick={() => setChartType('area')}>Área</button>
+          {mode === 'type' && (
+            <button className={toggleBtn(chartType === 'pie')} onClick={() => setChartType('pie')}>Torta</button>
+          )}
         </div>
       </div>
 

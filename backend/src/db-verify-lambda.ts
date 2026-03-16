@@ -32,6 +32,36 @@ function dateFmt(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+async function updateBuildingAreas(client: Client): Promise<string[]> {
+  const log: string[] = [];
+
+  const areas: Record<string, number> = {
+    'Parque Arauco Kennedy': 120000,
+    'Arauco Estación': 68000,
+    'Arauco Premium Outlet Buenaventura': 50000,
+    'Arauco Express Ciudad Empresarial': 5302,
+    'Arauco Express El Carmen de Huechuraba': 5650,
+  };
+
+  for (const [name, area] of Object.entries(areas)) {
+    const res = await client.query(
+      'UPDATE building_summary SET area_sqm = $1 WHERE building_name = $2 AND (area_sqm IS NULL OR area_sqm != $1)',
+      [area, name],
+    );
+    log.push(`${name}: ${res.rowCount} rows updated to ${area} m²`);
+  }
+
+  // Verify
+  const { rows } = await client.query(
+    'SELECT building_name, COUNT(*)::int AS total, COUNT(area_sqm)::int AS with_area FROM building_summary GROUP BY building_name ORDER BY building_name',
+  );
+  for (const r of rows) {
+    log.push(`  ${r.building_name}: ${r.with_area}/${r.total} rows have area`);
+  }
+
+  return log;
+}
+
 async function migrateBillingDocuments(client: Client): Promise<string[]> {
   const log: string[] = [];
 
@@ -188,7 +218,12 @@ export const handler = async () => {
 
   try {
     await client.connect();
-    const log = await migrateBillingDocuments(client);
+    const log: string[] = [];
+
+    // Run all migrations
+    const areaLog = await updateBuildingAreas(client);
+    log.push('=== Building Areas ===', ...areaLog);
+
     return { statusCode: 200, body: log };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

@@ -25,30 +25,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Lambda Python `billing-pdf-generator` creada (Globe Power PDF on-demand)
-- Endpoint `GET /billing/pdf` en NestJS (proxy Lambda, retorna PDF binary)
-- Boton descarga PDF en drawers documentos (DashboardPage)
-- IAM `lambda:InvokeFunction` agregado en serverless.yml
+- Lambda Python `billing-pdf-generator` deployada en AWS (Python 3.12, VPC, 512 MB)
+- Backend redeployado (3 Lambdas, 28 MB) + Frontend en S3 + CloudFront invalidado
+- Áreas building_summary verificadas en RDS prod (60/60 rows)
+- Endpoint `GET /billing/pdf` + botón descarga PDF en dashboard operativos
 
 ### Pendiente
-- Deploy Lambda Python: `backend/billing-pdf-lambda/deploy.sh create`
-- Redeploy backend + frontend
-- Aplicar areas building_summary en RDS prod
+- Probar descarga PDF end-to-end en prod (energymonitor.click)
+- Verificar que Lambda PDF responde correctamente desde VPC
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- Lambda Python billing-pdf-generator lista, sin deploy
-- Endpoint GET /billing/pdf en NestJS (invoca Lambda, retorna PDF)
-- Frontend: boton PDF en drawers documentos por vencer/vencidos
-- RDS prod operativo (30.66M readings + 5,676 billing docs)
+- Prod 100% deployado: backend + frontend + Lambda PDF
+- RDS prod: 30.66M readings, 5,676 billing docs, áreas OK
+- 4 Lambdas activas: api, offlineAlerts, dbVerify, billing-pdf-generator
 
 Pendiente:
-1. Deploy Lambda Python (billing-pdf-lambda/deploy.sh create)
-2. Deploy backend (sls deploy) + frontend (S3)
-3. Aplicar areas building_summary en RDS prod
+1. Test end-to-end descarga PDF en prod
+2. [siguiente tarea]
 ```
 
 ## Prioridad Actual de Acceso

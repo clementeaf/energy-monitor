@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.51.0-alpha.0] - 2026-03-16 — DEPLOY COMPLETO PROD
+
+### Infrastructure
+- **Lambda `billing-pdf-generator`** deployada a AWS (Python 3.12, VPC, 512 MB)
+- **Backend** redeployado — 3 Lambdas (api, offlineAlerts, dbVerify) a 28 MB
+- **Frontend** subido a S3 + invalidación CloudFront
+- **RDS** áreas building_summary verificadas (60/60 rows con area_sqm)
+
+### Fixed
+- **deploy.sh** — `--entrypoint ""` para imagen Docker Lambda Python (entrypoint bloqueaba `bash -c`)
+
+---
+
 ## [0.50.0-alpha.0] - 2026-03-16 — LAMBDA PDF BILLING + DESCARGA FRONTEND
 
 ### Added

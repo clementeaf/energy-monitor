@@ -24,7 +24,7 @@ rm -rf "$BUILD_DIR" "$ZIP_FILE"
 mkdir -p "$BUILD_DIR"
 
 # Install deps using Docker for Linux compatibility
-docker run --rm -v "$BUILD_DIR":/out -v "$SCRIPT_DIR":/src \
+docker run --rm --entrypoint "" -v "$BUILD_DIR":/out -v "$SCRIPT_DIR":/src \
   public.ecr.aws/lambda/python:3.12 \
   bash -c "pip install -r /src/requirements.txt -t /out && cp /src/handler.py /out/"
 

@@ -532,7 +532,7 @@ function AlertsTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set
       columns={columns}
       rowKey={(r) => String(r.id)}
       pageSize={30}
-      infiniteScroll
+
       maxHeight=""
       emptyMessage="Sin alertas detectadas"
       tableClassName="table-fixed"
@@ -612,7 +612,7 @@ function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds:
       rowKey={(r) => r.meterId}
       maxHeight=""
       pageSize={30}
-      infiniteScroll
+
       emptyMessage={isError ? 'Error al cargar datos' : 'Sin datos'}
     />
   );

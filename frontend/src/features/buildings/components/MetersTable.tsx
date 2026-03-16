@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router';
-import { PaginatedTable } from '../../../components/ui/PaginatedTable';
-import type { Column } from '../../../components/ui/DataTable';
+import { DataTable, type Column } from '../../../components/ui/DataTable';
 import type { MeterListItem } from '../../../types';
 
 interface MetersTableProps {
@@ -29,14 +28,13 @@ export function MetersTable({ data, buildingName }: MetersTableProps) {
   ];
 
   return (
-    <PaginatedTable
+    <DataTable
       data={data}
       columns={columns}
       rowKey={(r) => r.meterId}
       onRowClick={(r) => navigate(`/meters/${r.meterId}`, { state: { buildingName } })}
       maxHeight="max-h-none"
-      pageSize={10}
-      itemLabel="medidores"
+      pageSize={20}
     />
   );
 }

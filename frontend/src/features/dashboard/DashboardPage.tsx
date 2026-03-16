@@ -38,7 +38,10 @@ const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
   { value: 'column', label: 'Barra' },
   { value: 'line', label: 'Línea' },
   { value: 'area', label: 'Área' },
+  { value: 'pie', label: 'Torta' },
 ];
+
+const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
 
 function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: ChartType }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,89 +50,128 @@ function ComboChart({ data, chartType }: { data: BuildingRow[]; chartType: Chart
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const categories = data.map((b) => SHORT_BUILDING_NAMES[b.name] ?? b.name);
+    // Destroy previous chart on every re-render to handle pie ↔ non-pie transitions
+    chartRef.current?.destroy();
+    chartRef.current = null;
+
+    const names = data.map((b) => SHORT_BUILDING_NAMES[b.name] ?? b.name);
     const consumo = data.map((b) => b.totalKwh ?? 0);
     const gasto = data.map((b) => b.totalConIvaClp ?? 0);
 
-    if (chartRef.current) {
-      chartRef.current.xAxis[0].setCategories(categories, false);
-      chartRef.current.series[0].update({ type: chartType } as Highcharts.SeriesOptionsType, false);
-      chartRef.current.series[1].update({ type: chartType } as Highcharts.SeriesOptionsType, false);
-      chartRef.current.series[0].setData(consumo, false);
-      chartRef.current.series[1].setData(gasto, true);
-      return;
-    }
+    if (chartType === 'pie') {
+      const points = data.map((b, i) => ({
+        name: names[i],
+        color: PIE_COLORS[i % PIE_COLORS.length],
+        kwh: b.totalKwh ?? 0,
+        clp: b.totalConIvaClp ?? 0,
+      }));
 
-    chartRef.current = Highcharts.chart({
-      chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current! },
-      title: { text: undefined },
-      xAxis: {
-        categories,
-        labels: {
-          rotation: -45,
-          style: { fontSize: '11px', color: '#6B7280' },
-        },
-        lineColor: '#E5E7EB',
-        tickColor: '#E5E7EB',
-      },
-      yAxis: [
-        {
-          title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
-          labels: {
-            formatter() { return fmtAxis(this.value as number); },
-            style: { color: '#6B7280', fontSize: '11px' },
+      chartRef.current = Highcharts.chart({
+        chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current! },
+        title: { text: undefined },
+        tooltip: {
+          useHTML: true,
+          ...LIGHT_TOOLTIP_STYLE,
+          pointFormatter() {
+            const p = this as Highcharts.Point;
+            return p.series.name === 'Consumo (kWh)'
+              ? `<b>${(p.y ?? 0).toLocaleString('es-CL')} kWh</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`
+              : `<b>${fmtClp(p.y ?? 0)}</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`;
           },
-          gridLineColor: '#F3F4F6',
         },
-        {
-          title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
-          labels: {
-            formatter() { return `$${fmtAxis(this.value as number)}`; },
-            style: { color: '#6B7280', fontSize: '11px' },
+        plotOptions: {
+          pie: {
+            borderWidth: 0,
+            dataLabels: { enabled: true, format: '{point.name}', style: { fontSize: '11px', color: '#6B7280', textOutline: 'none' } },
           },
-          opposite: true,
-          gridLineWidth: 0,
         },
-      ],
-      legend: {
-        itemStyle: { color: '#1F2937', fontSize: '12px' },
-        itemHoverStyle: { color: CHART_COLORS.blue },
-      },
-      tooltip: {
-        shared: true,
-        useHTML: true,
-        ...LIGHT_TOOLTIP_STYLE,
-        formatter() {
-          const points = this.points!;
-          let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
-          for (const p of points) {
-            const val = p.series.name === 'Consumo (kWh)'
-              ? `${(p.y ?? 0).toLocaleString('es-CL')} kWh`
-              : fmtClp(p.y ?? 0);
-            html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
-          }
-          return html;
+        series: [
+          {
+            type: 'pie',
+            name: 'Consumo (kWh)',
+            center: ['25%', '50%'],
+            size: '80%',
+            data: points.map((p) => ({ name: p.name, y: p.kwh, color: p.color })),
+          },
+          {
+            type: 'pie',
+            name: 'Gasto (CLP)',
+            center: ['75%', '50%'],
+            size: '80%',
+            data: points.map((p) => ({ name: p.name, y: p.clp, color: p.color })),
+          },
+        ],
+        credits: { enabled: false },
+      });
+    } else {
+      chartRef.current = Highcharts.chart({
+        chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current! },
+        title: { text: undefined },
+        xAxis: {
+          categories: names,
+          labels: { rotation: -45, style: { fontSize: '11px', color: '#6B7280' } },
+          lineColor: '#E5E7EB',
+          tickColor: '#E5E7EB',
         },
-      },
-      plotOptions: LIGHT_PLOT_OPTIONS,
-      series: [
-        {
-          type: chartType as 'column' | 'line' | 'area',
-          name: 'Consumo (kWh)',
-          data: consumo,
-          color: CHART_COLORS.blue,
-          yAxis: 0,
+        yAxis: [
+          {
+            title: { text: 'Consumo (kWh)', style: { color: CHART_COLORS.blue, fontSize: '11px' } },
+            labels: {
+              formatter() { return fmtAxis(this.value as number); },
+              style: { color: '#6B7280', fontSize: '11px' },
+            },
+            gridLineColor: '#F3F4F6',
+          },
+          {
+            title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
+            labels: {
+              formatter() { return `$${fmtAxis(this.value as number)}`; },
+              style: { color: '#6B7280', fontSize: '11px' },
+            },
+            opposite: true,
+            gridLineWidth: 0,
+          },
+        ],
+        legend: {
+          itemStyle: { color: '#1F2937', fontSize: '12px' },
+          itemHoverStyle: { color: CHART_COLORS.blue },
         },
-        {
-          type: chartType as 'column' | 'line' | 'area',
-          name: 'Gasto (CLP)',
-          data: gasto,
-          color: CHART_COLORS.coral,
-          yAxis: 1,
+        tooltip: {
+          shared: true,
+          useHTML: true,
+          ...LIGHT_TOOLTIP_STYLE,
+          formatter() {
+            const points = this.points!;
+            let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
+            for (const p of points) {
+              const val = p.series.name === 'Consumo (kWh)'
+                ? `${(p.y ?? 0).toLocaleString('es-CL')} kWh`
+                : fmtClp(p.y ?? 0);
+              html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
+            }
+            return html;
+          },
         },
-      ],
-      credits: { enabled: false },
-    });
+        plotOptions: LIGHT_PLOT_OPTIONS,
+        series: [
+          {
+            type: chartType as 'column' | 'line' | 'area',
+            name: 'Consumo (kWh)',
+            data: consumo,
+            color: CHART_COLORS.blue,
+            yAxis: 0,
+          },
+          {
+            type: chartType as 'column' | 'line' | 'area',
+            name: 'Gasto (CLP)',
+            data: gasto,
+            color: CHART_COLORS.coral,
+            yAxis: 1,
+          },
+        ],
+        credits: { enabled: false },
+      });
+    }
 
     return () => {
       chartRef.current?.destroy();

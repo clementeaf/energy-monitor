@@ -9,6 +9,7 @@ import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import { SectionBanner } from '../../components/ui/SectionBanner';
+import { PillDropdown } from '../../components/ui/PillDropdown';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { ComparisonRow } from '../../types';
 
@@ -227,7 +228,6 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
   return <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: '100%' } }} />;
 }
 
-const selectClass = 'rounded border border-pa-border bg-white px-2 py-1 text-xs text-pa-text outline-none focus:border-pa-blue';
 const toggleBtn = (active: boolean) =>
   `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
@@ -316,23 +316,18 @@ export function ComparisonsPage() {
           />
         )}
 
-        <select
+        <PillDropdown
+          items={(filters?.months ?? []).map((m) => ({ value: m, label: monthLabel(m) }))}
           value={selectedMonth ?? ''}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className={selectClass}
-        >
-          {filters?.months.map((m) => (
-            <option key={m} value={m}>{monthLabel(m)}</option>
-          ))}
-        </select>
+          onChange={setSelectedMonth}
+          align="left"
+        />
 
         <div className="ml-auto flex gap-1">
           <button className={toggleBtn(chartType === 'column')} onClick={() => setChartType('column')}>Barra</button>
           <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Línea</button>
           <button className={toggleBtn(chartType === 'area')} onClick={() => setChartType('area')}>Área</button>
-          {effectiveMode === 'type' && (
-            <button className={toggleBtn(chartType === 'pie')} onClick={() => setChartType('pie')}>Torta</button>
-          )}
+          <button className={toggleBtn(chartType === 'pie')} onClick={() => setChartType('pie')}>Torta</button>
         </div>
       </div>
 

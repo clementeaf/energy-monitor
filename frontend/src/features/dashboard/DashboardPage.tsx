@@ -307,13 +307,18 @@ const OVERDUE_PERIODS = [
   { value: '90+', label: '90+ días' },
 ];
 
+const PERIOD_PREFIXES = ['1-30', '31-60', '61-90', '90+'];
+
+const PERIOD_RANGES: Record<string, (days: number) => boolean> = {
+  '1-30': (d) => d >= 1 && d <= 30,
+  '31-60': (d) => d >= 31 && d <= 60,
+  '61-90': (d) => d >= 61 && d <= 90,
+  '90+': (d) => d > 90,
+};
+
 /** Maps backend range label (e.g. "1-30 días") to filter value ("1-30"). */
 function rangeToPeriodValue(range: string): string {
-  if (range.startsWith('1-30')) return '1-30';
-  if (range.startsWith('31-60')) return '31-60';
-  if (range.startsWith('61-90')) return '61-90';
-  if (range.startsWith('90+')) return '90+';
-  return 'all';
+  return PERIOD_PREFIXES.find((p) => range.startsWith(p)) ?? 'all';
 }
 
 function daysOverdue(dueDate: string): number {
@@ -323,13 +328,7 @@ function daysOverdue(dueDate: string): number {
 }
 
 function matchesPeriod(dueDate: string, period: string): boolean {
-  if (period === 'all') return true;
-  const days = daysOverdue(dueDate);
-  if (period === '1-30') return days >= 1 && days <= 30;
-  if (period === '31-60') return days >= 31 && days <= 60;
-  if (period === '61-90') return days >= 61 && days <= 90;
-  if (period === '90+') return days > 90;
-  return true;
+  return period === 'all' || (PERIOD_RANGES[period]?.(daysOverdue(dueDate)) ?? true);
 }
 
 function DocTableWithFilter({

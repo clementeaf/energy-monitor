@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router';
 import { DataTable, type Column } from '../../../components/ui/DataTable';
 import type { MeterListItem } from '../../../types';
 
+const UNOCCUPIED_NAMES = new Set(['Por censar', 'Sin informacion', 'Local no sensado']);
+
 interface MetersTableProps {
   data: MeterListItem[];
   buildingName: string;
@@ -17,12 +19,7 @@ export function MetersTable({ data, buildingName }: MetersTableProps) {
       value: (r) => r.storeName,
       align: 'left',
       cellClassName: (r) =>
-        r.storeName === 'Por censar' ||
-        r.storeName === 'Sin informacion' ||
-        r.storeName === 'Local no sensado' ||
-        r.storeName.startsWith('Local ')
-          ? 'text-muted'
-          : '',
+        UNOCCUPIED_NAMES.has(r.storeName) || r.storeName.startsWith('Local ') ? 'text-muted' : '',
     },
     { label: 'Tipo', value: (r) => r.storeType || '—', align: 'left' },
   ];

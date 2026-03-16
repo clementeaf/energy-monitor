@@ -21,11 +21,15 @@ function formatVal(v: number | null, decimals = 1): string {
   return v !== null ? v.toFixed(decimals) : '—';
 }
 
+const STATUS_THRESHOLDS = [
+  { maxMs: 30 * 60_000, label: 'Online', color: 'text-emerald-600 bg-emerald-50' },
+  { maxMs: 120 * 60_000, label: 'Delay', color: 'text-amber-600 bg-amber-50' },
+  { maxMs: Infinity, label: 'Offline', color: 'text-red-600 bg-red-50' },
+];
+
 function getStatus(row: MeterLatestReading): { label: string; color: string } {
   const age = Date.now() - new Date(row.timestamp).getTime();
-  if (age < 30 * 60_000) return { label: 'Online', color: 'text-emerald-600 bg-emerald-50' };
-  if (age < 120 * 60_000) return { label: 'Delay', color: 'text-amber-600 bg-amber-50' };
-  return { label: 'Offline', color: 'text-red-600 bg-red-50' };
+  return STATUS_THRESHOLDS.find((t) => age < t.maxMs) ?? STATUS_THRESHOLDS[STATUS_THRESHOLDS.length - 1];
 }
 
 const skeletonColumns = ['Medidor', 'Tienda', 'Potencia (kW)', 'Voltaje L1 (V)', 'Corriente L1 (A)', 'FP', 'Estado'];
@@ -206,6 +210,15 @@ const EMPTY_DATE_FILTER: DateFilterState = {
   timeMode: null, timeExact: '', timeFrom: '', timeTo: '',
 };
 
+function parseDateFilterFromParams(params: URLSearchParams): DateFilterState {
+  const qDate = params.get('date');
+  const qDateFrom = params.get('date_from');
+  const qDateTo = params.get('date_to');
+  if (qDate) return { ...EMPTY_DATE_FILTER, dateMode: 'exact', dateExact: qDate };
+  if (qDateFrom || qDateTo) return { ...EMPTY_DATE_FILTER, dateMode: 'range', dateFrom: qDateFrom ?? '', dateTo: qDateTo ?? '' };
+  return EMPTY_DATE_FILTER;
+}
+
 function isDateFilterActive(f: DateFilterState): boolean {
   return f.sort !== null || f.dateMode !== null || f.timeMode !== null;
 }
@@ -246,14 +259,14 @@ function DateFilterDropdown({
   const setSortDir = (dir: SortDir) => patch({ sort: state.sort === dir ? null : dir });
   const clear = () => onChange(EMPTY_DATE_FILTER);
 
-  let badge = '';
-  const parts: string[] = [];
-  if (state.sort) parts.push(state.sort === 'asc' ? '↑' : '↓');
-  if (state.dateMode === 'exact' && state.dateExact) parts.push(state.dateExact);
-  if (state.dateMode === 'range' && (state.dateFrom || state.dateTo)) parts.push('rango');
-  if (state.timeMode === 'exact' && state.timeExact) parts.push(state.timeExact);
-  if (state.timeMode === 'range' && (state.timeFrom || state.timeTo)) parts.push('hrs');
-  if (parts.length) badge = parts.join(' · ');
+  const badgeRules: Array<{ test: () => boolean; label: () => string }> = [
+    { test: () => !!state.sort, label: () => state.sort === 'asc' ? '↑' : '↓' },
+    { test: () => state.dateMode === 'exact' && !!state.dateExact, label: () => state.dateExact },
+    { test: () => state.dateMode === 'range' && !!(state.dateFrom || state.dateTo), label: () => 'rango' },
+    { test: () => state.timeMode === 'exact' && !!state.timeExact, label: () => state.timeExact },
+    { test: () => state.timeMode === 'range' && !!(state.timeFrom || state.timeTo), label: () => 'hrs' },
+  ];
+  const badge = badgeRules.filter((r) => r.test()).map((r) => r.label()).join(' · ');
 
   return (
     <>
@@ -422,14 +435,10 @@ function AlertsTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set
     return base;
   }, [searchParams]);
 
-  const initialDateFilter = useMemo((): DateFilterState => {
-    const qDate = searchParams.get('date');
-    const qDateFrom = searchParams.get('date_from');
-    const qDateTo = searchParams.get('date_to');
-    if (qDate) return { ...EMPTY_DATE_FILTER, dateMode: 'exact', dateExact: qDate };
-    if (qDateFrom || qDateTo) return { ...EMPTY_DATE_FILTER, dateMode: 'range', dateFrom: qDateFrom ?? '', dateTo: qDateTo ?? '' };
-    return EMPTY_DATE_FILTER;
-  }, [searchParams]);
+  const initialDateFilter = useMemo(
+    () => parseDateFilterFromParams(searchParams),
+    [searchParams],
+  );
 
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [dateFilter, setDateFilter] = useState<DateFilterState>(initialDateFilter);
@@ -463,16 +472,18 @@ function AlertsTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set
 
   const processed = useMemo(() => {
     let result = alerts;
-    result = result.filter((a) => {
-      if (filters.meterId.size && !filters.meterId.has(a.meterId)) return false;
-      if (filters.buildingName.size && !filters.buildingName.has(a.buildingName)) return false;
-      if (filters.storeName.size && !filters.storeName.has(a.storeName)) return false;
-      if (filters.alertType.size && !filters.alertType.has(a.alertType)) return false;
-      if (filters.severity.size && !filters.severity.has(a.severity)) return false;
-      if (filters.field.size && !filters.field.has(a.field)) return false;
-      if (filters.threshold.size && !filters.threshold.has(String(a.threshold))) return false;
-      return true;
-    });
+    const FILTER_CHECKS: Array<[FilterKey, (a: Alert) => string]> = [
+      ['meterId', (a) => a.meterId],
+      ['buildingName', (a) => a.buildingName],
+      ['storeName', (a) => a.storeName],
+      ['alertType', (a) => a.alertType],
+      ['severity', (a) => a.severity],
+      ['field', (a) => a.field],
+      ['threshold', (a) => String(a.threshold)],
+    ];
+    result = result.filter((a) =>
+      FILTER_CHECKS.every(([key, get]) => !filters[key].size || filters[key].has(get(a))),
+    );
     if (dateFilter.dateMode || dateFilter.timeMode) {
       result = result.filter((a) => passesDateFilter(a.timestamp, dateFilter));
     }

@@ -154,6 +154,15 @@ const EMPTY_DATE_FILTER: DateFilterState = {
   timeTo: '',
 };
 
+function parseDateFilterFromParams(params: URLSearchParams): DateFilterState {
+  const qDate = params.get('date');
+  const qDateFrom = params.get('date_from');
+  const qDateTo = params.get('date_to');
+  if (qDate) return { ...EMPTY_DATE_FILTER, dateMode: 'exact', dateExact: qDate };
+  if (qDateFrom || qDateTo) return { ...EMPTY_DATE_FILTER, dateMode: 'range', dateFrom: qDateFrom ?? '', dateTo: qDateTo ?? '' };
+  return EMPTY_DATE_FILTER;
+}
+
 function isDateFilterActive(f: DateFilterState): boolean {
   return f.sort !== null || f.dateMode !== null || f.timeMode !== null;
 }
@@ -213,14 +222,14 @@ function DateFilterDropdown({
   };
 
   // Badge summary
-  let badge = '';
-  const parts: string[] = [];
-  if (state.sort) parts.push(state.sort === 'asc' ? '↑' : '↓');
-  if (state.dateMode === 'exact' && state.dateExact) parts.push(state.dateExact);
-  if (state.dateMode === 'range' && (state.dateFrom || state.dateTo)) parts.push('rango');
-  if (state.timeMode === 'exact' && state.timeExact) parts.push(state.timeExact);
-  if (state.timeMode === 'range' && (state.timeFrom || state.timeTo)) parts.push('hrs');
-  if (parts.length) badge = parts.join(' · ');
+  const badgeRules: Array<{ test: () => boolean; label: () => string }> = [
+    { test: () => !!state.sort, label: () => state.sort === 'asc' ? '↑' : '↓' },
+    { test: () => state.dateMode === 'exact' && !!state.dateExact, label: () => state.dateExact },
+    { test: () => state.dateMode === 'range' && !!(state.dateFrom || state.dateTo), label: () => 'rango' },
+    { test: () => state.timeMode === 'exact' && !!state.timeExact, label: () => state.timeExact },
+    { test: () => state.timeMode === 'range' && !!(state.timeFrom || state.timeTo), label: () => 'hrs' },
+  ];
+  const badge = badgeRules.filter((r) => r.test()).map((r) => r.label()).join(' · ');
 
   return (
     <>
@@ -477,14 +486,10 @@ export function AlertsPage() {
     return base;
   }, [searchParams]);
 
-  const initialDateFilter = useMemo((): DateFilterState => {
-    const qDate = searchParams.get('date');
-    const qDateFrom = searchParams.get('date_from');
-    const qDateTo = searchParams.get('date_to');
-    if (qDate) return { ...EMPTY_DATE_FILTER, dateMode: 'exact', dateExact: qDate };
-    if (qDateFrom || qDateTo) return { ...EMPTY_DATE_FILTER, dateMode: 'range', dateFrom: qDateFrom ?? '', dateTo: qDateTo ?? '' };
-    return EMPTY_DATE_FILTER;
-  }, [searchParams]);
+  const initialDateFilter = useMemo(
+    () => parseDateFilterFromParams(searchParams),
+    [searchParams],
+  );
 
   // Checkbox filters
   const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -527,14 +532,16 @@ export function AlertsPage() {
     let result = alerts;
 
     // 1. Checkbox filters
-    result = result.filter((a) => {
-      if (filters.meterId.size && !filters.meterId.has(a.meterId)) return false;
-      if (filters.alertType.size && !filters.alertType.has(a.alertType)) return false;
-      if (filters.severity.size && !filters.severity.has(a.severity)) return false;
-      if (filters.field.size && !filters.field.has(a.field)) return false;
-      if (filters.threshold.size && !filters.threshold.has(String(a.threshold))) return false;
-      return true;
-    });
+    const FILTER_CHECKS: Array<[FilterKey, (a: Alert) => string]> = [
+      ['meterId', (a) => a.meterId],
+      ['alertType', (a) => a.alertType],
+      ['severity', (a) => a.severity],
+      ['field', (a) => a.field],
+      ['threshold', (a) => String(a.threshold)],
+    ];
+    result = result.filter((a) =>
+      FILTER_CHECKS.every(([key, get]) => !filters[key].size || filters[key].has(get(a))),
+    );
 
     // 2. Date/time filters
     if (dateFilter.dateMode || dateFilter.timeMode) {

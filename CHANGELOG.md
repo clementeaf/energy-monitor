@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.48.0-alpha.0] - 2026-03-16 — UI CARDS EDIFICIOS + DOCUMENTOS POR OPERADOR
+
+### Changed
+- **Building cards** — borde redondeado (`rounded-2xl`) con borde tenue `border-pa-navy/30`
+- **Building cards** — título en una línea (`truncate`) y botón "Ver más +" sin wrap (`whitespace-nowrap shrink-0`)
+- **Facturación gráfico** — eliminado título "Facturación Mensual" (redundante con selector)
+- **Documentos vencidos/por vencer** — columna "Edificio" → "Operador" mostrando nombre de tienda
+
+### Data
+- **billing_document** — regenerada a nivel tienda (5,664 docs desde 308 operadores × 12 meses), nueva columna `operator_name`
+- **billing_document** — eliminado constraint unique `(building_name, month)` para soportar múltiples operadores por edificio-mes
+
+---
+
 ## [0.47.0-alpha.0] - 2026-03-15 — SCROLLBAR REMARCADORES + RESTORE READINGS RDS
 
 ### Infrastructure

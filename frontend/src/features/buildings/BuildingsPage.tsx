@@ -38,11 +38,11 @@ export function BuildingsPage() {
           {[...latest.values()].map((b) => (
             <Card
               key={b.buildingName}
-              className="space-y-3"
+              className="space-y-3 !rounded-2xl border border-pa-navy/30"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-text">{b.buildingName}</h3>
-                <PillButton onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="truncate font-semibold text-text">{b.buildingName}</h3>
+                <PillButton className="shrink-0 whitespace-nowrap" onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}>
                   Ver más +
                 </PillButton>
               </div>

@@ -50,7 +50,7 @@ export function BuildingDetailPage() {
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
           {/* Fila 1: gráfico */}
           <Card className="flex shrink-0 flex-col">
-            <SectionBanner title="Facturación Mensual" inline className="mb-3">
+            <SectionBanner title="" inline className="mb-3">
               <PillDropdown
                 items={metricDropdownItems}
                 value={chartMetric}

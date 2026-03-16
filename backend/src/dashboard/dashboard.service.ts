@@ -25,6 +25,7 @@ export interface PaymentSummary {
 
 export interface BillingDocumentDetail {
   id: number;
+  operatorName: string;
   buildingName: string;
   month: string;
   docNumber: string;
@@ -131,6 +132,7 @@ export class DashboardService {
     const rows = await this.dataSource.query(
       `SELECT
          id,
+         operator_name   AS "operatorName",
          building_name   AS "buildingName",
          month,
          doc_number      AS "docNumber",
@@ -147,6 +149,7 @@ export class DashboardService {
 
     return rows.map((r: Record<string, unknown>) => ({
       id: r.id as number,
+      operatorName: r.operatorName as string,
       buildingName: r.buildingName as string,
       month: r.month as string,
       docNumber: r.docNumber as string,

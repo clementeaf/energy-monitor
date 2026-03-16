@@ -143,7 +143,7 @@ const overdueCols: Column<OverdueBucket>[] = [
 ];
 
 const docCols: Column<BillingDocumentDetail>[] = [
-  { label: 'Edificio', value: (r) => SHORT_BUILDING_NAMES[r.buildingName] ?? r.buildingName, align: 'left' },
+  { label: 'Operador', value: (r) => r.operatorName, align: 'left' },
   { label: 'N° Doc', value: (r) => r.docNumber, align: 'left' },
   { label: 'Vencimiento', value: (r) => fmtDate(r.dueDate), className: 'whitespace-nowrap' },
   { label: 'Neto', value: (r) => fmtClp(r.totalNetoClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalNetoClp ?? 0), 0)) },

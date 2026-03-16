@@ -116,6 +116,7 @@ export interface PaymentSummary {
 // Matches backend dashboard/documents/:status endpoint
 export interface BillingDocumentDetail {
   id: number;
+  operatorName: string;
   buildingName: string;
   month: string;
   docNumber: string;

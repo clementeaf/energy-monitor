@@ -24,24 +24,27 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-15)
-- Deploy AWS completo: CloudFront → S3 + API GW → Lambda → RDS (8 tablas operativas)
-- Restore readings en progreso: script `scripts/restore-readings-rds.sh`, dumps en S3, RDS escalado a t3.medium, ECS task corriendo
-- Fix scrollbar tabla "Listado Remarcadores" en BuildingDetailPage (PaginatedTable + DataTable flex layout)
-- Frontend desplegado manualmente (S3 + CloudFront invalidation)
+### Completado (2026-03-16)
+- UI building cards: borde redondeado tenue, títulos y botones en una línea
+- Facturación: eliminado título redundante del gráfico
+- Documentos vencidos: columna "Operador" con nombre de tienda (billing_document regenerada a nivel store)
+- ECS Fargate restore de meter_readings en progreso (raw_readings pendiente de verificar)
 
 ### Pendiente
-- Verificar que ECS task completó restore de meter_readings y raw_readings (30M+ rows cada una)
+- Verificar ECS task completó restore de meter_readings y raw_readings
 - Bajar RDS de db.t3.medium a db.t3.micro post-restore
 - Limpiar S3 prefix `readings-restore/` y ECR repo `energy-monitor-readings-restore`
+- Desplegar cambios de billing_document (operator_name) a RDS prod
+- Deploy backend Lambda con nuevo campo operatorName
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
-Restore de meter_readings y raw_readings via ECS Fargate en progreso (o completado).
-Verificar: aws ecs describe-tasks / aws logs tail /ecs/energy-monitor-readings-restore
-Post-restore: bajar RDS a t3.micro, limpiar S3 y ECR.
+1. Verificar ECS restore: aws ecs describe-tasks --cluster energy-monitor-cluster --tasks ecc1d75cf7c3429bbe4c6edb356e0247
+2. Post-restore: bajar RDS a t3.micro, limpiar S3 y ECR
+3. Aplicar cambios billing_document (operator_name) en RDS prod
+4. Deploy backend Lambda
 ```
 
 ## Prioridad Actual de Acceso

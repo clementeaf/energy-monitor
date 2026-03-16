@@ -9,14 +9,14 @@ import { PillButton } from '../../components/ui/PillButton';
 import { PillDropdown } from '../../components/ui/PillDropdown';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import { TogglePills } from '../../components/ui/TogglePills';
-import { useDashboardSummary, useDashboardPayments, useDashboardDocuments } from '../../hooks/queries/useDashboard';
+import { useDashboardSummary, useDashboardPayments, useDashboardDocuments, useDashboardAllDocuments } from '../../hooks/queries/useDashboard';
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fetchBillingPdf } from '../../services/endpoints';
 import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
-import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket } from '../../types';
+import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket, PaymentSummary } from '../../types';
 
 interface BuildingRow {
   name: string;
@@ -373,21 +373,82 @@ function DocTableWithFilter({
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { isFilteredMode, isTecnico } = useOperatorFilter();
+  const { isFilteredMode, isTecnico, needsSelection, operatorBuildings, selectedOperator, selectedStoreName } = useOperatorFilter();
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();
   const [drawerPorVencer, setDrawerPorVencer] = useState(false);
   const [drawerVencidos, setDrawerVencidos] = useState(false);
   const [drawerVencidosInitialPeriod, setDrawerVencidosInitialPeriod] = useState<string | null>(null);
-  const { data: porVencerDocs } = useDashboardDocuments('por_vencer', drawerPorVencer);
-  const { data: vencidosDocs } = useDashboardDocuments('vencido', drawerVencidos);
+  const { data: porVencerDocs } = useDashboardDocuments('por_vencer', drawerPorVencer && !isFilteredMode);
+  const { data: vencidosDocs } = useDashboardDocuments('vencido', drawerVencidos && !isFilteredMode);
+
+  // In filtered modes, fetch all document statuses to compute payment cards client-side
+  const { pagado: allPagado, porVencer: allPorVencer, vencido: allVencido } = useDashboardAllDocuments(isFilteredMode && !needsSelection);
+
+  // Operator name used for filtering documents
+  const filterOperatorName = selectedOperator ?? selectedStoreName ?? null;
+
+  // Filter documents by operator name
+  const filterDocs = useMemo(() => {
+    return (docs: BillingDocumentDetail[] | undefined) => {
+      if (!docs || !filterOperatorName) return docs;
+      return docs.filter((d) => d.operatorName === filterOperatorName);
+    };
+  }, [filterOperatorName]);
+
+  // Compute payment cards from filtered documents in filtered mode
+  const filteredPayments: PaymentSummary | undefined = useMemo(() => {
+    if (!isFilteredMode || !allPagado.data || !allPorVencer.data || !allVencido.data) return undefined;
+    const pagDocs = filterDocs(allPagado.data) ?? [];
+    const pvDocs = filterDocs(allPorVencer.data) ?? [];
+    const vDocs = filterDocs(allVencido.data) ?? [];
+
+    // Compute overdue buckets
+    const buckets: Record<string, OverdueBucket> = {
+      '1-30 días': { range: '1-30 días', count: 0, totalClp: 0 },
+      '31-60 días': { range: '31-60 días', count: 0, totalClp: 0 },
+      '61-90 días': { range: '61-90 días', count: 0, totalClp: 0 },
+      '90+ días': { range: '90+ días', count: 0, totalClp: 0 },
+    };
+    for (const d of vDocs) {
+      const days = daysOverdue(d.dueDate);
+      let key: string;
+      if (days <= 30) key = '1-30 días';
+      else if (days <= 60) key = '31-60 días';
+      else if (days <= 90) key = '61-90 días';
+      else key = '90+ días';
+      buckets[key].count++;
+      buckets[key].totalClp += d.totalClp;
+    }
+
+    return {
+      pagosRecibidos: { count: pagDocs.length, totalClp: pagDocs.reduce((s, d) => s + d.totalClp, 0) },
+      porVencer: { count: pvDocs.length, totalClp: pvDocs.reduce((s, d) => s + d.totalClp, 0) },
+      vencidos: { count: vDocs.length, totalClp: vDocs.reduce((s, d) => s + d.totalClp, 0) },
+      vencidosPorPeriodo: Object.values(buckets).filter((b) => b.count > 0),
+    };
+  }, [isFilteredMode, allPagado.data, allPorVencer.data, allVencido.data, filterDocs]);
+
+  // Effective payments — filtered or raw
+  const effectivePayments = isFilteredMode ? filteredPayments : payments;
+
+  // Filtered drawer docs in filtered mode
+  const effectivePorVencerDocs = isFilteredMode ? filterDocs(allPorVencer.data) : porVencerDocs;
+  const effectiveVencidosDocs = isFilteredMode ? filterDocs(allVencido.data) : vencidosDocs;
+
+  // Filter summary rows by operatorBuildings when in filtered mode
+  const filteredSummary = useMemo(() => {
+    if (!summary) return undefined;
+    if (!isFilteredMode || !operatorBuildings) return summary;
+    return summary.filter((r) => operatorBuildings.has(r.buildingName));
+  }, [summary, isFilteredMode, operatorBuildings]);
 
   // Derive months, group by month, and compute yearly totals
   const { months, byMonth, yearlyData } = useMemo(() => {
-    if (!summary) return { months: [] as string[], byMonth: {} as Record<string, BuildingRow[]>, yearlyData: [] as BuildingRow[] };
+    if (!filteredSummary) return { months: [] as string[], byMonth: {} as Record<string, BuildingRow[]>, yearlyData: [] as BuildingRow[] };
 
     const grouped: Record<string, DashboardBuildingMonth[]> = {};
-    for (const row of summary) {
+    for (const row of filteredSummary) {
       const key = row.month;
       (grouped[key] ??= []).push(row);
     }
@@ -406,14 +467,14 @@ export function DashboardPage() {
 
     // Aggregate yearly totals per building
     const acc: Record<string, BuildingRow> = {};
-    for (const row of summary) {
+    for (const row of filteredSummary) {
       const b = acc[row.buildingName] ??= { name: row.buildingName, totalKwh: 0, totalConIvaClp: 0, areaSqm: row.areaSqm, totalMeters: row.totalMeters };
       b.totalKwh = (b.totalKwh ?? 0) + (row.totalKwh ?? 0);
       b.totalConIvaClp = (b.totalConIvaClp ?? 0) + (row.totalConIvaClp ?? 0);
     }
 
     return { months: sortedMonths, byMonth: mapped, yearlyData: Object.values(acc) };
-  }, [summary]);
+  }, [filteredSummary]);
 
   const [viewMode, setViewMode] = useState<'anual' | 'mensual'>('anual');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -431,18 +492,29 @@ export function DashboardPage() {
   const activeData = viewMode === 'anual' ? yearlyData : (byMonth[selectedMonth] ?? []);
   const monthItems = months.map((m) => ({ value: m, label: monthLabel(m) }));
 
-  if (isFilteredMode || isTecnico) {
+  if (isTecnico) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <p className="text-lg font-semibold text-pa-navy">Dashboard no disponible</p>
           <p className="mt-1 text-sm text-pa-text-muted">
-            {isTecnico
-              ? 'El dashboard financiero no está disponible en modo técnico.'
-              : 'El dashboard de costos por edificio no está disponible en este modo.'}
+            El dashboard financiero no está disponible en modo técnico.
           </p>
           <p className="mt-0.5 text-sm text-pa-text-muted">
             Navega a Edificios, Comparativas o Monitoreo para ver datos de tu operación.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-navy">Selecciona un operador</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
           </p>
         </div>
       </div>
@@ -454,7 +526,7 @@ export function DashboardPage() {
       {/* Fila 1: gráfico + cards */}
       <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
         <Card>
-          <SectionBanner title="Consumo y Gasto por Edificio" className="mb-3 justify-between">
+          <SectionBanner title={`Consumo y Gasto por Edificio${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between">
             <div className="flex items-center gap-2">
               <TogglePills
                 options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
@@ -477,9 +549,9 @@ export function DashboardPage() {
 
         <div className="flex flex-col gap-3">
           {[
-            { label: 'Pagos Recibidos', value: payments ? fmtClp(payments.pagosRecibidos.totalClp) : '—', desc: `${payments?.pagosRecibidos.count ?? 0} documentos`, accent: 'text-pa-green', onVerMas: undefined },
-            { label: 'Facturas por Vencer', value: payments ? fmtClp(payments.porVencer.totalClp) : '—', desc: `${payments?.porVencer.count ?? 0} documentos`, accent: 'text-pa-amber', onVerMas: () => setDrawerPorVencer(true) },
-            { label: 'Facturas Vencidas', value: payments ? fmtClp(payments.vencidos.totalClp) : '—', desc: `${payments?.vencidos.count ?? 0} documentos`, accent: 'text-pa-coral', onVerMas: () => { setDrawerVencidosInitialPeriod(null); setDrawerVencidos(true); } },
+            { label: 'Pagos Recibidos', value: effectivePayments ? fmtClp(effectivePayments.pagosRecibidos.totalClp) : '—', desc: `${effectivePayments?.pagosRecibidos.count ?? 0} documentos`, accent: 'text-pa-green', onVerMas: undefined },
+            { label: 'Facturas por Vencer', value: effectivePayments ? fmtClp(effectivePayments.porVencer.totalClp) : '—', desc: `${effectivePayments?.porVencer.count ?? 0} documentos`, accent: 'text-pa-amber', onVerMas: () => setDrawerPorVencer(true) },
+            { label: 'Facturas Vencidas', value: effectivePayments ? fmtClp(effectivePayments.vencidos.totalClp) : '—', desc: `${effectivePayments?.vencidos.count ?? 0} documentos`, accent: 'text-pa-coral', onVerMas: () => { setDrawerVencidosInitialPeriod(null); setDrawerVencidos(true); } },
           ].map((c) => (
             <div
               key={c.label}
@@ -523,9 +595,9 @@ export function DashboardPage() {
         <Card className="flex flex-col">
           <SectionBanner title="Documentos Vencidos por Período" inline className="mb-3 whitespace-nowrap" />
           <div className="min-h-0 flex-1">
-            {payments ? (
+            {effectivePayments ? (
               <DataTable
-                data={payments.vencidosPorPeriodo}
+                data={effectivePayments.vencidosPorPeriodo}
                 columns={overdueCols}
                 rowKey={(r) => r.range}
                 onRowClick={(r) => {
@@ -543,18 +615,18 @@ export function DashboardPage() {
       </div>
 
       <Drawer open={drawerPorVencer} onClose={() => setDrawerPorVencer(false)} title="Facturas por Vencer" size="lg">
-        {porVencerDocs ? (
-          <DocTableWithFilter data={porVencerDocs} />
+        {effectivePorVencerDocs ? (
+          <DocTableWithFilter data={effectivePorVencerDocs} />
         ) : (
           <p className="text-sm text-muted">Cargando...</p>
         )}
       </Drawer>
 
       <Drawer open={drawerVencidos} onClose={() => setDrawerVencidos(false)} title="Facturas Vencidas" size="lg">
-        {vencidosDocs ? (
+        {effectiveVencidosDocs ? (
           <DocTableWithFilter
             key={drawerVencidos ? (drawerVencidosInitialPeriod ?? 'all') : 'closed'}
-            data={vencidosDocs}
+            data={effectiveVencidosDocs}
             showPeriodFilter
             initialPeriod={drawerVencidosInitialPeriod}
           />

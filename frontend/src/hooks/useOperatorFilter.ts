@@ -3,19 +3,6 @@ import { useAppStore } from '../store/useAppStore';
 import { useStores } from './queries/useStores';
 import { useComparisonFilters, useComparisonByStoreName } from './queries/useComparisons';
 
-const BUILDING_PREFIX_MAP: Record<string, string> = {
-  MG: 'Mallplaza Gestión',
-  MM: 'Mallplaza Mirador',
-  OT: 'Oficina Transoceánica',
-  SC52: 'SC 52',
-  SC53: 'SC 53',
-};
-
-/** Extract building code prefix from a meter_id (e.g. "MG001" → "MG", "SC52003" → "SC52") */
-function meterIdToPrefix(meterId: string): string {
-  const match = meterId.match(/^(SC\d+|[A-Z]+)/);
-  return match ? match[1] : '';
-}
 
 /**
  * Provides operator-scoped filtering data when userMode is multi_operador or operador.
@@ -66,11 +53,10 @@ export function useOperatorFilter() {
   }, [hasStore, selectedStoreMeterId]);
 
   const operadorBuildings = useMemo(() => {
-    if (!hasStore) return null;
-    const prefix = meterIdToPrefix(selectedStoreMeterId!);
-    const buildingName = BUILDING_PREFIX_MAP[prefix];
-    return buildingName ? new Set([buildingName]) : null;
-  }, [hasStore, selectedStoreMeterId]);
+    if (!hasStore || !stores) return null;
+    const store = stores.find((s) => s.meterId === selectedStoreMeterId);
+    return store?.buildingName ? new Set([store.buildingName]) : null;
+  }, [hasStore, stores, selectedStoreMeterId]);
 
   // Lookup store name for the selected meter (operador mode)
   const selectedStoreName = useMemo(() => {

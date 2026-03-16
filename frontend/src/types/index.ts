@@ -149,6 +149,7 @@ export interface StoreItem {
   storeName: string;
   storeTypeId: number;
   storeType: { id: number; name: string };
+  buildingName: string | null;
 }
 
 // Matches backend BuildingSummary entity (building_summary table)

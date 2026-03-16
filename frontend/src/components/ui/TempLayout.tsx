@@ -47,24 +47,11 @@ export function TempLayout() {
     return items;
   }, [buildings]);
 
-  // Store dropdown items for operador mode — filtered by selected building prefix
+  // Store dropdown items for operador mode — filtered by selected building
   const storeItems = useMemo(() => {
     if (!stores || !selectedBuilding) return [];
     return stores
-      .filter((s) => {
-        // Match stores whose building matches selectedBuilding
-        // Building name is in buildingItems, we need to match meter prefix to building
-        // Use the same mapping as useOperatorFilter
-        const prefix = s.meterId.match(/^(SC\d+|[A-Z]+)/)?.[1] ?? '';
-        const BUILDING_PREFIX_MAP: Record<string, string> = {
-          MG: 'Mallplaza Gestión',
-          MM: 'Mallplaza Mirador',
-          OT: 'Oficina Transoceánica',
-          SC52: 'SC 52',
-          SC53: 'SC 53',
-        };
-        return BUILDING_PREFIX_MAP[prefix] === selectedBuilding;
-      })
+      .filter((s) => s.buildingName === selectedBuilding)
       .map((s) => ({ value: s.meterId, label: `${s.storeName} (${s.meterId})` }));
   }, [stores, selectedBuilding]);
 

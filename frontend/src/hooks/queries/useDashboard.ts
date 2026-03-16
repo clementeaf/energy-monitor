@@ -22,3 +22,24 @@ export function useDashboardDocuments(status: string, enabled: boolean) {
     enabled,
   });
 }
+
+/** Fetch all document statuses (always enabled). Used in filtered modes to compute payment cards. */
+export function useDashboardAllDocuments(enabled: boolean) {
+  const pagado = useQuery({
+    queryKey: ['dashboard', 'documents', 'pagado'],
+    queryFn: () => fetchDashboardDocuments('pagado'),
+    enabled,
+  });
+  const porVencer = useQuery({
+    queryKey: ['dashboard', 'documents', 'por_vencer'],
+    queryFn: () => fetchDashboardDocuments('por_vencer'),
+    enabled,
+  });
+  const vencido = useQuery({
+    queryKey: ['dashboard', 'documents', 'vencido'],
+    queryFn: () => fetchDashboardDocuments('vencido'),
+    enabled,
+  });
+
+  return { pagado, porVencer, vencido };
+}

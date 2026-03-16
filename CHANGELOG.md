@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.59.0-alpha.0] - 2026-03-16 — FIX PDF EN PROD + TEST ENDPOINTS
+
+### Fixed
+- **PDF endpoint en prod** — `Utf8JsonInterceptor` sobreescribía `Content-Type: application/pdf` con `application/json`, corrompiendo la respuesta binaria
+- **Binary settings** — `serverlessExpress()` ahora declara `binarySettings` con `application/pdf` para que API Gateway trate el PDF como binario
+- **billing-pdf-generator Lambda** — `psycopg2._psycopg` no se encontraba porque Docker compilaba deps para ARM (aarch64) en vez de x86_64; agregado `--platform linux/amd64` al deploy script
+
+### Verified
+- 24 endpoints testeados en prod — todos OK (auth, dashboard, buildings, stores, meters, readings, billing, comparisons, alerts, PDF)
+
+---
+
 ## [0.58.0-alpha.0] - 2026-03-16 — MODO OPERADOR
 
 ### Added

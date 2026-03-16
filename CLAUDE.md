@@ -25,14 +25,12 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-16)
-- Multi Operador + Modo Operador implementados
-- `useOperatorFilter` unifica filtrado para ambos modos (`isFilteredMode`, `needsSelection`)
-- 6 vistas usan `isFilteredMode` en vez de `isMultiOp` — soportan ambos modos sin duplicar lógica
-- Sidebar: selector operador (multi_operador) o edificio+tienda (operador)
+- Multi Operador + Modo Operador implementados con `useOperatorFilter`
+- PDF en prod — fix interceptor, binary settings, psycopg2 x86_64
+- 24 endpoints verificados en prod, todos OK
+- Deploy backend (CI) + billing-pdf-generator (manual Docker)
 
 ### Pendiente
-- Deploy cambios a prod (incluye commits previos + multi-operador + operador)
-- Test end-to-end descarga PDF en prod
 - Lógica condicional para modo `tecnico`
 - Nav items condicionales por modo (ocultar rutas según rol)
 
@@ -42,12 +40,10 @@ Read CLAUDE.md. Retomando sesión.
 
 Estado:
 - Multi Operador y Operador implementados — useOperatorFilter unifica ambos modos
-- Sidebar: operador PillDropdown (multi_operador) o edificio+tienda PillDropdowns (operador)
-- 6 vistas usan isFilteredMode/needsSelection — soportan ambos modos
-- Modo tecnico aún sin lógica específica
-- PDF local funcional, pendiente deploy a prod
+- PDF en prod funcionando (fix interceptor + binary settings + psycopg2 x86_64)
+- 24 endpoints verificados OK en prod
 
-Pendiente: deploy prod, test PDF, modo tecnico, nav condicional
+Pendiente: modo tecnico, nav condicional por rol
 ```
 
 ## Prioridad Actual de Acceso

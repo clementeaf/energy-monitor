@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
-import { appRoutes, type AppRoute } from '../../app/appRoutes';
+import { appRoutes, getNavItems, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useComparisonFilters } from '../../hooks/queries/useComparisons';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useStores } from '../../hooks/queries/useStores';
@@ -22,14 +23,17 @@ export function TempLayout() {
     selectedStoreMeterId, setSelectedStoreMeterId,
   } = useAppStore();
   const isTecnico = userMode === 'tecnico';
+  const { user } = useAuthStore();
   const { data: filters } = useComparisonFilters();
   const { data: buildings } = useBuildings();
   const { data: stores } = useStores();
 
-  // Hide Dashboard nav item for tecnico mode (financial-only view)
-  const navItems = isTecnico
-    ? allNavItems.filter((r) => r.path !== '/')
-    : allNavItems;
+  // Filter nav by role when authenticated, fallback to all items in dev mode
+  const navItems = useMemo(() => {
+    const items = user?.role ? getNavItems(user.role) : allNavItems;
+    // Tecnico: hide Dashboard (financial-only view)
+    return isTecnico ? items.filter((r) => r.path !== '/') : items;
+  }, [user?.role, isTecnico]);
 
   const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 

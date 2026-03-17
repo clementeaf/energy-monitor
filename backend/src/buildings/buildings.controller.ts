@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
 import { Public } from '../auth/public.decorator';
+import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
@@ -24,11 +25,13 @@ export class BuildingsController {
   }
 
   @Post()
+  @RequirePermissions('ADMIN_SITES', 'manage')
   async create(@Body() dto: CreateBuildingDto) {
     return this.buildingsService.create(dto);
   }
 
   @Patch(':name')
+  @RequirePermissions('ADMIN_SITES', 'manage')
   async update(@Param('name') name: string, @Body() dto: UpdateBuildingDto) {
     const existing = await this.buildingsService.findByName(name);
     if (!existing.length) {
@@ -39,6 +42,7 @@ export class BuildingsController {
   }
 
   @Delete(':name')
+  @RequirePermissions('ADMIN_SITES', 'manage')
   async remove(@Param('name') name: string) {
     const existing = await this.buildingsService.findByName(name);
     if (!existing.length) {

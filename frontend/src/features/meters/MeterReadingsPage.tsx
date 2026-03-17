@@ -11,6 +11,7 @@ import { useMeterInfo, useMeterReadings } from '../../hooks/queries/useMeters';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { fmtNum } from '../../lib/formatters';
 import { MONTH_NAMES_FULL } from '../../lib/constants';
+import { CHART_COLORS, LIGHT_TOOLTIP_STYLE, LIGHT_PLOT_OPTIONS } from '../../lib/chartConfig';
 import { avgNonNull, maxNonNull, sumNonNull } from '../../lib/aggregations';
 import type { Alert, MeterReading } from '../../types';
 
@@ -230,46 +231,68 @@ export function MeterReadingsPage() {
 
   const dailySeries: Highcharts.SeriesOptionsType[] = multiSeries
     ? PHASE_LABELS.map((phase, i) => ({ name: phase, type: 'line' as const, data: compositeHourlyData![i], color: PHASE_COLORS[i], marker: { enabled: false } }))
-    : [{ name: meta.label, type: 'line' as const, data: hourlyData, color: '#374151', marker: { enabled: false } }];
+    : [{ name: meta.label, type: 'line' as const, data: hourlyData, color: CHART_COLORS.blue, marker: { enabled: false } }];
 
   const stockSeries: Highcharts.SeriesOptionsType[] = multiSeries
     ? PHASE_LABELS.map((phase, i) => ({ name: phase, type: 'line' as const, data: compositeRawData![i], color: PHASE_COLORS[i], marker: { enabled: false } }))
-    : [{ name: meta.label, type: 'line' as const, data: rawData, color: '#374151', marker: { enabled: false } }];
+    : [{ name: meta.label, type: 'line' as const, data: rawData, color: CHART_COLORS.blue, marker: { enabled: false } }];
 
   // Daily chart (Highcharts básico): 1 punto por hora
   const dailyChartOptions: Highcharts.Options = {
-    chart: { type: 'line', height: 360, zooming: { type: 'x' } },
+    chart: { type: 'line', height: 360, backgroundColor: 'transparent', zooming: { type: 'x' } },
     title: { text: undefined },
     xAxis: {
       type: 'datetime',
-      labels: { format: '{value:%e}' },
+      labels: { format: '{value:%e}', style: { fontSize: '11px', color: '#6B7280' } },
       tickInterval: 24 * 3600 * 1000,
       crosshair: true,
+      lineColor: '#E5E7EB',
+      tickColor: '#E5E7EB',
     },
-    yAxis: { title: { text: meta.unit } },
+    yAxis: {
+      title: { text: meta.unit, style: { color: CHART_COLORS.blue, fontSize: '11px' } },
+      labels: { style: { fontSize: '11px', color: '#6B7280' } },
+      gridLineColor: '#F3F4F6',
+    },
     tooltip: {
+      ...LIGHT_TOOLTIP_STYLE,
       xDateFormat: '%d/%m',
       valueDecimals: 2,
       valueSuffix: meta.unit ? ` ${meta.unit}` : undefined,
       shared: multiSeries,
     },
+    plotOptions: LIGHT_PLOT_OPTIONS,
     series: dailySeries,
-    legend: { enabled: multiSeries },
+    legend: { enabled: multiSeries, itemStyle: { color: '#6B7280', fontSize: '11px' }, itemHoverStyle: { color: '#1E3A5F' } },
     credits: { enabled: false },
   };
 
   // 15-min chart (Highcharts Stock, light theme): datos crudos con navigator
   const stockChartOptions: Highcharts.Options = {
-    chart: { height: 360 },
+    chart: { height: 360, backgroundColor: 'transparent' },
     title: { text: undefined },
-    xAxis: { crosshair: true, range: 2 * 24 * 3600 * 1000, plotLines: alertPlotLinesMain },
-    yAxis: { title: { text: meta.unit }, opposite: false },
+    xAxis: {
+      crosshair: true,
+      range: 2 * 24 * 3600 * 1000,
+      plotLines: alertPlotLinesMain,
+      labels: { style: { fontSize: '11px', color: '#6B7280' } },
+      lineColor: '#E5E7EB',
+      tickColor: '#E5E7EB',
+    },
+    yAxis: {
+      title: { text: meta.unit, style: { color: CHART_COLORS.blue, fontSize: '11px' } },
+      labels: { style: { fontSize: '11px', color: '#6B7280' } },
+      gridLineColor: '#F3F4F6',
+      opposite: false,
+    },
     tooltip: {
+      ...LIGHT_TOOLTIP_STYLE,
       xDateFormat: '%d/%m %H:%M',
       valueDecimals: 2,
       valueSuffix: meta.unit ? ` ${meta.unit}` : undefined,
       shared: multiSeries,
     },
+    plotOptions: LIGHT_PLOT_OPTIONS,
     series: stockSeries,
     navigator: {
       enabled: true,
@@ -277,7 +300,7 @@ export function MeterReadingsPage() {
     },
     scrollbar: { enabled: false },
     rangeSelector: { enabled: false },
-    legend: { enabled: multiSeries },
+    legend: { enabled: multiSeries, itemStyle: { color: '#6B7280', fontSize: '11px' }, itemHoverStyle: { color: '#1E3A5F' } },
     credits: { enabled: false },
   };
 

@@ -17,14 +17,45 @@ const allNavItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.sho
 // =============================================================================
 
 const COUNTRIES = [
-  { code: 'CL', label: 'Chile', flag: 'CL' },
-  { code: 'CO', label: 'Colombia', flag: 'CO' },
-  { code: 'PE', label: 'Peru', flag: 'PE' },
+  { code: 'CL', label: 'CHILE' },
+  { code: 'CO', label: 'COLOMBIA' },
+  { code: 'PE', label: 'PERU' },
 ] as const;
 
-/** Convert country code to flag emoji (regional indicator symbols) */
-function countryFlag(code: string) {
-  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65)).join('');
+/** Circular SVG flag for CL/CO/PE */
+function FlagCircle({ code, size = 20 }: { code: string; size?: number }) {
+  const r = size / 2;
+  const flags: Record<string, React.ReactNode> = {
+    CL: (
+      <>
+        <rect width={size} height={r} fill="#fff" />
+        <rect y={r} width={size} height={r} fill="#D52B1E" />
+        <rect width={r} height={size} fill="#0039A6" />
+        <circle cx={r / 2} cy={r} r={r * 0.22} fill="#fff" />
+      </>
+    ),
+    CO: (
+      <>
+        <rect width={size} height={r} fill="#FCD116" />
+        <rect y={r} width={size} height={r * 0.5} fill="#003893" />
+        <rect y={r * 1.5} width={size} height={r * 0.5} fill="#CE1126" />
+      </>
+    ),
+    PE: (
+      <>
+        <rect width={size * 0.33} height={size} fill="#D91023" />
+        <rect x={size * 0.33} width={size * 0.34} height={size} fill="#fff" />
+        <rect x={size * 0.67} width={size * 0.33} height={size} fill="#D91023" />
+      </>
+    ),
+  };
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      <clipPath id={`flag-${code}`}><circle cx={r} cy={r} r={r} /></clipPath>
+      <g clipPath={`url(#flag-${code})`}>{flags[code]}</g>
+      <circle cx={r} cy={r} r={r - 0.5} fill="none" stroke="#000" strokeOpacity="0.1" />
+    </svg>
+  );
 }
 
 function TopBar({ userName }: { userName?: string }) {
@@ -44,21 +75,21 @@ function TopBar({ userName }: { userName?: string }) {
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-end gap-3 border-b border-pa-border bg-white px-4">
-      {/* Country flags */}
-      <div className="flex items-center gap-1">
+      {/* Country selector — pill tabs with circular flags */}
+      <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
         {COUNTRIES.map((c) => (
           <button
             key={c.code}
             type="button"
             onClick={() => setActiveCountry(c.code)}
-            title={c.label}
-            className={`flex h-7 w-7 items-center justify-center rounded-lg text-base transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
               activeCountry === c.code
-                ? 'bg-pa-navy/10 ring-1 ring-pa-navy/30'
-                : 'hover:bg-gray-100'
+                ? 'bg-white text-pa-navy shadow-sm'
+                : 'text-pa-text-muted hover:text-pa-text'
             }`}
           >
-            {countryFlag(c.flag)}
+            <FlagCircle code={c.code} size={18} />
+            {c.label}
           </button>
         ))}
       </div>

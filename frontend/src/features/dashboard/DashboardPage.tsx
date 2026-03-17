@@ -566,8 +566,8 @@ export function DashboardPage() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
       <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
-        <Card>
-          <SectionBanner title={`Consumo y Gasto por Edificio${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between">
+        <Card className="!pt-0 !px-0 overflow-hidden">
+          <SectionBanner title={`Consumo y Gasto por Edificio${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between rounded-t-xl rounded-b-none px-4">
             <div className="flex items-center gap-2">
               <TogglePills
                 options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}

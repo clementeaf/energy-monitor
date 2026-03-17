@@ -325,11 +325,25 @@ export function TempLayout() {
           })}
         </nav>
 
-        {/* Footer — contacto */}
+        {/* Footer — contacto + cerrar sesión */}
+        <div className="px-4 py-3">
+          <p className="text-[13px] font-semibold text-pa-navy">Contacto Globe Power</p>
+          <a href="mailto:ejecutivo@globemontaje.cl" className="block text-[13px] text-pa-text-muted hover:text-pa-blue truncate">ejecutivo@globemontaje.cl</a>
+          <a href="tel:+56221111111" className="block text-[13px] text-pa-text-muted hover:text-pa-blue">221111111</a>
+        </div>
         <div className="border-t border-border px-4 py-3">
-          <p className="text-[11px] font-semibold text-pa-navy">Contacto Globe</p>
-          <a href="mailto:ejecutivo@globemontaje.cl" className="block text-[11px] text-pa-text-muted hover:text-pa-blue truncate">ejecutivo@globemontaje.cl</a>
-          <a href="tel:+56221111111" className="block text-[11px] text-pa-text-muted hover:text-pa-blue">221111111</a>
+          <button
+            type="button"
+            onClick={() => { /* TODO: logout logic */ }}
+            className="flex w-full items-center gap-2 text-[12px] font-medium text-pa-text-muted transition-colors hover:text-pa-coral"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Cerrar Sesión
+          </button>
         </div>
       </aside>
 

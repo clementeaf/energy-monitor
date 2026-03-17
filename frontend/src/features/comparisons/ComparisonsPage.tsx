@@ -10,6 +10,7 @@ import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import { PillDropdown } from '../../components/ui/PillDropdown';
+import { TogglePills } from '../../components/ui/TogglePills';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { ComparisonRow } from '../../types';
 
@@ -228,8 +229,6 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
   return <HighchartsReact highcharts={Highcharts} options={options} containerProps={{ style: { height: '100%' } }} />;
 }
 
-const toggleBtn = (active: boolean) =>
-  `rounded px-2 py-1 text-xs font-medium transition-colors ${active ? 'bg-pa-navy text-white' : 'bg-white text-pa-text-muted hover:text-pa-text'}`;
 
 export function ComparisonsPage() {
   const { isFilteredMode, isTecnico, needsSelection, hasOperator, hasStore, selectedOperator, selectedStoreName } = useOperatorFilter();
@@ -292,10 +291,11 @@ export function ComparisonsPage() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <div className="ml-4 flex items-center gap-4">
         {!isFilteredMode && (
-          <div className="flex gap-1">
-            <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>
-            <button className={toggleBtn(mode === 'name')} onClick={() => { setMode('name'); if (chartType === 'pie') setChartType('column'); }}>Por Tienda</button>
-          </div>
+          <TogglePills
+            options={[{ value: 'type' as const, label: 'Por Tipo' }, { value: 'name' as const, label: 'Por Tienda' }]}
+            value={mode}
+            onChange={(v) => { setMode(v); if (v === 'name' && chartType === 'pie') setChartType('column'); }}
+          />
         )}
 
         {isFilteredMode ? (
@@ -323,11 +323,17 @@ export function ComparisonsPage() {
           align="left"
         />
 
-        <div className="ml-auto flex gap-1">
-          <button className={toggleBtn(chartType === 'column')} onClick={() => setChartType('column')}>Barra</button>
-          <button className={toggleBtn(chartType === 'line')} onClick={() => setChartType('line')}>Línea</button>
-          <button className={toggleBtn(chartType === 'area')} onClick={() => setChartType('area')}>Área</button>
-          <button className={toggleBtn(chartType === 'pie')} onClick={() => setChartType('pie')}>Torta</button>
+        <div className="ml-auto">
+          <TogglePills
+            options={[
+              { value: 'column' as ChartType, label: 'Barra' },
+              { value: 'line' as ChartType, label: 'Línea' },
+              { value: 'area' as ChartType, label: 'Área' },
+              { value: 'pie' as ChartType, label: 'Torta' },
+            ]}
+            value={chartType}
+            onChange={setChartType}
+          />
         </div>
       </div>
 

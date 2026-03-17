@@ -37,7 +37,32 @@ const readingMetrics: Record<ReadingMetricKey, MetricMeta> = {
   energyKwhTotal:   { label: 'Energía acumulada', unit: 'kWh' },
 };
 
-const metricKeys = Object.keys(readingMetrics) as ReadingMetricKey[];
+// Composite metrics that show 3 series (L1, L2, L3) in one chart
+type CompositeMetric = 'voltage' | 'current';
+type SelectorMetric = ReadingMetricKey | CompositeMetric;
+
+const compositeMetrics: Record<CompositeMetric, { label: string; unit: string; keys: [ReadingMetricKey, ReadingMetricKey, ReadingMetricKey] }> = {
+  voltage: { label: 'Voltaje', unit: 'V', keys: ['voltageL1', 'voltageL2', 'voltageL3'] },
+  current: { label: 'Corriente', unit: 'A', keys: ['currentL1', 'currentL2', 'currentL3'] },
+};
+
+const PHASE_COLORS = ['#374151', '#2563eb', '#f59e0b'] as const;
+const PHASE_LABELS = ['L1', 'L2', 'L3'] as const;
+
+interface SelectorItem { key: SelectorMetric; label: string }
+const selectorItems: SelectorItem[] = [
+  { key: 'powerKw', label: 'Potencia' },
+  { key: 'voltage', label: 'Voltaje' },
+  { key: 'current', label: 'Corriente' },
+  { key: 'reactivePowerKvar', label: 'Potencia reactiva' },
+  { key: 'powerFactor', label: 'Factor de potencia' },
+  { key: 'frequencyHz', label: 'Frecuencia' },
+  { key: 'energyKwhTotal', label: 'Energía acumulada' },
+];
+
+function isComposite(m: SelectorMetric): m is CompositeMetric {
+  return m === 'voltage' || m === 'current';
+}
 
 interface DaySummary {
   day: string; // YYYY-MM-DD
@@ -120,7 +145,7 @@ function buildDayColumns(meterId: string): Column<DaySummary>[] {
 export function MeterReadingsPage() {
   const { meterId, month } = useParams<{ meterId: string; month: string }>();
   const navigate = useNavigate();
-  const [metric, setMetric] = useState<ReadingMetricKey>('powerKw');
+  const [metric, setMetric] = useState<SelectorMetric>('powerKw');
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [resolution, setResolution] = useState<ChartResolution>('daily');
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -143,15 +168,30 @@ export function MeterReadingsPage() {
   const { data: readings, isLoading } = useMeterReadings(meterId!, from, to);
   const { data: alerts } = useAlerts({ meter_id: meterId! });
 
+  const singleMetricKey = isComposite(metric) ? null : metric;
+
   const hourlyData = useMemo(
-    () => readings ? groupByHour(readings, metric) : [],
-    [readings, metric],
+    () => singleMetricKey && readings ? groupByHour(readings, singleMetricKey) : [],
+    [readings, singleMetricKey],
   );
 
   const rawData: [number, number | null][] = useMemo(
-    () => (readings ?? []).map((r) => [new Date(r.timestamp).getTime(), r[metric]]),
-    [readings, metric],
+    () => singleMetricKey ? (readings ?? []).map((r) => [new Date(r.timestamp).getTime(), r[singleMetricKey]]) : [],
+    [readings, singleMetricKey],
   );
+
+  // Multi-series data for composite metrics (voltage / current)
+  const compositeHourlyData = useMemo(() => {
+    if (!isComposite(metric) || !readings) return null;
+    const { keys } = compositeMetrics[metric];
+    return keys.map((k) => groupByHour(readings, k));
+  }, [readings, metric]);
+
+  const compositeRawData = useMemo(() => {
+    if (!isComposite(metric) || !readings) return null;
+    const { keys } = compositeMetrics[metric];
+    return keys.map((k) => (readings ?? []).map((r): [number, number | null] => [new Date(r.timestamp).getTime(), r[k]]));
+  }, [readings, metric]);
 
   // PlotLines de alertas para el navigator (debe estar antes del early return)
   const alertPlotLines: Highcharts.XAxisPlotLinesOptions[] = useMemo(
@@ -184,7 +224,17 @@ export function MeterReadingsPage() {
 
   if (isLoading) return <MeterReadingsSkeleton />;
 
-  const meta = readingMetrics[metric];
+  const composite = isComposite(metric) ? compositeMetrics[metric] : null;
+  const meta = composite ?? readingMetrics[metric as ReadingMetricKey];
+  const multiSeries = !!composite;
+
+  const dailySeries: Highcharts.SeriesOptionsType[] = multiSeries
+    ? PHASE_LABELS.map((phase, i) => ({ name: phase, type: 'line' as const, data: compositeHourlyData![i], color: PHASE_COLORS[i], marker: { enabled: false } }))
+    : [{ name: meta.label, type: 'line' as const, data: hourlyData, color: '#374151', marker: { enabled: false } }];
+
+  const stockSeries: Highcharts.SeriesOptionsType[] = multiSeries
+    ? PHASE_LABELS.map((phase, i) => ({ name: phase, type: 'line' as const, data: compositeRawData![i], color: PHASE_COLORS[i], marker: { enabled: false } }))
+    : [{ name: meta.label, type: 'line' as const, data: rawData, color: '#374151', marker: { enabled: false } }];
 
   // Daily chart (Highcharts básico): 1 punto por hora
   const dailyChartOptions: Highcharts.Options = {
@@ -201,11 +251,10 @@ export function MeterReadingsPage() {
       xDateFormat: '%d/%m',
       valueDecimals: 2,
       valueSuffix: meta.unit ? ` ${meta.unit}` : undefined,
+      shared: multiSeries,
     },
-    series: [
-      { name: meta.label, type: 'line', data: hourlyData, color: '#374151', marker: { enabled: false } },
-    ],
-    legend: { enabled: false },
+    series: dailySeries,
+    legend: { enabled: multiSeries },
     credits: { enabled: false },
   };
 
@@ -219,17 +268,16 @@ export function MeterReadingsPage() {
       xDateFormat: '%d/%m %H:%M',
       valueDecimals: 2,
       valueSuffix: meta.unit ? ` ${meta.unit}` : undefined,
+      shared: multiSeries,
     },
-    series: [
-      { name: meta.label, type: 'line', data: rawData, color: '#374151', marker: { enabled: false } },
-    ],
+    series: stockSeries,
     navigator: {
       enabled: true,
       xAxis: { plotLines: alertPlotLines },
     },
     scrollbar: { enabled: false },
     rangeSelector: { enabled: false },
-    legend: { enabled: false },
+    legend: { enabled: multiSeries },
     credits: { enabled: false },
   };
 
@@ -252,7 +300,7 @@ export function MeterReadingsPage() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
-        {(hourlyData.length > 0 || rawData.length > 0) && (
+        {(hourlyData.length > 0 || rawData.length > 0 || compositeRawData) && (
           <Card>
             <div className="mb-3 flex items-center justify-between">
               <div ref={selectorRef} className="relative inline-block">
@@ -267,7 +315,7 @@ export function MeterReadingsPage() {
                 </button>
                 {selectorOpen && (
                   <ul className="absolute left-0 z-20 mt-1 w-56 overflow-y-auto rounded border border-border bg-white py-1 shadow-lg">
-                    {metricKeys.map((key) => (
+                    {selectorItems.map(({ key, label }) => (
                       <li key={key}>
                         <button
                           onClick={() => { setMetric(key); setSelectorOpen(false); }}
@@ -275,7 +323,7 @@ export function MeterReadingsPage() {
                             key === metric ? 'bg-raised font-semibold text-text' : 'text-muted hover:bg-raised hover:text-text'
                           }`}
                         >
-                          {readingMetrics[key].label}
+                          {label}
                         </button>
                       </li>
                     ))}

@@ -300,9 +300,11 @@ export function TempLayout() {
           })}
         </nav>
 
-        {/* Footer */}
+        {/* Footer — contacto */}
         <div className="border-t border-border px-4 py-3">
-          <p className="text-[11px] text-pa-text-muted">Dev Mode</p>
+          <p className="text-[11px] font-semibold text-pa-navy">Contacto Globe</p>
+          <a href="mailto:ejecutivo@globemontaje.cl" className="block text-[11px] text-pa-text-muted hover:text-pa-blue truncate">ejecutivo@globemontaje.cl</a>
+          <a href="tel:+56221111111" className="block text-[11px] text-pa-text-muted hover:text-pa-blue">221111111</a>
         </div>
       </aside>
 

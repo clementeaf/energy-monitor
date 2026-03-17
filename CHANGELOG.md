@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.65.0-alpha.0] - 2026-03-17 — UI POLISH + SWAGGER PROD
+
+### Added
+- **WhatsApp y Email** — íconos de contacto en topbar (entre banderas y user menu)
+- **Cerrar Sesión** — botón con ícono en sidebar footer, debajo de línea separadora
+- **Swagger en prod** — `GET /api/spec` sirve JSON spec, `GET /api/docs` redirige a Swagger UI pública
+
+### Changed
+- **Sidebar footer** — "Contacto Globe" → "Contacto Globe Power", texto 13px, reordenado sobre la línea gris
+- **Dashboard** — título "Consumo y Gasto por Edificio" alineado al borde superior de cards laterales
+- **Comparativas** — toggles Por Tipo/Por Tienda y Barra/Línea/Área/Torta migrados a `TogglePills`
+- **MultiSelect** — rediseñado con tokens PA (pill button, rounded-xl dropdown, tipografía consistente)
+
+---
+
 ## [0.64.0-alpha.0] - 2026-03-17 — CARGA MASIVA CSV + EMPTY STATES
 
 ### Added

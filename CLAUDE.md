@@ -25,13 +25,13 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-17)
-- Bulk CSV upload de medidores por edificio (BulkMeterUpload + POST /stores/bulk)
-- CRUD Edificios, Operadores y Remarcadores (solo Holding, guard frontend)
-- Multi Operador + Modo Operador + Modo Técnico con `useOperatorFilter`
-- PDF en prod funcionando. 24 endpoints verificados
+- UI polish: WhatsApp/email en topbar, sidebar footer con "Cerrar Sesión"
+- Design system: TogglePills en Comparativas, MultiSelect con tokens PA
+- Dashboard: alineación título gráfico con cards laterales
+- Swagger habilitado para prod (`/api/spec` + `/api/docs` redirect)
 
 ### Pendiente
-- Deploy backend + frontend con CRUD + bulk upload
+- Deploy backend (swagger) + frontend (UI polish)
 - Nav items condicionales por rol (cuando auth se reactive)
 - Guard backend `@RequirePermissions` para endpoints CRUD (cuando auth se reactive)
 
@@ -41,9 +41,9 @@ Read CLAUDE.md. Retomando sesión.
 
 Estado:
 - 4 modos: Holding, Multi Operador, Operador, Técnico
-- CRUD Edificios/Operadores/Remarcadores + Bulk CSV upload implementados
-- Endpoints: POST/PATCH/DELETE buildings, stores, operators + POST /stores/bulk
-- PDF en prod funcionando
+- CRUD + Bulk CSV + PDF en prod funcionando
+- UI polish: topbar contacto, sidebar logout, design system aplicado
+- Swagger: /api/spec (JSON) + /api/docs (redirect UI)
 
 Pendiente: deploy todo, guard backend con auth, nav condicional por rol
 ```
@@ -89,7 +89,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 - **TypeORM:** autoLoadEntities, synchronize: false. Raw SQL con `this.dataSource.query()`. rawVal() para pg minúsculas.
 - **Auth:** Guard global JWT + `@RequirePermissions(module, action)` + `RolesGuard`
 - **Validation:** Global ValidationPipe({ whitelist, transform }). DTOs con class-validator.
-- **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery
+- **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Prod: `/api/spec` (JSON), `/api/docs` (redirige a UI pública). Dev: UI embebida en `/api/docs`
 - **Error handling:** service null → controller NotFoundException; auth null on failure
 
 ## Data Flow (end-to-end)

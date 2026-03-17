@@ -102,6 +102,21 @@ export const deleteOperator = (buildingName: string, operatorName: string) =>
 
 // --- Store mutations ---
 
+export interface BulkStoreItem {
+  meterId: string;
+  storeName: string;
+  storeTypeName: string;
+  buildingName: string;
+}
+
+export interface BulkCreateResult {
+  successCount: number;
+  errors: { row: number; meterId: string; error: string }[];
+}
+
+export const bulkCreateStores = (items: BulkStoreItem[]) =>
+  api.post<BulkCreateResult>(routes.bulkCreateStores(), { items }).then((r) => r.data);
+
 export const createStore = (data: { meterId: string; storeName: string; storeTypeId: number; buildingName: string }) =>
   api.post<StoreItem>(routes.createStore(), data).then((r) => r.data);
 

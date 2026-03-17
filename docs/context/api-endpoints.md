@@ -65,6 +65,7 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | GET | `/stores/operators/:buildingName` | — | `{ storeName, meterCount }[]` (operadores del edificio) |
 | PATCH | `/stores/operators/:buildingName/:operatorName` | `{ newName }` | `{ success: true }` (renombra en todos los meters) |
 | DELETE | `/stores/operators/:buildingName/:operatorName` | — | `{ success: true }` (store_name → 'Sin información') |
+| POST | `/stores/bulk` | `{ items: [{ meterId, storeName, storeTypeName, buildingName }] }` | `{ successCount, errors: [{ row, meterId, error }] }` (bulk create con savepoints, auto-crea store_types) |
 | POST | `/stores` | `{ meterId, storeName, storeTypeId, buildingName }` | `Store` (crea store + link en meter_monthly_billing) |
 | PATCH | `/stores/:meterId` | `{ storeName?, storeTypeId? }` | `{ success: true }` |
 | DELETE | `/stores/:meterId` | — | `{ success: true }` (elimina store + meter_monthly_billing) |

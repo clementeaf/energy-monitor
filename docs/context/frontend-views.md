@@ -107,7 +107,7 @@ Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alert
 - Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
 - Tabs:
   - **Detalle Facturación:** `BillingTable` — `max-h-full`, sticky thead/tfoot, filtro meses. Click fila → Drawer desglose por tienda (8 columnas + footer totales, lazy fetch via `useBillingStores`)
-  - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 20, click → `/meters/:meterId`. En Holding: ContextMenu por fila (Editar/Eliminar), botón "+ Remarcador", MeterForm en Drawer
+  - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 20, click → `/meters/:meterId`. En Holding: ContextMenu por fila (Editar/Eliminar), botón "+ Remarcador", botón "Cargar CSV" → Drawer con `BulkMeterUpload` (drop zone CSV, preview validada, submit bulk), MeterForm en Drawer
   - **Operadores** (solo Holding): `OperatorsTab` — lista operadores con meterCount, ContextMenu (Renombrar/Eliminar), OperatorForm en Drawer
 - Medidores sin tienda real muestran placeholder en texto atenuado
 

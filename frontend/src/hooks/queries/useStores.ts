@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchStores, fetchStoreTypes, createStore, updateStore, deleteStore } from '../../services/endpoints';
+import { fetchStores, fetchStoreTypes, createStore, updateStore, deleteStore, bulkCreateStores } from '../../services/endpoints';
+import type { BulkStoreItem } from '../../services/endpoints';
 
 export function useStores() {
   return useQuery({
@@ -36,6 +37,19 @@ export function useUpdateStore() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['stores'] });
       qc.invalidateQueries({ queryKey: ['meters'] });
+    },
+  });
+}
+
+export function useBulkCreateStores() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items: BulkStoreItem[]) => bulkCreateStores(items),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stores'] });
+      qc.invalidateQueries({ queryKey: ['meters'] });
+      qc.invalidateQueries({ queryKey: ['operators'] });
+      qc.invalidateQueries({ queryKey: ['store-types'] });
     },
   });
 }

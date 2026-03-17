@@ -1,9 +1,11 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
 import { Public } from '../auth/public.decorator';
+import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
+import { BulkCreateStoresDto } from './dto/bulk-create-stores.dto';
 
 @Public()
 @Controller('stores')
@@ -37,6 +39,7 @@ export class StoresController {
   }
 
   @Patch('operators/:buildingName/:operatorName')
+  @RequirePermissions('ADMIN_SITES', 'manage')
   async renameOperator(
     @Param('buildingName') buildingName: string,
     @Param('operatorName') operatorName: string,
@@ -47,6 +50,7 @@ export class StoresController {
   }
 
   @Delete('operators/:buildingName/:operatorName')
+  @RequirePermissions('ADMIN_SITES', 'manage')
   async removeOperator(
     @Param('buildingName') buildingName: string,
     @Param('operatorName') operatorName: string,
@@ -57,12 +61,20 @@ export class StoresController {
 
   // --- Store CRUD ---
 
+  @Post('bulk')
+  @RequirePermissions('ADMIN_METERS', 'manage')
+  async bulkCreateStores(@Body() dto: BulkCreateStoresDto) {
+    return this.storesService.bulkCreateStores(dto.items);
+  }
+
   @Post()
+  @RequirePermissions('ADMIN_METERS', 'manage')
   async createStore(@Body() dto: CreateStoreDto) {
     return this.storesService.createStore(dto);
   }
 
   @Patch(':meterId')
+  @RequirePermissions('ADMIN_METERS', 'manage')
   async updateStore(@Param('meterId') meterId: string, @Body() dto: UpdateStoreDto) {
     const store = await this.storesService.findStoreByMeterId(meterId);
     if (!store) {
@@ -73,6 +85,7 @@ export class StoresController {
   }
 
   @Delete(':meterId')
+  @RequirePermissions('ADMIN_METERS', 'manage')
   async removeStore(@Param('meterId') meterId: string) {
     const store = await this.storesService.findStoreByMeterId(meterId);
     if (!store) {

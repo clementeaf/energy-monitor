@@ -5,6 +5,7 @@ import { Store } from './store.entity';
 import { StoreType } from './store-type.entity';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { BulkStoreItemDto } from './dto/bulk-create-stores.dto';
 
 @Injectable()
 export class StoresService {
@@ -130,5 +131,80 @@ export class StoresService {
   async removeStore(meterId: string): Promise<void> {
     await this.dataSource.query(`DELETE FROM meter_monthly_billing WHERE meter_id = $1`, [meterId]);
     await this.storeRepo.delete({ meterId });
+  }
+
+  // --- Bulk create ---
+
+  async bulkCreateStores(items: BulkStoreItemDto[]): Promise<{
+    successCount: number;
+    errors: { row: number; meterId: string; error: string }[];
+  }> {
+    // 1. Load existing store_types into map
+    const allTypes = await this.storeTypeRepo.find();
+    const typeMap = new Map<string, number>();
+    for (const t of allTypes) {
+      typeMap.set(t.name.toLowerCase(), t.id);
+    }
+
+    // 2. Detect new types and insert them
+    const newTypeNames = new Set<string>();
+    for (const item of items) {
+      const key = item.storeTypeName.toLowerCase();
+      if (!typeMap.has(key)) newTypeNames.add(item.storeTypeName);
+    }
+
+    if (newTypeNames.size > 0) {
+      const maxIdResult = await this.dataSource.query(`SELECT COALESCE(MAX(id), 0)::int AS max_id FROM store_type`);
+      let nextId = (maxIdResult[0].max_id as number) + 1;
+      for (const name of newTypeNames) {
+        await this.dataSource.query(`INSERT INTO store_type (id, name) VALUES ($1, $2)`, [nextId, name]);
+        typeMap.set(name.toLowerCase(), nextId);
+        nextId++;
+      }
+    }
+
+    // 3. Transaction with savepoints per row
+    const errors: { row: number; meterId: string; error: string }[] = [];
+    let successCount = 0;
+    const month = new Date().toISOString().slice(0, 7) + '-01';
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const storeTypeId = typeMap.get(item.storeTypeName.toLowerCase())!;
+        const sp = `row_${i}`;
+
+        try {
+          await qr.query(`SAVEPOINT ${sp}`);
+          await qr.query(
+            `INSERT INTO store (meter_id, store_name, store_type_id) VALUES ($1, $2, $3)`,
+            [item.meterId, item.storeName, storeTypeId],
+          );
+          await qr.query(
+            `INSERT INTO meter_monthly_billing (meter_id, month, building_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+            [item.meterId, month, item.buildingName],
+          );
+          await qr.query(`RELEASE SAVEPOINT ${sp}`);
+          successCount++;
+        } catch (err: unknown) {
+          await qr.query(`ROLLBACK TO SAVEPOINT ${sp}`);
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push({ row: i + 1, meterId: item.meterId, error: msg });
+        }
+      }
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    return { successCount, errors };
   }
 }

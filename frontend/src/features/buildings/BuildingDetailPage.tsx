@@ -19,6 +19,7 @@ import { fmtClp, fmtNum, monthName } from '../../lib/formatters';
 import { sumByKey, maxByKey } from '../../lib/aggregations';
 import { BillingChart } from './components/BillingChart';
 import { BillingTable } from './components/BillingTable';
+import { BulkMeterUpload } from './components/BulkMeterUpload';
 import { MeterForm } from './components/MeterForm';
 import { MetersTable } from './components/MetersTable';
 import { OperatorsTab } from './components/OperatorsTab';
@@ -51,6 +52,7 @@ export function BuildingDetailPage() {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   // Meter CRUD state
+  const [bulkDrawer, setBulkDrawer] = useState(false);
   const [meterDrawer, setMeterDrawer] = useState<'create' | 'edit' | null>(null);
   const [editingMeter, setEditingMeter] = useState<MeterListItem | null>(null);
   const [deletingMeter, setDeletingMeter] = useState<MeterListItem | null>(null);
@@ -146,7 +148,10 @@ export function BuildingDetailPage() {
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
         {/* Context "+" button for holding */}
         {isHolding && activeTab === 'meters' && (
-          <PillButton onClick={() => setMeterDrawer('create')}>+ Remarcador</PillButton>
+          <>
+            <PillButton onClick={() => setMeterDrawer('create')}>+ Remarcador</PillButton>
+            <PillButton onClick={() => setBulkDrawer(true)}>Cargar CSV</PillButton>
+          </>
         )}
       </div>
 
@@ -248,6 +253,19 @@ export function BuildingDetailPage() {
               });
             }
           }}
+        />
+      </Drawer>
+
+      {/* Bulk CSV upload drawer */}
+      <Drawer
+        open={bulkDrawer}
+        onClose={() => setBulkDrawer(false)}
+        title={`Carga masiva — ${latest.buildingName}`}
+        size="lg"
+      >
+        <BulkMeterUpload
+          buildingName={latest.buildingName}
+          onDone={() => setBulkDrawer(false)}
         />
       </Drawer>
 

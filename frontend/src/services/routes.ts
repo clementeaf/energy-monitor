@@ -44,6 +44,7 @@ export const routes = {
   // Stores
   getStores: () => '/stores',
   getStoreTypes: () => '/stores/types',
+  bulkCreateStores: () => '/stores/bulk',
   createStore: () => '/stores',
   updateStore: (meterId: string) => `/stores/${meterId}`,
   deleteStore: (meterId: string) => `/stores/${meterId}`,

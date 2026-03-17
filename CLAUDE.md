@@ -24,15 +24,14 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-16)
-- Multi Operador + Modo Operador + Modo Técnico implementados con `useOperatorFilter`
-- Técnico: oculta Dashboard, columnas CLP, series Gasto, billing tab en BuildingDetail
-- PDF en prod — fix interceptor, binary settings, psycopg2 x86_64
-- 24 endpoints verificados en prod, todos OK
+### Completado (2026-03-17)
+- Bulk CSV upload de medidores por edificio (BulkMeterUpload + POST /stores/bulk)
 - CRUD Edificios, Operadores y Remarcadores (solo Holding, guard frontend)
+- Multi Operador + Modo Operador + Modo Técnico con `useOperatorFilter`
+- PDF en prod funcionando. 24 endpoints verificados
 
 ### Pendiente
-- Deploy backend + frontend con CRUD
+- Deploy backend + frontend con CRUD + bulk upload
 - Nav items condicionales por rol (cuando auth se reactive)
 - Guard backend `@RequirePermissions` para endpoints CRUD (cuando auth se reactive)
 
@@ -42,11 +41,11 @@ Read CLAUDE.md. Retomando sesión.
 
 Estado:
 - 4 modos: Holding, Multi Operador, Operador, Técnico
-- CRUD Edificios/Operadores/Remarcadores implementado (guard frontend, solo Holding)
-- Endpoints nuevos: POST/PATCH/DELETE buildings, stores, operators
+- CRUD Edificios/Operadores/Remarcadores + Bulk CSV upload implementados
+- Endpoints: POST/PATCH/DELETE buildings, stores, operators + POST /stores/bulk
 - PDF en prod funcionando
 
-Pendiente: deploy CRUD, guard backend con auth, nav condicional por rol
+Pendiente: deploy todo, guard backend con auth, nav condicional por rol
 ```
 
 ## Prioridad Actual de Acceso

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.64.0-alpha.0] - 2026-03-17 — CARGA MASIVA CSV DE MEDIDORES
+
+### Added
+- **Bulk CSV upload** — carga masiva de medidores por edificio desde BuildingDetailPage (solo Holding)
+- **BulkMeterUpload** — componente con 4 fases: idle (drop zone), preview (tabla validada), submitting, result (resumen + errores)
+- **Validación client-side** — campos vacíos, meter_id > 10 chars, duplicados en CSV
+- **Auto-creación de store_types** — tipos no existentes se crean automáticamente (MAX(id)+1)
+- **Savepoints por fila** — errores individuales no abortan la transacción completa
+- **Backend endpoint:** `POST /stores/bulk` — recibe `{ items: BulkStoreItemDto[] }`, retorna `{ successCount, errors[] }`
+- **Frontend hook:** `useBulkCreateStores` — mutation con invalidación de stores, meters, operators y store-types
+- **Dependencia:** `papaparse` para parsing CSV client-side
+
+### Changed
+- **BuildingDetailPage** — botón "Cargar CSV" junto a "+ Remarcador" en tab medidores (Holding), drawer con BulkMeterUpload
+
+---
+
 ## [0.63.0-alpha.0] - 2026-03-16 — CRUD EDIFICIOS, OPERADORES Y REMARCADORES
 
 ### Added

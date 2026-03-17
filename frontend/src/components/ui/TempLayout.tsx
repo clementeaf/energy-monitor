@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { appRoutes, getNavItems, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
@@ -10,6 +11,99 @@ import { useStores } from '../../hooks/queries/useStores';
 import { PillDropdown } from './PillDropdown';
 
 const allNavItems = (Object.values(appRoutes) as AppRoute[]).filter((r) => r.showInNav);
+
+// =============================================================================
+// TopBar — user menu top-right
+// =============================================================================
+
+const COUNTRIES = [
+  { code: 'CL', label: 'Chile', flag: 'CL' },
+  { code: 'CO', label: 'Colombia', flag: 'CO' },
+  { code: 'PE', label: 'Peru', flag: 'PE' },
+] as const;
+
+/** Convert country code to flag emoji (regional indicator symbols) */
+function countryFlag(code: string) {
+  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65)).join('');
+}
+
+function TopBar({ userName }: { userName?: string }) {
+  const [open, setOpen] = useState(false);
+  const [activeCountry, setActiveCountry] = useState<string>('CL');
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useClickOutside([btnRef, menuRef], () => setOpen(false), open);
+  const navigate = useNavigate();
+
+  const initials = (userName ?? 'U')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <header className="flex h-12 shrink-0 items-center justify-end gap-3 border-b border-pa-border bg-white px-4">
+      {/* Country flags */}
+      <div className="flex items-center gap-1">
+        {COUNTRIES.map((c) => (
+          <button
+            key={c.code}
+            type="button"
+            onClick={() => setActiveCountry(c.code)}
+            title={c.label}
+            className={`flex h-7 w-7 items-center justify-center rounded-lg text-base transition-colors ${
+              activeCountry === c.code
+                ? 'bg-pa-navy/10 ring-1 ring-pa-navy/30'
+                : 'hover:bg-gray-100'
+            }`}
+          >
+            {countryFlag(c.flag)}
+          </button>
+        ))}
+      </div>
+
+      <div className="h-5 w-px bg-pa-border" />
+
+      {/* User menu */}
+      <div className="relative">
+        <button
+          ref={btnRef}
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-pa-text transition-colors hover:bg-gray-100"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pa-navy text-[11px] font-semibold text-white">
+            {initials}
+          </span>
+          <span className="hidden text-[13px] font-medium sm:inline">{userName ?? 'Usuario'}</span>
+          <svg className="h-3 w-3 opacity-50" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 5l3 3 3-3" />
+          </svg>
+        </button>
+
+        {open && (
+          <div
+            ref={menuRef}
+            className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-pa-border bg-white py-1 shadow-lg"
+          >
+            <button
+              type="button"
+              onClick={() => { setOpen(false); navigate('/settings/profile'); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-pa-text transition-colors hover:bg-gray-100"
+            >
+              <svg className="h-4 w-4 text-pa-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Configuracion perfil
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
 
 /** Temporary layout without auth. Replace with <Layout /> when re-enabling login. */
 
@@ -183,6 +277,7 @@ export function TempLayout() {
 
       {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        <TopBar userName={user?.name} />
         <main className="flex-1 overflow-hidden p-4 md:p-6">
           <Outlet />
         </main>

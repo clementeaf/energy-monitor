@@ -15,6 +15,7 @@ const pages = {
   alerts:             lazy(() => import('../features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage }))),
   alertDetail:        lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage }))),
   comparisons:        lazy(() => import('../features/comparisons/ComparisonsPage').then((m) => ({ default: m.ComparisonsPage }))),
+  settingsProfile:    lazy(() => import('../features/settings/ProfilePage').then((m) => ({ default: m.ProfilePage }))),
 };
 
 const skeletons: Record<string, ReactNode> = {
@@ -39,6 +40,7 @@ const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }
   { key: 'alerts',             routeKey: 'alerts' },
   { key: 'alertDetail',        routeKey: 'alertDetail' },
   { key: 'comparisons',        routeKey: 'comparisons' },
+  { key: 'settingsProfile',    routeKey: 'settingsProfile' },
 ];
 
 export const router = createBrowserRouter([

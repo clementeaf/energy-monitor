@@ -108,6 +108,10 @@ export const appRoutes = {
     allowedRoles: PERMISSIONS.BILLING_OVERVIEW.view,
     // showInNav: true,
   },
+  settingsProfile: {
+    path: '/settings/profile',
+    label: 'Configuracion Perfil',
+  },
 } as const satisfies Record<string, AppRoute>;
 
 export function canAccessRoute(role: Role, route: AppRoute): boolean {

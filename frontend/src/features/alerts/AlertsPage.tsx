@@ -30,6 +30,14 @@ const typeLabel: Record<string, string> = {
   POWER_FACTOR_LOW: 'Factor potencia bajo',
 };
 
+const motivoOptions = [
+  'Alerta crítica recurrente',
+  'Falla de equipo',
+  'Valor fuera de rango',
+  'Mantenimiento requerido',
+  'Otro',
+];
+
 // =============================================================================
 // Chevron icon (shared)
 // =============================================================================
@@ -399,6 +407,99 @@ function DateFilterDropdown({
 }
 
 // =============================================================================
+// SendMessageModal (mock — frontend only)
+// =============================================================================
+
+function SendMessageModal({
+  alert,
+  onClose,
+}: {
+  alert: Alert;
+  onClose: () => void;
+}) {
+  const [motivo, setMotivo] = useState('');
+  const [mensaje, setMensaje] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+
+  const canSend = motivo && mensaje.trim().length > 0;
+
+  const handleSend = () => {
+    setStatus('sending');
+    // Mock: simulate send delay
+    setTimeout(() => {
+      setStatus('sent');
+      setTimeout(onClose, 1200);
+    }, 800);
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <h3 className="text-sm font-semibold text-pa-text">Enviar mensaje</h3>
+        <p className="mt-1 text-xs text-pa-text-muted">
+          Alerta #{alert.id} — Medidor {alert.meterId}
+        </p>
+
+        {status === 'sent' ? (
+          <div className="mt-6 flex flex-col items-center gap-2 py-4">
+            <svg className="h-10 w-10 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-sm font-medium text-pa-text">Mensaje enviado</span>
+          </div>
+        ) : (
+          <>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-pa-text">Motivo</label>
+                <select
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  className={`${inputClass} ${!motivo ? 'text-pa-text-muted' : ''}`}
+                >
+                  <option value="">Seleccionar motivo...</option>
+                  {motivoOptions.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-pa-text">Mensaje</label>
+                <textarea
+                  value={mensaje}
+                  onChange={(e) => setMensaje(e.target.value)}
+                  rows={4}
+                  placeholder="Describe la situación o acción requerida..."
+                  className={`${inputClass} resize-none`}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={onClose}
+                className="rounded-lg border border-pa-border px-3 py-1.5 text-xs text-pa-text transition-colors hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={!canSend || status === 'sending'}
+                className="rounded-lg bg-pa-navy px-3 py-1.5 text-xs text-white transition-colors hover:opacity-90 disabled:opacity-50"
+              >
+                {status === 'sending' ? 'Enviando...' : 'Enviar'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// =============================================================================
 // Date filter logic (pure functions)
 // =============================================================================
 
@@ -490,6 +591,9 @@ export function AlertsPage() {
     () => parseDateFilterFromParams(searchParams),
     [searchParams],
   );
+
+  // Send message modal
+  const [messageAlert, setMessageAlert] = useState<Alert | null>(null);
 
   // Checkbox filters
   const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -617,7 +721,24 @@ export function AlertsPage() {
       headerRender: makeHeaderRender('Umbral', 'threshold'),
       className: 'w-[7%]',
     },
-    { label: 'Mensaje', value: (r) => r.message ?? '–', align: 'left', className: 'w-[33%] truncate' },
+    { label: 'Mensaje', value: (r) => r.message ?? '–', align: 'left', className: 'w-[26%] truncate' },
+    {
+      label: 'Acción',
+      className: 'w-[7%]',
+      value: (r) => (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setMessageAlert(r); }}
+          className="inline-flex items-center gap-1 rounded-md bg-pa-navy/10 px-2 py-1 text-[11px] font-medium text-pa-navy transition-colors hover:bg-pa-navy/20"
+          title="Enviar mensaje"
+        >
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Enviar
+        </button>
+      ),
+    },
   ], [makeHeaderRender, dateFilter]);
 
   if (needsSelection) {
@@ -649,6 +770,10 @@ export function AlertsPage() {
           tableClassName="table-fixed"
         />
       </div>
+
+      {messageAlert && (
+        <SendMessageModal alert={messageAlert} onClose={() => setMessageAlert(null)} />
+      )}
     </div>
   );
 }

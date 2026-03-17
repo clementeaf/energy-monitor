@@ -1,7 +1,7 @@
 import api from './api';
 import { routes } from './routes';
 import type { AuthUser } from '../types/auth';
-import type { Alert, BillingDocumentDetail, BillingStoreBreakdown, BuildingSummary, BillingMonthlySummary, ComparisonFilters, ComparisonRow, DashboardBuildingMonth, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading, PaymentSummary, StoreItem } from '../types';
+import type { Alert, BillingDocumentDetail, BillingStoreBreakdown, BuildingSummary, BillingMonthlySummary, ComparisonFilters, ComparisonRow, DashboardBuildingMonth, MeterLatestReading, MeterListItem, MeterMonthly, MeterReading, OperatorSummary, PaymentSummary, StoreItem } from '../types';
 
 interface MeResponse {
   user: AuthUser;
@@ -26,6 +26,9 @@ export const fetchBuildings = () =>
 
 export const fetchBuilding = (name: string) =>
   api.get<BuildingSummary[]>(routes.getBuilding(name)).then((r) => r.data);
+
+export const fetchMeterInfo = (meterId: string) =>
+  api.get<{ meterId: string; storeName: string }>(routes.getMeterInfo(meterId)).then((r) => r.data);
 
 export const fetchMetersByBuilding = (buildingName: string) =>
   api.get<MeterListItem[]>(routes.getMetersByBuilding(buildingName)).then((r) => r.data);
@@ -66,8 +69,44 @@ export const fetchComparisonByStoreName = (storeNames: string[], month: string) 
 export const fetchStores = () =>
   api.get<StoreItem[]>(routes.getStores()).then((r) => r.data);
 
+export const fetchStoreTypes = () =>
+  api.get<{ id: number; name: string }[]>(routes.getStoreTypes()).then((r) => r.data);
+
 export const fetchAlerts = (params?: { severity?: string; meter_id?: string }) =>
   api.get<Alert[]>(routes.getAlerts(params)).then((r) => r.data);
 
 export const fetchBillingPdf = (storeName: string, buildingName: string, month: string) =>
   api.get<Blob>(routes.getBillingPdf(storeName, buildingName, month), { responseType: 'blob' }).then((r) => r.data);
+
+// --- Building mutations ---
+
+export const createBuilding = (data: { buildingName: string; areaSqm: number }) =>
+  api.post<BuildingSummary>(routes.createBuilding(), data).then((r) => r.data);
+
+export const updateBuilding = (name: string, data: { areaSqm?: number }) =>
+  api.patch(routes.updateBuilding(name), data).then((r) => r.data);
+
+export const deleteBuilding = (name: string) =>
+  api.delete(routes.deleteBuilding(name)).then((r) => r.data);
+
+// --- Operator endpoints ---
+
+export const fetchOperators = (buildingName: string) =>
+  api.get<OperatorSummary[]>(routes.getOperators(buildingName)).then((r) => r.data);
+
+export const renameOperator = (buildingName: string, operatorName: string, newName: string) =>
+  api.patch(routes.renameOperator(buildingName, operatorName), { newName }).then((r) => r.data);
+
+export const deleteOperator = (buildingName: string, operatorName: string) =>
+  api.delete(routes.deleteOperator(buildingName, operatorName)).then((r) => r.data);
+
+// --- Store mutations ---
+
+export const createStore = (data: { meterId: string; storeName: string; storeTypeId: number; buildingName: string }) =>
+  api.post<StoreItem>(routes.createStore(), data).then((r) => r.data);
+
+export const updateStore = (meterId: string, data: { storeName?: string; storeTypeId?: number }) =>
+  api.patch(routes.updateStore(meterId), data).then((r) => r.data);
+
+export const deleteStore = (meterId: string) =>
+  api.delete(routes.deleteStore(meterId)).then((r) => r.data);

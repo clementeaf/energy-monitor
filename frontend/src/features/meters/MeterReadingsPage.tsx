@@ -7,7 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { MeterReadingsSkeleton } from '../../components/ui/Skeleton';
 import { useClickOutside } from '../../hooks/useClickOutside';
-import { useMeterReadings } from '../../hooks/queries/useMeters';
+import { useMeterInfo, useMeterReadings } from '../../hooks/queries/useMeters';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { fmtNum } from '../../lib/formatters';
 import { MONTH_NAMES_FULL } from '../../lib/constants';
@@ -139,6 +139,7 @@ export function MeterReadingsPage() {
     };
   }, [month]);
 
+  const { data: meterInfo } = useMeterInfo(meterId!);
   const { data: readings, isLoading } = useMeterReadings(meterId!, from, to);
   const { data: alerts } = useAlerts({ meter_id: meterId! });
 
@@ -242,6 +243,8 @@ export function MeterReadingsPage() {
           >
             &larr; Volver
           </button>
+          <span className="text-sm text-muted">{meterInfo?.storeName ?? '—'}</span>
+          <span className="text-sm text-muted">&middot;</span>
           <span className="text-sm font-semibold text-text">{meterId}</span>
           <span className="text-sm text-muted">&middot; {monthLabel}</span>
           <span className="text-xs text-muted">({readings?.length ?? 0} lecturas)</span>

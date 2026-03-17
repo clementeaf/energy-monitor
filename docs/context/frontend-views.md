@@ -35,7 +35,13 @@
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender`, `onRowClick` abre drawer desglose. Usa `sumByKey`/`maxByKey` de `lib/aggregations` |
 | `ColumnFilterDropdown` | `features/dashboard/DashboardPage.tsx` | Dropdown genérico checkbox multi-select para filtrar columnas en DataTable. Misma UX que MonthFilterDropdown |
 | `DocTableWithFilter` | `features/dashboard/DashboardPage.tsx` | Wrapper DataTable con filtro edificio integrado. Prop `showPeriodFilter` agrega PillDropdown de períodos vencimiento. Usado en drawers documentos Dashboard |
-| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa DataTable con `pageSize={20}`. 3 columnas (Medidor, Tienda, Tipo), `UNOCCUPIED_NAMES` Set para atenuar placeholders, click → detalle medidor |
+| `ContextMenu` | `components/ui/ContextMenu.tsx` | Botón 3 puntos con dropdown posicional. Items con label, onClick, danger flag. Usa `useClickOutside` |
+| `ConfirmDialog` | `components/ui/ConfirmDialog.tsx` | Modal de confirmación con portal. Props: title, message, confirmLabel, loading. Botón rojo para confirmar |
+| `BuildingForm` | `features/buildings/components/BuildingForm.tsx` | Form crear/editar edificio (nombre + área m²). Nombre disabled en modo edición |
+| `OperatorForm` | `features/buildings/components/OperatorForm.tsx` | Form renombrar operador (campo storeName) |
+| `MeterForm` | `features/buildings/components/MeterForm.tsx` | Form crear/editar remarcador. Datalist de operadores existentes, select de store types (fetch propio via `useStoreTypes`) |
+| `OperatorsTab` | `features/buildings/components/OperatorsTab.tsx` | Tab operadores en BuildingDetail. DataTable con ContextMenu por fila, Drawer renombrar, ConfirmDialog eliminar |
+| `MetersTable` | `features/buildings/components/MetersTable.tsx` | Usa DataTable con `pageSize={20}`. 3 columnas (Medidor, Tienda, Tipo) + columna ContextMenu opcional (Holding), `UNOCCUPIED_NAMES` Set para atenuar placeholders, click → detalle medidor |
 | `MonthlyColumnChart` | `components/charts/MonthlyColumnChart.tsx` | Gráfico PA por mes (Highcharts), usa `CHART_COLORS`/`LIGHT_PLOT_OPTIONS`/`LIGHT_TOOLTIP_STYLE` de `lib/chartConfig`, toggle pill Barra/Línea/Área/Torta |
 | `MeterMetricSelector` | `features/meters/components/MeterMetricSelector.tsx` | Dropdown con 5 métricas del medidor, `onHover` para preview en tabla. Usa `useClickOutside` compartido |
 | `MeterMonthlyTable` | `features/meters/components/MeterMonthlyTable.tsx` | Usa DataTable. 7 columnas (incluye Incidencias), highlight columna via `className`, click fila → lecturas. Usa formatters y aggregations de `lib/` |
@@ -56,6 +62,9 @@
 |------|-----------|-----|
 | `useClickOutside` | `hooks/useClickOutside.ts` | Acepta ref único o array de refs, parámetro `active` (default `true`). Usado en 7 componentes |
 | `useOperatorFilter` | `hooks/useOperatorFilter.ts` | Filtrado por modo. Retorna `isFilteredMode`, `isTecnico`, `needsSelection`, `operatorMeterIds`, `operatorBuildings`, `selectedStoreName`. Soporta Multi Operador, Operador y Técnico |
+| `useCreateBuilding`, `useUpdateBuilding`, `useDeleteBuilding` | `hooks/queries/useBuildings.ts` | Mutaciones CRUD edificios. Invalidan `['buildings']` |
+| `useOperatorsByBuilding`, `useRenameOperator`, `useDeleteOperator` | `hooks/queries/useOperators.ts` | Query + mutaciones operadores por edificio. Invalidan `['operators', building]` y `['stores']` |
+| `useStoreTypes`, `useCreateStore`, `useUpdateStore`, `useDeleteStore` | `hooks/queries/useStores.ts` | Query tipos + mutaciones CRUD remarcadores. Invalidan `['stores']`, `['meters']`, `['operators']` |
 
 ## Modos de filtrado
 
@@ -87,6 +96,7 @@ Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alert
 - Cards con stats (consumo, potencia, demanda, FP), botón pill "Ver más +" navega a detalle
 - Grid 2x2 stats + footer (medidores + área m²)
 - Formato numérico `es-CL`
+- **CRUD (Holding):** botón "+ Nuevo Edificio", ContextMenu por card (Editar/Eliminar), BuildingForm en Drawer, ConfirmDialog para eliminar
 
 ## BuildingDetailPage
 
@@ -97,7 +107,8 @@ Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alert
 - Selector ↔ Tabla: métrica seleccionada destaca columna (`bg-blue-50`), hover preview (`bg-blue-50/60`)
 - Tabs:
   - **Detalle Facturación:** `BillingTable` — `max-h-full`, sticky thead/tfoot, filtro meses. Click fila → Drawer desglose por tienda (8 columnas + footer totales, lazy fetch via `useBillingStores`)
-  - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 10, click → `/meters/:meterId`
+  - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 20, click → `/meters/:meterId`. En Holding: ContextMenu por fila (Editar/Eliminar), botón "+ Remarcador", MeterForm en Drawer
+  - **Operadores** (solo Holding): `OperatorsTab` — lista operadores con meterCount, ContextMenu (Renombrar/Eliminar), OperatorForm en Drawer
 - Medidores sin tienda real muestran placeholder en texto atenuado
 
 ## MeterDetailPage

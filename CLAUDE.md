@@ -27,25 +27,26 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Completado (2026-03-16)
 - Multi Operador + Modo Operador + Modo Técnico implementados con `useOperatorFilter`
 - Técnico: oculta Dashboard, columnas CLP, series Gasto, billing tab en BuildingDetail
-- Sidebar dropdowns responsive con `fullWidth` (sin desborde)
 - PDF en prod — fix interceptor, binary settings, psycopg2 x86_64
 - 24 endpoints verificados en prod, todos OK
+- CRUD Edificios, Operadores y Remarcadores (solo Holding, guard frontend)
 
 ### Pendiente
-- Deploy frontend a S3/CloudFront con cambios de modo Técnico
+- Deploy backend + frontend con CRUD
 - Nav items condicionales por rol (cuando auth se reactive)
+- Guard backend `@RequirePermissions` para endpoints CRUD (cuando auth se reactive)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
 
 Estado:
-- 4 modos implementados: Holding, Multi Operador, Operador, Técnico
-- useOperatorFilter unifica filtrado (isFilteredMode) y visibilidad financiera (isTecnico)
+- 4 modos: Holding, Multi Operador, Operador, Técnico
+- CRUD Edificios/Operadores/Remarcadores implementado (guard frontend, solo Holding)
+- Endpoints nuevos: POST/PATCH/DELETE buildings, stores, operators
 - PDF en prod funcionando
-- 24 endpoints verificados OK en prod
 
-Pendiente: deploy frontend, nav condicional por rol con auth
+Pendiente: deploy CRUD, guard backend con auth, nav condicional por rol
 ```
 
 ## Prioridad Actual de Acceso

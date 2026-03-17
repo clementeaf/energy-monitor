@@ -151,6 +151,12 @@ export interface BillingDocumentDetail {
   meterCount: number;
 }
 
+// Matches backend operators endpoint
+export interface OperatorSummary {
+  storeName: string;
+  meterCount: number;
+}
+
 // Matches backend Store entity (store table)
 export interface StoreItem {
   meterId: string;

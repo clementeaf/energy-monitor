@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Card } from '../../components/ui/Card';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
 import { PillButton } from '../../components/ui/PillButton';
@@ -11,17 +12,21 @@ import { BuildingDetailSkeleton } from '../../components/ui/Skeleton';
 import { useBuilding } from '../../hooks/queries/useBuildings';
 import { useBilling, useBillingStores, useBillingAllStores } from '../../hooks/queries/useBilling';
 import { useMetersByBuilding } from '../../hooks/queries/useMeters';
+import { useCreateStore, useUpdateStore, useDeleteStore } from '../../hooks/queries/useStores';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
+import { useAppStore } from '../../store/useAppStore';
 import { fmtClp, fmtNum, monthName } from '../../lib/formatters';
 import { sumByKey, maxByKey } from '../../lib/aggregations';
 import { BillingChart } from './components/BillingChart';
 import { BillingTable } from './components/BillingTable';
+import { MeterForm } from './components/MeterForm';
 import { MetersTable } from './components/MetersTable';
+import { OperatorsTab } from './components/OperatorsTab';
 import type { BillingMetricKey } from './components/billingMetrics';
 import { billingMetrics, billingMetricKeys } from './components/billingMetrics';
-import type { BillingStoreBreakdown } from '../../types';
+import type { BillingStoreBreakdown, MeterListItem } from '../../types';
 
-type DetailTab = 'billing' | 'meters';
+type DetailTab = 'billing' | 'meters' | 'operators';
 
 const TAB_OPTIONS: { value: DetailTab; label: string }[] = [
   { value: 'billing', label: 'Detalle Facturación' },
@@ -37,11 +42,21 @@ export function BuildingDetailPage() {
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
   const { isFilteredMode, isTecnico, operatorMeterIds, selectedOperator, selectedStoreName } = useOperatorFilter();
+  const userMode = useAppStore((s) => s.userMode);
+  const isHolding = userMode === 'holding';
   const hideBilling = isTecnico;
   const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+
+  // Meter CRUD state
+  const [meterDrawer, setMeterDrawer] = useState<'create' | 'edit' | null>(null);
+  const [editingMeter, setEditingMeter] = useState<MeterListItem | null>(null);
+  const [deletingMeter, setDeletingMeter] = useState<MeterListItem | null>(null);
+  const createStoreMutation = useCreateStore();
+  const updateStoreMutation = useUpdateStore();
+  const deleteStoreMutation = useDeleteStore();
 
   const { data: storeBreakdown, isLoading: loadingStores } = useBillingStores(id!, selectedMonth);
 
@@ -116,16 +131,23 @@ export function BuildingDetailPage() {
 
   const latest = months[0];
 
-  // In filtered modes, hide billing tab
-  const tabOptions = hideBilling
-    ? TAB_OPTIONS.filter((t) => t.value !== 'billing')
-    : TAB_OPTIONS;
+  // Build tab options dynamically
+  const tabOptions = (() => {
+    let opts = [...TAB_OPTIONS];
+    if (hideBilling) opts = opts.filter((t) => t.value !== 'billing');
+    if (isHolding) opts.push({ value: 'operators', label: 'Operadores' });
+    return opts;
+  })();
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="mb-3 flex shrink-0 items-center gap-3">
+      <div className="mb-3 ml-4 flex shrink-0 items-center gap-3">
         <PillButton onClick={() => navigate(-1)}>&larr; Volver</PillButton>
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
+        {/* Context "+" button for holding */}
+        {isHolding && activeTab === 'meters' && (
+          <PillButton onClick={() => setMeterDrawer('create')}>+ Remarcador</PillButton>
+        )}
       </div>
 
       {effectiveBilling && effectiveBilling.length > 0 && (
@@ -139,6 +161,7 @@ export function BuildingDetailPage() {
                   value={chartMetric}
                   onChange={setChartMetric}
                   onHover={setHoveredMetric}
+                  align="left"
                 />
               </SectionBanner>
               <BillingChart data={effectiveBilling} metric={chartMetric} />
@@ -161,16 +184,26 @@ export function BuildingDetailPage() {
                 />
               )}
               {activeTab === 'meters' && filteredMeters && filteredMeters.length > 0 && (
-                <MetersTable data={filteredMeters} buildingName={latest.buildingName} />
+                <MetersTable
+                  data={filteredMeters}
+                  buildingName={latest.buildingName}
+                  isHolding={isHolding}
+                  onEdit={(m) => { setEditingMeter(m); setMeterDrawer('edit'); }}
+                  onDelete={(m) => setDeletingMeter(m)}
+                />
               )}
               {activeTab === 'meters' && (!filteredMeters || filteredMeters.length === 0) && (
                 <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>
+              )}
+              {activeTab === 'operators' && isHolding && (
+                <OperatorsTab buildingName={latest.buildingName} />
               )}
             </div>
           </Card>
         </div>
       )}
 
+      {/* Billing store breakdown drawer */}
       <Drawer
         open={!!selectedMonth}
         onClose={() => setSelectedMonth(null)}
@@ -191,6 +224,46 @@ export function BuildingDetailPage() {
           <p className="py-8 text-center text-sm text-pa-text-muted">Sin desglose para este mes</p>
         )}
       </Drawer>
+
+      {/* Meter create/edit drawer */}
+      <Drawer
+        open={meterDrawer !== null}
+        onClose={() => { setMeterDrawer(null); setEditingMeter(null); }}
+        title={meterDrawer === 'edit' ? `Editar Remarcador — ${editingMeter?.meterId}` : 'Nuevo Remarcador'}
+        size="sm"
+      >
+        <MeterForm
+          buildingName={latest.buildingName}
+          initial={editingMeter ? { meterId: editingMeter.meterId, storeName: editingMeter.storeName, storeTypeId: 0 } : undefined}
+          loading={createStoreMutation.isPending || updateStoreMutation.isPending}
+          onSubmit={(data) => {
+            if (meterDrawer === 'edit' && editingMeter) {
+              updateStoreMutation.mutate(
+                { meterId: editingMeter.meterId, data: { storeName: data.storeName, storeTypeId: data.storeTypeId } },
+                { onSuccess: () => { setMeterDrawer(null); setEditingMeter(null); } },
+              );
+            } else {
+              createStoreMutation.mutate(data, {
+                onSuccess: () => { setMeterDrawer(null); },
+              });
+            }
+          }}
+        />
+      </Drawer>
+
+      {/* Meter delete confirm */}
+      <ConfirmDialog
+        open={!!deletingMeter}
+        title="Eliminar Remarcador"
+        message={`Se eliminará el medidor "${deletingMeter?.meterId}" y sus datos de facturación. Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          deleteStoreMutation.mutate(deletingMeter!.meterId, {
+            onSuccess: () => setDeletingMeter(null),
+          });
+        }}
+        onCancel={() => setDeletingMeter(null)}
+        loading={deleteStoreMutation.isPending}
+      />
     </div>
   );
 }

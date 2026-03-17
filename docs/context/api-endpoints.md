@@ -48,18 +48,27 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | GET | `/comparisons/by-store-name` | `storeNames` (comma-sep), `month` | `ComparisonRow[]` (misma estructura) |
 
 ## Buildings (`/buildings`) — `@Public()`
-| Method | Path | Response |
-|---|---|---|
-| GET | `/buildings` | `BuildingSummary[]` (resumen mensual por edificio) |
-| GET | `/buildings/:name` | `BuildingSummary[]` filtrado por nombre |
+| Method | Path | Body / Params | Response |
+|---|---|---|---|
+| GET | `/buildings` | — | `BuildingSummary[]` (resumen mensual por edificio) |
+| GET | `/buildings/:name` | — | `BuildingSummary[]` filtrado por nombre |
+| POST | `/buildings` | `{ buildingName, areaSqm }` | `BuildingSummary` (row creada con defaults mes actual) |
+| PATCH | `/buildings/:name` | `{ areaSqm? }` | `{ success: true }` |
+| DELETE | `/buildings/:name` | — | `{ success: true }` (elimina todas las rows del building) |
 
 ## Stores (`/stores`) — `@Public()`
-| Method | Path | Response |
-|---|---|---|
-| GET | `/stores` | `Store[]` (43 tiendas con tipo eager) |
-| GET | `/stores/types` | `StoreType[]` (20 tipos) |
-| GET | `/stores/types/:id` | `Store[]` filtradas por tipo |
-| GET | `/stores/:meterId` | `Store` por meter_id |
+| Method | Path | Body / Params | Response |
+|---|---|---|---|
+| GET | `/stores` | — | `Store[]` (875 tiendas con tipo eager + buildingName) |
+| GET | `/stores/types` | — | `StoreType[]` (42 tipos) |
+| GET | `/stores/types/:id` | — | `Store[]` filtradas por tipo |
+| GET | `/stores/operators/:buildingName` | — | `{ storeName, meterCount }[]` (operadores del edificio) |
+| PATCH | `/stores/operators/:buildingName/:operatorName` | `{ newName }` | `{ success: true }` (renombra en todos los meters) |
+| DELETE | `/stores/operators/:buildingName/:operatorName` | — | `{ success: true }` (store_name → 'Sin información') |
+| POST | `/stores` | `{ meterId, storeName, storeTypeId, buildingName }` | `Store` (crea store + link en meter_monthly_billing) |
+| PATCH | `/stores/:meterId` | `{ storeName?, storeTypeId? }` | `{ success: true }` |
+| DELETE | `/stores/:meterId` | — | `{ success: true }` (elimina store + meter_monthly_billing) |
+| GET | `/stores/:meterId` | — | `Store` por meter_id |
 
 ## Meter Monthly (`/meter-monthly`) — `@Public()`
 | Method | Path | Response |

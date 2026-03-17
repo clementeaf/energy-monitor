@@ -290,7 +290,7 @@ export function ComparisonsPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <div className="flex items-center gap-4">
+      <div className="ml-4 flex items-center gap-4">
         {!isFilteredMode && (
           <div className="flex gap-1">
             <button className={toggleBtn(mode === 'type')} onClick={() => setMode('type')}>Por Tipo</button>

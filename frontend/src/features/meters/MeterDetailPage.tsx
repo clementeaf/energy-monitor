@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { Card } from '../../components/ui/Card';
 import { MonthlyColumnChart } from '../../components/charts/MonthlyColumnChart';
 import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
-import { useMeterMonthly } from '../../hooks/queries/useMeters';
+import { useMeterInfo, useMeterMonthly } from '../../hooks/queries/useMeters';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { MeterMetricSelector } from './components/MeterMetricSelector';
 import { MeterMonthlyTable } from './components/MeterMonthlyTable';
@@ -13,6 +13,7 @@ import type { MeterMetricKey } from './components/meterMetrics';
 export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const navigate = useNavigate();
+  const { data: meterInfo } = useMeterInfo(meterId!);
   const { data: monthly, isLoading } = useMeterMonthly(meterId!);
   const { data: alerts } = useAlerts({ meter_id: meterId! });
   const [chartMetric, setChartMetric] = useState<MeterMetricKey>('totalKwh');
@@ -33,6 +34,8 @@ export function MeterDetailPage() {
           >
             &larr; Volver
           </button>
+          <span className="text-sm text-muted">{meterInfo?.storeName ?? '—'}</span>
+          <span className="text-sm text-muted">&middot;</span>
           <span className="text-sm font-semibold text-text">{meterId}</span>
         </div>
       </div>

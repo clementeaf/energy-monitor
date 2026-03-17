@@ -43,6 +43,15 @@ export class MetersService {
     }));
   }
 
+  async findStoreName(meterId: string): Promise<string> {
+    const rows = await this.dataSource.query(
+      `SELECT COALESCE(s.store_name, 'Sin información') AS "storeName"
+       FROM store s WHERE s.meter_id = $1 LIMIT 1`,
+      [meterId],
+    );
+    return rows.length > 0 ? rows[0].storeName : 'Sin información';
+  }
+
   async findLatestByBuilding(buildingName: string): Promise<MeterLatestReading[]> {
     const rows = await this.dataSource.query(
       `SELECT

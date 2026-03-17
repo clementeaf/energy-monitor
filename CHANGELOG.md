@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.63.0-alpha.0] - 2026-03-16 — CRUD EDIFICIOS, OPERADORES Y REMARCADORES
+
+### Added
+- **CRUD Edificios** — crear, editar área y eliminar desde BuildingsPage (solo Holding)
+- **CRUD Operadores** — renombrar y eliminar por edificio desde nuevo tab "Operadores" en BuildingDetailPage
+- **CRUD Remarcadores** — crear, editar y eliminar medidores desde tab "Remarcadores" en BuildingDetailPage
+- **Tab "Operadores"** en BuildingDetailPage — lista operadores con meterCount, visible solo en modo Holding
+- **ContextMenu** — componente reutilizable con botón 3 puntos y dropdown (Editar/Eliminar)
+- **ConfirmDialog** — modal de confirmación para acciones destructivas
+- **BuildingForm, OperatorForm, MeterForm** — formularios en Drawer para cada entidad
+- **Backend endpoints:** `POST/PATCH/DELETE /buildings/:name`, `GET/PATCH/DELETE /stores/operators/:building/:op`, `POST/PATCH/DELETE /stores/:meterId`
+- **Frontend hooks:** `useCreateBuilding`, `useUpdateBuilding`, `useDeleteBuilding`, `useOperatorsByBuilding`, `useRenameOperator`, `useDeleteOperator`, `useCreateStore`, `useUpdateStore`, `useDeleteStore`, `useStoreTypes`
+
+### Changed
+- **BuildingsPage** — botón "+ Nuevo Edificio" y ContextMenu por card (solo Holding)
+- **BuildingDetailPage** — tabs dinámicos, botón "+ Remarcador", drawer CRUD medidores
+- **MetersTable** — columna opcional con ContextMenu por fila (solo Holding)
+
+---
+
 ## [0.62.0-alpha.0] - 2026-03-16 — REFACTOR: IF-CHAINS → MAPPINGS DECLARATIVOS
 
 ### Changed

@@ -5,9 +5,13 @@ export const routes = {
 
   // Buildings
   getBuildings: () => '/buildings',
-  getBuilding:  (name: string) => `/buildings/${name}`,
+  getBuilding:  (name: string) => `/buildings/${encodeURIComponent(name)}`,
+  createBuilding: () => '/buildings',
+  updateBuilding: (name: string) => `/buildings/${encodeURIComponent(name)}`,
+  deleteBuilding: (name: string) => `/buildings/${encodeURIComponent(name)}`,
 
   // Meters
+  getMeterInfo: (meterId: string) => `/meters/${meterId}/info`,
   getMetersByBuilding: (buildingName: string) => `/meters/building/${buildingName}`,
   getMetersLatest: (buildingName: string) => `/meters/building/${buildingName}/latest`,
 
@@ -39,6 +43,17 @@ export const routes = {
 
   // Stores
   getStores: () => '/stores',
+  getStoreTypes: () => '/stores/types',
+  createStore: () => '/stores',
+  updateStore: (meterId: string) => `/stores/${meterId}`,
+  deleteStore: (meterId: string) => `/stores/${meterId}`,
+
+  // Operators
+  getOperators: (buildingName: string) => `/stores/operators/${encodeURIComponent(buildingName)}`,
+  renameOperator: (buildingName: string, operatorName: string) =>
+    `/stores/operators/${encodeURIComponent(buildingName)}/${encodeURIComponent(operatorName)}`,
+  deleteOperator: (buildingName: string, operatorName: string) =>
+    `/stores/operators/${encodeURIComponent(buildingName)}/${encodeURIComponent(operatorName)}`,
 
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {

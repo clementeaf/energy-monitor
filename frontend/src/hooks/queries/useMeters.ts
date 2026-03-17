@@ -1,7 +1,15 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { fetchMetersByBuilding, fetchMetersLatest, fetchMeterMonthly, fetchMeterReadings } from '../../services/endpoints';
+import { fetchMeterInfo, fetchMetersByBuilding, fetchMetersLatest, fetchMeterMonthly, fetchMeterReadings } from '../../services/endpoints';
 import type { MeterLatestReading } from '../../types';
 import { useMemo } from 'react';
+
+export function useMeterInfo(meterId: string) {
+  return useQuery({
+    queryKey: ['meter-info', meterId],
+    queryFn: () => fetchMeterInfo(meterId),
+    enabled: !!meterId,
+  });
+}
 
 export function useMetersByBuilding(buildingName: string) {
   return useQuery({

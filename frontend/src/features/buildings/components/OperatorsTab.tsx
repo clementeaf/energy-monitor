@@ -34,8 +34,8 @@ export function OperatorsTab({ buildingName }: OperatorsTabProps) {
     },
   ];
 
-  if (isLoading) return <p className="py-8 text-center text-sm text-pa-text-muted">Cargando...</p>;
-  if (!operators || operators.length === 0) return <p className="py-8 text-center text-sm text-muted">Sin operadores</p>;
+  if (isLoading) return <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Cargando...</div>;
+  if (!operators || operators.length === 0) return <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Sin operadores</div>;
 
   return (
     <>

@@ -46,7 +46,8 @@ export function BuildingDetailPage() {
   const userMode = useAppStore((s) => s.userMode);
   const isHolding = userMode === 'holding';
   const hideBilling = isTecnico;
-  const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling ? 'meters' : 'billing');
+  const hasBilling = !!billing && billing.length > 0;
+  const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling || !hasBilling ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -155,58 +156,62 @@ export function BuildingDetailPage() {
         )}
       </div>
 
-      {effectiveBilling && effectiveBilling.length > 0 && (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Fila 1: gráfico (hidden in filtered modes) */}
-          {!hideBilling && (
-            <Card className="flex shrink-0 flex-col">
-              <SectionBanner title="" inline className="mb-3">
-                <PillDropdown
-                  items={metricDropdownItems}
-                  value={chartMetric}
-                  onChange={setChartMetric}
-                  onHover={setHoveredMetric}
-                  align="left"
-                />
-              </SectionBanner>
-              <BillingChart data={effectiveBilling} metric={chartMetric} />
-            </Card>
-          )}
-
-          {/* Fila 2: tabla, ocupa resto */}
-          <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+        {/* Fila 1: gráfico (siempre presente, empty state si sin datos) */}
+        {!hideBilling && (
+          <Card className="flex shrink-0 flex-col">
             <SectionBanner title="" inline className="mb-3">
-              <TogglePills options={tabOptions} value={activeTab} onChange={setActiveTab} />
+              <PillDropdown
+                items={metricDropdownItems}
+                value={chartMetric}
+                onChange={setChartMetric}
+                onHover={setHoveredMetric}
+                align="left"
+              />
             </SectionBanner>
-
-            <div className="min-h-0 flex-1 overflow-hidden">
-              {activeTab === 'billing' && !hideBilling && (
-                <BillingTable
-                  data={effectiveBilling}
-                  highlightMetric={chartMetric}
-                  hoveredMetric={hoveredMetric}
-                  onRowClick={(row) => setSelectedMonth(row.month)}
-                />
-              )}
-              {activeTab === 'meters' && filteredMeters && filteredMeters.length > 0 && (
-                <MetersTable
-                  data={filteredMeters}
-                  buildingName={latest.buildingName}
-                  isHolding={isHolding}
-                  onEdit={(m) => { setEditingMeter(m); setMeterDrawer('edit'); }}
-                  onDelete={(m) => setDeletingMeter(m)}
-                />
-              )}
-              {activeTab === 'meters' && (!filteredMeters || filteredMeters.length === 0) && (
-                <p className="py-8 text-center text-sm text-muted">Sin datos de remarcadores</p>
-              )}
-              {activeTab === 'operators' && isHolding && (
-                <OperatorsTab buildingName={latest.buildingName} />
-              )}
-            </div>
+            {effectiveBilling && effectiveBilling.length > 0
+              ? <BillingChart data={effectiveBilling} metric={chartMetric} />
+              : <div className="flex h-96 items-center justify-center"><p className="text-sm text-pa-text-muted">Sin datos de facturación</p></div>
+            }
           </Card>
-        </div>
-      )}
+        )}
+
+        {/* Fila 2: tabla, ocupa resto */}
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <SectionBanner title="" inline className="mb-3">
+            <TogglePills options={tabOptions} value={activeTab} onChange={setActiveTab} />
+          </SectionBanner>
+
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {activeTab === 'billing' && !hideBilling && effectiveBilling && effectiveBilling.length > 0 && (
+              <BillingTable
+                data={effectiveBilling}
+                highlightMetric={chartMetric}
+                hoveredMetric={hoveredMetric}
+                onRowClick={(row) => setSelectedMonth(row.month)}
+              />
+            )}
+            {activeTab === 'billing' && (!effectiveBilling || effectiveBilling.length === 0) && (
+              <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Sin datos de facturación</div>
+            )}
+            {activeTab === 'meters' && filteredMeters && filteredMeters.length > 0 && (
+              <MetersTable
+                data={filteredMeters}
+                buildingName={latest.buildingName}
+                isHolding={isHolding}
+                onEdit={(m) => { setEditingMeter(m); setMeterDrawer('edit'); }}
+                onDelete={(m) => setDeletingMeter(m)}
+              />
+            )}
+            {activeTab === 'meters' && (!filteredMeters || filteredMeters.length === 0) && (
+              <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Sin datos de remarcadores</div>
+            )}
+            {activeTab === 'operators' && isHolding && (
+              <OperatorsTab buildingName={latest.buildingName} />
+            )}
+          </div>
+        </Card>
+      </div>
 
       {/* Billing store breakdown drawer */}
       <Drawer
@@ -215,7 +220,7 @@ export function BuildingDetailPage() {
         title={`Detalle por Tienda — ${selectedMonth ? monthName(selectedMonth) : ''}`}
         size="lg"
       >
-        {loadingStores && <p className="py-8 text-center text-sm text-pa-text-muted">Cargando...</p>}
+        {loadingStores && <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Cargando...</div>}
         {!loadingStores && filteredStoreBreakdown && filteredStoreBreakdown.length > 0 && (
           <DataTable
             data={filteredStoreBreakdown}
@@ -226,7 +231,7 @@ export function BuildingDetailPage() {
           />
         )}
         {!loadingStores && filteredStoreBreakdown && filteredStoreBreakdown.length === 0 && (
-          <p className="py-8 text-center text-sm text-pa-text-muted">Sin desglose para este mes</p>
+          <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Sin desglose para este mes</div>
         )}
       </Drawer>
 

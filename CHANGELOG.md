@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.64.0-alpha.0] - 2026-03-17 — CARGA MASIVA CSV DE MEDIDORES
+## [0.64.0-alpha.0] - 2026-03-17 — CARGA MASIVA CSV + EMPTY STATES
 
 ### Added
 - **Bulk CSV upload** — carga masiva de medidores por edificio desde BuildingDetailPage (solo Holding)
@@ -14,6 +14,8 @@
 
 ### Changed
 - **BuildingDetailPage** — botón "Cargar CSV" junto a "+ Remarcador" en tab medidores (Holding), drawer con BulkMeterUpload
+- **Empty states** — todas las subvistas de edificio (gráfico, billing, meters, operadores, drawer desglose) mantienen el espacio del componente aunque no haya datos, con mensaje "Sin datos" centrado
+- **BuildingDetailPage** — tabs y card siempre visibles aunque el edificio esté vacío; tab default pasa a "meters" si no hay billing
 
 ---
 

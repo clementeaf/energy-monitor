@@ -110,6 +110,7 @@ Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alert
   - **Listado Remarcadores:** `MetersTable` — `max-h-full`, paginación de 20, click → `/meters/:meterId`. En Holding: ContextMenu por fila (Editar/Eliminar), botón "+ Remarcador", botón "Cargar CSV" → Drawer con `BulkMeterUpload` (drop zone CSV, preview validada, submit bulk), MeterForm en Drawer
   - **Operadores** (solo Holding): `OperatorsTab` — lista operadores con meterCount, ContextMenu (Renombrar/Eliminar), OperatorForm en Drawer
 - Medidores sin tienda real muestran placeholder en texto atenuado
+- **Empty states:** todas las subvistas (gráfico, tabs, drawer) mantienen el espacio del componente con mensaje centrado "Sin datos". Edificio sin billing arranca en tab "meters"
 
 ## MeterDetailPage
 

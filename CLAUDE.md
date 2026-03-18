@@ -25,13 +25,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-17)
-- UI polish: WhatsApp/email en topbar, sidebar footer con "Cerrar Sesión"
-- Design system: TogglePills en Comparativas, MultiSelect con tokens PA
-- Dashboard: alineación título gráfico con cards laterales
-- Swagger habilitado para prod (`/api/spec` + `/api/docs` redirect)
+- Dashboard: toggle Consumo/Gasto, selector año+mes, sorting en tablas
+- Drawers: filtros cascada (Edificio↔Operador↔N° Doc), búsqueda, fecha, rango numérico
+- Previsualización PDF en modal iframe
+- "Edificios" → "Activos Inmobiliarios" en nav y dashboard
+- "Facturas Vencidas por Período" con pills en vez de dropdown
 
 ### Pendiente
-- Deploy backend (swagger) + frontend (UI polish)
+- Deploy backend + frontend (cambios UI + filtros)
+- Costo por Centro (input externo Colbún → PASA, pendiente definición con cliente)
 - Nav items condicionales por rol (cuando auth se reactive)
 - Guard backend `@RequirePermissions` para endpoints CRUD (cuando auth se reactive)
 
@@ -42,10 +44,11 @@ Read CLAUDE.md. Retomando sesión.
 Estado:
 - 4 modos: Holding, Multi Operador, Operador, Técnico
 - CRUD + Bulk CSV + PDF en prod funcionando
-- UI polish: topbar contacto, sidebar logout, design system aplicado
-- Swagger: /api/spec (JSON) + /api/docs (redirect UI)
+- Dashboard: toggle Consumo/Gasto, año+mes, sorting, filtros cascada en drawers
+- Drawers: búsqueda, filtro fecha, rango numérico, preview PDF
+- "Edificios" → "Activos Inmobiliarios"
 
-Pendiente: deploy todo, guard backend con auth, nav condicional por rol
+Pendiente: deploy, costo por centro (def. cliente), guard backend con auth
 ```
 
 ## Prioridad Actual de Acceso

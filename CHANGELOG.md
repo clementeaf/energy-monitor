@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.66.0-alpha.0] - 2026-03-17 — DASHBOARD FILTERS + DRAWER UX
+
+### Added
+- **Toggle Consumo/Gasto** — selector en gráfico principal para ver una métrica a la vez
+- **Selector de año** — pills de año + meses en vista mensual (reemplaza dropdown)
+- **Sorting en DataTable** — propiedad `sortKey` en columnas, flechas asc/desc en headers
+- **Filtros cascada en Drawers** — Edificio, Operador, N° Doc se filtran cruzadamente
+- **Búsqueda en filtros** — input de texto en `ColumnFilterDropdown` para buscar items
+- **Filtro por fecha** — `DateFilterDropdown` con fecha exacta o rango (Desde/Hasta)
+- **Filtro por rango numérico** — `RangeFilterDropdown` con slider dual en columnas Neto, IVA, Total
+- **Previsualización PDF** — botón ojo en columna PDF abre modal con iframe
+- **Períodos como pills** — drawer Facturas Vencidas muestra períodos como etiquetas en fila
+
+### Changed
+- **"Edificios" → "Activos Inmobiliarios"** — sidebar nav y textos del dashboard
+- **Títulos de gráfico y tabla** — "por Edificio" → "por Activo Inmobiliario"
+- **"Documentos Vencidos" → "Facturas Vencidas"** — título de tabla de vencidos
+- **Nombres cortos edificios** — más compactos para caber en ejes de gráficos
+- **Meses con nombre completo** — pills y títulos usan "Enero", "Febrero", etc.
+- **DataTable empty state** — celdas individuales en vez de colSpan (preserva anchos)
+- **DataTable align center** — nueva opción `'center'` para columnas como PDF
+- **CSP** — `frame-src blob:` agregado para permitir previsualización PDF en iframe
+
+### Fixed
+- **Mes default** — selecciona el mes con más edificios (evita mes con 1 solo registro)
+- **Deseleccionar último edificio** — filtro ahora permite deseleccionar todos
+- **Badge cascada** — muestra conteo de items disponibles seleccionados, no total global
+
+---
+
 ## [0.65.0-alpha.0] - 2026-03-17 — UI POLISH + SWAGGER PROD
 
 ### Added

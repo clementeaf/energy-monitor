@@ -29,7 +29,7 @@ export const appRoutes = {
   },
   buildings: {
     path: '/buildings',
-    label: 'Edificios',
+    label: 'Activos Inmobiliarios',
     allowedRoles: PERMISSIONS.BUILDINGS_OVERVIEW.view,
     showInNav: true,
   },

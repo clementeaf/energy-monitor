@@ -9,9 +9,9 @@ export const MONTH_NAMES_FULL = [
 ];
 
 export const SHORT_BUILDING_NAMES: Record<string, string> = {
-  'Parque Arauco Kennedy': 'P. Arauco Kennedy',
-  'Arauco Premium Outlet Buenaventura': 'Outlet Buenaventura',
-  'Arauco Express Ciudad Empresarial': 'Express C. Empresarial',
-  'Arauco Express El Carmen de Huechuraba': 'Express Huechuraba',
-  'Arauco Estación': 'Arauco Estación',
+  'Parque Arauco Kennedy': 'PA Kennedy',
+  'Arauco Premium Outlet Buenaventura': 'Outlet Buenav.',
+  'Arauco Express Ciudad Empresarial': 'Exp. C. Empr.',
+  'Arauco Express El Carmen de Huechuraba': 'Exp. Huechuraba',
+  'Arauco Estación': 'Estación',
 };

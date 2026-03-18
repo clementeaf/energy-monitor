@@ -6,8 +6,8 @@
 
 | Ruta | Vista | En nav | Conectada |
 |------|-------|--------|-----------|
-| `/` | Dashboard | si | si — gráfico + tabla edificios + cards de pago + tabla vencidos, todos con datos reales |
-| `/buildings` | Edificios | si | si — cards con stats, click navega a detalle |
+| `/` | Dashboard | si | si — gráfico Consumo/Gasto por Activo Inmobiliario (toggle métrica, año+mes, tipo chart), tabla con sorting, cards pago, drawers con filtros cascada (Edificio↔Operador↔N° Doc + fecha + rango numérico), preview PDF |
+| `/buildings` | Activos Inmobiliarios | si | si — cards con stats, click navega a detalle |
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
 | `/meters/:meterId/readings/:month` | Lecturas medidor | — | si — gráfico Diario/15min, tabla resumen diario |
@@ -23,7 +23,7 @@
 |------------|-----------|-----|
 | `Card` | `components/ui/Card.tsx` | Container sin borde, fondo blanco, rounded-xl. Hover gris sutil si clickeable |
 | `Skeleton` | `components/ui/Skeleton.tsx` | Loading states por vista (cada ruta tiene skeleton propio) |
-| `DataTable` | `components/ui/DataTable.tsx` | Tabla PA: header blanco texto navy semibold, filas con línea fina #E5E7EB, footer bg gris claro bold navy, h-full para igualar alturas en grid. Infinite scroll automático cuando se pasa `pageSize` |
+| `DataTable` | `components/ui/DataTable.tsx` | Tabla PA: header blanco texto navy semibold, filas con línea fina #E5E7EB, footer bg gris claro bold navy, h-full para igualar alturas en grid. Infinite scroll automático cuando se pasa `pageSize`. Sorting opcional con `sortKey` por columna. Align: left/right/center |
 | `MultiSelect` | `components/ui/MultiSelect.tsx` | Dropdown con input búsqueda + checkboxes + limpiar. Usa `useClickOutside` compartido |
 | `Drawer` | `components/ui/Drawer.tsx` | Panel lateral/superior/inferior con portal, overlay, Escape, lock scroll. Props: side, size, title, overlayClose |
 | `PageHeader` | `components/ui/PageHeader.tsx` | Breadcrumbs + botón volver, título opcional |

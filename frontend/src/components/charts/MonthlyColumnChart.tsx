@@ -3,6 +3,14 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { MONTH_NAMES_SHORT } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
+import { TogglePills } from '../ui/TogglePills';
+
+const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+  { value: 'column', label: 'Barra' },
+  { value: 'line', label: 'Línea' },
+  { value: 'area', label: 'Área' },
+  { value: 'pie', label: 'Torta' },
+];
 
 const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#10B981', '#A855F7', '#EF4444'];
 
@@ -22,9 +30,6 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
   const isCurrency = unit === 'CLP ($)';
   const categories = data.map((d) => monthLabel(d.month));
   const values = data.map((d) => d.value);
-
-  const btnClass = (active: boolean) =>
-    `px-2 py-1 transition-colors ${active ? 'bg-primary/20 text-primary' : 'text-muted hover:text-text'}`;
 
   const isPie = mode === 'pie';
 
@@ -102,11 +107,8 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
 
   return (
     <div className="relative">
-      <div className="absolute right-0 top-0 z-10 flex rounded border border-border text-xs">
-        <button onClick={() => setMode('column')} className={btnClass(mode === 'column')}>Barra</button>
-        <button onClick={() => setMode('line')} className={btnClass(mode === 'line')}>Línea</button>
-        <button onClick={() => setMode('area')} className={btnClass(mode === 'area')}>Área</button>
-        <button onClick={() => setMode('pie')} className={btnClass(mode === 'pie')}>Torta</button>
+      <div className="absolute right-0 top-0 z-10">
+        <TogglePills options={CHART_TYPE_OPTIONS} value={mode} onChange={setMode} />
       </div>
       <HighchartsReact highcharts={Highcharts} options={options} />
     </div>

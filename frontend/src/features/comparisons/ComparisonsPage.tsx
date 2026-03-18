@@ -14,6 +14,13 @@ import { TogglePills } from '../../components/ui/TogglePills';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { ComparisonRow } from '../../types';
 
+const CURRENCY_OPTIONS = [
+  { value: 'CLP', label: 'CLP ($)' },
+  { value: 'USD', label: 'USD (US$)' },
+  { value: 'COP', label: 'COP (COL$)' },
+  { value: 'SOL', label: 'SOL (S/)' },
+];
+
 /* ── Criterios técnicos ── */
 type TechMetricKey = 'totalKwh' | 'ddaMaxKw' | 'ddaMaxPuntaKw' | 'kwhTroncal' | 'kwhServPublico';
 
@@ -239,6 +246,7 @@ export function ComparisonsPage() {
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string | undefined>(undefined);
   const [chartType, setChartType] = useState<ChartType>('column');
+  const [currency, setCurrency] = useState('CLP');
 
   const columns = isTecnico ? techColumns : baseColumns;
 
@@ -289,7 +297,7 @@ export function ComparisonsPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <div className="ml-4 flex items-center gap-4">
+      <div className="ml-4 flex flex-wrap items-center gap-4">
         {!isFilteredMode && (
           <TogglePills
             options={[{ value: 'type' as const, label: 'Por Tipo' }, { value: 'name' as const, label: 'Por Tienda' }]}
@@ -352,7 +360,14 @@ export function ComparisonsPage() {
       </Card>
 
       <Card className="min-h-0 flex-[2] flex flex-col">
-        <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3" />
+        <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3">
+          <PillDropdown
+            items={CURRENCY_OPTIONS}
+            value={currency}
+            onChange={setCurrency}
+            listWidth="w-32"
+          />
+        </SectionBanner>
         <div className="min-h-0 flex-1 overflow-auto">
           {noSelection
             ? <div className="p-4 text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona Edificio y Operador' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>

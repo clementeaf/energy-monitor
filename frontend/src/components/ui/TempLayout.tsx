@@ -58,7 +58,7 @@ function FlagCircle({ code, size = 20 }: { code: string; size?: number }) {
   );
 }
 
-function TopBar({ userName }: { userName?: string }) {
+function TopBar({ userName, onToggleSidebar }: { userName?: string; onToggleSidebar?: () => void }) {
   const [open, setOpen] = useState(false);
   const [activeCountry, setActiveCountry] = useState<string>('CL');
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -74,7 +74,21 @@ function TopBar({ userName }: { userName?: string }) {
     .toUpperCase();
 
   return (
-    <header className="flex h-12 shrink-0 items-center justify-end gap-3 border-b border-pa-border bg-white px-4">
+    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-pa-border bg-white px-4">
+      {/* Hamburger — visible only on tablet */}
+      {onToggleSidebar && (
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100 lg:hidden"
+          aria-label="Toggle sidebar"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
+      <div className="flex-1" />
       {/* Country selector — pill tabs with circular flags */}
       <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
         {COUNTRIES.map((c) => (
@@ -209,10 +223,24 @@ export function TempLayout() {
       .map((s) => ({ value: s.meterId, label: `${s.storeName} (${s.meterId})` }));
   }, [stores, selectedBuilding]);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  useClickOutside(sidebarRef, () => setSidebarOpen(false), sidebarOpen);
+
   return (
     <div className="flex h-screen overflow-hidden bg-base">
-      {/* Sidebar — PA Design System */}
-      <aside className="flex h-full w-52 shrink-0 flex-col bg-pa-bg-alt">
+      {/* Overlay — tablet only when sidebar open */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+      )}
+
+      {/* Sidebar — hidden on tablet, always visible on desktop */}
+      <aside
+        ref={sidebarRef}
+        className={`fixed inset-y-0 left-0 z-50 flex w-52 flex-col bg-pa-bg-alt transition-transform duration-200 lg:static lg:translate-x-0 lg:shrink-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         {/* Logo + title */}
         <div className="px-4 pt-5 pb-4">
           <button
@@ -301,7 +329,7 @@ export function TempLayout() {
             return (
               <button
                 key={item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                 className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors ${
                   isActive
                     ? 'bg-pa-blue text-white'
@@ -349,7 +377,7 @@ export function TempLayout() {
 
       {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar userName={user?.name} />
+        <TopBar userName={user?.name} onToggleSidebar={() => setSidebarOpen((o) => !o)} />
         <main className="flex-1 overflow-hidden p-4 md:p-6">
           <Outlet />
         </main>

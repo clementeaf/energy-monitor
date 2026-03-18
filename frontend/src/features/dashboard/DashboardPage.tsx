@@ -30,9 +30,16 @@ interface BuildingRow {
 const buildingCols: Column<BuildingRow>[] = [
   { label: 'Edificio', value: (r) => r.name, align: 'left', sortKey: (r) => r.name },
   { label: 'Consumo (kWh)', value: (r) => fmt(r.totalKwh), total: (d) => fmt(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)), sortKey: (r) => r.totalKwh },
-  { label: 'Gasto ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)), sortKey: (r) => r.totalConIvaClp },
+  { label: 'Ingreso ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)), sortKey: (r) => r.totalConIvaClp },
   { label: 'Superficie (m²)', value: (r) => fmt(r.areaSqm), total: (d) => fmt(d.reduce((s, r) => s + (r.areaSqm ?? 0), 0)), sortKey: (r) => r.areaSqm },
   { label: 'Medidores', value: (r) => fmt(r.totalMeters), total: (d) => fmt(d.reduce((s, r) => s + r.totalMeters, 0)), sortKey: (r) => r.totalMeters },
+];
+
+const CURRENCY_OPTIONS = [
+  { value: 'CLP', label: 'CLP ($)' },
+  { value: 'USD', label: 'USD (US$)' },
+  { value: 'COP', label: 'COP (COL$)' },
+  { value: 'SOL', label: 'SOL (S/)' },
 ];
 
 const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
@@ -60,7 +67,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
     const gasto = data.map((b) => b.totalConIvaClp ?? 0);
 
     const isConsumo = metric === 'consumo';
-    const seriesName = isConsumo ? 'Consumo (kWh)' : 'Gasto (CLP)';
+    const seriesName = isConsumo ? 'Consumo (kWh)' : 'Ingreso (CLP)';
     const seriesColor = isConsumo ? CHART_COLORS.blue : CHART_COLORS.coral;
     const seriesData = isConsumo ? consumo : gasto;
 
@@ -1011,6 +1018,7 @@ export function DashboardPage() {
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [chartType, setChartType] = useState<ChartType>('column');
   const [metric, setMetric] = useState<'consumo' | 'gasto'>('consumo');
+  const [currency, setCurrency] = useState('CLP');
 
   // Derive available years from months
   const years = useMemo(() => {
@@ -1081,12 +1089,12 @@ export function DashboardPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 md:grid-cols-[3fr_1fr] lg:grid-cols-[5fr_1fr]">
         <Card className="!pt-0 !px-0 overflow-visible">
-          <SectionBanner title={`Consumo y Gasto por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between rounded-t-xl rounded-b-none px-4">
-            <div className="flex items-center gap-2">
+          <SectionBanner title={`Consumo e Ingreso por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between rounded-t-xl rounded-b-none px-4">
+            <div className="flex flex-wrap items-center gap-2">
               <TogglePills
-                options={[{ value: 'consumo' as const, label: 'Consumo' }, { value: 'gasto' as const, label: 'Gasto' }]}
+                options={[{ value: 'consumo' as const, label: 'Consumo' }, { value: 'gasto' as const, label: 'Ingreso' }]}
                 value={metric}
                 onChange={setMetric}
               />
@@ -1160,7 +1168,7 @@ export function DashboardPage() {
       </div>
 
       {/* Fila 2: ambas tablas alineadas, misma altura */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 lg:grid-cols-[5fr_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 md:grid-cols-[3fr_1fr] lg:grid-cols-[5fr_1fr]">
         <Card className="flex flex-col">
           <SectionBanner
             title={viewMode === 'anual'
@@ -1168,7 +1176,14 @@ export function DashboardPage() {
               : `Consumo Mensual por Activo Inmobiliario — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}`}
             inline
             className="mb-3"
-          />
+          >
+            <PillDropdown
+              items={CURRENCY_OPTIONS}
+              value={currency}
+              onChange={setCurrency}
+              listWidth="w-32"
+            />
+          </SectionBanner>
           <div className="min-h-0 flex-1">
             <DataTable
               data={activeData}

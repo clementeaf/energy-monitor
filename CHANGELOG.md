@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.67.0-alpha.0] - 2026-03-18 — RESPONSIVE + RENAME + CHART TOGGLE
+
+### Added
+- **Sidebar colapsable** — oculto en tablet (< 1024px), botón hamburguesa en topbar, overlay al abrir
+- **Selector de moneda dummy** — PillDropdown CLP/USD/COP/SOL en tablas de Dashboard y Comparativas (visual, sin lógica)
+
+### Changed
+- **"Gasto" → "Ingreso"** — gráfico, toggle, serie y columna de tabla en Dashboard
+- **TogglePills en BillingChart** — reemplaza botones custom por design system PA (Barra/Línea/Área/Torta)
+- **Grids responsivos** — `md:grid-cols-[3fr_1fr]` en Dashboard para tablet (768px+)
+- **Flex-wrap** — controles Dashboard y toolbar Comparativas envuelven en pantallas angostas
+
+---
+
 ## [0.66.0-alpha.0] - 2026-03-17 — DASHBOARD FILTERS + DRAWER UX
 
 ### Added

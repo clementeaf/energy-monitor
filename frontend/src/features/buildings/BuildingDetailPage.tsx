@@ -144,7 +144,7 @@ export function BuildingDetailPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="mb-3 ml-4 flex shrink-0 items-center gap-3">
+      <div className="mb-3 ml-4 flex shrink-0 flex-wrap items-center gap-2 lg:gap-3">
         <PillButton onClick={() => navigate(-1)}>&larr; Volver</PillButton>
         <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
         {/* Context "+" button for holding */}
@@ -156,10 +156,10 @@ export function BuildingDetailPage() {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto lg:overflow-hidden">
         {/* Fila 1: gráfico (siempre presente, empty state si sin datos) */}
         {!hideBilling && (
-          <Card className="flex shrink-0 flex-col">
+          <Card className="flex shrink-0 flex-col lg:max-h-[45%]">
             <SectionBanner title="" inline className="mb-3">
               <PillDropdown
                 items={metricDropdownItems}

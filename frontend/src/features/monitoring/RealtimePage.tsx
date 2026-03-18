@@ -67,8 +67,8 @@ function SkeletonRows() {
 }
 
 const baseMeterColumns: Column<MeterLatestReading>[] = [
-  { label: 'Medidor', value: (r) => r.meterId, align: 'left' },
-  { label: 'Tienda', value: (r) => r.storeName, align: 'left' },
+  { label: 'Medidor', value: (r) => r.meterId, align: 'left', className: 'whitespace-nowrap' },
+  { label: 'Tienda', value: (r) => r.storeName, align: 'left', className: 'truncate max-w-[180px]' },
   { label: 'Potencia (kW)', value: (r) => formatVal(r.powerKw) },
   { label: 'Voltaje L1 (V)', value: (r) => formatVal(r.voltageL1) },
   { label: 'Corriente L1 (A)', value: (r) => formatVal(r.currentL1, 2) },
@@ -644,7 +644,7 @@ export function RealtimePage() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <SectionBanner title="Monitoreo" className="mb-3 justify-between">
+        <SectionBanner title="Monitoreo" className="mb-3 flex-wrap justify-between gap-2">
           <TogglePills options={tabOptions} value={activeTab} onChange={setActiveTab} />
         </SectionBanner>
         {activeTab === 'monitoring' ? (

@@ -12,6 +12,7 @@ import { SectionBanner } from '../../components/ui/SectionBanner';
 import { PillDropdown } from '../../components/ui/PillDropdown';
 import { TogglePills } from '../../components/ui/TogglePills';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
+import { useAppStore } from '../../store/useAppStore';
 import type { ComparisonRow } from '../../types';
 
 const CURRENCY_OPTIONS = [
@@ -33,10 +34,10 @@ const TECH_METRICS: { key: TechMetricKey; label: string; unit: string; color: st
 ];
 
 /* ── Columns ── */
-const baseColumns: Column<ComparisonRow>[] = [
+const getBaseColumns = (moneyLabel: string): Column<ComparisonRow>[] => [
   { label: 'Edificio', value: (r) => r.buildingName, align: 'left' },
   { label: 'Consumo (kWh)', value: (r) => fmt(r.totalKwh), total: (d) => fmt(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)) },
-  { label: 'Gasto ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)) },
+  { label: `${moneyLabel} ($)`, value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)) },
   { label: 'Medidores', value: (r) => String(r.totalMeters), total: (d) => String(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
@@ -55,7 +56,7 @@ type CompareMode = 'type' | 'name';
 const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
 
 /* ── Pie chart ── */
-function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hideFinancial?: boolean }) {
+function ComparisonPieChart({ data, hideFinancial, moneyLabel = 'Gasto' }: { data: ComparisonRow[]; hideFinancial?: boolean; moneyLabel?: string }) {
   const points = data.map((d, i) => ({
     name: SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName,
     color: PIE_COLORS[i % PIE_COLORS.length],
@@ -64,14 +65,14 @@ function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hi
   }));
 
   const options: Highcharts.Options = {
-    chart: { height: null as unknown as number, backgroundColor: 'transparent' },
+    chart: { height: 230, backgroundColor: 'transparent' },
     title: { text: undefined },
     tooltip: {
       useHTML: true,
       ...LIGHT_TOOLTIP_STYLE,
       pointFormatter() {
         const p = this as Highcharts.Point;
-        return p.series.name.includes('Gasto')
+        return p.series.name.includes(moneyLabel)
           ? `<b>${fmtClp(p.y!)}</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`
           : `<b>${fmt(p.y!)} kWh</b> (${Highcharts.numberFormat(p.percentage!, 1)}%)`;
       },
@@ -92,7 +93,7 @@ function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hi
       },
       ...(!hideFinancial ? [{
         type: 'pie' as const,
-        name: 'Gasto (CLP)',
+        name: `${moneyLabel} (CLP)`,
         center: ['75%', '50%'] as [string, string],
         size: '80%',
         data: points.map((p) => ({ name: p.name, y: p.clp, color: p.color })),
@@ -105,20 +106,20 @@ function ComparisonPieChart({ data, hideFinancial }: { data: ComparisonRow[]; hi
 }
 
 /* ── Bar / Line / Area chart ── */
-function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonRow[]; chartType: ChartType; hideFinancial?: boolean }) {
-  if (chartType === 'pie') return <ComparisonPieChart data={data} hideFinancial={hideFinancial} />;
+function ComparisonChart({ data, chartType, hideFinancial, moneyLabel = 'Gasto' }: { data: ComparisonRow[]; chartType: ChartType; hideFinancial?: boolean; moneyLabel?: string }) {
+  if (chartType === 'pie') return <ComparisonPieChart data={data} hideFinancial={hideFinancial} moneyLabel={moneyLabel} />;
 
   const categories = data.map((d) => SHORT_BUILDING_NAMES[d.buildingName] ?? d.buildingName);
 
   // Técnico: 5 series técnicas en un solo eje. Normal: Consumo + Gasto (doble eje).
   if (hideFinancial) {
     const options: Highcharts.Options = {
-      chart: { height: null as unknown as number, backgroundColor: 'transparent' },
+      chart: { height: 230, backgroundColor: 'transparent' },
       title: { text: undefined },
       xAxis: {
         categories,
         crosshair: true,
-        labels: { rotation: -45, style: { fontSize: '11px', color: '#6B7280' } },
+        labels: { rotation: -10, y: 15, style: { fontSize: '10px', color: '#6B7280' } },
         lineColor: '#E5E7EB',
         tickColor: '#E5E7EB',
       },
@@ -164,12 +165,12 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
   const gasto = data.map((d) => d.totalConIvaClp ?? 0);
 
   const options: Highcharts.Options = {
-    chart: { height: null as unknown as number, backgroundColor: 'transparent' },
+    chart: { height: 230, backgroundColor: 'transparent' },
     title: { text: undefined },
     xAxis: {
       categories,
       crosshair: true,
-      labels: { rotation: -45, style: { fontSize: '11px', color: '#6B7280' } },
+      labels: { rotation: -10, y: 15, style: { fontSize: '10px', color: '#6B7280' } },
       lineColor: '#E5E7EB',
       tickColor: '#E5E7EB',
     },
@@ -183,7 +184,7 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
         gridLineColor: '#F3F4F6',
       },
       {
-        title: { text: 'Gasto (CLP)', style: { color: CHART_COLORS.coral, fontSize: '11px' } },
+        title: { text: `${moneyLabel} (CLP)`, style: { color: CHART_COLORS.coral, fontSize: '11px' } },
         labels: {
           formatter() { return `$${fmtAxis(this.value as number)}`; },
           style: { color: '#6B7280', fontSize: '11px' },
@@ -204,7 +205,7 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
         const points = this.points!;
         let html = `<b>${this.x}</b><br/>`;
         for (const p of points) {
-          const val = p.series.name.includes('Gasto')
+          const val = p.series.name.includes(moneyLabel)
             ? fmtClp(p.y!)
             : `${fmt(p.y!)} kWh`;
           html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${val}</b><br/>`;
@@ -223,7 +224,7 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
       },
       {
         type: chartType,
-        name: 'Gasto (CLP)',
+        name: `${moneyLabel} (CLP)`,
         data: gasto,
         color: CHART_COLORS.coral,
         yAxis: 1,
@@ -239,6 +240,9 @@ function ComparisonChart({ data, chartType, hideFinancial }: { data: ComparisonR
 
 export function ComparisonsPage() {
   const { isFilteredMode, isTecnico, needsSelection, hasOperator, hasStore, selectedOperator, selectedStoreName } = useOperatorFilter();
+  const userMode = useAppStore((s) => s.userMode);
+  const isHolding = userMode === 'holding';
+  const moneyLabel = isHolding ? 'Ingreso' : 'Gasto';
   const { data: filters, isLoading: loadingFilters } = useComparisonFilters();
 
   const [mode, setMode] = useState<CompareMode>(isFilteredMode ? 'name' : 'type');
@@ -248,7 +252,7 @@ export function ComparisonsPage() {
   const [chartType, setChartType] = useState<ChartType>('column');
   const [currency, setCurrency] = useState('CLP');
 
-  const columns = isTecnico ? techColumns : baseColumns;
+  const columns = isTecnico ? techColumns : getBaseColumns(moneyLabel);
 
   // Set default month when filters load
   useEffect(() => {
@@ -289,7 +293,7 @@ export function ComparisonsPage() {
 
   const bannerTitle = isTecnico
     ? `${label} — Métricas Técnicas por Edificio — ${selectedMonthLabel}`
-    : `${label} — Consumo y Gasto por Edificio — ${selectedMonthLabel}`;
+    : `${label} — Consumo y ${moneyLabel} por Edificio — ${selectedMonthLabel}`;
 
   if (loadingFilters) {
     return <div className="p-4 text-[13px] text-pa-text-muted">Cargando filtros...</div>;
@@ -354,12 +358,12 @@ export function ComparisonsPage() {
               ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
               : rows.length === 0
                 ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Sin datos para esta seleccion y mes</div>
-                : <ComparisonChart data={rows} chartType={chartType} hideFinancial={isTecnico} />
+                : <ComparisonChart data={rows} chartType={chartType} hideFinancial={isTecnico} moneyLabel={moneyLabel} />
           }
         </div>
       </Card>
 
-      <Card className="min-h-0 flex-[2] flex flex-col">
+      <Card className="min-h-0 flex-[2.4] flex flex-col">
         <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3">
           <PillDropdown
             items={CURRENCY_OPTIONS}

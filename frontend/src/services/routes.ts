@@ -56,6 +56,16 @@ export const routes = {
   deleteOperator: (buildingName: string, operatorName: string) =>
     `/stores/operators/${encodeURIComponent(buildingName)}/${encodeURIComponent(operatorName)}`,
 
+  // Users (admin)
+  getUsers: () => '/users',
+  createUser: () => '/users',
+  createDirectUser: () => '/users/direct',
+
+  resendInvitation: (userId: string) => `/users/${userId}/resend`,
+
+  // Invitations
+  validateInvitation: (token: string) => `/invitations/${encodeURIComponent(token)}`,
+
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {
     const qs = new URLSearchParams();

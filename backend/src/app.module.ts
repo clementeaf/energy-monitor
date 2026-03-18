@@ -15,6 +15,7 @@ import { MetersModule } from './meters/meters.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ComparisonsModule } from './comparisons/comparisons.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ComparisonsModule } from './comparisons/comparisons.module';
       }),
     }),
 
+    EmailModule,
     AuthModule,
     RolesModule,
     UsersModule,

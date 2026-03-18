@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useAppStore, type UserMode } from '../../store/useAppStore';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { useGoogleAuth } from './useGoogleAuth';
 import { fetchMe } from '../../services/endpoints';
 import type { AuthUser } from '../../types/auth';
 
 const INVITATION_TOKEN_KEY = 'invitation_token';
+const VALID_USER_MODES: UserMode[] = ['holding', 'multi_operador', 'operador', 'tecnico'];
 
 async function resolveBackendUser(
   setUser: (user: AuthUser) => void,
@@ -19,6 +21,10 @@ async function resolveBackendUser(
       throw new Error('Invalid response from /auth/me');
     }
     sessionStorage.removeItem(INVITATION_TOKEN_KEY);
+    // Apply server-assigned userMode
+    if (data.user.userMode && VALID_USER_MODES.includes(data.user.userMode as UserMode)) {
+      useAppStore.getState().setUserMode(data.user.userMode as UserMode);
+    }
     setUser(data.user);
   } catch (err: unknown) {
     console.error('[resolveBackendUser] error:', err);

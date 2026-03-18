@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, NotFoundException, Param, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -12,6 +12,7 @@ import {
 } from '@nestjs/swagger';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { UsersService } from './users.service';
+import { EmailService } from '../email/email.service';
 import { AdminUserResponseDto } from './dto/admin-user-response.dto';
 import { CreateUserInvitationDto } from './dto/create-user-invitation.dto';
 import { CreateUserInvitationResponseDto } from './dto/create-user-invitation-response.dto';
@@ -20,7 +21,10 @@ import { CreateUserInvitationResponseDto } from './dto/create-user-invitation-re
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
+  ) {}
 
   @Get()
   @RequirePermissions('ADMIN_USERS', 'view')
@@ -40,7 +44,60 @@ export class UsersController {
   @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
   @ApiForbiddenResponse({ description: 'Permiso ADMIN_USERS.manage requerido' })
   @ApiConflictResponse({ description: 'Ya existe un registro de acceso para ese email' })
-  createInvitation(@Body() dto: CreateUserInvitationDto) {
-    return this.usersService.createInvitation(dto);
+  async createInvitation(
+    @Body() dto: CreateUserInvitationDto,
+    @Headers('origin') origin?: string,
+  ) {
+    const result = await this.usersService.createInvitation(dto);
+    const baseUrl = origin || process.env.FRONTEND_URL || 'https://energymonitor.click';
+    const inviteUrl = `${baseUrl}/invite/${result.invitationToken}`;
+
+    await this.emailService.sendInvitation(
+      dto.email,
+      dto.name,
+      result.roleLabel,
+      inviteUrl,
+    );
+
+    return result;
+  }
+
+  @Post('direct')
+  @RequirePermissions('ADMIN_USERS', 'manage')
+  @ApiOperation({ summary: 'Crear usuario directo', description: 'Crea un usuario que puede hacer login inmediatamente con Google o Microsoft, sin invitación.' })
+  @ApiCreatedResponse({ type: AdminUserResponseDto })
+  @ApiConflictResponse({ description: 'Ya existe un usuario con ese email' })
+  async createDirectUser(@Body() dto: CreateUserInvitationDto) {
+    return this.usersService.createDirectUser({
+      email: dto.email,
+      name: dto.name,
+      roleId: dto.roleId,
+      userMode: dto.userMode,
+    });
+  }
+
+  @Post(':id/resend')
+  @RequirePermissions('ADMIN_USERS', 'manage')
+  @ApiOperation({ summary: 'Reenviar invitación', description: 'Regenera el token de invitación y reenvía el email.' })
+  @ApiUnauthorizedResponse({ description: 'Token faltante o inválido' })
+  @ApiForbiddenResponse({ description: 'Permiso ADMIN_USERS.manage requerido' })
+  async resendInvitation(
+    @Param('id') id: string,
+    @Headers('origin') origin?: string,
+  ) {
+    const result = await this.usersService.resendInvitation(id);
+    if (!result) throw new NotFoundException('User not found');
+
+    const baseUrl = origin || process.env.FRONTEND_URL || 'https://energymonitor.click';
+    const inviteUrl = `${baseUrl}/invite/${result.invitationToken}`;
+
+    await this.emailService.sendInvitation(
+      result.email,
+      result.name,
+      result.roleLabel,
+      inviteUrl,
+    );
+
+    return { sent: true };
   }
 }

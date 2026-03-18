@@ -21,6 +21,11 @@ export class CreateUserInvitationDto {
   @IsString({ each: true })
   siteIds!: string[];
 
+  @ApiPropertyOptional({ example: 'holding', default: 'holding' })
+  @IsOptional()
+  @IsString()
+  userMode?: string;
+
   @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()

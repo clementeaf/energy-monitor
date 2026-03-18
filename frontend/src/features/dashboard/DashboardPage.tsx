@@ -873,7 +873,7 @@ export function DashboardPage() {
               rowKey={(r) => r.name}
               onRowClick={(r) => navigate(`/buildings/${encodeURIComponent(r.name)}`)}
               footer
-              maxHeight="max-h-full"
+              maxHeight="max-h-[230px]"
             />
           </div>
         </Card>
@@ -891,7 +891,7 @@ export function DashboardPage() {
                   setDrawerVencidos(true);
                 }}
                 footer
-                maxHeight="max-h-full"
+                maxHeight="max-h-[235px]"
               />
             ) : (
               <p className="text-sm text-muted/40">—</p>

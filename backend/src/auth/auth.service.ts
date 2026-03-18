@@ -23,11 +23,14 @@ export interface AuthorizationContext extends AccessScope {
   email: string;
   name: string;
   avatar?: string;
+  userMode: string;
   permissions: Record<string, string[]>;
 }
 
 const MICROSOFT_JWKS_URL = 'https://login.microsoftonline.com/common/discovery/v2.0/keys';
 const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
+const GOOGLE_ISSUER = 'accounts.google.com';
 
 @Injectable()
 export class AuthService {
@@ -85,8 +88,12 @@ export class AuthService {
         iss: payload.iss!,
       };
     } catch (err) {
-      this.logger.warn(`Token verification failed: ${(err as Error).message}`);
+      this.logger.warn(`JWT verification failed: ${(err as Error).message}`);
     }
+
+    // Fallback: Google access_token (opaque) — verify via userinfo API
+    const googleUser = await this.verifyGoogleAccessToken(token);
+    if (googleUser) return googleUser;
 
     const session = await this.sessionService.findByTokenHash(
       this.sessionService.hashToken(token),
@@ -100,6 +107,38 @@ export class AuthService {
       };
     }
     return null;
+  }
+
+  /**
+   * Verify a Google access_token (opaque) by calling Google's userinfo endpoint.
+   * Used when the frontend uses the popup/implicit OAuth flow instead of the credential (JWT) flow.
+   */
+  private async verifyGoogleAccessToken(token: string): Promise<TokenPayload | null> {
+    try {
+      const res = await fetch(GOOGLE_USERINFO_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+
+      const data = await res.json() as {
+        sub?: string;
+        email?: string;
+        name?: string;
+        picture?: string;
+      };
+
+      if (!data.sub || !data.email) return null;
+
+      return {
+        sub: data.sub,
+        email: data.email,
+        name: data.name ?? data.email,
+        picture: data.picture,
+        iss: GOOGLE_ISSUER,
+      };
+    } catch {
+      return null;
+    }
   }
 
   detectProvider(issuer: string): 'microsoft' | 'google' | null {
@@ -127,6 +166,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         avatar: user.avatarUrl ?? undefined,
+        userMode: user.userMode,
         siteIds,
         hasGlobalSiteAccess,
         permissions,
@@ -153,6 +193,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatar: user.avatarUrl ?? undefined,
+      userMode: user.userMode,
       siteIds,
       hasGlobalSiteAccess,
       permissions,
@@ -171,6 +212,7 @@ export class AuthService {
           role: authContext.role,
           provider: authContext.provider,
           avatar: authContext.avatar,
+          userMode: authContext.userMode,
           siteIds: authContext.hasGlobalSiteAccess ? ['*'] : authContext.siteIds,
         },
         permissions: authContext.permissions,

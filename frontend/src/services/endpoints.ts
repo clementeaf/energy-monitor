@@ -78,6 +78,62 @@ export const fetchAlerts = (params?: { severity?: string; meter_id?: string }) =
 export const fetchBillingPdf = (storeName: string, buildingName: string, month: string) =>
   api.get<Blob>(routes.getBillingPdf(storeName, buildingName, month), { responseType: 'blob' }).then((r) => r.data);
 
+// --- Admin users ---
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  roleId: number;
+  role: string;
+  roleLabel: string;
+  provider: 'microsoft' | 'google' | null;
+  isActive: boolean;
+  siteIds: string[];
+  invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
+  invitationExpiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInvitationInput {
+  email: string;
+  name: string;
+  roleId: number;
+  siteIds: string[];
+  userMode?: string;
+}
+
+export interface CreateInvitationResult extends AdminUser {
+  invitationToken: string;
+}
+
+export const fetchUsers = () =>
+  api.get<AdminUser[]>(routes.getUsers()).then((r) => r.data);
+
+export const createInvitation = (data: CreateInvitationInput) =>
+  api.post<CreateInvitationResult>(routes.createUser(), data).then((r) => r.data);
+
+export const createDirectUser = (data: CreateInvitationInput) =>
+  api.post<AdminUser>(routes.createDirectUser(), data).then((r) => r.data);
+
+export const resendInvitation = (userId: string) =>
+  api.post<{ sent: boolean }>(routes.resendInvitation(userId)).then((r) => r.data);
+
+// --- Invitations ---
+
+export interface InvitationValidation {
+  email: string;
+  name: string;
+  role: string;
+  roleLabel: string;
+  invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
+  invitationExpiresAt: string | null;
+}
+
+export const validateInvitation = (token: string) =>
+  api.get<InvitationValidation>(routes.validateInvitation(token)).then((r) => r.data);
+
 // --- Building mutations ---
 
 export const createBuilding = (data: { buildingName: string; areaSqm: number }) =>

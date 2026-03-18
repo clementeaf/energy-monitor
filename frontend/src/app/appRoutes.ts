@@ -86,9 +86,9 @@ export const appRoutes = {
   },
   adminUsers: {
     path: '/admin/users',
-    label: 'Administrar Usuarios',
+    label: 'Administración Usuarios',
     allowedRoles: PERMISSIONS.ADMIN_USERS.view,
-    // showInNav: true,
+    showInNav: true,
   },
   adminMeters: {
     path: '/admin/meters',

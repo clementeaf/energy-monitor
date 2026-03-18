@@ -14,6 +14,7 @@ export interface AdminUserSummary {
   role: string;
   roleLabel: string;
   provider: 'microsoft' | 'google' | null;
+  userMode: string;
   isActive: boolean;
   siteIds: string[];
   invitationStatus: 'invited' | 'active' | 'disabled' | 'expired';
@@ -40,6 +41,7 @@ export interface CreateUserInvitationInput {
   name: string;
   roleId: number;
   siteIds: string[];
+  userMode?: string;
   isActive?: boolean;
 }
 
@@ -215,6 +217,7 @@ export class UsersService {
         name: data.name.trim(),
         avatarUrl: null,
         roleId: data.roleId,
+        userMode: data.userMode ?? 'holding',
         isActive: data.isActive ?? true,
         invitationTokenHash: hashInvitationToken(invitationToken),
         invitationExpiresAt,
@@ -252,6 +255,51 @@ export class UsersService {
       roleLabel: user.role.labelEs,
       invitationStatus: buildInvitationStatus(user),
       invitationExpiresAt: user.invitationExpiresAt?.toISOString() ?? null,
+    };
+  }
+
+  async createDirectUser(data: { email: string; name: string; roleId: number; userMode?: string }): Promise<AdminUserSummary> {
+    const normalizedEmail = this.normalizeEmail(data.email);
+    const existing = await this.findByEmail(normalizedEmail);
+    if (existing) {
+      throw new ConflictException('User already exists for this email');
+    }
+
+    const user = await this.userRepo.save(
+      this.userRepo.create({
+        email: normalizedEmail,
+        name: data.name.trim(),
+        roleId: data.roleId,
+        userMode: data.userMode ?? 'holding',
+        isActive: true,
+      }),
+    );
+
+    const saved = await this.userRepo.findOne({ where: { id: user.id }, relations: ['role'] });
+    return (await this.mapAdminUsers(saved ? [saved] : []))[0];
+  }
+
+  async resendInvitation(userId: string): Promise<CreateInvitationResult | null> {
+    const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['role'] });
+    if (!user) return null;
+
+    const invitationToken = randomBytes(24).toString('base64url');
+    user.invitationTokenHash = hashInvitationToken(invitationToken);
+    user.invitationExpiresAt = buildInvitationExpiration();
+    user.invitationSentAt = new Date();
+    user.updatedAt = new Date();
+
+    // Reset provider to invitation if user hasn't logged in yet
+    if (!user.externalId || user.provider === PROVIDER_INVITATION) {
+      user.provider = PROVIDER_INVITATION;
+      if (!user.externalId) user.externalId = invitationExternalId();
+    }
+
+    await this.userRepo.save(user);
+
+    return {
+      ...(await this.mapAdminUsers([user]))[0],
+      invitationToken,
     };
   }
 
@@ -296,6 +344,7 @@ export class UsersService {
         role: user.role.name,
         roleLabel: user.role.labelEs,
         provider: user.provider === PROVIDER_INVITATION ? null : (user.provider as 'microsoft' | 'google' | null) ?? null,
+        userMode: user.userMode,
         isActive: user.isActive,
         siteIds: siteMap.get(user.id) ?? [],
         invitationStatus: buildInvitationStatus(user),

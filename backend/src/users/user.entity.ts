@@ -24,6 +24,9 @@ export class User {
   @Column({ name: 'role_id', type: 'smallint', default: 4 })
   roleId!: number;
 
+  @Column({ name: 'user_mode', type: 'varchar', length: 20, default: 'holding' })
+  userMode!: string;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 

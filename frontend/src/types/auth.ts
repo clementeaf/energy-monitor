@@ -16,6 +16,7 @@ export interface AuthUser {
   role: Role;
   provider: AuthProvider;
   avatar?: string;
+  userMode?: string;
   siteIds: string[];
 }
 

@@ -8,6 +8,7 @@ import { appRoutes } from './appRoutes';
 
 const LoginPage = lazy(() => import('../features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const UnauthorizedPage = lazy(() => import('../features/auth/UnauthorizedPage').then((m) => ({ default: m.UnauthorizedPage })));
+const InvitationAcceptPage = lazy(() => import('../features/auth/InvitationAcceptPage').then((m) => ({ default: m.InvitationAcceptPage })));
 
 const pages = {
   dashboard:          lazy(() => import('../features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage }))),
@@ -20,6 +21,7 @@ const pages = {
   alertDetail:        lazy(() => import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage }))),
   comparisons:        lazy(() => import('../features/comparisons/ComparisonsPage').then((m) => ({ default: m.ComparisonsPage }))),
   settingsProfile:    lazy(() => import('../features/settings/ProfilePage').then((m) => ({ default: m.ProfilePage }))),
+  adminUsers:         lazy(() => import('../features/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))),
 };
 
 const skeletons: Record<string, ReactNode> = {
@@ -45,6 +47,7 @@ const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }
   { key: 'alertDetail',        routeKey: 'alertDetail' },
   { key: 'comparisons',        routeKey: 'comparisons' },
   { key: 'settingsProfile',    routeKey: 'settingsProfile' },
+  { key: 'adminUsers',         routeKey: 'adminUsers' },
 ];
 
 export const router = createBrowserRouter([
@@ -56,6 +59,10 @@ export const router = createBrowserRouter([
   {
     path: '/unauthorized',
     element: <Suspense fallback={null}><UnauthorizedPage /></Suspense>,
+  },
+  {
+    path: '/invite/:token',
+    element: <Suspense fallback={null}><InvitationAcceptPage /></Suspense>,
   },
 
   // Protected routes

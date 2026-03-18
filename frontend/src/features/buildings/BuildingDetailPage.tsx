@@ -22,12 +22,11 @@ import { BillingTable } from './components/BillingTable';
 import { BulkMeterUpload } from './components/BulkMeterUpload';
 import { MeterForm } from './components/MeterForm';
 import { MetersTable } from './components/MetersTable';
-import { OperatorsTab } from './components/OperatorsTab';
 import type { BillingMetricKey } from './components/billingMetrics';
 import { billingMetrics, billingMetricKeys } from './components/billingMetrics';
 import type { BillingStoreBreakdown, MeterListItem } from '../../types';
 
-type DetailTab = 'billing' | 'meters' | 'operators';
+type DetailTab = 'billing' | 'meters';
 
 const TAB_OPTIONS: { value: DetailTab; label: string }[] = [
   { value: 'billing', label: 'Detalle Facturación' },
@@ -49,6 +48,7 @@ export function BuildingDetailPage() {
   const hasBilling = !!billing && billing.length > 0;
   const [activeTab, setActiveTab] = useState<DetailTab>(hideBilling || !hasBilling ? 'meters' : 'billing');
   const [chartMetric, setChartMetric] = useState<BillingMetricKey>('totalConIvaClp');
+  const [chartType, setChartType] = useState<import('../../lib/chartConfig').ChartType>('column');
   const [hoveredMetric, setHoveredMetric] = useState<BillingMetricKey | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
@@ -138,7 +138,6 @@ export function BuildingDetailPage() {
   const tabOptions = (() => {
     let opts = [...TAB_OPTIONS];
     if (hideBilling) opts = opts.filter((t) => t.value !== 'billing');
-    if (isHolding) opts.push({ value: 'operators', label: 'Operadores' });
     return opts;
   })();
 
@@ -159,8 +158,8 @@ export function BuildingDetailPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto lg:overflow-hidden">
         {/* Fila 1: gráfico (siempre presente, empty state si sin datos) */}
         {!hideBilling && (
-          <Card className="flex shrink-0 flex-col lg:max-h-[45%]">
-            <SectionBanner title="" inline className="mb-3">
+          <Card className="flex shrink-0 flex-col overflow-hidden lg:max-h-[45%]">
+            <SectionBanner title="" inline className="mb-3 justify-between">
               <PillDropdown
                 items={metricDropdownItems}
                 value={chartMetric}
@@ -168,9 +167,19 @@ export function BuildingDetailPage() {
                 onHover={setHoveredMetric}
                 align="left"
               />
+              <TogglePills
+                options={[
+                  { value: 'column' as const, label: 'Barra' },
+                  { value: 'line' as const, label: 'Línea' },
+                  { value: 'area' as const, label: 'Área' },
+                  { value: 'pie' as const, label: 'Torta' },
+                ]}
+                value={chartType}
+                onChange={setChartType}
+              />
             </SectionBanner>
             {effectiveBilling && effectiveBilling.length > 0
-              ? <BillingChart data={effectiveBilling} metric={chartMetric} />
+              ? <BillingChart data={effectiveBilling} metric={chartMetric} chartType={chartType} onChartTypeChange={setChartType} />
               : <div className="flex h-96 items-center justify-center"><p className="text-sm text-pa-text-muted">Sin datos de facturación</p></div>
             }
           </Card>
@@ -205,9 +214,6 @@ export function BuildingDetailPage() {
             )}
             {activeTab === 'meters' && (!filteredMeters || filteredMeters.length === 0) && (
               <div className="flex h-full items-center justify-center text-sm text-pa-text-muted">Sin datos de remarcadores</div>
-            )}
-            {activeTab === 'operators' && isHolding && (
-              <OperatorsTab buildingName={latest.buildingName} />
             )}
           </div>
         </Card>

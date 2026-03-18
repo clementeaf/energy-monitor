@@ -40,9 +40,9 @@ export function MeterDetailPage() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         {chartData.length > 0 && (
-          <Card>
+          <Card className="shrink-0">
             <div className="mb-3">
               <MeterMetricSelector value={chartMetric} onChange={setChartMetric} onHover={setHoveredMetric} />
             </div>
@@ -50,15 +50,17 @@ export function MeterDetailPage() {
           </Card>
         )}
         {monthly && monthly.length > 0 && (
-          <Card>
-            <h2 className="mb-3 text-sm font-semibold text-text">Detalle mensual</h2>
-            <MeterMonthlyTable
-              data={monthly}
-              alerts={alerts ?? []}
-              highlightMetric={chartMetric}
-              hoveredMetric={hoveredMetric}
-              onMonthClick={(month) => navigate(`/meters/${meterId}/readings/${month.slice(0, 7)}`)}
-            />
+          <Card className="flex min-h-0 flex-1 flex-col">
+            <h2 className="mb-3 shrink-0 text-sm font-semibold text-text">Detalle mensual</h2>
+            <div className="min-h-0 flex-1">
+              <MeterMonthlyTable
+                data={monthly}
+                alerts={alerts ?? []}
+                highlightMetric={chartMetric}
+                hoveredMetric={hoveredMetric}
+                onMonthClick={(month) => navigate(`/meters/${meterId}/readings/${month.slice(0, 7)}`)}
+              />
+            </div>
           </Card>
         )}
       </div>

@@ -31,7 +31,7 @@ const readingMetrics: Record<ReadingMetricKey, MetricMeta> = {
   currentL1:        { label: 'Corriente L1', unit: 'A' },
   currentL2:        { label: 'Corriente L2', unit: 'A' },
   currentL3:        { label: 'Corriente L3', unit: 'A' },
-  powerKw:          { label: 'Potencia', unit: 'kW' },
+  powerKw:          { label: 'Potencia Activa', unit: 'kW' },
   reactivePowerKvar:{ label: 'Potencia reactiva', unit: 'kVAr' },
   powerFactor:      { label: 'Factor de potencia', unit: '' },
   frequencyHz:      { label: 'Frecuencia', unit: 'Hz' },
@@ -52,7 +52,7 @@ const PHASE_LABELS = ['L1', 'L2', 'L3'] as const;
 
 interface SelectorItem { key: SelectorMetric; label: string }
 const selectorItems: SelectorItem[] = [
-  { key: 'powerKw', label: 'Potencia' },
+  { key: 'powerKw', label: 'Potencia Activa' },
   { key: 'voltage', label: 'Voltaje' },
   { key: 'current', label: 'Corriente' },
   { key: 'reactivePowerKvar', label: 'Potencia reactiva' },
@@ -75,7 +75,11 @@ interface DaySummary {
   totalEnergyKwh: number | null;
   avgPowerFactor: number | null;
   avgVoltageL1: number | null;
+  avgVoltageL2: number | null;
+  avgVoltageL3: number | null;
   avgCurrentL1: number | null;
+  avgCurrentL2: number | null;
+  avgCurrentL3: number | null;
   avgReactivePowerKvar: number | null;
   avgFrequencyHz: number | null;
 }
@@ -103,7 +107,11 @@ function groupByDay(readings: MeterReading[], alerts: Alert[] = []): DaySummary[
     totalEnergyKwh: sumNonNull(rows.map((r) => r.energyKwhTotal)),
     avgPowerFactor: avgNonNull(rows.map((r) => r.powerFactor)),
     avgVoltageL1: avgNonNull(rows.map((r) => r.voltageL1)),
+    avgVoltageL2: avgNonNull(rows.map((r) => r.voltageL2)),
+    avgVoltageL3: avgNonNull(rows.map((r) => r.voltageL3)),
     avgCurrentL1: avgNonNull(rows.map((r) => r.currentL1)),
+    avgCurrentL2: avgNonNull(rows.map((r) => r.currentL2)),
+    avgCurrentL3: avgNonNull(rows.map((r) => r.currentL3)),
     avgReactivePowerKvar: avgNonNull(rows.map((r) => r.reactivePowerKvar)),
     avgFrequencyHz: avgNonNull(rows.map((r) => r.frequencyHz)),
   }));
@@ -122,6 +130,20 @@ function groupByHour(readings: MeterReading[], metric: ReadingMetricKey): [numbe
     .map(([ts, vals]) => [ts, avgNonNull(vals)]);
 }
 
+// Column groups: null = single column (no group header), { label, colSpan } = grouped
+const DAY_COLUMN_GROUPS: (import('../../components/ui/DataTable').ColumnGroup | null)[] = [
+  null, // Día
+  null, // Lecturas
+  null, // Incidencias
+  null, // Pot. prom.
+  null, // Pot. peak
+  { label: 'Voltaje (V)', colSpan: 3 },  // L1, L2, L3
+  { label: 'Corriente (A)', colSpan: 3 }, // L1, L2, L3
+  null, // React.
+  null, // FP
+  null, // Frec.
+];
+
 function buildDayColumns(meterId: string): Column<DaySummary>[] {
   return [
     { label: 'Día', value: (r) => r.label, total: () => 'Total mensual', align: 'left' },
@@ -135,8 +157,12 @@ function buildDayColumns(meterId: string): Column<DaySummary>[] {
     },
     { label: 'Pot. prom. (kW)', value: (r) => fmtNum(r.avgPowerKw), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerKw))) },
     { label: 'Pot. peak (kW)', value: (r) => fmtNum(r.peakPowerKw), total: (d) => fmtNum(maxNonNull(d.map((r) => r.peakPowerKw))) },
-    { label: 'Volt. L1 (V)', value: (r) => fmtNum(r.avgVoltageL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL1))) },
-    { label: 'Corr. L1 (A)', value: (r) => fmtNum(r.avgCurrentL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL1))) },
+    { label: 'L1', value: (r) => fmtNum(r.avgVoltageL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL1))) },
+    { label: 'L2', value: (r) => fmtNum(r.avgVoltageL2), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL2))) },
+    { label: 'L3', value: (r) => fmtNum(r.avgVoltageL3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgVoltageL3))) },
+    { label: 'L1', value: (r) => fmtNum(r.avgCurrentL1), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL1))) },
+    { label: 'L2', value: (r) => fmtNum(r.avgCurrentL2), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL2))) },
+    { label: 'L3', value: (r) => fmtNum(r.avgCurrentL3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgCurrentL3))) },
     { label: 'React. (kVAr)', value: (r) => fmtNum(r.avgReactivePowerKvar), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgReactivePowerKvar))) },
     { label: 'FP', value: (r) => fmtNum(r.avgPowerFactor, 3), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgPowerFactor)), 3) },
     { label: 'Frec. (Hz)', value: (r) => fmtNum(r.avgFrequencyHz), total: (d) => fmtNum(avgNonNull(d.map((r) => r.avgFrequencyHz))) },
@@ -322,9 +348,9 @@ export function MeterReadingsPage() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         {(hourlyData.length > 0 || rawData.length > 0 || compositeRawData) && (
-          <Card>
+          <Card className="shrink-0">
             <div className="mb-3 flex items-center justify-between">
               <div ref={selectorRef} className="relative inline-block">
                 <button
@@ -377,9 +403,11 @@ export function MeterReadingsPage() {
         )}
 
         {readings && readings.length > 0 && (
-          <Card>
-            <h2 className="mb-3 text-sm font-semibold text-text">Resumen diario</h2>
-            <DataTable data={groupByDay(readings, alerts ?? [])} columns={buildDayColumns(meterId!)} footer rowKey={(r) => r.day} />
+          <Card className="flex min-h-0 flex-1 flex-col">
+            <h2 className="mb-3 shrink-0 text-sm font-semibold text-text">Resumen diario</h2>
+            <div className="min-h-0 flex-1">
+              <DataTable data={groupByDay(readings, alerts ?? [])} columns={buildDayColumns(meterId!)} columnGroups={DAY_COLUMN_GROUPS} footer rowKey={(r) => r.day} maxHeight="max-h-[230px]" />
+            </div>
           </Card>
         )}
       </div>

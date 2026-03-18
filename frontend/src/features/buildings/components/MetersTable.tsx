@@ -26,6 +26,7 @@ export function MetersTable({ data, buildingName, isHolding, onEdit, onDelete }:
         UNOCCUPIED_NAMES.has(r.storeName) || r.storeName.startsWith('Local ') ? 'text-muted' : '',
     },
     { label: 'Tipo', value: (r) => r.storeType || '—', align: 'left' },
+    { label: 'Fase', value: (r) => r.phaseType || '—', align: 'left' },
   ];
 
   if (isHolding && onEdit && onDelete) {

@@ -33,7 +33,7 @@ function getStatus(row: MeterLatestReading): { label: string; color: string } {
   return STATUS_THRESHOLDS.find((t) => age < t.maxMs) ?? STATUS_THRESHOLDS[STATUS_THRESHOLDS.length - 1];
 }
 
-const skeletonColumns = ['Edificio', 'Medidor', 'Tienda', 'Potencia (kW)', 'Voltaje L1 (V)', 'Corriente L1 (A)', 'FP', 'Estado'];
+const skeletonColumns = ['Edificio', 'Medidor', 'Tienda', 'Potencia Activa (kW)', 'Voltaje L1 (V)', 'Corriente L1 (A)', 'FP', 'Estado'];
 
 function SkeletonRows() {
   return (
@@ -282,12 +282,12 @@ function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds:
       ),
     },
     {
-      label: 'Potencia (kW)',
+      label: 'Potencia Activa (kW)',
       value: (r) => formatVal(r.powerKw),
       sortKey: (r) => r.powerKw,
       headerRender: () => (
         <RangeFilterDropdown
-          label="Potencia (kW)"
+          label="Potencia Activa (kW)"
           dataMin={powerMin}
           dataMax={powerMax}
           activeRange={powerRange}

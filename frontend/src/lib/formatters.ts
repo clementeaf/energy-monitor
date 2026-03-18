@@ -13,7 +13,8 @@ export function fmtClp(n: number | null | undefined): string {
 }
 
 export function fmtAxis(val: number): string {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+  const m = val / 1_000_000;
+  if (val >= 1_000_000) return `${Number.isInteger(m) ? m.toFixed(0) : m.toFixed(1)}M`;
   if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
   return String(val);
 }

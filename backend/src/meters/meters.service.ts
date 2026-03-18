@@ -5,6 +5,7 @@ export interface MeterListItem {
   meterId: string;
   storeName: string;
   storeType: string;
+  phaseType: string;
 }
 
 export interface MeterLatestReading {
@@ -27,10 +28,14 @@ export class MetersService {
       `SELECT DISTINCT
          b.meter_id   AS "meterId",
          s.store_name AS "storeName",
-         st.name      AS "storeType"
+         st.name      AS "storeType",
+         CASE WHEN ph.voltage_l2 IS NOT NULL AND ph.voltage_l2 != 0 THEN 'Trifásico' ELSE 'Monofásico' END AS "phaseType"
        FROM meter_monthly_billing b
        LEFT JOIN store s ON s.meter_id = b.meter_id
        LEFT JOIN store_type st ON st.id = s.store_type_id
+       LEFT JOIN LATERAL (
+         SELECT voltage_l2 FROM meter_readings WHERE meter_id = b.meter_id AND voltage_l2 IS NOT NULL LIMIT 1
+       ) ph ON true
        WHERE b.building_name = $1
        ORDER BY b.meter_id`,
       [buildingName],
@@ -40,6 +45,7 @@ export class MetersService {
       meterId: r.meterId,
       storeName: r.storeName ?? 'Por censar',
       storeType: r.storeType ?? '',
+      phaseType: r.phaseType ?? 'Monofásico',
     }));
   }
 

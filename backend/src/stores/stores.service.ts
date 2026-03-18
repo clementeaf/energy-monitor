@@ -60,7 +60,7 @@ export class StoresService {
 
   async findOperatorsByBuilding(buildingName: string) {
     const rows = await this.dataSource.query(`
-      SELECT s.store_name, COUNT(*)::int AS meter_count
+      SELECT s.store_name, COUNT(DISTINCT s.meter_id)::int AS meter_count
       FROM store s
       INNER JOIN meter_monthly_billing mmb ON mmb.meter_id = s.meter_id
       WHERE mmb.building_name = $1

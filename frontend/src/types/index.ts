@@ -36,6 +36,7 @@ export interface MeterListItem {
   meterId: string;
   storeName: string;
   storeType: string;
+  phaseType: string;
 }
 
 // Matches backend MeterMonthly entity (meter_monthly table)

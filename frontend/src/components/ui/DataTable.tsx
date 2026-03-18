@@ -12,9 +12,15 @@ export interface Column<T> {
   sortKey?: (row: T) => number | string | null;
 }
 
+export interface ColumnGroup {
+  label: string;
+  colSpan: number;
+}
+
 interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
+  columnGroups?: (ColumnGroup | null)[];
   footer?: boolean;
   onRowClick?: (row: T) => void;
   rowKey: (row: T) => string;
@@ -29,6 +35,7 @@ type SortDir = 'asc' | 'desc';
 export function DataTable<T>({
   data,
   columns,
+  columnGroups,
   footer = false,
   onRowClick,
   rowKey,
@@ -101,8 +108,8 @@ export function DataTable<T>({
 
   return (
     <div className="h-full flex flex-col">
-      <div ref={scrollRef} className={`overflow-auto flex-1 min-h-0 ${maxHeight}`}>
-        <table className={`min-w-full h-full text-[13px] ${tableClassName ?? ''}`}>
+      <div ref={scrollRef} className={`overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${maxHeight}`}>
+        <table className={`min-w-full text-[13px] ${tableClassName ?? ''}`}>
           {columns.some((c) => c.width) && (
             <colgroup>
               {columns.map((col, i) => (
@@ -111,15 +118,33 @@ export function DataTable<T>({
             </colgroup>
           )}
           <thead>
+            {columnGroups && (
+              <tr>
+                {columnGroups.map((g, i) =>
+                  g ? (
+                    <th
+                      key={i}
+                      colSpan={g.colSpan}
+                      className="sticky top-0 z-10 border-b border-pa-border bg-white px-3 py-1.5 text-center text-[11px] font-bold uppercase tracking-wide text-pa-navy"
+                    >
+                      {g.label}
+                    </th>
+                  ) : (
+                    <th key={i} className="sticky top-0 z-10 border-b border-pa-border bg-white" />
+                  ),
+                )}
+              </tr>
+            )}
             <tr>
               {columns.map((col, i) => {
                 const sortable = !!col.sortKey;
                 const isActive = sortCol === i;
+                const stickyTop = columnGroups ? 'top-[30px]' : 'top-0';
                 return (
                   <th
                     key={i}
                     onClick={sortable ? () => handleSort(i) : undefined}
-                    className={`sticky top-0 z-10 border-b border-pa-border bg-white px-3 py-2.5 text-[13px] font-semibold text-pa-navy ${
+                    className={`sticky ${stickyTop} z-10 border-b border-pa-border bg-white px-3 py-2.5 text-[13px] font-semibold text-pa-navy ${
                       col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right'
                     } ${sortable ? 'cursor-pointer select-none hover:bg-gray-50' : ''} ${col.className ?? ''}`}
                   >
@@ -183,24 +208,26 @@ export function DataTable<T>({
               </>
             )}
           </tbody>
-          {hasFooter && (
-            <tfoot>
-              <tr className="border-t border-pa-border">
-                {columns.map((col, i) => (
-                  <td
-                    key={i}
-                    className={`sticky bottom-0 z-10 bg-pa-bg-alt px-3 py-2.5 font-bold text-pa-navy ${
-                      col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right'
-                    } ${col.className ?? ''}`}
-                  >
-                    {col.total ? col.total(data) : ''}
-                  </td>
-                ))}
-              </tr>
-            </tfoot>
-          )}
         </table>
       </div>
+      {hasFooter && (
+        <table className={`mt-auto min-w-full shrink-0 text-[13px] ${tableClassName ?? ''}`}>
+          <tfoot>
+            <tr className="border-t border-pa-border">
+              {columns.map((col, i) => (
+                <td
+                  key={i}
+                  className={`bg-pa-bg-alt px-3 py-2.5 font-bold text-pa-navy ${
+                    col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right'
+                  } ${col.className ?? ''}`}
+                >
+                  {col.total ? col.total(data) : ''}
+                </td>
+              ))}
+            </tr>
+          </tfoot>
+        </table>
+      )}
       {pageSize && data.length > 0 && (
         <div className="border-t border-pa-border px-3 py-2 text-[13px] text-pa-text-muted">
           {Math.min(visibleCount, data.length)} de {data.length}

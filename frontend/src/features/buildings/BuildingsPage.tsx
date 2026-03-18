@@ -95,7 +95,7 @@ export function BuildingsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />
-                <Stat label="Potencia prom." value={fmt(b.avgPowerKw)} unit="kW" />
+                <Stat label="Potencia Activa prom." value={fmt(b.avgPowerKw)} unit="kW" />
                 <Stat label="Demanda peak" value={fmt(b.peakDemandKw)} unit="kW" />
                 <Stat label="Factor potencia" value={b.avgPowerFactor != null ? b.avgPowerFactor.toFixed(2) : '—'} />
               </div>

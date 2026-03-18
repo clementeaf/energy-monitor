@@ -405,7 +405,7 @@ export function TempLayout() {
       {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar userName={user?.name} onToggleSidebar={() => setSidebarOpen((o) => !o)} />
-        <main className="flex-1 overflow-hidden p-4 md:p-6">
+        <main className="flex-1 overflow-hidden p-4 pb-2 md:p-6 md:pb-2">
           <Outlet />
         </main>
       </div>

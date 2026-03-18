@@ -16,8 +16,8 @@ interface MetricMeta {
 
 export const meterMetrics: Record<MeterMetricKey, MetricMeta> = {
   totalKwh: { label: 'Consumo (kWh)', unit: 'kWh' },
-  avgPowerKw: { label: 'Potencia prom. (kW)', unit: 'kW' },
-  peakPowerKw: { label: 'Potencia peak (kW)', unit: 'kW' },
+  avgPowerKw: { label: 'Potencia Activa prom. (kW)', unit: 'kW' },
+  peakPowerKw: { label: 'Potencia Activa peak (kW)', unit: 'kW' },
   totalReactiveKvar: { label: 'Reactiva (kVAr)', unit: 'kVAr' },
   avgPowerFactor: { label: 'Factor potencia', unit: '' },
 };

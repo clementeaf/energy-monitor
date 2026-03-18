@@ -25,25 +25,26 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-18)
-- Auth frontend reactivado: LoginPage (Microsoft + Google), UnauthorizedPage, ProtectedRoute en router
-- Axios interceptors: Bearer token automático en requests, redirect a `/login` en 401
-- Logout funcional en sidebar
-- Dashboard, Comparativas, Building Detail, Monitoreo responsivos para 13" y tablet
-- Filtros cascading avanzados en Monitoreo + sorting
-- Componentes filtro compartidos en `components/ui/`
+- Auth completo: LoginPage, UnauthorizedPage, InvitationAcceptPage, ProtectedRoute, interceptors
+- Admin Usuarios: tabla con checkboxes, invitación por email (SES), usuario directo, reenvío
+- Google login: access_token via userinfo API, CSP y COOP configurados
+- Dashboard: gráficos Consumo e Ingreso separados, cards responsivas, tablas con footer fijo
+- Building Detail: chart 300px, toggle en SectionBanner, tab Operadores eliminada, columna Fase
+- Resumen diario: subcolumnas Voltaje/Corriente (L1, L2, L3) con headers agrupados
+- "Potencia" → "Potencia Activa" en todas las vistas
+- Deploy: tablas auth en RDS prod, env vars de auth en GitHub Secrets, SES verificado
 
 ### Pendiente
-- Deploy backend + frontend
 - Quitar `@Public()` de controllers backend (activar auth real)
-- Agregar `@RequirePermissions` a endpoints CRUD
-- Agregar `GOOGLE_CLIENT_ID` y `MICROSOFT_CLIENT_ID` a env vars de Lambda
+- Solicitar salida de SES sandbox (consola AWS)
 - Nav items condicionales por rol
 - Costo por Centro (pendiente definición con cliente)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Auth frontend listo (login, interceptors, protected routes). Pendiente: activar auth en backend (quitar @Public, agregar env vars Lambda).
+Auth, admin usuarios, email (SES sandbox), dashboard dual charts listo.
+Pendiente: quitar @Public de controllers, solicitar SES production, nav condicional por rol.
 ```
 
 ## Prioridad Actual de Acceso

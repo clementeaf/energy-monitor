@@ -23,10 +23,17 @@ interface MonthlyColumnChartProps {
   data: { month: string; value: number | null }[];
   label: string;
   unit: string;
+  chartType?: ChartType;
+  onChartTypeChange?: (type: ChartType) => void;
 }
 
-export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProps) {
-  const [mode, setMode] = useState<ChartType>('column');
+export { CHART_TYPE_OPTIONS };
+
+export function MonthlyColumnChart({ data, label, unit, chartType, onChartTypeChange }: MonthlyColumnChartProps) {
+  const [internalMode, setInternalMode] = useState<ChartType>('column');
+  const mode = chartType ?? internalMode;
+  const setMode = onChartTypeChange ?? setInternalMode;
+  const showInternalToggle = !onChartTypeChange;
   const isCurrency = unit === 'CLP ($)';
   const categories = data.map((d) => monthLabel(d.month));
   const values = data.map((d) => d.value);
@@ -35,7 +42,7 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
 
   const options: Highcharts.Options = isPie
     ? {
-        chart: { height: 384, backgroundColor: 'transparent' },
+        chart: { height: 260, backgroundColor: 'transparent' },
         title: { text: undefined },
         tooltip: {
           useHTML: true,
@@ -65,7 +72,7 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
         credits: { enabled: false },
       }
     : {
-        chart: { type: mode, height: 384, backgroundColor: 'transparent' },
+        chart: { type: mode, height: 300, backgroundColor: 'transparent', spacingBottom: 15 },
         title: { text: undefined },
         xAxis: {
           categories,
@@ -75,6 +82,7 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
           tickColor: '#E5E7EB',
         },
         yAxis: {
+          min: 0,
           title: { text: unit, style: { color: CHART_COLORS.blue, fontSize: '11px' } },
           labels: {
             formatter() {
@@ -107,9 +115,11 @@ export function MonthlyColumnChart({ data, label, unit }: MonthlyColumnChartProp
 
   return (
     <div className="relative">
-      <div className="absolute right-0 top-0 z-10">
-        <TogglePills options={CHART_TYPE_OPTIONS} value={mode} onChange={setMode} />
-      </div>
+      {showInternalToggle && (
+        <div className="absolute right-0 top-0 z-10">
+          <TogglePills options={CHART_TYPE_OPTIONS} value={mode} onChange={setMode} />
+        </div>
+      )}
       <HighchartsReact highcharts={Highcharts} options={options} />
     </div>
   );

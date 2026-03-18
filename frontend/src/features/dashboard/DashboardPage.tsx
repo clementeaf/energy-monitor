@@ -81,7 +81,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
       }));
 
       chartRef.current = Highcharts.chart({
-        chart: { height: 240, backgroundColor: 'transparent', renderTo: containerRef.current! },
+        chart: { height: null as unknown as number, borderRadius: 12, renderTo: containerRef.current! },
         title: { text: undefined },
         tooltip: {
           useHTML: true,
@@ -111,7 +111,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
       });
     } else {
       chartRef.current = Highcharts.chart({
-        chart: { height: 240, backgroundColor: 'transparent', renderTo: containerRef.current!, spacingBottom: 20 },
+        chart: { height: null as unknown as number, backgroundColor: '#ffffff', borderRadius: 12, renderTo: containerRef.current!, spacingBottom: 20 },
         title: { text: undefined },
         xAxis: {
           categories: names,
@@ -121,6 +121,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
         },
         yAxis: {
           title: { text: seriesName, style: { color: seriesColor, fontSize: '11px' } },
+          tickInterval: isConsumo ? 2_000_000 : 500_000_000,
           labels: {
             formatter() {
               const v = this.value as number;
@@ -169,11 +170,11 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
     };
   }, [data, chartType, metric]);
 
-  return <div ref={containerRef} />;
+  return <div ref={containerRef} className="h-full" />;
 }
 
 const overdueCols: Column<OverdueBucket>[] = [
-  { label: 'Período', value: (r) => r.range, align: 'left', className: 'whitespace-nowrap' },
+  { label: 'Período', value: (r) => r.range, align: 'left' },
   { label: 'Docs', value: (r) => String(r.count), total: (d) => String(d.reduce((s, r) => s + r.count, 0)) },
   { label: 'Monto', value: (r) => fmtClp(r.totalClp), total: (d) => fmtClp(d.reduce((s, r) => s + r.totalClp, 0)) },
 ];
@@ -699,7 +700,6 @@ export function DashboardPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [chartType, setChartType] = useState<ChartType>('column');
-  const [metric, setMetric] = useState<'consumo' | 'gasto'>('consumo');
   const [currency, setCurrency] = useState('CLP');
 
   // Derive available years from months
@@ -769,62 +769,67 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      {/* Fila 1: gráfico + cards */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-4 xl:grid-cols-[4fr_1fr]">
-        <Card className="!pt-0 !px-0 overflow-visible">
-          <SectionBanner title={`Consumo e Ingreso por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between rounded-t-xl rounded-b-none px-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <TogglePills
-                options={[{ value: 'consumo' as const, label: 'Consumo' }, { value: 'gasto' as const, label: 'Ingreso' }]}
-                value={metric}
-                onChange={setMetric}
-              />
-              <TogglePills
-                options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
-                value={viewMode}
-                onChange={setViewMode}
-              />
-              <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
-            </div>
-          </SectionBanner>
-          {viewMode === 'mensual' && (
-            <div className="flex items-center gap-3 px-4 pb-2">
-              <div className="flex shrink-0 gap-1">
-                {years.map((y) => (
-                  <button
-                    key={y}
-                    onClick={() => setSelectedYear(y)}
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                      selectedYear === y
-                        ? 'bg-pa-navy text-white'
-                        : 'bg-gray-100 text-pa-text-muted hover:bg-gray-200'
-                    }`}
-                  >
-                    {y}
-                  </button>
-                ))}
-              </div>
-              <div className="h-4 w-px bg-pa-border" />
-              <div className="flex gap-1 overflow-x-auto">
-                {monthItems.map((m) => (
-                  <button
-                    key={m.value}
-                    onClick={() => setSelectedMonth(m.value)}
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                      selectedMonth === m.value
-                        ? 'bg-pa-navy text-white'
-                        : 'bg-gray-100 text-pa-text-muted hover:bg-gray-200'
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <ComboChart data={activeData} chartType={chartType} metric={metric} />
-        </Card>
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      {/* Controles */}
+      <div className="flex shrink-0 flex-wrap items-center gap-2 px-1">
+        <TogglePills
+          options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
+          value={viewMode}
+          onChange={setViewMode}
+        />
+        <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
+        {selectedOperator && <span className="text-[12px] text-pa-text-muted">— {selectedOperator}</span>}
+      </div>
+      {viewMode === 'mensual' && (
+        <div className="flex shrink-0 items-center gap-3 px-1">
+          <div className="flex shrink-0 gap-1">
+            {years.map((y) => (
+              <button
+                key={y}
+                onClick={() => setSelectedYear(y)}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                  selectedYear === y
+                    ? 'bg-pa-navy text-white'
+                    : 'bg-gray-100 text-pa-text-muted hover:bg-gray-200'
+                }`}
+              >
+                {y}
+              </button>
+            ))}
+          </div>
+          <div className="h-4 w-px bg-pa-border" />
+          <div className="flex gap-1 overflow-x-auto">
+            {monthItems.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setSelectedMonth(m.value)}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  selectedMonth === m.value
+                    ? 'bg-pa-navy text-white'
+                    : 'bg-gray-100 text-pa-text-muted hover:bg-gray-200'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fila 1: gráficos + cards — misma altura */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-2 xl:grid-cols-[2fr_2fr_1fr]">
+        <div className="flex flex-col overflow-hidden">
+          <p className="mb-1 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-pa-navy">Consumo (kWh)</p>
+          <div className="min-h-0 flex-1">
+            <ComboChart data={activeData} chartType={chartType} metric="consumo" />
+          </div>
+        </div>
+        <div className="flex flex-col overflow-hidden">
+          <p className="mb-1 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-pa-navy">Ingreso (CLP)</p>
+          <div className="min-h-0 flex-1">
+            <ComboChart data={activeData} chartType={chartType} metric="gasto" />
+          </div>
+        </div>
 
         <div className="grid grid-cols-3 gap-3 xl:grid-cols-1">
           {[
@@ -834,12 +839,12 @@ export function DashboardPage() {
           ].map((c) => (
             <div
               key={c.label}
-              className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-pa-navy/30 bg-white py-2 px-3"
+              className="flex flex-1 flex-col rounded-xl border border-pa-navy/30 bg-white px-3 py-2 2xl:px-4 2xl:py-3"
             >
-              <p className="text-[11px] font-medium text-pa-text-muted">{c.label}</p>
-              <p className={`text-base font-bold ${c.accent}`}>{c.value}</p>
+              <p className="text-[10px] font-medium text-pa-text-muted 2xl:text-xs">{c.label}</p>
+              <p className={`flex-1 flex items-center text-base font-bold 2xl:text-xl ${c.accent}`}>{c.value}</p>
               <div className="flex items-center justify-between">
-                <p className="text-[10px] text-pa-text-muted">{c.desc}</p>
+                <p className="text-[9px] text-pa-text-muted 2xl:text-[11px]">{c.desc}</p>
                 {c.onVerMas && (
                   <PillButton onClick={c.onVerMas}>Ver más +</PillButton>
                 )}
@@ -850,14 +855,14 @@ export function DashboardPage() {
       </div>
 
       {/* Fila 2: ambas tablas alineadas, misma altura */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-4 xl:grid-cols-[4fr_1fr]">
-        <Card className="flex flex-col">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-2 xl:grid-cols-[4fr_1fr]">
+        <Card className="flex flex-col overflow-hidden !p-0">
           <SectionBanner
             title={viewMode === 'anual'
               ? `Consumo Anual por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`
               : `Consumo Mensual por Activo Inmobiliario — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}`}
             inline
-            className="mb-3"
+            className="mb-1"
           >
             <PillDropdown
               items={CURRENCY_OPTIONS}
@@ -866,21 +871,20 @@ export function DashboardPage() {
               listWidth="w-32"
             />
           </SectionBanner>
-          <div className="min-h-0 flex-1">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <DataTable
               data={activeData}
               columns={buildingCols}
               rowKey={(r) => r.name}
               onRowClick={(r) => navigate(`/buildings/${encodeURIComponent(r.name)}`)}
               footer
-              maxHeight="max-h-[230px]"
             />
           </div>
         </Card>
 
-        <Card className="flex flex-col">
-          <SectionBanner title="Facturas Vencidas por Período" inline className="mb-3 whitespace-nowrap" />
-          <div className="min-h-0 flex-1">
+        <Card className="flex flex-col overflow-hidden !p-0">
+          <SectionBanner title="Facturas Vencidas por Período" inline className="mb-1" />
+          <div className="min-h-0 flex-1 overflow-hidden">
             {effectivePayments ? (
               <DataTable
                 data={effectivePayments.vencidosPorPeriodo}
@@ -891,7 +895,6 @@ export function DashboardPage() {
                   setDrawerVencidos(true);
                 }}
                 footer
-                maxHeight="max-h-[235px]"
               />
             ) : (
               <p className="text-sm text-muted/40">—</p>

@@ -1,16 +1,59 @@
 # Changelog
 
+## [0.72.0-alpha.0] - 2026-03-18 — DASHBOARD DUAL CHARTS + UI FIXES
+
+### Changed
+- **Dashboard gráficos** — separados en dos: Consumo (kWh) e Ingreso (CLP) lado a lado
+- **Dashboard cards** — contenido responsivo con breakpoints `xl` / `2xl`, texto se adapta a 13"
+- **Dashboard tablas** — footer fuera del scroll (siempre visible), padding reducido
+- **Building Detail chart** — altura reducida a 300px, overflow contenido, toggle movido al SectionBanner
+- **"Potencia" → "Potencia Activa"** — en todas las vistas (Monitoreo, Buildings, Meters)
+- **Eje Y Ingreso** — tick cada $500M, sin decimales en labels de millones
+- **Eje Y Consumo** — tick cada 2M kWh
+- **DataTable** — scroll horizontal eliminado (`overflow-x-hidden`), footer con `mt-auto`
+- **Operadores meter count** — fix `COUNT(DISTINCT)` en query
+- **Tab Operadores** — eliminada de Building Detail (redundante con Listado Remarcadores)
+- **Main padding** — reducido padding inferior para maximizar espacio
+
+### Added
+- **Columna Fase** — Monofásico/Trifásico en Listado Remarcadores (derivado de `voltage_l2`)
+- **Subcolumnas Voltaje/Corriente** — L1, L2, L3 con header agrupado en Resumen diario
+- **DataTable columnGroups** — soporte de headers agrupados con `colSpan`
+
+---
+
+## [0.71.0-alpha.0] - 2026-03-18 — ADMIN USERS + INVITATIONS + EMAIL
+
+### Added
+- **AdminUsersPage** — vista Administración Usuarios con tabla, checkboxes y acciones
+- **Invitación por email** — formulario con nombre, email y modo; envío via AWS SES
+- **Reenvío de invitación** — selección múltiple con checkboxes + botón reenviar
+- **Usuario directo** — endpoint `POST /users/direct` para crear usuarios sin invitación
+- **InvitationAcceptPage** — página `/invite/:token` con validación y login
+- **userMode en DB** — columna `user_mode` en tabla `users`, asignado en invitación, aplicado al login
+- **Google access_token** — backend verifica tokens opacos via Google userinfo API
+- **AWS SES** — dominio verificado, DKIM configurado en Route 53
+- **dbVerify migration** — tablas auth (roles, users, sessions, modules, permissions) creadas via Lambda
+
+### Changed
+- **CSP** — agregado `accounts.google.com` a `script-src` y `frame-src`
+- **COOP** — CloudFront header cambiado a `same-origin-allow-popups`
+- **Login buttons** — loading separado por provider, Google usa `useGoogleLogin` (popup)
+- **Modo → Rol** — mapeo automático: Holding=CORP_ADMIN, Multi Operador=OPERATOR, Operador=TENANT_USER, Técnico=ANALYST
+
+---
+
 ## [0.70.0-alpha.0] - 2026-03-18 — AUTH LOGIN + SESSION MANAGEMENT
 
 ### Added
-- **LoginPage** — página de inicio de sesión con botones Microsoft (MSAL redirect) y Google (GoogleLogin widget)
-- **UnauthorizedPage** — página de acceso denegado con opciones de volver al inicio o cerrar sesión
-- **Axios interceptors** — request interceptor inyecta `Bearer` token automáticamente; response interceptor detecta `401` y redirige a `/login`
+- **LoginPage** — página de inicio de sesión con botones Microsoft (MSAL redirect) y Google (popup)
+- **UnauthorizedPage** — página de acceso denegado
+- **Axios interceptors** — Bearer token automático, redirect a `/login` en 401
 
 ### Changed
 - **main.tsx** — reactivados `MsalProvider`, `GoogleOAuthProvider`, `captureGoogleHash` y `validateEnv()`
-- **router.tsx** — rutas `/login` y `/unauthorized` públicas; todas las demás protegidas con `ProtectedRoute`
-- **TempLayout** — botón "Cerrar Sesión" conectado a `useAuth().logout()`
+- **router.tsx** — rutas `/login` y `/unauthorized` públicas; demás protegidas con `ProtectedRoute`
+- **TempLayout** — logout funcional
 
 ---
 

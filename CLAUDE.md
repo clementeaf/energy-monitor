@@ -25,13 +25,14 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-18)
+- Dashboard responsivo para 13": grid stackea bajo `xl`, chart 240px, cards compactas en fila de 3
 - Sidebar colapsable en tablet (hamburguesa + overlay)
 - "Gasto" → "Ingreso" en dashboard
 - TogglePills en BillingChart (reemplaza botones custom)
-- Grids responsivos (md: breakpoint) y flex-wrap en controles
 - Selector moneda dummy (CLP/USD/COP/SOL) en tablas Dashboard y Comparativas
 
 ### Pendiente
+- Responsividad restantes vistas (Buildings, Comparativas, Tiempo Real) para PC y tablet
 - Deploy backend + frontend
 - Costo por Centro (input externo Colbún → PASA, pendiente definición con cliente)
 - Nav items condicionales por rol (cuando auth se reactive)
@@ -44,11 +45,10 @@ Read CLAUDE.md. Retomando sesión.
 Estado:
 - 4 modos: Holding, Multi Operador, Operador, Técnico
 - CRUD + Bulk CSV + PDF en prod funcionando
-- Dashboard: toggle Consumo/Ingreso, año+mes, sorting, filtros cascada, preview PDF
-- Sidebar colapsable en tablet, grids responsivos (desktop + tablet)
-- Selector moneda dummy, "Edificios" → "Activos Inmobiliarios"
+- Dashboard responsivo: chart 240px, cards compactas, grid xl breakpoint
+- Sidebar colapsable en tablet, selector moneda dummy
 
-Pendiente: deploy, costo por centro (def. cliente), guard backend con auth
+Pendiente: responsive otras vistas, deploy, costo por centro, auth guards
 ```
 
 ## Prioridad Actual de Acceso

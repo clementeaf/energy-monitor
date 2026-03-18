@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.68.0-alpha.0] - 2026-03-18 — DASHBOARD RESPONSIVE 13"
+
+### Changed
+- **Dashboard grid breakpoint** — layout de 2 columnas sube de `md`/`lg` a `xl` (1280px); en 13" las secciones stackean verticalmente
+- **Cards de pago** — más compactas: padding reducido, texto `text-base`, se muestran en fila de 3 cuando stackeadas
+- **Gráfico Dashboard** — altura reducida de 384px a 240px para caber en pantallas 13"
+- **Gap general** — de 24px a 16px entre secciones
+
+---
+
 ## [0.67.0-alpha.0] - 2026-03-18 — RESPONSIVE + RENAME + CHART TOGGLE
 
 ### Added

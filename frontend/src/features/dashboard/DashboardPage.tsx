@@ -79,7 +79,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
       }));
 
       chartRef.current = Highcharts.chart({
-        chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current! },
+        chart: { height: 240, backgroundColor: 'transparent', renderTo: containerRef.current! },
         title: { text: undefined },
         tooltip: {
           useHTML: true,
@@ -109,7 +109,7 @@ function ComboChart({ data, chartType, metric = 'consumo' }: { data: BuildingRow
       });
     } else {
       chartRef.current = Highcharts.chart({
-        chart: { height: 384, backgroundColor: 'transparent', renderTo: containerRef.current!, spacingBottom: 20 },
+        chart: { height: 240, backgroundColor: 'transparent', renderTo: containerRef.current!, spacingBottom: 20 },
         title: { text: undefined },
         xAxis: {
           categories: names,
@@ -1089,7 +1089,7 @@ export function DashboardPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Fila 1: gráfico + cards */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 md:grid-cols-[3fr_1fr] lg:grid-cols-[5fr_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-4 xl:grid-cols-[4fr_1fr]">
         <Card className="!pt-0 !px-0 overflow-visible">
           <SectionBanner title={`Consumo e Ingreso por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`} className="mb-3 justify-between rounded-t-xl rounded-b-none px-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -1144,7 +1144,7 @@ export function DashboardPage() {
           <ComboChart data={activeData} chartType={chartType} metric={metric} />
         </Card>
 
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-3 gap-3 xl:grid-cols-1">
           {[
             { label: isFilteredMode ? 'Pagos Realizados' : 'Pagos Recibidos', value: effectivePayments ? fmtClp(effectivePayments.pagosRecibidos.totalClp) : '—', desc: `${effectivePayments?.pagosRecibidos.count ?? 0} documentos`, accent: 'text-pa-green', onVerMas: undefined },
             { label: isFilteredMode ? 'Facturas Pendientes de Pago' : 'Facturas por Vencer', value: effectivePayments ? fmtClp(effectivePayments.porVencer.totalClp) : '—', desc: `${effectivePayments?.porVencer.count ?? 0} documentos`, accent: 'text-pa-amber', onVerMas: () => setDrawerPorVencer(true) },
@@ -1152,12 +1152,12 @@ export function DashboardPage() {
           ].map((c) => (
             <div
               key={c.label}
-              className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-pa-navy/30 bg-white py-6 px-3"
+              className="flex flex-shrink-0 flex-col justify-center rounded-xl border border-pa-navy/30 bg-white py-2 px-3"
             >
-              <p className="text-xs font-medium text-pa-text-muted">{c.label}</p>
-              <p className={`text-2xl font-bold ${c.accent}`}>{c.value}</p>
+              <p className="text-[11px] font-medium text-pa-text-muted">{c.label}</p>
+              <p className={`text-base font-bold ${c.accent}`}>{c.value}</p>
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-pa-text-muted">{c.desc}</p>
+                <p className="text-[10px] text-pa-text-muted">{c.desc}</p>
                 {c.onVerMas && (
                   <PillButton onClick={c.onVerMas}>Ver más +</PillButton>
                 )}
@@ -1168,7 +1168,7 @@ export function DashboardPage() {
       </div>
 
       {/* Fila 2: ambas tablas alineadas, misma altura */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-6 md:grid-cols-[3fr_1fr] lg:grid-cols-[5fr_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-4 xl:grid-cols-[4fr_1fr]">
         <Card className="flex flex-col">
           <SectionBanner
             title={viewMode === 'anual'

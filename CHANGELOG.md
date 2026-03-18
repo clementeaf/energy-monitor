@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.70.0-alpha.0] - 2026-03-18 — AUTH LOGIN + SESSION MANAGEMENT
+
+### Added
+- **LoginPage** — página de inicio de sesión con botones Microsoft (MSAL redirect) y Google (GoogleLogin widget)
+- **UnauthorizedPage** — página de acceso denegado con opciones de volver al inicio o cerrar sesión
+- **Axios interceptors** — request interceptor inyecta `Bearer` token automáticamente; response interceptor detecta `401` y redirige a `/login`
+
+### Changed
+- **main.tsx** — reactivados `MsalProvider`, `GoogleOAuthProvider`, `captureGoogleHash` y `validateEnv()`
+- **router.tsx** — rutas `/login` y `/unauthorized` públicas; todas las demás protegidas con `ProtectedRoute`
+- **TempLayout** — botón "Cerrar Sesión" conectado a `useAuth().logout()`
+
+---
+
 ## [0.69.0-alpha.0] - 2026-03-18 — MONITOREO FILTERS + COMPARATIVAS RESPONSIVE
 
 ### Added

@@ -5,6 +5,7 @@ import { appRoutes, getNavItems, type AppRoute } from '../../app/appRoutes';
 import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useAuth } from '../../hooks/auth/useAuth';
 import { useComparisonFilters } from '../../hooks/queries/useComparisons';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useStores } from '../../hooks/queries/useStores';
@@ -188,6 +189,7 @@ export function TempLayout() {
   } = useAppStore();
   const isTecnico = userMode === 'tecnico';
   const { user } = useAuthStore();
+  const { logout } = useAuth();
   const { data: filters } = useComparisonFilters();
   const { data: buildings } = useBuildings();
   const { data: stores } = useStores();
@@ -387,7 +389,7 @@ export function TempLayout() {
         <div className="border-t border-border px-4 py-3">
           <button
             type="button"
-            onClick={() => { /* TODO: logout logic */ }}
+            onClick={logout}
             className="flex w-full items-center gap-2 text-[12px] font-medium text-pa-text-muted transition-colors hover:text-pa-coral"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

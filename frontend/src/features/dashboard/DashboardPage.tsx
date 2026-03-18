@@ -16,7 +16,7 @@ import { useDashboardSummary, useDashboardPayments, useDashboardDocuments, useDa
 import { DashboardSkeleton } from '../../components/ui/Skeleton';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fetchBillingPdf } from '../../services/endpoints';
-import { fmt, fmtClp, fmtAxis, fmtDate, monthLabel, monthName } from '../../lib/formatters';
+import { fmt, fmtClp, fmtAxis, fmtDate, monthName } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
 import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
 import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket, PaymentSummary } from '../../types';

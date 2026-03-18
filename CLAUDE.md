@@ -25,30 +25,25 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-18)
-- Dashboard responsivo para 13": grid stackea bajo `xl`, chart 240px, cards compactas en fila de 3
-- Sidebar colapsable en tablet (hamburguesa + overlay)
-- "Gasto" → "Ingreso" en dashboard
-- TogglePills en BillingChart (reemplaza botones custom)
-- Selector moneda dummy (CLP/USD/COP/SOL) en tablas Dashboard y Comparativas
+- Auth frontend reactivado: LoginPage (Microsoft + Google), UnauthorizedPage, ProtectedRoute en router
+- Axios interceptors: Bearer token automático en requests, redirect a `/login` en 401
+- Logout funcional en sidebar
+- Dashboard, Comparativas, Building Detail, Monitoreo responsivos para 13" y tablet
+- Filtros cascading avanzados en Monitoreo + sorting
+- Componentes filtro compartidos en `components/ui/`
 
 ### Pendiente
-- Responsividad restantes vistas (Buildings, Comparativas, Tiempo Real) para PC y tablet
 - Deploy backend + frontend
-- Costo por Centro (input externo Colbún → PASA, pendiente definición con cliente)
-- Nav items condicionales por rol (cuando auth se reactive)
-- Guard backend `@RequirePermissions` para endpoints CRUD (cuando auth se reactive)
+- Quitar `@Public()` de controllers backend (activar auth real)
+- Agregar `@RequirePermissions` a endpoints CRUD
+- Agregar `GOOGLE_CLIENT_ID` y `MICROSOFT_CLIENT_ID` a env vars de Lambda
+- Nav items condicionales por rol
+- Costo por Centro (pendiente definición con cliente)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-
-Estado:
-- 4 modos: Holding, Multi Operador, Operador, Técnico
-- CRUD + Bulk CSV + PDF en prod funcionando
-- Dashboard responsivo: chart 240px, cards compactas, grid xl breakpoint
-- Sidebar colapsable en tablet, selector moneda dummy
-
-Pendiente: responsive otras vistas, deploy, costo por centro, auth guards
+Auth frontend listo (login, interceptors, protected routes). Pendiente: activar auth en backend (quitar @Public, agregar env vars Lambda).
 ```
 
 ## Prioridad Actual de Acceso

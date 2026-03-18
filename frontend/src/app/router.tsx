@@ -1,9 +1,13 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { DashboardSkeleton, BuildingsPageSkeleton, BuildingDetailSkeleton, MeterDetailSkeleton, MeterReadingsSkeleton, RealtimeSkeleton, AlertsSkeleton, AlertDetailSkeleton, ComparisonsSkeleton } from '../components/ui/Skeleton';
 import { TempLayout } from '../components/ui/TempLayout';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { appRoutes } from './appRoutes';
+
+const LoginPage = lazy(() => import('../features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const UnauthorizedPage = lazy(() => import('../features/auth/UnauthorizedPage').then((m) => ({ default: m.UnauthorizedPage })));
 
 const pages = {
   dashboard:          lazy(() => import('../features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage }))),
@@ -44,8 +48,23 @@ const routeConfig: { key: keyof typeof pages; routeKey: keyof typeof appRoutes }
 ];
 
 export const router = createBrowserRouter([
+  // Public routes
   {
-    element: <TempLayout />,
+    path: '/login',
+    element: <Suspense fallback={null}><LoginPage /></Suspense>,
+  },
+  {
+    path: '/unauthorized',
+    element: <Suspense fallback={null}><UnauthorizedPage /></Suspense>,
+  },
+
+  // Protected routes
+  {
+    element: (
+      <ProtectedRoute>
+        <TempLayout />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorBoundary><></></ErrorBoundary>,
     children: routeConfig.map(({ key, routeKey }) => {
       const Page = pages[key];
@@ -62,4 +81,7 @@ export const router = createBrowserRouter([
       };
     }),
   },
+
+  // Catch-all
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);

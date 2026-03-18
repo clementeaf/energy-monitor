@@ -11,11 +11,11 @@
 | `/buildings/:id` | Detalle edificio | — | si — gráfico, tabla facturación, listado remarcadores |
 | `/meters/:meterId` | Detalle medidor | — | si — selector 5 métricas, gráfico dinámico, tabla con highlight |
 | `/meters/:meterId/readings/:month` | Lecturas medidor | — | si — gráfico Diario/15min, tabla resumen diario |
-| `/monitoring/realtime` | Monitoreo | si | si — tabla última lectura por medidor, refetch 60s |
+| `/monitoring/realtime` | Monitoreo | si | si — tabs Monitoreo/Alertas, filtros cascading avanzados, sorting, refetch 60s |
 | `/monitoring/devices` | Dispositivos | si | no (shell) |
 | `/alerts` | Alertas | si | si — DataTable paginada con filtros avanzados |
 | `/alerts/:id` | Detalle alerta | — | no (shell) |
-| `/comparisons` | Comparativas | si | si — datos reales. Toggle Por Tipo/Por Tienda, MultiSelect con búsqueda, selector mes, gráfico toggle Barra/Línea, tabla por edificio |
+| `/comparisons` | Comparativas | si | si — datos reales. Toggle Por Tipo/Por Tienda, MultiSelect, selector mes, gráfico 230px toggle Barra/Línea/Área/Torta, Ingreso/Gasto dinámico, tabla por edificio |
 
 ## Componentes UI
 
@@ -33,7 +33,9 @@
 | `PillDropdown` | `components/ui/PillDropdown.tsx` | Dropdown genérico `<T extends string>`: botón pill PA, lista con items PA. Props: `items`, `value`, `onChange`, `onHover`, `listWidth`, `align` (`left`/`right`), `fullWidth`, `placeholder`. Items truncan con tooltip |
 | `BillingChart` | `features/buildings/components/BillingChart.tsx` | Highcharts columnas por mes, métrica dinámica vía prop |
 | `BillingTable` | `features/buildings/components/BillingTable.tsx` | Usa DataTable. 12 columnas, highlight columna via `className`, filtro meses via `headerRender`, `onRowClick` abre drawer desglose. Usa `sumByKey`/`maxByKey` de `lib/aggregations` |
-| `ColumnFilterDropdown` | `features/dashboard/DashboardPage.tsx` | Dropdown genérico checkbox multi-select para filtrar columnas en DataTable. Misma UX que MonthFilterDropdown |
+| `ColumnFilterDropdown` | `components/ui/ColumnFilterDropdown.tsx` | Dropdown checkbox multi-select con búsqueda, seleccionar/deseleccionar todo. Usado en Dashboard drawers, Monitoreo y Alertas |
+| `DateFilterDropdown` | `components/ui/DateFilterDropdown.tsx` | Filtro fecha: todas / exacta / rango (Desde/Hasta). Exporta tipo `DateFilter` |
+| `RangeFilterDropdown` | `components/ui/RangeFilterDropdown.tsx` | Slider dual rango numérico con Aplicar/Limpiar. Exporta tipo `NumericRange` |
 | `DocTableWithFilter` | `features/dashboard/DashboardPage.tsx` | Wrapper DataTable con filtro edificio integrado. Prop `showPeriodFilter` agrega PillDropdown de períodos vencimiento. Usado en drawers documentos Dashboard |
 | `ContextMenu` | `components/ui/ContextMenu.tsx` | Botón 3 puntos con dropdown posicional. Items con label, onClick, danger flag. Usa `useClickOutside` |
 | `ConfirmDialog` | `components/ui/ConfirmDialog.tsx` | Modal de confirmación con portal. Props: title, message, confirmLabel, loading. Botón rojo para confirmar |
@@ -136,38 +138,31 @@ Las 6 vistas (Dashboard, Buildings, BuildingDetail, Comparisons, Realtime, Alert
 
 ## RealtimePage
 
-- Sin título (el sidebar indica "Monitoreo")
-- Card con DataTable: 7 columnas (Medidor, Tienda, Potencia kW, Voltaje L1, Corriente L1, FP, Estado)
-- Datos vía `useMetersLatest(buildingName)` → `GET /api/meters/building/:name/latest` (refetch 60s)
-- Estado: badge Online (<30 min), Delay (<2h), Offline (>2h) según antigüedad de timestamp
-- Skeleton: 8 filas con pulso mientras carga, tokens PA alineados con DataTable
-
-## AlertsPage
-
-- DataTable paginada (10/pág), columnas anchos fijos via `table-fixed`
-- 8 columnas: Medidor, Fecha, Tipo, Severidad, Campo, Valor, Umbral, Mensaje
-- **Filtros checkbox (5 columnas):** Medidor, Tipo, Severidad, Campo, Umbral — dropdown con valores únicos y checkboxes. Renderizados via `createPortal` con `position: fixed`
-- **Filtro fecha (columna Fecha):** dropdown con 3 secciones:
-  - Ordenar: Ascendente / Descendente (checkbox toggle)
-  - Filtrar por fecha: exacta (`<input date>`) o rango (desde/hasta)
-  - Filtrar por hora: exacta (`<input time>`) o rango (desde/hasta)
-  - Todos deseleccionables al hacer click en checkbox activo
-  - Badge dinámico en header resume filtros activos
-- Severidad con colores: rojo (critical), ámbar (warning), azul (info)
-- Tokens PA en contenedor, dropdowns, inputs, loading. Sin borde exterior (alineado con Card)
-- Datos vía `useAlerts()` → `GET /api/alerts`
-- **Pre-filtrado vía URL:** acepta query params `meter_id`, `date`, `date_from`, `date_to` para inicializar filtros al abrir la vista (usado por links de Incidencias en medidor)
-- Pipeline de filtrado: checkbox filters → date/time filter → sort
+- Dos tabs: **Monitoreo** y **Alertas** (toggle via `TogglePills`)
+- **Tab Monitoreo:** DataTable con 8 columnas (Edificio, Medidor, Tienda, Potencia kW, Voltaje L1, Corriente L1, FP, Estado)
+  - Filtros cascading: Edificio, Medidor, Tienda, Estado → `ColumnFilterDropdown`; Potencia, Voltaje, Corriente, FP → `RangeFilterDropdown`
+  - Sorting asc/desc en todas las columnas
+  - Datos vía `useAllMetersLatest(buildingNames)` → `GET /api/meters/building/:name/latest` (refetch 60s)
+  - Estado: badge Online (<30 min), Delay (<2h), Offline (>2h) según antigüedad de timestamp
+  - Skeleton: 8 filas con pulso mientras carga
+- **Tab Alertas:** DataTable paginada (30/pág) con `table-fixed`
+  - 10 columnas: Edificio, Operador, Medidor, Fecha, Tipo, Severidad, Campo, Valor, Umbral, Mensaje
+  - Filtros cascading: Edificio, Operador, Medidor, Tipo, Severidad, Campo → `ColumnFilterDropdown`; Fecha → `DateFilterDropdown`; Valor, Umbral → `RangeFilterDropdown`
+  - Sorting asc/desc en todas las columnas (excepto Mensaje)
+  - Severidad con colores: rojo (critical), ámbar (warning), azul (info)
+  - Datos vía `useAlerts()` → `GET /api/alerts`
+  - **Pre-filtrado vía URL:** acepta query params `meter_id`, `date`, `date_from`, `date_to`
 
 ## ComparisonsPage
 
 - Compara tiendas o tipos de tienda a través de distintos edificios
 - Toggle "Por Tipo" (42 tipos) / "Por Tienda" (309 nombres) con MultiSelect y búsqueda
 - Selector de mes dinámico derivado de la API
-- Gráfico via `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`. Toggle Barra/Línea/Área, dual axis (consumo + gasto). Alto dinámico (100% del contenedor)
-- Layout `overflow-hidden` con cards `flex-[3]` (chart) / `flex-[2]` (tabla), sin scrollbar vertical
+- Gráfico via `HighchartsReact` con `CHART_COLORS`, `LIGHT_PLOT_OPTIONS`, `LIGHT_TOOLTIP_STYLE`. Toggle Barra/Línea/Área/Torta, dual axis (consumo + ingreso/gasto). Altura fija 230px, labels eje X 10px rotación -10°
+- Layout `overflow-hidden` con cards `flex-[3]` (chart) / `flex-[2.4]` (tabla)
+- "Gasto" → "Ingreso" dinámico según modo (Holding usa "Ingreso")
 - Títulos con `SectionBanner inline` (estilo PA: `bg-pa-bg-alt`, navy uppercase, `w-fit`)
-- DataTable: Edificio, Consumo (kWh), Gasto ($), footer con totales
+- DataTable: Edificio, Consumo (kWh), Ingreso/Gasto ($), Medidores — footer con totales
 - Datos reales vía `useComparisonFilters`, `useComparisonByStoreType`, `useComparisonByStoreName`
 
 ## Hooks activos

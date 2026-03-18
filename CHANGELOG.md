@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.69.0-alpha.0] - 2026-03-18 — MONITOREO FILTERS + COMPARATIVAS RESPONSIVE
+
+### Added
+- **Filtros avanzados en Monitoreo** — ambas tablas (Monitoreo y Alertas) usan filtros cascading con `ColumnFilterDropdown`, `DateFilterDropdown` y `RangeFilterDropdown`
+- **Sorting en Monitoreo** — todas las columnas de ambas tablas soportan ordenamiento asc/desc
+- **Componentes filtro compartidos** — `ColumnFilterDropdown`, `DateFilterDropdown`, `RangeFilterDropdown` extraídos de Dashboard a `components/ui/`
+- **Soporte y Contacto** — datos de contacto en sidebar ocultos tras botón colapsable con transición suave
+
+### Changed
+- **Gráfico Comparativas** — altura fija 230px (antes dinámica), labels eje X a 10px con rotación -10°
+- **"Gasto" → "Ingreso" en Comparativas** — chart (series, ejes, tooltips) y tabla usan "Ingreso" en modo Holding
+- **Tabla Comparativas** — proporción tabla aumentada (`flex-[2.4]`)
+- **Building Detail** — header con flex-wrap, contenido scrollable en tablet
+- **Realtime** — SectionBanner con flex-wrap
+
+---
+
 ## [0.68.0-alpha.0] - 2026-03-18 — DASHBOARD RESPONSIVE 13"
 
 ### Changed

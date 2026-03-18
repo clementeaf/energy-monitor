@@ -224,6 +224,7 @@ export function TempLayout() {
   }, [stores, selectedBuilding]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   useClickOutside(sidebarRef, () => setSidebarOpen(false), sidebarOpen);
 
@@ -353,11 +354,35 @@ export function TempLayout() {
           })}
         </nav>
 
-        {/* Footer — contacto + cerrar sesión */}
+        {/* Footer — soporte toggle + cerrar sesión */}
         <div className="px-4 py-3">
-          <p className="text-[13px] font-semibold text-pa-navy">Contacto Globe Power</p>
-          <a href="mailto:ejecutivo@globemontaje.cl" className="block text-[13px] text-pa-text-muted hover:text-pa-blue truncate">ejecutivo@globemontaje.cl</a>
-          <a href="tel:+56221111111" className="block text-[13px] text-pa-text-muted hover:text-pa-blue">221111111</a>
+          <button
+            type="button"
+            onClick={() => setContactOpen((o) => !o)}
+            className="flex w-full items-center gap-2 text-[13px] font-semibold text-pa-navy transition-colors hover:text-pa-blue"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Soporte y Contacto
+            <svg className={`ml-auto h-3 w-3 transition-transform ${contactOpen ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 5l3 3 3-3" />
+            </svg>
+          </button>
+          <div
+            className="grid transition-all duration-200 ease-in-out"
+            style={{ gridTemplateRows: contactOpen ? '1fr' : '0fr' }}
+          >
+            <div className="overflow-hidden">
+              <div className="mt-2 space-y-0.5">
+                <p className="text-[13px] font-medium text-pa-navy">Globe Power</p>
+                <a href="mailto:ejecutivo@globemontaje.cl" className="block text-[13px] text-pa-text-muted hover:text-pa-blue truncate">ejecutivo@globemontaje.cl</a>
+                <a href="tel:+56221111111" className="block text-[13px] text-pa-text-muted hover:text-pa-blue">221111111</a>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="border-t border-border px-4 py-3">
           <button

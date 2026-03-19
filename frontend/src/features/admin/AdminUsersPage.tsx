@@ -5,6 +5,15 @@ import { Drawer } from '../../components/ui/Drawer';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import type { AdminUser } from '../../services/endpoints';
 
+const ROLE_DISPLAY: Record<string, string> = {
+  'Super Administrador': 'Super Administrador N5',
+  'Administrador Corporativo': 'Administrador N4',
+  'Administrador de Edificio': 'Usuario N3',
+  'Operador': 'Usuario N3',
+  'Analista': 'Tecnico N2',
+  'Usuario Tienda': 'Auditor N1',
+};
+
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   active:   { label: 'Activo',    cls: 'bg-green-50 text-green-700' },
   invited:  { label: 'Invitado',  cls: 'bg-blue-50 text-blue-700' },
@@ -57,7 +66,7 @@ function UserRow({ user, selected, onToggle }: { user: AdminUser; selected: bool
           </div>
         </div>
       </td>
-      <td className="px-3 py-2.5 text-[13px] text-pa-text">{user.roleLabel}</td>
+      <td className="px-3 py-2.5 text-[13px] text-pa-text">{ROLE_DISPLAY[user.roleLabel] ?? user.roleLabel}</td>
       <td className="px-3 py-2.5"><ProviderBadge provider={user.provider} /></td>
       <td className="px-3 py-2.5"><StatusBadge status={user.invitationStatus} /></td>
       <td className="px-3 py-2.5 text-[12px] text-pa-text-muted">
@@ -81,6 +90,14 @@ const MODE_OPTIONS = [
   { value: 'tecnico', label: 'Técnico' },
 ];
 
+const ROLE_OPTIONS = [
+  { value: 'super_admin', label: 'Super Administrador N5' },
+  { value: 'admin', label: 'Administrador N4' },
+  { value: 'usuario', label: 'Usuario N3' },
+  { value: 'tecnico', label: 'Tecnico N2' },
+  { value: 'auditor', label: 'Auditor N1' },
+];
+
 function AddUserForm({ onClose }: { onClose: () => void }) {
   const mutation = useCreateDirectUser();
   const [email, setEmail] = useState('');
@@ -88,6 +105,7 @@ function AddUserForm({ onClose }: { onClose: () => void }) {
   const [jobTitle, setJobTitle] = useState('');
   const [phone, setPhone] = useState('');
   const [userMode, setUserMode] = useState('holding');
+  const [role, setRole] = useState('usuario');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -149,6 +167,18 @@ function AddUserForm({ onClose }: { onClose: () => void }) {
         >
           {MODE_OPTIONS.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Rol</label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+        >
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
           ))}
         </select>
       </div>

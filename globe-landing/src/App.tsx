@@ -1,16 +1,10 @@
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Stats } from './components/Stats';
-import { Problems } from './components/Problems';
+import { About } from './components/About';
 import { Ecosystem } from './components/Ecosystem';
-import { Siemens } from './components/Siemens';
-import { EmsBms } from './components/EmsBms';
-import { Transparency } from './components/Transparency';
-import { Maintenance } from './components/Maintenance';
-import { Financial } from './components/Financial';
-import { Portfolio } from './components/Portfolio';
-import { Deployment } from './components/Deployment';
-import { FinalMetrics } from './components/FinalMetrics';
+import { SiemensBanner } from './components/SiemensBanner';
+import { Results } from './components/Results';
 import { Differentiation } from './components/Differentiation';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
@@ -21,16 +15,10 @@ function App() {
       <Navbar />
       <Hero />
       <Stats />
-      <Problems />
+      <About />
       <Ecosystem />
-      <Siemens />
-      <EmsBms />
-      <Transparency />
-      <Maintenance />
-      <Financial />
-      <Portfolio />
-      <Deployment />
-      <FinalMetrics />
+      <SiemensBanner />
+      <Results />
       <Differentiation />
       <Contact />
       <Footer />

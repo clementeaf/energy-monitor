@@ -12,7 +12,9 @@
 | API Gateway | HTTP API | `626lq125eh` | Proxy HTTP → Lambda API (`/api/*`) |
 | RDS | PostgreSQL 16 | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` | db.t3.micro, 20GB gp3, encrypted, single-AZ |
 | S3 | Frontend bucket | `energy-monitor-hoktus-mvp` | SPA estática (Vite build) |
-| CloudFront | Distribution | `ECR03RA6F872Q` | CDN: `/*` → S3, `/api/*` → API Gateway |
+| S3 | Globe Landing bucket | `globe-landing-hoktus` | Landing page Globe Power (`/landing/*`) |
+| CloudFront | Distribution | `ECR03RA6F872Q` | CDN: `/*` → S3 frontend, `/landing/*` → S3 globe-landing, `/api/*` → API Gateway |
+| CloudFront | Function | `landing-index-rewrite` | Reescribe `/landing/` → `/landing/index.html` (viewer-request) |
 | EventBridge | Trigger 15 min | `synthetic-readings-every-1min` | Trigger Lambda generador cada 15 min (nombre legacy) |
 | EventBridge | Trigger 5 min | Definido en serverless.yml | Trigger offlineAlerts cada 5 min |
 
@@ -34,6 +36,7 @@
 | Recurso | URL |
 |---|---|
 | Frontend | `https://energymonitor.click` |
+| Globe Landing | `https://energymonitor.click/landing/` |
 | API (via CloudFront) | `https://energymonitor.click/api/` |
 | API (directo) | `https://626lq125eh.execute-api.us-east-1.amazonaws.com/api/` |
 | Swagger | `https://energymonitor.click/api/docs` |
@@ -67,8 +70,9 @@
 
 ```
 ¿Qué cambió?
-├── Solo frontend (src/, components/, views/) → Deploy Frontend
-├── Solo backend (controllers, services, entities, serverless.yml) → Deploy Backend (Serverless)
+├── Solo frontend/ (src/, components/, views/) → Deploy Frontend
+├── Solo globe-landing/ → Deploy Globe Landing
+├── Solo backend/ (controllers, services, entities, serverless.yml) → Deploy Backend (Serverless)
 ├── billing-pdf-lambda/ (handler.py, requirements.txt) → Deploy PDF Lambda
 ├── Ambos frontend + backend → Deploy Backend PRIMERO, luego Frontend
 └── Cambios de schema DB → Ejecutar migración ANTES de cualquier deploy
@@ -83,7 +87,7 @@ Push a `main` → GitHub Actions ejecuta automáticamente:
 
 **Workflow:** `.github/workflows/deploy.yml`
 
-> **billing-pdf-generator NO se deploya automáticamente.** Requiere deploy manual (ver abajo).
+> **globe-landing y billing-pdf-generator NO se depoyan automáticamente.** Ambos requieren deploy manual (ver abajo).
 
 ### Método Manual — Frontend
 
@@ -122,6 +126,51 @@ export VITE_MICROSOFT_CLIENT_ID=<desde GitHub Secrets>
 export VITE_MICROSOFT_TENANT_ID=<desde GitHub Secrets>
 export VITE_GOOGLE_CLIENT_ID=<desde GitHub Secrets>
 ```
+
+### Método Manual — Globe Landing
+
+> **IMPORTANTE:** Globe Landing NO se deploya automáticamente con CI. Siempre es manual.
+
+**Arquitectura CloudFront:**
+```
+CloudFront /landing/* → S3 bucket "globe-landing-hoktus"
+                         └── CloudFront Function "landing-index-rewrite"
+                              reescribe /landing/ → /landing/index.html
+```
+
+**Los archivos DEBEN subirse con prefijo `landing/`** dentro del bucket `globe-landing-hoktus`.
+NO subir a la raíz del bucket ni al bucket `energy-monitor-hoktus-mvp`.
+
+**Pre-checks:**
+```bash
+cd globe-landing && npm ci && npm run build
+```
+
+**Deploy:**
+```bash
+# Variables reales — NO son placeholders
+S3_BUCKET="globe-landing-hoktus"
+CF_DIST_ID="ECR03RA6F872Q"
+
+# Sync todo al prefijo landing/ dentro del bucket
+aws s3 sync dist/ s3://$S3_BUCKET/landing/ --delete
+
+# Invalidar cache CloudFront
+aws cloudfront create-invalidation \
+  --distribution-id $CF_DIST_ID \
+  --paths "/landing/*"
+```
+
+**Verificar:**
+```bash
+curl -sI https://energymonitor.click/landing/ | head -5
+# Esperar: HTTP/2 200
+```
+
+**Errores comunes:**
+- **403 en /landing/:** archivos subidos a la raíz del bucket en vez de `landing/`. Re-subir con prefijo.
+- **Versión vieja:** falta invalidación CloudFront. Ejecutar invalidation y esperar ~1-2 min.
+- **Subido al bucket equivocado:** el bucket es `globe-landing-hoktus`, NO `energy-monitor-hoktus-mvp`.
 
 ### Método Manual — Backend (Serverless)
 
@@ -228,9 +277,15 @@ aws logs tail /aws/lambda/billing-pdf-generator --follow --region us-east-1
 
 ### Invalidar CloudFront
 ```bash
+# Frontend principal
 aws cloudfront create-invalidation \
   --distribution-id ECR03RA6F872Q \
   --paths "/index.html"
+
+# Globe Landing
+aws cloudfront create-invalidation \
+  --distribution-id ECR03RA6F872Q \
+  --paths "/landing/*"
 ```
 
 ### Conectar a RDS (desde instancia en VPC)
@@ -259,8 +314,11 @@ aws rds describe-db-instances --db-instance-identifier energy-monitor-db --query
 # Distribución CloudFront
 aws cloudfront get-distribution --id ECR03RA6F872Q --query 'Distribution.{Status:Status,DomainName:DomainName,Enabled:DistributionConfig.Enabled}' --region us-east-1
 
-# Contenido bucket S3 (últimos archivos)
+# Contenido bucket S3 frontend
 aws s3 ls s3://energy-monitor-hoktus-mvp/ --region us-east-1
+
+# Contenido bucket S3 globe-landing
+aws s3 ls s3://globe-landing-hoktus/landing/ --region us-east-1
 ```
 
 ---

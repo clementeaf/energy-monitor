@@ -1,33 +1,29 @@
 const items = [
-  { tag: 'Rigor Industrial', title: 'Alianza Siemens', desc: 'Alianza exclusiva Siemens para SMB, garantizando calidad de clase mundial.' },
-  { tag: 'Soporte Humano', title: 'Atención Personalizada', desc: 'Atención personalizada por especialistas. Sin bots, sin tickets perdidos.' },
-  { tag: 'Agilidad Tecnológica', title: 'Cloud + AI', desc: 'Plataformas en la nube con IA para detección temprana de anomalías. Predictivo vs. reactivo.' },
-  { tag: 'Sostenibilidad', title: 'Validación Sistema B', desc: 'Apoyo para certificaciones I-RECs y respaldo como empresa Sistema B.' },
+  { title: 'Alianza Siemens', desc: 'Rigor industrial con hardware y software de clase mundial para edificios comerciales.' },
+  { title: 'Mantenimiento 24/7', desc: 'Mantenimiento preventivo y correctivo con telemetría activa. Anticipamos fallas, no las reparamos.' },
+  { title: 'Cloud + IA', desc: 'Detección temprana de anomalías y análisis predictivo en plataformas cloud empresariales.' },
+  { title: 'Despliegue sin Impacto', desc: 'Implementación escalonada en 5 fases que no interrumpe la operación diaria de tu activo.' },
+  { title: 'Soporte Humano', desc: 'Atención personalizada por especialistas. Sin bots, sin tickets perdidos. Respuesta en menos de 1 hora.' },
+  { title: 'Sostenibilidad Validada', desc: 'Certificación Sistema B, respaldo I-RECs y apoyo para cumplimiento de estándares ISO 50.001.' },
 ];
 
 export function Differentiation() {
   return (
     <section className="py-20 sm:py-28 px-5 sm:px-8 lg:px-10">
       <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-navy text-center max-w-3xl mx-auto">
-          El único integrador en Chile que combina rigor industrial y soporte humano
+        <h2 className="text-2xl sm:text-3xl font-bold text-navy text-center">
+          ¿Por qué Globe Power?
         </h2>
-
-        <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <p className="mt-4 text-sm text-gray-500 text-center max-w-2xl mx-auto">
+          El único integrador en Chile que combina rigor industrial y soporte humano.
+        </p>
+        <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {items.map((item) => (
-            <div key={item.tag}>
-              <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase">{item.tag}</p>
-              <h3 className="mt-1 text-base font-semibold text-navy">{item.title}</h3>
+            <div key={item.title}>
+              <h3 className="text-base font-semibold text-navy">{item.title}</h3>
               <p className="mt-2 text-sm text-gray-500 leading-relaxed">{item.desc}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-14 text-center">
-          <a href="#contacto" className="inline-flex px-6 py-2.5 bg-accent text-white font-medium rounded-md hover:bg-accent-dark transition-colors text-sm">
-            Agenda una Reunión Comparativa
-          </a>
-          <p className="mt-3 text-xs text-gray-400">30 minutos — Te mostramos la diferencia</p>
         </div>
       </div>
     </section>

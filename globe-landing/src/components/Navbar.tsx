@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 const links = [
   { label: 'Inicio', href: '#' },
-  { label: 'Ecosistema', href: '#ecosistema' },
-  { label: 'Services', href: '#services' },
-  { label: 'Trabaja con Nosotros', href: '#trabaja' },
+  { label: 'Nosotros', href: '#nosotros' },
+  { label: 'Servicios', href: '#ecosistema' },
+  { label: 'Contáctanos', href: '#contacto' },
 ];
 
 export function Navbar() {
@@ -23,9 +23,9 @@ export function Navbar() {
 
         <a
           href="#contacto"
-          className="hidden md:inline-flex px-5 py-2 bg-gray-100 text-navy text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+          className="hidden md:inline-flex px-5 py-2 bg-accent text-white text-sm font-semibold rounded-lg hover:bg-accent-dark transition-colors"
         >
-          Agenda una Consulta
+          Contáctanos
         </a>
 
         <button

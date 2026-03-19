@@ -7,8 +7,9 @@ Despliega energy-monitor a AWS. Este skill es la referencia principal para cualq
 
 ```
 Repositorio (main)
-├── .github/workflows/deploy.yml  → CI/CD automático
-├── frontend/                     → S3 + CloudFront
+├── .github/workflows/deploy.yml  → CI/CD automático (frontend + backend)
+├── frontend/                     → S3 energy-monitor-hoktus-mvp + CloudFront /*
+├── globe-landing/                → S3 globe-landing-hoktus + CloudFront /landing/* (deploy MANUAL)
 ├── backend/                      → Lambda via Serverless Framework (3 funciones)
 └── backend/billing-pdf-lambda/   → Lambda standalone (Python, deploy manual)
 ```
@@ -18,6 +19,7 @@ Repositorio (main)
 ```bash
 # Estos NO son placeholders — son los valores de producción
 S3_BUCKET="energy-monitor-hoktus-mvp"
+S3_BUCKET_LANDING="globe-landing-hoktus"
 CF_DIST_ID="ECR03RA6F872Q"
 AWS_REGION="us-east-1"
 RDS_HOST="energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com"
@@ -40,6 +42,7 @@ SG_ID="sg-0adda6a999e8d5d9a"
 ```
 PASO 1: ¿Qué cambió?
   → Solo archivos en frontend/          → ir a DEPLOY FRONTEND
+  → Solo archivos en globe-landing/     → ir a DEPLOY GLOBE LANDING
   → Solo archivos en backend/ (no billing-pdf-lambda/) → ir a DEPLOY BACKEND
   → Solo archivos en backend/billing-pdf-lambda/ → ir a DEPLOY PDF LAMBDA
   → Frontend + Backend                  → DEPLOY BACKEND primero, luego FRONTEND
@@ -114,6 +117,51 @@ aws cloudfront create-invalidation \
 curl -sI https://energymonitor.click | head -5
 # Esperar: HTTP/2 200
 ```
+
+---
+
+## Deploy Manual — Globe Landing
+
+> **NO tiene deploy automático.** Siempre manual.
+
+### Arquitectura
+```
+CloudFront /landing/*
+  → CloudFront Function "landing-index-rewrite" (reescribe /landing/ → /landing/index.html)
+  → Origin: S3 bucket "globe-landing-hoktus"
+  → Los archivos viven en s3://globe-landing-hoktus/landing/*
+```
+
+### 1. Build
+```bash
+cd globe-landing
+npm ci
+npm run build    # output en dist/
+```
+
+### 2. Deploy
+```bash
+# CRÍTICO: subir a landing/ DENTRO del bucket, NO a la raíz
+aws s3 sync dist/ s3://globe-landing-hoktus/landing/ --delete
+
+# Invalidar CloudFront
+aws cloudfront create-invalidation \
+  --distribution-id ECR03RA6F872Q \
+  --paths "/landing/*"
+```
+
+### 3. Verificar
+```bash
+curl -sI https://energymonitor.click/landing/ | head -5
+# Esperar: HTTP/2 200
+```
+
+### Errores comunes
+| Síntoma | Causa | Fix |
+|---|---|---|
+| 403 en `/landing/` | Archivos en raíz del bucket, no en `landing/` | Re-sync a `s3://globe-landing-hoktus/landing/` |
+| Versión vieja | Cache CloudFront | Invalidar `/landing/*` y esperar ~1-2 min |
+| 403 en assets | Subido a bucket equivocado (`energy-monitor-hoktus-mvp`) | Usar bucket `globe-landing-hoktus` |
 
 ---
 
@@ -281,8 +329,9 @@ aws logs tail /aws/lambda/power-digital-api-dev-offlineAlerts --since 5m --regio
 
 | Acción | Comando |
 |---|---|
-| Deploy todo (automático) | `git push origin main` |
-| Deploy frontend (manual) | `aws s3 sync` + `aws cloudfront create-invalidation` |
+| Deploy todo (automático) | `git push origin main` (NO incluye globe-landing) |
+| Deploy frontend (manual) | `aws s3 sync dist/ s3://energy-monitor-hoktus-mvp/` + invalidar `/index.html` |
+| Deploy globe-landing (manual) | `aws s3 sync dist/ s3://globe-landing-hoktus/landing/` + invalidar `/landing/*` |
 | Deploy backend (manual) | `npx sls deploy --stage dev` |
 | Deploy PDF Lambda | `cd backend/billing-pdf-lambda && ./deploy.sh update` |
 | Migración DB | `aws lambda invoke --function-name power-digital-api-dev-dbVerify` |

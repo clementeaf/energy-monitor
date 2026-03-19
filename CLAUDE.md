@@ -24,43 +24,31 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-19 sesión 3)
-- Comparativas rediseñada: barras=tiendas, dual chart Consumo+Ingreso, gráfico agrupado por edificio
-- Filtros dinámicos: tiendas y tipos se filtran según edificio seleccionado
-- Multi Operador en Comparativas: tienda fija, sin tiendas/tipos, solo edificios+mes
-- Límites selectores: máx 3 edificios, 20 tiendas, 10 tipos; chart top 20 por consumo
-- Fix "Mallplaza" → nombres PASA reales en alerts.service.ts
-- dbVerify: canonicalización building names + diagnóstico
-- Dashboard: filtro meses >= 2025-01 (elimina dic 2024)
-- Nuevos endpoints: by-store, grouped-by-type, filters scoped
-
-### Completado (2026-03-19 sesión 2)
-- Auth real activada: `@Public()` eliminado de 10 controllers
-- Queries meters optimizadas: `findByBuilding` 1227ms→3ms, `findLatestByBuilding` 500ms→1ms
-- Tabla cache `meter_latest_reading` + columna `store.is_three_phase` + función SQL
-- Synthetic generator: 1 min → 15 min, con prune + refresh cache
-- backfill-vcf: fix race condition (`UNLOGGED TABLE` → `TEMP TABLE`)
-
-### Completado (2026-03-19 sesión 1)
-- Permisos por modo, auth refresh MSAL, breadcrumbs, delete users, cards flex, sidebar active
+### Completado (2026-03-19)
+- Auth real: `@Public()` eliminado, JWT requerido en todos los endpoints
+- Queries optimizadas: `findByBuilding` 1227ms→3ms, `findLatestByBuilding` 500ms→1ms
+- Synthetic generator: 15 min, prune + cache refresh
+- Comparativas: barras=tiendas, dual chart agrupado, filtros dinámicos, Multi Op restringido
+- Cifras Medioambientales: datos XLSX "SIM 2025" 5 Activos, ABL, Intensidad, Factor
+- Fix building names "Mallplaza" → PASA, dbVerify canonicalización
+- Dashboard: título simplificado, filtro meses >= 2025-01
+- Backfill MG voltage: en progreso (auto-retry, ~105/446 completados)
 
 ### Completado (2026-03-18)
-- Auth completo, dashboard refactor, Cifras Medioambientales toggle, Comparativa drawer
-- offlineAlerts Lambda, backfill voltage MM/OT/SC52/SC53, usuario aportilla SUPER_ADMIN
+- Auth completo, dashboard refactor, Comparativa drawer, offlineAlerts Lambda
+- Backfill voltage MM/OT/SC52/SC53, usuario aportilla SUPER_ADMIN
 
 ### Pendiente
-- Cifras Medioambientales: datos reales desde `docs/Consumos P Arauco.xlsx`
+- Verificar backfill MG completado (logs CloudWatch) + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
-- Verificar backfill MG completado (logs CloudWatch)
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: CNAME GoDaddy + alias CloudFront
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Comparativas rediseñada (barras=tiendas, agrupado por edificio, Multi Op restringido).
-Auth real OK. Queries optimizadas. Synthetic 15min OK.
-Pendiente: Cifras Medioambientales datos reales, SES, DNS globepower.
+Auth real OK. Queries optimizadas. Comparativas rediseñada. Cifras Medioambientales OK.
+Pendiente: verificar backfill MG, SES sandbox, DNS globepower.
 ```
 
 ## Prioridad Actual de Acceso

@@ -1,26 +1,23 @@
 # Changelog
 
-## [0.76.0-alpha.0] - 2026-03-19 — COMPARATIVAS REDISEÑO + FIX BUILDING NAMES + DASHBOARD
+## [0.76.0-alpha.0] - 2026-03-19 — COMPARATIVAS + CIFRAS MEDIOAMBIENTALES + FIX BUILDING NAMES
 
 ### Changed
-- **Comparativas rediseñada** — barras = tiendas (siempre), dos gráficos lado a lado (Consumo Mwh + Ingreso CLP)
-- **Comparativas gráfico agrupado** — multi-edificio muestra barras clustered por edificio con colores distintos
-- **Comparativas filtros dinámicos** — selector de tiendas y tipos se filtra según edificios seleccionados
-- **Comparativas Multi Operador** — tienda fija (operador del sidebar), sin selector de tiendas ni tipos, solo edificios y mes
-- **Comparativas límites** — máx 3 edificios, 20 tiendas, 10 tipos; gráfico top 20 por consumo
-- **Comparativas carga condicional** — no carga datos hasta seleccionar tiendas o edificio+tipo
-- **Dashboard** — filtrado `building_summary` a meses >= 2025-01-01 (elimina dic 2024 espurio)
+- **Comparativas rediseñada** — barras = tiendas, dual chart agrupado por edificio, filtros dinámicos scoped
+- **Comparativas Multi Operador** — tienda fija, sin selector tiendas/tipos, solo edificios y mes
+- **Comparativas límites** — máx 3 edificios, 20 tiendas, 10 tipos; chart top 20 por consumo
+- **Cifras Medioambientales** — datos reales XLSX "SIM 2025" sección 5 Activos (filas 31-38)
+- **Cifras Medioambientales columnas** — 12 meses + Total + Factor, con ABL e Intensidad consumo
+- **Dashboard título** — "Consumo Anual" simplificado (sin "por Activo Inmobiliario")
+- **Dashboard** — filtrado `building_summary` a meses >= 2025-01-01
 
 ### Fixed
-- **Building names en alertas** — corregido "Mallplaza Gestión/Marketing" a nombres PASA reales en `alerts.service.ts`
-- **dbVerify** — canonicalización automática de building names en `meter_monthly_billing`, `building_summary`, `billing_document`
+- **Building names en alertas** — "Mallplaza Gestión/Marketing" → nombres PASA reales
+- **dbVerify** — canonicalización automática de building names en 3 tablas
 
 ### Added
-- **Endpoint `GET /comparisons/by-store`** — agrupa por tienda con filtros de edificio, tipo y nombre
-- **Endpoint `GET /comparisons/grouped-by-type`** — agrupa por tipo de tienda con filtro de edificio
-- **Endpoint `GET /comparisons/filters?buildingNames=`** — filtros scoped por edificio
-- **Tipo `ComparisonStoreRow`** — incluye `storeName` + `buildingName`
-- **Tipo `ComparisonTypeRow`** — incluye `storeTypeName`
+- **Endpoints comparativas** — `by-store`, `grouped-by-type`, `filters?buildingNames=`
+- **Tipos TS** — `ComparisonStoreRow`, `ComparisonTypeRow`
 
 ---
 

@@ -32,7 +32,7 @@ function getBuildingCols(mode: 'anual' | 'mensual'): Column<BuildingRow>[] {
   const rcUnit = isMensual ? 'mWh/m²' : 'kWh/m²';
   const rcLabel = `Rendimiento\nConsumo (${rcUnit})`;
   return [
-    { label: 'Edificio', value: (r) => r.name, align: 'left', sortKey: (r) => r.name },
+    { label: 'Activos Inmobiliarios', value: (r) => r.name, align: 'left', sortKey: (r) => r.name },
     { label: cLabel, value: (r) => fmt(r.totalKwh != null ? Math.round(r.totalKwh / cDiv) : null), total: (d) => fmt(Math.round(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0) / cDiv)), sortKey: (r) => r.totalKwh },
     { label: 'Ingreso ($)', value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)), sortKey: (r) => r.totalConIvaClp },
     { label: rcLabel, value: (r) => r.areaSqm ? ((r.totalKwh ?? 0) / cDiv / r.areaSqm).toFixed(3) : '—', total: (d) => { let sum = 0; for (const r of d) { if (r.areaSqm) sum += parseFloat(((r.totalKwh ?? 0) / cDiv / r.areaSqm).toFixed(3)); } return sum.toFixed(3); }, sortKey: (r) => r.areaSqm ? (r.totalKwh ?? 0) / cDiv / r.areaSqm : null },

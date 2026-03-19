@@ -27,9 +27,9 @@ interface BuildingRow {
 
 function getBuildingCols(mode: 'anual' | 'mensual'): Column<BuildingRow>[] {
   const isMensual = mode === 'mensual';
-  const cLabel = isMensual ? 'Consumo (mWh)' : 'Consumo (kWh)';
+  const cLabel = isMensual ? 'Consumo (Mwh)' : 'Consumo (kWh)';
   const cDiv = isMensual ? 1000 : 1;
-  const rcUnit = isMensual ? 'mWh/m²' : 'kWh/m²';
+  const rcUnit = isMensual ? 'Mwh/m²' : 'kWh/m²';
   const rcLabel = `Rendimiento\nConsumo (${rcUnit})`;
   return [
     { label: 'Activos Inmobiliarios', value: (r) => r.name, align: 'left', sortKey: (r) => r.name },
@@ -52,7 +52,7 @@ const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
   { value: 'column', label: 'Barra' },
   { value: 'line', label: 'Línea' },
   { value: 'area', label: 'Área' },
-  { value: 'pie', label: 'Torta' },
+  { value: 'pie', label: 'Circular' },
 ];
 
 const overdueCols: Column<OverdueBucket>[] = [
@@ -322,7 +322,7 @@ export function DashboardPage() {
       <div className="flex min-h-0 flex-1 gap-2">
         <div className="flex flex-[4] gap-2 overflow-hidden">
           <div className="flex flex-1 flex-col overflow-hidden">
-            <p className="mb-1 shrink-0 text-[11px] font-semibold tracking-wide text-pa-navy">Consumo (mWh)</p>
+            <p className="mb-1 shrink-0 text-[11px] font-semibold tracking-wide text-pa-navy">Consumo (Mwh)</p>
             <div className="min-h-0 flex-1">
               <ComboChart data={activeData} chartType={chartType} metric="consumo" viewMode={viewMode} />
             </div>

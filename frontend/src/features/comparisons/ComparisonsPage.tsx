@@ -35,14 +35,14 @@ const TECH_METRICS: { key: TechMetricKey; label: string; unit: string; color: st
 
 /* ── Columns ── */
 const getBaseColumns = (moneyLabel: string): Column<ComparisonRow>[] => [
-  { label: 'Edificio', value: (r) => r.buildingName, align: 'left' },
+  { label: 'Activo Inmobiliario', value: (r) => r.buildingName, align: 'left' },
   { label: 'Consumo (kWh)', value: (r) => fmt(r.totalKwh), total: (d) => fmt(d.reduce((s, r) => s + (r.totalKwh ?? 0), 0)) },
   { label: `${moneyLabel} ($)`, value: (r) => fmtClp(r.totalConIvaClp), total: (d) => fmtClp(d.reduce((s, r) => s + (r.totalConIvaClp ?? 0), 0)) },
   { label: 'Medidores', value: (r) => String(r.totalMeters), total: (d) => String(d.reduce((s, r) => s + r.totalMeters, 0)) },
 ];
 
 const techColumns: Column<ComparisonRow>[] = [
-  { label: 'Edificio', value: (r) => r.buildingName, align: 'left' },
+  { label: 'Activo Inmobiliario', value: (r) => r.buildingName, align: 'left' },
   ...TECH_METRICS.map((m) => ({
     label: `${m.label} (${m.unit})`,
     value: (r: ComparisonRow) => fmt(r[m.key]),
@@ -292,8 +292,8 @@ export function ComparisonsPage() {
     : effectiveMode === 'type' ? selectedTypeIds.length === 0 : selectedNames.length === 0;
 
   const bannerTitle = isTecnico
-    ? `${label} — Métricas Técnicas por Edificio — ${selectedMonthLabel}`
-    : `${label} — Consumo y ${moneyLabel} por Edificio — ${selectedMonthLabel}`;
+    ? `${label} — Métricas Técnicas por Activo Inmobiliario — ${selectedMonthLabel}`
+    : `${label} — Consumo y ${moneyLabel} por Activo Inmobiliario — ${selectedMonthLabel}`;
 
   if (loadingFilters) {
     return <div className="p-4 text-[13px] text-pa-text-muted">Cargando filtros...</div>;
@@ -311,7 +311,7 @@ export function ComparisonsPage() {
         )}
 
         {isFilteredMode ? (
-          <span className="text-xs font-medium text-pa-navy">{needsSelection ? 'Selecciona Edificio y Operador' : effectiveNames.join(', ')}</span>
+          <span className="text-xs font-medium text-pa-navy">{needsSelection ? 'Selecciona Activo Inmobiliario y Operador' : effectiveNames.join(', ')}</span>
         ) : effectiveMode === 'type' ? (
           <MultiSelect
             options={typeOptions}
@@ -353,7 +353,7 @@ export function ComparisonsPage() {
         <SectionBanner title={bannerTitle} inline className="mb-3" />
         <div className="min-h-0 flex-1">
           {noSelection
-            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona Edificio y Operador' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
+            ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona Activo Inmobiliario y Operador' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="flex h-full items-center justify-center text-[13px] text-pa-text-muted">Cargando...</div>
               : rows.length === 0
@@ -364,7 +364,7 @@ export function ComparisonsPage() {
       </Card>
 
       <Card className="min-h-0 flex-[2.4] flex flex-col">
-        <SectionBanner title={`${label} — Detalle por Edificio — ${selectedMonthLabel}`} inline className="mb-3">
+        <SectionBanner title={`${label} — Detalle por Activo Inmobiliario — ${selectedMonthLabel}`} inline className="mb-3">
           <PillDropdown
             items={CURRENCY_OPTIONS}
             value={currency}
@@ -374,7 +374,7 @@ export function ComparisonsPage() {
         </SectionBanner>
         <div className="min-h-0 flex-1 overflow-auto">
           {noSelection
-            ? <div className="p-4 text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona Edificio y Operador' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
+            ? <div className="p-4 text-[13px] text-pa-text-muted">{isFilteredMode ? 'Selecciona Activo Inmobiliario y Operador' : `Selecciona al menos un ${effectiveMode === 'type' ? 'tipo' : 'nombre'}`}</div>
             : loadingRows
               ? <div className="p-4 text-[13px] text-pa-text-muted">Cargando...</div>
               : <DataTable

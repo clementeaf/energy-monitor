@@ -27,7 +27,7 @@ export function ComboChart({ data, chartType, metric = 'consumo', viewMode = 'an
     const names = data.map((b) => SHORT_BUILDING_NAMES[b.name] ?? b.name);
     const consumo = data.map((b) => Math.round((b.totalKwh ?? 0) / 1000));
     const gasto = data.map((b) => b.totalConIvaClp ?? 0);
-    const consumoUnit = 'mWh';
+    const consumoUnit = 'Mwh';
 
     const isConsumo = metric === 'consumo';
     const seriesName = 'Activos Inmobiliarios';

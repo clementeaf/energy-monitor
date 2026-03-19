@@ -19,7 +19,7 @@ export function BuildingForm({ initial, onSubmit, loading }: BuildingFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-medium text-pa-text-muted">Nombre del Edificio</label>
+        <label className="block text-xs font-medium text-pa-text-muted">Nombre del Activo Inmobiliario</label>
         <input
           type="text"
           value={buildingName}
@@ -45,7 +45,7 @@ export function BuildingForm({ initial, onSubmit, loading }: BuildingFormProps) 
         disabled={loading || (!isEdit && !buildingName.trim())}
         className="w-full rounded-lg bg-pa-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-pa-navy/90 disabled:opacity-50"
       >
-        {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear Edificio'}
+        {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear Activo Inmobiliario'}
       </button>
     </form>
   );

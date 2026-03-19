@@ -158,13 +158,13 @@ export function DocTableWithFilter({
 
   const columns: Column<BillingDocumentDetail>[] = useMemo(() => [
     {
-      label: 'Edificio',
+      label: 'Activo Inmobiliario',
       value: (r) => r.buildingName,
       align: 'left' as const,
       sortKey: (r) => r.buildingName,
       headerRender: () => (
         <ColumnFilterDropdown
-          label="Edificio"
+          label="Activo Inmobiliario"
           items={availableBuildings}
           visible={visibleBuildings}
           onToggle={handleToggleBuilding}

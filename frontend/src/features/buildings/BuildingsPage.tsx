@@ -68,7 +68,7 @@ export function BuildingsPage() {
     <div className="flex h-full flex-col overflow-hidden">
       {isHolding && (
         <div className="mb-3 flex justify-end px-1">
-          <PillButton onClick={() => setDrawerMode('create')}>+ Nuevo Edificio</PillButton>
+          <PillButton onClick={() => setDrawerMode('create')}>+ Nuevo Activo Inmobiliario</PillButton>
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto pb-4">
@@ -113,7 +113,7 @@ export function BuildingsPage() {
       <Drawer
         open={drawerMode !== null}
         onClose={() => { setDrawerMode(null); setEditingBuilding(null); }}
-        title={drawerMode === 'edit' ? `Editar — ${editingBuilding?.buildingName}` : 'Nuevo Edificio'}
+        title={drawerMode === 'edit' ? `Editar — ${editingBuilding?.buildingName}` : 'Nuevo Activo Inmobiliario'}
         size="sm"
       >
         <BuildingForm
@@ -137,7 +137,7 @@ export function BuildingsPage() {
       {/* Delete Confirm */}
       <ConfirmDialog
         open={!!deletingBuilding}
-        title="Eliminar Edificio"
+        title="Eliminar Activo Inmobiliario"
         message={`Se eliminarán todos los datos de "${deletingBuilding}". Esta acción no se puede deshacer.`}
         onConfirm={() => {
           deleteMutation.mutate(deletingBuilding!, {

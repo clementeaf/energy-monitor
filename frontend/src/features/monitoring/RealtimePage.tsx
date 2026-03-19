@@ -33,7 +33,7 @@ function getStatus(row: MeterLatestReading): { label: string; color: string } {
   return STATUS_THRESHOLDS.find((t) => age < t.maxMs) ?? STATUS_THRESHOLDS[STATUS_THRESHOLDS.length - 1];
 }
 
-const skeletonColumns = ['Edificio', 'Medidor', 'Tienda', 'Potencia Activa (kW)', 'Voltaje L1 (V)', 'Corriente L1 (A)', 'FP', 'Estado'];
+const skeletonColumns = ['Activo Inmobiliario', 'Medidor', 'Tienda', 'Potencia Activa (kW)', 'Voltaje L1 (V)', 'Corriente L1 (A)', 'FP', 'Estado'];
 
 function SkeletonRows() {
   return (
@@ -232,13 +232,13 @@ function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds:
 
   const columns: Column<MeterLatestReading>[] = useMemo(() => [
     {
-      label: 'Edificio',
+      label: 'Activo Inmobiliario',
       value: (r) => r.buildingName,
       align: 'left' as const,
       sortKey: (r) => r.buildingName,
       headerRender: () => (
         <ColumnFilterDropdown
-          label="Edificio"
+          label="Activo Inmobiliario"
           items={availableBuildings}
           visible={visibleBuildings}
           onToggle={toggleBuilding}
@@ -574,14 +574,14 @@ function AlertsTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set
 
   const columns: Column<Alert>[] = useMemo(() => [
     {
-      label: 'Edificio',
+      label: 'Activo Inmobiliario',
       value: (r) => r.buildingName,
       align: 'left' as const,
       className: 'w-[10%]',
       sortKey: (r) => r.buildingName,
       headerRender: () => (
         <ColumnFilterDropdown
-          label="Edificio"
+          label="Activo Inmobiliario"
           items={availableBuildings}
           visible={visibleBuildings}
           onToggle={toggleBuilding}

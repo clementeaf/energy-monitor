@@ -35,7 +35,7 @@ export const appRoutes = {
   },
   buildingDetail: {
     path: '/buildings/:id',
-    label: 'Detalle Edificio',
+    label: 'Detalle Activo Inmobiliario',
     allowedRoles: PERMISSIONS.BUILDING_DETAIL.view,
   },
   meterDetail: {

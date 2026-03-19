@@ -130,7 +130,7 @@ export function BuildingDetailPage() {
   ], []);
 
   if (loadingBuilding || loadingBilling || loadingMeters) return <BuildingDetailSkeleton />;
-  if (!months || months.length === 0) return <p className="text-muted">Edificio no encontrado</p>;
+  if (!months || months.length === 0) return <p className="text-muted">Activo Inmobiliario no encontrado</p>;
 
   const latest = months[0];
 

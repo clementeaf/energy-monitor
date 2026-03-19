@@ -95,7 +95,7 @@ export function ComparativaChart({ data }: Props) {
       consumoChart.current?.destroy();
       consumoChart.current = Highcharts.chart({
         chart: { type: 'column', backgroundColor: '#ffffff', borderRadius: 12, renderTo: consumoRef.current, height: 250 },
-        title: { text: 'Consumo (mWh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
+        title: { text: 'Consumo (Mwh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
         xAxis: { categories, labels: { style: { fontSize: '12px', color: '#6B7280' } }, lineColor: '#E5E7EB' },
         yAxis: {
           title: { text: undefined },
@@ -108,7 +108,7 @@ export function ComparativaChart({ data }: Props) {
           formatter() {
             let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
             for (const p of this.points!) {
-              html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${(p.y ?? 0).toLocaleString('es-CL')} mWh</b><br/>`;
+              html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${(p.y ?? 0).toLocaleString('es-CL')} Mwh</b><br/>`;
             }
             return html;
           },
@@ -163,7 +163,7 @@ export function ComparativaChart({ data }: Props) {
     <div className="flex h-full flex-col gap-4">
       {/* Selector edificios (multi con checkbox + búsqueda) */}
       <div className="flex items-center gap-3">
-        <span className="text-[13px] font-semibold text-pa-navy">Edificios:</span>
+        <span className="text-[13px] font-semibold text-pa-navy">Activos Inmobiliarios:</span>
         <PillDropdownMulti
           items={buildingItems}
           selected={selectedBuildings}

@@ -37,11 +37,11 @@ export class AlertsService {
         a.created_at       AS "createdAt",
         COALESCE(s.store_name, '') AS "storeName",
         CASE
-          WHEN a.meter_id LIKE 'MG%'   THEN 'Mallplaza Gestión'
-          WHEN a.meter_id LIKE 'MM%'   THEN 'Mallplaza Marketing'
-          WHEN a.meter_id LIKE 'OT%'   THEN 'Oficina Tres'
-          WHEN a.meter_id LIKE 'SC52%' THEN 'Strip Center 52'
-          WHEN a.meter_id LIKE 'SC53%' THEN 'Strip Center 53'
+          WHEN a.meter_id LIKE 'MG%'   THEN 'Parque Arauco Kennedy'
+          WHEN a.meter_id LIKE 'MM%'   THEN 'Arauco Estación'
+          WHEN a.meter_id LIKE 'OT%'   THEN 'Arauco Premium Outlet Buenaventura'
+          WHEN a.meter_id LIKE 'SC52%' THEN 'Arauco Express Ciudad Empresarial'
+          WHEN a.meter_id LIKE 'SC53%' THEN 'Arauco Express El Carmen de Huechuraba'
           ELSE 'Desconocido'
         END AS "buildingName"
       FROM alerts a

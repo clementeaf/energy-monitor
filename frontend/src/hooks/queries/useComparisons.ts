@@ -1,10 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchComparisonFilters, fetchComparisonByStoreType, fetchComparisonByStoreName } from '../../services/endpoints';
+import { fetchComparisonFilters, fetchComparisonByStore, fetchComparisonByStoreType, fetchComparisonByStoreName } from '../../services/endpoints';
 
 export function useComparisonFilters() {
   return useQuery({
     queryKey: ['comparisons', 'filters'],
     queryFn: fetchComparisonFilters,
+  });
+}
+
+export function useComparisonByStore(month: string | undefined, buildingNames?: string[], storeTypeIds?: number[]) {
+  return useQuery({
+    queryKey: ['comparisons', 'by-store', month, buildingNames, storeTypeIds],
+    queryFn: () => fetchComparisonByStore(month!, buildingNames, storeTypeIds),
+    enabled: !!month,
   });
 }
 

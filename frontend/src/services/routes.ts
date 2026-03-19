@@ -36,6 +36,12 @@ export const routes = {
 
   // Comparisons
   getComparisonFilters: () => '/comparisons/filters',
+  getComparisonByStore: (month: string, buildingNames?: string[], storeTypeIds?: number[]) => {
+    const params = new URLSearchParams({ month });
+    if (buildingNames && buildingNames.length > 0) params.set('buildingNames', buildingNames.map(encodeURIComponent).join(','));
+    if (storeTypeIds && storeTypeIds.length > 0) params.set('storeTypeIds', storeTypeIds.join(','));
+    return `/comparisons/by-store?${params}`;
+  },
   getComparisonByStoreType: (storeTypeIds: number[], month: string) =>
     `/comparisons/by-store-type?storeTypeIds=${storeTypeIds.join(',')}&month=${month}`,
   getComparisonByStoreName: (storeNames: string[], month: string) =>

@@ -381,6 +381,90 @@ async function migrateBillingDocuments(client: Client): Promise<string[]> {
   return log;
 }
 
+const CANONICAL_BUILDING_NAMES: Record<string, string> = {
+  MG: 'Parque Arauco Kennedy',
+  MM: 'Arauco Estación',
+  OT: 'Arauco Premium Outlet Buenaventura',
+  SC52: 'Arauco Express Ciudad Empresarial',
+  SC53: 'Arauco Express El Carmen de Huechuraba',
+};
+
+async function fixBuildingNames(client: Client): Promise<string[]> {
+  const log: string[] = [];
+
+  // 1. Fix meter_monthly_billing: derive correct name from meter_id prefix
+  for (const [prefix, name] of Object.entries(CANONICAL_BUILDING_NAMES)) {
+    const likePattern = prefix.length <= 2 ? `${prefix}-%` : `${prefix}-%`;
+    const { rowCount } = await client.query(
+      `UPDATE meter_monthly_billing
+       SET building_name = $1
+       WHERE building_name != $1
+         AND meter_id IN (SELECT meter_id FROM store WHERE meter_id LIKE $2)`,
+      [name, likePattern],
+    );
+    if (rowCount && rowCount > 0) {
+      log.push(`meter_monthly_billing: ${prefix} → "${name}" (${rowCount} rows)`);
+    }
+  }
+
+  // 2. Fix building_summary: match by known wrong names or derive from existing data
+  const { rows: bsNames } = await client.query(
+    `SELECT DISTINCT building_name FROM building_summary`,
+  );
+  const knownNames = new Set(Object.values(CANONICAL_BUILDING_NAMES));
+  for (const r of bsNames) {
+    const bn = r.building_name as string;
+    if (knownNames.has(bn)) continue;
+    // Try to match by prefix keywords
+    let canonical: string | null = null;
+    const lower = bn.toLowerCase();
+    if (lower.includes('grande') || lower.includes('gestión') || lower.includes('gestion') || lower.includes('kennedy')) canonical = CANONICAL_BUILDING_NAMES.MG;
+    else if (lower.includes('mediano') || lower.includes('marketing') || lower.includes('estación') || lower.includes('estacion')) canonical = CANONICAL_BUILDING_NAMES.MM;
+    else if (lower.includes('outlet') || lower.includes('buenaventura') || lower.includes('oficina')) canonical = CANONICAL_BUILDING_NAMES.OT;
+    else if (lower.includes('52') || lower.includes('ciudad')) canonical = CANONICAL_BUILDING_NAMES.SC52;
+    else if (lower.includes('53') || lower.includes('huechuraba') || lower.includes('carmen')) canonical = CANONICAL_BUILDING_NAMES.SC53;
+
+    if (canonical) {
+      const { rowCount } = await client.query(
+        `UPDATE building_summary SET building_name = $1 WHERE building_name = $2`,
+        [canonical, bn],
+      );
+      log.push(`building_summary: "${bn}" → "${canonical}" (${rowCount} rows)`);
+    } else {
+      log.push(`building_summary: UNKNOWN "${bn}" — skipped`);
+    }
+  }
+
+  // 3. Fix billing_document
+  const { rows: bdNames } = await client.query(
+    `SELECT DISTINCT building_name FROM billing_document`,
+  );
+  for (const r of bdNames) {
+    const bn = r.building_name as string;
+    if (knownNames.has(bn)) continue;
+    let canonical: string | null = null;
+    const lower = bn.toLowerCase();
+    if (lower.includes('grande') || lower.includes('gestión') || lower.includes('gestion') || lower.includes('kennedy')) canonical = CANONICAL_BUILDING_NAMES.MG;
+    else if (lower.includes('mediano') || lower.includes('marketing') || lower.includes('estación') || lower.includes('estacion')) canonical = CANONICAL_BUILDING_NAMES.MM;
+    else if (lower.includes('outlet') || lower.includes('buenaventura') || lower.includes('oficina')) canonical = CANONICAL_BUILDING_NAMES.OT;
+    else if (lower.includes('52') || lower.includes('ciudad')) canonical = CANONICAL_BUILDING_NAMES.SC52;
+    else if (lower.includes('53') || lower.includes('huechuraba') || lower.includes('carmen')) canonical = CANONICAL_BUILDING_NAMES.SC53;
+
+    if (canonical) {
+      const { rowCount } = await client.query(
+        `UPDATE billing_document SET building_name = $1 WHERE building_name = $2`,
+        [canonical, bn],
+      );
+      log.push(`billing_document: "${bn}" → "${canonical}" (${rowCount} rows)`);
+    } else {
+      log.push(`billing_document: UNKNOWN "${bn}" — skipped`);
+    }
+  }
+
+  if (log.length === 0) log.push('All building names already correct');
+  return log;
+}
+
 async function meterOptimizations(client: Client): Promise<string[]> {
   const log: string[] = [];
 
@@ -465,9 +549,27 @@ export const handler = async () => {
     const areaLog = await updateBuildingAreas(client);
     log.push('=== Building Areas ===', ...areaLog);
 
+    // Fix building names — canonical names from PASA
+    const fixNamesLog = await fixBuildingNames(client);
+    log.push('=== Fix Building Names ===', ...fixNamesLog);
+
     // Migration 020: meter optimizations
     const m020Log = await meterOptimizations(client);
     log.push('=== Migration 020: Meter Optimizations ===', ...m020Log);
+
+    // Diagnostics: building names across tables
+    const { rows: bldgNames } = await client.query(`
+      SELECT 'meter_monthly_billing' AS src, building_name, COUNT(*)::int AS cnt
+      FROM meter_monthly_billing GROUP BY building_name
+      UNION ALL
+      SELECT 'building_summary', building_name, COUNT(*)::int
+      FROM building_summary GROUP BY building_name
+      ORDER BY src, building_name
+    `);
+    log.push('=== Building Names ===');
+    for (const r of bldgNames) {
+      log.push(`  ${r.src}: ${r.building_name} (${r.cnt} rows)`);
+    }
 
     // Diagnostics: table sizes
     const { rows: sizes } = await client.query(`

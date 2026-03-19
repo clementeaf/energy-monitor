@@ -28,6 +28,23 @@ export class ComparisonsController {
     return this.comparisonsService.getByStoreName(names, month);
   }
 
+  @Get('by-store')
+  @ApiOperation({ summary: 'Comparativa agrupada por tienda para un mes, con filtros opcionales de edificio y tipo' })
+  @ApiOkResponse({ description: 'Filas de comparación por tienda' })
+  @ApiQuery({ name: 'month', required: true, type: String, example: '2025-06-01' })
+  @ApiQuery({ name: 'buildingNames', required: false, type: String, description: 'Comma-separated building names' })
+  @ApiQuery({ name: 'storeTypeIds', required: false, type: String, description: 'Comma-separated store type IDs' })
+  async getByStore(
+    @Query('month') month: string,
+    @Query('buildingNames') buildingNames?: string,
+    @Query('storeTypeIds') storeTypeIds?: string,
+  ) {
+    if (!month) throw new BadRequestException('month is required');
+    const buildings = buildingNames ? buildingNames.split(',').map((s) => s.trim()).filter(Boolean) : undefined;
+    const typeIds = storeTypeIds ? storeTypeIds.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)) : undefined;
+    return this.comparisonsService.getByStore(month, buildings, typeIds);
+  }
+
   @Get('by-store-type')
   @ApiOperation({ summary: 'Comparativa de tipos de tienda entre edificios para un mes' })
   @ApiOkResponse({ description: 'Filas de comparación por edificio' })

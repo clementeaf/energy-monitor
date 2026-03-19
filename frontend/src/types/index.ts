@@ -118,9 +118,14 @@ export interface ComparisonRow {
   energiaClp: number | null;
 }
 
+export interface ComparisonStoreRow extends ComparisonRow {
+  storeName: string;
+}
+
 export interface ComparisonFilters {
   storeTypes: { id: number; name: string }[];
   storeNames: string[];
+  buildingNames: string[];
   months: string[];
 }
 

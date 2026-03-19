@@ -1,8 +1,10 @@
 /**
  * Backfill voltage, current, frequency into meter_readings from S3 CSVs.
- * Streams CSV, collects batches per meter, UPDATEs via temp table + JOIN.
+ * Strategy: stream CSV → UNLOGGED temp table → UPDATE per meter partition.
+ * Much faster than VALUES-based UPDATE on partitioned tables.
  *
  * Invoke: { "key": "raw/MALL_MEDIANO_254_completo.csv" }
+ * Split large files: { "key": "raw/MALL_GRANDE_446_completo.csv", "fromMeter": "MG-044", "toMeter": "MG-200" }
  * Or without key to process all CSVs in raw/.
  *
  * Env: DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD, S3_BUCKET
@@ -13,7 +15,7 @@ import pg from 'pg';
 
 const { Client } = pg;
 const BUCKET = process.env.S3_BUCKET || 'energy-monitor-ingest-058310292956';
-const BATCH_SIZE = 500;
+const INSERT_BATCH = 5000;
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
 function dec(v) {
@@ -24,10 +26,25 @@ function dec(v) {
   return Number.isNaN(n) ? null : n;
 }
 
-async function processCSV(client, bucket, key) {
+async function processCSV(client, bucket, key, fromMeter = null, toMeter = null) {
+  const rangeLabel = fromMeter || toMeter ? ` [${fromMeter || '*'}..${toMeter || '*'}]` : '';
+  console.log(`Processing ${key}${rangeLabel}...`);
   const res = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!res.Body) throw new Error(`No body for ${key}`);
 
+  // 1. Create temp table (unlogged for speed)
+  await client.query('DROP TABLE IF EXISTS _vcf_tmp');
+  await client.query(`
+    CREATE UNLOGGED TABLE _vcf_tmp (
+      meter_id varchar(20),
+      ts timestamptz,
+      v1 numeric, v2 numeric, v3 numeric,
+      c1 numeric, c2 numeric, c3 numeric,
+      freq numeric
+    )
+  `);
+
+  // 2. Stream CSV → temp table
   const parser = parse({
     bom: true,
     columns: (h) => h.map((c) => c.trim().replace(/^\uFEFF/, '')),
@@ -37,29 +54,22 @@ async function processCSV(client, bucket, key) {
   });
 
   let batch = [];
-  let totalUpdated = 0;
   let rowNum = 0;
+  let inserted = 0;
 
-  async function flushBatch() {
+  async function flushInsert() {
     if (batch.length === 0) return;
+    const cols = 9;
     const placeholders = batch.map((_, i) => {
-      const b = i * 9;
-      return `($${b+1}::varchar,$${b+2}::timestamptz,$${b+3}::numeric,$${b+4}::numeric,$${b+5}::numeric,$${b+6}::numeric,$${b+7}::numeric,$${b+8}::numeric,$${b+9}::numeric)`;
+      const b = i * cols;
+      return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9})`;
     });
-    const params = batch.flatMap((r) => [
-      r.meter_id, r.ts, r.v1, r.v2, r.v3, r.c1, r.c2, r.c3, r.freq,
-    ]);
-
-    const upd = await client.query(`
-      UPDATE meter_readings mr
-      SET voltage_l1 = b.v1, voltage_l2 = b.v2, voltage_l3 = b.v3,
-          current_l1 = b.c1, current_l2 = b.c2, current_l3 = b.c3,
-          frequency_hz = b.freq
-      FROM (VALUES ${placeholders.join(',')}) AS b(meter_id,ts,v1,v2,v3,c1,c2,c3,freq)
-      WHERE mr.meter_id = b.meter_id AND mr.timestamp = b.ts
-        AND mr.voltage_l1 IS NULL
-    `, params);
-    totalUpdated += upd.rowCount || 0;
+    const params = batch.flatMap((r) => [r.meter_id, r.ts, r.v1, r.v2, r.v3, r.c1, r.c2, r.c3, r.freq]);
+    await client.query(
+      `INSERT INTO _vcf_tmp (meter_id,ts,v1,v2,v3,c1,c2,c3,freq) VALUES ${placeholders.join(',')}`,
+      params,
+    );
+    inserted += batch.length;
     batch = [];
   }
 
@@ -67,8 +77,10 @@ async function processCSV(client, bucket, key) {
   for await (const rec of parser) {
     rowNum++;
     const v1 = dec(rec.voltage_L1);
-    // Skip rows where voltage is null in CSV (nothing to backfill)
     if (v1 == null) continue;
+    // Filter by meter range if specified
+    if (fromMeter && rec.meter_id < fromMeter) continue;
+    if (toMeter && rec.meter_id > toMeter) continue;
 
     batch.push({
       meter_id: rec.meter_id,
@@ -82,16 +94,48 @@ async function processCSV(client, bucket, key) {
       freq: dec(rec.frequency_Hz),
     });
 
-    if (batch.length >= BATCH_SIZE) {
-      await flushBatch();
-      if (totalUpdated % 100000 < BATCH_SIZE) {
-        console.log(`  ${key}: ${rowNum} rows read, ${totalUpdated} updated`);
+    if (batch.length >= INSERT_BATCH) {
+      await flushInsert();
+      if (inserted % 500000 < INSERT_BATCH) {
+        console.log(`  Loading: ${rowNum} CSV rows, ${inserted} staged`);
       }
     }
   }
-  await flushBatch();
-  console.log(`  ${key}: DONE — ${rowNum} rows read, ${totalUpdated} updated`);
-  return { key, rowsRead: rowNum, rowsUpdated: totalUpdated };
+  await flushInsert();
+  console.log(`  Staged ${inserted} rows from ${rowNum} CSV rows`);
+
+  // 3. Index temp table for fast joins
+  await client.query('CREATE INDEX ON _vcf_tmp (meter_id, ts)');
+  console.log('  Temp table indexed');
+
+  // 4. UPDATE per meter (hits single partition each time → fast)
+  const { rows: meters } = await client.query(
+    'SELECT DISTINCT meter_id FROM _vcf_tmp ORDER BY meter_id',
+  );
+  console.log(`  Updating ${meters.length} meters...`);
+
+  let totalUpdated = 0;
+  for (let i = 0; i < meters.length; i++) {
+    const mid = meters[i].meter_id;
+    const upd = await client.query(`
+      UPDATE meter_readings mr
+      SET voltage_l1 = t.v1, voltage_l2 = t.v2, voltage_l3 = t.v3,
+          current_l1 = t.c1, current_l2 = t.c2, current_l3 = t.c3,
+          frequency_hz = t.freq
+      FROM _vcf_tmp t
+      WHERE mr.meter_id = t.meter_id AND mr.timestamp = t.ts
+        AND mr.meter_id = $1
+        AND mr.voltage_l1 IS NULL
+    `, [mid]);
+    totalUpdated += upd.rowCount || 0;
+    if ((i + 1) % 50 === 0 || i === meters.length - 1) {
+      console.log(`  ${i + 1}/${meters.length} meters done, ${totalUpdated} rows updated`);
+    }
+  }
+
+  await client.query('DROP TABLE IF EXISTS _vcf_tmp');
+  console.log(`  ${key}: DONE — ${totalUpdated} rows updated`);
+  return { key, rowsRead: rowNum, rowsStaged: inserted, rowsUpdated: totalUpdated };
 }
 
 export async function handler(event) {
@@ -102,17 +146,19 @@ export async function handler(event) {
     user: process.env.DB_USERNAME || 'emadmin',
     password: process.env.DB_PASSWORD,
     ssl: { rejectUnauthorized: false },
-    statement_timeout: 600000,
   });
   await client.connect();
 
   const results = [];
   try {
+    const fromMeter = event?.fromMeter || null;
+    const toMeter = event?.toMeter || null;
     if (event?.key) {
-      results.push(await processCSV(client, BUCKET, event.key));
+      results.push(await processCSV(client, BUCKET, event.key, fromMeter, toMeter));
     } else {
       const list = await s3.send(new ListObjectsV2Command({ Bucket: BUCKET, Prefix: 'raw/' }));
       const keys = (list.Contents || []).map((o) => o.Key).filter((k) => k?.endsWith('.csv'));
+      console.log(`Processing ${keys.length} CSVs: ${keys.join(', ')}`);
       for (const k of keys) {
         results.push(await processCSV(client, BUCKET, k));
       }
@@ -120,13 +166,18 @@ export async function handler(event) {
 
     // Verify
     const { rows: check } = await client.query(`
-      SELECT LEFT(meter_id,2) AS pfx, COUNT(*)::bigint AS total,
-             COUNT(voltage_l1)::bigint AS has_v, COUNT(frequency_hz)::bigint AS has_f
-      FROM meter_readings GROUP BY LEFT(meter_id,2) ORDER BY pfx
+      SELECT
+        LEFT(meter_id, CASE WHEN meter_id LIKE 'SC5%' THEN 4 ELSE 2 END) AS bldg,
+        COUNT(*)::bigint AS total,
+        COUNT(voltage_l1)::bigint AS has_v,
+        COUNT(current_l1)::bigint AS has_c,
+        COUNT(frequency_hz)::bigint AS has_f
+      FROM meter_readings
+      GROUP BY 1 ORDER BY 1
     `);
     console.log('Verification:');
     for (const r of check) {
-      console.log(`  ${r.pfx}: total=${r.total} voltage=${r.has_v} freq=${r.has_f}`);
+      console.log(`  ${r.bldg}: total=${r.total} voltage=${r.has_v} current=${r.has_c} freq=${r.has_f}`);
     }
 
     return { statusCode: 200, body: { results, verification: check } };

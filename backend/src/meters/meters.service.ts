@@ -25,18 +25,27 @@ export class MetersService {
 
   async findByBuilding(buildingName: string): Promise<MeterListItem[]> {
     const rows = await this.dataSource.query(
-      `SELECT DISTINCT
+      `WITH building_meters AS (
+         SELECT DISTINCT meter_id FROM meter_monthly_billing WHERE building_name = $1
+       ),
+       phase_check AS (
+         SELECT bm.meter_id
+         FROM building_meters bm,
+         LATERAL (
+           SELECT 1 FROM meter_readings
+           WHERE meter_id = bm.meter_id AND voltage_l2 IS NOT NULL AND voltage_l2 != 0
+           LIMIT 1
+         ) pc
+       )
+       SELECT
          b.meter_id   AS "meterId",
          s.store_name AS "storeName",
          st.name      AS "storeType",
-         CASE WHEN ph.voltage_l2 IS NOT NULL AND ph.voltage_l2 != 0 THEN 'Trifásico' ELSE 'Monofásico' END AS "phaseType"
-       FROM meter_monthly_billing b
+         CASE WHEN pc.meter_id IS NOT NULL THEN 'Trifásico' ELSE 'Monofásico' END AS "phaseType"
+       FROM building_meters b
        LEFT JOIN store s ON s.meter_id = b.meter_id
        LEFT JOIN store_type st ON st.id = s.store_type_id
-       LEFT JOIN LATERAL (
-         SELECT voltage_l2 FROM meter_readings WHERE meter_id = b.meter_id AND voltage_l2 IS NOT NULL LIMIT 1
-       ) ph ON true
-       WHERE b.building_name = $1
+       LEFT JOIN phase_check pc ON pc.meter_id = b.meter_id
        ORDER BY b.meter_id`,
       [buildingName],
     );
@@ -60,25 +69,31 @@ export class MetersService {
 
   async findLatestByBuilding(buildingName: string): Promise<MeterLatestReading[]> {
     const rows = await this.dataSource.query(
-      `SELECT
+      `WITH building_meters AS (
+         SELECT DISTINCT meter_id FROM meter_monthly_billing WHERE building_name = $1
+       ),
+       latest AS (
+         SELECT bm.meter_id, r.power_kw, r.voltage_l1, r.current_l1, r.power_factor, r.timestamp
+         FROM building_meters bm,
+         LATERAL (
+           SELECT power_kw, voltage_l1, current_l1, power_factor, timestamp
+           FROM meter_readings
+           WHERE meter_id = bm.meter_id
+           ORDER BY timestamp DESC
+           LIMIT 1
+         ) r
+       )
+       SELECT
          m.meter_id        AS "meterId",
          COALESCE(s.store_name, 'Por censar') AS "storeName",
          $1                AS "buildingName",
-         r.power_kw        AS "powerKw",
-         r.voltage_l1      AS "voltageL1",
-         r.current_l1      AS "currentL1",
-         r.power_factor    AS "powerFactor",
-         r.timestamp        AS "timestamp"
-       FROM (
-         SELECT DISTINCT meter_id FROM meter_monthly_billing WHERE building_name = $1
-       ) m
-       LEFT JOIN LATERAL (
-         SELECT power_kw, voltage_l1, current_l1, power_factor, timestamp
-         FROM meter_readings
-         WHERE meter_id = m.meter_id
-         ORDER BY timestamp DESC
-         LIMIT 1
-       ) r ON true
+         l.power_kw        AS "powerKw",
+         l.voltage_l1      AS "voltageL1",
+         l.current_l1      AS "currentL1",
+         l.power_factor    AS "powerFactor",
+         l.timestamp        AS "timestamp"
+       FROM building_meters m
+       LEFT JOIN latest l ON l.meter_id = m.meter_id
        LEFT JOIN store s ON s.meter_id = m.meter_id
        ORDER BY m.meter_id`,
       [buildingName],

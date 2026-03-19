@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/public.decorator';
 import { ComparisonsService } from './comparisons.service';
@@ -25,6 +25,7 @@ export class ComparisonsController {
     @Query('storeNames') storeNames: string,
     @Query('month') month: string,
   ) {
+    if (!storeNames) throw new BadRequestException('storeNames is required');
     const names = storeNames.split(',').map((s) => s.trim()).filter(Boolean);
     return this.comparisonsService.getByStoreName(names, month);
   }
@@ -38,6 +39,7 @@ export class ComparisonsController {
     @Query('storeTypeIds') storeTypeIds: string,
     @Query('month') month: string,
   ) {
+    if (!storeTypeIds) throw new BadRequestException('storeTypeIds is required');
     const ids = storeTypeIds.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n));
     return this.comparisonsService.getByStoreType(ids, month);
   }

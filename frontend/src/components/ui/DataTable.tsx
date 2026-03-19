@@ -109,7 +109,7 @@ export function DataTable<T>({
   return (
     <div className="h-full flex flex-col">
       <div ref={scrollRef} className={`overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${maxHeight}`}>
-        <table className={`min-w-full text-[13px] ${tableClassName ?? ''}`}>
+        <table className={`min-w-full h-full text-[13px] ${tableClassName ?? ''}`}>
           {columns.some((c) => c.width) && (
             <colgroup>
               {columns.map((col, i) => (
@@ -149,7 +149,7 @@ export function DataTable<T>({
                     } ${sortable ? 'cursor-pointer select-none hover:bg-gray-50' : ''} ${col.className ?? ''}`}
                   >
                     <span className="inline-flex items-center gap-1">
-                      {col.headerRender ? col.headerRender() : col.label}
+                      {col.headerRender ? col.headerRender() : <span className="whitespace-pre-line">{col.label}</span>}
                       {sortable && (
                         <svg className={`h-3 w-3 shrink-0 ${isActive ? 'opacity-100' : 'opacity-30'}`} viewBox="0 0 10 14" fill="currentColor">
                           <path d="M5 0L9.33 5H0.67L5 0Z" className={isActive && sortDir === 'asc' ? 'opacity-100' : 'opacity-30'} />
@@ -178,10 +178,10 @@ export function DataTable<T>({
               </tr>
             ) : (
               <>
-                {paginated.map((row) => (
+                {paginated.map((row, rowIdx) => (
                   <tr
                     key={rowKey(row)}
-                    className={`border-b border-pa-border ${
+                    className={`${rowIdx < paginated.length - 1 ? 'border-b border-pa-border' : ''} ${
                       onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
                     }`}
                     onClick={() => onRowClick?.(row)}
@@ -208,26 +208,24 @@ export function DataTable<T>({
               </>
             )}
           </tbody>
+          {hasFooter && (
+            <tfoot>
+              <tr className="sticky bottom-0 [&>td:first-child]:rounded-bl-xl [&>td:last-child]:rounded-br-xl [&>td:first-child]:rounded-tl-xl [&>td:last-child]:rounded-tr-xl">
+                {columns.map((col, i) => (
+                  <td
+                    key={i}
+                    className={`bg-pa-bg-alt px-3 py-2.5 font-bold text-pa-navy ${
+                      col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right'
+                    } ${col.className ?? ''}`}
+                  >
+                    {col.total ? col.total(data) : ''}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
-      {hasFooter && (
-        <table className={`mt-auto min-w-full shrink-0 text-[13px] ${tableClassName ?? ''}`}>
-          <tfoot>
-            <tr className="border-t border-pa-border">
-              {columns.map((col, i) => (
-                <td
-                  key={i}
-                  className={`bg-pa-bg-alt px-3 py-2.5 font-bold text-pa-navy ${
-                    col.align === 'left' ? 'text-left' : col.align === 'center' ? 'text-center' : 'text-right'
-                  } ${col.className ?? ''}`}
-                >
-                  {col.total ? col.total(data) : ''}
-                </td>
-              ))}
-            </tr>
-          </tfoot>
-        </table>
-      )}
       {pageSize && data.length > 0 && (
         <div className="border-t border-pa-border px-3 py-2 text-[13px] text-pa-text-muted">
           {Math.min(visibleCount, data.length)} de {data.length}

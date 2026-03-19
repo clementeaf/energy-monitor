@@ -62,6 +62,7 @@ export class DashboardService {
           WHEN bs.month >= '2026-01-01' THEN (bs.month - INTERVAL '1 year')::date
           ELSE bs.month
         END
+      WHERE bs.month >= '2025-01-01'
       ORDER BY bs.building_name, bs.month DESC
     `);
 

@@ -1,17 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchComparisonFilters, fetchComparisonByStore, fetchComparisonByStoreType, fetchComparisonByStoreName } from '../../services/endpoints';
+import { fetchComparisonFilters, fetchComparisonByStore, fetchComparisonGroupedByType, fetchComparisonByStoreType, fetchComparisonByStoreName } from '../../services/endpoints';
 
-export function useComparisonFilters() {
+export function useComparisonFilters(buildingNames?: string[]) {
   return useQuery({
-    queryKey: ['comparisons', 'filters'],
-    queryFn: fetchComparisonFilters,
+    queryKey: ['comparisons', 'filters', buildingNames],
+    queryFn: () => fetchComparisonFilters(buildingNames),
   });
 }
 
-export function useComparisonByStore(month: string | undefined, buildingNames?: string[], storeTypeIds?: number[]) {
+export function useComparisonByStore(month: string | undefined, buildingNames?: string[], storeTypeIds?: number[], storeNames?: string[]) {
   return useQuery({
-    queryKey: ['comparisons', 'by-store', month, buildingNames, storeTypeIds],
-    queryFn: () => fetchComparisonByStore(month!, buildingNames, storeTypeIds),
+    queryKey: ['comparisons', 'by-store', month, buildingNames, storeTypeIds, storeNames],
+    queryFn: () => fetchComparisonByStore(month!, buildingNames, storeTypeIds, storeNames),
+    enabled: !!month,
+  });
+}
+
+export function useComparisonGroupedByType(month: string | undefined, buildingNames?: string[]) {
+  return useQuery({
+    queryKey: ['comparisons', 'grouped-by-type', month, buildingNames],
+    queryFn: () => fetchComparisonGroupedByType(month!, buildingNames),
     enabled: !!month,
   });
 }

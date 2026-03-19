@@ -10,8 +10,10 @@ export class ComparisonsController {
   @Get('filters')
   @ApiOperation({ summary: 'Tipos de tienda y meses disponibles para comparativas' })
   @ApiOkResponse({ description: 'Filtros disponibles' })
-  async getFilters() {
-    return this.comparisonsService.getFilters();
+  @ApiQuery({ name: 'buildingNames', required: false, type: String, description: 'Comma-separated building names to scope stores and types' })
+  async getFilters(@Query('buildingNames') buildingNames?: string) {
+    const buildings = buildingNames ? buildingNames.split(',').map((s) => s.trim()).filter(Boolean) : undefined;
+    return this.comparisonsService.getFilters(buildings);
   }
 
   @Get('by-store-name')
@@ -28,21 +30,38 @@ export class ComparisonsController {
     return this.comparisonsService.getByStoreName(names, month);
   }
 
+  @Get('grouped-by-type')
+  @ApiOperation({ summary: 'Comparativa agrupada por tipo de tienda, con filtro opcional de edificio' })
+  @ApiOkResponse({ description: 'Filas de comparación por tipo de tienda' })
+  @ApiQuery({ name: 'month', required: true, type: String, example: '2025-06-01' })
+  @ApiQuery({ name: 'buildingNames', required: false, type: String, description: 'Comma-separated building names' })
+  async getGroupedByType(
+    @Query('month') month: string,
+    @Query('buildingNames') buildingNames?: string,
+  ) {
+    if (!month) throw new BadRequestException('month is required');
+    const buildings = buildingNames ? buildingNames.split(',').map((s) => s.trim()).filter(Boolean) : undefined;
+    return this.comparisonsService.getGroupedByType(month, buildings);
+  }
+
   @Get('by-store')
-  @ApiOperation({ summary: 'Comparativa agrupada por tienda para un mes, con filtros opcionales de edificio y tipo' })
+  @ApiOperation({ summary: 'Comparativa agrupada por tienda para un mes, con filtros opcionales de edificio, tipo y nombre' })
   @ApiOkResponse({ description: 'Filas de comparación por tienda' })
   @ApiQuery({ name: 'month', required: true, type: String, example: '2025-06-01' })
   @ApiQuery({ name: 'buildingNames', required: false, type: String, description: 'Comma-separated building names' })
   @ApiQuery({ name: 'storeTypeIds', required: false, type: String, description: 'Comma-separated store type IDs' })
+  @ApiQuery({ name: 'storeNames', required: false, type: String, description: 'Comma-separated store names' })
   async getByStore(
     @Query('month') month: string,
     @Query('buildingNames') buildingNames?: string,
     @Query('storeTypeIds') storeTypeIds?: string,
+    @Query('storeNames') storeNames?: string,
   ) {
     if (!month) throw new BadRequestException('month is required');
     const buildings = buildingNames ? buildingNames.split(',').map((s) => s.trim()).filter(Boolean) : undefined;
     const typeIds = storeTypeIds ? storeTypeIds.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)) : undefined;
-    return this.comparisonsService.getByStore(month, buildings, typeIds);
+    const names = storeNames ? storeNames.split(',').map((s) => decodeURIComponent(s.trim())).filter(Boolean) : undefined;
+    return this.comparisonsService.getByStore(month, buildings, typeIds, names);
   }
 
   @Get('by-store-type')

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.76.0-alpha.0] - 2026-03-19 — COMPARATIVAS REDISEÑO + FIX BUILDING NAMES + DASHBOARD
+
+### Changed
+- **Comparativas rediseñada** — barras = tiendas (siempre), dos gráficos lado a lado (Consumo Mwh + Ingreso CLP)
+- **Comparativas gráfico agrupado** — multi-edificio muestra barras clustered por edificio con colores distintos
+- **Comparativas filtros dinámicos** — selector de tiendas y tipos se filtra según edificios seleccionados
+- **Comparativas Multi Operador** — tienda fija (operador del sidebar), sin selector de tiendas ni tipos, solo edificios y mes
+- **Comparativas límites** — máx 3 edificios, 20 tiendas, 10 tipos; gráfico top 20 por consumo
+- **Comparativas carga condicional** — no carga datos hasta seleccionar tiendas o edificio+tipo
+- **Dashboard** — filtrado `building_summary` a meses >= 2025-01-01 (elimina dic 2024 espurio)
+
+### Fixed
+- **Building names en alertas** — corregido "Mallplaza Gestión/Marketing" a nombres PASA reales en `alerts.service.ts`
+- **dbVerify** — canonicalización automática de building names en `meter_monthly_billing`, `building_summary`, `billing_document`
+
+### Added
+- **Endpoint `GET /comparisons/by-store`** — agrupa por tienda con filtros de edificio, tipo y nombre
+- **Endpoint `GET /comparisons/grouped-by-type`** — agrupa por tipo de tienda con filtro de edificio
+- **Endpoint `GET /comparisons/filters?buildingNames=`** — filtros scoped por edificio
+- **Tipo `ComparisonStoreRow`** — incluye `storeName` + `buildingName`
+- **Tipo `ComparisonTypeRow`** — incluye `storeTypeName`
+
+---
+
 ## [0.75.0-alpha.0] - 2026-03-19 — AUTH REAL + OPTIMIZACIÓN QUERIES + SYNTHETIC 15 MIN
 
 ### Changed

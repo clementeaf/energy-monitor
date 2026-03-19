@@ -122,6 +122,18 @@ export interface ComparisonStoreRow extends ComparisonRow {
   storeName: string;
 }
 
+export interface ComparisonTypeRow {
+  storeTypeName: string;
+  totalKwh: number | null;
+  totalConIvaClp: number | null;
+  totalMeters: number;
+  ddaMaxKw: number | null;
+  ddaMaxPuntaKw: number | null;
+  kwhTroncal: number | null;
+  kwhServPublico: number | null;
+  energiaClp: number | null;
+}
+
 export interface ComparisonFilters {
   storeTypes: { id: number; name: string }[];
   storeNames: string[];

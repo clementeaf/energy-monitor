@@ -35,12 +35,23 @@ export const routes = {
   getDashboardDocuments: (status: string) => `/dashboard/documents/${status}`,
 
   // Comparisons
-  getComparisonFilters: () => '/comparisons/filters',
-  getComparisonByStore: (month: string, buildingNames?: string[], storeTypeIds?: number[]) => {
+  getComparisonFilters: (buildingNames?: string[]) => {
+    if (buildingNames && buildingNames.length > 0) {
+      return `/comparisons/filters?buildingNames=${buildingNames.join(',')}`;
+    }
+    return '/comparisons/filters';
+  },
+  getComparisonByStore: (month: string, buildingNames?: string[], storeTypeIds?: number[], storeNames?: string[]) => {
     const params = new URLSearchParams({ month });
-    if (buildingNames && buildingNames.length > 0) params.set('buildingNames', buildingNames.map(encodeURIComponent).join(','));
+    if (buildingNames && buildingNames.length > 0) params.set('buildingNames', buildingNames.join(','));
     if (storeTypeIds && storeTypeIds.length > 0) params.set('storeTypeIds', storeTypeIds.join(','));
+    if (storeNames && storeNames.length > 0) params.set('storeNames', storeNames.map(encodeURIComponent).join(','));
     return `/comparisons/by-store?${params}`;
+  },
+  getComparisonGroupedByType: (month: string, buildingNames?: string[]) => {
+    const params = new URLSearchParams({ month });
+    if (buildingNames && buildingNames.length > 0) params.set('buildingNames', buildingNames.join(','));
+    return `/comparisons/grouped-by-type?${params}`;
   },
   getComparisonByStoreType: (storeTypeIds: number[], month: string) =>
     `/comparisons/by-store-type?storeTypeIds=${storeTypeIds.join(',')}&month=${month}`,

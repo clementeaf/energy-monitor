@@ -1,5 +1,5 @@
 interface SectionBannerProps {
-  title: string;
+  title: React.ReactNode;
   children?: React.ReactNode;
   inline?: boolean;
   className?: string;

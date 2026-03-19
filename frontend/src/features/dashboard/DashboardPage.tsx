@@ -172,6 +172,9 @@ export function DashboardPage() {
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [chartType, setChartType] = useState<ChartType>('column');
   const [currency, setCurrency] = useState('CLP');
+  const [tableView, setTableView] = useState<'consumo' | 'medioambiental'>('consumo');
+  const [maYear, setMaYear] = useState('');
+  const [maMonth, setMaMonth] = useState('');
 
   const years = useMemo(() => {
     const ySet = new Set(months.map((m) => String(new Date(m).getFullYear())));
@@ -184,6 +187,28 @@ export function DashboardPage() {
   }, [years, selectedYear]);
 
   const buildingCols = useMemo(() => getBuildingCols('mensual'), []);
+
+  // Medioambiental year/month
+  useEffect(() => {
+    if (years.length > 0 && !maYear) setMaYear(years[years.length - 1]);
+  }, [years, maYear]);
+
+  const maMonthsForYear = useMemo(
+    () => months.filter((m) => String(new Date(m).getFullYear()) === maYear),
+    [months, maYear],
+  );
+
+  useEffect(() => {
+    if (maMonthsForYear.length > 0 && (!maMonth || !maMonthsForYear.includes(maMonth))) {
+      setMaMonth(maMonthsForYear[maMonthsForYear.length - 1]);
+    }
+  }, [maMonthsForYear, maMonth]);
+
+  const maData = useMemo(() => byMonth[maMonth] ?? [], [byMonth, maMonth]);
+
+  const maCols: Column<BuildingRow>[] = useMemo(() => [
+    { label: 'Activos Inmobiliarios', value: (r) => r.name, align: 'left', sortKey: (r) => r.name, width: '250px', total: () => '\u00A0' },
+  ], []);
 
   const monthsForYear = useMemo(
     () => months.filter((m) => String(new Date(m).getFullYear()) === selectedYear),
@@ -295,18 +320,21 @@ export function DashboardPage() {
 
       {/* Fila 1: Gráficos + Cards */}
       <div className="flex min-h-0 flex-1 gap-2">
-        <div className="flex flex-[2] flex-col overflow-hidden">
-          <p className="mb-1 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-pa-navy">Consumo (mWh)</p>
-          <div className="min-h-0 flex-1">
-            <ComboChart data={activeData} chartType={chartType} metric="consumo" viewMode={viewMode} />
+        <div className="flex flex-[4] gap-2 overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <p className="mb-1 shrink-0 text-[11px] font-semibold tracking-wide text-pa-navy">Consumo (mWh)</p>
+            <div className="min-h-0 flex-1">
+              <ComboChart data={activeData} chartType={chartType} metric="consumo" viewMode={viewMode} />
+            </div>
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <p className="mb-1 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-pa-navy">Ingreso (CLP)</p>
+            <div className="min-h-0 flex-1">
+              <ComboChart data={activeData} chartType={chartType} metric="gasto" viewMode={viewMode} />
+            </div>
           </div>
         </div>
-        <div className="flex flex-[2] flex-col overflow-hidden">
-          <p className="mb-1 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-pa-navy">Ingreso (CLP)</p>
-          <div className="min-h-0 flex-1">
-            <ComboChart data={activeData} chartType={chartType} metric="gasto" viewMode={viewMode} />
-          </div>
-        </div>
+        <div className="w-px shrink-0 bg-pa-border" />
         <div className="flex flex-1 flex-col gap-3">
           {cards.map((c) => (
             <div
@@ -329,34 +357,69 @@ export function DashboardPage() {
       <div className="flex min-h-0 flex-1 gap-2">
         <Card className="flex flex-[4] flex-col overflow-hidden !p-0">
           <SectionBanner
-            title={viewMode === 'anual'
-              ? `Consumo Anual por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`
-              : `Consumo Mensual por Activo Inmobiliario — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}`}
+            title={
+              <TogglePills
+                options={[
+                  { value: 'consumo' as const, label: viewMode === 'anual'
+                    ? `Consumo Anual por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`
+                    : `Consumo Mensual por Activo Inmobiliario — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}` },
+                  { value: 'medioambiental' as const, label: 'Cifras Medioambientales' },
+                ]}
+                value={tableView}
+                onChange={setTableView}
+              />
+            }
             inline
             className="mb-1 h-10"
           >
-            <PillDropdown
-              items={CURRENCY_OPTIONS}
-              value={currency}
-              onChange={setCurrency}
-              listWidth="w-32"
-            />
-            <button className="ml-auto shrink-0 rounded-full bg-pa-navy px-4 py-1 text-xs font-semibold text-white transition-colors hover:bg-pa-blue whitespace-nowrap">
-              Cifras Medioambientales
-            </button>
+            {tableView === 'consumo' && (
+              <PillDropdown
+                items={CURRENCY_OPTIONS}
+                value={currency}
+                onChange={setCurrency}
+                listWidth="w-32"
+              />
+            )}
+            {tableView === 'medioambiental' && (
+              <div className="ml-auto flex items-center gap-2">
+                <PillDropdown
+                  items={years.map((y) => ({ value: y, label: y }))}
+                  value={maYear}
+                  onChange={setMaYear}
+                  listWidth="w-24"
+                />
+                <PillDropdown
+                  items={maMonthsForYear.map((m) => ({ value: m, label: monthName(m) }))}
+                  value={maMonth}
+                  onChange={setMaMonth}
+                  listWidth="w-36"
+                />
+              </div>
+            )}
           </SectionBanner>
           <div className="min-h-0 flex-1 overflow-hidden">
-            <DataTable
-              data={activeData}
-              columns={buildingCols}
-              rowKey={(r) => r.name}
-              onRowClick={(r) => navigate(`/buildings/${encodeURIComponent(r.name)}`)}
-              footer
-              maxHeight="max-h-full"
-            />
+            {tableView === 'consumo' ? (
+              <DataTable
+                data={activeData}
+                columns={buildingCols}
+                rowKey={(r) => r.name}
+                onRowClick={(r) => navigate(`/buildings/${encodeURIComponent(r.name)}`)}
+                footer
+                maxHeight="max-h-full"
+              />
+            ) : (
+              <DataTable
+                data={maData}
+                columns={maCols}
+                rowKey={(r) => r.name}
+                footer
+                maxHeight="max-h-full"
+              />
+            )}
           </div>
         </Card>
 
+        <div className="w-px shrink-0 bg-pa-border" />
         <Card className="flex flex-1 flex-col overflow-hidden !p-0">
           <SectionBanner title="Facturas Vencidas por Período" inline className="mb-1 h-10" />
           <div className="min-h-0 flex-1 overflow-hidden">

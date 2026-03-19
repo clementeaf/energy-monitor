@@ -109,7 +109,7 @@ export function DataTable<T>({
   return (
     <div className="h-full flex flex-col">
       <div ref={scrollRef} className={`overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${maxHeight}`}>
-        <table className={`min-w-full h-full text-[13px] ${tableClassName ?? ''}`}>
+        <table className={`min-w-full text-[13px] ${tableClassName ?? ''}`}>
           {columns.some((c) => c.width) && (
             <colgroup>
               {columns.map((col, i) => (

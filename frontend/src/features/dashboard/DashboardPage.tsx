@@ -173,8 +173,6 @@ export function DashboardPage() {
   const [chartType, setChartType] = useState<ChartType>('column');
   const [currency, setCurrency] = useState('CLP');
   const [tableView, setTableView] = useState<'consumo' | 'medioambiental'>('consumo');
-  const [maYear, setMaYear] = useState('');
-  const [maMonth, setMaMonth] = useState('');
 
   const years = useMemo(() => {
     const ySet = new Set(months.map((m) => String(new Date(m).getFullYear())));
@@ -188,27 +186,29 @@ export function DashboardPage() {
 
   const buildingCols = useMemo(() => getBuildingCols('mensual'), []);
 
-  // Medioambiental year/month
-  useEffect(() => {
-    if (years.length > 0 && !maYear) setMaYear(years[years.length - 1]);
-  }, [years, maYear]);
+  // Cifras Medioambientales: XLSX "Consumos P Arauco.xlsx" hoja "SIM 2025" — 5 Activos (filas 30-38)
+  interface MaRow {
+    indicador: string;
+    unidad: string;
+    values: number[];
+    total: number;
+    factor?: string;
+    isSeparator?: boolean;
+    isBold?: boolean;
+  }
 
-  const maMonthsForYear = useMemo(
-    () => months.filter((m) => String(new Date(m).getFullYear()) === maYear),
-    [months, maYear],
-  );
+  const MA_DATA: MaRow[] = [
+    { indicador: 'Alcance de activos', unidad: 'Número', values: [5,5,5,5,5,5,5,5,5,5,5,5], total: 5, factor: '248952' },
+    { indicador: 'Área común', unidad: 'm²', values: [150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799], total: 150799, factor: '0,61' },
+    { indicador: 'ABL', unidad: 'm²', values: [98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153], total: 98153, factor: '0,39', isSeparator: true },
+    { indicador: 'Electricidad compra', unidad: 'MWh', values: [923,1049,899,1041,956,1015,1016,944,1144,1138,1391,1148], total: 12664 },
+    { indicador: 'Electricidad vendida', unidad: 'MWh', values: [646.1,734.3,629.3,728.7,669.2,710.5,711.2,660.8,800.8,796.6,973.7,803.6], total: 8864.8, factor: '70%' },
+    { indicador: 'Electricidad área común', unidad: 'MWh', values: [276.9,314.7,269.7,312.3,286.8,304.5,304.8,283.2,343.2,341.4,417.3,344.4], total: 3799.2, factor: '30%' },
+    { indicador: 'Total', unidad: 'MWh', values: [923,1049,899,1041,956,1015,1016,944,1144,1138,1391,1148], total: 12664, isBold: true },
+    { indicador: 'Intensidad consumo energía', unidad: 'kWh/m² ABL', values: [2.82,3.21,2.75,3.18,2.92,3.10,3.11,2.89,3.50,3.48,4.25,3.51], total: 38.71, factor: '1000' },
+  ];
 
-  useEffect(() => {
-    if (maMonthsForYear.length > 0 && (!maMonth || !maMonthsForYear.includes(maMonth))) {
-      setMaMonth(maMonthsForYear[maMonthsForYear.length - 1]);
-    }
-  }, [maMonthsForYear, maMonth]);
-
-  const maData = useMemo(() => byMonth[maMonth] ?? [], [byMonth, maMonth]);
-
-  const maCols: Column<BuildingRow>[] = useMemo(() => [
-    { label: 'Activos Inmobiliarios', value: (r) => r.name, align: 'left', sortKey: (r) => r.name, width: '250px', total: () => '\u00A0' },
-  ], []);
+  const maMonthLabels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
   const monthsForYear = useMemo(
     () => months.filter((m) => String(new Date(m).getFullYear()) === selectedYear),
@@ -361,8 +361,8 @@ export function DashboardPage() {
               <TogglePills
                 options={[
                   { value: 'consumo' as const, label: viewMode === 'anual'
-                    ? `Consumo Anual por Activo Inmobiliario${selectedOperator ? ` — ${selectedOperator}` : ''}`
-                    : `Consumo Mensual por Activo Inmobiliario — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}` },
+                    ? `Consumo Anual${selectedOperator ? ` — ${selectedOperator}` : ''}`
+                    : `Consumo Mensual — ${monthName(selectedMonth)}${selectedOperator ? ` — ${selectedOperator}` : ''}` },
                   { value: 'medioambiental' as const, label: 'Cifras Medioambientales' },
                 ]}
                 value={tableView}
@@ -382,18 +382,7 @@ export function DashboardPage() {
             )}
             {tableView === 'medioambiental' && (
               <div className="ml-auto flex items-center gap-2">
-                <PillDropdown
-                  items={years.map((y) => ({ value: y, label: y }))}
-                  value={maYear}
-                  onChange={setMaYear}
-                  listWidth="w-24"
-                />
-                <PillDropdown
-                  items={maMonthsForYear.map((m) => ({ value: m, label: monthName(m) }))}
-                  value={maMonth}
-                  onChange={setMaMonth}
-                  listWidth="w-36"
-                />
+                <span className="text-[11px] text-pa-text-muted">Año 2025</span>
               </div>
             )}
           </SectionBanner>
@@ -408,13 +397,47 @@ export function DashboardPage() {
                 maxHeight="max-h-full"
               />
             ) : (
-              <DataTable
-                data={maData}
-                columns={maCols}
-                rowKey={(r) => r.name}
-                footer
-                maxHeight="max-h-full"
-              />
+              <div className="overflow-y-auto max-h-full">
+                <table className="w-full table-fixed text-[11px]">
+                  <colgroup>
+                    <col className="w-[160px]" />
+                    <col className="w-[45px]" />
+                    {maMonthLabels.map((_, i) => <col key={i} />)}
+                    <col className="w-[55px]" />
+                    <col className="w-[50px]" />
+                  </colgroup>
+                  <thead className="sticky top-0 z-10 bg-white">
+                    <tr className="border-b border-pa-border">
+                      <th className="px-2 py-1.5 text-left font-semibold text-pa-navy">Indicador</th>
+                      <th className="px-1 py-1.5 text-left font-semibold text-pa-navy">Unidad</th>
+                      {maMonthLabels.map((m) => (
+                        <th key={m} className="px-1 py-1.5 text-right font-semibold text-pa-navy">{m}</th>
+                      ))}
+                      <th className="px-1 py-1.5 text-right font-bold text-pa-navy">Total</th>
+                      <th className="px-1 py-1.5 text-right font-semibold text-pa-navy">Factor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {MA_DATA.map((row) => (
+                      <tr key={row.indicador} className={`${row.isSeparator ? 'border-b-2 border-pa-navy/20' : 'border-b border-pa-border/30'} ${row.isBold ? 'bg-gray-50/50' : ''} hover:bg-gray-50`}>
+                        <td className={`px-2 py-1.5 ${row.isBold ? 'font-bold text-pa-navy' : 'font-medium text-pa-text'}`}>{row.indicador}</td>
+                        <td className="px-1 py-1.5 text-pa-text-muted">{row.unidad}</td>
+                        {row.values.map((v, j) => (
+                          <td key={j} className={`px-1 py-1.5 text-right tabular-nums ${row.isBold ? 'font-bold text-pa-navy' : 'text-pa-text'}`}>
+                            {fmt(v)}
+                          </td>
+                        ))}
+                        <td className="px-1 py-1.5 text-right font-bold tabular-nums text-pa-navy">
+                          {fmt(row.total)}
+                        </td>
+                        <td className="px-1 py-1.5 text-right tabular-nums text-pa-text-muted">
+                          {row.factor ?? ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </Card>

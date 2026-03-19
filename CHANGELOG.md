@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.73.0-alpha.0] - 2026-03-18 — DASHBOARD REFACTOR + CIFRAS MEDIOAMBIENTALES + BACKFILL
+
+### Changed
+- **Dashboard layout** — de grid a flex, dos filas: gráficos+cards arriba, tablas abajo
+- **Dashboard refactor** — DashboardPage de 928 a ~400 líneas, componentes extraídos a `components/`
+- **Consumo en mWh** — gráficos y tablas muestran mWh (÷1000) en vez de kWh
+- **DataTable footer** — movido dentro de la misma tabla (alineación correcta con columnas)
+- **DataTable bordes** — SectionBanner y footer con `rounded-xl`, sin línea gris en última fila
+- **Soporte y Contacto** — actualizado a aportilla@globepower.cl, 227810274
+- **Columna "Edificio"** — renombrada a "Activos Inmobiliarios"
+- **Rendimiento columnas** — sin abreviar, headers en doble fila
+
+### Added
+- **Cifras Medioambientales** — toggle en tabla consumo, con selector año/mes vía PillDropdown
+- **Comparativa drawer** — gráficos Consumo e Ingreso por edificio, multi-select con checkboxes y búsqueda
+- **PillDropdownMulti** — componente multi-select con checkboxes y buscador
+- **Rendimiento Consumo (mWh/m²)** — columna calculada con 3 decimales
+- **Rendimiento Ingreso ($/m²)** — columna calculada
+- **Botón Comparativa** — en controles del dashboard, abre drawer
+- **"Última actualización"** — fecha dummy en las 3 cards
+- **offlineAlerts Lambda** — handler creado (detecta medidores sin lecturas, inserta alertas METER_OFFLINE)
+- **backfill-vcf** — Lambda para rellenar voltage/current desde CSVs de S3 (MM, OT, SC52, SC53 completados)
+- **Usuario aportilla@globepower.cl** — SUPER_ADMIN en RDS
+
+### Fixed
+- **offlineAlerts crash** — Lambda crasheaba cada 5 min (módulo no existía)
+- **503 billing** — era cold start puntual, no bug
+- **RDS cleanup** — eliminada tabla huérfana `_vcf_tmp` (442 MB liberados)
+- **Meters queries** — optimizadas con CTE + LATERAL
+- **Comparisons validation** — agregado BadRequestException para params faltantes
+
+---
+
 ## [0.72.0-alpha.0] - 2026-03-18 — DASHBOARD DUAL CHARTS + UI FIXES
 
 ### Changed

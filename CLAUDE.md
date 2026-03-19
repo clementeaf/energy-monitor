@@ -25,26 +25,30 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-18)
-- Auth completo: LoginPage, UnauthorizedPage, InvitationAcceptPage, ProtectedRoute, interceptors
-- Admin Usuarios: tabla con checkboxes, invitación por email (SES), usuario directo, reenvío
-- Google login: access_token via userinfo API, CSP y COOP configurados
-- Dashboard: gráficos Consumo e Ingreso separados, cards responsivas, tablas con footer fijo
-- Building Detail: chart 300px, toggle en SectionBanner, tab Operadores eliminada, columna Fase
-- Resumen diario: subcolumnas Voltaje/Corriente (L1, L2, L3) con headers agrupados
-- "Potencia" → "Potencia Activa" en todas las vistas
-- Deploy: tablas auth en RDS prod, env vars de auth en GitHub Secrets, SES verificado
+- Auth completo: login, admin usuarios, SES sandbox, Google/Microsoft
+- Dashboard refactor: flex layout, componentes extraídos, ~400 líneas
+- Dashboard: consumo en mWh, Cifras Medioambientales toggle, Comparativa drawer
+- Dashboard: PillDropdownMulti, rendimiento consumo/ingreso, última actualización en cards
+- offlineAlerts Lambda: creada y funcionando (detecta meters offline)
+- backfill voltage/current: MM, OT, SC52, SC53 completados en RDS
+- Usuario aportilla@globepower.cl agregado como SUPER_ADMIN
+- RDS limpieza: _vcf_tmp eliminada (442 MB), Parque Arauco Concon eliminado
+- Soporte sidebar: aportilla@globepower.cl, 227810274
 
 ### Pendiente
 - Quitar `@Public()` de controllers backend (activar auth real)
 - Solicitar salida de SES sandbox (consola AWS)
 - Nav items condicionales por rol
+- Backfill voltage/current MG (403/446 meters pendientes — requiere dividir por rangos)
+- Cifras Medioambientales: columnas con datos reales (actualmente solo Activos Inmobiliarios)
 - Costo por Centro (pendiente definición con cliente)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Auth, admin usuarios, email (SES sandbox), dashboard dual charts listo.
-Pendiente: quitar @Public de controllers, solicitar SES production, nav condicional por rol.
+Dashboard refactorizado (flex, mWh, Cifras Medioambientales, Comparativa).
+offlineAlerts Lambda OK. Backfill voltage MM/OT/SC52/SC53 OK, MG pendiente.
+Pendiente: quitar @Public, SES production, nav por rol, backfill MG.
 ```
 
 ## Prioridad Actual de Acceso
@@ -78,7 +82,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
-- **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown` en `components/ui/`
+- **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown`, `PillDropdownMulti` en `components/ui/`
 - **Shared hooks:** `useClickOutside`, `useOperatorFilter` en `hooks/`
 - **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData

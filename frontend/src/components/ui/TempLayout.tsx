@@ -387,7 +387,7 @@ export function TempLayout() {
             <div className="overflow-hidden">
               <div className="mt-2 space-y-0.5">
                 <p className="text-[13px] font-medium text-pa-navy">Globe Power</p>
-                <a href="mailto:aportilla@globepower.cl" className="block text-[13px] text-pa-text-muted hover:text-pa-blue truncate">aportilla@globepower.cl</a>
+                <a href="mailto:atencion@globepower.cl" className="block text-[13px] text-pa-text-muted hover:text-pa-blue truncate">atencion@globepower.cl</a>
                 <a href="tel:+56227810274" className="block text-[13px] text-pa-text-muted hover:text-pa-blue">227810274</a>
               </div>
             </div>

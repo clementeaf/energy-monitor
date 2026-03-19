@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useUsers, useCreateInvitation, useCreateDirectUser, useDeleteUsers, useResendInvitation } from '../../hooks/queries/useUsers';
+import { useUsers, useCreateDirectUser, useDeleteUsers, useResendInvitation } from '../../hooks/queries/useUsers';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { Drawer } from '../../components/ui/Drawer';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import type { AdminUser } from '../../services/endpoints';
 
@@ -80,59 +81,71 @@ const MODE_OPTIONS = [
   { value: 'tecnico', label: 'Técnico' },
 ];
 
-function UserForm({ mode, onClose }: { mode: 'invite' | 'direct'; onClose: () => void }) {
-  const inviteMutation = useCreateInvitation();
-  const directMutation = useCreateDirectUser();
-  const mutation = mode === 'invite' ? inviteMutation : directMutation;
+function AddUserForm({ onClose }: { onClose: () => void }) {
+  const mutation = useCreateDirectUser();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [phone, setPhone] = useState('');
   const [userMode, setUserMode] = useState('holding');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim() || !name.trim()) return;
-    const payload = { email: email.trim(), name: name.trim(), roleId: MODE_TO_ROLE[userMode], siteIds: [], userMode };
-
-    if (mode === 'invite') {
-      inviteMutation.mutate(payload, {
-        onSuccess: (data) => {
-          navigator.clipboard.writeText(`${window.location.origin}/invite/${data.invitationToken}`);
-          onClose();
-        },
-      });
-    } else {
-      directMutation.mutate(payload, { onSuccess: () => onClose() });
-    }
+    const payload = { email: email.trim(), name: name.trim(), jobTitle: jobTitle.trim() || undefined, phone: phone.trim() || undefined, roleId: MODE_TO_ROLE[userMode], siteIds: [], userMode };
+    mutation.mutate(payload, { onSuccess: () => onClose() });
   }
 
-  const isInvite = mode === 'invite';
-
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-pa-border bg-white p-4 shadow-sm">
-      <h3 className="mb-3 text-sm font-semibold text-pa-navy">
-        {isInvite ? 'Nueva invitación' : 'Agregar usuario directo'}
-      </h3>
-      <div className="grid gap-3 sm:grid-cols-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Nombre</label>
         <input
           type="text"
-          placeholder="Nombre"
+          placeholder="Nombre completo"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
           required
         />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Email</label>
         <input
           type="email"
-          placeholder="Email"
+          placeholder="correo@ejemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
           required
         />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Cargo</label>
+        <input
+          type="text"
+          placeholder="Ej: Gerente de Operaciones"
+          value={jobTitle}
+          onChange={(e) => setJobTitle(e.target.value)}
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Teléfono</label>
+        <input
+          type="tel"
+          placeholder="+56 9 1234 5678"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-pa-text">Modo</label>
         <select
           value={userMode}
           onChange={(e) => setUserMode(e.target.value)}
-          className="rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
+          className="w-full rounded-lg border border-pa-border px-3 py-2 text-sm text-pa-text outline-none focus:border-pa-blue"
         >
           {MODE_OPTIONS.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
@@ -140,17 +153,17 @@ function UserForm({ mode, onClose }: { mode: 'invite' | 'direct'; onClose: () =>
         </select>
       </div>
       {mutation.error && (
-        <p className="mt-2 text-sm text-red-600">
+        <p className="text-sm text-red-600">
           {(mutation.error as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Error al crear usuario'}
         </p>
       )}
-      <div className="mt-3 flex items-center gap-2">
+      <div className="flex items-center gap-2 pt-2">
         <button
           type="submit"
           disabled={mutation.isPending}
           className="rounded-lg bg-pa-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-pa-blue-light disabled:opacity-50"
         >
-          {mutation.isPending ? 'Creando...' : isInvite ? 'Crear y enviar invitación' : 'Agregar usuario'}
+          {mutation.isPending ? 'Creando...' : 'Agregar usuario'}
         </button>
         <button
           type="button"
@@ -168,7 +181,7 @@ export function AdminUsersPage() {
   const { data: users, isLoading } = useUsers();
   const resendMutation = useResendInvitation();
   const deleteMutation = useDeleteUsers();
-  const [formMode, setFormMode] = useState<null | 'invite' | 'direct'>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [resendingIds, setResendingIds] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -182,12 +195,15 @@ export function AdminUsersPage() {
     });
   }
 
+  const HIDDEN_EMAILS = ['darwin@hoktus.com', 'carriagadafalcone@gmail.com'];
+  const visibleUsers = users?.filter((u) => !HIDDEN_EMAILS.includes(u.email));
+
   function toggleAll() {
-    if (!users) return;
-    if (selected.size === users.length) {
+    if (!visibleUsers) return;
+    if (selected.size === visibleUsers.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(users.map((u) => u.id)));
+      setSelected(new Set(visibleUsers.map((u) => u.id)));
     }
   }
 
@@ -238,26 +254,17 @@ export function AdminUsersPage() {
           )}
           <button
             type="button"
-            onClick={() => setFormMode(formMode === 'direct' ? null : 'direct')}
-            className="rounded-lg border border-pa-blue px-3 py-1.5 text-sm font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white"
-          >
-            + Agregar usuario
-          </button>
-          <button
-            type="button"
-            onClick={() => setFormMode(formMode === 'invite' ? null : 'invite')}
+            onClick={() => setDrawerOpen(true)}
             className="rounded-lg bg-pa-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-pa-blue-light"
           >
-            + Invitar usuario
+            + Agregar usuario
           </button>
         </div>
       </SectionBanner>
 
-      {formMode && (
-        <div className="mt-3">
-          <UserForm mode={formMode} onClose={() => setFormMode(null)} />
-        </div>
-      )}
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title="Agregar usuario" size="sm">
+        <AddUserForm onClose={() => setDrawerOpen(false)} />
+      </Drawer>
 
       <div className="mt-3 flex-1 overflow-auto rounded-xl border border-pa-border bg-white">
         {isLoading ? (
@@ -273,7 +280,7 @@ export function AdminUsersPage() {
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={!!users?.length && selected.size === users.length}
+                    checked={!!visibleUsers?.length && selected.size === visibleUsers.length}
                     onChange={toggleAll}
                     className="h-3.5 w-3.5 rounded border-pa-border accent-pa-blue"
                   />
@@ -286,7 +293,7 @@ export function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users?.map((u) => (
+              {visibleUsers?.map((u) => (
                 <UserRow
                   key={u.id}
                   user={u}
@@ -294,7 +301,7 @@ export function AdminUsersPage() {
                   onToggle={() => toggleSelect(u.id)}
                 />
               ))}
-              {users?.length === 0 && (
+              {visibleUsers?.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-3 py-8 text-center text-sm text-pa-text-muted">
                     No hay usuarios registrados

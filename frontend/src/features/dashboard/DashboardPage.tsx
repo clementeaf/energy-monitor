@@ -192,20 +192,19 @@ export function DashboardPage() {
     unidad: string;
     values: number[];
     total: number;
-    factor?: string;
     isSeparator?: boolean;
     isBold?: boolean;
   }
 
   const MA_DATA: MaRow[] = [
-    { indicador: 'Alcance de activos', unidad: 'Número', values: [5,5,5,5,5,5,5,5,5,5,5,5], total: 5, factor: '248952' },
-    { indicador: 'Área común', unidad: 'm²', values: [150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799], total: 150799, factor: '0,61' },
-    { indicador: 'ABL', unidad: 'm²', values: [98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153], total: 98153, factor: '0,39', isSeparator: true },
+    { indicador: 'Alcance de activos', unidad: 'Número', values: [5,5,5,5,5,5,5,5,5,5,5,5], total: 5 },
+    { indicador: 'Área común', unidad: 'm²', values: [150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799,150799], total: 150799 },
+    { indicador: 'ABL', unidad: 'm²', values: [98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153,98153], total: 98153, isSeparator: true },
     { indicador: 'Electricidad compra', unidad: 'MWh', values: [923,1049,899,1041,956,1015,1016,944,1144,1138,1391,1148], total: 12664 },
-    { indicador: 'Electricidad vendida', unidad: 'MWh', values: [646.1,734.3,629.3,728.7,669.2,710.5,711.2,660.8,800.8,796.6,973.7,803.6], total: 8864.8, factor: '70%' },
-    { indicador: 'Electricidad área común', unidad: 'MWh', values: [276.9,314.7,269.7,312.3,286.8,304.5,304.8,283.2,343.2,341.4,417.3,344.4], total: 3799.2, factor: '30%' },
+    { indicador: 'Electricidad vendida', unidad: 'MWh', values: [646.1,734.3,629.3,728.7,669.2,710.5,711.2,660.8,800.8,796.6,973.7,803.6], total: 8864.8 },
+    { indicador: 'Electricidad área común', unidad: 'MWh', values: [276.9,314.7,269.7,312.3,286.8,304.5,304.8,283.2,343.2,341.4,417.3,344.4], total: 3799.2 },
     { indicador: 'Total', unidad: 'MWh', values: [923,1049,899,1041,956,1015,1016,944,1144,1138,1391,1148], total: 12664, isBold: true },
-    { indicador: 'Intensidad consumo energía', unidad: 'kWh/m² ABL', values: [2.82,3.21,2.75,3.18,2.92,3.10,3.11,2.89,3.50,3.48,4.25,3.51], total: 38.71, factor: '1000' },
+    { indicador: 'Intensidad consumo energía', unidad: 'kWh/m² ABL', values: [2.82,3.21,2.75,3.18,2.92,3.10,3.11,2.89,3.50,3.48,4.25,3.51], total: 38.71 },
   ];
 
   const maMonthLabels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -400,11 +399,10 @@ export function DashboardPage() {
               <div className="overflow-y-auto max-h-full">
                 <table className="w-full table-fixed text-[11px]">
                   <colgroup>
-                    <col className="w-[160px]" />
-                    <col className="w-[45px]" />
-                    {maMonthLabels.map((_, i) => <col key={i} />)}
+                    <col className="w-[180px]" />
                     <col className="w-[55px]" />
-                    <col className="w-[50px]" />
+                    {maMonthLabels.map((_, i) => <col key={i} />)}
+                    <col className="w-[65px]" />
                   </colgroup>
                   <thead className="sticky top-0 z-10 bg-white">
                     <tr className="border-b border-pa-border">
@@ -414,7 +412,6 @@ export function DashboardPage() {
                         <th key={m} className="px-1 py-1.5 text-right font-semibold text-pa-navy">{m}</th>
                       ))}
                       <th className="px-1 py-1.5 text-right font-bold text-pa-navy">Total</th>
-                      <th className="px-1 py-1.5 text-right font-semibold text-pa-navy">Factor</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -429,9 +426,6 @@ export function DashboardPage() {
                         ))}
                         <td className="px-1 py-1.5 text-right font-bold tabular-nums text-pa-navy">
                           {fmt(row.total)}
-                        </td>
-                        <td className="px-1 py-1.5 text-right tabular-nums text-pa-text-muted">
-                          {row.factor ?? ''}
                         </td>
                       </tr>
                     ))}

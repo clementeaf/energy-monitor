@@ -92,10 +92,7 @@ export function ComboChart({ data, chartType, metric = 'consumo', viewMode = 'an
           },
           gridLineColor: '#F3F4F6',
         },
-        legend: {
-          itemStyle: { color: '#1F2937', fontSize: '12px' },
-          itemHoverStyle: { color: seriesColor },
-        },
+        legend: { enabled: false },
         tooltip: {
           shared: true,
           useHTML: true,

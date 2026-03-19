@@ -1,11 +1,9 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
 
-@Public()
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}

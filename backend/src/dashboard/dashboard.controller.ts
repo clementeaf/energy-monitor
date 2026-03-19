@@ -1,9 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
-import { Public } from '../auth/public.decorator';
 import { DashboardService } from './dashboard.service';
 
-@Public()
 @ApiTags('Dashboard')
 @Controller('dashboard')
 export class DashboardController {

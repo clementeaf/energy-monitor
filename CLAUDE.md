@@ -24,7 +24,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-19)
+### Completado (2026-03-19 sesión 2)
+- Auth real activada: `@Public()` eliminado de 10 controllers, JWT requerido en todos los endpoints
+- Queries meters optimizadas: `findByBuilding` 1227ms→3ms, `findLatestByBuilding` 500ms→1ms
+- Tabla cache `meter_latest_reading` + columna `store.is_three_phase` + función SQL
+- Synthetic generator: 1 min → 15 min, con prune de lectura antigua y refresh de cache
+- backfill-vcf: fix race condition (`UNLOGGED TABLE` → `TEMP TABLE`)
+- Backfill MG voltage/current: Lambda invocada (en progreso)
+
+### Completado (2026-03-19 sesión 1)
 - Permisos por modo: Operador sin Comparativas/Admin/Remarcadores/Drawer; Técnico sin Admin
 - Auth refresh: interceptor 401 intenta MSAL silent refresh antes de redirigir
 - Breadcrumbs encadenados en subvistas Activos Inmobiliarios
@@ -40,9 +48,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Usuario aportilla@globepower.cl SUPER_ADMIN. Soporte sidebar actualizado
 
 ### Pendiente
-- Quitar `@Public()` de controllers backend (activar auth real)
+- Deploy backend (push a main) + invocar dbVerify para migración 020 en RDS
 - Solicitar salida de SES sandbox (consola AWS)
-- Backfill voltage/current MG (403/446 meters pendientes)
+- Verificar backfill MG completado (revisar logs CloudWatch)
 - Cifras Medioambientales: columnas con datos reales
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: validar CNAME en GoDaddy + alias CloudFront
@@ -50,9 +58,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Permisos por modo OK (Operador/Técnico restricciones). Auth refresh MSAL OK.
-Breadcrumbs Activos Inmobiliarios OK. Delete users OK.
-Pendiente: quitar @Public, SES production, backfill MG, DNS globepower.
+Auth real OK. Queries meters optimizadas (cache + is_three_phase). Synthetic 15min OK.
+Pendiente: deploy backend + migración 020, SES production, verificar backfill MG, DNS globepower.
 ```
 
 ## Prioridad Actual de Acceso
@@ -75,7 +82,7 @@ CloudFront (energymonitor.click)
 └── /api/* → API Gateway → Lambda (NestJS, cached bootstrap)
                               └── RDS PostgreSQL (VPC, 3 subnets)
 
-EventBridge (1 min) → Lambda synthetic-readings-generator → RDS
+EventBridge (15 min) → Lambda synthetic-readings-generator → RDS (+ prune + cache refresh)
 EventBridge (5 min) → Lambda offlineAlerts → RDS
 EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→RDS
 ```

@@ -1,8 +1,6 @@
 import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { MeterMonthlyService } from './meter-monthly.service';
 
-@Public()
 @Controller('meter-monthly')
 export class MeterMonthlyController {
   constructor(private readonly meterMonthlyService: MeterMonthlyService) {}

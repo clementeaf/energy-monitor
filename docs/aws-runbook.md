@@ -8,12 +8,12 @@
 | Lambda | `power-digital-api-dev-offlineAlerts` | Managed by Serverless Framework | Detección medidores offline (256MB, 30s, cada 5 min) |
 | Lambda | `power-digital-api-dev-dbVerify` | Managed by Serverless Framework | Migraciones SQL y verificación DB (256MB) |
 | Lambda | `billing-pdf-generator` | Deploy manual (Python 3.12, 512MB) | Genera PDFs de facturación |
-| Lambda | `synthetic-readings-generator` | Standalone (128MB) | Genera 15 lecturas/min con perfiles estadísticos |
+| Lambda | `synthetic-readings-generator` | Standalone (256MB, 60s) | Genera lecturas cada 15 min, prune más antigua, refresh cache |
 | API Gateway | HTTP API | `626lq125eh` | Proxy HTTP → Lambda API (`/api/*`) |
 | RDS | PostgreSQL 16 | `energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` | db.t3.micro, 20GB gp3, encrypted, single-AZ |
 | S3 | Frontend bucket | `energy-monitor-hoktus-mvp` | SPA estática (Vite build) |
 | CloudFront | Distribution | `ECR03RA6F872Q` | CDN: `/*` → S3, `/api/*` → API Gateway |
-| EventBridge | Trigger 1 min | `synthetic-readings-every-1min` | Trigger Lambda generador cada 1 min |
+| EventBridge | Trigger 15 min | `synthetic-readings-every-1min` | Trigger Lambda generador cada 15 min (nombre legacy) |
 | EventBridge | Trigger 5 min | Definido en serverless.yml | Trigger offlineAlerts cada 5 min |
 
 ### Región
@@ -311,7 +311,7 @@ cd backend/billing-pdf-lambda && ./deploy.sh update
 - En producción, CloudFront unifica dominio → no hay CORS.
 
 ### Readings gap / datos faltantes
-- Generador sintético corre cada 1 min. Gap > 90 min = downtime detectado.
+- Generador sintético corre cada 15 min. Gap > 90 min = downtime detectado.
 - Para backfill: scripts en `infra/backfill-gap/` o `infra/reimport-readings/`.
 
 ### Frontend build falla en CI

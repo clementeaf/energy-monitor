@@ -38,7 +38,9 @@ function r(v) {
 /**
  * Synthetic readings generator — inserts 1 reading per meter every invocation.
  * Uses real statistical profiles (mean + stdev per meter per hour) from historical data.
- * Designed to run every 1 minute via EventBridge.
+ * Designed to run every 15 minutes via EventBridge.
+ * After inserting, prunes the oldest reading per meter to keep DB stable.
+ * Also refreshes meter_latest_reading cache table.
  * TEMPORARY: replace with real MQTT → Lambda → RDS pipeline.
  */
 export const handler = async () => {
@@ -137,12 +139,43 @@ export const handler = async () => {
       ) VALUES ${values.join(',')}
     `, params);
 
-    // 4. Update meters last_reading_at + status
+    // 4. Prune oldest reading per meter (keep DB size stable)
+    await client.query(`
+      DELETE FROM readings r
+      USING (
+        SELECT meter_id, MIN(timestamp) AS oldest_ts
+        FROM readings
+        GROUP BY meter_id
+      ) old
+      WHERE r.meter_id = old.meter_id AND r.timestamp = old.oldest_ts
+    `);
+
+    // 5. Update meters last_reading_at + status
     await client.query(`
       UPDATE meters SET last_reading_at = $1, status = 'online'
     `, [now.toISOString()]);
 
-    return { inserted: meters.length, timestamp: now.toISOString() };
+    // 6. Refresh meter_latest_reading cache
+    await client.query(`
+      INSERT INTO meter_latest_reading (meter_id, power_kw, voltage_l1, current_l1, power_factor, timestamp)
+      SELECT s.meter_id, r.power_kw, r.voltage_l1, r.current_l1, r.power_factor, r.timestamp
+      FROM store s
+      LEFT JOIN LATERAL (
+        SELECT power_kw, voltage_l1, current_l1, power_factor, timestamp
+        FROM meter_readings
+        WHERE meter_id = s.meter_id
+        ORDER BY timestamp DESC
+        LIMIT 1
+      ) r ON true
+      ON CONFLICT (meter_id) DO UPDATE SET
+        power_kw = EXCLUDED.power_kw,
+        voltage_l1 = EXCLUDED.voltage_l1,
+        current_l1 = EXCLUDED.current_l1,
+        power_factor = EXCLUDED.power_factor,
+        timestamp = EXCLUDED.timestamp
+    `);
+
+    return { inserted: meters.length, pruned: meters.length, timestamp: now.toISOString() };
   } finally {
     await client.end();
   }

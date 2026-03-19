@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.75.0-alpha.0] - 2026-03-19 — AUTH REAL + OPTIMIZACIÓN QUERIES + SYNTHETIC 15 MIN
+
+### Changed
+- **Auth activada** — eliminado `@Public()` de 10 controllers; todos los endpoints requieren JWT (excepto `GET /invitations/:token`)
+- **`findByBuilding`** — eliminada LATERAL sobre meter_readings (30.7M); usa columna pre-computada `is_three_phase` en store (1227ms → 3ms)
+- **`findLatestByBuilding`** — usa tabla cache `meter_latest_reading` via función SQL `fn_latest_readings_by_building` (500ms → 1ms)
+- **Synthetic generator** — frecuencia de 1 min a 15 min; ahora prune la lectura más antigua por meter y refresca cache `meter_latest_reading`
+- **backfill-vcf Lambda** — tabla temporal cambiada de `UNLOGGED TABLE` a `TEMP TABLE` (session-scoped, evita race condition entre invocaciones concurrentes)
+
+### Added
+- **Tabla `meter_latest_reading`** — cache de última lectura por medidor, refrescada cada 15 min por synthetic generator
+- **Columna `store.is_three_phase`** — booleano pre-computado, evita escanear meter_readings para detectar fase
+- **Función SQL `fn_latest_readings_by_building`** — lectura optimizada desde cache
+- **Migración 020** — `sql/020_meter_optimizations.sql`
+
+---
+
 ## [0.74.0-alpha.0] - 2026-03-19 — PERMISOS POR MODO + AUTH REFRESH + BREADCRUMBS + DELETE USERS
 
 ### Changed

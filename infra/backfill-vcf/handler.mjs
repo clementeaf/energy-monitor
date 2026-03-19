@@ -1,6 +1,6 @@
 /**
  * Backfill voltage, current, frequency into meter_readings from S3 CSVs.
- * Strategy: stream CSV → UNLOGGED temp table → UPDATE per meter partition.
+ * Strategy: stream CSV → session-scoped TEMP table → UPDATE per meter partition.
  * Much faster than VALUES-based UPDATE on partitioned tables.
  *
  * Invoke: { "key": "raw/MALL_MEDIANO_254_completo.csv" }
@@ -32,10 +32,9 @@ async function processCSV(client, bucket, key, fromMeter = null, toMeter = null)
   const res = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
   if (!res.Body) throw new Error(`No body for ${key}`);
 
-  // 1. Create temp table (unlogged for speed)
-  await client.query('DROP TABLE IF EXISTS _vcf_tmp');
+  // 1. Create temp table (session-scoped — no race condition between concurrent invocations)
   await client.query(`
-    CREATE UNLOGGED TABLE _vcf_tmp (
+    CREATE TEMP TABLE _vcf_tmp (
       meter_id varchar(20),
       ts timestamptz,
       v1 numeric, v2 numeric, v3 numeric,

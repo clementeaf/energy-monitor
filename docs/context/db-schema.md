@@ -40,7 +40,9 @@
 
 **store_type** — id: serial PK, name: varchar(100) unique. 42 tipos.
 
-**store** — meter_id: varchar(10) PK, store_type_id: int FK→store_type, store_name: varchar(200). 875 filas (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53).
+**store** — meter_id: varchar(10) PK, store_type_id: int FK→store_type, store_name: varchar(200), is_three_phase: boolean default false. 875 filas (MG 446 + MM 254 + OT 70 + SC52 52 + SC53 53). Columna `is_three_phase` pre-computada desde meter_readings (migración 020).
+
+**meter_latest_reading** — meter_id: varchar(10) PK, power_kw: numeric(10,3), voltage_l1: numeric(7,2), current_l1: numeric(8,3), power_factor: numeric(5,4), timestamp: timestamptz. Cache de última lectura por medidor, refrescada cada 15 min por synthetic generator. Migración 020.
 
 **building_summary** — building_name: text NOT NULL, month: date NOT NULL, PK(building_name, month). Stats agregados: total_stores, store_types, total_meters, assigned_meters, unassigned_meters, area_sqm, total_kwh, total_power_kw, avg_power_kw, peak_power_kw, total_reactive_kvar, avg_power_factor, peak_demand_kw, demanda_punta_kwh, pct_punta, promedio_diario_kwh. 60 filas (12 × 5 edificios). **Columnas KPI críticas para cards frontend:** `peak_demand_kw`, `avg_power_kw`, `avg_power_factor` — ver sección "Cálculo KPIs building_summary" en ingest-pipeline.md.
 
@@ -78,7 +80,7 @@ hierarchy_nodes N──1 self (parent), hierarchy_nodes N──1 meters (leaf on
 ```
 
 ## SQL Migrations
-`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | … | `016_analisis.sql` → analisis | `017_billing.sql` → módulo BILLING_OVERVIEW y permisos | `018_billing_tables.sql` → billing_center_summary, billing_monthly_detail, billing_tariffs | `019_aggregates.sql` → agg_meter_hourly, agg_node_daily (NO APLICADA AÚN).
+`sql/001_schema.sql` → users, roles | `002_seed.sql` → seed 7 roles, catálogo de vistas | `003_buildings_locals.sql` → buildings | `004_meters_readings.sql` → meters, readings, seed 15 meters | `005_hierarchy_nodes.sql` → hierarchy tree | `006_alerts.sql` → alerts | `007_invite_first_users.sql` → permite usuarios preprovisionados sin provider/external_id | `008_views_catalog.sql` → migra modules a catálogo de vistas reales | `009_invitation_links.sql` → agrega token/link firmado y expiración de invitación | … | `016_analisis.sql` → analisis | `017_billing.sql` → módulo BILLING_OVERVIEW y permisos | `018_billing_tables.sql` → billing_center_summary, billing_monthly_detail, billing_tariffs | `019_aggregates.sql` → agg_meter_hourly, agg_node_daily (NO APLICADA AÚN) | `020_meter_optimizations.sql` → store.is_three_phase, meter_latest_reading, fn_latest_readings_by_building.
 
 Migraciones manuales: no hay migration runner; se aplican manualmente. Verificar siempre que tablas/columnas existan en producción antes de deployar.
 

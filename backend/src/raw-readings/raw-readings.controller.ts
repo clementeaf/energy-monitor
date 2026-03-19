@@ -1,9 +1,7 @@
 import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { enforceRange } from '../common/range-guard';
 import { RawReadingsService } from './raw-readings.service';
 
-@Public()
 @Controller('raw-readings')
 export class RawReadingsController {
   constructor(private readonly rawReadingsService: RawReadingsService) {}

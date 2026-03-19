@@ -1,9 +1,7 @@
 import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { enforceRange } from '../common/range-guard';
 import { MeterReadingsService } from './meter-readings.service';
 
-@Public()
 @Controller('meter-readings')
 export class MeterReadingsController {
   constructor(private readonly meterReadingsService: MeterReadingsService) {}

@@ -12,6 +12,9 @@ export class Store {
   @Column({ type: 'smallint', name: 'store_type_id' })
   storeTypeId!: number;
 
+  @Column({ type: 'boolean', name: 'is_three_phase', default: false })
+  isThreePhase!: boolean;
+
   @ManyToOne(() => StoreType, { eager: true })
   @JoinColumn({ name: 'store_type_id' })
   storeType!: StoreType;

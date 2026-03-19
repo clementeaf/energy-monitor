@@ -1,9 +1,7 @@
 import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Public } from '../auth/public.decorator';
 import { ComparisonsService } from './comparisons.service';
 
-@Public()
 @ApiTags('Comparisons')
 @Controller('comparisons')
 export class ComparisonsController {

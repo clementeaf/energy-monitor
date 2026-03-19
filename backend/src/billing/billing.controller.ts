@@ -1,9 +1,7 @@
 import { Controller, Get, Param, Query, Res, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { BillingService } from './billing.service';
 import type { Response } from 'express';
 
-@Public()
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}

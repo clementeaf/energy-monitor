@@ -1,8 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { AlertsService } from './alerts.service';
 
-@Public()
 @Controller('alerts')
 export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}

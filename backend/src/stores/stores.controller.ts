@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
 import { RequirePermissions } from '../auth/require-permissions.decorator';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -7,7 +6,6 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { UpdateOperatorDto } from './dto/update-operator.dto';
 import { BulkCreateStoresDto } from './dto/bulk-create-stores.dto';
 
-@Public()
 @Controller('stores')
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}

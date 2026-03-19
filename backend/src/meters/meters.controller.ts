@@ -9,8 +9,8 @@ export class MetersController {
 
   @Get(':meterId/info')
   async findInfo(@Param('meterId') meterId: string) {
-    const storeName = await this.metersService.findStoreName(meterId);
-    return { meterId, storeName };
+    const ctx = await this.metersService.findMeterContext(meterId);
+    return { meterId, storeName: ctx.storeName, buildingName: ctx.buildingName };
   }
 
   @Get('building/:buildingName')

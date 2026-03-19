@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, NotFoundException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, NotFoundException, Param, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -74,6 +74,16 @@ export class UsersController {
       roleId: dto.roleId,
       userMode: dto.userMode,
     });
+  }
+
+  @Delete()
+  @RequirePermissions('ADMIN_USERS', 'manage')
+  @ApiOperation({ summary: 'Eliminar usuarios', description: 'Elimina uno o más usuarios y sus sitios asociados.' })
+  @ApiBody({ schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, required: ['ids'] } })
+  @ApiOkResponse({ schema: { type: 'object', properties: { deleted: { type: 'number' } } } })
+  async deleteUsers(@Body() body: { ids: string[] }) {
+    const deleted = await this.usersService.deleteUsers(body.ids ?? []);
+    return { deleted };
   }
 
   @Post(':id/resend')

@@ -28,16 +28,21 @@ async function resolveBackendUser(
     setUser(data.user);
   } catch (err: unknown) {
     console.error('[resolveBackendUser] error:', err);
-    sessionStorage.removeItem('access_token');
     const status = (err as { response?: { status?: number } }).response?.status;
     if (status === 403) {
+      sessionStorage.removeItem('access_token');
       clearUser();
       if (sessionStorage.getItem(INVITATION_TOKEN_KEY)) {
         setError('La invitación es inválida, expiró o no coincide con la cuenta usada para iniciar sesión.');
       } else {
         setError('Cuenta sin invitación activa o pendiente de habilitación');
       }
+    } else if (status === 401) {
+      // Token expired or invalid — clear and let interceptor handle redirect
+      sessionStorage.removeItem('access_token');
+      clearUser();
     } else {
+      // Network error / timeout — don't clear token, it may still be valid
       clearUser();
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Error al verificar sesión: ${status ?? 'network'} — ${msg}`);

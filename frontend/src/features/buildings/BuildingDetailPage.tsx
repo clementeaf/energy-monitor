@@ -41,7 +41,7 @@ export function BuildingDetailPage() {
   const { data: months, isLoading: loadingBuilding } = useBuilding(id!);
   const { data: billing, isLoading: loadingBilling } = useBilling(id!);
   const { data: meters, isLoading: loadingMeters } = useMetersByBuilding(id!);
-  const { isFilteredMode, isTecnico, operatorMeterIds, selectedOperator, selectedStoreName } = useOperatorFilter();
+  const { isFilteredMode, isOperadorMode, isTecnico, operatorMeterIds, selectedOperator, selectedStoreName, selectedStoreMeterId } = useOperatorFilter();
   const userMode = useAppStore((s) => s.userMode);
   const isHolding = userMode === 'holding';
   const hideBilling = isTecnico;
@@ -138,14 +138,22 @@ export function BuildingDetailPage() {
   const tabOptions = (() => {
     let opts = [...TAB_OPTIONS];
     if (hideBilling) opts = opts.filter((t) => t.value !== 'billing');
+    if (isOperadorMode) opts = opts.filter((t) => t.value !== 'meters');
     return opts;
   })();
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mb-3 ml-4 flex shrink-0 flex-wrap items-center gap-2 lg:gap-3">
-        <PillButton onClick={() => navigate(-1)}>&larr; Volver</PillButton>
-        <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{latest.buildingName}</h2>
+        <PillButton onClick={() => navigate('/buildings')}>&larr; Volver</PillButton>
+        <span className="text-[13px] text-pa-text-muted">Activos Inmobiliarios</span>
+        <span className="text-[11px] text-pa-text-muted">/</span>
+        <h2 className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">
+          {latest.buildingName}
+          {isOperadorMode && selectedStoreMeterId && (
+            <span className="ml-2 font-normal normal-case text-pa-text-muted">— {selectedStoreMeterId}</span>
+          )}
+        </h2>
         {/* Context "+" button for holding */}
         {isHolding && activeTab === 'meters' && (
           <>
@@ -197,7 +205,7 @@ export function BuildingDetailPage() {
                 data={effectiveBilling}
                 highlightMetric={chartMetric}
                 hoveredMetric={hoveredMetric}
-                onRowClick={(row) => setSelectedMonth(row.month)}
+                onRowClick={isOperadorMode ? undefined : (row) => setSelectedMonth(row.month)}
               />
             )}
             {activeTab === 'billing' && (!effectiveBilling || effectiveBilling.length === 0) && (

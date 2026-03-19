@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
+import { PillButton } from '../../components/ui/PillButton';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import HighchartsStock from 'highcharts/highstock';
@@ -332,20 +333,20 @@ export function MeterReadingsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0">
-        <div className="mb-2 flex items-center gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-3 py-1 text-sm text-muted hover:text-text"
-          >
-            &larr; Volver
-          </button>
-          <span className="text-sm text-muted">{meterInfo?.storeName ?? '—'}</span>
-          <span className="text-sm text-muted">&middot;</span>
-          <span className="text-sm font-semibold text-text">{meterId}</span>
-          <span className="text-sm text-muted">&middot; {monthLabel}</span>
-          <span className="text-xs text-muted">({readings?.length ?? 0} lecturas)</span>
-        </div>
+      <div className="mb-3 ml-4 flex shrink-0 flex-wrap items-center gap-2 lg:gap-3">
+        <PillButton onClick={() => navigate(`/meters/${encodeURIComponent(meterId!)}`)}>&larr; Volver</PillButton>
+        <Link to="/buildings" className="text-[13px] text-pa-text-muted hover:text-pa-blue">Activos Inmobiliarios</Link>
+        <span className="text-[11px] text-pa-text-muted">/</span>
+        {meterInfo?.buildingName && (
+          <>
+            <Link to={`/buildings/${encodeURIComponent(meterInfo.buildingName)}`} className="text-[13px] text-pa-text-muted hover:text-pa-blue">{meterInfo.buildingName}</Link>
+            <span className="text-[11px] text-pa-text-muted">/</span>
+          </>
+        )}
+        <Link to={`/meters/${encodeURIComponent(meterId!)}`} className="text-[13px] text-pa-text-muted hover:text-pa-blue">{meterInfo?.storeName ?? '—'} ({meterId})</Link>
+        <span className="text-[11px] text-pa-text-muted">/</span>
+        <span className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{monthLabel}</span>
+        <span className="text-[11px] text-pa-text-muted">({readings?.length ?? 0} lecturas)</span>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">

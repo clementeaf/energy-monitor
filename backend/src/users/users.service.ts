@@ -303,6 +303,14 @@ export class UsersService {
     };
   }
 
+  async deleteUsers(ids: string[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    // Remove associated sites first
+    await this.siteRepo.delete({ userId: In(ids) });
+    const result = await this.userRepo.delete(ids);
+    return result.affected ?? 0;
+  }
+
   private async replaceSites(userId: string, siteIds: string[]) {
     await this.siteRepo.delete({ userId });
 

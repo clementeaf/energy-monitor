@@ -28,7 +28,7 @@ export const fetchBuilding = (name: string) =>
   api.get<BuildingSummary[]>(routes.getBuilding(name)).then((r) => r.data);
 
 export const fetchMeterInfo = (meterId: string) =>
-  api.get<{ meterId: string; storeName: string }>(routes.getMeterInfo(meterId)).then((r) => r.data);
+  api.get<{ meterId: string; storeName: string; buildingName: string | null }>(routes.getMeterInfo(meterId)).then((r) => r.data);
 
 export const fetchMetersByBuilding = (buildingName: string) =>
   api.get<MeterListItem[]>(routes.getMetersByBuilding(buildingName)).then((r) => r.data);
@@ -116,6 +116,9 @@ export const createInvitation = (data: CreateInvitationInput) =>
 
 export const createDirectUser = (data: CreateInvitationInput) =>
   api.post<AdminUser>(routes.createDirectUser(), data).then((r) => r.data);
+
+export const deleteUsers = (ids: string[]) =>
+  api.delete<{ deleted: number }>(routes.deleteUsers(), { data: { ids } }).then((r) => r.data);
 
 export const resendInvitation = (userId: string) =>
   api.post<{ sent: boolean }>(routes.resendInvitation(userId)).then((r) => r.data);

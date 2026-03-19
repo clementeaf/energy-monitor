@@ -58,13 +58,20 @@ export class MetersService {
     }));
   }
 
-  async findStoreName(meterId: string): Promise<string> {
+  async findMeterContext(meterId: string): Promise<{ storeName: string; buildingName: string | null }> {
     const rows = await this.dataSource.query(
-      `SELECT COALESCE(s.store_name, 'Sin información') AS "storeName"
-       FROM store s WHERE s.meter_id = $1 LIMIT 1`,
+      `SELECT
+         COALESCE(s.store_name, 'Sin información') AS "storeName",
+         mmb.building_name AS "buildingName"
+       FROM store s
+       LEFT JOIN meter_monthly_billing mmb ON mmb.meter_id = s.meter_id
+       WHERE s.meter_id = $1
+       LIMIT 1`,
       [meterId],
     );
-    return rows.length > 0 ? rows[0].storeName : 'Sin información';
+    return rows.length > 0
+      ? { storeName: rows[0].storeName, buildingName: rows[0].buildingName ?? null }
+      : { storeName: 'Sin información', buildingName: null };
   }
 
   async findLatestByBuilding(buildingName: string): Promise<MeterLatestReading[]> {

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.74.0-alpha.0] - 2026-03-19 — PERMISOS POR MODO + AUTH REFRESH + BREADCRUMBS + DELETE USERS
+
+### Changed
+- **Modo Operador** — restricciones de vista: sin Comparativas, sin Admin Usuarios, sin Listado Remarcadores, sin drawer Detalle por Tienda
+- **Modo Técnico** — sin acceso a Admin Usuarios en sidebar
+- **Activos Inmobiliarios cards** — layout de grid a flex
+- **Breadcrumbs encadenados** — navegación jerárquica en las 3 subvistas de Activos Inmobiliarios
+- **Endpoint `/meters/:id/info`** — ahora incluye `buildingName` para breadcrumbs
+- **Sidebar active state** — se mantiene activo en `/meters/*` (subvistas de Activos Inmobiliarios)
+- **Auth 401 interceptor** — intenta refresh silencioso MSAL antes de redirigir a login
+- **`resolveBackendUser`** — ya no borra token en errores de red/timeout (solo en 401/403)
+
+### Added
+- **Eliminar usuarios** — botón bulk delete con confirmación en Admin Usuarios (`DELETE /users`)
+- **Código remarcador en header** — visible en modo Operador junto al nombre del edificio
+
+---
+
 ## [0.73.0-alpha.0] - 2026-03-18 — DASHBOARD REFACTOR + CIFRAS MEDIOAMBIENTALES + BACKFILL
 
 ### Changed

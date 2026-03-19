@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useUsers, useCreateInvitation, useCreateDirectUser, useResendInvitation } from '../../hooks/queries/useUsers';
+import { useUsers, useCreateInvitation, useCreateDirectUser, useDeleteUsers, useResendInvitation } from '../../hooks/queries/useUsers';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import type { AdminUser } from '../../services/endpoints';
 
@@ -166,9 +167,11 @@ function UserForm({ mode, onClose }: { mode: 'invite' | 'direct'; onClose: () =>
 export function AdminUsersPage() {
   const { data: users, isLoading } = useUsers();
   const resendMutation = useResendInvitation();
+  const deleteMutation = useDeleteUsers();
   const [formMode, setFormMode] = useState<null | 'invite' | 'direct'>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [resendingIds, setResendingIds] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -210,16 +213,28 @@ export function AdminUsersPage() {
       <SectionBanner title="Administración Usuarios">
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={isResending}
-              className="rounded-lg border border-pa-blue px-3 py-1.5 text-sm font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white disabled:opacity-50"
-            >
-              {isResending
-                ? `Enviando (${resendingIds.size})...`
-                : `Reenviar invitación (${selected.size})`}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={deleteMutation.isPending}
+                className="rounded-lg border border-red-400 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white disabled:opacity-50"
+              >
+                {deleteMutation.isPending
+                  ? 'Eliminando...'
+                  : `Eliminar (${selected.size})`}
+              </button>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                className="rounded-lg border border-pa-blue px-3 py-1.5 text-sm font-medium text-pa-blue transition-colors hover:bg-pa-blue hover:text-white disabled:opacity-50"
+              >
+                {isResending
+                  ? `Enviando (${resendingIds.size})...`
+                  : `Reenviar invitación (${selected.size})`}
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -290,6 +305,22 @@ export function AdminUsersPage() {
           </table>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Eliminar usuarios"
+        message={`Se eliminarán ${selected.size} usuario(s) y sus datos asociados. Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          deleteMutation.mutate([...selected], {
+            onSuccess: () => {
+              setSelected(new Set());
+              setConfirmDelete(false);
+            },
+          });
+        }}
+        onCancel={() => setConfirmDelete(false)}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

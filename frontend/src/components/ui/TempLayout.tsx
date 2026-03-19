@@ -188,6 +188,7 @@ export function TempLayout() {
     selectedStoreMeterId, setSelectedStoreMeterId,
   } = useAppStore();
   const isTecnico = userMode === 'tecnico';
+  const isOperadorMode = userMode === 'operador';
   const { user } = useAuthStore();
   const { logout } = useAuth();
   const { data: filters } = useComparisonFilters();
@@ -198,8 +199,12 @@ export function TempLayout() {
   const navItems = useMemo(() => {
     const items = user?.role ? getNavItems(user.role) : allNavItems;
     // Tecnico: hide Dashboard (financial-only view)
-    return isTecnico ? items.filter((r) => r.path !== '/') : items;
-  }, [user?.role, isTecnico]);
+    // Operador: hide Comparativas (single store, no comparison context)
+    let filtered = items;
+    if (isTecnico) filtered = filtered.filter((r) => r.path !== '/' && r.path !== '/admin/users');
+    if (isOperadorMode) filtered = filtered.filter((r) => r.path !== '/comparisons' && r.path !== '/admin/users');
+    return filtered;
+  }, [user?.role, isTecnico, isOperadorMode]);
 
   const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
@@ -327,7 +332,9 @@ export function TempLayout() {
           {navItems.map((item, i) => {
             const isActive = item.path === '/'
               ? location.pathname === '/'
-              : location.pathname.startsWith(item.path.split(':')[0]);
+              : item.path === '/buildings'
+                ? /^\/(buildings|meters)/.test(location.pathname)
+                : location.pathname.startsWith(item.path.split(':')[0]);
             const num = String(i + 1).padStart(2, '0');
             return (
               <button

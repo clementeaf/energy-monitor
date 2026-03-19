@@ -61,6 +61,7 @@ export const routes = {
   createUser: () => '/users',
   createDirectUser: () => '/users/direct',
 
+  deleteUsers: () => '/users',
   resendInvitation: (userId: string) => `/users/${userId}/resend`,
 
   // Invitations

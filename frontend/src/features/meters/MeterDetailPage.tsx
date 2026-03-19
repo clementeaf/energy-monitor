@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 import { Card } from '../../components/ui/Card';
+import { PillButton } from '../../components/ui/PillButton';
 import { MonthlyColumnChart } from '../../components/charts/MonthlyColumnChart';
 import { MeterDetailSkeleton } from '../../components/ui/Skeleton';
 import { useMeterInfo, useMeterMonthly } from '../../hooks/queries/useMeters';
@@ -26,18 +27,17 @@ export function MeterDetailPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="shrink-0">
-        <div className="mb-2 flex items-center gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-3 py-1 text-sm text-muted hover:text-text"
-          >
-            &larr; Volver
-          </button>
-          <span className="text-sm text-muted">{meterInfo?.storeName ?? '—'}</span>
-          <span className="text-sm text-muted">&middot;</span>
-          <span className="text-sm font-semibold text-text">{meterId}</span>
-        </div>
+      <div className="mb-3 ml-4 flex shrink-0 flex-wrap items-center gap-2 lg:gap-3">
+        <PillButton onClick={() => navigate(meterInfo?.buildingName ? `/buildings/${encodeURIComponent(meterInfo.buildingName)}` : '/buildings')}>&larr; Volver</PillButton>
+        <Link to="/buildings" className="text-[13px] text-pa-text-muted hover:text-pa-blue">Activos Inmobiliarios</Link>
+        <span className="text-[11px] text-pa-text-muted">/</span>
+        {meterInfo?.buildingName && (
+          <>
+            <Link to={`/buildings/${encodeURIComponent(meterInfo.buildingName)}`} className="text-[13px] text-pa-text-muted hover:text-pa-blue">{meterInfo.buildingName}</Link>
+            <span className="text-[11px] text-pa-text-muted">/</span>
+          </>
+        )}
+        <span className="text-[13px] font-bold uppercase tracking-wide text-pa-navy">{meterInfo?.storeName ?? '—'} ({meterId})</span>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">

@@ -24,31 +24,35 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-03-19)
+- Permisos por modo: Operador sin Comparativas/Admin/Remarcadores/Drawer; Técnico sin Admin
+- Auth refresh: interceptor 401 intenta MSAL silent refresh antes de redirigir
+- Breadcrumbs encadenados en subvistas Activos Inmobiliarios
+- Eliminar usuarios bulk con confirmación (backend + frontend)
+- Activos Inmobiliarios cards de grid a flex
+- Sidebar mantiene active en subvistas `/meters/*`
+
 ### Completado (2026-03-18)
 - Auth completo: login, admin usuarios, SES sandbox, Google/Microsoft
 - Dashboard refactor: flex layout, componentes extraídos, ~400 líneas
 - Dashboard: consumo en mWh, Cifras Medioambientales toggle, Comparativa drawer
-- Dashboard: PillDropdownMulti, rendimiento consumo/ingreso, última actualización en cards
-- offlineAlerts Lambda: creada y funcionando (detecta meters offline)
-- backfill voltage/current: MM, OT, SC52, SC53 completados en RDS
-- Usuario aportilla@globepower.cl agregado como SUPER_ADMIN
-- RDS limpieza: _vcf_tmp eliminada (442 MB), Parque Arauco Concon eliminado
-- Soporte sidebar: aportilla@globepower.cl, 227810274
+- offlineAlerts Lambda OK. Backfill voltage MM/OT/SC52/SC53 OK
+- Usuario aportilla@globepower.cl SUPER_ADMIN. Soporte sidebar actualizado
 
 ### Pendiente
 - Quitar `@Public()` de controllers backend (activar auth real)
 - Solicitar salida de SES sandbox (consola AWS)
-- Nav items condicionales por rol
-- Backfill voltage/current MG (403/446 meters pendientes — requiere dividir por rangos)
-- Cifras Medioambientales: columnas con datos reales (actualmente solo Activos Inmobiliarios)
+- Backfill voltage/current MG (403/446 meters pendientes)
+- Cifras Medioambientales: columnas con datos reales
 - Costo por Centro (pendiente definición con cliente)
+- DNS plataforma.globepower.cl: validar CNAME en GoDaddy + alias CloudFront
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Dashboard refactorizado (flex, mWh, Cifras Medioambientales, Comparativa).
-offlineAlerts Lambda OK. Backfill voltage MM/OT/SC52/SC53 OK, MG pendiente.
-Pendiente: quitar @Public, SES production, nav por rol, backfill MG.
+Permisos por modo OK (Operador/Técnico restricciones). Auth refresh MSAL OK.
+Breadcrumbs Activos Inmobiliarios OK. Delete users OK.
+Pendiente: quitar @Public, SES production, backfill MG, DNS globepower.
 ```
 
 ## Prioridad Actual de Acceso

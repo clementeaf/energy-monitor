@@ -15,7 +15,7 @@ import type { BuildingSummary } from '../../types';
 
 function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <div>
+    <div className="min-w-[calc(50%-0.375rem)] flex-1">
       <p className="text-xs text-muted">{label}</p>
       <p className="text-sm font-medium text-text">
         {value}{unit && <span className="ml-0.5 text-xs font-normal text-muted">{unit}</span>}
@@ -72,11 +72,11 @@ export function BuildingsPage() {
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto pb-4">
-        <div className="grid grid-cols-1 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="flex flex-wrap content-start gap-4">
           {cards.map((b) => (
             <Card
               key={b.buildingName}
-              className="space-y-3 !rounded-2xl border border-pa-navy/30"
+              className="w-full space-y-3 !rounded-2xl border border-pa-navy/30 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.75rem)] xl:w-[calc(25%-0.75rem)]"
             >
               <div className="flex items-center justify-between gap-2">
                 <h3 className="truncate font-semibold text-text">{b.buildingName}</h3>
@@ -93,7 +93,7 @@ export function BuildingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Stat label="Consumo" value={fmt(b.totalKwh)} unit="kWh" />
                 <Stat label="Potencia Activa prom." value={fmt(b.avgPowerKw)} unit="kW" />
                 <Stat label="Demanda peak" value={fmt(b.peakDemandKw)} unit="kW" />

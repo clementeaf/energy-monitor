@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchUsers, createInvitation, createDirectUser, resendInvitation, type CreateInvitationInput } from '../../services/endpoints';
+import { fetchUsers, createInvitation, createDirectUser, deleteUsers, resendInvitation, type CreateInvitationInput } from '../../services/endpoints';
 
 export function useUsers() {
   return useQuery({
@@ -20,6 +20,14 @@ export function useCreateDirectUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateInvitationInput) => createDirectUser(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
+
+export function useDeleteUsers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => deleteUsers(ids),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
 }

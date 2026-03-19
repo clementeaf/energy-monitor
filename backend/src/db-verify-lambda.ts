@@ -401,6 +401,36 @@ export const handler = async () => {
     const areaLog = await updateBuildingAreas(client);
     log.push('=== Building Areas ===', ...areaLog);
 
+    // Diagnostics: table sizes
+    const { rows: sizes } = await client.query(`
+      SELECT tablename,
+        pg_size_pretty(pg_total_relation_size('public.' || tablename)) AS size,
+        pg_total_relation_size('public.' || tablename) AS bytes
+      FROM pg_tables WHERE schemaname = 'public'
+      ORDER BY pg_total_relation_size('public.' || tablename) DESC
+    `);
+    log.push('=== Table Sizes ===');
+    for (const r of sizes) {
+      log.push(`  ${r.tablename}: ${r.size}`);
+    }
+
+    // Cleanup: drop orphan temp tables and unused old-schema tables
+    const dropTargets = ['_vcf_tmp', 'readings_import_staging', 'staging_centers'];
+    log.push('=== Cleanup ===');
+    for (const t of dropTargets) {
+      const { rowCount } = await client.query(`SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = $1`, [t]);
+      if (rowCount && rowCount > 0) {
+        await client.query(`DROP TABLE IF EXISTS ${t} CASCADE`);
+        log.push(`  Dropped ${t}`);
+      }
+    }
+
+    // Delete Parque Arauco Concon if exists
+    const { rowCount: conconRows } = await client.query(`DELETE FROM building_summary WHERE building_name = 'Parque Arauco Concon'`);
+    if (conconRows && conconRows > 0) {
+      log.push(`  Deleted ${conconRows} Parque Arauco Concon rows`);
+    }
+
     return { statusCode: 200, body: log };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

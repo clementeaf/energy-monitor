@@ -187,7 +187,8 @@ async function createAuthTables(client: Client): Promise<string[]> {
     INSERT INTO users (email, name, role_id, user_mode, is_active) VALUES
       ('carriagadafalcone@gmail.com', 'Clemente Falcone', 1, 'holding', true),
       ('carriagada@grupobanados.com', 'Clemente Arriagada', 2, 'holding', true),
-      ('darwin@hoktus.com', 'Darwin', 1, 'holding', true)
+      ('darwin@hoktus.com', 'Darwin', 1, 'holding', true),
+      ('aportilla@globepower.cl', 'Andrés Portilla', 1, 'holding', true)
     ON CONFLICT DO NOTHING
   `);
   log.push('Seeded roles, actions, modules, permissions, initial users');

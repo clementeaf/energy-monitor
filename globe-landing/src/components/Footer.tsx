@@ -26,8 +26,7 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-3">Contacto</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>aportilla@globepower.cl</li>
-              <li>+56 9 5780 9131</li>
+              <li>comercial@globepower.cl</li>
               <li>www.globepower.com</li>
             </ul>
           </div>

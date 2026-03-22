@@ -24,22 +24,17 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-19)
-- Auth real: `@Public()` eliminado, JWT requerido en todos los endpoints
-- Queries optimizadas: `findByBuilding` 1227ms→3ms, `findLatestByBuilding` 500ms→1ms
-- Synthetic generator: 15 min, prune + cache refresh
-- Comparativas: barras=tiendas, dual chart agrupado, filtros dinámicos, Multi Op restringido
-- Cifras Medioambientales: datos XLSX "SIM 2025" 5 Activos, ABL, Intensidad, Factor
-- Fix building names "Mallplaza" → PASA, dbVerify canonicalización
-- Dashboard: título simplificado, filtro meses >= 2025-01
-- Backfill MG voltage: en progreso (auto-retry, ~105/446 completados)
+### Completado (2026-03-22)
+- Globe Landing: email comercial@globepower.cl, sin teléfono, sin nombre personal
+- Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
+- Limpieza docs/: 20 archivos obsoletos eliminados
 
-### Completado (2026-03-18)
-- Auth completo, dashboard refactor, Comparativa drawer, offlineAlerts Lambda
-- Backfill voltage MM/OT/SC52/SC53, usuario aportilla SUPER_ADMIN
+### Completado (2026-03-19)
+- Auth real, queries optimizadas, synthetic 15 min, comparativas rediseñada
+- Cifras Medioambientales, fix building names, dashboard filtro meses
 
 ### Pendiente
-- Verificar backfill MG completado (logs CloudWatch) + re-ejecutar dbVerify para is_three_phase
+- Verificar backfill MG completado + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: CNAME GoDaddy + alias CloudFront
@@ -47,8 +42,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Auth real OK. Queries optimizadas. Comparativas rediseñada. Cifras Medioambientales OK.
-Pendiente: verificar backfill MG, SES sandbox, DNS globepower.
+Globe Landing desplegado en globepower.cl (email comercial, sin teléfono).
+Pendiente: backfill MG, SES sandbox, DNS globepower.
 ```
 
 ## Prioridad Actual de Acceso

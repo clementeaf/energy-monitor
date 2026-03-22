@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.77.0-alpha.0] - 2026-03-22 — GLOBE LANDING + LIMPIEZA DOCS
+
+### Changed
+- **Globe Landing contacto** — email a comercial@globepower.cl, eliminado teléfono y nombre personal
+- **Globe Landing deploy** — desplegado en globepower.cl (CloudFront `EHRW4X3FSU1YQ` → S3 raíz)
+
+### Removed
+- **docs/** — 20 archivos obsoletos eliminados (screenshots, PDFs, specs y planes ya procesados)
+
+---
+
 ## [0.76.0-alpha.0] - 2026-03-19 — COMPARATIVAS + CIFRAS MEDIOAMBIENTALES + FIX BUILDING NAMES
 
 ### Changed

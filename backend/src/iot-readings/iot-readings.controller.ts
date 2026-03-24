@@ -91,6 +91,17 @@ export class IotReadingsController {
     return this.service.getMeterReadings(deviceId, range.from, range.to, limit ? parseInt(limit, 10) : undefined);
   }
 
+  @Get('alerts')
+  @ApiOperation({ summary: 'Alertas generadas desde anomalías IoT' })
+  @ApiQuery({ name: 'severity', required: false })
+  @ApiQuery({ name: 'device_id', required: false })
+  async getAlerts(
+    @Query('severity') severity?: string,
+    @Query('device_id') deviceId?: string,
+  ) {
+    return this.service.getAlerts({ severity, deviceId });
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Estadísticas resumen de lecturas IoT' })
   @ApiQuery({ name: 'deviceId', required: true })

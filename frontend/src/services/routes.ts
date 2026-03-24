@@ -107,4 +107,11 @@ export const routes = {
     const s = qs.toString();
     return `/alerts${s ? `?${s}` : ''}`;
   },
+  getIotAlerts: (params?: { severity?: string; device_id?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.severity) qs.set('severity', params.severity);
+    if (params?.device_id) qs.set('device_id', params.device_id);
+    const s = qs.toString();
+    return `/iot-readings/alerts${s ? `?${s}` : ''}`;
+  },
 };

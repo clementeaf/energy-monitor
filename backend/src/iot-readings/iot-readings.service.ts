@@ -215,6 +215,118 @@ export class IotReadingsService {
     }));
   }
 
+  /** Alert-compatible: generate alerts from iot_readings anomalies */
+  async getAlerts(filters?: { severity?: string; deviceId?: string }) {
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (filters?.deviceId) {
+      conditions.push(`r.device_id = $${idx++}`);
+      params.push(filters.deviceId);
+    }
+
+    const deviceFilter = conditions.length ? `AND ${conditions.join(' AND ')}` : '';
+
+    // Generate alerts on-the-fly from anomalous readings
+    const rows = await this.dataSource.query(`
+      WITH anomalies AS (
+        SELECT
+          r.id,
+          r.device_id,
+          r.device_name,
+          r.timestamp,
+          CASE
+            WHEN r.voltage_avg < 200 THEN 'LOW_VOLTAGE'
+            WHEN r.voltage_avg > 250 THEN 'HIGH_VOLTAGE'
+            WHEN r.power_factor IS NOT NULL AND r.power_factor < 0.85 THEN 'LOW_POWER_FACTOR'
+            WHEN r.active_power_w > 50000 THEN 'HIGH_POWER'
+            WHEN r.thd_voltage_l1_pct > 8 OR r.thd_voltage_l2_pct > 8 OR r.thd_voltage_l3_pct > 8 THEN 'HIGH_THD_VOLTAGE'
+            WHEN r.thd_current_l1_pct > 20 OR r.thd_current_l2_pct > 20 OR r.thd_current_l3_pct > 20 THEN 'HIGH_THD_CURRENT'
+          END AS alert_type,
+          CASE
+            WHEN r.voltage_avg < 200 OR r.voltage_avg > 250 THEN 'HIGH'
+            WHEN r.power_factor IS NOT NULL AND r.power_factor < 0.85 THEN 'MEDIUM'
+            WHEN r.active_power_w > 50000 THEN 'HIGH'
+            WHEN r.thd_voltage_l1_pct > 8 OR r.thd_voltage_l2_pct > 8 OR r.thd_voltage_l3_pct > 8 THEN 'MEDIUM'
+            WHEN r.thd_current_l1_pct > 20 OR r.thd_current_l2_pct > 20 OR r.thd_current_l3_pct > 20 THEN 'MEDIUM'
+          END AS severity,
+          CASE
+            WHEN r.voltage_avg < 200 THEN 'voltage_avg'
+            WHEN r.voltage_avg > 250 THEN 'voltage_avg'
+            WHEN r.power_factor IS NOT NULL AND r.power_factor < 0.85 THEN 'power_factor'
+            WHEN r.active_power_w > 50000 THEN 'active_power_w'
+            WHEN r.thd_voltage_l1_pct > 8 THEN 'thd_voltage_l1_pct'
+            WHEN r.thd_voltage_l2_pct > 8 THEN 'thd_voltage_l2_pct'
+            WHEN r.thd_voltage_l3_pct > 8 THEN 'thd_voltage_l3_pct'
+            WHEN r.thd_current_l1_pct > 20 THEN 'thd_current_l1_pct'
+            WHEN r.thd_current_l2_pct > 20 THEN 'thd_current_l2_pct'
+            WHEN r.thd_current_l3_pct > 20 THEN 'thd_current_l3_pct'
+          END AS field,
+          CASE
+            WHEN r.voltage_avg < 200 THEN r.voltage_avg
+            WHEN r.voltage_avg > 250 THEN r.voltage_avg
+            WHEN r.power_factor IS NOT NULL AND r.power_factor < 0.85 THEN r.power_factor
+            WHEN r.active_power_w > 50000 THEN r.active_power_w
+            WHEN r.thd_voltage_l1_pct > 8 THEN r.thd_voltage_l1_pct
+            WHEN r.thd_voltage_l2_pct > 8 THEN r.thd_voltage_l2_pct
+            WHEN r.thd_voltage_l3_pct > 8 THEN r.thd_voltage_l3_pct
+            WHEN r.thd_current_l1_pct > 20 THEN r.thd_current_l1_pct
+            WHEN r.thd_current_l2_pct > 20 THEN r.thd_current_l2_pct
+            WHEN r.thd_current_l3_pct > 20 THEN r.thd_current_l3_pct
+          END::float AS value,
+          CASE
+            WHEN r.voltage_avg < 200 THEN 200
+            WHEN r.voltage_avg > 250 THEN 250
+            WHEN r.power_factor IS NOT NULL AND r.power_factor < 0.85 THEN 0.85
+            WHEN r.active_power_w > 50000 THEN 50000
+            WHEN r.thd_voltage_l1_pct > 8 OR r.thd_voltage_l2_pct > 8 OR r.thd_voltage_l3_pct > 8 THEN 8
+            WHEN r.thd_current_l1_pct > 20 OR r.thd_current_l2_pct > 20 OR r.thd_current_l3_pct > 20 THEN 20
+          END::float AS threshold
+        FROM iot_readings r
+        WHERE (
+          r.voltage_avg < 200 OR r.voltage_avg > 250
+          OR (r.power_factor IS NOT NULL AND r.power_factor < 0.85)
+          OR r.active_power_w > 50000
+          OR r.thd_voltage_l1_pct > 8 OR r.thd_voltage_l2_pct > 8 OR r.thd_voltage_l3_pct > 8
+          OR r.thd_current_l1_pct > 20 OR r.thd_current_l2_pct > 20 OR r.thd_current_l3_pct > 20
+        )
+        ${deviceFilter}
+      )
+      SELECT * FROM anomalies
+      ${filters?.severity ? `WHERE severity = $${idx}` : ''}
+      ORDER BY timestamp DESC
+      LIMIT 500
+    `, filters?.severity ? [...params, filters.severity] : params);
+
+    return rows.map((r: Record<string, unknown>) => ({
+      id: r.id,
+      meterId: r.device_id,
+      timestamp: r.timestamp,
+      alertType: r.alert_type,
+      severity: r.severity,
+      field: r.field,
+      value: r.value,
+      threshold: r.threshold,
+      message: this.alertMessage(String(r.alert_type), r.field as string, r.value as number, r.threshold as number),
+      createdAt: r.timestamp,
+      storeName: r.device_name || '',
+      buildingName: r.device_name || '',
+    }));
+  }
+
+  private alertMessage(alertType: string, field: string, value: number, threshold: number): string {
+    const messages: Record<string, string> = {
+      LOW_VOLTAGE: `Voltaje bajo: ${value?.toFixed(1)}V (mín ${threshold}V)`,
+      HIGH_VOLTAGE: `Voltaje alto: ${value?.toFixed(1)}V (máx ${threshold}V)`,
+      LOW_POWER_FACTOR: `Factor de potencia bajo: ${value?.toFixed(3)} (mín ${threshold})`,
+      HIGH_POWER: `Potencia activa alta: ${(value / 1000)?.toFixed(1)}kW (máx ${(threshold / 1000)?.toFixed(1)}kW)`,
+      HIGH_THD_VOLTAGE: `THD voltaje alto en ${field}: ${value?.toFixed(1)}% (máx ${threshold}%)`,
+      HIGH_THD_CURRENT: `THD corriente alto en ${field}: ${value?.toFixed(1)}% (máx ${threshold}%)`,
+    };
+    return messages[alertType] || `Anomalía en ${field}`;
+  }
+
   async getStats(deviceId: string, from: string, to: string) {
     const rows = await this.dataSource.query(
       `SELECT

@@ -81,6 +81,9 @@ export const fetchStoreTypes = () =>
 export const fetchAlerts = (params?: { severity?: string; meter_id?: string }) =>
   api.get<Alert[]>(routes.getAlerts(params)).then((r) => r.data);
 
+export const fetchIotAlerts = (params?: { severity?: string; device_id?: string }) =>
+  api.get<Alert[]>(routes.getIotAlerts(params)).then((r) => r.data);
+
 // --- IoT Readings (Siemens) ---
 
 export const fetchIotLatest = (deviceId: string) =>

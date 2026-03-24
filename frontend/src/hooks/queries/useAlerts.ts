@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchAlerts, fetchIotAlerts } from '../../services/endpoints';
-import { useAppStore } from '../../stores/useAppStore';
+import { useAppStore } from '../../store/useAppStore';
 
 export function useAlerts(params?: { severity?: string; meter_id?: string }) {
   const theme = useAppStore((s) => s.theme);

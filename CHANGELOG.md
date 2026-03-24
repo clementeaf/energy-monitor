@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.78.0-alpha.0] - 2026-03-24 — IOT CORE SIEMENS + MULTI-TEMA
+
+### Added
+- **AWS IoT Core** — Thing `siemens-poc3000`, certificados TLS, policy `powercenter/*`
+- **Regla IoT → S3** — `powercenter_to_s3` deposita mensajes en `s3://energy-monitor-ingest-058310292956/raw/iot/powercenter/data/`
+- **Lambda `iot-ingest-dev-ingest`** — cada 15 min procesa S3 → tabla `iot_readings` en RDS (deduplicación por unique index)
+- **Tabla `iot_readings`** — 28 columnas eléctricas (voltaje 3F, corriente 3F, potencia activa/reactiva/aparente, FP, frecuencia, energía, THD, demanda punta) + `raw_json` JSONB con las 451 variables del POC3000
+- **Backend `IotReadingsModule`** — 8 endpoints read-only: `latest`, `timeseries` (resolución raw/hour/day), `readings` paginadas, `stats`, `buildings` (formato BuildingSummary), `meters-latest` (formato MeterLatestReading), `monthly` (formato MeterMonthly), `meter-readings` (formato MeterReading)
+- **Multi-tema frontend** — toggle PASA/Siemens en sidebar, colores vía CSS variables `[data-theme="siemens"]`
+- **Colores Siemens** — teal `#009999`, navy `#00646E`, amber `#E6830F`, fondo `#F3F3F0`
+- **Logo y tab dinámicos** — favicon y título del navegador cambian según tema
+- **StockChart `variant="light"`** — tema claro para gráficos (fondo blanco, bordes grises)
+- **Gráficos theme-aware** — colores de series leen CSS variables dinámicamente via `getChartColors()`
+- **Scripts verificación IoT** — `infra/iot-verify/verify.sh` (estado completo) y `query.sh` (consultar datos)
+- **Lambda `external-ingest`** — API REST con API Key para ingesta genérica (backup, no usado por Siemens)
+
+### Changed
+- **Hooks theme-aware** — `useBuildings`, `useAllMetersLatest`, `useMeterMonthly`, `useMeterReadings`, `useMeterInfo` detectan tema y consultan `iot_readings` o tablas PASA según corresponda
+- **BuildingsPage** — "Ver más" navega a `/meters/{deviceId}` en Siemens; oculta CRUD
+- **DashboardPage** — redirige a `/buildings` cuando tema es Siemens (sin datos financieros)
+- **TempLayout sidebar** — oculta Dashboard, Comparativas y Admin para Siemens; oculta selectores modo/operador/edificio
+- **`index.html`** — título genérico "Energy Monitor" (tema lo ajusta al entrar)
+- **`chartConfig.ts`** — colores via `getChartColors()` / `getSeriesColors()` con CSS variables dinámicas
+- **`useAppStore`** — nuevo campo `theme` (`'pasa' | 'siemens'`) persistido en sessionStorage
+
+### Infrastructure
+- **IoT Core** — endpoint `a3ledoeiifsfil-ats.iot.us-east-1.amazonaws.com:8883`, cert activo, policy permite `meters/*` y `powercenter/*`
+- **Siemens conectado** — POC3000 "Medidor Servidores" enviando 451 variables cada 15 min vía MQTT
+- **S3** — datos en `raw/iot/powercenter/data/{fecha}/{hora}-{uuid}.json` (~79 KB/msg)
+- **RDS** — tabla `iot_readings` con unique index `(device_id, timestamp)`, 62+ registros y creciendo
+
+---
+
 ## [0.77.0-alpha.0] - 2026-03-22 — GLOBE LANDING + LIMPIEZA DOCS
 
 ### Changed

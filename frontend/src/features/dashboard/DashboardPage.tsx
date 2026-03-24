@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useAppStore } from '../../store/useAppStore';
 import { Card } from '../../components/ui/Card';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
@@ -74,6 +75,12 @@ function daysOverdue(dueDate: string): number {
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const theme = useAppStore((s) => s.theme);
+
+  // Siemens has no financial dashboard — redirect to buildings
+  useEffect(() => {
+    if (theme === 'siemens') navigate('/buildings', { replace: true });
+  }, [theme, navigate]);
   const { isFilteredMode, isTecnico, needsSelection, operatorBuildings, selectedOperator, selectedStoreName } = useOperatorFilter();
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: payments } = useDashboardPayments();

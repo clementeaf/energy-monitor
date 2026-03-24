@@ -1,0 +1,53 @@
+service: iot-ingest
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 120
+  environment:
+    INGEST_BUCKET: energy-monitor-ingest-058310292956
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME}
+    DB_USERNAME: ${env:DB_USERNAME}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    NODE_ENV: production
+  vpc:
+    securityGroupIds:
+      - ${env:VPC_SECURITY_GROUP_ID}
+    subnetIds:
+      - ${env:VPC_SUBNET_ID_1}
+      - ${env:VPC_SUBNET_ID_2}
+      - ${env:VPC_SUBNET_ID_3}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::energy-monitor-ingest-058310292956
+            - arn:aws:s3:::energy-monitor-ingest-058310292956/raw/iot/*
+
+functions:
+  ingest:
+    handler: handler.handler
+    description: Process IoT POC3000 data from S3 into RDS iot_readings table
+    events:
+      - schedule:
+          rate: rate(15 minutes)
+          enabled: true
+
+package:
+  patterns:
+    - 'handler.js'
+    - 'node_modules/**'
+    - '!src/**'
+    - '!*.ts'
+    - '!tsconfig.json'

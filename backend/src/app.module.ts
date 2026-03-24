@@ -16,6 +16,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ComparisonsModule } from './comparisons/comparisons.module';
 import { EmailModule } from './email/email.module';
+import { IotReadingsModule } from './iot-readings/iot-readings.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { EmailModule } from './email/email.module';
     AlertsModule,
     DashboardModule,
     ComparisonsModule,
+    IotReadingsModule,
   ],
 })
 export class AppModule {}

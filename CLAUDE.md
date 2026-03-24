@@ -24,38 +24,43 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
-### Completado (2026-03-22)
-- Globe Landing: email comercial@globepower.cl, sin teléfono, sin nombre personal
-- Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
-- Limpieza docs/: 20 archivos obsoletos eliminados
+### Completado (2026-03-24)
+- IoT Core Siemens: Thing `siemens-poc3000`, certs TLS, policy `powercenter/*`, regla S3
+- Lambda `iot-ingest`: S3 → tabla `iot_readings` cada 15 min, deduplicación unique index
+- Multi-tema frontend: toggle PASA/Siemens, colores CSS variables, logo/favicon/título dinámicos
+- Backend `IotReadingsModule`: 8 endpoints PASA-compatibles desde `iot_readings`
+- Hooks theme-aware: mismas vistas, distinta fuente de datos según tema
+- Siemens POC3000 conectado y enviando 451 variables cada 15 min
 
-### Completado (2026-03-19)
-- Auth real, queries optimizadas, synthetic 15 min, comparativas rediseñada
-- Cifras Medioambientales, fix building names, dashboard filtro meses
+### Completado (2026-03-22)
+- Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- Verificar backfill MG completado + re-ejecutar dbVerify para is_three_phase
+- Deploy frontend + backend con cambios multi-tema a producción
+- Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: CNAME GoDaddy + alias CloudFront
+- Reemplazar SVG placeholder Siemens con logo oficial
+- Cuenta AWS `058310292956`: configurar método de pago (sin billing activo)
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-Globe Landing desplegado en globepower.cl (email comercial, sin teléfono).
-Pendiente: backfill MG, SES sandbox, DNS globepower.
+IoT Siemens operativo (POC3000 cada 15 min → iot_readings).
+Multi-tema PASA/Siemens implementado, pendiente deploy prod.
 ```
 
 ## Prioridad Actual de Acceso
 `rol → vistas → acciones`. Un usuario invitado entra con rol asignado que define qué vistas y acciones puede ejecutar.
 
 ## Project Overview
-Plataforma de monitoreo energético en tiempo real para edificios comerciales. 875 medidores en 5 edificios, drill-down jerárquico, alertas, uptime tracking, Highcharts Stock interactivos.
+Plataforma de monitoreo energético multi-cliente. Dos temas: **PASA** (875 medidores PAC en 5 edificios, billing, drill-down jerárquico) y **Siemens** (POC3000 vía IoT Core MQTT, datos eléctricos puros). Mismas vistas, distinta fuente de datos según tema.
 
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
-- **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge
+- **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
 - **Testing:** Jest 29 (backend, suite mínima). Frontend sin tests.
 
@@ -69,11 +74,15 @@ CloudFront (energymonitor.click)
 EventBridge (15 min) → Lambda synthetic-readings-generator → RDS (+ prune + cache refresh)
 EventBridge (5 min) → Lambda offlineAlerts → RDS
 EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→RDS
+
+Siemens POC3000 → MQTT (IoT Core) → Rule powercenter_to_s3 → S3
+EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 ```
 
 ## Frontend Patterns
 - **API layer (3-file):** `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use<Entity>.ts`
-- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator + selectedBuilding + selectedStoreMeterId)
+- **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator + selectedBuilding + selectedStoreMeterId + theme)
+- **Multi-tema:** `useAppStore.theme` (`'pasa'|'siemens'`) → CSS variables `[data-theme="siemens"]` en `<html>` + hooks detectan tema y cambian fuente de datos. Config en `lib/themes.ts`
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
@@ -89,6 +98,7 @@ EventBridge (daily 03:00 Chile) → ECS Fargate drive-pipeline → Drive→S3→
 - **Validation:** Global ValidationPipe({ whitelist, transform }). DTOs con class-validator.
 - **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Prod: `/api/spec` (JSON), `/api/docs` (redirige a UI pública). Dev: UI embebida en `/api/docs`
 - **Error handling:** service null → controller NotFoundException; auth null on failure
+- **IoT module:** `IotReadingsModule` — read-only endpoints desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh)
 
 ## Data Flow (end-to-end)
 ```

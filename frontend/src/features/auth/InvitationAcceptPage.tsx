@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { validateInvitation, type InvitationValidation } from '../../services/endpoints';
-import paIcon from '../../assets/pa-icon.png';
+import { useAppStore } from '../../store/useAppStore';
+import { THEMES } from '../../lib/themes';
 
 const INVITATION_TOKEN_KEY = 'invitation_token';
 
@@ -11,6 +12,7 @@ export function InvitationAcceptPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, error, login, loginGoogle } = useAuth();
+  const theme = useAppStore((s) => s.theme);
   const [invitation, setInvitation] = useState<InvitationValidation | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [activeProvider, setActiveProvider] = useState<null | 'microsoft' | 'google'>(null);
@@ -75,7 +77,7 @@ export function InvitationAcceptPage() {
         {/* Header */}
         <div className="mb-6 flex flex-col items-center gap-3">
           <div className="h-12 w-12 overflow-hidden">
-            <img src={paIcon} alt="Parque Arauco" className="h-12 w-auto max-w-none" />
+            <img src={THEMES[theme].logo} alt={THEMES[theme].logoAlt} className="h-12 w-auto max-w-none" />
           </div>
           <div className="text-center">
             <h1 className="text-lg font-semibold text-pa-navy">Energy Monitor</h1>

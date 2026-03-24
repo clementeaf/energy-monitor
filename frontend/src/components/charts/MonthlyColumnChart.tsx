@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { MONTH_NAMES_SHORT } from '../../lib/constants';
-import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../lib/chartConfig';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, type ChartType } from '../../lib/chartConfig';
 import { TogglePills } from '../ui/TogglePills';
 
 const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
@@ -12,7 +12,7 @@ const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
   { value: 'pie', label: 'Torta' },
 ];
 
-const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#10B981', '#A855F7', '#EF4444'];
+const getPieColors = () => getSeriesColors();
 
 function monthLabel(iso: string): string {
   const m = new Date(iso).getMonth();
@@ -65,7 +65,7 @@ export function MonthlyColumnChart({ data, label, unit, chartType, onChartTypeCh
           data: data.map((d, i) => ({
             name: categories[i],
             y: d.value ?? 0,
-            color: PIE_COLORS[i % PIE_COLORS.length],
+            color: getPieColors()[i % getPieColors().length],
           })),
         }],
         legend: { enabled: false },

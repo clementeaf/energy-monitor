@@ -1,10 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchBuildings, fetchBuilding, createBuilding, updateBuilding, deleteBuilding } from '../../services/endpoints';
+import { fetchBuildings, fetchBuilding, createBuilding, updateBuilding, deleteBuilding, fetchIotBuildings } from '../../services/endpoints';
+import { useAppStore } from '../../store/useAppStore';
 
 export function useBuildings() {
+  const theme = useAppStore((s) => s.theme);
+  const isSiemens = theme === 'siemens';
   return useQuery({
-    queryKey: ['buildings'],
-    queryFn: fetchBuildings,
+    queryKey: ['buildings', theme],
+    queryFn: isSiemens ? fetchIotBuildings : fetchBuildings,
   });
 }
 

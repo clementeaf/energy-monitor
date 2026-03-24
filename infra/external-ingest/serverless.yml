@@ -1,0 +1,75 @@
+service: external-ingest
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 30
+  environment:
+    INGEST_BUCKET: energy-monitor-ingest-058310292956
+    INGEST_PREFIX: raw/external
+    NODE_ENV: production
+  apiGateway:
+    apiKeys:
+      - name: external-ingest-key-${self:provider.stage}
+        description: API Key for external meter data providers
+    usagePlan:
+      quota:
+        limit: 10000
+        period: DAY
+      throttle:
+        burstLimit: 50
+        rateLimit: 20
+    binaryMediaTypes:
+      - '*/*'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            - arn:aws:s3:::energy-monitor-ingest-058310292956/raw/external/*
+
+functions:
+  ingest:
+    handler: handler.ingest
+    description: Receive external meter data (any format) and store in S3
+    memorySize: 512
+    timeout: 30
+    events:
+      - http:
+          path: /ingest
+          method: post
+          private: true
+
+  uploadUrl:
+    handler: handler.uploadUrl
+    description: Generate presigned URL for large file uploads
+    events:
+      - http:
+          path: /ingest/upload-url
+          method: post
+          private: true
+
+  status:
+    handler: handler.status
+    description: Healthcheck endpoint
+    events:
+      - http:
+          path: /ingest/status
+          method: get
+
+package:
+  patterns:
+    - 'handler.js'
+    - 'node_modules/**'
+    - '!src/**'
+    - '!dist/**'
+    - '!*.ts'
+    - '!tsconfig.json'

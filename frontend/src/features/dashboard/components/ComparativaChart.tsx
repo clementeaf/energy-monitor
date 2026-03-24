@@ -3,10 +3,10 @@ import Highcharts from 'highcharts';
 import { PillDropdownMulti } from '../../../components/ui/PillDropdownMulti';
 import { fmtClp, monthName } from '../../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../../lib/constants';
-import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE } from '../../../lib/chartConfig';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, getChartColors } from '../../../lib/chartConfig';
 import type { DashboardBuildingMonth } from '../../../types';
 
-const SERIES_COLORS = [CHART_COLORS.blue, CHART_COLORS.coral, '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
+const getColors = () => getSeriesColors();
 
 interface Props {
   data: DashboardBuildingMonth[] | undefined;
@@ -79,7 +79,7 @@ export function ComparativaChart({ data }: Props) {
       });
       return {
         name: SHORT_BUILDING_NAMES[bldg] ?? bldg,
-        color: SERIES_COLORS[i % SERIES_COLORS.length],
+        color: getColors()[i % getColors().length],
         consumoData,
         ingresoData,
       };
@@ -95,7 +95,7 @@ export function ComparativaChart({ data }: Props) {
       consumoChart.current?.destroy();
       consumoChart.current = Highcharts.chart({
         chart: { type: 'column', backgroundColor: '#ffffff', borderRadius: 12, renderTo: consumoRef.current, height: 250 },
-        title: { text: 'Consumo (Mwh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
+        title: { text: 'Consumo (Mwh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: getChartColors().navy } },
         xAxis: { categories, labels: { style: { fontSize: '12px', color: '#6B7280' } }, lineColor: '#E5E7EB' },
         yAxis: {
           title: { text: undefined },
@@ -106,7 +106,7 @@ export function ComparativaChart({ data }: Props) {
         tooltip: {
           shared: true, useHTML: true, ...LIGHT_TOOLTIP_STYLE,
           formatter() {
-            let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
+            let html = `<b style="color:${getChartColors().navy}">${this.x}</b><br/>`;
             for (const p of this.points!) {
               html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${(p.y ?? 0).toLocaleString('es-CL')} Mwh</b><br/>`;
             }
@@ -124,7 +124,7 @@ export function ComparativaChart({ data }: Props) {
       ingresoChart.current?.destroy();
       ingresoChart.current = Highcharts.chart({
         chart: { type: 'column', backgroundColor: '#ffffff', borderRadius: 12, renderTo: ingresoRef.current, height: 250 },
-        title: { text: 'Ingreso (CLP)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
+        title: { text: 'Ingreso (CLP)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: getChartColors().navy } },
         xAxis: { categories, labels: { style: { fontSize: '12px', color: '#6B7280' } }, lineColor: '#E5E7EB' },
         yAxis: {
           title: { text: undefined },
@@ -135,7 +135,7 @@ export function ComparativaChart({ data }: Props) {
         tooltip: {
           shared: true, useHTML: true, ...LIGHT_TOOLTIP_STYLE,
           formatter() {
-            let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
+            let html = `<b style="color:${getChartColors().navy}">${this.x}</b><br/>`;
             for (const p of this.points!) {
               html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${fmtClp(p.y ?? 0)}</b><br/>`;
             }

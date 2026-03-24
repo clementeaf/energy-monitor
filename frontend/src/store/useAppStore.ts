@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type UserMode = 'holding' | 'multi_operador' | 'operador' | 'tecnico';
+export type AppTheme = 'pasa' | 'siemens';
 
 export const USER_MODE_LABELS: Record<UserMode, string> = {
   holding: 'Holding',
@@ -17,6 +18,7 @@ interface AppState {
   selectedOperator: string | null;
   selectedBuilding: string | null;
   selectedStoreMeterId: string | null;
+  theme: AppTheme;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setSelectedSiteId: (siteId: string | null) => void;
@@ -25,6 +27,7 @@ interface AppState {
   setSelectedOperator: (name: string | null) => void;
   setSelectedBuilding: (code: string | null) => void;
   setSelectedStoreMeterId: (meterId: string | null) => void;
+  setTheme: (theme: AppTheme) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -36,6 +39,7 @@ export const useAppStore = create<AppState>()(
       selectedOperator: null,
       selectedBuilding: null,
       selectedStoreMeterId: null,
+      theme: 'pasa',
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setSelectedSiteId: (siteId) => set({ selectedSiteId: siteId }),
@@ -44,11 +48,15 @@ export const useAppStore = create<AppState>()(
       setSelectedOperator: (name) => set({ selectedOperator: name }),
       setSelectedBuilding: (code) => set({ selectedBuilding: code, selectedStoreMeterId: null }),
       setSelectedStoreMeterId: (meterId) => set({ selectedStoreMeterId: meterId }),
+      setTheme: (theme) => {
+        document.documentElement.setAttribute('data-theme', theme === 'pasa' ? '' : theme);
+        set({ theme });
+      },
     }),
     {
       name: 'power-digital-app',
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({ selectedSiteId: state.selectedSiteId, userMode: state.userMode, selectedOperator: state.selectedOperator, selectedBuilding: state.selectedBuilding, selectedStoreMeterId: state.selectedStoreMeterId }),
+      partialize: (state) => ({ selectedSiteId: state.selectedSiteId, userMode: state.userMode, selectedOperator: state.selectedOperator, selectedBuilding: state.selectedBuilding, selectedStoreMeterId: state.selectedStoreMeterId, theme: state.theme }),
     },
   ),
 );

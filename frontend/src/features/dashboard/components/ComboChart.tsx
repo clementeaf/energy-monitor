@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import { fmtClp, fmtAxis } from '../../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../../lib/constants';
-import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, type ChartType } from '../../../lib/chartConfig';
+import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, getChartColors, type ChartType } from '../../../lib/chartConfig';
 
 interface BuildingRow {
   name: string;
@@ -12,7 +12,7 @@ interface BuildingRow {
   totalMeters: number;
 }
 
-const PIE_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
+const getPieColors = () => getSeriesColors();
 
 export function ComboChart({ data, chartType, metric = 'consumo', viewMode = 'anual' }: { data: BuildingRow[]; chartType: ChartType; metric?: 'consumo' | 'gasto'; viewMode?: 'anual' | 'mensual' }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export function ComboChart({ data, chartType, metric = 'consumo', viewMode = 'an
       const points = data.map((b, i) => ({
         name: names[i],
         y: isConsumo ? Math.round((b.totalKwh ?? 0) / 1000) : (b.totalConIvaClp ?? 0),
-        color: PIE_COLORS[i % PIE_COLORS.length],
+        color: getPieColors()[i % getPieColors().length],
       }));
 
       chartRef.current = Highcharts.chart({
@@ -99,7 +99,7 @@ export function ComboChart({ data, chartType, metric = 'consumo', viewMode = 'an
           ...LIGHT_TOOLTIP_STYLE,
           formatter() {
             const points = this.points!;
-            let html = `<b style="color:#1B1464">${this.x}</b><br/>`;
+            let html = `<b style="color:${getChartColors().navy}">${this.x}</b><br/>`;
             for (const p of points) {
               const val = isConsumo
                 ? `${(p.y ?? 0).toLocaleString('es-CL')} ${consumoUnit}`

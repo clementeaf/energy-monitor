@@ -1,0 +1,22 @@
+{
+  "name": "external-ingest",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "deploy": "npx serverless deploy --verbose",
+    "deploy:prod": "npx serverless deploy --stage prod --verbose",
+    "remove": "npx serverless remove"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.700.0",
+    "@aws-sdk/s3-request-presigner": "^3.700.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.17.0",
+    "serverless": "^3.40.0",
+    "serverless-plugin-typescript": "^2.1.5",
+    "typescript": "^5.6.0"
+  }
+}

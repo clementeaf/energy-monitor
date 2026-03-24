@@ -1,0 +1,29 @@
+{
+    "version": "1.0.0",
+    "name": "MQTT POC3000",
+    "definition": {
+		"PushTimerIntervalInSeconds": "60",
+		"item": [
+
+      {
+       "item_id": "6ab27db7-0a61-40c2-8a93-35e9e2376683",
+       "item_name": "Medidor Servidores",
+			 {
+        "internal_name": "V_LN/Inst/Value/L1N",
+        "unit": "V",
+        "scale": 1.0
+      },
+      {
+        "internal_name": "V_LN/Inst/Value/L2N",
+        "unit": "V",
+        "scale": 1.0
+      },
+      {
+        "internal_name": "V_LN/Inst/Value/L3N",
+        "unit": "V", 
+        "scale": 1.0
+      },
+	    }	
+           ]
+}	
+}

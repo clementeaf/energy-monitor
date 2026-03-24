@@ -81,6 +81,32 @@ export const fetchStoreTypes = () =>
 export const fetchAlerts = (params?: { severity?: string; meter_id?: string }) =>
   api.get<Alert[]>(routes.getAlerts(params)).then((r) => r.data);
 
+// --- IoT Readings (Siemens) ---
+
+export const fetchIotLatest = (deviceId: string) =>
+  api.get(routes.getIotLatest(deviceId)).then((r) => r.data);
+
+export const fetchIotTimeSeries = (deviceId: string, from: string, to: string, columns: string, resolution = 'raw') =>
+  api.get(routes.getIotTimeSeries(deviceId, from, to, columns, resolution)).then((r) => r.data);
+
+export const fetchIotReadings = (deviceId: string, from: string, to: string, limit = 100, offset = 0) =>
+  api.get(routes.getIotReadings(deviceId, from, to, limit, offset)).then((r) => r.data);
+
+export const fetchIotStats = (deviceId: string, from: string, to: string) =>
+  api.get(routes.getIotStats(deviceId, from, to)).then((r) => r.data);
+
+export const fetchIotBuildings = () =>
+  api.get<BuildingSummary[]>(routes.getIotBuildings()).then((r) => r.data);
+
+export const fetchIotMetersLatest = () =>
+  api.get<MeterLatestReading[]>(routes.getIotMetersLatest()).then((r) => r.data);
+
+export const fetchIotMonthly = (deviceId: string) =>
+  api.get<MeterMonthly[]>(routes.getIotMonthly(deviceId)).then((r) => r.data);
+
+export const fetchIotMeterReadings = (deviceId: string, from: string, to: string) =>
+  api.get<MeterReading[]>(routes.getIotMeterReadings(deviceId, from, to)).then((r) => r.data);
+
 export const fetchBillingPdf = (storeName: string, buildingName: string, month: string) =>
   api.get<Blob>(routes.getBillingPdf(storeName, buildingName, month), { responseType: 'blob' }).then((r) => r.data);
 

@@ -84,6 +84,21 @@ export const routes = {
   // Invitations
   validateInvitation: (token: string) => `/invitations/${encodeURIComponent(token)}`,
 
+  // IoT Readings (Siemens)
+  getIotLatest: (deviceId: string) =>
+    `/iot-readings/latest?deviceId=${deviceId}`,
+  getIotTimeSeries: (deviceId: string, from: string, to: string, columns: string, resolution = 'raw') =>
+    `/iot-readings/timeseries?deviceId=${deviceId}&from=${from}&to=${to}&columns=${columns}&resolution=${resolution}`,
+  getIotReadings: (deviceId: string, from: string, to: string, limit = 100, offset = 0) =>
+    `/iot-readings?deviceId=${deviceId}&from=${from}&to=${to}&limit=${limit}&offset=${offset}`,
+  getIotStats: (deviceId: string, from: string, to: string) =>
+    `/iot-readings/stats?deviceId=${deviceId}&from=${from}&to=${to}`,
+  getIotBuildings: () => '/iot-readings/buildings',
+  getIotMetersLatest: () => '/iot-readings/meters-latest',
+  getIotMonthly: (deviceId: string) => `/iot-readings/monthly?deviceId=${deviceId}`,
+  getIotMeterReadings: (deviceId: string, from: string, to: string) =>
+    `/iot-readings/meter-readings?deviceId=${deviceId}&from=${from}&to=${to}`,
+
   // Alerts
   getAlerts: (params?: { severity?: string; meter_id?: string }) => {
     const qs = new URLSearchParams();

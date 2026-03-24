@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../hooks/auth/useAuth';
-import paIcon from '../../assets/pa-icon.png';
+import { useAppStore } from '../../store/useAppStore';
+import { THEMES } from '../../lib/themes';
 
 type ActiveProvider = null | 'microsoft' | 'google';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading, error, login, loginGoogle } = useAuth();
+  const theme = useAppStore((s) => s.theme);
   const navigate = useNavigate();
   const [activeProvider, setActiveProvider] = useState<ActiveProvider>(null);
 
@@ -61,9 +63,6 @@ export function LoginPage() {
       <div className="w-full max-w-sm rounded-2xl border border-pa-border bg-white p-8 shadow-sm">
         {/* Header */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden">
-            <img src={paIcon} alt="Parque Arauco" className="h-12 w-auto max-w-none" />
-          </div>
           <div className="text-center">
             <h1 className="text-lg font-semibold text-pa-navy">Energy Monitor</h1>
             <p className="mt-1 text-sm text-pa-text-muted">Inicia sesión para continuar</p>

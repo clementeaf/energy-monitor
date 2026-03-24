@@ -28,8 +28,9 @@ export function BuildingsPage() {
   const navigate = useNavigate();
   const { data: buildings, isLoading } = useBuildings();
   const { isFilteredMode, needsSelection, operatorBuildings } = useOperatorFilter();
-  const userMode = useAppStore((s) => s.userMode);
+  const { userMode, theme } = useAppStore();
   const isHolding = userMode === 'holding';
+  const isSiemens = theme === 'siemens';
 
   const createMutation = useCreateBuilding();
   const updateMutation = useUpdateBuilding();
@@ -66,7 +67,7 @@ export function BuildingsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {isHolding && (
+      {isHolding && !isSiemens && (
         <div className="mb-3 flex justify-end px-1">
           <PillButton onClick={() => setDrawerMode('create')}>+ Nuevo Activo Inmobiliario</PillButton>
         </div>
@@ -81,13 +82,19 @@ export function BuildingsPage() {
               <div className="flex items-center justify-between gap-2">
                 <h3 className="truncate font-semibold text-text">{b.buildingName}</h3>
                 <div className="flex shrink-0 items-center gap-1">
-                  {isHolding && (
+                  {isHolding && !isSiemens && (
                     <ContextMenu items={[
                       { label: 'Editar', onClick: () => { setEditingBuilding(b); setDrawerMode('edit'); } },
                       { label: 'Eliminar', onClick: () => setDeletingBuilding(b.buildingName), danger: true },
                     ]} />
                   )}
-                  <PillButton className="whitespace-nowrap" onClick={() => navigate(`/buildings/${encodeURIComponent(b.buildingName)}`)}>
+                  <PillButton className="whitespace-nowrap" onClick={() => {
+                    if (isSiemens && (b as Record<string, unknown>).deviceId) {
+                      navigate(`/meters/${(b as Record<string, unknown>).deviceId}`);
+                    } else {
+                      navigate(`/buildings/${encodeURIComponent(b.buildingName)}`);
+                    }
+                  }}>
                     Ver más +
                   </PillButton>
                 </div>

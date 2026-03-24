@@ -6,7 +6,7 @@ import { DataTable, type Column } from '../../components/ui/DataTable';
 import { useComparisonFilters, useComparisonByStore } from '../../hooks/queries/useComparisons';
 import { fmt, fmtClp, fmtAxis, monthLabel } from '../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../lib/constants';
-import { LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE } from '../../lib/chartConfig';
+import { LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, getChartColors } from '../../lib/chartConfig';
 import { SectionBanner } from '../../components/ui/SectionBanner';
 import { PillDropdown } from '../../components/ui/PillDropdown';
 import { PillDropdownMulti } from '../../components/ui/PillDropdownMulti';
@@ -19,7 +19,7 @@ const MAX_STORES = 20;
 const MAX_TYPES = 10;
 const MAX_CHART_BARS = 20;
 
-const SERIES_COLORS = ['#3D3BF3', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6', '#EC4899', '#14B8A6'];
+const getColors = () => getSeriesColors();
 
 interface GroupedChartData {
   categories: string[]; // store names (eje X)
@@ -55,21 +55,21 @@ function GroupedDualChart({ data, hideFinancial, moneyLabel }: {
     type: 'column',
     name: bldg,
     data: consumo[i],
-    color: singleBuilding ? SERIES_COLORS[0] : SERIES_COLORS[i % SERIES_COLORS.length],
+    color: singleBuilding ? getColors()[0] : getColors()[i % getColors().length],
   }));
 
   const ingresoSeries: Highcharts.SeriesColumnOptions[] = buildings.map((bldg, i) => ({
     type: 'column',
     name: bldg,
     data: ingreso[i],
-    color: singleBuilding ? SERIES_COLORS[1] : SERIES_COLORS[i % SERIES_COLORS.length],
+    color: singleBuilding ? getColors()[1] : getColors()[i % getColors().length],
   }));
 
   return (
     <div className={`grid min-h-0 flex-1 gap-4 ${hideFinancial ? 'grid-cols-1' : 'grid-cols-2'}`}>
       <HighchartsReact highcharts={Highcharts} options={{
         ...shared,
-        title: { text: 'Consumo (Mwh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
+        title: { text: 'Consumo (Mwh)', align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: getChartColors().navy } },
         xAxis,
         yAxis: { title: { text: undefined }, labels: { formatter() { return fmtAxis(this.value as number); }, style: { color: '#6B7280', fontSize: '11px' } }, gridLineColor: '#F3F4F6' },
         tooltip: {
@@ -87,7 +87,7 @@ function GroupedDualChart({ data, hideFinancial, moneyLabel }: {
       {!hideFinancial && (
         <HighchartsReact highcharts={Highcharts} options={{
           ...shared,
-          title: { text: `${moneyLabel} (CLP)`, align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: '#1B1464' } },
+          title: { text: `${moneyLabel} (CLP)`, align: 'left', style: { fontSize: '13px', fontWeight: 'bold', color: getChartColors().navy } },
           xAxis,
           yAxis: { title: { text: undefined }, labels: { formatter() { return `$${fmtAxis(this.value as number)}`; }, style: { color: '#6B7280', fontSize: '11px' } }, gridLineColor: '#F3F4F6' },
           tooltip: {

@@ -1,9 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { appRoutes, getNavItems, type AppRoute } from '../../app/appRoutes';
-import paIcon from '../../assets/pa-icon.png';
 import { useAppStore, USER_MODE_LABELS, type UserMode } from '../../store/useAppStore';
+import { THEMES } from '../../lib/themes';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useComparisonFilters } from '../../hooks/queries/useComparisons';
@@ -186,7 +186,20 @@ export function TempLayout() {
     selectedOperator, setSelectedOperator,
     selectedBuilding, setSelectedBuilding,
     selectedStoreMeterId, setSelectedStoreMeterId,
+    theme, setTheme,
   } = useAppStore();
+  // Sync theme to DOM, tab title, and favicon on mount and change
+  useEffect(() => {
+    const cfg = THEMES[theme];
+    document.documentElement.setAttribute('data-theme', theme === 'pasa' ? '' : theme);
+    document.title = cfg.tabTitle;
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+      || document.createElement('link');
+    link.rel = 'icon';
+    link.href = cfg.favicon;
+    if (!link.parentNode) document.head.appendChild(link);
+  }, [theme]);
+
   const isTecnico = userMode === 'tecnico';
   const isOperadorMode = userMode === 'operador';
   const { user } = useAuthStore();
@@ -195,16 +208,18 @@ export function TempLayout() {
   const { data: buildings } = useBuildings();
   const { data: stores } = useStores();
 
+  const isSiemens = theme === 'siemens';
+
   // Filter nav by role when authenticated, fallback to all items in dev mode
   const navItems = useMemo(() => {
     const items = user?.role ? getNavItems(user.role) : allNavItems;
-    // Tecnico: hide Dashboard (financial-only view)
-    // Operador: hide Comparativas (single store, no comparison context)
     let filtered = items;
     if (isTecnico) filtered = filtered.filter((r) => r.path !== '/' && r.path !== '/admin/users');
     if (isOperadorMode) filtered = filtered.filter((r) => r.path !== '/comparisons' && r.path !== '/admin/users');
+    // Siemens: hide billing-only and admin views
+    if (isSiemens) filtered = filtered.filter((r) => r.path !== '/' && r.path !== '/comparisons' && r.path !== '/admin/users');
     return filtered;
-  }, [user?.role, isTecnico, isOperadorMode]);
+  }, [user?.role, isTecnico, isOperadorMode, isSiemens]);
 
   const operatorItems = (filters?.storeNames ?? []).map((n) => ({ value: n, label: n }));
 
@@ -256,35 +271,62 @@ export function TempLayout() {
             className="flex items-center gap-2.5"
             onClick={() => navigate('/')}
           >
-            {/* Crop to flower only — text in PNG is white/invisible on light bg */}
             <div className="h-8 w-8 shrink-0 overflow-hidden">
-              <img src={paIcon} alt="Parque Arauco" className="h-8 w-auto max-w-none" />
+              <img src={THEMES[theme].logo} alt={THEMES[theme].logoAlt} className="h-8 w-auto max-w-none" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-pa-navy">
-                Parque Arauco
+                {THEMES[theme].title}
               </span>
               <span className="text-[11px] text-pa-text-muted">
-                Energy Monitor
+                {THEMES[theme].subtitle}
               </span>
             </div>
           </button>
         </div>
 
-        {/* Mode selector */}
-        <div className="relative z-30 px-3">
-          <PillDropdown
-            items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
-            value={userMode}
-            onChange={setUserMode}
-            listWidth="w-full"
-            align="left"
-            fullWidth
-          />
+        {/* Theme toggle */}
+        <div className="flex gap-1 px-3 pb-2">
+          <button
+            type="button"
+            onClick={() => setTheme('pasa')}
+            className={`flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-colors ${
+              theme === 'pasa'
+                ? 'bg-pa-blue text-white'
+                : 'border border-pa-border bg-white text-pa-text-muted hover:bg-pa-bg-alt'
+            }`}
+          >
+            PASA
+          </button>
+          <button
+            type="button"
+            onClick={() => setTheme('siemens')}
+            className={`flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-colors ${
+              theme === 'siemens'
+                ? 'bg-pa-blue text-white'
+                : 'border border-pa-border bg-white text-pa-text-muted hover:bg-pa-bg-alt'
+            }`}
+          >
+            Siemens
+          </button>
         </div>
 
-        {/* Operator selector (multi_operador only) */}
-        {userMode === 'multi_operador' && (
+        {/* Mode selector (PASA only) */}
+        {!isSiemens && (
+          <div className="relative z-30 px-3">
+            <PillDropdown
+              items={Object.entries(USER_MODE_LABELS).map(([value, label]) => ({ value: value as UserMode, label }))}
+              value={userMode}
+              onChange={setUserMode}
+              listWidth="w-full"
+              align="left"
+              fullWidth
+            />
+          </div>
+        )}
+
+        {/* Operator selector (multi_operador only, PASA only) */}
+        {!isSiemens && userMode === 'multi_operador' && (
           <div className="relative z-20 px-3 pt-2">
             <PillDropdown
               items={operatorItems}
@@ -298,8 +340,8 @@ export function TempLayout() {
           </div>
         )}
 
-        {/* Building + Store selectors (operador only) */}
-        {userMode === 'operador' && (
+        {/* Building + Store selectors (operador only, PASA only) */}
+        {!isSiemens && userMode === 'operador' && (
           <>
             <div className="relative z-20 px-3 pt-2">
               <PillDropdown
@@ -413,7 +455,7 @@ export function TempLayout() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar userName={user?.name} onToggleSidebar={() => setSidebarOpen((o) => !o)} />
         <main className="flex-1 overflow-hidden p-4 pb-2 md:p-6 md:pb-2">
-          <Outlet />
+          <Outlet key={theme} />
         </main>
       </div>
     </div>

@@ -33,3 +33,16 @@ docs/Archivos 15 equipos correccion de energia.zip
 
 # SSH key for RDS tunnel (private key, do not commit)
 scripts/*.pem
+
+# IoT certificates (private keys, do not commit)
+infra/iot-certs/*.pem
+
+# Serverless deployment artifacts
+infra/**/.serverless/
+
+# Compiled JS in infra lambdas
+infra/**/handler.js
+infra/**/handler.js.map
+
+# Generated PDFs
+infra/**/*.pdf

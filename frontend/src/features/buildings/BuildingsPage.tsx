@@ -89,8 +89,9 @@ export function BuildingsPage() {
                     ]} />
                   )}
                   <PillButton className="whitespace-nowrap" onClick={() => {
-                    if (isSiemens && (b as Record<string, unknown>).deviceId) {
-                      navigate(`/meters/${(b as Record<string, unknown>).deviceId}`);
+                    const deviceId = (b as unknown as Record<string, unknown>).deviceId;
+                    if (isSiemens && deviceId) {
+                      navigate(`/meters/${deviceId}`);
                     } else {
                       navigate(`/buildings/${encodeURIComponent(b.buildingName)}`);
                     }

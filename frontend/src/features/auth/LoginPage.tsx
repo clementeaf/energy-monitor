@@ -2,14 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../hooks/auth/useAuth';
-import { useAppStore } from '../../store/useAppStore';
-import { THEMES } from '../../lib/themes';
-
 type ActiveProvider = null | 'microsoft' | 'google';
 
 export function LoginPage() {
   const { isAuthenticated, isLoading, error, login, loginGoogle } = useAuth();
-  const theme = useAppStore((s) => s.theme);
   const navigate = useNavigate();
   const [activeProvider, setActiveProvider] = useState<ActiveProvider>(null);
 

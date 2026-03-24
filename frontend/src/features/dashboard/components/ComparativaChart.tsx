@@ -3,7 +3,7 @@ import Highcharts from 'highcharts';
 import { PillDropdownMulti } from '../../../components/ui/PillDropdownMulti';
 import { fmtClp, monthName } from '../../../lib/formatters';
 import { SHORT_BUILDING_NAMES } from '../../../lib/constants';
-import { CHART_COLORS, LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, getChartColors } from '../../../lib/chartConfig';
+import { LIGHT_PLOT_OPTIONS, LIGHT_TOOLTIP_STYLE, getSeriesColors, getChartColors } from '../../../lib/chartConfig';
 import type { DashboardBuildingMonth } from '../../../types';
 
 const getColors = () => getSeriesColors();

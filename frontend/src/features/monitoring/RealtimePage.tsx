@@ -12,6 +12,7 @@ import { useAllMetersLatest } from '../../hooks/queries/useMeters';
 import { useBuildings } from '../../hooks/queries/useBuildings';
 import { useAlerts } from '../../hooks/queries/useAlerts';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
+import { useAppStore } from '../../store/useAppStore';
 import type { MeterLatestReading, Alert } from '../../types';
 
 // =============================================================================
@@ -94,7 +95,7 @@ const typeLabel: Record<string, string> = {
 // Monitoring tab — cascading filters
 // =============================================================================
 
-function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set<string> | null; isFilteredMode: boolean }) {
+function MonitoringTab({ operatorMeterIds, isFilteredMode, isSiemens }: { operatorMeterIds: Set<string> | null; isFilteredMode: boolean; isSiemens: boolean }) {
   const { data: buildings } = useBuildings();
   const buildingNames = useMemo(() => {
     if (!buildings) return [];
@@ -103,13 +104,13 @@ function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds:
 
   const { data: allMeters, isLoading, isError } = useAllMetersLatest(buildingNames);
 
-  // Base data after operator mode filtering
+  // Base data after operator mode filtering (PASA only)
   const baseData = useMemo(() => {
-    if (isFilteredMode && operatorMeterIds) {
+    if (!isSiemens && isFilteredMode && operatorMeterIds) {
       return allMeters.filter((m) => operatorMeterIds.has(m.meterId));
     }
     return allMeters;
-  }, [allMeters, isFilteredMode, operatorMeterIds]);
+  }, [allMeters, isFilteredMode, operatorMeterIds, isSiemens]);
 
   // Column filter state
   const allBuildings = useMemo(() => [...new Set(baseData.map((m) => m.buildingName))].sort(), [baseData]);
@@ -392,16 +393,16 @@ function MonitoringTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds:
 // Alerts tab — cascading filters
 // =============================================================================
 
-function AlertsTab({ operatorMeterIds, isFilteredMode }: { operatorMeterIds: Set<string> | null; isFilteredMode: boolean }) {
+function AlertsTab({ operatorMeterIds, isFilteredMode, isSiemens }: { operatorMeterIds: Set<string> | null; isFilteredMode: boolean; isSiemens: boolean }) {
   const [searchParams] = useSearchParams();
   const { data: rawAlerts = [], isLoading } = useAlerts();
 
   const alerts = useMemo(() => {
-    if (isFilteredMode && operatorMeterIds) {
+    if (!isSiemens && isFilteredMode && operatorMeterIds) {
       return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
     }
     return rawAlerts;
-  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
+  }, [rawAlerts, isFilteredMode, operatorMeterIds, isSiemens]);
 
   // All unique values
   const allBuildings = useMemo(() => [...new Set(alerts.filter((a) => a.buildingName).map((a) => a.buildingName))].sort(), [alerts]);
@@ -768,9 +769,10 @@ const tabOptions: { value: Tab; label: string }[] = [
 
 export function RealtimePage() {
   const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
+  const isSiemens = useAppStore((s) => s.theme) === 'siemens';
   const [activeTab, setActiveTab] = useState<Tab>('monitoring');
 
-  if (needsSelection) {
+  if (!isSiemens && needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-sm text-pa-text-muted">Selecciona un operador o tienda en el sidebar para ver sus medidores.</p>
@@ -785,9 +787,9 @@ export function RealtimePage() {
           <TogglePills options={tabOptions} value={activeTab} onChange={setActiveTab} />
         </SectionBanner>
         {activeTab === 'monitoring' ? (
-          <MonitoringTab operatorMeterIds={operatorMeterIds} isFilteredMode={isFilteredMode} />
+          <MonitoringTab operatorMeterIds={operatorMeterIds} isFilteredMode={isFilteredMode} isSiemens={isSiemens} />
         ) : (
-          <AlertsTab operatorMeterIds={operatorMeterIds} isFilteredMode={isFilteredMode} />
+          <AlertsTab operatorMeterIds={operatorMeterIds} isFilteredMode={isFilteredMode} isSiemens={isSiemens} />
         )}
       </Card>
     </div>

@@ -100,6 +100,11 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 |---|---|---|---|
 | GET | `/alerts` | `severity?`, `meter_id?` | `Alert[]` (max 500, orden timestamp DESC). Campos: id, meterId, timestamp, alertType, severity, field, value, threshold, message, createdAt |
 
+## IoT Alerts (`/iot-readings/alerts`)
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/iot-readings/alerts` | `severity?`, `device_id?` | `Alert[]` (misma interfaz que `/alerts`). Generadas on-the-fly desde anomalías en `iot_readings`: voltaje <200V/>250V, PF <0.85, potencia >50kW, THD voltaje >8%, THD corriente >20% |
+
 ## Raw Readings (`/raw-readings`) — `@Public()`
 | Method | Path | Query | Response |
 |---|---|---|---|

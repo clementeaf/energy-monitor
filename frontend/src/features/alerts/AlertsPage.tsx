@@ -5,6 +5,7 @@ import { useAlerts } from '../../hooks/queries/useAlerts';
 import { DataTable, type Column } from '../../components/ui/DataTable';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
+import { useAppStore } from '../../store/useAppStore';
 import type { Alert } from '../../types';
 
 // =============================================================================
@@ -569,15 +570,16 @@ type Filters = Record<FilterKey, Set<string>>;
 export function AlertsPage() {
   const [searchParams] = useSearchParams();
   const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
+  const isSiemens = useAppStore((s) => s.theme) === 'siemens';
   const { data: rawAlerts = [], isLoading } = useAlerts();
 
-  // Filter alerts to operator's meters in filtered modes
+  // Filter alerts to operator's meters in filtered modes (PASA only)
   const alerts = useMemo(() => {
-    if (isFilteredMode && operatorMeterIds) {
+    if (!isSiemens && isFilteredMode && operatorMeterIds) {
       return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
     }
     return rawAlerts;
-  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
+  }, [rawAlerts, isFilteredMode, operatorMeterIds, isSiemens]);
 
   // Pre-set filters from URL query params (?meter_id=X&date=YYYY-MM-DD or &date_from=&date_to=)
   const initialFilters = useMemo((): Filters => {
@@ -741,7 +743,7 @@ export function AlertsPage() {
     },
   ], [makeHeaderRender, dateFilter]);
 
-  if (needsSelection) {
+  if (!isSiemens && needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-sm text-pa-text-muted">Selecciona un operador o tienda en el sidebar para ver sus alertas.</p>

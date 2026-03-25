@@ -52,12 +52,12 @@ export function BuildingsPage() {
 
   let cards = [...latest.values()];
 
-  // Filter to operator's buildings in filtered modes
-  if (isFilteredMode && operatorBuildings) {
+  // Filter to operator's buildings in filtered modes (PASA only — Siemens has no operators)
+  if (!isSiemens && isFilteredMode && operatorBuildings) {
     cards = cards.filter((b) => operatorBuildings.has(b.buildingName));
   }
 
-  if (needsSelection) {
+  if (!isSiemens && needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-sm text-pa-text-muted">Selecciona un operador o tienda en el sidebar para ver sus edificios.</p>

@@ -25,10 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-24)
+- Alertas IoT theme-aware: endpoint `/iot-readings/alerts` + `useAlerts` bifurca por tema
 - IoT Core Siemens: Thing `siemens-poc3000`, certs TLS, policy `powercenter/*`, regla S3
 - Lambda `iot-ingest`: S3 → tabla `iot_readings` cada 15 min, deduplicación unique index
 - Multi-tema frontend: toggle PASA/Siemens, colores CSS variables, logo/favicon/título dinámicos
-- Backend `IotReadingsModule`: 8 endpoints PASA-compatibles desde `iot_readings`
+- Backend `IotReadingsModule`: 9 endpoints PASA-compatibles desde `iot_readings`
 - Hooks theme-aware: mismas vistas, distinta fuente de datos según tema
 - Siemens POC3000 conectado y enviando 451 variables cada 15 min
 
@@ -98,7 +99,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **Validation:** Global ValidationPipe({ whitelist, transform }). DTOs con class-validator.
 - **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Prod: `/api/spec` (JSON), `/api/docs` (redirige a UI pública). Dev: UI embebida en `/api/docs`
 - **Error handling:** service null → controller NotFoundException; auth null on failure
-- **IoT module:** `IotReadingsModule` — read-only endpoints desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh)
+- **IoT module:** `IotReadingsModule` — 9 endpoints read-only desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`, `alerts`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh). Alertas generadas on-the-fly desde anomalías (voltaje, PF, potencia, THD)
 
 ## Data Flow (end-to-end)
 ```

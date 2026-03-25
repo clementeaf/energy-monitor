@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.79.0-alpha.0] - 2026-03-24 — ALERTAS IoT THEME-AWARE
+
+### Added
+- **Endpoint `GET /iot-readings/alerts`** — genera alertas on-the-fly desde anomalías en `iot_readings` (voltaje fuera de rango, power factor bajo, potencia alta, THD elevado)
+- **`fetchIotAlerts`** — función frontend para consultar alertas IoT
+- **Ruta `getIotAlerts`** — en `routes.ts` apuntando a `/iot-readings/alerts`
+
+### Changed
+- **`useAlerts` hook** — ahora es theme-aware: PASA → `/alerts`, Siemens → `/iot-readings/alerts`. Query key incluye `theme` para cache separado
+
+---
+
 ## [0.78.0-alpha.0] - 2026-03-24 — IOT CORE SIEMENS + MULTI-TEMA
 
 ### Added

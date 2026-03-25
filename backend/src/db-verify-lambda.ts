@@ -182,11 +182,42 @@ async function createAuthTables(client: Client): Promise<string[]> {
     ON CONFLICT DO NOTHING
   `);
 
+  // Dedup users: keep the row with external_id (OAuth-bound), or most recent if none
+  await client.query(`
+    DELETE FROM user_sites WHERE user_id IN (
+      SELECT id FROM users u
+      WHERE EXISTS (
+        SELECT 1 FROM users u2
+        WHERE LOWER(u2.email) = LOWER(u.email) AND u2.id != u.id
+          AND (u2.external_id IS NOT NULL AND u.external_id IS NULL
+               OR (u2.external_id IS NULL AND u.external_id IS NULL AND u2.created_at > u.created_at))
+      )
+    )
+  `);
+  const { rowCount: dedupRows } = await client.query(`
+    DELETE FROM users u
+    WHERE EXISTS (
+      SELECT 1 FROM users u2
+      WHERE LOWER(u2.email) = LOWER(u.email) AND u2.id != u.id
+        AND (u2.external_id IS NOT NULL AND u.external_id IS NULL
+             OR (u2.external_id IS NULL AND u.external_id IS NULL AND u2.created_at > u.created_at))
+    )
+  `);
+  if (dedupRows && dedupRows > 0) log.push(`Deduped ${dedupRows} duplicate user rows`);
+
+  // Remove deprecated seed users
+  const { rowCount: removedRows } = await client.query(`DELETE FROM users WHERE LOWER(email) = 'carriagada@grupobanados.com'`);
+  if (removedRows && removedRows > 0) log.push(`Removed carriagada@grupobanados.com (${removedRows} rows)`);
+
+  // Add UNIQUE on email (prevents future duplicates)
+  await client.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email ON users (LOWER(email))
+  `);
+
   // Seed initial users (direct access, no invitation needed)
   await client.query(`
     INSERT INTO users (email, name, role_id, user_mode, is_active) VALUES
       ('carriagadafalcone@gmail.com', 'Clemente Falcone', 1, 'holding', true),
-      ('carriagada@grupobanados.com', 'Clemente Arriagada', 2, 'holding', true),
       ('darwin@hoktus.com', 'Darwin', 1, 'holding', true),
       ('aportilla@globepower.cl', 'Andrés Portilla', 1, 'holding', true)
     ON CONFLICT DO NOTHING
@@ -528,6 +559,54 @@ async function meterOptimizations(client: Client): Promise<string[]> {
   return log;
 }
 
+async function backfillIotReadings(client: Client): Promise<string[]> {
+  const log: string[] = [];
+
+  // Check if iot_readings table exists
+  const { rowCount: tableExists } = await client.query(
+    `SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'iot_readings'`,
+  );
+  if (!tableExists) {
+    log.push('iot_readings table does not exist — skipped');
+    return log;
+  }
+
+  // Count rows with NULL reactive_power_var (indicator of unmapped data)
+  const { rows: [{ null_count }] } = await client.query(
+    `SELECT COUNT(*)::int AS null_count FROM iot_readings WHERE reactive_power_var IS NULL AND raw_json IS NOT NULL`,
+  );
+  if (null_count === 0) {
+    log.push('All iot_readings already backfilled');
+    return log;
+  }
+
+  // Backfill from raw_json using correct POC3000 variable names
+  const { rowCount } = await client.query(`
+    UPDATE iot_readings SET
+      reactive_power_var = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'Power/var/Q1/Inst/Value/Sum' AND item->>'quality' = 'valid' LIMIT 1),
+      frequency_hz = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'Frequency/Inst/Value/Common' AND item->>'quality' = 'valid' LIMIT 1),
+      energy_import_wh = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'Energy/Wh/Import/OnPeakTariff/Sum' AND item->>'quality' = 'valid' LIMIT 1),
+      energy_export_wh = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'Energy/Wh/Export/OnPeakTariff/Sum' AND item->>'quality' = 'valid' LIMIT 1),
+      reactive_energy_import_varh = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'Energy/varh/Import/OnPeakTariff/Sum' AND item->>'quality' = 'valid' LIMIT 1),
+      thd_voltage_l1_pct = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'THD/V_LN/Inst/Value/L1N#' AND item->>'quality' = 'valid' LIMIT 1),
+      thd_voltage_l2_pct = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'THD/V_LN/Inst/Value/L2N#' AND item->>'quality' = 'valid' LIMIT 1),
+      thd_voltage_l3_pct = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'THD/V_LN/Inst/Value/L3N#' AND item->>'quality' = 'valid' LIMIT 1),
+      thd_current_l1_pct = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'THD/I/Inst/Value/L2#' AND item->>'quality' = 'valid' LIMIT 1),
+      thd_current_l2_pct = (SELECT (item->>'value')::numeric FROM jsonb_array_elements(raw_json->'_embedded'->'item') item WHERE item->>'internal_name' = 'THD/I/Inst/Value/L3#' AND item->>'quality' = 'valid' LIMIT 1)
+    WHERE reactive_power_var IS NULL AND raw_json IS NOT NULL
+  `);
+  log.push(`Backfilled ${rowCount} iot_readings rows from raw_json`);
+
+  // Verify
+  const { rows: [stats] } = await client.query(`
+    SELECT COUNT(*)::int AS total, COUNT(reactive_power_var)::int AS with_reactive, COUNT(frequency_hz)::int AS with_freq
+    FROM iot_readings
+  `);
+  log.push(`  total: ${stats.total}, with reactive: ${stats.with_reactive}, with freq: ${stats.with_freq}`);
+
+  return log;
+}
+
 export const handler = async () => {
   const client = new Client({
     host: process.env.DB_HOST,
@@ -556,6 +635,10 @@ export const handler = async () => {
     // Migration 020: meter optimizations
     const m020Log = await meterOptimizations(client);
     log.push('=== Migration 020: Meter Optimizations ===', ...m020Log);
+
+    // Backfill IoT readings from raw_json (corrected variable names)
+    const iotLog = await backfillIotReadings(client);
+    log.push('=== IoT Readings Backfill ===', ...iotLog);
 
     // Diagnostics: building names across tables
     const { rows: bldgNames } = await client.query(`

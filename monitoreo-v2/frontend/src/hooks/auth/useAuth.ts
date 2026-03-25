@@ -1,8 +1,9 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
+import { setSessionFlag, clearSessionFlag } from './useSessionResolver';
 import type { AuthProvider } from '../../types/auth';
 
 export function useAuth() {
@@ -10,28 +11,7 @@ export function useAuth() {
     useAuthStore();
   const navigate = useNavigate();
   const microsoft = useMicrosoftAuth();
-
-  // On mount: try to resolve session from existing cookie
-  useEffect(() => {
-    let cancelled = false;
-
-    const resolveSession = async () => {
-      try {
-        const { data } = await authEndpoints.me();
-        if (!cancelled) {
-          setSession(data.user, data.tenant);
-          applyTenantTheme(data.tenant.primaryColor, data.tenant.secondaryColor);
-        }
-      } catch {
-        if (!cancelled) {
-          clearSession();
-        }
-      }
-    };
-
-    resolveSession();
-    return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const msResolved = useRef(false);
 
   const loginWithProvider = useCallback(
     async (provider: AuthProvider, idToken: string) => {
@@ -41,6 +21,7 @@ export function useAuth() {
       try {
         await authEndpoints.login(provider, idToken);
         const { data } = await authEndpoints.me();
+        setSessionFlag();
         setSession(data.user, data.tenant);
         applyTenantTheme(data.tenant.primaryColor, data.tenant.secondaryColor);
         navigate('/');
@@ -54,15 +35,21 @@ export function useAuth() {
     [navigate, setSession, setLoading, setError],
   );
 
-  const loginMicrosoft = useCallback(async () => {
-    try {
-      const idToken = await microsoft.login();
-      await loginWithProvider('microsoft', idToken);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error con Microsoft';
-      setError(message);
-    }
-  }, [microsoft, loginWithProvider, setError]);
+  // Detect Microsoft redirect completing — MSAL sets isAuthenticated after redirect
+  useEffect(() => {
+    if (!microsoft.isAuthenticated || microsoft.isLoading || msResolved.current) return;
+    msResolved.current = true;
+
+    microsoft.acquireTokenSilently().then((idToken) => {
+      if (idToken) {
+        loginWithProvider('microsoft', idToken);
+      }
+    });
+  }, [microsoft.isAuthenticated, microsoft.isLoading, microsoft.acquireTokenSilently, loginWithProvider]);
+
+  const loginMicrosoft = useCallback(() => {
+    microsoft.login();
+  }, [microsoft]);
 
   const loginGoogle = useCallback(
     async (credential: string) => {
@@ -75,11 +62,16 @@ export function useAuth() {
     try {
       await authEndpoints.logout();
     } catch {
-      // Ignore — cookies cleared server-side
+      // Ignore
     }
+    clearSessionFlag();
     clearSession();
-    navigate('/login');
-  }, [clearSession, navigate]);
+    if (microsoft.isAuthenticated) {
+      microsoft.logout();
+    } else {
+      navigate('/login');
+    }
+  }, [clearSession, navigate, microsoft]);
 
   return {
     user,

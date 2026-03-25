@@ -118,19 +118,43 @@ export class AuthController {
     idToken: string,
   ): Promise<OAuthProfile> {
     if (provider === 'google') {
-      const expectedClientId = this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID');
-      const { payload } = await jwtVerify(idToken, this.googleJwks, {
-        issuer: ['https://accounts.google.com', 'accounts.google.com'],
-        audience: expectedClientId,
-      }).catch(() => {
-        throw new UnauthorizedException('Invalid Google token');
-      });
+      // Try JWT id_token first (credential flow)
+      if (idToken.split('.').length === 3) {
+        const expectedClientId = this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID');
+        const { payload } = await jwtVerify(idToken, this.googleJwks, {
+          issuer: ['https://accounts.google.com', 'accounts.google.com'],
+          audience: expectedClientId,
+        }).catch(() => {
+          throw new UnauthorizedException('Invalid Google token');
+        });
+
+        return {
+          provider: 'google',
+          providerId: payload.sub!,
+          email: payload['email'] as string,
+          displayName: payload['name'] as string,
+        };
+      }
+
+      // Fallback: access_token from implicit flow — validate via userinfo
+      const res = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${idToken}` } },
+      );
+      if (!res.ok) {
+        throw new UnauthorizedException('Invalid Google access token');
+      }
+      const info = (await res.json()) as {
+        sub: string;
+        email: string;
+        name: string;
+      };
 
       return {
         provider: 'google',
-        providerId: payload.sub!,
-        email: payload['email'] as string,
-        displayName: payload['name'] as string,
+        providerId: info.sub,
+        email: info.email,
+        displayName: info.name,
       };
     }
 

@@ -1,18 +1,25 @@
 # Changelog
 
-## [0.82.0-alpha.0] - 2026-03-25 — MONITOREO V2 FRONTEND SCAFFOLD
+## [0.82.0-alpha.0] - 2026-03-25 — MONITOREO V2 FRONTEND + AUTH E2E
 
 ### Added
 - **monitoreo-v2/frontend** — React 19 + Vite 7 + Tailwind v4 + TypeScript 5.9
 - **Auth cookie-based** — OAuth (Microsoft + Google) → POST `/auth/login` → httpOnly cookies → GET `/auth/me`
-- **Endpoint `GET /auth/me`** (backend) — devuelve perfil de usuario + theming del tenant desde JWT cookie
-- **Axios withCredentials** — cookies enviadas automaticamente, interceptor 401 con refresh transparente
-- **Stores Zustand** — `useAuthStore` (user + tenant, sin sessionStorage) y `useAppStore` (sidebar)
-- **Theming dinamico** — CSS variables `--color-primary` / `--color-secondary` aplicadas desde tenant
-- **Layout** — Sidebar con navegacion, Header con usuario/rol/logout
-- **ProtectedRoute** — guard que redirige a `/login` si no hay sesion
-- **LoginPage** — botones Microsoft + Google, manejo de errores
-- **DashboardPage** — placeholder con info de usuario/tenant
+- **Endpoint `GET /auth/me`** (backend) — perfil usuario + theming tenant desde JWT cookie
+- **Google access_token** (backend) — fallback via Google userinfo API cuando el token no es JWT
+- **Login multi-provider** — mismo email puede loguear con Microsoft o Google (linkeo automatico por email)
+- **Session flag** — `localStorage.has_session` evita 401 innecesario en carga inicial (sin sesion no llama `/auth/me`)
+- **MSAL redirect flow** — `loginRedirect` + `acquireTokenSilent` post-redirect (replica patron v1)
+- **COOP header** — `same-origin-allow-popups` en Vite dev para popup Google
+- **Stores Zustand** — `useAuthStore` (user + tenant) y `useAppStore` (sidebar)
+- **Theming dinamico** — CSS variables `--color-primary/secondary` desde tenant
+- **Layout** — Sidebar, Header con usuario/rol/logout, ProtectedRoute
+- **LoginPage** — botones identicos Microsoft + Google, manejo de errores
+- **Seed** — tenant Globe Power + user admin en TimescaleDB
+
+### Fixed
+- **Auth interceptor loop** — rutas auth excluidas del interceptor 401 para evitar ciclo infinito
+- **Session resolver loop** — `useSessionResolver` con ref guard, separado de `useAuth`
 
 ---
 

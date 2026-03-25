@@ -2,9 +2,11 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  withCredentials: true, // httpOnly cookies sent automatically
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
+
+const AUTH_PATHS = ['/auth/login', '/auth/me', '/auth/refresh', '/auth/logout'];
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -24,8 +26,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
+    const url = original?.url ?? '';
 
-    if (error.response?.status !== 401 || original._retry) {
+    // Never retry auth endpoints — let callers handle their own errors
+    if (error.response?.status !== 401 || original._retry || AUTH_PATHS.some((p) => url.includes(p))) {
       return Promise.reject(error);
     }
 
@@ -44,7 +48,6 @@ api.interceptors.response.use(
       return api(original);
     } catch (refreshError) {
       processQueue(refreshError);
-      window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

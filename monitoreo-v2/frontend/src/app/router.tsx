@@ -1,24 +1,38 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Outlet } from 'react-router';
+import { SessionGate } from '../components/auth/SessionGate';
 import { AppLayout } from '../components/layout/AppLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { LoginPage } from '../features/auth/LoginPage';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { APP_ROUTES } from './routes';
 
+function RootLayout() {
+  return (
+    <SessionGate>
+      <Outlet />
+    </SessionGate>
+  );
+}
+
 export const router = createBrowserRouter([
   {
-    path: APP_ROUTES.login,
-    element: <LoginPage />,
-  },
-  {
-    element: <ProtectedRoute />,
+    element: <RootLayout />,
     children: [
       {
-        element: <AppLayout />,
+        path: APP_ROUTES.login,
+        element: <LoginPage />,
+      },
+      {
+        element: <ProtectedRoute />,
         children: [
-          { index: true, element: <DashboardPage /> },
-          { path: APP_ROUTES.buildings, element: <Placeholder label="Edificios" /> },
-          { path: APP_ROUTES.alerts, element: <Placeholder label="Alertas" /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { index: true, element: <DashboardPage /> },
+              { path: APP_ROUTES.buildings, element: <Placeholder label="Edificios" /> },
+              { path: APP_ROUTES.alerts, element: <Placeholder label="Alertas" /> },
+            ],
+          },
         ],
       },
     ],

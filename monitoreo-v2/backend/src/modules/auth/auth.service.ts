@@ -56,16 +56,39 @@ export class AuthService {
   }
 
   async validateOAuthLogin(profile: OAuthProfile): Promise<TokenPair> {
-    // Find user by provider + providerId
-    const rows = await this.dataSource.query(
+    // 1. Try exact match: provider + providerId
+    let rows = await this.dataSource.query(
       `SELECT u.id, u.tenant_id, u.email, u.role, u.is_active
        FROM users u
        WHERE u.auth_provider = $1 AND u.auth_provider_id = $2`,
       [profile.provider, profile.providerId],
     );
 
+    // 2. Fallback: match by email (allows login with either provider)
     if (rows.length === 0) {
-      this.logger.warn(`OAuth login failed: user not found (${profile.email})`);
+      rows = await this.dataSource.query(
+        `SELECT u.id, u.tenant_id, u.email, u.role, u.is_active
+         FROM users u
+         WHERE u.email = $1`,
+        [profile.email],
+      );
+
+      if (rows.length > 0 && rows[0].is_active) {
+        // Link this provider to the existing user
+        await this.dataSource.query(
+          `UPDATE users SET auth_provider = $1, auth_provider_id = $2 WHERE id = $3`,
+          [profile.provider, profile.providerId, rows[0].id],
+        );
+        this.logger.log(
+          `Linked ${profile.provider} to existing user ${profile.email}`,
+        );
+      }
+    }
+
+    if (rows.length === 0) {
+      this.logger.warn(
+        `OAuth login failed: user not found — provider=${profile.provider} providerId=${profile.providerId} email=${profile.email} displayName=${profile.displayName}`,
+      );
       throw new UnauthorizedException('User not registered. Contact your administrator.');
     }
 

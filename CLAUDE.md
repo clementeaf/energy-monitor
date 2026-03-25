@@ -24,8 +24,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-03-25)
+- **monitoreo-v2 scaffold** — NestJS 11 + TimescaleDB (Docker), multi-tenant, ISO 27001, auth OAuth (JWKS jose), JWT httpOnly cookies, refresh token rotation (FOR UPDATE), audit log hypertable, rate limiting, helmet
+- Fix operator filter: Siemens bypasses `useOperatorFilter` en Buildings, Alerts, Realtime
+- Fix POC3000 VARIABLE_MAP: 10 variables corregidas en `iot-ingest` Lambda
+- Backfill 123 filas IoT en prod (reactive, frequency, energy, THD) via dbVerify
+- Alertas IoT: endpoint `/iot-readings/alerts` + `useAlerts` theme-aware
+- dbVerify: nueva función `backfillIotReadings` para re-extraer de `raw_json`
+
 ### Completado (2026-03-24)
-- Alertas IoT theme-aware: endpoint `/iot-readings/alerts` + `useAlerts` bifurca por tema
 - IoT Core Siemens: Thing `siemens-poc3000`, certs TLS, policy `powercenter/*`, regla S3
 - Lambda `iot-ingest`: S3 → tabla `iot_readings` cada 15 min, deduplicación unique index
 - Multi-tema frontend: toggle PASA/Siemens, colores CSS variables, logo/favicon/título dinámicos
@@ -37,19 +44,20 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- Deploy frontend + backend con cambios multi-tema a producción
+- **monitoreo-v2**: frontend scaffold, conectar auth con credenciales existentes
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: CNAME GoDaddy + alias CloudFront
 - Reemplazar SVG placeholder Siemens con logo oficial
 - Cuenta AWS `058310292956`: configurar método de pago (sin billing activo)
+- Redeploy Lambda `iot-ingest` con VARIABLE_MAP corregido
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando sesión.
-IoT Siemens operativo (POC3000 cada 15 min → iot_readings).
-Multi-tema PASA/Siemens implementado, pendiente deploy prod.
+monitoreo-v2 backend scaffolded: NestJS + TimescaleDB + Docker, auth OAuth, ISO 27001.
+Pendiente: frontend scaffold y conectar credenciales OAuth.
 ```
 
 ## Prioridad Actual de Acceso
@@ -57,6 +65,9 @@ Multi-tema PASA/Siemens implementado, pendiente deploy prod.
 
 ## Project Overview
 Plataforma de monitoreo energético multi-cliente. Dos temas: **PASA** (875 medidores PAC en 5 edificios, billing, drill-down jerárquico) y **Siemens** (POC3000 vía IoT Core MQTT, datos eléctricos puros). Mismas vistas, distinta fuente de datos según tema.
+
+### monitoreo-v2
+Rewrite multi-tenant de la plataforma. Stack: NestJS 11 + TimescaleDB (PG16) + Docker. Target deploy: AWS ECS Fargate. ISO 27001. API externa para terceros. Theming dinámico por tenant (colores, logo, favicon). Vive en `monitoreo-v2/`.
 
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7

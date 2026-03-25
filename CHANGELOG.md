@@ -1,14 +1,30 @@
 # Changelog
 
-## [0.79.0-alpha.0] - 2026-03-24 — ALERTAS IoT THEME-AWARE
+## [0.81.0-alpha.0] - 2026-03-25 — MONITOREO V2 SCAFFOLD
 
 ### Added
-- **Endpoint `GET /iot-readings/alerts`** — genera alertas on-the-fly desde anomalías en `iot_readings` (voltaje fuera de rango, power factor bajo, potencia alta, THD elevado)
-- **`fetchIotAlerts`** — función frontend para consultar alertas IoT
-- **Ruta `getIotAlerts`** — en `routes.ts` apuntando a `/iot-readings/alerts`
+- **monitoreo-v2/backend** — NestJS 11 scaffold multi-tenant con TimescaleDB
+- **Docker Compose** — TimescaleDB (PG16) + backend como servicios separados (target: Fargate)
+- **Schema multi-tenant** — `tenants` (theming), `users`, `buildings`, `meters`, `refresh_tokens`, `audit_logs` (hypertable), `iot_readings` (hypertable + compresión 7d + retención 2y)
+- **Continuous aggregates** — `iot_readings_hourly` y `iot_readings_daily` pre-calculados
+- **Auth OAuth** — Microsoft + Google via JWKS (`jose`), verificación de audience + issuer
+- **JWT httpOnly cookies** — access token 15min + refresh token 7d con rotación atómica (FOR UPDATE)
+- **Tenant middleware** — tenant resuelto exclusivamente desde JWT (sin header spoofing)
+- **ISO 27001 hardening** — helmet, rate limiting (3 tiers), CORS estricto, ValidationPipe global, audit log interceptor, `getOrThrow` para secrets, sin fallbacks en código
 
-### Changed
-- **`useAlerts` hook** — ahora es theme-aware: PASA → `/alerts`, Siemens → `/iot-readings/alerts`. Query key incluye `theme` para cache separado
+---
+
+## [0.80.0-alpha.0] - 2026-03-25 — FIX SIEMENS VIEWS + IOT VARIABLE MAP
+
+### Fixed
+- **Operator filter bypass para Siemens** — Buildings, Alerts y Realtime mostraban vacío porque `useOperatorFilter` (PASA) ocultaba datos IoT. Ahora las 3 páginas saltan el filtro cuando `theme === 'siemens'`
+- **POC3000 VARIABLE_MAP** — 10 variables tenían nombres incorrectos en `iot-ingest` Lambda: potencia reactiva (`Power/var/Q1/Inst/Value/Sum`), frecuencia (`Frequency/Inst/Value/Common`), energía (`Energy/Wh/Import/OnPeakTariff/Sum`), THD voltaje (`THD/V_LN/Inst/Value/L1N#`), THD corriente (`THD/I/Inst/Value/L2#`)
+- **Backfill IoT readings** — 123 filas en prod actualizadas desde `raw_json` via dbVerify Lambda
+
+### Added
+- **Endpoint `GET /iot-readings/alerts`** — genera alertas on-the-fly desde anomalías en `iot_readings` (voltaje fuera de rango, PF bajo, potencia alta, THD elevado)
+- **`useAlerts` theme-aware** — PASA → `/alerts`, Siemens → `/iot-readings/alerts`
+- **`backfillIotReadings` en dbVerify** — migración para re-extraer columnas de `raw_json` con nombres correctos
 
 ---
 

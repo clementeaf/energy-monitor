@@ -25,7 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-25)
-- **monitoreo-v2 scaffold** — NestJS 11 + TimescaleDB (Docker), multi-tenant, ISO 27001, auth OAuth (JWKS jose), JWT httpOnly cookies, refresh token rotation (FOR UPDATE), audit log hypertable, rate limiting, helmet
+- **monitoreo-v2 frontend scaffold** — React 19, Vite 7, Tailwind v4, auth cookie-based (Microsoft + Google → `/auth/login` → httpOnly cookies → `/auth/me`), theming dinamico desde tenant, layout con sidebar/header, stores Zustand, interceptor 401 con refresh
+- **monitoreo-v2 `GET /auth/me`** — endpoint backend que devuelve perfil usuario + tema tenant desde JWT cookie
+- **monitoreo-v2 backend scaffold** — NestJS 11 + TimescaleDB (Docker), multi-tenant, ISO 27001, auth OAuth (JWKS jose), JWT httpOnly cookies, refresh token rotation (FOR UPDATE), audit log hypertable, rate limiting, helmet
 - Fix operator filter: Siemens bypasses `useOperatorFilter` en Buildings, Alerts, Realtime
 - Fix POC3000 VARIABLE_MAP: 10 variables corregidas en `iot-ingest` Lambda
 - Backfill 123 filas IoT en prod (reactive, frequency, energy, THD) via dbVerify
@@ -44,7 +46,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: frontend scaffold, conectar auth con credenciales existentes
+- **monitoreo-v2**: crear `.env` con credenciales OAuth, seed user+tenant en TimescaleDB, probar login flow end-to-end
+- **monitoreo-v2**: migrar vistas de datos (Buildings, Meters, Alerts) al nuevo frontend
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -55,9 +58,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Prompt de retoma
 ```
-Read CLAUDE.md. Retomando sesión.
-monitoreo-v2 backend scaffolded: NestJS + TimescaleDB + Docker, auth OAuth, ISO 27001.
-Pendiente: frontend scaffold y conectar credenciales OAuth.
+Read CLAUDE.md. Retomando monitoreo-v2.
+Backend + frontend scaffolded. Auth cookie-based (OAuth → /auth/login → httpOnly → /auth/me).
+Pendiente: .env con credenciales, seed user+tenant, test login, migrar vistas de datos.
 ```
 
 ## Prioridad Actual de Acceso
@@ -67,7 +70,10 @@ Pendiente: frontend scaffold y conectar credenciales OAuth.
 Plataforma de monitoreo energético multi-cliente. Dos temas: **PASA** (875 medidores PAC en 5 edificios, billing, drill-down jerárquico) y **Siemens** (POC3000 vía IoT Core MQTT, datos eléctricos puros). Mismas vistas, distinta fuente de datos según tema.
 
 ### monitoreo-v2
-Rewrite multi-tenant de la plataforma. Stack: NestJS 11 + TimescaleDB (PG16) + Docker. Target deploy: AWS ECS Fargate. ISO 27001. API externa para terceros. Theming dinámico por tenant (colores, logo, favicon). Vive en `monitoreo-v2/`.
+Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
+- **Backend:** NestJS 11 + TimescaleDB (PG16) + Docker. Auth OAuth → JWT httpOnly cookies. ISO 27001.
+- **Frontend:** React 19 + Vite 7 + Tailwind v4. Auth cookie-based (sin sessionStorage). Theming dinamico desde tenant.
+- **Target deploy:** AWS ECS Fargate. API externa para terceros.
 
 ## Tech Stack
 - **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7

@@ -1,6 +1,7 @@
 import {
   Injectable,
   UnauthorizedException,
+  NotFoundException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -30,6 +31,29 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
   ) {}
+
+  async getUserProfile(userId: string) {
+    const rows = await this.dataSource.query(
+      `SELECT u.id, u.email, u.display_name, u.role, u.auth_provider, u.last_login_at
+       FROM users u
+       WHERE u.id = $1 AND u.is_active = true`,
+      [userId],
+    );
+
+    if (rows.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const row = rows[0];
+    return {
+      id: row.id,
+      email: row.email,
+      displayName: row.display_name,
+      role: row.role,
+      authProvider: row.auth_provider,
+      lastLoginAt: row.last_login_at,
+    };
+  }
 
   async validateOAuthLogin(profile: OAuthProfile): Promise<TokenPair> {
     // Find user by provider + providerId

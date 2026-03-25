@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+:root {
+  --color-primary: #3D3BF3;
+  --color-secondary: #1E1E2F;
+}
+
+body {
+  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}

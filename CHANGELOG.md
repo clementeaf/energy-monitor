@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.82.0-alpha.0] - 2026-03-25 — MONITOREO V2 FRONTEND SCAFFOLD
+
+### Added
+- **monitoreo-v2/frontend** — React 19 + Vite 7 + Tailwind v4 + TypeScript 5.9
+- **Auth cookie-based** — OAuth (Microsoft + Google) → POST `/auth/login` → httpOnly cookies → GET `/auth/me`
+- **Endpoint `GET /auth/me`** (backend) — devuelve perfil de usuario + theming del tenant desde JWT cookie
+- **Axios withCredentials** — cookies enviadas automaticamente, interceptor 401 con refresh transparente
+- **Stores Zustand** — `useAuthStore` (user + tenant, sin sessionStorage) y `useAppStore` (sidebar)
+- **Theming dinamico** — CSS variables `--color-primary` / `--color-secondary` aplicadas desde tenant
+- **Layout** — Sidebar con navegacion, Header con usuario/rol/logout
+- **ProtectedRoute** — guard que redirige a `/login` si no hay sesion
+- **LoginPage** — botones Microsoft + Google, manejo de errores
+- **DashboardPage** — placeholder con info de usuario/tenant
+
+---
+
 ## [0.81.0-alpha.0] - 2026-03-25 — MONITOREO V2 SCAFFOLD
 
 ### Added

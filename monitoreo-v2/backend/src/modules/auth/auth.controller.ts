@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   Res,
   HttpCode,
@@ -15,6 +16,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { AuthService } from './auth.service';
 import type { OAuthProfile } from './auth.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
+import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
@@ -26,6 +28,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly tenantsService: TenantsService,
   ) {
     const msTenantId = this.configService.getOrThrow<string>('MICROSOFT_TENANT_ID');
     this.msJwks = createRemoteJWKSet(
@@ -46,6 +49,17 @@ export class AuthController {
     const tokens = await this.authService.validateOAuthLogin(profile);
     this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
     return { success: true };
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  async me(@CurrentUser() user: JwtPayload) {
+    const profile = await this.authService.getUserProfile(user.sub);
+    const theme = await this.tenantsService.getTheme(user.tenantId);
+    return {
+      user: profile,
+      tenant: theme,
+    };
   }
 
   @Post('refresh')

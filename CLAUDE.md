@@ -25,7 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-25)
-- **monitoreo-v2 frontend + auth e2e** — React 19, Vite 7, Tailwind v4. Login funcional con Microsoft (redirect) y Google (implicit + userinfo). Theming dinamico desde tenant. Session flag evita 401 innecesario. Seed tenant+user en TimescaleDB
+- **Charts agnósticos** — `Chart`, `StockChart`, `MonthlyChart` + `chart-config.ts` en monitoreo-v2. Colores via CSS vars, sin acoplamiento a tema
+- **Storybook 9** — catálogo de componentes en puerto 6006. Stories para los 3 charts
+- **Fix login Microsoft** — race condition en `useSessionResolver` (esperaba MSAL `InteractionStatus.None`)
+- **Layout cleanup** — sidebar sin iconos, "Cerrar Sesión" al fondo del sidebar
+- **monitoreo-v2 frontend + auth e2e** — React 19, Vite 8, Tailwind v4. Login funcional con Microsoft (redirect) y Google (implicit + userinfo). Theming dinamico desde tenant. Session flag evita 401 innecesario. Seed tenant+user en TimescaleDB
 - **monitoreo-v2 backend scaffold** — NestJS 11 + TimescaleDB (Docker), multi-tenant, ISO 27001, auth OAuth (JWKS jose), JWT httpOnly cookies, refresh token rotation (FOR UPDATE), audit log hypertable, rate limiting, helmet
 - Fix operator filter: Siemens bypasses `useOperatorFilter` en Buildings, Alerts, Realtime
 - Fix POC3000 VARIABLE_MAP: 10 variables corregidas en `iot-ingest` Lambda
@@ -57,8 +61,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Backend + frontend funcionando. Auth e2e OK (Microsoft redirect + Google implicit).
-Seed: tenant Globe Power + user admin. Pendiente: migrar vistas de datos.
+Backend + frontend funcionando. Auth e2e OK. Charts agnósticos listos (Chart, StockChart, MonthlyChart).
+Storybook 9 en puerto 6006. Pendiente: migrar vistas de datos (Buildings, Meters, Alerts).
 ```
 
 ## Prioridad Actual de Acceso
@@ -70,11 +74,11 @@ Plataforma de monitoreo energético multi-cliente. Dos temas: **PASA** (875 medi
 ### monitoreo-v2
 Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11 + TimescaleDB (PG16) + Docker. Auth OAuth → JWT httpOnly cookies. ISO 27001.
-- **Frontend:** React 19 + Vite 7 + Tailwind v4. Auth cookie-based (sin sessionStorage). Theming dinamico desde tenant.
+- **Frontend:** React 19 + Vite 8 + Tailwind v4. Auth cookie-based (sin sessionStorage). Theming dinamico desde tenant. Storybook 9.
 - **Target deploy:** AWS ECS Fargate. API externa para terceros.
 
 ## Tech Stack
-- **Frontend:** React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7
+- **Frontend:** React 19, Vite 8, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock 12, TanStack Query v5, TanStack Table v8, Zustand 5, React Router v7
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google

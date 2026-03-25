@@ -1,11 +1,9 @@
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
-import { useAuth } from '../../hooks/auth/useAuth';
 
 export function Header() {
   const { user } = useAuthStore();
   const { toggleSidebar } = useAppStore();
-  const { logout } = useAuth();
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
@@ -27,13 +25,6 @@ export function Header() {
         <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 capitalize">
           {user?.role}
         </span>
-        <button
-          type="button"
-          onClick={logout}
-          className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
-        >
-          Salir
-        </button>
       </div>
     </header>
   );

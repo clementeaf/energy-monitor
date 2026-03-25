@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.83.0-alpha.0] - 2026-03-25 — MONITOREO V2 CHARTS + STORYBOOK
+
+### Added
+- **Chart components** — 3 componentes Highcharts agnósticos y reutilizables en `monitoreo-v2/frontend`:
+  - `Chart` — wrapper básico con hover sync (highlight index ↔ tabla)
+  - `StockChart` — Highcharts Stock con navigator, range selector, loading overlay, dual-axis
+  - `MonthlyChart` — chart mensual con toggle de tipo (column/line/area/pie), soporte moneda
+- **chart-config.ts** — config central: colores desde CSS variables, `baseChartOptions()`, `stockChartExtras()`, `axisLabelFormatter()`
+- **Storybook 9** — catálogo de componentes en puerto 6006 con stories para los 3 charts
+- **Ruta `/components`** — vista de showcase en sidebar (demo con datos sintéticos)
+
+### Changed
+- **Sidebar** — iconos emoji removidos, solo texto. "Cerrar Sesión" movido al fondo del sidebar (antes "Salir" en header)
+
+### Fixed
+- **Microsoft login race condition** — `useSessionResolver` ahora espera `InteractionStatus.None` de MSAL antes de resolver sesión, evitando que `clearSession()` rebote al usuario a `/login` antes del redirect callback
+- **HighchartsReact import** — cambiado de default import a named import `{ HighchartsReact }` (ESM/Vite devolvía objeto en vez de componente)
+
+---
+
 ## [0.82.0-alpha.0] - 2026-03-25 — MONITOREO V2 FRONTEND + AUTH E2E
 
 ### Added

@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
 
@@ -12,12 +14,20 @@ export function clearSessionFlag() {
   localStorage.removeItem(SESSION_FLAG);
 }
 
-/** Runs once at app level to resolve session from existing cookie. */
+/**
+ * Runs once at app level to resolve session from existing cookie.
+ * Waits for MSAL to finish processing any in-flight redirect before
+ * deciding there is no session — prevents the race condition where
+ * clearSession() fires before MSAL can handle the redirect response.
+ */
 export function useSessionResolver() {
   const { setSession, clearSession } = useAuthStore();
+  const { inProgress } = useMsal();
   const resolved = useRef(false);
 
   useEffect(() => {
+    // Wait until MSAL is done handling any redirect
+    if (inProgress !== InteractionStatus.None) return;
     if (resolved.current) return;
     resolved.current = true;
 
@@ -39,5 +49,5 @@ export function useSessionResolver() {
         clearSessionFlag();
         clearSession();
       });
-  }, [setSession, clearSession]);
+  }, [inProgress, setSession, clearSession]);
 }

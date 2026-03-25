@@ -1,16 +1,19 @@
 import { NavLink } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useAuth } from '../../hooks/auth/useAuth';
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/buildings', label: 'Edificios', icon: '🏢' },
-  { to: '/alerts', label: 'Alertas', icon: '🔔' },
+  { to: '/', label: 'Dashboard' },
+  { to: '/buildings', label: 'Edificios' },
+  { to: '/alerts', label: 'Alertas' },
+  { to: '/components', label: 'Componentes' },
 ] as const;
 
 export function Sidebar() {
   const { sidebarOpen } = useAppStore();
   const { tenant } = useAuthStore();
+  const { logout } = useAuth();
 
   if (!sidebarOpen) return null;
 
@@ -24,23 +27,32 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 p-2">
-        {NAV_ITEMS.map(({ to, label, icon }) => (
+        {NAV_ITEMS.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+              `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
                 isActive
                   ? 'bg-[var(--color-primary,#3D3BF3)]/10 font-medium text-[var(--color-primary,#3D3BF3)]'
                   : 'text-gray-600 hover:bg-gray-100'
               }`
             }
           >
-            <span>{icon}</span>
             {label}
           </NavLink>
         ))}
       </nav>
+
+      <div className="border-t border-gray-200 p-2">
+        <button
+          type="button"
+          onClick={logout}
+          className="flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+        >
+          Cerrar Sesión
+        </button>
+      </div>
     </aside>
   );
 }

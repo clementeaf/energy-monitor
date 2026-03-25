@@ -4,6 +4,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { LoginPage } from '../features/auth/LoginPage';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
+import { ComponentsPage } from '../features/components/ComponentsPage';
 import { APP_ROUTES } from './routes';
 
 function RootLayout() {
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
               { index: true, element: <DashboardPage /> },
               { path: APP_ROUTES.buildings, element: <Placeholder label="Edificios" /> },
               { path: APP_ROUTES.alerts, element: <Placeholder label="Alertas" /> },
+              { path: APP_ROUTES.components, element: <ComponentsPage /> },
             ],
           },
         ],

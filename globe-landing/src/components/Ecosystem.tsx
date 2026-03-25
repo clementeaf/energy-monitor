@@ -23,26 +23,34 @@ const pillars = [
 
 export function Ecosystem() {
   return (
-    <section id="ecosistema" className="py-20 sm:py-28 px-5 sm:px-8 lg:px-10 bg-surface">
+    <section id="ecosistema" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-gp-50">
       <div className="max-w-5xl mx-auto">
-        <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase text-center">Nuestros Servicios</p>
-        <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-navy text-center">
+        <p className="section-label text-center">Nuestros Servicios</p>
+        <h2 className="section-title text-center">
           Un ecosistema integral bajo un solo responsable
         </h2>
-        <p className="mt-4 text-sm text-gray-500 text-center max-w-2xl mx-auto">
+        <p className="mt-4 text-sm text-text-body text-center max-w-2xl mx-auto font-light">
           Cuatro pilares que cubren toda la cadena energética de tu edificio: desde la medición hasta el mantenimiento.
         </p>
-        <div className="mt-14 grid sm:grid-cols-2 gap-8">
+
+        <div className="mt-16 grid sm:grid-cols-2 gap-8">
           {pillars.map((p) => (
-            <div key={p.num} className="p-5 bg-white rounded-lg border border-gray-100">
-              <span className="text-xs font-semibold text-gray-300">{p.num}</span>
-              <h3 className="mt-1 text-base font-semibold text-navy">{p.title}</h3>
-              <p className="mt-2 text-sm text-gray-500 leading-relaxed">{p.desc}</p>
+            <div
+              key={p.num}
+              className="group p-6 bg-white rounded-lg border border-gp-200/60 shadow-card card-hover relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-1 h-full bg-gp-700 transition-all duration-300 group-hover:w-1.5" />
+              <div className="pl-4">
+                <span className="text-xs font-bold text-gp-300">{p.num}</span>
+                <h3 className="mt-1 text-base font-semibold text-gp-800">{p.title}</h3>
+                <p className="mt-3 text-sm text-text-body leading-relaxed font-light">{p.desc}</p>
+              </div>
             </div>
           ))}
         </div>
-        <div className="mt-14 text-center">
-          <a href="#contacto" className="inline-flex px-6 py-2.5 bg-accent text-white font-medium rounded-md hover:bg-accent-dark transition-colors text-sm">
+
+        <div className="mt-16 text-center">
+          <a href="#contacto" className="btn-primary">
             Contáctanos
           </a>
         </div>

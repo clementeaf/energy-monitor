@@ -9,25 +9,24 @@ const results = [
 
 export function Results() {
   return (
-    <section className="py-20 sm:py-28 px-5 sm:px-8 lg:px-10 bg-surface">
+    <section id="resultados" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-gp-50">
       <div className="max-w-4xl mx-auto">
-        <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase text-center">Resultados</p>
-        <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-navy text-center">
+        <p className="section-label text-center">Resultados</p>
+        <h2 className="section-title text-center">
           Cifras que respaldan nuestra operación
         </h2>
-        <div className="mt-14 grid grid-cols-2 lg:grid-cols-3 gap-10">
+
+        <div className="mt-16 grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {results.map((r) => (
             <div key={r.label} className="text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-navy">{r.value}</p>
-              <p className="mt-2 text-sm text-gray-500">{r.label}</p>
+              <p className="text-4xl sm:text-5xl font-bold text-gp-700">{r.value}</p>
+              <p className="mt-3 text-sm text-text-body font-light">{r.label}</p>
             </div>
           ))}
         </div>
-        <div className="mt-14 text-center">
-          <a
-            href="#contacto"
-            className="inline-flex px-6 py-2.5 bg-accent text-white font-medium rounded-md hover:bg-accent-dark transition-colors text-sm"
-          >
+
+        <div className="mt-16 text-center">
+          <a href="#contacto" className="btn-primary">
             Agenda una Consulta
           </a>
         </div>

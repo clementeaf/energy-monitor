@@ -6,9 +6,13 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PlatformModule } from './modules/platform/platform.module';
 
 @Module({
   imports: [
@@ -48,12 +52,24 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     TenantsModule,
     UsersModule,
+    RolesModule,
+    PlatformModule,
   ],
   providers: [
     // Global rate limiter guard
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Global JWT auth guard (skip with @Public())
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    // Global permissions guard (skip with @Public())
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
     },
     // Global audit log (ISO 27001: immutable audit trail)
     {

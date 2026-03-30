@@ -5,4 +5,5 @@ export const API_ROUTES = {
     logout: '/auth/logout',
     me: '/auth/me',
   },
+  buildings: '/buildings',
 } as const;

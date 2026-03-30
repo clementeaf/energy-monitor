@@ -40,7 +40,8 @@ export function useSessionResolver() {
     authEndpoints
       .me()
       .then(({ data }) => {
-        setSession(data.user, data.tenant);
+        const { buildings, ...user } = data.user;
+        setSession(user, data.tenant, buildings ?? []);
         const root = document.documentElement;
         root.style.setProperty('--color-primary', data.tenant.primaryColor);
         root.style.setProperty('--color-secondary', data.tenant.secondaryColor);

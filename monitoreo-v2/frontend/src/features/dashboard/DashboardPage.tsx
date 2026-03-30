@@ -9,7 +9,7 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card title="Usuario" value={user?.displayName ?? user?.email ?? '—'} />
-        <Card title="Rol" value={user?.role ?? '—'} />
+        <Card title="Rol" value={user?.role.name ?? '—'} />
         <Card title="Color primario" value={tenant?.primaryColor ?? '—'} />
         <Card title="Proveedor" value={user?.authProvider ?? '—'} />
       </div>

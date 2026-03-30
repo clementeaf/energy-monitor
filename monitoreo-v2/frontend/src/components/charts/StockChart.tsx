@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions, stockChartExtras } from '../../lib/chart-config';
+import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
 
 // Remove "Zoom" label from range selector
 Highcharts.setOptions({ lang: { rangeSelectorZoom: '' } });
@@ -24,7 +25,7 @@ interface StockChartProps {
   onRangeChange?: (min: number, max: number) => void;
 }
 
-export function StockChart({ options, className, loading, onRangeChange }: StockChartProps) {
+function StockChartInner({ options, className, loading, onRangeChange }: StockChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   // Lock range selector config on first render so chart.update() doesn't
@@ -96,5 +97,16 @@ export function StockChart({ options, className, loading, onRangeChange }: Stock
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Gráfico tipo stock; errores de render se aíslan en el área del widget.
+ */
+export function StockChart(props: StockChartProps) {
+  return (
+    <WidgetErrorBoundary>
+      <StockChartInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

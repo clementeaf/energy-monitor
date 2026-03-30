@@ -83,7 +83,13 @@ const DUAL_AXIS_OPTIONS: Highcharts.Options = {
   ],
   series: [
     { name: 'Consumo', type: 'area', data: TIME_SERIES_1, yAxis: 0, tooltip: { valueSuffix: ' kWh', valueDecimals: 1 } },
-    { name: 'PF', type: 'line', data: TIME_SERIES_1.map(([t, v]) => [t, 0.85 + (Math.random() - 0.5) * 0.15] as [number, number]), yAxis: 1, tooltip: { valueDecimals: 3 } },
+    {
+      name: 'PF',
+      type: 'line',
+      data: TIME_SERIES_1.map(([t]) => [t, 0.85 + (Math.random() - 0.5) * 0.15] as [number, number]),
+      yAxis: 1,
+      tooltip: { valueDecimals: 3 },
+    },
   ],
 };
 

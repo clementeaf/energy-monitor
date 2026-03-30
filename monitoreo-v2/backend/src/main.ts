@@ -12,8 +12,12 @@ async function bootstrap() {
   const port = process.env.PORT ?? 4000;
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // ISO 27001: Security headers
-  app.use(helmet());
+  // ISO 27001: Security headers (COOP allow-popups evita bloqueo de OAuth popups / window.closed)
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    }),
+  );
 
   // ISO 27001: Secure cookie parsing
   app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -22,7 +26,12 @@ async function bootstrap() {
   app.enableCors({
     origin: isProduction
       ? [process.env.FRONTEND_URL ?? 'https://monitoreo.cl']
-      : ['http://localhost:5173', 'http://localhost:3000'],
+      : [
+          'http://localhost:5173',
+          'http://127.0.0.1:5173',
+          'http://localhost:3000',
+          'http://127.0.0.1:3000',
+        ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],

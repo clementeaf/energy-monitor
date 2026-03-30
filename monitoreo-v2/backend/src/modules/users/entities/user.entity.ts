@@ -9,6 +9,7 @@ import {
   Unique,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('users')
 @Unique(['tenantId', 'email'])
@@ -35,8 +36,12 @@ export class User {
   @Column({ name: 'auth_provider_id', length: 255 })
   authProviderId!: string;
 
-  @Column({ length: 50, default: 'viewer' })
-  role!: 'admin' | 'operator' | 'viewer' | 'technician';
+  @Column({ name: 'role_id' })
+  roleId!: string;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'role_id' })
+  role!: Role;
 
   @Column({ name: 'is_active', default: true })
   isActive!: boolean;

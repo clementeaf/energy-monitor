@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions, axisLabelFormatter, getSeriesColors } from '../../lib/chart-config';
+import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -37,7 +38,7 @@ const MODE_LABELS: Record<ChartMode, string> = {
 // Component
 // ---------------------------------------------------------------------------
 
-export function MonthlyChart({
+function MonthlyChartInner({
   data,
   seriesName,
   unit,
@@ -79,7 +80,7 @@ export function MonthlyChart({
             dataLabels: {
               enabled: true,
               format: '{point.name}',
-              style: { fontSize: '11px', color: base.tooltip?.style?.color ?? '#1F2937', textOutline: 'none' },
+              style: { fontSize: '11px', color: '#1F2937', textOutline: 'none' },
             },
           },
         },
@@ -149,5 +150,16 @@ export function MonthlyChart({
       )}
       <HighchartsReact highcharts={Highcharts} options={options} />
     </div>
+  );
+}
+
+/**
+ * Gráfico mensual multi-modo; fallos de render no propagan fuera del bloque.
+ */
+export function MonthlyChart(props: MonthlyChartProps) {
+  return (
+    <WidgetErrorBoundary>
+      <MonthlyChartInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

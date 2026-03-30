@@ -1,10 +1,14 @@
 import { createBrowserRouter, Outlet } from 'react-router';
 import { SessionGate } from '../components/auth/SessionGate';
-import { AppLayout } from '../components/layout/AppLayout';
+import { LayoutShell } from '../components/layout/LayoutShell';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
-import { LoginPage } from '../features/auth/LoginPage';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
-import { ComponentsPage } from '../features/components/ComponentsPage';
+import { LoginRouteShell } from '../components/routing/LoginRouteShell';
+import {
+  LazyBuildingsPage,
+  LazyComponentsPage,
+  LazyDashboardPage,
+  LazyPlaceholderPage,
+} from './lazyPages';
 import { APP_ROUTES } from './routes';
 
 function RootLayout() {
@@ -21,18 +25,28 @@ export const router = createBrowserRouter([
     children: [
       {
         path: APP_ROUTES.login,
-        element: <LoginPage />,
+        element: <LoginRouteShell />,
       },
       {
         element: <ProtectedRoute />,
         children: [
           {
-            element: <AppLayout />,
+            element: <LayoutShell />,
             children: [
-              { index: true, element: <DashboardPage /> },
-              { path: APP_ROUTES.buildings, element: <Placeholder label="Edificios" /> },
-              { path: APP_ROUTES.alerts, element: <Placeholder label="Alertas" /> },
-              { path: APP_ROUTES.components, element: <ComponentsPage /> },
+              { index: true, element: <LazyDashboardPage /> },
+              { path: APP_ROUTES.buildings, element: <LazyBuildingsPage /> },
+              { path: APP_ROUTES.alerts, element: <LazyPlaceholderPage label="Alertas" /> },
+              { path: APP_ROUTES.billing, element: <LazyPlaceholderPage label="Facturación" /> },
+              { path: APP_ROUTES.reports, element: <LazyPlaceholderPage label="Reportes" /> },
+              { path: APP_ROUTES.components, element: <LazyComponentsPage /> },
+              { path: APP_ROUTES.admin.users, element: <LazyPlaceholderPage label="Usuarios" /> },
+              { path: APP_ROUTES.admin.meters, element: <LazyPlaceholderPage label="Medidores" /> },
+              { path: APP_ROUTES.admin.tenants, element: <LazyPlaceholderPage label="Locatarios" /> },
+              {
+                path: APP_ROUTES.admin.hierarchy,
+                element: <LazyPlaceholderPage label="Jerarquía Eléctrica" />,
+              },
+              { path: APP_ROUTES.admin.audit, element: <LazyPlaceholderPage label="Auditoría" /> },
             ],
           },
         ],
@@ -40,11 +54,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-
-function Placeholder({ label }: { label: string }) {
-  return (
-    <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400">
-      {label} — por implementar
-    </div>
-  );
-}

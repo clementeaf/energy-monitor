@@ -2,20 +2,81 @@ import { NavLink } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { usePermissions } from '../../hooks/usePermissions';
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/buildings', label: 'Edificios' },
-  { to: '/alerts', label: 'Alertas' },
-  { to: '/components', label: 'Componentes' },
-] as const;
+interface NavItem {
+  to: string;
+  label: string;
+  /** User must have at least ONE of these permissions to see this item */
+  requiredPerms: string[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    to: '/',
+    label: 'Dashboard',
+    requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
+  },
+  {
+    to: '/buildings',
+    label: 'Edificios',
+    requiredPerms: ['admin_buildings:read', 'dashboard_technical:read'],
+  },
+  {
+    to: '/alerts',
+    label: 'Alertas',
+    requiredPerms: ['alerts:read', 'alerts:receive'],
+  },
+  {
+    to: '/billing',
+    label: 'Facturación',
+    requiredPerms: ['billing:read', 'billing:view_own'],
+  },
+  {
+    to: '/reports',
+    label: 'Reportes',
+    requiredPerms: ['reports:read', 'reports:view_own'],
+  },
+];
+
+const ADMIN_ITEMS: NavItem[] = [
+  {
+    to: '/admin/users',
+    label: 'Usuarios',
+    requiredPerms: ['admin_users:read'],
+  },
+  {
+    to: '/admin/meters',
+    label: 'Medidores',
+    requiredPerms: ['admin_meters:read'],
+  },
+  {
+    to: '/admin/tenants',
+    label: 'Locatarios',
+    requiredPerms: ['admin_tenants_units:read'],
+  },
+  {
+    to: '/admin/hierarchy',
+    label: 'Jerarquía',
+    requiredPerms: ['admin_hierarchy:read'],
+  },
+  {
+    to: '/admin/audit',
+    label: 'Auditoría',
+    requiredPerms: ['audit:read'],
+  },
+];
 
 export function Sidebar() {
   const { sidebarOpen } = useAppStore();
-  const { tenant } = useAuthStore();
+  const { tenant, user } = useAuthStore();
   const { logout } = useAuth();
+  const { hasAny } = usePermissions();
 
   if (!sidebarOpen) return null;
+
+  const visibleNav = NAV_ITEMS.filter((item) => hasAny(...item.requiredPerms));
+  const visibleAdmin = ADMIN_ITEMS.filter((item) => hasAny(...item.requiredPerms));
 
   return (
     <aside className="flex w-56 flex-col border-r border-gray-200 bg-white">
@@ -26,25 +87,30 @@ export function Sidebar() {
         <span className="text-sm font-semibold text-gray-900">Energy Monitor</span>
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
-        {NAV_ITEMS.map(({ to, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
-                isActive
-                  ? 'bg-[var(--color-primary,#3D3BF3)]/10 font-medium text-[var(--color-primary,#3D3BF3)]'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`
-            }
-          >
-            {label}
-          </NavLink>
+      <nav className="flex-1 space-y-1 overflow-y-auto p-2">
+        {visibleNav.map(({ to, label }) => (
+          <SidebarLink key={to} to={to} label={label} />
         ))}
+
+        {visibleAdmin.length > 0 && (
+          <>
+            <div className="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-wider text-gray-400">
+              Administración
+            </div>
+            {visibleAdmin.map(({ to, label }) => (
+              <SidebarLink key={to} to={to} label={label} />
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="border-t border-gray-200 p-2">
+        {user && (
+          <div className="mb-2 px-3 py-1">
+            <div className="truncate text-xs font-medium text-gray-700">{user.displayName ?? user.email}</div>
+            <div className="text-xs text-gray-400">{user.role.name}</div>
+          </div>
+        )}
         <button
           type="button"
           onClick={logout}
@@ -54,5 +120,22 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+  );
+}
+
+function SidebarLink({ to, label }: { to: string; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
+          isActive
+            ? 'bg-[var(--color-primary,#3D3BF3)]/10 font-medium text-[var(--color-primary,#3D3BF3)]'
+            : 'text-gray-600 hover:bg-gray-100'
+        }`
+      }
+    >
+      {label}
+    </NavLink>
   );
 }

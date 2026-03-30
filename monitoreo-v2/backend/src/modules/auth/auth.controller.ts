@@ -7,9 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
@@ -19,6 +17,7 @@ import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -39,6 +38,7 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -52,7 +52,6 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
   async me(@CurrentUser() user: JwtPayload) {
     const profile = await this.authService.getUserProfile(user.sub);
     const theme = await this.tenantsService.getTheme(user.tenantId);
@@ -62,6 +61,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -74,7 +74,6 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   async logout(
     @CurrentUser() user: JwtPayload,
@@ -94,10 +93,13 @@ export class AuthController {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
 
+    // Lax en dev: Strict puede impedir que el navegador envíe la cookie en XHR
+    // entre localhost:5173 y localhost:4000 (origen distinto, mismo sitio lax).
+    const sameSite: 'strict' | 'lax' = isProduction ? 'strict' : 'lax';
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict' as const,
+      sameSite,
       path: '/',
     };
 

@@ -2,6 +2,7 @@ import { useRef, useEffect, useMemo } from 'react';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions } from '../../lib/chart-config';
+import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
 
 interface ChartProps {
   options: Highcharts.Options;
@@ -12,7 +13,7 @@ interface ChartProps {
   onPointHover?: (index: number | null) => void;
 }
 
-export function Chart({ options, className, highlightIndex, onPointHover }: ChartProps) {
+function ChartInner({ options, className, highlightIndex, onPointHover }: ChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   const merged = useMemo<Highcharts.Options>(() => {
@@ -61,5 +62,16 @@ export function Chart({ options, className, highlightIndex, onPointHover }: Char
     <div className={`overflow-hidden ${className ?? ''}`}>
       <HighchartsReact ref={chartRef} highcharts={Highcharts} options={merged} />
     </div>
+  );
+}
+
+/**
+ * Gráfico de líneas con Highcharts; fallos de render quedan acotados al bloque.
+ */
+export function Chart(props: ChartProps) {
+  return (
+    <WidgetErrorBoundary>
+      <ChartInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

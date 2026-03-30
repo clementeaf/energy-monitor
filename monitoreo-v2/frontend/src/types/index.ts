@@ -1,1 +1,1 @@
-export type { AuthProvider, Role, AuthUser, TenantTheme, MeResponse } from './auth';
+export type { AuthProvider, UserRole, AuthUser, TenantTheme, MeResponse } from './auth';

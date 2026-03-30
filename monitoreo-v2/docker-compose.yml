@@ -3,7 +3,8 @@ services:
     image: timescale/timescaledb:latest-pg16
     container_name: monitoreo-v2-db
     ports:
-      - '5433:5432'
+      # Host 5434 alineado con CLAUDE.md y DB_PORT típico local (evita choque con shell export)
+      - '5434:5432'
     environment:
       POSTGRES_DB: ${DB_NAME:-monitoreo_v2}
       POSTGRES_USER: ${DB_USERNAME:-postgres}

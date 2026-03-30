@@ -6,9 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-    },
+    // Sin COOP en el dev server: evita avisos de window.closed (HMR + OAuth popup de Google).
+    // El API (Nest) envía same-origin-allow-popups vía Helmet para las respuestas /api.
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

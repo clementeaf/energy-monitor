@@ -21,8 +21,9 @@ export function useAuth() {
       try {
         await authEndpoints.login(provider, idToken);
         const { data } = await authEndpoints.me();
+        const { buildings, ...user } = data.user;
         setSessionFlag();
-        setSession(data.user, data.tenant);
+        setSession(user, data.tenant, buildings ?? []);
         applyTenantTheme(data.tenant.primaryColor, data.tenant.secondaryColor);
         navigate('/');
       } catch (err: unknown) {

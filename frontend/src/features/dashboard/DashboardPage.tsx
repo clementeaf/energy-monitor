@@ -349,10 +349,10 @@ export function DashboardPage() {
           {cards.map((c) => (
             <div
               key={c.label}
-              className="flex shrink-0 flex-col rounded-xl border border-pa-navy/30 bg-white px-3 py-2 2xl:px-4 2xl:py-3"
+              className="flex flex-1 flex-col rounded-xl border border-pa-navy/30 bg-white px-3 py-2 2xl:px-4 2xl:py-3"
             >
               <p className="text-[10px] font-medium text-pa-text-muted 2xl:text-xs">{c.label}</p>
-              <p className={`text-base font-bold 2xl:text-xl ${c.accent}`}>{c.value}</p>
+              <p className={`flex flex-1 items-center text-base font-bold 2xl:text-xl ${c.accent}`}>{c.value}</p>
               <p className="text-[8px] text-pa-text-muted/60 2xl:text-[10px]">Última actualización: 18 mar 2026</p>
               <div className="flex items-center justify-between">
                 <p className="text-[9px] text-pa-text-muted 2xl:text-[11px]">{c.desc}</p>

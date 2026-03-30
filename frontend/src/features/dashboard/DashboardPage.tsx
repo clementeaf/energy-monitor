@@ -448,9 +448,9 @@ export function DashboardPage() {
         </Card>
 
         <div className="w-px shrink-0 bg-pa-border" />
-        <Card className="flex flex-1 flex-col overflow-hidden !p-0">
+        <Card className="flex flex-1 flex-col !p-0">
           <SectionBanner title="Facturas Vencidas por Período" inline className="mb-1 h-10" />
-          <div className="min-h-0 flex-1 overflow-hidden">
+          <div className="flex-1">
             {effectivePayments ? (
               <DataTable
                 data={effectivePayments.vencidosPorPeriodo}
@@ -461,7 +461,7 @@ export function DashboardPage() {
                   setDrawerVencidos(true);
                 }}
                 footer
-                maxHeight="max-h-full"
+                maxHeight=""
               />
             ) : (
               <p className="text-sm text-muted/40">—</p>

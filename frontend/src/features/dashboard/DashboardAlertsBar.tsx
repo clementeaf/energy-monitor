@@ -68,7 +68,7 @@ export function DashboardAlertsBar(): ReactElement {
 
   return (
     <>
-      <div className="group/alerts relative shrink-0 border-t border-pa-border bg-gray-50/90 p-2">
+      <div className="group/alerts relative shrink-0 bg-gray-50/90 p-2">
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
@@ -108,7 +108,7 @@ export function DashboardAlertsBar(): ReactElement {
         </button>
 
         <div
-          className="pointer-events-none absolute bottom-full left-0 right-0 z-30 mb-1 hidden max-h-64 overflow-hidden rounded-lg border border-pa-border bg-white p-2 text-left shadow-lg group-hover/alerts:pointer-events-auto group-hover/alerts:block"
+          className="pointer-events-none absolute top-full left-0 right-0 z-30 mt-1 hidden max-h-64 overflow-hidden rounded-lg border border-pa-border bg-white p-2 text-left shadow-lg group-hover/alerts:pointer-events-auto group-hover/alerts:block"
           role="tooltip"
         >
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-pa-text-muted">Vista previa</p>

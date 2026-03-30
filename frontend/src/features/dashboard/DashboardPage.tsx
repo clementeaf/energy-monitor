@@ -329,7 +329,7 @@ export function DashboardPage() {
       )}
 
       {/* Fila 1: Gráficos + Cards */}
-      <div className="flex min-h-0 flex-[2] gap-2">
+      <div className="flex min-h-0 flex-1 gap-2">
         <div className="flex flex-[4] gap-2 overflow-hidden">
           <div className="flex flex-1 flex-col overflow-hidden">
             <p className="mb-1 shrink-0 text-[11px] font-semibold tracking-wide text-pa-navy">Consumo (Mwh)</p>
@@ -364,7 +364,7 @@ export function DashboardPage() {
       </div>
 
       {/* Fila 2: Tablas */}
-      <div className="flex min-h-0 flex-[3] gap-2">
+      <div className="flex min-h-0 flex-1 gap-2">
         <Card className="flex flex-[4] flex-col overflow-hidden !p-0">
           <SectionBanner
             title={

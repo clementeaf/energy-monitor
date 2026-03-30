@@ -15,11 +15,17 @@ async function bootstrap() {
   app.useGlobalInterceptors(new Utf8JsonInterceptor());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  const corsOrigins: string[] = ['https://energymonitor.click'];
-  if (process.env.NODE_ENV !== 'production') {
-    corsOrigins.push('http://localhost:5173');
-  }
-  app.enableCors({ origin: corsOrigins, credentials: true });
+  const corsOrigins: string[] = [
+    'https://energymonitor.click',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ];
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  });
 
   setupSwagger(app);
 

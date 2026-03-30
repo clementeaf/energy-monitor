@@ -17,6 +17,7 @@ import type { BillingDocumentDetail, DashboardBuildingMonth, OverdueBucket, Paym
 import { ComboChart } from './components/ComboChart';
 import { ComparativaChart } from './components/ComparativaChart';
 import { DocTableWithFilter } from './components/DocTableWithFilter';
+import { DashboardAlertsBar } from './DashboardAlertsBar';
 
 interface BuildingRow {
   name: string;
@@ -341,21 +342,24 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="w-px shrink-0 bg-pa-border" />
-        <div className="flex flex-1 flex-col gap-3">
-          {cards.map((c) => (
-            <div
-              key={c.label}
-              className="flex flex-1 flex-col rounded-xl border border-pa-navy/30 bg-white px-3 py-2 2xl:px-4 2xl:py-3"
-            >
-              <p className="text-[10px] font-medium text-pa-text-muted 2xl:text-xs">{c.label}</p>
-              <p className={`flex flex-1 items-center text-base font-bold 2xl:text-xl ${c.accent}`}>{c.value}</p>
-              <p className="text-[8px] text-pa-text-muted/60 2xl:text-[10px]">Última actualización: 18 mar 2026</p>
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] text-pa-text-muted 2xl:text-[11px]">{c.desc}</p>
-                {c.onVerMas && <PillButton onClick={c.onVerMas}>Ver más +</PillButton>}
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
+            {cards.map((c) => (
+              <div
+                key={c.label}
+                className="flex flex-1 flex-col rounded-xl border border-pa-navy/30 bg-white px-3 py-2 2xl:px-4 2xl:py-3"
+              >
+                <p className="text-[10px] font-medium text-pa-text-muted 2xl:text-xs">{c.label}</p>
+                <p className={`flex flex-1 items-center text-base font-bold 2xl:text-xl ${c.accent}`}>{c.value}</p>
+                <p className="text-[8px] text-pa-text-muted/60 2xl:text-[10px]">Última actualización: 18 mar 2026</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] text-pa-text-muted 2xl:text-[11px]">{c.desc}</p>
+                  {c.onVerMas && <PillButton onClick={c.onVerMas}>Ver más +</PillButton>}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <DashboardAlertsBar />
         </div>
       </div>
 

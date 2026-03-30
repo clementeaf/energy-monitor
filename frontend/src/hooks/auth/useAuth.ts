@@ -56,12 +56,13 @@ export function useAuth() {
   const store = useAuthStore();
   const resolving = useRef(false);
 
-  // Handle MSAL redirect flow: after Microsoft redirects back, MSAL is authenticated
-  // but store is empty. Acquire token silently and call backend.
+  // Tras redirect de Microsoft: MSAL autentica pero el store sigue vacío.
+  // No bloquear por store.error (un fallo previo impedía reintentar). Esperar a que MSAL termine (None).
   useEffect(() => {
     if (resolving.current) return;
-    if (store.isAuthenticated || store.isLoading || store.error) return;
+    if (store.isAuthenticated || store.isLoading) return;
     if (!microsoft.isAuthenticated || !microsoft.user) return;
+    if (microsoft.isLoading) return;
 
     resolving.current = true;
     store.setLoading(true);
@@ -75,12 +76,22 @@ export function useAuth() {
       store.setLoading(false);
       resolving.current = false;
     });
-  }, [microsoft.isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    microsoft.isAuthenticated,
+    microsoft.isLoading,
+    microsoft.user?.email,
+    store.isAuthenticated,
+    store.isLoading,
+  ]);
 
   async function loginMicrosoft() {
     store.setLoading(true);
     store.setError(null);
-    await microsoft.login();
+    try {
+      await microsoft.login();
+    } finally {
+      store.setLoading(false);
+    }
   }
 
   async function loginGoogle(credential?: string) {

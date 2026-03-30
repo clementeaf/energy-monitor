@@ -3,17 +3,25 @@ import { PublicClientApplication } from '@azure/msal-browser';
 import { msalConfig, loginRequest } from '../auth/msalConfig';
 import { useAuthStore } from '../store/useAuthStore';
 
+const defaultTimeoutMs = Number(import.meta.env.VITE_API_TIMEOUT_MS) || 60_000;
+/** Cold start + VPC + RDS puede superar 25s; /auth/* usa margen extra. */
+const authTimeoutMs = Number(import.meta.env.VITE_API_AUTH_TIMEOUT_MS) || 120_000;
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 25_000,
+  timeout: defaultTimeoutMs,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Inject Bearer token on every request
+// Inject Bearer token; timeout largo en rutas de auth (login / sesión)
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const path = `${config.baseURL ?? ''}${config.url ?? ''}`;
+  if (path.includes('/auth/')) {
+    config.timeout = authTimeoutMs;
   }
   return config;
 });

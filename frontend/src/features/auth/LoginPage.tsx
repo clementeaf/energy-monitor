@@ -35,7 +35,6 @@ export function LoginPage() {
     },
     onError: () => {
       setActiveProvider(null);
-      loginGoogle();
     },
   });
 

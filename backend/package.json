@@ -11,6 +11,7 @@
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest",
     "deploy": "sls deploy",
+    "deploy:aws": "node scripts/deploy-from-existing-lambda.mjs",
     "offline": "sls offline",
     "migrate:auth": "node scripts/run-auth-migrations.mjs"
   },
@@ -27,6 +28,7 @@
     "@vendia/serverless-express": "^4.12.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "dotenv": "^16.4.5",
     "jose": "^4.15.9",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",

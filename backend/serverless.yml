@@ -7,6 +7,26 @@ provider:
   stage: ${opt:stage, 'dev'}
   memorySize: 256
   timeout: 10
+  # CORS en API Gateway (preflight OPTIONS); debe coincidir con enableCors en Nest (serverless.ts)
+  httpApi:
+    cors:
+      allowedOrigins:
+        - https://energymonitor.click
+        - http://localhost:5173
+        - http://127.0.0.1:5173
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+        - Accept
+        - X-Requested-With
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allowCredentials: true
   iam:
     role:
       statements:

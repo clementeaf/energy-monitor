@@ -16,6 +16,7 @@ const mockTenant: Tenant = {
   timezone: 'America/Santiago',
   createdAt: new Date(),
   updatedAt: new Date(),
+  users: [],
 };
 
 describe('TenantsService', () => {

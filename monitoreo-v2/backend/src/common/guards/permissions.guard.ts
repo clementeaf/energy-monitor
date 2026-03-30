@@ -3,26 +3,14 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtPayload } from '../decorators/current-user.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
 
-export const PERMISSIONS_KEY = 'required_permissions';
-
-/**
- * Require a single permission: @RequirePermission('billing', 'create')
- * Stored in JWT as "billing:create" — guard does a Set.has() lookup.
- */
-export const RequirePermission = (module: string, action: string) =>
-  SetMetadata(PERMISSIONS_KEY, [`${module}:${action}`]);
-
-/**
- * Require ANY of the listed permissions: @RequireAnyPermission('billing:read', 'billing:view_own')
- */
-export const RequireAnyPermission = (...permissions: string[]) =>
-  SetMetadata(PERMISSIONS_KEY, permissions);
+// Re-export decorators for backward compatibility
+export { RequirePermission, RequireAnyPermission, PERMISSIONS_KEY } from '../decorators/require-permission.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {

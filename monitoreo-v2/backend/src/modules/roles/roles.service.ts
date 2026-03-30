@@ -4,7 +4,6 @@ import { DataSource } from 'typeorm';
 export interface UserPermission {
   module: string;
   action: string;
-  accessLevel: string;
 }
 
 @Injectable()
@@ -15,17 +14,16 @@ export class RolesService {
 
   async getPermissionsByRoleId(roleId: string): Promise<UserPermission[]> {
     const rows = await this.dataSource.query(
-      `SELECT p.module, p.action, rp.access_level
+      `SELECT p.module, p.action
        FROM role_permissions rp
        JOIN permissions p ON p.id = rp.permission_id
        WHERE rp.role_id = $1`,
       [roleId],
     );
 
-    return rows.map((r: { module: string; action: string; access_level: string }) => ({
+    return rows.map((r: { module: string; action: string }) => ({
       module: r.module,
       action: r.action,
-      accessLevel: r.access_level,
     }));
   }
 

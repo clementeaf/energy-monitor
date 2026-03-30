@@ -1,10 +1,9 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
-import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -15,6 +14,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { BuildingsModule } from './modules/buildings/buildings.module';
 import { MetersModule } from './modules/meters/meters.module';
+import { AlertsModule } from './modules/alerts/alerts.module';
 
 @Module({
   imports: [
@@ -58,6 +58,7 @@ import { MetersModule } from './modules/meters/meters.module';
     PlatformModule,
     BuildingsModule,
     MetersModule,
+    AlertsModule,
   ],
   providers: [
     // Global rate limiter guard
@@ -82,8 +83,4 @@ import { MetersModule } from './modules/meters/meters.module';
     },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes('*path');
-  }
-}
+export class AppModule {}

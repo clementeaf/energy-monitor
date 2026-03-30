@@ -8,6 +8,8 @@ import {
   Body,
   NotFoundException,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
@@ -62,6 +64,7 @@ export class BuildingsController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_buildings', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,

@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  Logger,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { DataSource } from 'typeorm';
@@ -10,6 +11,8 @@ import type { JwtPayload } from '../decorators/current-user.decorator';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(AuditLogInterceptor.name);
+
   constructor(private readonly dataSource: DataSource) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -43,8 +46,10 @@ export class AuditLogInterceptor implements NestInterceptor {
               request.headers['user-agent'] ?? null,
             ],
           );
-        } catch {
-          // Audit failure must not break the request
+        } catch (error: unknown) {
+          this.logger.warn(
+            `Audit log write failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+          );
         }
       }),
     );

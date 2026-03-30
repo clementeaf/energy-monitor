@@ -22,15 +22,15 @@ describe('RolesService', () => {
   describe('getPermissionsByRoleId', () => {
     it('maps DB rows to UserPermission objects', async () => {
       ds.query.mockResolvedValue([
-        { module: 'billing', action: 'read', access_level: 'R' },
-        { module: 'alerts', action: 'update', access_level: 'CRU' },
+        { module: 'billing', action: 'read' },
+        { module: 'alerts', action: 'update' },
       ]);
 
       const result = await service.getPermissionsByRoleId('role-1');
 
       expect(result).toEqual([
-        { module: 'billing', action: 'read', accessLevel: 'R' },
-        { module: 'alerts', action: 'update', accessLevel: 'CRU' },
+        { module: 'billing', action: 'read' },
+        { module: 'alerts', action: 'update' },
       ]);
       expect(ds.query).toHaveBeenCalledWith(expect.stringContaining('role_permissions'), ['role-1']);
     });

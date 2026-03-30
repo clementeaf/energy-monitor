@@ -9,6 +9,8 @@ import {
   Query,
   NotFoundException,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { MetersService } from './meters.service';
 import { CreateMeterDto } from './dto/create-meter.dto';
@@ -66,6 +68,7 @@ export class MetersController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_meters', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,

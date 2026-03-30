@@ -76,7 +76,7 @@ export class PlatformAlert {
   @Column({ name: 'acknowledged_by', type: 'uuid', nullable: true })
   acknowledgedBy!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => User, { onDelete: 'NO ACTION', nullable: true })
   @JoinColumn({ name: 'acknowledged_by' })
   acknowledgedByUser!: User | null;
 
@@ -86,7 +86,7 @@ export class PlatformAlert {
   @Column({ name: 'resolved_by', type: 'uuid', nullable: true })
   resolvedBy!: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => User, { onDelete: 'NO ACTION', nullable: true })
   @JoinColumn({ name: 'resolved_by' })
   resolvedByUser!: User | null;
 

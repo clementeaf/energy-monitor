@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.85.0-alpha.0] - 2026-03-30 — MONITOREO V2 ALERTS MODULE + TECH DEBT CLEANUP
+
+### Added
+- **AlertsModule** — Alertas disparadas: `GET /alerts` (filtros: status, severity, buildingId, meterId), `GET /alerts/:id`, `PATCH /alerts/:id/acknowledge`, `PATCH /alerts/:id/resolve`. Tenant scoping + buildingIds RBAC
+- **AlertRulesModule** — Configuración de reglas: `GET /alert-rules`, `GET /alert-rules/:id`, `POST`, `PATCH`, `DELETE`. Reglas globales (sin building) visibles para todos los buildings del usuario
+- **`require-permission.decorator.ts`** — Decoradores `@RequirePermission` y `@RequireAnyPermission` extraídos a archivo propio
+- **Regla NestJS** — `.claude/rules/nestjs-module-pattern.md` documenta el patrón exacto del backend v2
+- **Total backend tests** — 112 passing (14 suites)
+
+### Changed
+- **DELETE endpoints** — Retornan 204 No Content (`@HttpCode`) en vez de 200 sin body
+- **tsconfig** — `strict: true` reemplaza flags individuales
+- **Jest** — `coverageThreshold` 80% global (branches, functions, lines, statements)
+- **AuditLogInterceptor** — Errores se loggean con `Logger.warn()` en vez de silenciarse
+- **RolesService** — `access_level` removido de la query (se consultaba pero nunca se usaba)
+- **PlatformAlert FK** — `acknowledgedBy`/`resolvedBy` cambiados de `SET NULL` a `NO ACTION` (preserva audit trail)
+
+### Removed
+- **TenantMiddleware** — Era no-op (tenant viene exclusivamente del JWT)
+- **RolesGuard** — Marcado como deprecated y nunca importado por ningún controller
+- **6 directorios vacíos** — `common/filters/`, `auth/guards/`, `tenants/dto/`, `users/dto/`, `iot-readings/dto/`, `common/middleware/`
+
+---
+
 ## [0.84.0-alpha.0] - 2026-03-30 — MONITOREO V2 BUILDINGS + METERS CRUD
 
 ### Added
@@ -61,7 +85,7 @@
 - **Continuous aggregates** — `iot_readings_hourly` y `iot_readings_daily` pre-calculados
 - **Auth OAuth** — Microsoft + Google via JWKS (`jose`), verificación de audience + issuer
 - **JWT httpOnly cookies** — access token 15min + refresh token 7d con rotación atómica (FOR UPDATE)
-- **Tenant middleware** — tenant resuelto exclusivamente desde JWT (sin header spoofing)
+- **Tenant via JWT** — tenant resuelto exclusivamente desde JWT payload (sin header spoofing)
 - **ISO 27001 hardening** — helmet, rate limiting (3 tiers), CORS estricto, ValidationPipe global, audit log interceptor, `getOrThrow` para secrets, sin fallbacks en código
 
 ---

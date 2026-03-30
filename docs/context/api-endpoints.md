@@ -109,3 +109,59 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | Method | Path | Query | Response |
 |---|---|---|---|
 | GET | `/raw-readings/:meterId` | `from`, `to` (requeridos, ISO 8601, max 31 días), `limit?` (max 5000) | `RawReading[]` (446 medidores, 15.6M filas) |
+
+---
+
+## monitoreo-v2 Endpoints
+
+Todos los endpoints v2 requieren JWT cookie (httpOnly). Tenant scoping + buildingIds RBAC automáticos desde JWT.
+
+### Auth (`/auth`)
+| Method | Path | Body | Response |
+|---|---|---|---|
+| POST | `/auth/login` | `{ provider, token }` | Sets httpOnly cookies (access + refresh) |
+| POST | `/auth/refresh` | — | Rotación refresh token |
+| POST | `/auth/logout` | — | Limpia cookies |
+| GET | `/auth/me` | — | `{ user, tenant, permissions }` |
+
+### Buildings (`/buildings`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/buildings` | — | `Building[]` (scoped por tenant + buildingIds) |
+| GET | `/buildings/:id` | — | `Building` |
+| POST | `/buildings` | `{ name, address, totalArea? }` | `Building` |
+| PATCH | `/buildings/:id` | `{ name?, address?, totalArea? }` | `Building` |
+| DELETE | `/buildings/:id` | — | 204 No Content |
+
+### Meters (`/meters`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/meters` | `buildingId?` | `Meter[]` (scoped) |
+| GET | `/meters/:id` | — | `Meter` |
+| POST | `/meters` | `{ buildingId, name, code, meterType?, phaseType?, ... }` | `Meter` |
+| PATCH | `/meters/:id` | campos parciales | `Meter` |
+| DELETE | `/meters/:id` | — | 204 No Content |
+
+### Readings (`/readings`) — read-only
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/readings` | `meterId` (uuid), `from`, `to` (ISO 8601), `resolution?` (raw/5min/15min/1h/1d), `limit?` (1-10000, default 1000) | `ReadingRow[]` — time-series con downsampling vía `time_bucket` |
+| GET | `/readings/latest` | `buildingId?`, `meterId?` | `LatestRow[]` — última lectura por medidor (`DISTINCT ON`) |
+| GET | `/readings/aggregated` | `from`, `to`, `interval` (hourly/daily/monthly), `buildingId?`, `meterId?` | `AggregatedRow[]` — avg/max/min power, energy delta, PF, reading count |
+
+### Alerts (`/alerts`)
+| Method | Path | Query / Body | Response |
+|---|---|---|---|
+| GET | `/alerts` | `status?`, `severity?`, `buildingId?`, `meterId?` | `PlatformAlert[]` |
+| GET | `/alerts/:id` | — | `PlatformAlert` |
+| PATCH | `/alerts/:id/acknowledge` | — | `PlatformAlert` (acknowledged) |
+| PATCH | `/alerts/:id/resolve` | `{ resolutionNotes? }` | `PlatformAlert` (resolved) |
+
+### Alert Rules (`/alert-rules`)
+| Method | Path | Body | Response |
+|---|---|---|---|
+| GET | `/alert-rules` | — | `AlertRule[]` |
+| GET | `/alert-rules/:id` | — | `AlertRule` |
+| POST | `/alert-rules` | `{ name, metric, operator, threshold, severity, buildingId? }` | `AlertRule` |
+| PATCH | `/alert-rules/:id` | campos parciales | `AlertRule` |
+| DELETE | `/alert-rules/:id` | — | 204 No Content |

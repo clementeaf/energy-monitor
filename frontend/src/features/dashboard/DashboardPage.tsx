@@ -343,6 +343,7 @@ export function DashboardPage() {
         </div>
         <div className="w-px shrink-0 bg-pa-border" />
         <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <DashboardAlertsBar />
           <div className="flex min-h-0 flex-1 flex-col gap-3">
             {cards.map((c) => (
               <div
@@ -359,7 +360,6 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
-          <DashboardAlertsBar />
         </div>
       </div>
 

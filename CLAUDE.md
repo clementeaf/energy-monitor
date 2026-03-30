@@ -25,12 +25,13 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-03-30)
+- **ReadingsModule** — Read-only: `GET /readings` (time-series con downsampling vía `time_bucket`), `GET /readings/latest` (última lectura por medidor), `GET /readings/aggregated` (hourly/daily/monthly). Tenant + buildingIds RBAC
 - **AlertsModule** — `GET /alerts` (filtros status/severity/buildingId/meterId), `GET /:id`, `PATCH /:id/acknowledge`, `PATCH /:id/resolve`. Tenant + buildingIds RBAC
 - **AlertRulesModule** — CRUD reglas de alerta. Reglas globales (sin building) visibles cross-building
 - **Tech debt cleanup** — TenantMiddleware y RolesGuard eliminados, DELETE → 204, `strict: true`, coverage threshold 80%, audit log con Logger, `access_level` limpiado, FK audit preservado, decoradores extraídos, dirs vacíos eliminados
 - **BuildingsModule** — CRUD con tenant scoping + buildingIds RBAC
 - **MetersModule** — CRUD con tenant + buildingIds scoping + filtro buildingId
-- **112 tests, 14 suites** en backend
+- **138 tests, 16 suites** en backend
 
 ### Completado (2026-03-25)
 - **Charts agnósticos** — `Chart`, `StockChart`, `MonthlyChart` + `chart-config.ts` en monitoreo-v2. Colores via CSS vars, sin acoplamiento a tema
@@ -57,8 +58,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2 backend**: siguiente módulo (Concentrators, Hierarchy, TenantUnits, Invoices, o Readings)
-- **monitoreo-v2 frontend**: migrar vistas de datos (Buildings, Meters, Alerts) al nuevo frontend
+- **monitoreo-v2 backend**: siguiente módulo (Hierarchy, TenantUnits, Concentrators, o Invoices)
+- **monitoreo-v2 frontend**: migrar vistas de datos (Buildings, Meters, Alerts, Readings) al nuevo frontend
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -70,7 +71,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Backend: Buildings + Meters + Alerts CRUD listos (112 tests, 14 suites). Tech debt limpio. Auth e2e OK.
+Backend: Buildings + Meters + Alerts + Readings listos (138 tests, 16 suites). Tech debt limpio. Auth e2e OK.
 Frontend: Charts agnósticos + Storybook 9. Pendiente: migrar vistas de datos al frontend.
 ```
 
@@ -91,7 +92,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 112 tests / 14 suites). Frontend sin tests.
+- **Testing:** Jest 30 (backend, 138 tests / 16 suites). Frontend sin tests.
 
 ## Architecture
 ```

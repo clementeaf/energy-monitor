@@ -64,6 +64,27 @@
 | `scripts/test-all-apis.mjs` | Prueba APIs con Bearer token |
 | `scripts/tunnel-rds.sh` | Túnel SSH a RDS |
 
+## monitoreo-v2 Backend
+| Archivo | Propósito |
+|---|---|
+| `monitoreo-v2/backend/src/app.module.ts` | Root module: DB, rate limiting, guards globales (JWT, permissions, throttler, audit) |
+| `monitoreo-v2/backend/src/modules/auth/` | OAuth login → JWT httpOnly cookies, refresh rotation, `/auth/me` |
+| `monitoreo-v2/backend/src/modules/buildings/` | CRUD edificios con tenant + buildingIds RBAC |
+| `monitoreo-v2/backend/src/modules/meters/` | CRUD medidores con tenant + buildingIds + filtro buildingId |
+| `monitoreo-v2/backend/src/modules/readings/` | Read-only: time-series, latest, aggregated. `time_bucket` para downsampling |
+| `monitoreo-v2/backend/src/modules/alerts/` | Alertas: list, detail, acknowledge, resolve |
+| `monitoreo-v2/backend/src/modules/platform/entities/` | Todas las entidades del dominio (20 entities) |
+| `monitoreo-v2/backend/src/common/guards/` | `JwtAuthGuard`, `PermissionsGuard` (globales) |
+| `monitoreo-v2/backend/src/common/decorators/` | `@CurrentUser()`, `@Public()`, `@RequirePermission()` |
+
+## monitoreo-v2 Frontend
+| Archivo | Propósito |
+|---|---|
+| `monitoreo-v2/frontend/src/components/charts/` | `Chart`, `StockChart`, `MonthlyChart` — agnósticos, colores via CSS vars |
+| `monitoreo-v2/frontend/src/lib/chart-config.ts` | Config central charts: `baseChartOptions()`, `stockChartExtras()` |
+| `monitoreo-v2/frontend/src/stores/` | `useAuthStore` (user + tenant), `useAppStore` (sidebar) |
+| `monitoreo-v2/frontend/src/pages/LoginPage.tsx` | Login Microsoft + Google |
+
 ## Standalone Infra Scripts
 ```
 infra/

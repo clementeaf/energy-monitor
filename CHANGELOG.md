@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.86.0-alpha.0] - 2026-03-30 — MONITOREO V2 READINGS MODULE
+
+### Added
+- **ReadingsModule** — Lecturas de medidores (read-only, datos vienen de pipelines de ingesta):
+  - `GET /readings?meterId=&from=&to=&resolution=&limit=` — time-series por medidor con downsampling (raw, 5min, 15min, 1h, 1d vía `time_bucket`)
+  - `GET /readings/latest?buildingId=&meterId=` — última lectura por medidor (`DISTINCT ON`)
+  - `GET /readings/aggregated?from=&to=&interval=&buildingId=&meterId=` — agregados hourly/daily/monthly (avg/max/min power, energy delta, PF)
+- **Reading entity** — 17 columnas eléctricas: voltajes L1-L3, corrientes L1-L3, potencia activa/reactiva, PF, frecuencia, energía acumulada, THD voltaje/corriente, desequilibrio de fase, I/O digital, alarmas, CRC errors
+- **Total backend tests** — 138 passing (16 suites)
+
+---
+
 ## [0.85.0-alpha.0] - 2026-03-30 — MONITOREO V2 ALERTS MODULE + TECH DEBT CLEANUP
 
 ### Added

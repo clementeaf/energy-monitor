@@ -13,6 +13,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PlatformModule } from './modules/platform/platform.module';
+import { BuildingsModule } from './modules/buildings/buildings.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { PlatformModule } from './modules/platform/platform.module';
     UsersModule,
     RolesModule,
     PlatformModule,
+    BuildingsModule,
   ],
   providers: [
     // Global rate limiter guard

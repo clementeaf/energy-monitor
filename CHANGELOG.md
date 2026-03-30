@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.84.0-alpha.0] - 2026-03-30 — MONITOREO V2 BUILDINGS + METERS CRUD
+
+### Added
+- **BuildingsModule** — CRUD completo con tenant scoping y buildingIds RBAC. 46 tests
+- **MetersModule** — CRUD completo: `GET /meters(?buildingId=)`, `GET /meters/:id`, `POST`, `PATCH`, `DELETE`. Tenant scoping + buildingIds RBAC + filtro por buildingId. Permisos: `admin_meters` (write), `admin_meters|dashboard_executive|dashboard_technical` (read). 24 tests
+- **Total backend tests** — 70 passing (10 suites)
+
+---
+
 ## [0.83.0-alpha.0] - 2026-03-25 — MONITOREO V2 CHARTS + STORYBOOK
 
 ### Added

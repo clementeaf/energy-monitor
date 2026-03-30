@@ -24,6 +24,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-03-30)
+- **BuildingsModule** — CRUD con tenant scoping + buildingIds RBAC. 46 tests
+- **MetersModule** — CRUD (`GET /meters(?buildingId=)`, `GET /:id`, `POST`, `PATCH`, `DELETE`). Tenant + buildingIds scoping. 24 tests. 70 tests totales en backend
+
 ### Completado (2026-03-25)
 - **Charts agnósticos** — `Chart`, `StockChart`, `MonthlyChart` + `chart-config.ts` en monitoreo-v2. Colores via CSS vars, sin acoplamiento a tema
 - **Storybook 9** — catálogo de componentes en puerto 6006. Stories para los 3 charts
@@ -61,8 +65,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Backend + frontend funcionando. Auth e2e OK. Charts agnósticos listos (Chart, StockChart, MonthlyChart).
-Storybook 9 en puerto 6006. Pendiente: migrar vistas de datos (Buildings, Meters, Alerts).
+Backend: BuildingsModule + MetersModule CRUD listos (70 tests). Auth e2e OK.
+Frontend: Charts agnósticos + Storybook 9. Pendiente: migrar vistas de datos al frontend.
 ```
 
 ## Prioridad Actual de Acceso
@@ -82,7 +86,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 29 (backend, suite mínima). Frontend sin tests.
+- **Testing:** Jest 29 (backend, 70 tests / 10 suites). Frontend sin tests.
 
 ## Architecture
 ```

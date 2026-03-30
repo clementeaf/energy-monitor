@@ -276,18 +276,21 @@ export function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      {/* Controles */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2 px-1">
-        <TogglePills
-          options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
-          value={viewMode}
-          onChange={setViewMode}
-        />
-        <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
-        <button onClick={() => setDrawerComparativa(true)} className="shrink-0 rounded-full bg-pa-navy px-4 py-1 text-xs font-semibold text-white transition-colors hover:bg-pa-blue">
-          Comparativa
-        </button>
-        {selectedOperator && <span className="text-[12px] text-pa-text-muted">— {selectedOperator}</span>}
+      {/* Controles + Semáforo */}
+      <div className="flex shrink-0 items-center gap-2 px-1">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <TogglePills
+            options={[{ value: 'anual' as const, label: 'Anual' }, { value: 'mensual' as const, label: 'Mensual' }]}
+            value={viewMode}
+            onChange={setViewMode}
+          />
+          <TogglePills options={CHART_TYPE_OPTIONS} value={chartType} onChange={setChartType} />
+          <button onClick={() => setDrawerComparativa(true)} className="shrink-0 rounded-full bg-pa-navy px-4 py-1 text-xs font-semibold text-white transition-colors hover:bg-pa-blue">
+            Comparativa
+          </button>
+          {selectedOperator && <span className="text-[12px] text-pa-text-muted">— {selectedOperator}</span>}
+        </div>
+        <DashboardAlertsBar />
       </div>
       {viewMode === 'mensual' && (
         <div className="flex shrink-0 items-center gap-3 px-1">
@@ -343,7 +346,6 @@ export function DashboardPage() {
         </div>
         <div className="w-px shrink-0 bg-pa-border" />
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <DashboardAlertsBar />
           {cards.map((c) => (
             <div
               key={c.label}

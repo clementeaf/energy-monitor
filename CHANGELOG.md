@@ -1,6 +1,31 @@
 # Changelog
 
-## [0.86.0-alpha.0] - 2026-03-30 — MONITOREO V2 READINGS MODULE
+## [0.87.0-alpha.0] - 2026-04-01 — MONITOREO V2 FRONTEND CONECTADO A BACKEND
+
+### Added
+- **API layer frontend completo** — `routes.ts`, `endpoints.ts` con 5 dominios: buildings, meters, alerts, alertRules, readings. Cada uno con tipado estricto espejo del backend
+- **Tipos TS** — `types/building.ts`, `types/meter.ts`, `types/alert.ts`, `types/reading.ts`. Readings en snake_case (raw SQL backend)
+- **Query hooks** — 4 archivos con queries + mutations:
+  - `useBuildingsQuery` — list, detail, create, update, delete
+  - `useMetersQuery` — list (filtro buildingId), detail, create, update, delete
+  - `useAlertsQuery` — list (filtros status/severity/building), acknowledge, resolve + CRUD alert rules
+  - `useReadingsQuery` — time-series, latest, aggregated
+- **BuildingsPage** — Tabla real (nombre, codigo, direccion, area, estado). Click navega a medidores del edificio. CRUD con `BuildingForm` modal (admin only)
+- **MetersPage** — Nueva ruta `/meters`. Tabla con filtro por edificio. CRUD con `MeterForm` modal (admin only). Selector edificio pre-populated desde navigation
+- **AlertsPage** — Reemplaza placeholder. Filtros por status, severidad, edificio. Acciones acknowledge y resolve inline
+- **DashboardPage** — Cards KPI reales (edificios, medidores, potencia total, FP promedio). StockChart dual-axis (potencia + FP) con selector de medidor y resolucion adaptativa. Alertas activas + resumen por edificio
+- **Badge alertas** — Circulo rojo con conteo de alertas activas en sidebar
+- **Componentes UI** — `Modal` (dialog nativo), `ConfirmDialog` (reutiliza Modal), `BuildingForm`, `MeterForm`
+- **PLAN_ACCION.md** — Plan priorizado con 8 fases y microtareas derivado de la spec funcional
+
+### Changed
+- **Sidebar** — Medidores movido de admin a nav principal. Permisos alineados con backend (`admin_alerts:read`, `monitoring_alerts:read`, etc.)
+- **`useBuildingsQuery`** — Reescrito: usa `buildingsEndpoints` en vez de `api.get` directo. Agrega mutations CRUD con invalidacion de cache
+- **`types/building.ts`** — `BuildingSummary` reemplazado por `Building` completo (address, areaSqm, isActive, timestamps)
+
+---
+
+## [0.86.0-alpha.0] - 2026-03-30 — MONITOREO V2 READINGS MODULE + DASHBOARD LAYOUT
 
 ### Added
 - **ReadingsModule** — Lecturas de medidores (read-only, datos vienen de pipelines de ingesta):
@@ -9,6 +34,11 @@
   - `GET /readings/aggregated?from=&to=&interval=&buildingId=&meterId=` — agregados hourly/daily/monthly (avg/max/min power, energy delta, PF)
 - **Reading entity** — 17 columnas eléctricas: voltajes L1-L3, corrientes L1-L3, potencia activa/reactiva, PF, frecuencia, energía acumulada, THD voltaje/corriente, desequilibrio de fase, I/O digital, alarmas, CRC errors
 - **Total backend tests** — 138 passing (16 suites)
+
+### Changed
+- **Dashboard semáforo** — Movido a la fila de controles (junto a Anual/Mensual y tipo gráfico), alineado a la derecha. Preview tooltip ahora se renderiza hacia abajo
+- **Dashboard cards** — Aprovechan espacio vertical completo con `flex-1`
+- **Tabla Facturas Vencidas** — Llena el espacio inferior sin restricciones de altura
 
 ---
 

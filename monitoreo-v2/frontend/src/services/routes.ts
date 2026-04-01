@@ -6,4 +6,8 @@ export const API_ROUTES = {
     me: '/auth/me',
   },
   buildings: '/buildings',
+  meters: '/meters',
+  alerts: '/alerts',
+  alertRules: '/alert-rules',
+  readings: '/readings',
 } as const;

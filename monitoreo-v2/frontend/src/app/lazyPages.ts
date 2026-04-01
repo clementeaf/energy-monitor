@@ -15,6 +15,16 @@ export const LazyBuildingsPage = lazy(async () => {
   return { default: m.BuildingsPage };
 });
 
+export const LazyMetersPage = lazy(async () => {
+  const m = await import('../features/meters/MetersPage');
+  return { default: m.MetersPage };
+});
+
+export const LazyAlertsPage = lazy(async () => {
+  const m = await import('../features/alerts/AlertsPage');
+  return { default: m.AlertsPage };
+});
+
 export const LazyComponentsPage = lazy(async () => {
   const m = await import('../features/components/ComponentsPage');
   return { default: m.ComponentsPage };

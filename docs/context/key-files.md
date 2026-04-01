@@ -80,10 +80,26 @@
 ## monitoreo-v2 Frontend
 | Archivo | Propósito |
 |---|---|
+| `monitoreo-v2/frontend/src/services/routes.ts` | Rutas API centralizadas (auth, buildings, meters, alerts, alertRules, readings) |
+| `monitoreo-v2/frontend/src/services/endpoints.ts` | Llamadas API tipadas: auth, buildings, meters, alerts, alertRules, readings |
+| `monitoreo-v2/frontend/src/services/api.ts` | Axios con cookies, refresh token rotation, 401 retry queue |
+| `monitoreo-v2/frontend/src/types/` | Tipos espejo del backend: `building.ts`, `meter.ts`, `alert.ts`, `reading.ts`, `auth.ts` |
+| `monitoreo-v2/frontend/src/hooks/queries/` | Query hooks TanStack: buildings, meters, alerts+rules, readings (queries + mutations) |
+| `monitoreo-v2/frontend/src/hooks/usePermissions.ts` | `has(module, action)`, `hasAny()`, `isAdmin` desde JWT permissions |
+| `monitoreo-v2/frontend/src/hooks/useQueryState.ts` | Reduce `useQuery` a fase UI: loading/error/empty/ready |
 | `monitoreo-v2/frontend/src/components/charts/` | `Chart`, `StockChart`, `MonthlyChart` — agnósticos, colores via CSS vars |
+| `monitoreo-v2/frontend/src/components/ui/Modal.tsx` | Dialog nativo HTML con backdrop |
+| `monitoreo-v2/frontend/src/components/ui/ConfirmDialog.tsx` | Confirmación eliminar (reutiliza Modal) |
+| `monitoreo-v2/frontend/src/components/ui/DataWidget.tsx` | Wrapper loading/error/empty/ready para widgets |
 | `monitoreo-v2/frontend/src/lib/chart-config.ts` | Config central charts: `baseChartOptions()`, `stockChartExtras()` |
-| `monitoreo-v2/frontend/src/stores/` | `useAuthStore` (user + tenant), `useAppStore` (sidebar) |
-| `monitoreo-v2/frontend/src/pages/LoginPage.tsx` | Login Microsoft + Google |
+| `monitoreo-v2/frontend/src/store/` | `useAuthStore` (user + tenant + buildings), `useAppStore` (sidebar + selectedBuildingId) |
+| `monitoreo-v2/frontend/src/features/auth/LoginPage.tsx` | Login Microsoft + Google |
+| `monitoreo-v2/frontend/src/features/dashboard/DashboardPage.tsx` | KPIs, StockChart time-series, alertas activas, resumen edificios |
+| `monitoreo-v2/frontend/src/features/buildings/` | `BuildingsPage` (tabla + CRUD), `BuildingForm` (modal crear/editar) |
+| `monitoreo-v2/frontend/src/features/meters/` | `MetersPage` (tabla + filtro + CRUD), `MeterForm` (modal crear/editar) |
+| `monitoreo-v2/frontend/src/features/alerts/AlertsPage.tsx` | Tabla alertas con filtros + acciones acknowledge/resolve |
+| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, dashboard, buildings, meters, alerts, billing, reports, admin, components |
+| `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas activas |
 
 ## Standalone Infra Scripts
 ```

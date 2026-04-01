@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 
 interface NavItem {
   to: string;
@@ -20,16 +21,21 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: '/buildings',
     label: 'Edificios',
-    requiredPerms: ['admin_buildings:read', 'dashboard_technical:read'],
+    requiredPerms: ['admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read'],
+  },
+  {
+    to: '/meters',
+    label: 'Medidores',
+    requiredPerms: ['admin_meters:read', 'dashboard_executive:read', 'dashboard_technical:read'],
   },
   {
     to: '/alerts',
     label: 'Alertas',
-    requiredPerms: ['alerts:read', 'alerts:receive'],
+    requiredPerms: ['admin_alerts:read', 'monitoring_alerts:read'],
   },
   {
     to: '/billing',
-    label: 'Facturación',
+    label: 'Facturacion',
     requiredPerms: ['billing:read', 'billing:view_own'],
   },
   {
@@ -46,23 +52,18 @@ const ADMIN_ITEMS: NavItem[] = [
     requiredPerms: ['admin_users:read'],
   },
   {
-    to: '/admin/meters',
-    label: 'Medidores',
-    requiredPerms: ['admin_meters:read'],
-  },
-  {
     to: '/admin/tenants',
     label: 'Locatarios',
     requiredPerms: ['admin_tenants_units:read'],
   },
   {
     to: '/admin/hierarchy',
-    label: 'Jerarquía',
+    label: 'Jerarquia',
     requiredPerms: ['admin_hierarchy:read'],
   },
   {
     to: '/admin/audit',
-    label: 'Auditoría',
+    label: 'Auditoria',
     requiredPerms: ['audit:read'],
   },
 ];
@@ -74,6 +75,9 @@ export function Sidebar() {
   const { hasAny } = usePermissions();
 
   if (!sidebarOpen) return null;
+
+  const activeAlertsQuery = useAlertsQuery({ status: 'active' });
+  const activeAlertCount = activeAlertsQuery.data?.length ?? 0;
 
   const visibleNav = NAV_ITEMS.filter((item) => hasAny(...item.requiredPerms));
   const visibleAdmin = ADMIN_ITEMS.filter((item) => hasAny(...item.requiredPerms));
@@ -89,7 +93,12 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-2">
         {visibleNav.map(({ to, label }) => (
-          <SidebarLink key={to} to={to} label={label} />
+          <SidebarLink
+            key={to}
+            to={to}
+            label={label}
+            badge={to === '/alerts' && activeAlertCount > 0 ? activeAlertCount : undefined}
+          />
         ))}
 
         {visibleAdmin.length > 0 && (
@@ -123,12 +132,12 @@ export function Sidebar() {
   );
 }
 
-function SidebarLink({ to, label }: { to: string; label: string }) {
+function SidebarLink({ to, label, badge }: { to: string; label: string; badge?: number }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
+        `flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
           isActive
             ? 'bg-[var(--color-primary,#3D3BF3)]/10 font-medium text-[var(--color-primary,#3D3BF3)]'
             : 'text-gray-600 hover:bg-gray-100'
@@ -136,6 +145,11 @@ function SidebarLink({ to, label }: { to: string; label: string }) {
       }
     >
       {label}
+      {badge != null && (
+        <span className="ml-auto inline-flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   );
 }

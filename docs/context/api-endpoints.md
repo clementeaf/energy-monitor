@@ -165,3 +165,67 @@ Todos los endpoints v2 requieren JWT cookie (httpOnly). Tenant scoping + buildin
 | POST | `/alert-rules` | `{ name, metric, operator, threshold, severity, buildingId? }` | `AlertRule` |
 | PATCH | `/alert-rules/:id` | campos parciales | `AlertRule` |
 | DELETE | `/alert-rules/:id` | — | 204 No Content |
+
+### Hierarchy (`/hierarchy`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/hierarchy/buildings/:buildingId` | — | `BuildingHierarchy[]` (nodos del edificio) |
+| GET | `/hierarchy/:id` | — | `BuildingHierarchy` |
+| GET | `/hierarchy/:id/meters` | — | `MeterHierarchy[]` (medidores del nodo) |
+| POST | `/hierarchy` | `{ buildingId, name, levelType, parentId?, sortOrder?, metadata? }` | `BuildingHierarchy` |
+| PATCH | `/hierarchy/:id` | `{ name?, parentId?, sortOrder?, metadata? }` | `BuildingHierarchy` |
+| DELETE | `/hierarchy/:id` | — | 204 No Content |
+
+### Concentrators (`/concentrators`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/concentrators` | `buildingId?` | `Concentrator[]` (scoped) |
+| GET | `/concentrators/:id` | — | `Concentrator` |
+| POST | `/concentrators` | `{ buildingId, name, model, serialNumber?, ipAddress?, ... }` | `Concentrator` |
+| PATCH | `/concentrators/:id` | campos parciales | `Concentrator` |
+| DELETE | `/concentrators/:id` | — | 204 No Content |
+| GET | `/concentrators/:id/meters` | — | `ConcentratorMeter[]` |
+| POST | `/concentrators/:id/meters` | `{ meterId, busNumber?, modbusAddress? }` | `ConcentratorMeter` |
+| DELETE | `/concentrators/:id/meters/:meterId` | — | 204 No Content |
+
+### Tenant Units (`/tenant-units`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/tenant-units` | `buildingId?` | `TenantUnit[]` (scoped) |
+| GET | `/tenant-units/:id` | — | `TenantUnit` |
+| POST | `/tenant-units` | `{ buildingId, name, unitCode, contactName?, contactEmail?, userId? }` | `TenantUnit` |
+| PATCH | `/tenant-units/:id` | campos parciales | `TenantUnit` |
+| DELETE | `/tenant-units/:id` | — | 204 No Content |
+| GET | `/tenant-units/:id/meters` | — | `TenantUnitMeter[]` |
+| POST | `/tenant-units/:id/meters` | `{ meterId }` | `TenantUnitMeter` |
+| DELETE | `/tenant-units/:id/meters/:meterId` | — | 204 No Content |
+
+### Tariffs (`/tariffs`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/tariffs` | `buildingId?` | `Tariff[]` (scoped, order effectiveFrom DESC) |
+| GET | `/tariffs/:id` | — | `Tariff` |
+| POST | `/tariffs` | `{ buildingId, name, effectiveFrom, effectiveTo?, isActive? }` | `Tariff` |
+| PATCH | `/tariffs/:id` | campos parciales | `Tariff` |
+| DELETE | `/tariffs/:id` | — | 204 No Content |
+| GET | `/tariffs/:id/blocks` | — | `TariffBlock[]` |
+| POST | `/tariffs/:id/blocks` | `{ blockName, hourStart, hourEnd, energyRate, demandRate?, reactiveRate?, fixedCharge? }` | `TariffBlock` |
+| DELETE | `/tariffs/:id/blocks/:blockId` | — | 204 No Content |
+
+### Invoices (`/invoices`)
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/invoices` | `buildingId?`, `status?`, `periodStart?`, `periodEnd?` | `Invoice[]` (scoped) |
+| GET | `/invoices/:id` | — | `Invoice` |
+| GET | `/invoices/:id/line-items` | — | `InvoiceLineItem[]` |
+| POST | `/invoices` | `{ buildingId, invoiceNumber, periodStart, periodEnd, tariffId?, notes? }` | `Invoice` (status=draft) |
+| PATCH | `/invoices/:id` | campos parciales (solo draft/pending) | `Invoice` |
+| DELETE | `/invoices/:id` | — | 204 No Content (solo draft) |
+| PATCH | `/invoices/:id/approve` | — | `Invoice` (status=approved, solo desde pending) |
+| PATCH | `/invoices/:id/void` | — | `Invoice` (status=voided) |
+
+### Fault Events (`/fault-events`) — read-only
+| Method | Path | Query | Response |
+|---|---|---|---|
+| GET | `/fault-events` | `buildingId?`, `meterId?`, `severity?`, `faultType?`, `dateFrom?`, `dateTo?` | `FaultEvent[]` (order startedAt DESC) |
+| GET | `/fault-events/:id` | — | `FaultEvent` |

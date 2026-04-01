@@ -25,6 +25,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-01)
+- **Fase 2 backend completa** — 6 módulos: Hierarchy, Concentrators, TenantUnits, Tariffs, Invoices, FaultEvents. Tenant scoping + buildingIds RBAC. 40 endpoints, 152 tests nuevos
 - **Frontend conectado a backend** — API layer completo: routes, endpoints, tipos TS, query hooks para buildings, meters, alerts, alertRules, readings
 - **BuildingsPage** — Tabla con datos reales, click navega a medidores. CRUD modal (admin only)
 - **MetersPage** — Nueva ruta `/meters`, filtro por edificio, CRUD modal (admin only)
@@ -32,7 +33,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **DashboardPage** — KPIs reales, StockChart dual-axis (potencia + FP) con resolucion adaptativa, alertas activas, resumen por edificio
 - **Badge alertas** — Conteo alertas activas en sidebar
 - **Componentes UI** — `Modal`, `ConfirmDialog`, `BuildingForm`, `MeterForm`
-- **PLAN_ACCION.md** — Plan priorizado 8 fases con microtareas. Fase 1 completa
+- **PLAN_ACCION.md** — Plan priorizado 8 fases con microtareas. Fases 1-2 completas
 
 ### Completado (2026-03-30)
 - **ReadingsModule** — Read-only: `GET /readings` (time-series con downsampling vía `time_bucket`), `GET /readings/latest` (última lectura por medidor), `GET /readings/aggregated` (hourly/daily/monthly). Tenant + buildingIds RBAC
@@ -69,7 +70,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: Fase 2 del PLAN_ACCION — backend modules (Hierarchy, TenantUnits, Concentrators, Tariffs, Invoices, FaultEvents)
+- **monitoreo-v2**: Invoices generate + PDF endpoints (pendiente Fase 4)
 - **monitoreo-v2**: Fases 3-8 del PLAN_ACCION — vistas monitoreo, facturación, admin, alertas avanzadas, reportes
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
@@ -82,9 +83,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Auth + Buildings + Meters + Alerts + Readings listos (138 tests, 16 suites).
-Frontend: Fase 1 completa — API layer, BuildingsPage, MetersPage, AlertsPage, DashboardPage conectados a backend. CRUD buildings/meters con modales. StockChart time-series. Badge alertas sidebar.
-Pendiente: Fase 2 (backend modules) y Fases 3-8 del PLAN_ACCION.
+Backend: Fases 1-2 completas — 12 módulos activos (290 tests, 28 suites).
+Frontend: Fase 1 completa — API layer, BuildingsPage, MetersPage, AlertsPage, DashboardPage conectados.
+Pendiente: Fases 3-8 del PLAN_ACCION (vistas monitoreo, facturacion, admin, alertas avanzadas, reportes).
 ```
 
 ## Prioridad Actual de Acceso
@@ -104,7 +105,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 138 tests / 16 suites). Frontend sin tests.
+- **Testing:** Jest 30 (backend, 290 tests / 28 suites). Frontend sin tests.
 
 ## Architecture
 ```

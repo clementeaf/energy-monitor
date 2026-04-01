@@ -49,46 +49,47 @@ Prioridad: que las vistas existentes muestren datos reales.
 Las entidades TypeORM existen en PlatformModule pero sin service/controller.
 
 ### 2.1 HierarchyModule
-- [ ] `hierarchy.service.ts` — queries para `BuildingHierarchy` + `MeterHierarchy`
-- [ ] `hierarchy.controller.ts` — `GET /hierarchy/buildings/:id`, `GET /hierarchy/meters/:id`
-- [ ] DTOs de consulta
-- [ ] Tests unitarios (min 80% coverage)
-- [ ] Registrar en `app.module.ts`
+- [x] `hierarchy.service.ts` — queries para `BuildingHierarchy` + `MeterHierarchy`
+- [x] `hierarchy.controller.ts` — `GET /hierarchy/buildings/:buildingId`, `GET /hierarchy/:id`, `GET /hierarchy/:id/meters`, `POST`, `PATCH`, `DELETE`
+- [x] DTOs de consulta (CreateHierarchyNodeDto, UpdateHierarchyNodeDto)
+- [x] Tests unitarios (17 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
 
 ### 2.2 ConcentratorsModule
-- [ ] `concentrators.service.ts` — CRUD `Concentrator` + relacion `ConcentratorMeter`
-- [ ] `concentrators.controller.ts` — `GET /concentrators`, `GET /:id`, `POST`, `PATCH`, `DELETE`
-- [ ] DTOs (Create, Update, Query)
-- [ ] Tests unitarios
-- [ ] Registrar en `app.module.ts`
+- [x] `concentrators.service.ts` — CRUD `Concentrator` + relacion `ConcentratorMeter`
+- [x] `concentrators.controller.ts` — `GET /concentrators`, `GET /:id`, `POST`, `PATCH`, `DELETE`, `GET /:id/meters`, `POST /:id/meters`, `DELETE /:id/meters/:meterId`
+- [x] DTOs (CreateConcentratorDto, UpdateConcentratorDto, AddConcentratorMeterDto)
+- [x] Tests unitarios (26 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
 
 ### 2.3 TenantUnitsModule (Locatarios)
-- [ ] `tenant-units.service.ts` — CRUD `TenantUnit` + relacion `TenantUnitMeter`
-- [ ] `tenant-units.controller.ts` — `GET /tenant-units`, `GET /:id`, `POST`, `PATCH`, `DELETE`
-- [ ] Endpoint asociacion medidores: `POST /tenant-units/:id/meters`, `DELETE /tenant-units/:id/meters/:meterId`
-- [ ] DTOs + tests
-- [ ] Registrar en `app.module.ts`
+- [x] `tenant-units.service.ts` — CRUD `TenantUnit` + relacion `TenantUnitMeter`
+- [x] `tenant-units.controller.ts` — `GET /tenant-units`, `GET /:id`, `POST`, `PATCH`, `DELETE`, `GET /:id/meters`, `POST /:id/meters`, `DELETE /:id/meters/:meterId`
+- [x] DTOs (CreateTenantUnitDto, UpdateTenantUnitDto, AddTenantUnitMeterDto)
+- [x] Tests unitarios (26 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
 
 ### 2.4 TariffsModule
-- [ ] `tariffs.service.ts` — CRUD `Tariff` + `TariffBlock`
-- [ ] `tariffs.controller.ts` — `GET /tariffs`, `GET /:id`, `POST`, `PATCH`, `DELETE`
-- [ ] Endpoint bloques: `GET /tariffs/:id/blocks`, `POST /tariffs/:id/blocks`
-- [ ] Tests unitarios
-- [ ] Registrar en `app.module.ts`
+- [x] `tariffs.service.ts` — CRUD `Tariff` + `TariffBlock`
+- [x] `tariffs.controller.ts` — `GET /tariffs`, `GET /:id`, `POST`, `PATCH`, `DELETE`, `GET /:id/blocks`, `POST /:id/blocks`, `DELETE /:id/blocks/:blockId`
+- [x] DTOs (CreateTariffDto, UpdateTariffDto, CreateTariffBlockDto)
+- [x] Tests unitarios (24 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
 
 ### 2.5 InvoicesModule (Facturacion)
-- [ ] `invoices.service.ts` — CRUD `Invoice` + `InvoiceLineItem`
-- [ ] `invoices.controller.ts` — `GET /invoices`, `GET /:id`, `POST`, `PATCH`, `DELETE`
-- [ ] Endpoint generacion: `POST /invoices/generate` (calculo desde readings + tariff)
-- [ ] Endpoint PDF: `GET /invoices/:id/pdf`
-- [ ] Tests unitarios
-- [ ] Registrar en `app.module.ts`
+- [x] `invoices.service.ts` — CRUD `Invoice` + `InvoiceLineItem` + approve/void con guardas de estado
+- [x] `invoices.controller.ts` — `GET /invoices`, `GET /:id`, `GET /:id/line-items`, `POST`, `PATCH`, `DELETE`, `PATCH /:id/approve`, `PATCH /:id/void`
+- [x] DTOs (CreateInvoiceDto, UpdateInvoiceDto, QueryInvoicesDto)
+- [x] Tests unitarios (28 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
+- [ ] Endpoint generacion: `POST /invoices/generate` (calculo desde readings + tariff) — pendiente Fase 4
+- [ ] Endpoint PDF: `GET /invoices/:id/pdf` — pendiente Fase 4
 
 ### 2.6 FaultEventsModule
-- [ ] `fault-events.service.ts` — read-only `FaultEvent`
-- [ ] `fault-events.controller.ts` — `GET /fault-events`, `GET /:id`, filtros por meter/building/dateRange
-- [ ] Tests unitarios
-- [ ] Registrar en `app.module.ts`
+- [x] `fault-events.service.ts` — read-only `FaultEvent`
+- [x] `fault-events.controller.ts` — `GET /fault-events`, `GET /:id`, filtros por meter/building/severity/tipo/dateRange
+- [x] Tests unitarios (9 tests, 2 suites)
+- [x] Registrar en `app.module.ts`
 
 ---
 

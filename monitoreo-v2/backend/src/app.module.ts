@@ -16,6 +16,12 @@ import { BuildingsModule } from './modules/buildings/buildings.module';
 import { MetersModule } from './modules/meters/meters.module';
 import { AlertsModule } from './modules/alerts/alerts.module';
 import { ReadingsModule } from './modules/readings/readings.module';
+import { HierarchyModule } from './modules/hierarchy/hierarchy.module';
+import { FaultEventsModule } from './modules/fault-events/fault-events.module';
+import { ConcentratorsModule } from './modules/concentrators/concentrators.module';
+import { TenantUnitsModule } from './modules/tenant-units/tenant-units.module';
+import { TariffsModule } from './modules/tariffs/tariffs.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
 @Module({
   imports: [
@@ -61,6 +67,12 @@ import { ReadingsModule } from './modules/readings/readings.module';
     MetersModule,
     AlertsModule,
     ReadingsModule,
+    HierarchyModule,
+    FaultEventsModule,
+    ConcentratorsModule,
+    TenantUnitsModule,
+    TariffsModule,
+    InvoicesModule,
   ],
   providers: [
     // Global rate limiter guard

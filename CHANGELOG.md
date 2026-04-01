@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.88.0-alpha.0] - 2026-04-01 — MONITOREO V2 FASE 2: BACKEND MODULES
+
+### Added
+- **HierarchyModule** — CRUD nodos jerarquía eléctrica (`BuildingHierarchy`) + asociación medidores (`MeterHierarchy`). 6 endpoints bajo `/hierarchy`. Permisos `admin_hierarchy`
+- **ConcentratorsModule** — CRUD concentradores + gestión medidores asociados (`ConcentratorMeter`). 8 endpoints bajo `/concentrators`. Filtro por buildingId. Permisos `admin_concentrators`
+- **TenantUnitsModule** — CRUD locatarios + gestión medidores asociados (`TenantUnitMeter`). 8 endpoints bajo `/tenant-units`. Filtro por buildingId. Permisos `admin_tenant_units`
+- **TariffsModule** — CRUD tarifas + bloques horarios (`TariffBlock`). 8 endpoints bajo `/tariffs`. Filtro por buildingId. Permisos `billing_tariffs`
+- **InvoicesModule** — CRUD facturas + line items + approve/void con guardas de estado. 8 endpoints bajo `/invoices`. Filtros buildingId/status/periodo. Permisos `billing_invoices`
+- **FaultEventsModule** — Read-only eventos de fallo. 2 endpoints bajo `/fault-events`. Filtros por building/meter/severity/tipo/fecha. Permiso `monitoring_faults:read`
+- **Total backend tests** — 290 passing (28 suites)
+
+---
+
 ## [0.87.0-alpha.0] - 2026-04-01 — MONITOREO V2 FRONTEND CONECTADO A BACKEND
 
 ### Added

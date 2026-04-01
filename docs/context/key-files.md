@@ -73,6 +73,12 @@
 | `monitoreo-v2/backend/src/modules/meters/` | CRUD medidores con tenant + buildingIds + filtro buildingId |
 | `monitoreo-v2/backend/src/modules/readings/` | Read-only: time-series, latest, aggregated. `time_bucket` para downsampling |
 | `monitoreo-v2/backend/src/modules/alerts/` | Alertas: list, detail, acknowledge, resolve |
+| `monitoreo-v2/backend/src/modules/hierarchy/` | CRUD jerarquía eléctrica (nodos + medidores por nodo) |
+| `monitoreo-v2/backend/src/modules/concentrators/` | CRUD concentradores + gestión medidores asociados |
+| `monitoreo-v2/backend/src/modules/tenant-units/` | CRUD locatarios + gestión medidores asociados |
+| `monitoreo-v2/backend/src/modules/tariffs/` | CRUD tarifas + bloques horarios |
+| `monitoreo-v2/backend/src/modules/invoices/` | CRUD facturas + line items + approve/void |
+| `monitoreo-v2/backend/src/modules/fault-events/` | Read-only eventos de fallo con filtros |
 | `monitoreo-v2/backend/src/modules/platform/entities/` | Todas las entidades del dominio (20 entities) |
 | `monitoreo-v2/backend/src/common/guards/` | `JwtAuthGuard`, `PermissionsGuard` (globales) |
 | `monitoreo-v2/backend/src/common/decorators/` | `@CurrentUser()`, `@Public()`, `@RequirePermission()` |

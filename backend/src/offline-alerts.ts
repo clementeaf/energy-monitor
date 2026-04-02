@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { getPgSslOptionsForRds } from './rds-ssl';
 
 /**
  * Lambda invoked every 5 minutes by EventBridge.
@@ -16,7 +17,7 @@ export const handler = async () => {
     database: process.env.DB_NAME,
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   });
 
   try {

@@ -26,6 +26,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-02)
+- **Email SES (monitoreo-v2):** `SesEmailService` + `@aws-sdk/client-ses`; env opcionales `SES_FROM_EMAIL`, `ALERT_EMAIL_RECIPIENTS`, `SES_REGION`; alertas + invitaciones; sin env solo logs. Runbook SES, `.env.example`. [CHANGELOG — 0.95.0-alpha.0](CHANGELOG.md)
+- **Deuda técnica (hardening / docs):** `JsonLoggerService` + `LOG_FORMAT` + `trust proxy` en prod; `notifyUserCreated` (traza `[USER_INVITE]`); Vitest + `*.test.ts`; `CLAUDE.md` Known Issues alineado con código (Helmet/Throttler ya existían).
 - **Fase 7 — Reportes e integraciones** — backend + frontend reportes + API integraciones (sin UI integraciones):
   - Backend: `ReportsModule` (CRUD, generate, export PDF/Excel/CSV, scheduled + cron 5 min), `IntegrationsModule` (CRUD, sync-logs, sync stub)
   - Backend: 365 tests, 39 suites; patch SQL `quality` en `report_type`
@@ -110,7 +112,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Pendiente
 - **monitoreo-v2**: UI de integraciones si se requiere (backend `IntegrationsModule` ya expuesto)
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
-- Solicitar salida de SES sandbox (consola AWS)
+- Salida de sandbox SES (cuando haya que enviar a correos no verificados; el código ya admite SES)
 - Costo por Centro (pendiente definición con cliente)
 - DNS plataforma.globepower.cl: CNAME GoDaddy + alias CloudFront
 - Reemplazar SVG placeholder Siemens con logo oficial
@@ -120,7 +122,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications + reports + integrations (365 tests, 39 suites).
+Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications (SES opcional) + reports + integrations (~370 tests, 41 suites).
 Frontend: Fases 1-8 — incl. reportes, dashboards ejecutivo/comparativo, vistas `/monitoring/meters/type`, `/monitoring/generation`, `/monitoring/modbus-map`.
 Pendiente opcional: UI integraciones.
 ```
@@ -142,7 +144,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 365 tests / 39 suites). Frontend sin tests.
+- **Testing:** Jest 30 (backend, 365+ tests). Frontend: Vitest, pruebas unitarias en `*.test.ts`.
 
 ## Architecture
 ```
@@ -160,6 +162,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 ```
 
 ## Frontend Patterns
+- **CSP (prod):** `vite/csp-meta-plugin.ts` + `vite/csp-policy.ts` inyectan meta en `build` solamente; ver `docs/context/frontend-views.md` (monitoreo-v2).
 - **API layer (3-file):** `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use<Entity>.ts`
 - **State:** TanStack Query (server) | Zustand useAuthStore + useAppStore (sessionStorage, incl. userMode + selectedOperator + selectedBuilding + selectedStoreMeterId + theme)
 - **Multi-tema:** `useAppStore.theme` (`'pasa'|'siemens'`) → CSS variables `[data-theme="siemens"]` en `<html>` + hooks detectan tema y cambian fuente de datos. Config en `lib/themes.ts`
@@ -188,13 +191,15 @@ routes.ts → endpoints.ts → useX.ts → Axios Bearer → CloudFront → API G
 
 ## Development
 ```bash
-cd frontend && npm ci && npm run dev
-cd backend && npm ci && npm run start:dev
+cd monitoreo-v2/frontend && npm ci && npm run dev
+cd monitoreo-v2/frontend && npm run test
+cd monitoreo-v2/backend && npm ci && npm run start:dev
 ```
 **DB local:** docker `pg-arauco` → `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=arauco DB_USERNAME=postgres DB_PASSWORD=arauco`
 
 ## Environment Variables
-- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`
+- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json` (logs una línea JSON también en no-producción); opcional `RDS_CA_BUNDLE_PATH` (ruta a PEM si no se usa `backend/certs/rds-global-bundle.pem` empaquetado)
+- **Email (SES):** opcional `SES_FROM_EMAIL` (identidad verificada en SES), `SES_REGION` (default `AWS_REGION` / `us-east-1`), `ALERT_EMAIL_RECIPIENTS` (coma-separados) para alertas/escalamiento; `notifyUserCreated` envía al email del usuario cuando `SES_FROM_EMAIL` está definido. Ver [AWS Runbook — SES](docs/aws-runbook.md#amazon-ses-email-saliente).
 - **Frontend:** `VITE_AUTH_MODE`, `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID`, `VITE_GOOGLE_CLIENT_ID`
 
 ## Conventions
@@ -208,11 +213,11 @@ cd backend && npm ci && npm run start:dev
 - **Usar:** [AWS Runbook](docs/aws-runbook.md) + [Deploy Skill](skills/deploy.md)
 
 ## Known Issues & Tech Debt
-- SSL rejectUnauthorized: false en conexiones DB
-- Token en sessionStorage (vulnerable a XSS)
-- Sin rate limiting, sin security headers, sin structured logging
-- Suite de tests mínima
-- Invitaciones sin envío por email
+- **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.
+- **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
+- **API hardening ya presente:** Helmet, `ThrottlerGuard`, CORS con credenciales, `trust proxy` en producción (IP correcta detrás de ALB/API GW). Logs en una línea JSON si `NODE_ENV=production` o `LOG_FORMAT=json`.
+- **Tests frontend:** Vitest (`npm run test` en `monitoreo-v2/frontend`), cobertura aún acotada a utilidades; sin E2E salvo auth legacy donde existan.
+- **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 
 ## Playbooks Opcionales
 - Componente nuevo: `patterns/playbooks/new-component.md`
@@ -225,4 +230,4 @@ cd backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.94.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.95.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

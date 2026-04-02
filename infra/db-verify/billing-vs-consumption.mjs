@@ -8,6 +8,7 @@
  */
 
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import pg from 'pg';
 import { config as dotenvConfig } from 'dotenv';
 import { resolve, dirname } from 'path';
@@ -39,7 +40,7 @@ async function getDbConfig() {
       database: secret.dbname || secret.database || 'energy_monitor',
       user: secret.username || secret.user || secret.DB_USERNAME,
       password: secret.password || secret.DB_PASSWORD,
-      ssl: { rejectUnauthorized: false },
+      ssl: getPgSslOptionsForRds(),
     };
   }
   return {
@@ -48,7 +49,7 @@ async function getDbConfig() {
     database: process.env.DB_NAME || 'energy_monitor',
     user: process.env.DB_USERNAME || process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

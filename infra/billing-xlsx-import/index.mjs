@@ -10,6 +10,7 @@
  */
 
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -54,7 +55,7 @@ function configFromEnv() {
       database,
       user,
       password,
-      ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DB_SSL !== 'false' ? getPgSslOptionsForRds() : false,
     };
   }
   return null;
@@ -73,7 +74,7 @@ async function getDbConfig() {
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

@@ -191,7 +191,7 @@ Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 - [x] Definir las 22 alert rules como seeds (tipo, variable, umbral, severidad, escalamiento)
 - [x] Servicio de evaluacion: cron job que evalua readings vs rules (cada 5 min)
 - [x] Logica de escalamiento (tiempo sin resolver → sube severidad, cada 10 min)
-- [x] Canales de notificacion: email (log, SES pendiente), webhook
+- [x] Canales de notificacion: email (log; SES opcional `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`), webhook
 - [x] NotificationLog entity + controller GET /notification-logs
 - [x] POST /alert-engine/evaluate (trigger manual)
 - [x] 27 tests nuevos (358 total, 37 suites)

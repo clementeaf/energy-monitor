@@ -4,6 +4,7 @@
  */
 
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
+import { getPgSslOptionsForRds } from './rds-ssl.mjs';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { parse } from 'csv-parse';
 import pg from 'pg';
@@ -142,7 +143,7 @@ function buildDbConfig(secret) {
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

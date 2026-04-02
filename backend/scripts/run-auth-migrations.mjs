@@ -11,6 +11,19 @@ import pg from 'pg';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
+
+function getSslForRds() {
+  if (process.env.NODE_ENV !== 'production' && process.env.DB_SSL !== 'true') {
+    return false;
+  }
+  const caPath =
+    process.env.RDS_CA_BUNDLE_PATH ||
+    join(__dirname, '..', 'certs', 'rds-global-bundle.pem');
+  return {
+    rejectUnauthorized: true,
+    ca: readFileSync(caPath, 'utf8'),
+  };
+}
 const sqlDir = join(repoRoot, 'sql');
 
 async function loadEnv() {
@@ -42,7 +55,7 @@ async function main() {
     database,
     user,
     password,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: getSslForRds(),
     connectionTimeoutMillis: 8000,
   });
 

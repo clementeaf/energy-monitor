@@ -1,5 +1,6 @@
 import './env.bootstrap';
 import { Module } from '@nestjs/common';
+import { getTypeOrmSslForRds } from './rds-ssl';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -34,11 +35,7 @@ import { IotReadingsModule } from './iot-readings/iot-readings.module';
         password: config.get<string>('DB_PASSWORD') ?? '',
         autoLoadEntities: true,
         synchronize: false,
-        ssl:
-          config.get<string>('NODE_ENV') === 'production' ||
-          config.get<string>('DB_SSL') === 'true'
-            ? { rejectUnauthorized: false }
-            : false,
+        ssl: getTypeOrmSslForRds(),
       }),
     }),
 

@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { getTypeOrmSslForRds } from '../rds-ssl';
 
 export const getDatabaseConfig = (
   configService: ConfigService,
@@ -12,9 +13,6 @@ export const getDatabaseConfig = (
   password: configService.getOrThrow<string>('DB_PASSWORD'),
   autoLoadEntities: true,
   synchronize: false,
-  ssl:
-    configService.get<string>('NODE_ENV') === 'production'
-      ? { rejectUnauthorized: true }
-      : false,
+  ssl: getTypeOrmSslForRds(),
   logging: configService.get<string>('NODE_ENV') === 'development',
 });

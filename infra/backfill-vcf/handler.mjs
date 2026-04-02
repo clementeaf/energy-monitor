@@ -10,6 +10,7 @@
  * Env: DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD, S3_BUCKET
  */
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { parse } from 'csv-parse';
 import pg from 'pg';
 
@@ -144,7 +145,7 @@ export async function handler(event) {
     database: process.env.DB_NAME || 'energy_monitor',
     user: process.env.DB_USERNAME || 'emadmin',
     password: process.env.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   });
   await client.connect();
 

@@ -72,7 +72,8 @@
 | `monitoreo-v2/backend/src/modules/buildings/` | CRUD edificios con tenant + buildingIds RBAC |
 | `monitoreo-v2/backend/src/modules/meters/` | CRUD medidores con tenant + buildingIds + filtro buildingId |
 | `monitoreo-v2/backend/src/modules/readings/` | Read-only: time-series, latest, aggregated. `time_bucket` para downsampling |
-| `monitoreo-v2/backend/src/modules/alerts/` | Alertas: list, detail, acknowledge, resolve |
+| `monitoreo-v2/backend/src/common/email/ses-email.service.ts` | SES opcional (`SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS` / invitaciones); sin env no llama a AWS |
+| `monitoreo-v2/backend/src/modules/alerts/` | Alert engine, reglas, escalamiento, **`notification.service`** (SES + webhook + `notification_logs`), listado alertas |
 | `monitoreo-v2/backend/src/modules/hierarchy/` | CRUD jerarquía eléctrica (nodos + medidores por nodo) |
 | `monitoreo-v2/backend/src/modules/concentrators/` | CRUD concentradores + gestión medidores asociados |
 | `monitoreo-v2/backend/src/modules/tenant-units/` | CRUD locatarios + gestión medidores asociados |

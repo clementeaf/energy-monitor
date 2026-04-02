@@ -323,6 +323,24 @@ aws s3 ls s3://globe-landing-hoktus/landing/ --region us-east-1
 
 ---
 
+## Amazon SES (email saliente)
+
+Monitoreo-v2 (`NotificationService` + `SesEmailService`) envía correo con **Amazon SES** en `us-east-1` cuando están definidas las variables de entorno.
+
+| Variable | Uso |
+|----------|-----|
+| `SES_FROM_EMAIL` | Dirección o identidad verificada en SES (remitente). Si está vacía, no se llama a SES (solo logs `[EMAIL]` / `[USER_INVITE]`). |
+| `SES_REGION` | Opcional; por defecto `AWS_REGION` o `us-east-1`. |
+| `ALERT_EMAIL_RECIPIENTS` | Lista separada por comas: destinatarios de alertas y escalamiento. Sin esto, las alertas no se envían por SES (solo traza y `notification_logs`). |
+
+**Invitaciones de usuario:** con `SES_FROM_EMAIL` definido, el alta desde admin envía un correo al email del usuario creado.
+
+**IAM:** el rol de ejecución de la Lambda (o tarea ECS) necesita `ses:SendEmail` sobre la identidad remitente (y en sandbox, las destinatarias deben estar verificadas).
+
+**Sandbox:** en SES sandbox solo se entrega a direcciones verificadas. Solicitar salida de sandbox en la consola AWS cuando se requiera a destinatarios arbitrarios.
+
+---
+
 ## Rollback
 
 ### Frontend

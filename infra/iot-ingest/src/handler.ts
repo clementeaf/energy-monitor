@@ -1,5 +1,6 @@
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { Client } from 'pg';
+import { getPgSslOptionsForRds } from './rds-ssl';
 
 const s3 = new S3Client({ region: 'us-east-1' });
 
@@ -12,7 +13,10 @@ const dbConfig = {
   database: process.env.DB_NAME!,
   user: process.env.DB_USERNAME!,
   password: process.env.DB_PASSWORD!,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? getPgSslOptionsForRds()
+      : undefined,
 };
 
 // ── Key variables to extract from the 451 available ─────

@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { NotificationService } from '../alerts/notification.service';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 
@@ -27,8 +28,10 @@ describe('UsersService', () => {
   let service: UsersService;
   let repo: Record<string, jest.Mock>;
   let ds: Record<string, jest.Mock>;
+  let notifyUserCreated: jest.Mock;
 
   beforeEach(async () => {
+    notifyUserCreated = jest.fn().mockResolvedValue(undefined);
     repo = {
       find: jest.fn(),
       findOne: jest.fn(),
@@ -44,6 +47,10 @@ describe('UsersService', () => {
         UsersService,
         { provide: getRepositoryToken(User), useValue: repo },
         { provide: DataSource, useValue: ds },
+        {
+          provide: NotificationService,
+          useValue: { notifyUserCreated },
+        },
       ],
     }).compile();
 
@@ -104,6 +111,12 @@ describe('UsersService', () => {
         authProvider: 'google',
         authProviderId: 'google-123',
         roleId: 'r-1',
+      });
+      expect(notifyUserCreated).toHaveBeenCalledWith({
+        tenantId: TENANT_ID,
+        email: user.email,
+        displayName: user.displayName,
+        authProvider: 'google',
       });
       expect(result).toEqual(user);
     });

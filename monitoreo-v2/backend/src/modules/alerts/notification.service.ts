@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { PlatformAlert, PlatformAlertSeverity } from '../platform/entities/platform-alert.entity';
 import { AlertRule } from '../platform/entities/alert-rule.entity';
 import { NotificationLog } from './entities/notification-log.entity';
+import { SesEmailService } from '../../common/email/ses-email.service';
 
 @Injectable()
 export class NotificationService {
@@ -14,6 +15,7 @@ export class NotificationService {
     @InjectRepository(NotificationLog)
     private readonly logRepo: Repository<NotificationLog>,
     private readonly config: ConfigService,
+    private readonly sesEmail: SesEmailService,
   ) {}
 
   /**
@@ -23,7 +25,6 @@ export class NotificationService {
     if (rule.notifyEmail) {
       await this.sendEmail(alert, rule);
     }
-    // Webhook: always notify (system integration)
     await this.sendWebhook(alert, 'new_alert');
   }
 
@@ -36,17 +37,18 @@ export class NotificationService {
     newSeverity: PlatformAlertSeverity,
   ): Promise<void> {
     const subject = `[ESCALADA] Alerta ${alert.alertTypeCode} — ${prevSeverity} → ${newSeverity}`;
+    const body = [
+      `Alerta: ${alert.alertTypeCode}`,
+      `Escalación: ${prevSeverity} → ${newSeverity}`,
+      `Mensaje: ${alert.message}`,
+      alert.triggeredValue !== null ? `Valor: ${alert.triggeredValue}` : null,
+      alert.thresholdValue !== null ? `Umbral: ${alert.thresholdValue}` : null,
+      `Fecha: ${alert.createdAt.toISOString()}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
 
-    await this.logNotification({
-      tenantId: alert.tenantId,
-      alertId: alert.id,
-      channel: 'email',
-      status: 'sent',
-      recipient: null,
-      subject,
-      body: alert.message,
-    });
-
+    await this.deliverAlertEmail(alert, subject, body);
     await this.sendWebhook(alert, 'escalation');
   }
 
@@ -70,19 +72,92 @@ export class NotificationService {
       .filter(Boolean)
       .join('\n');
 
-    // TODO: integrate AWS SES when out of sandbox
-    // For now, log the notification
-    this.logger.log(`[EMAIL] ${subject}\n${body}`);
+    await this.deliverAlertEmail(alert, subject, body);
+  }
 
+  /**
+   * Sends alert email via SES when `SES_FROM_EMAIL` and `ALERT_EMAIL_RECIPIENTS` are set; otherwise logs only.
+   */
+  private async deliverAlertEmail(
+    alert: PlatformAlert,
+    subject: string,
+    body: string,
+  ): Promise<void> {
+    const recipients = this.alertEmailRecipients();
+    const from = this.sesEmail.getFromAddress();
+
+    if (!from || recipients.length === 0) {
+      this.logger.log(`[EMAIL] ${subject}\n${body}`);
+      await this.logNotification({
+        tenantId: alert.tenantId,
+        alertId: alert.id,
+        channel: 'email',
+        status: 'sent',
+        recipient: null,
+        subject,
+        body,
+      });
+      return;
+    }
+
+    const result = await this.sesEmail.sendPlainText({
+      to: recipients,
+      subject,
+      body,
+    });
+
+    if (result.ok) {
+      this.logger.log(
+        `[EMAIL] sent MessageId=${result.messageId} to=${recipients.join(', ')}`,
+      );
+      await this.logNotification({
+        tenantId: alert.tenantId,
+        alertId: alert.id,
+        channel: 'email',
+        status: 'sent',
+        recipient: recipients.join(', '),
+        subject,
+        body,
+      });
+      return;
+    }
+
+    if (result.skippedReason) {
+      this.logger.log(`[EMAIL] ${subject}\n${body}`);
+      await this.logNotification({
+        tenantId: alert.tenantId,
+        alertId: alert.id,
+        channel: 'email',
+        status: 'sent',
+        recipient: null,
+        subject,
+        body,
+      });
+      return;
+    }
+
+    this.logger.error(`[EMAIL] SES error: ${result.errorMessage}`);
     await this.logNotification({
       tenantId: alert.tenantId,
       alertId: alert.id,
       channel: 'email',
-      status: 'sent',
-      recipient: null,
+      status: 'failed',
+      recipient: recipients.join(', '),
       subject,
       body,
+      errorMessage: result.errorMessage ?? 'Unknown SES error',
     });
+  }
+
+  /**
+   * @returns Destinatarios operativos para alertas (coma-separados en env)
+   */
+  private alertEmailRecipients(): string[] {
+    const raw = this.config.get<string>('ALERT_EMAIL_RECIPIENTS') ?? '';
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }
 
   private async sendWebhook(
@@ -162,6 +237,56 @@ export class NotificationService {
       errorMessage: data.errorMessage ?? null,
     });
     await this.logRepo.save(log);
+  }
+
+  /**
+   * Registra alta de usuario (invitación implícita). Envía correo vía SES si `SES_FROM_EMAIL` está definido.
+   * @param params - Datos del usuario recién creado en admin
+   */
+  async notifyUserCreated(params: {
+    tenantId: string;
+    email: string;
+    displayName: string | null;
+    authProvider: 'microsoft' | 'google';
+  }): Promise<void> {
+    const subject = 'Alta de usuario en la plataforma de monitoreo';
+    const body = [
+      `Se registró un usuario en el tenant.`,
+      `Email: ${params.email}`,
+      params.displayName ? `Nombre: ${params.displayName}` : null,
+      `Proveedor de acceso: ${params.authProvider}`,
+      'Inicie sesión con ese proveedor usando la cuenta indicada.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    this.logger.log(`[USER_INVITE] tenant=${params.tenantId}\n${body}`);
+
+    if (!this.sesEmail.getFromAddress()) {
+      return;
+    }
+
+    const result = await this.sesEmail.sendPlainText({
+      to: [params.email],
+      subject,
+      body,
+    });
+
+    if (result.ok) {
+      this.logger.log(
+        `[USER_INVITE] SES sent MessageId=${result.messageId} to=${params.email}`,
+      );
+      return;
+    }
+
+    if (result.skippedReason === 'no_recipients') {
+      this.logger.warn(`[USER_INVITE] SES skipped: no recipient for ${params.email}`);
+      return;
+    }
+
+    if (result.errorMessage) {
+      this.logger.error(`[USER_INVITE] SES failed: ${result.errorMessage}`);
+    }
   }
 
   /**

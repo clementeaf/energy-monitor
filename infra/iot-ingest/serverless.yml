@@ -47,6 +47,8 @@ functions:
 package:
   patterns:
     - 'handler.js'
+    - 'rds-ssl.js'
+    - 'certs/**'
     - 'node_modules/**'
     - '!src/**'
     - '!*.ts'

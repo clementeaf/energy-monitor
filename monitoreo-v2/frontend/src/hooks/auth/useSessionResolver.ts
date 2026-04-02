@@ -4,13 +4,24 @@ import { InteractionStatus } from '@azure/msal-browser';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
 
+/**
+ * Marca que existe sesión de aplicación (cookie httpOnly ya establecida).
+ * Se guarda en localStorage para compartir entre pestañas del mismo origen y evitar
+ * un GET /api/auth/me redundante; no es el token de acceso.
+ */
 const SESSION_FLAG = 'has_session';
 
-export function setSessionFlag() {
+/**
+ * Marca sesión activa tras login (cookie httpOnly ya emitida por el API).
+ */
+export function setSessionFlag(): void {
   localStorage.setItem(SESSION_FLAG, '1');
 }
 
-export function clearSessionFlag() {
+/**
+ * Limpia la marca local si la cookie dejó de ser válida.
+ */
+export function clearSessionFlag(): void {
   localStorage.removeItem(SESSION_FLAG);
 }
 

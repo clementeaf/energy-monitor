@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { getPgSslOptionsForRds } from './rds-ssl';
 
 const BUILDING_CODES: Record<string, string> = {
   'Parque Arauco Kennedy': 'MG',
@@ -614,7 +615,7 @@ export const handler = async () => {
     database: process.env.DB_NAME,
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   });
 
   try {

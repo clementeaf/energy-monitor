@@ -1,16 +1,47 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { JsonLoggerService } from './common/logging/json-logger.service';
+
+/**
+ * Activa logs en una línea JSON (CloudWatch / agregadores).
+ * @returns true si se usa JsonLoggerService
+ */
+function useJsonLogging(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' || process.env.LOG_FORMAT === 'json'
+  );
+}
+
+/**
+ * Confía en el primer proxy (ALB / API Gateway) para IP y HSTS correctos.
+ * @param app - Aplicación Nest
+ */
+function configureTrustProxy(app: INestApplication): void {
+  if (process.env.NODE_ENV !== 'production') {
+    return;
+  }
+  const expressApp = app.getHttpAdapter().getInstance() as {
+    set: (key: string, value: unknown) => void;
+  };
+  expressApp.set('trust proxy', 1);
+}
 
 async function bootstrap() {
+  const jsonLogs = useJsonLogging();
+  const jsonLogger = new JsonLoggerService();
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log'],
+    bufferLogs: jsonLogs,
+    logger: jsonLogs ? jsonLogger : ['error', 'warn', 'log'],
   });
 
   const port = process.env.PORT ?? 4000;
   const isProduction = process.env.NODE_ENV === 'production';
+
+  configureTrustProxy(app);
 
   // ISO 27001: Security headers (COOP allow-popups evita bloqueo de OAuth popups / window.closed)
   app.use(

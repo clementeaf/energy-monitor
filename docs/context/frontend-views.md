@@ -295,6 +295,14 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
 | Reports | `/reports`, `/reports/scheduled`, `/reports/generate`, `/reports/:id/export` | `useReportsQuery`, `useScheduledReportsQuery`, `useGenerateReport`, mutaciones scheduled/delete |
 
+## CSP (v2)
+
+- En **producción** (`npm run build`), `vite/csp-meta-plugin.ts` inserta `<meta http-equiv="Content-Security-Policy">` al final de `<head>` (después de assets inyectados). En **desarrollo** no hay meta CSP (evita bloquear HMR y `ws:`).
+- Política centralizada en `vite/csp-policy.ts`: `script-src` para Google/Microsoft CDN; `connect-src` para `'self'`, `energymonitor.click`, API Gateway, Graph/login, OAuth; `frame-src` + `form-action` para flujos OAuth; `object-src 'none'`; `upgrade-insecure-requests`.
+- **Extensión:** `VITE_CSP_EXTRA_CONNECT` (orígenes separados por coma). Si `VITE_API_BASE_URL` es URL absoluta `https://...`, se añade su origin a `connect-src`.
+- **Rollback de emergencia en build:** `VITE_CSP_DISABLED=true` omite el meta.
+- **`vite preview` + API en `localhost:4000`:** añadir esos orígenes vía `VITE_CSP_EXTRA_CONNECT` (no van en el build de prod por defecto).
+
 ## Tipos (v2)
 
 | Archivo | Tipos principales |

@@ -18,6 +18,7 @@ import { ConsumptionEvaluator } from './evaluators/consumption.evaluator';
 import { OperationalEvaluator } from './evaluators/operational.evaluator';
 import { GenerationEvaluator } from './evaluators/generation.evaluator';
 import { BusEvaluator } from './evaluators/bus.evaluator';
+import { SesEmailService } from '../../common/email/ses-email.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PlatformAlert, AlertRule, NotificationLog])],
@@ -32,6 +33,7 @@ import { BusEvaluator } from './evaluators/bus.evaluator';
     AlertRulesService,
     AlertEngineService,
     EscalationService,
+    SesEmailService,
     NotificationService,
     CommunicationEvaluator,
     ElectricalEvaluator,

@@ -5,11 +5,13 @@ import { NotificationService } from './notification.service';
 import { NotificationLog } from './entities/notification-log.entity';
 import { PlatformAlert } from '../platform/entities/platform-alert.entity';
 import { AlertRule } from '../platform/entities/alert-rule.entity';
+import { SesEmailService } from '../../common/email/ses-email.service';
 
 describe('NotificationService', () => {
   let service: NotificationService;
   let logRepo: Record<string, jest.Mock>;
   let configService: Record<string, jest.Mock>;
+  let sesEmail: { getFromAddress: jest.Mock; sendPlainText: jest.Mock };
 
   beforeEach(async () => {
     logRepo = {
@@ -22,11 +24,17 @@ describe('NotificationService', () => {
       get: jest.fn().mockReturnValue(undefined),
     };
 
+    sesEmail = {
+      getFromAddress: jest.fn().mockReturnValue(null),
+      sendPlainText: jest.fn(),
+    };
+
     const module = await Test.createTestingModule({
       providers: [
         NotificationService,
         { provide: getRepositoryToken(NotificationLog), useValue: logRepo },
         { provide: ConfigService, useValue: configService },
+        { provide: SesEmailService, useValue: sesEmail },
       ],
     }).compile();
 
@@ -99,6 +107,32 @@ describe('NotificationService', () => {
       }),
     );
     expect(logRepo.save).toHaveBeenCalled();
+    expect(sesEmail.sendPlainText).not.toHaveBeenCalled();
+  });
+
+  it('sends alert email via SES when From and ALERT_EMAIL_RECIPIENTS are set', async () => {
+    sesEmail.getFromAddress.mockReturnValue('ops@verified.example.com');
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'ALERT_EMAIL_RECIPIENTS') return 'oncall@example.com, other@example.com';
+      return undefined;
+    });
+    sesEmail.sendPlainText.mockResolvedValue({ ok: true, messageId: 'msg-123' });
+
+    await service.notify(mockAlert, mockRule);
+
+    expect(sesEmail.sendPlainText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ['oncall@example.com', 'other@example.com'],
+        subject: expect.stringContaining('METER_OFFLINE'),
+      }),
+    );
+    expect(logRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: 'email',
+        status: 'sent',
+        recipient: 'oncall@example.com, other@example.com',
+      }),
+    );
   });
 
   it('does not send webhook when ALERT_WEBHOOK_URL not configured', async () => {

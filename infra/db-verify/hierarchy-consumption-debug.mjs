@@ -16,6 +16,7 @@
  */
 
 import dotenv from 'dotenv';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
@@ -53,7 +54,7 @@ function buildDbConfig(secret, secretOnly = false) {
     database: process.env.DB_NAME || secret.dbname || secret.database || secret.DB_NAME,
     user: secretOnly ? (secret.username || secret.user || secret.DB_USERNAME) : (process.env.DB_USER || process.env.DB_USERNAME || secret.username || secret.user || secret.DB_USERNAME),
     password: secretOnly ? (secret.password || secret.DB_PASSWORD) : (process.env.DB_PASSWORD || secret.password || secret.DB_PASSWORD),
-    ssl: useSsl ? { rejectUnauthorized: false } : false,
+    ssl: useSsl ? getPgSslOptionsForRds() : false,
   };
   return secretOnly ? base : { ...base, user: base.user, password: base.password };
 }
@@ -105,7 +106,7 @@ async function main() {
       database: process.env.DB_NAME || 'postgres',
       user: process.env.DB_USER || process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DB_SSL !== 'false' ? getPgSslOptionsForRds() : false,
     };
   } else {
     const secret = await getSecretJson(DB_SECRET_NAME);

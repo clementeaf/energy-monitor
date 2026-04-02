@@ -5,6 +5,7 @@
  * Requires: npm install pg (or use the Lambda approach)
  */
 import { readFileSync } from 'fs';
+import { getPgSslOptionsForRds } from '../infra/lib/rds-ssl.mjs';
 import pg from 'pg';
 
 const { Client } = pg;
@@ -18,7 +19,7 @@ const client = new Client({
   database: 'energy_monitor',
   user: process.env.DB_USERNAME || 'emadmin',
   password: process.env.DB_PASSWORD || '',
-  ssl: { rejectUnauthorized: false },
+  ssl: getPgSslOptionsForRds(),
 });
 
 function parseNum(v) {

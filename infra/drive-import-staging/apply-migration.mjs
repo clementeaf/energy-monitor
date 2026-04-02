@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
@@ -28,7 +29,7 @@ function buildDbConfig(secret) {
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

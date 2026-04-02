@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 const { Client } = pg;
 
 /**
@@ -12,7 +13,7 @@ export const handler = async () => {
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   });
 
   await client.connect();

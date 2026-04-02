@@ -11,6 +11,7 @@
  */
 
 import dotenv from 'dotenv';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
@@ -48,7 +49,7 @@ function buildDbConfig(secret, secretOnly = false) {
       database: process.env.DB_NAME || secret.dbname || secret.database || secret.DB_NAME,
       user: secret.username || secret.user || secret.DB_USERNAME,
       password: secret.password || secret.DB_PASSWORD,
-      ssl: { rejectUnauthorized: false },
+      ssl: getPgSslOptionsForRds(),
     };
   }
   return {
@@ -57,7 +58,7 @@ function buildDbConfig(secret, secretOnly = false) {
     database: process.env.DB_NAME || secret.dbname || secret.database || secret.DB_NAME,
     user: process.env.DB_USER || process.env.DB_USERNAME || secret.username || secret.user || secret.DB_USERNAME,
     password: process.env.DB_PASSWORD || secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 
@@ -83,7 +84,7 @@ async function main() {
       database: process.env.DB_NAME || 'postgres',
       user: process.env.DB_USER || process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      ssl: { rejectUnauthorized: false },
+      ssl: getPgSslOptionsForRds(),
     };
   } else {
     console.log('Usando Secrets Manager:', DB_SECRET_NAME);

@@ -6,6 +6,7 @@
  */
 
 import { fileURLToPath } from 'url';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
 
@@ -36,7 +37,7 @@ function configFromEnv() {
       database,
       user,
       password,
-      ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DB_SSL !== 'false' ? getPgSslOptionsForRds() : false,
     };
   }
   return null;
@@ -56,7 +57,7 @@ function buildDbConfig(secret) {
     database: process.env.DB_NAME || secret.dbname || secret.database || secret.DB_NAME,
     user: process.env.DB_USERNAME || process.env.DB_USER || secret.username || secret.user || secret.DB_USERNAME,
     password: process.env.DB_PASSWORD || secret.password || secret.DB_PASSWORD,
-    ssl: process.env.DB_SSL !== 'false' ? { rejectUnauthorized: false } : false,
+    ssl: process.env.DB_SSL !== 'false' ? getPgSslOptionsForRds() : false,
   };
 }
 

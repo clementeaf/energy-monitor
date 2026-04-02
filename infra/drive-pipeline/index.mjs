@@ -19,6 +19,7 @@
  */
 
 import { createHash } from 'crypto';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import { PassThrough, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 import {
@@ -84,7 +85,7 @@ function buildDbConfig(secret) {
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

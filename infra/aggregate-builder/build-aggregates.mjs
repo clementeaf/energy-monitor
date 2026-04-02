@@ -19,6 +19,7 @@
  */
 
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { getPgSslOptionsForRds } from '../lib/rds-ssl.mjs';
 import pg from 'pg';
 
 const { Client } = pg;
@@ -46,7 +47,7 @@ function buildDbConfig(secret) {
     database: secret.dbname || secret.database || secret.DB_NAME,
     user: secret.username || secret.user || secret.DB_USERNAME,
     password: secret.password || secret.DB_PASSWORD,
-    ssl: { rejectUnauthorized: false },
+    ssl: getPgSslOptionsForRds(),
   };
 }
 

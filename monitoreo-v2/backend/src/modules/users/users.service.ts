@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import { NotificationService } from '../alerts/notification.service';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -11,6 +12,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly repo: Repository<User>,
     private readonly dataSource: DataSource,
+    private readonly notifications: NotificationService,
   ) {}
 
   async findAll(tenantId: string): Promise<User[]> {
@@ -38,6 +40,13 @@ export class UsersService {
       roleId: dto.roleId,
     });
     const saved = await this.repo.save(user);
+
+    await this.notifications.notifyUserCreated({
+      tenantId,
+      email: saved.email,
+      displayName: saved.displayName ?? null,
+      authProvider: saved.authProvider,
+    });
 
     if (dto.buildingIds && dto.buildingIds.length > 0) {
       await this.assignBuildings(saved.id, tenantId, dto.buildingIds);

@@ -48,4 +48,10 @@ functions:
             fromDate: ''
             toDate: ''
 
+package:
+  patterns:
+    - 'handler.mjs'
+    - 'rds-ssl.mjs'
+    - 'certs/**'
+
 plugins: []

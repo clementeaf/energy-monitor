@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.95.0-alpha.0] - 2026-04-02 — MONITOREO V2: EMAIL VÍA SES (OPCIONAL)
+
+### Added
+- **`SesEmailService`** — `monitoreo-v2/backend/src/common/email/ses-email.service.ts`; dependencia `@aws-sdk/client-ses`
+- **Variables** — `SES_FROM_EMAIL`, `ALERT_EMAIL_RECIPIENTS`, `SES_REGION` (ver `CLAUDE.md`, `monitoreo-v2/backend/.env.example`, [AWS Runbook — SES](docs/aws-runbook.md#amazon-ses-email-saliente))
+
+### Changed
+- **`NotificationService`** — Con env configurado: envío real a destinatarios de alertas/escalamiento e invitación al crear usuario; sin env: solo logs (`[EMAIL]`, `[USER_INVITE]`) como antes
+
+### Tests
+- Backend: 370 tests (41 suites)
+
+---
+
 ## [0.94.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 8: VISTAS MONITOREO (TIPO / GENERACIÓN / MODBUS)
 
 ### Added

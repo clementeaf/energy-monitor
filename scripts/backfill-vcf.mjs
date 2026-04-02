@@ -8,6 +8,7 @@
  *   node scripts/backfill-vcf.mjs
  */
 import pg from 'pg';
+import { getPgSslOptionsForRds } from '../infra/lib/rds-ssl.mjs';
 const { Client } = pg;
 
 const client = new Client({
@@ -16,7 +17,7 @@ const client = new Client({
   database: process.env.DB_NAME || 'energy_monitor',
   user: process.env.DB_USER || 'emadmin',
   password: process.env.DB_PASSWORD,
-  ssl: { rejectUnauthorized: false },
+  ssl: getPgSslOptionsForRds(),
 });
 
 await client.connect();

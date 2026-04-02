@@ -78,6 +78,10 @@ functions:
     handler: dist/db-verify-lambda.handler
     description: Verificación RDS (conteos, distribución). Invocar con AWS CLI. Credenciales por env o Secrets Manager.
 
+package:
+  patterns:
+    - certs/**
+
 plugins:
   - serverless-offline
 

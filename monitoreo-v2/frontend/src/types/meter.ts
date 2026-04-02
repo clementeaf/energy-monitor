@@ -14,6 +14,8 @@ export interface Meter {
   ipAddress: string | null;
   modbusAddress: number | null;
   busId: string | null;
+  uplinkRoute?: string | null;
+  crcErrorsLastPoll?: number;
   phaseType: MeterPhaseType;
   nominalVoltage: string | null;
   nominalCurrent: string | null;

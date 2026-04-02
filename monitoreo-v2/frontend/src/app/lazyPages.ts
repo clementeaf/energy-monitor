@@ -70,6 +70,21 @@ export const LazyFaultHistoryPage = lazy(async () => {
   return { default: m.FaultHistoryPage };
 });
 
+export const LazyMetersByTypePage = lazy(async () => {
+  const m = await import('../features/monitoring/meters-by-type/MetersByTypePage');
+  return { default: m.MetersByTypePage };
+});
+
+export const LazyGenerationSitePage = lazy(async () => {
+  const m = await import('../features/monitoring/generation/GenerationSitePage');
+  return { default: m.GenerationSitePage };
+});
+
+export const LazyModbusMapPage = lazy(async () => {
+  const m = await import('../features/monitoring/modbus-map/ModbusMapPage');
+  return { default: m.ModbusMapPage };
+});
+
 export const LazyInvoicesPage = lazy(async () => {
   const m = await import('../features/billing/InvoicesPage');
   return { default: m.InvoicesPage };

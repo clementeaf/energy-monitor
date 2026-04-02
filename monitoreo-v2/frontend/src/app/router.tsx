@@ -27,6 +27,9 @@ import {
   LazyAlertRulesPage,
   LazyEscalationPage,
   LazyNotificationsPage,
+  LazyMetersByTypePage,
+  LazyGenerationSitePage,
+  LazyModbusMapPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -66,6 +69,11 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.monitoring.demand, element: <LazyDemandPage /> },
               { path: APP_ROUTES.monitoring.quality, element: <LazyQualityPage /> },
               { path: APP_ROUTES.monitoring.devices, element: <LazyDevicesPage /> },
+              { path: APP_ROUTES.monitoring.metersByType, element: <LazyMetersByTypePage /> },
+              { path: APP_ROUTES.monitoring.generationIndex, element: <LazyGenerationSitePage /> },
+              { path: APP_ROUTES.monitoring.generationSite, element: <LazyGenerationSitePage /> },
+              { path: APP_ROUTES.monitoring.modbusMapIndex, element: <LazyModbusMapPage /> },
+              { path: APP_ROUTES.monitoring.modbusMapSite, element: <LazyModbusMapPage /> },
               { path: APP_ROUTES.monitoring.faultHistory, element: <LazyFaultHistoryPage /> },
               { path: APP_ROUTES.billing.invoices, element: <LazyInvoicesPage /> },
               { path: APP_ROUTES.billing.rates, element: <LazyTariffsPage /> },

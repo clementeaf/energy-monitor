@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.94.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 8: VISTAS MONITOREO (TIPO / GENERACIÓN / MODBUS)
+
+### Added
+- **`/monitoring/meters/type`** — Agrupación por tipo de medidor, KPIs con últimas lecturas, detalle por tipo con enlace a `/meters?buildingId=`
+- **`/monitoring/generation`** y **`/monitoring/generation/:siteId`** — Selector de edificio; StockChart generación vs carga (`GET /readings/aggregated`), energía del periodo y autoconsumo estimado; generación detectada por `meterType` (p. ej. solar, generation) vía `features/monitoring/lib/meterClassification.ts`
+- **`/monitoring/modbus-map`** y **`/monitoring/modbus-map/:siteId`** — Concentradores del sitio; medidores por `busId`, orden por dirección Modbus; estado, CRC último sondeo, ruta uplink
+- **Sidebar** — Entradas Medidores por tipo, Generación, Mapa Modbus (permisos dashboard técnico/ejecutivo)
+
+### Changed
+- **`APP_ROUTES.monitoring`** — `metersByType`, `generationIndex` / `generationSite`, `modbusMapIndex` / `modbusMapSite`
+- **`types/meter.ts`** — Campos opcionales `uplinkRoute`, `crcErrorsLastPoll` alineados a entidad API
+
+---
+
 ## [0.93.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 8 (PARCIAL): DASHBOARDS EJECUTIVO Y COMPARATIVO
 
 ### Added

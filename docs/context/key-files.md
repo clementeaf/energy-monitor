@@ -115,10 +115,14 @@
 | `monitoreo-v2/frontend/src/features/monitoring/demand/DemandPage.tsx` | StockChart demanda + peak vs contratada + Top 10 peaks |
 | `monitoreo-v2/frontend/src/features/monitoring/quality/QualityPage.tsx` | 4 charts calidad eléctrica + umbrales normativos |
 | `monitoreo-v2/frontend/src/features/monitoring/devices/DevicesPage.tsx` | Tabla unificada medidores + concentradores con filtros |
+| `monitoreo-v2/frontend/src/features/monitoring/meters-by-type/MetersByTypePage.tsx` | `/monitoring/meters/type`: agrupación por tipo, KPIs últimas lecturas |
+| `monitoreo-v2/frontend/src/features/monitoring/generation/GenerationSitePage.tsx` | `/monitoring/generation`: gen vs carga, energía, autoconsumo (readings aggregated) |
+| `monitoreo-v2/frontend/src/features/monitoring/modbus-map/ModbusMapPage.tsx` | `/monitoring/modbus-map`: buses Modbus, concentradores, CRC/uplink |
+| `monitoreo-v2/frontend/src/features/monitoring/lib/meterClassification.ts` | `isGenerationMeterType`, `formatMeterTypeLabel` |
 | `monitoreo-v2/frontend/src/features/monitoring/fault-history/FaultHistoryPage.tsx` | Timeline eventos de fallo por medidor |
 | `monitoreo-v2/frontend/src/features/reports/ReportsPage.tsx` | Reportes generados + programados (`/reports`) |
-| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, `/dashboard/executive`, `/dashboard/compare`, buildings, meters, alerts, monitoring/*, billing, reports, admin, components |
-| `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas; `end` en link del dashboard |
+| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, dashboards, buildings, meters, alerts, monitoring/* (incl. meters/type, generation, modbus-map), billing, reports, admin, components |
+| `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas; entradas monitoreo ampliadas (`end` en `/`) |
 
 ## Standalone Infra Scripts
 ```

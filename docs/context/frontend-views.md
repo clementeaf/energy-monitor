@@ -270,6 +270,9 @@ MeterReading {
 | `/monitoring/demand/:siteId` | Demanda | — | StockChart demanda, peak vs contratada, Top 10 peaks |
 | `/monitoring/quality/:siteId` | Calidad Eléctrica | — | 4 charts (THD V, THD I, PF, desequilibrio), umbrales normativos |
 | `/monitoring/devices` | Dispositivos | si | Tabla unificada medidores + concentradores, filtros building/tipo/estado |
+| `/monitoring/meters/type` | Medidores por tipo | si | Por `meterType`: KPIs (últimas lecturas), detalle expandible, enlace a listado por edificio |
+| `/monitoring/generation`, `/monitoring/generation/:siteId` | Generación | si | Sin `siteId`: grid edificios. Con sitio: curvas gen vs carga, energía periodo, autoconsumo estimado |
+| `/monitoring/modbus-map`, `/monitoring/modbus-map/:siteId` | Mapa Modbus | si | Sin `siteId`: grid edificios. Concentradores + tablas por bus (dirección Modbus, estado, CRC, uplink) |
 | `/monitoring/fault-history/:meterId` | Historial Fallos | — | Timeline eventos de fallo, filtros tipo/fecha |
 | `/billing` | Facturas | si | Tabla facturas con filtros edificio/estado, detalle line items, acciones aprobar/anular/eliminar, generación |
 | `/billing/rates` | Tarifas | si | Tabla tarifas CRUD con bloques horarios expandibles, filtro edificio |
@@ -297,7 +300,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Archivo | Tipos principales |
 |---------|-------------------|
 | `types/building.ts` | `Building`, `CreateBuildingPayload`, `UpdateBuildingPayload` |
-| `types/meter.ts` | `Meter`, `MeterPhaseType`, `CreateMeterPayload`, `UpdateMeterPayload` |
+| `types/meter.ts` | `Meter` (incl. opcionales `uplinkRoute`, `crcErrorsLastPoll`), `MeterPhaseType`, payloads CRUD |
 | `types/alert.ts` | `Alert`, `AlertRule`, `AlertSeverity`, `AlertStatus`, `AlertQueryParams` |
 | `types/reading.ts` | `Reading`, `LatestReading`, `AggregatedReading`, `ReadingResolution` |
 | `types/hierarchy.ts` | `HierarchyNode`, `HierarchyLevelType` |
@@ -320,5 +323,5 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 
 ## Navegación (v2)
 
-- **Sidebar directo**: Dashboard, Ejecutivo, Comparativo, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas, Reportes (según permisos)
+- **Sidebar directo**: Dashboard, Ejecutivo, Comparativo, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Medidores por tipo, Generación, Mapa Modbus, Facturas, Tarifas, Reportes (según permisos)
 - **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links con breadcrumbs

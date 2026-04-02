@@ -55,6 +55,21 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['admin_concentrators:read', 'admin_meters:read'],
   },
   {
+    to: '/monitoring/meters/type',
+    label: 'Medidores por tipo',
+    requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
+  },
+  {
+    to: '/monitoring/generation',
+    label: 'Generacion',
+    requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
+  },
+  {
+    to: '/monitoring/modbus-map',
+    label: 'Mapa Modbus',
+    requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
+  },
+  {
     to: '/billing',
     label: 'Facturas',
     requiredPerms: ['billing_invoices:read', 'billing:read', 'billing:view_own'],

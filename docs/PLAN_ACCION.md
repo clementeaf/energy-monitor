@@ -247,19 +247,19 @@ Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 - [x] Tabla comparativa con deltas
 
 ### 8.3 Medidores por tipo `/monitoring/meters/type`
-- [ ] Agrupacion por tipo de medidor
-- [ ] KPIs agregados por tipo
-- [ ] Navegacion a detalle individual
+- [x] Agrupacion por tipo de medidor
+- [x] KPIs agregados por tipo
+- [x] Navegacion a detalle individual
 
 ### 8.4 Generacion por sitio `/monitoring/generation/:siteId`
-- [ ] Graficos de generacion (solar, etc.)
-- [ ] Balance generacion vs consumo
-- [ ] Indicadores de autoconsumo
+- [x] Graficos de generacion (solar, etc.)
+- [x] Balance generacion vs consumo
+- [x] Indicadores de autoconsumo
 
 ### 8.5 Mapa Modbus `/monitoring/modbus-map/:siteId`
-- [ ] Diagrama de red Modbus del sitio
-- [ ] Estado de cada nodo (online/offline/error)
-- [ ] Detalle de configuracion por dispositivo
+- [x] Diagrama de red Modbus del sitio
+- [x] Estado de cada nodo (online/offline/error)
+- [x] Detalle de configuracion por dispositivo
 
 ---
 

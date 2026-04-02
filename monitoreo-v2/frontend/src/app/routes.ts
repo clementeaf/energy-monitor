@@ -16,6 +16,11 @@ export const APP_ROUTES = {
     quality: '/monitoring/quality/:siteId',
     devices: '/monitoring/devices',
     faultHistory: '/monitoring/fault-history/:meterId',
+    metersByType: '/monitoring/meters/type',
+    generationIndex: '/monitoring/generation',
+    generationSite: '/monitoring/generation/:siteId',
+    modbusMapIndex: '/monitoring/modbus-map',
+    modbusMapSite: '/monitoring/modbus-map/:siteId',
   },
   billing: {
     invoices: '/billing',

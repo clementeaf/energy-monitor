@@ -97,13 +97,16 @@ INSERT INTO _role_perm_map VALUES
     ('a0000001-0000-0000-0000-000000000003', 'admin_tenants_units', 'create', 'CRU'),
     ('a0000001-0000-0000-0000-000000000003', 'admin_tenants_units', 'update', 'CRU'),
     ('a0000001-0000-0000-0000-000000000003', 'admin_hierarchy', 'read', 'CRU'),
+    ('a0000001-0000-0000-0000-000000000003', 'admin_hierarchy', 'create', 'CRU'),
     ('a0000001-0000-0000-0000-000000000003', 'admin_hierarchy', 'update', 'CRU'),
+    ('a0000001-0000-0000-0000-000000000003', 'admin_hierarchy', 'delete', 'CRU'),
     ('a0000001-0000-0000-0000-000000000003', 'diagnostics', 'read', 'R'),
     ('a0000001-0000-0000-0000-000000000003', 'audit', 'read', 'R');
 
 -- OPERATOR permissions
 INSERT INTO _role_perm_map VALUES
     ('a0000001-0000-0000-0000-000000000004', 'dashboard_technical', 'read', 'R'),
+    ('a0000001-0000-0000-0000-000000000004', 'billing', 'read', 'R'),
     ('a0000001-0000-0000-0000-000000000004', 'alerts', 'read', 'R'),
     ('a0000001-0000-0000-0000-000000000004', 'alerts', 'update', 'CRU'),
     ('a0000001-0000-0000-0000-000000000004', 'alerts', 'receive', 'R'),
@@ -147,6 +150,34 @@ FROM _role_perm_map m
 JOIN permissions p ON p.module = m.module AND p.action = m.action;
 
 DROP TABLE _role_perm_map;
+
+-- ============================================================
+-- Seed: Buildings (PASA)
+-- ============================================================
+INSERT INTO buildings (id, tenant_id, name, code, address, area_sqm) VALUES
+    ('b0000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Mallplaza Gestión',  'MG',   'Av. Kennedy 9001, Las Condes', 120000),
+    ('b0000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Mall del Mar',       'MM',   'Av. Borgoño 12000, Viña del Mar', 68000),
+    ('b0000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Open Temuco',        'OT',   'Av. Alemania 0720, Temuco', 50000),
+    ('b0000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'SC52',               'SC52', 'Santiago Centro', 5302),
+    ('b0000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'SC53',               'SC53', 'Santiago Centro', 5650);
+
+-- Super Admin gets access to all buildings
+INSERT INTO user_building_access (user_id, building_id) VALUES
+    ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000001'),
+    ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000002'),
+    ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000003'),
+    ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000004'),
+    ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000005');
+
+-- ============================================================
+-- Seed: Sample hierarchy for Mallplaza Gestión
+-- ============================================================
+INSERT INTO building_hierarchy (id, tenant_id, building_id, parent_id, name, level_type, sort_order) VALUES
+    ('a1000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', NULL, 'Piso 1', 'floor', 1),
+    ('a1000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', NULL, 'Piso 2', 'floor', 2),
+    ('a1000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000001', 'Zona Norte', 'zone', 1),
+    ('a1000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000001', 'Zona Sur', 'zone', 2),
+    ('a1000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000003', 'Tablero TN-01', 'panel', 1);
 
 -- Now that seed data exists, enforce NOT NULL on users.role_id
 ALTER TABLE users ALTER COLUMN role_id SET NOT NULL;

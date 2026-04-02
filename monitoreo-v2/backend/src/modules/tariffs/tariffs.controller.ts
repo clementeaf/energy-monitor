@@ -25,7 +25,7 @@ export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
   @Get()
-  @RequirePermission('billing_tariffs', 'read')
+  @RequirePermission('billing', 'read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
@@ -34,7 +34,7 @@ export class TariffsController {
   }
 
   @Get(':id')
-  @RequirePermission('billing_tariffs', 'read')
+  @RequirePermission('billing', 'read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -45,7 +45,7 @@ export class TariffsController {
   }
 
   @Post()
-  @RequirePermission('billing_tariffs', 'create')
+  @RequirePermission('billing', 'create')
   async create(
     @Body() dto: CreateTariffDto,
     @CurrentUser() user: JwtPayload,
@@ -54,7 +54,7 @@ export class TariffsController {
   }
 
   @Patch(':id')
-  @RequirePermission('billing_tariffs', 'update')
+  @RequirePermission('billing', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTariffDto,
@@ -67,7 +67,7 @@ export class TariffsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('billing_tariffs', 'delete')
+  @RequirePermission('billing', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -77,7 +77,7 @@ export class TariffsController {
   }
 
   @Get(':id/blocks')
-  @RequirePermission('billing_tariffs', 'read')
+  @RequirePermission('billing', 'read')
   async findBlocks(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -86,7 +86,7 @@ export class TariffsController {
   }
 
   @Post(':id/blocks')
-  @RequirePermission('billing_tariffs', 'create')
+  @RequirePermission('billing', 'create')
   async createBlock(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateTariffBlockDto,
@@ -99,7 +99,7 @@ export class TariffsController {
 
   @Delete(':id/blocks/:blockId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('billing_tariffs', 'delete')
+  @RequirePermission('billing', 'delete')
   async removeBlock(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('blockId', ParseUUIDPipe) blockId: string,

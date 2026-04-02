@@ -25,7 +25,7 @@ export class TenantUnitsController {
   constructor(private readonly tenantUnitsService: TenantUnitsService) {}
 
   @Get()
-  @RequirePermission('admin_tenant_units', 'read')
+  @RequirePermission('admin_tenants_units', 'read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
@@ -34,7 +34,7 @@ export class TenantUnitsController {
   }
 
   @Get(':id')
-  @RequirePermission('admin_tenant_units', 'read')
+  @RequirePermission('admin_tenants_units', 'read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -45,7 +45,7 @@ export class TenantUnitsController {
   }
 
   @Post()
-  @RequirePermission('admin_tenant_units', 'create')
+  @RequirePermission('admin_tenants_units', 'create')
   async create(
     @Body() dto: CreateTenantUnitDto,
     @CurrentUser() user: JwtPayload,
@@ -54,7 +54,7 @@ export class TenantUnitsController {
   }
 
   @Patch(':id')
-  @RequirePermission('admin_tenant_units', 'update')
+  @RequirePermission('admin_tenants_units', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTenantUnitDto,
@@ -67,7 +67,7 @@ export class TenantUnitsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('admin_tenant_units', 'delete')
+  @RequirePermission('admin_tenants_units', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -77,7 +77,7 @@ export class TenantUnitsController {
   }
 
   @Get(':id/meters')
-  @RequirePermission('admin_tenant_units', 'read')
+  @RequirePermission('admin_tenants_units', 'read')
   async findMeters(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -86,7 +86,7 @@ export class TenantUnitsController {
   }
 
   @Post(':id/meters')
-  @RequirePermission('admin_tenant_units', 'update')
+  @RequirePermission('admin_tenants_units', 'update')
   async addMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddTenantUnitMeterDto,
@@ -99,7 +99,7 @@ export class TenantUnitsController {
 
   @Delete(':id/meters/:meterId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('admin_tenant_units', 'update')
+  @RequirePermission('admin_tenants_units', 'update')
   async removeMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('meterId', ParseUUIDPipe) meterId: string,

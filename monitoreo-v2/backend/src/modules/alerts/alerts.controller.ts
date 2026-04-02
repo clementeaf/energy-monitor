@@ -20,7 +20,7 @@ export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
   @Get()
-  @RequireAnyPermission('admin_alerts:read', 'monitoring_alerts:read')
+  @RequireAnyPermission('alerts:read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query() query: AlertQueryDto,
@@ -29,7 +29,7 @@ export class AlertsController {
   }
 
   @Get(':id')
-  @RequireAnyPermission('admin_alerts:read', 'monitoring_alerts:read')
+  @RequireAnyPermission('alerts:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -40,7 +40,7 @@ export class AlertsController {
   }
 
   @Patch(':id/acknowledge')
-  @RequireAnyPermission('admin_alerts:update', 'monitoring_alerts:update')
+  @RequireAnyPermission('alerts:update')
   async acknowledge(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -51,7 +51,7 @@ export class AlertsController {
   }
 
   @Patch(':id/resolve')
-  @RequireAnyPermission('admin_alerts:update', 'monitoring_alerts:update')
+  @RequireAnyPermission('alerts:update')
   async resolve(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ResolveAlertDto,

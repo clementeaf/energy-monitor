@@ -11,10 +11,11 @@ const user: JwtPayload = {
   roleId: 'r-1',
   roleSlug: 'super_admin',
   permissions: [
-    'admin_concentrators:read',
-    'admin_concentrators:create',
-    'admin_concentrators:update',
-    'admin_concentrators:delete',
+    'diagnostics:read',
+    'admin_meters:read',
+    'admin_meters:create',
+    'admin_meters:update',
+    'admin_meters:delete',
   ],
   buildingIds: [],
 };

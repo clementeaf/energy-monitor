@@ -10,7 +10,7 @@ export class AlertEngineController {
 
   @Post('evaluate')
   @HttpCode(200)
-  @RequirePermission('alerts', 'write')
+  @RequirePermission('alerts', 'update')
   async evaluate(@CurrentUser() user: JwtPayload) {
     return this.engineService.evaluateTenant(user.tenantId);
   }

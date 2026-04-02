@@ -27,7 +27,7 @@ export class AlertRulesController {
   constructor(private readonly alertRulesService: AlertRulesService) {}
 
   @Get()
-  @RequireAnyPermission('admin_alerts:read', 'monitoring_alerts:read')
+  @RequireAnyPermission('alerts:read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
@@ -36,7 +36,7 @@ export class AlertRulesController {
   }
 
   @Get(':id')
-  @RequireAnyPermission('admin_alerts:read', 'monitoring_alerts:read')
+  @RequireAnyPermission('alerts:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -47,7 +47,7 @@ export class AlertRulesController {
   }
 
   @Post()
-  @RequirePermission('admin_alerts', 'create')
+  @RequirePermission('alerts', 'create')
   async create(
     @Body() dto: CreateAlertRuleDto,
     @CurrentUser() user: JwtPayload,
@@ -56,7 +56,7 @@ export class AlertRulesController {
   }
 
   @Patch(':id')
-  @RequirePermission('admin_alerts', 'update')
+  @RequirePermission('alerts', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateAlertRuleDto,
@@ -69,7 +69,7 @@ export class AlertRulesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('admin_alerts', 'delete')
+  @RequirePermission('alerts', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,

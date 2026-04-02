@@ -36,7 +36,7 @@ export function EscalationPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-gray-900">Escalamiento y SLA</h1>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {['critical', 'high', 'medium', 'low'].map((sev) => {
           const count = openAlerts.filter((a) => a.severity === sev).length;
           return (

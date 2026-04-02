@@ -34,9 +34,18 @@ export function HierarchyPage() {
   const buildingId = selectedBuilding || (buildings[0]?.id ?? '');
 
   const query = useHierarchyByBuildingQuery(buildingId);
-  const qs = useQueryState(query, {
+  const hierarchyQs = useQueryState(query, {
     isEmpty: (data) => data === undefined || data.length === 0,
   });
+
+  // Derive combined phase: buildings must load first
+  const qs: typeof hierarchyQs = buildingsQuery.isPending
+    ? { phase: 'loading', data: undefined, error: undefined, refetch: () => { void buildingsQuery.refetch(); } }
+    : buildingsQuery.isError
+      ? { phase: 'error', data: undefined, error: buildingsQuery.error, refetch: () => { void buildingsQuery.refetch(); } }
+      : buildings.length === 0
+        ? { phase: 'empty', data: undefined, error: undefined, refetch: () => { void buildingsQuery.refetch(); } }
+        : hierarchyQs;
   const { has } = usePermissions();
   const canWrite = has('admin_hierarchy', 'create');
 
@@ -97,8 +106,8 @@ export function HierarchyPage() {
         error={qs.error}
         onRetry={() => { void query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin jerarquia"
-        emptyDescription="No hay nodos de jerarquia para este edificio."
+        emptyTitle={buildings.length === 0 ? 'Sin edificios' : 'Sin jerarquia'}
+        emptyDescription={buildings.length === 0 ? 'No hay edificios registrados.' : 'No hay nodos de jerarquia para este edificio.'}
       >
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           {(query.data ?? []).map((node) => (

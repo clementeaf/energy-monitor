@@ -18,7 +18,7 @@ export function TenantsPage() {
     isEmpty: (data) => data === undefined || data.length === 0,
   });
   const { has } = usePermissions();
-  const canWrite = has('admin_tenant_units', 'create');
+  const canWrite = has('admin_tenants_units', 'create');
 
   const createMutation = useCreateTenantUnit();
   const updateMutation = useUpdateTenantUnit();
@@ -83,7 +83,7 @@ export function TenantsPage() {
         emptyTitle="Sin locatarios"
         emptyDescription="No hay locatarios registrados."
       >
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

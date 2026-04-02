@@ -42,7 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: '/alerts',
     label: 'Alertas',
-    requiredPerms: ['admin_alerts:read', 'monitoring_alerts:read'],
+    requiredPerms: ['alerts:read'],
   },
   {
     to: '/monitoring/realtime',
@@ -52,7 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: '/monitoring/devices',
     label: 'Dispositivos',
-    requiredPerms: ['admin_concentrators:read', 'admin_meters:read'],
+    requiredPerms: ['diagnostics:read', 'admin_meters:read'],
   },
   {
     to: '/monitoring/meters/type',
@@ -72,12 +72,12 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: '/billing',
     label: 'Facturas',
-    requiredPerms: ['billing_invoices:read', 'billing:read', 'billing:view_own'],
+    requiredPerms: ['billing:read', 'billing:view_own'],
   },
   {
     to: '/billing/rates',
     label: 'Tarifas',
-    requiredPerms: ['billing_tariffs:read', 'billing:read'],
+    requiredPerms: ['billing:read'],
   },
   {
     to: '/reports',
@@ -119,14 +119,13 @@ export function Sidebar() {
   const { tenant, user } = useAuthStore();
   const { logout } = useAuth();
   const { hasAny } = usePermissions();
-
-  if (!sidebarOpen) return null;
-
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
   const activeAlertCount = activeAlertsQuery.data?.length ?? 0;
 
   const visibleNav = NAV_ITEMS.filter((item) => hasAny(...item.requiredPerms));
   const visibleAdmin = ADMIN_ITEMS.filter((item) => hasAny(...item.requiredPerms));
+
+  if (!sidebarOpen) return null;
 
   return (
     <aside className="flex w-56 flex-col border-r border-gray-200 bg-white">

@@ -96,7 +96,7 @@ export function AlertsPage() {
         emptyTitle="Sin alertas"
         emptyDescription="No hay alertas que coincidan con los filtros seleccionados."
       >
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

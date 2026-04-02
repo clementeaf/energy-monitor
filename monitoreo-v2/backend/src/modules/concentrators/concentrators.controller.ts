@@ -18,14 +18,17 @@ import { UpdateConcentratorDto } from './dto/update-concentrator.dto';
 import { AddConcentratorMeterDto } from './dto/add-concentrator-meter.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
-import { RequirePermission } from '../../common/guards/permissions.guard';
+import {
+  RequirePermission,
+  RequireAnyPermission,
+} from '../../common/guards/permissions.guard';
 
 @Controller('concentrators')
 export class ConcentratorsController {
   constructor(private readonly concentratorsService: ConcentratorsService) {}
 
   @Get()
-  @RequirePermission('admin_concentrators', 'read')
+  @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
@@ -34,7 +37,7 @@ export class ConcentratorsController {
   }
 
   @Get(':id')
-  @RequirePermission('admin_concentrators', 'read')
+  @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -45,7 +48,7 @@ export class ConcentratorsController {
   }
 
   @Post()
-  @RequirePermission('admin_concentrators', 'create')
+  @RequirePermission('admin_meters', 'create')
   async create(
     @Body() dto: CreateConcentratorDto,
     @CurrentUser() user: JwtPayload,
@@ -54,7 +57,7 @@ export class ConcentratorsController {
   }
 
   @Patch(':id')
-  @RequirePermission('admin_concentrators', 'update')
+  @RequirePermission('admin_meters', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateConcentratorDto,
@@ -67,7 +70,7 @@ export class ConcentratorsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('admin_concentrators', 'delete')
+  @RequirePermission('admin_meters', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -77,7 +80,7 @@ export class ConcentratorsController {
   }
 
   @Get(':id/meters')
-  @RequirePermission('admin_concentrators', 'read')
+  @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
   async findMeters(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -86,7 +89,7 @@ export class ConcentratorsController {
   }
 
   @Post(':id/meters')
-  @RequirePermission('admin_concentrators', 'update')
+  @RequirePermission('admin_meters', 'update')
   async addMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddConcentratorMeterDto,
@@ -99,7 +102,7 @@ export class ConcentratorsController {
 
   @Delete(':id/meters/:meterId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('admin_concentrators', 'update')
+  @RequirePermission('admin_meters', 'update')
   async removeMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('meterId', ParseUUIDPipe) meterId: string,

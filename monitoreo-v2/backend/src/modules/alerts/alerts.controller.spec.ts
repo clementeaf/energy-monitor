@@ -10,7 +10,7 @@ const user: JwtPayload = {
   tenantId: 't-1',
   roleId: 'r-1',
   roleSlug: 'super_admin',
-  permissions: ['admin_alerts:read', 'admin_alerts:update'],
+  permissions: ['alerts:read', 'alerts:update'],
   buildingIds: [],
 };
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.97.0-alpha.0] - 2026-04-02 — MONITOREO V2: COMPONENTES UI + RESPONSIVIDAD + BUGFIXES
+
+### Added
+- **Componentes UI reutilizables** — `components/ui/`:
+  - `DropdownSelect` — Selector custom con búsqueda, navegación por teclado, click outside
+  - `DataTable` — Tabla genérica tipada con sorting, paginación y modo compacto
+  - `Button` — 4 variantes (primary/secondary/danger/ghost), 3 tamaños, estado loading
+  - `Toggle` — Switch accesible (role=switch, aria-checked) con label opcional
+  - `Card` — 3 variantes (default/outlined/elevated), header con action slot
+- **Seed buildings** — 5 edificios PASA (MG, MM, OT, SC52, SC53) + acceso super admin + jerarquía de ejemplo para MG
+- **RBAC** — Acciones `admin_hierarchy:create` y `admin_hierarchy:delete` en permisos y seed site_admin
+
+### Fixed
+- **Sidebar hooks crash** — `useAlertsQuery` se llamaba después de un early return (`!sidebarOpen`), violando reglas de React hooks
+- **HierarchyPage loading infinito** — `useQueryState` solo monitoreaba la query de jerarquía; si buildings estaba vacío, la query quedaba deshabilitada en `isPending` permanente. Ahora combina el estado de ambas queries
+- **Permisos frontend** — Corregidos módulos en `has()`: `billing_invoices` → `billing`, `billing_tariffs` → `billing`, `admin_tenant_units` → `admin_tenants_units`
+
+### Changed
+- **Responsividad desktop** — 11 tablas: `overflow-hidden` → `overflow-x-auto` (scroll horizontal en pantallas <1280px)
+- **Grids adaptativos** — EscalationPage y TariffsPage (form bloques) con breakpoints `lg:`
+- **AppLayout** — Contenido limitado a `max-w-screen-2xl` para pantallas ultrawide
+
+---
+
 ## [0.96.0-alpha.0] - 2026-04-02 — MONITOREO V2: UI INTEGRACIONES
 
 ### Added

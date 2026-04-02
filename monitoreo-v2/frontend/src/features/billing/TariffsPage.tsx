@@ -22,7 +22,7 @@ export function TariffsPage() {
   const buildingsQuery = useBuildingsQuery();
   const qs = useQueryState(tariffsQuery, { isEmpty: (d) => !d || d.length === 0 });
   const { has } = usePermissions();
-  const canWrite = has('billing_tariffs', 'create');
+  const canWrite = has('billing', 'create');
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Tariff | null>(null);
@@ -263,7 +263,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: { tariffId: string; canWrite:
       </div>
 
       {addOpen && (
-        <form onSubmit={handleAddBlock} className="grid grid-cols-7 gap-2 rounded border border-gray-200 bg-white p-3">
+        <form onSubmit={handleAddBlock} className="grid grid-cols-2 gap-2 rounded border border-gray-200 bg-white p-3 lg:grid-cols-7">
           <input name="blockName" placeholder="Nombre (ej: punta)" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
           <input name="hourStart" type="number" min={0} max={23} placeholder="H inicio" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
           <input name="hourEnd" type="number" min={0} max={23} placeholder="H fin" required className="rounded border border-gray-300 px-2 py-1 text-xs" />

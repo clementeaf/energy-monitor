@@ -46,8 +46,8 @@ export function InvoicesPage() {
   const buildingsQuery = useBuildingsQuery();
   const qs = useQueryState(invoicesQuery, { isEmpty: (d) => !d || d.length === 0 });
   const { has } = usePermissions();
-  const canWrite = has('billing_invoices', 'create');
-  const canUpdate = has('billing_invoices', 'update');
+  const canWrite = has('billing', 'create');
+  const canUpdate = has('billing', 'update');
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Invoice | null>(null);

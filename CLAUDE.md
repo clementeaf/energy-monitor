@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-02)
+- **Componentes UI (monitoreo-v2):** `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card` en `components/ui/`. Agnósticos, tipados, tema vía `var(--color-primary)`. [CHANGELOG — 0.97.0-alpha.0](CHANGELOG.md)
+- **Responsividad desktop:** 11 tablas con `overflow-x-auto`, grids con breakpoints `lg:`, `max-w-screen-2xl` en layout
+- **Bugfixes:** Sidebar hooks crash, HierarchyPage loading infinito, permisos frontend corregidos, seed buildings + jerarquía + RBAC hierarchy create/delete
 - **UI integraciones (monitoreo-v2):** `IntegrationsPage` en `/integrations`; CRUD, config JSON, sync stub, logs paginados; `integrationsEndpoints` + `useIntegrationsQuery`; `Modal.dialogClassName`. [CHANGELOG — 0.96.0-alpha.0](CHANGELOG.md)
 - **Email SES (monitoreo-v2):** `SesEmailService` + `@aws-sdk/client-ses`; env opcionales `SES_FROM_EMAIL`, `ALERT_EMAIL_RECIPIENTS`, `SES_REGION`; alertas + invitaciones; sin env solo logs. Runbook SES, `.env.example`. [CHANGELOG — 0.95.0-alpha.0](CHANGELOG.md)
 - **Deuda técnica (hardening / docs):** `JsonLoggerService` + `LOG_FORMAT` + `trust proxy` en prod; `notifyUserCreated` (traza `[USER_INVITE]`); Vitest + `*.test.ts`; `CLAUDE.md` Known Issues alineado con código (Helmet/Throttler ya existían).
@@ -119,7 +122,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
 Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications (SES opcional) + reports + integrations (~370 tests, 41 suites).
-Frontend: Fases 1-8 — incl. reportes, integraciones `/integrations`, dashboards ejecutivo/comparativo, vistas monitoring (tipo, generación, modbus-map).
+Frontend: Fases 1-8 — incl. reportes, integraciones, dashboards ejecutivo/comparativo, vistas monitoring. Componentes UI reutilizables (DropdownSelect, DataTable, Button, Toggle, Card). Responsividad desktop verificada.
 ```
 
 ## Prioridad Actual de Acceso
@@ -164,7 +167,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
-- **Shared UI:** `PillButton`, `SectionBanner`, `TogglePills`, `PillDropdown`, `PillDropdownMulti` en `components/ui/`
+- **Shared UI:** `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card`, `DataWidget`, `Modal`, `ConfirmDialog`, `QueryStateView` en `components/ui/`
 - **Shared hooks:** `useClickOutside`, `useOperatorFilter` en `hooks/`
 - **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
@@ -225,4 +228,4 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.96.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.97.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

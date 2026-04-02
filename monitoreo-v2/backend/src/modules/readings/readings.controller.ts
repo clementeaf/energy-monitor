@@ -18,8 +18,6 @@ export class ReadingsController {
 
   @Get()
   @RequireAnyPermission(
-    'monitoring_realtime:read',
-    'monitoring_drilldown:read',
     'dashboard_executive:read',
     'dashboard_technical:read',
   )
@@ -35,7 +33,6 @@ export class ReadingsController {
 
   @Get('latest')
   @RequireAnyPermission(
-    'monitoring_realtime:read',
     'dashboard_executive:read',
     'dashboard_technical:read',
   )
@@ -48,7 +45,6 @@ export class ReadingsController {
 
   @Get('aggregated')
   @RequireAnyPermission(
-    'monitoring_drilldown:read',
     'dashboard_executive:read',
     'dashboard_technical:read',
   )

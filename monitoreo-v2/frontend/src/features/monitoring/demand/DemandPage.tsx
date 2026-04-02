@@ -160,7 +160,7 @@ export function DemandPage() {
       </DataWidget>
 
       {topPeaks.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
             Top 10 Peaks
           </h2>

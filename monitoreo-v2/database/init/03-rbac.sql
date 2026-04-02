@@ -115,7 +115,9 @@ INSERT INTO permissions (module, action, description) VALUES
     ('admin_tenant_config', 'update', 'Modificar configuracion del tenant'),
     -- Administracion — Jerarquia
     ('admin_hierarchy', 'read', 'Ver arbol electrico'),
+    ('admin_hierarchy', 'create', 'Crear nodos de jerarquia'),
     ('admin_hierarchy', 'update', 'Modificar arbol electrico'),
+    ('admin_hierarchy', 'delete', 'Eliminar nodos de jerarquia'),
     -- Diagnostico infraestructura
     ('diagnostics', 'read', 'Ver mapa bus Modbus, historial fallos, concentradores'),
     -- Auditoria

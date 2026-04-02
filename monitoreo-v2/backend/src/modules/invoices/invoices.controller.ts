@@ -28,7 +28,7 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  @RequirePermission('billing_invoices', 'read')
+  @RequirePermission('billing', 'read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query() query: QueryInvoicesDto,
@@ -42,7 +42,7 @@ export class InvoicesController {
   }
 
   @Get(':id')
-  @RequirePermission('billing_invoices', 'read')
+  @RequirePermission('billing', 'read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -53,7 +53,7 @@ export class InvoicesController {
   }
 
   @Get(':id/line-items')
-  @RequirePermission('billing_invoices', 'read')
+  @RequirePermission('billing', 'read')
   async findLineItems(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -62,7 +62,7 @@ export class InvoicesController {
   }
 
   @Post()
-  @RequirePermission('billing_invoices', 'create')
+  @RequirePermission('billing', 'create')
   async create(
     @Body() dto: CreateInvoiceDto,
     @CurrentUser() user: JwtPayload,
@@ -71,7 +71,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
-  @RequirePermission('billing_invoices', 'update')
+  @RequirePermission('billing', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateInvoiceDto,
@@ -84,7 +84,7 @@ export class InvoicesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermission('billing_invoices', 'delete')
+  @RequirePermission('billing', 'delete')
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -94,7 +94,7 @@ export class InvoicesController {
   }
 
   @Patch(':id/approve')
-  @RequirePermission('billing_invoices', 'update')
+  @RequirePermission('billing', 'update')
   async approve(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -105,7 +105,7 @@ export class InvoicesController {
   }
 
   @Patch(':id/void')
-  @RequirePermission('billing_invoices', 'update')
+  @RequirePermission('billing', 'update')
   async void(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -116,7 +116,7 @@ export class InvoicesController {
   }
 
   @Post('generate')
-  @RequirePermission('billing_invoices', 'create')
+  @RequirePermission('billing', 'create')
   async generate(
     @Body() dto: GenerateInvoiceDto,
     @CurrentUser() user: JwtPayload,
@@ -125,7 +125,7 @@ export class InvoicesController {
   }
 
   @Get(':id/pdf')
-  @RequirePermission('billing_invoices', 'read')
+  @RequirePermission('billing', 'read')
   async pdf(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,

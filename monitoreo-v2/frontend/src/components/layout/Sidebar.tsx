@@ -84,6 +84,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Reportes',
     requiredPerms: ['reports:read', 'reports:view_own'],
   },
+  {
+    to: APP_ROUTES.integrations,
+    label: 'Integraciones',
+    requiredPerms: ['integrations:read'],
+  },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [

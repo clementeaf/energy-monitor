@@ -246,6 +246,8 @@ Todos los endpoints v2 requieren JWT cookie (httpOnly). Tenant scoping + buildin
 | DELETE | `/reports/scheduled/:id` | — | 204 No Content |
 
 ### Integrations (`/integrations`) — permisos `integrations:*`
+Vista SPA: `/integrations` (`IntegrationsPage`).
+
 | Method | Path | Body / Query | Response |
 |---|---|---|---|
 | GET | `/integrations` | `integrationType?`, `status?` | `Integration[]` |

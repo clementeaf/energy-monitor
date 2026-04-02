@@ -26,13 +26,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-02)
+- **UI integraciones (monitoreo-v2):** `IntegrationsPage` en `/integrations`; CRUD, config JSON, sync stub, logs paginados; `integrationsEndpoints` + `useIntegrationsQuery`; `Modal.dialogClassName`. [CHANGELOG — 0.96.0-alpha.0](CHANGELOG.md)
 - **Email SES (monitoreo-v2):** `SesEmailService` + `@aws-sdk/client-ses`; env opcionales `SES_FROM_EMAIL`, `ALERT_EMAIL_RECIPIENTS`, `SES_REGION`; alertas + invitaciones; sin env solo logs. Runbook SES, `.env.example`. [CHANGELOG — 0.95.0-alpha.0](CHANGELOG.md)
 - **Deuda técnica (hardening / docs):** `JsonLoggerService` + `LOG_FORMAT` + `trust proxy` en prod; `notifyUserCreated` (traza `[USER_INVITE]`); Vitest + `*.test.ts`; `CLAUDE.md` Known Issues alineado con código (Helmet/Throttler ya existían).
-- **Fase 7 — Reportes e integraciones** — backend + frontend reportes + API integraciones (sin UI integraciones):
-  - Backend: `ReportsModule` (CRUD, generate, export PDF/Excel/CSV, scheduled + cron 5 min), `IntegrationsModule` (CRUD, sync-logs, sync stub)
-  - Backend: 365 tests, 39 suites; patch SQL `quality` en `report_type`
-  - Frontend: `ReportsPage` `/reports` (generar, descargar, programar — emails persistidos, envío no implementado)
-  - Dependencias: pdfkit, exceljs, cron-parser
+- **Fase 7 — Reportes e integraciones** — `ReportsModule` + `IntegrationsModule`; frontend `ReportsPage` `/reports` e `IntegrationsPage` `/integrations`. [CHANGELOG — 0.92 / 0.96](CHANGELOG.md)
 - **Fase 8.1–8.2 — Dashboards ejecutivo / comparativo** — `ExecutiveDashboardPage`, `CompareDashboardPage`, `dashboardAggregations.ts`. [CHANGELOG — 0.93.0-alpha.0](CHANGELOG.md)
 - **Fase 8.3–8.5 — Monitoreo (tipo / generación / Modbus)** — `MetersByTypePage`, `GenerationSitePage`, `ModbusMapPage`; rutas bajo `/monitoring/meters/type`, `/monitoring/generation`, `/monitoring/modbus-map` (sin cambios de API). [CHANGELOG — 0.94.0-alpha.0](CHANGELOG.md)
 - **Fase 6 — Alertas avanzadas** — engine + evaluadores + escalamiento + notificaciones + frontend:
@@ -110,7 +107,6 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: UI de integraciones si se requiere (backend `IntegrationsModule` ya expuesto)
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Salida de sandbox SES (cuando haya que enviar a correos no verificados; el código ya admite SES)
 - Costo por Centro (pendiente definición con cliente)
@@ -123,8 +119,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
 Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications (SES opcional) + reports + integrations (~370 tests, 41 suites).
-Frontend: Fases 1-8 — incl. reportes, dashboards ejecutivo/comparativo, vistas `/monitoring/meters/type`, `/monitoring/generation`, `/monitoring/modbus-map`.
-Pendiente opcional: UI integraciones.
+Frontend: Fases 1-8 — incl. reportes, integraciones `/integrations`, dashboards ejecutivo/comparativo, vistas monitoring (tipo, generación, modbus-map).
 ```
 
 ## Prioridad Actual de Acceso
@@ -230,4 +225,4 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.95.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.96.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

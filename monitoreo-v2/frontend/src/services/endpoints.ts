@@ -43,6 +43,15 @@ import type {
   CreateScheduledReportPayload,
   UpdateScheduledReportPayload,
 } from '../types/report';
+import type {
+  Integration,
+  IntegrationQueryParams,
+  IntegrationSyncLog,
+  IntegrationSyncLogsResult,
+  IntegrationSyncLogsParams,
+  CreateIntegrationPayload,
+  UpdateIntegrationPayload,
+} from '../types/integration';
 
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
@@ -252,6 +261,29 @@ export const reportsEndpoints = {
 
   scheduledRemove: (id: string) =>
     api.delete(`${API_ROUTES.reports}/scheduled/${id}`),
+};
+
+export const integrationsEndpoints = {
+  list: (params?: IntegrationQueryParams) =>
+    api.get<Integration[]>(API_ROUTES.integrations, { params }),
+
+  get: (id: string) =>
+    api.get<Integration>(`${API_ROUTES.integrations}/${id}`),
+
+  create: (payload: CreateIntegrationPayload) =>
+    api.post<Integration>(API_ROUTES.integrations, payload),
+
+  update: (id: string, payload: UpdateIntegrationPayload) =>
+    api.patch<Integration>(`${API_ROUTES.integrations}/${id}`, payload),
+
+  remove: (id: string) =>
+    api.delete(`${API_ROUTES.integrations}/${id}`),
+
+  sync: (id: string) =>
+    api.post<IntegrationSyncLog>(`${API_ROUTES.integrations}/${id}/sync`, {}),
+
+  syncLogs: (id: string, params?: IntegrationSyncLogsParams) =>
+    api.get<IntegrationSyncLogsResult>(`${API_ROUTES.integrations}/${id}/sync-logs`, { params }),
 };
 
 export const readingsEndpoints = {

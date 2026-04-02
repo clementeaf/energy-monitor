@@ -100,6 +100,11 @@ export const LazyReportsPage = lazy(async () => {
   return { default: m.ReportsPage };
 });
 
+export const LazyIntegrationsPage = lazy(async () => {
+  const m = await import('../features/integrations/IntegrationsPage');
+  return { default: m.IntegrationsPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

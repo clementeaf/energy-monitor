@@ -27,6 +27,7 @@ export const APP_ROUTES = {
     rates: '/billing/rates',
   },
   reports: '/reports',
+  integrations: '/integrations',
   components: '/components',
   admin: {
     users: '/admin/users',

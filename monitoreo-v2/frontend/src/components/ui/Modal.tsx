@@ -5,9 +5,11 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** Optional class for the dialog element (e.g. wider modals). */
+  dialogClassName?: string;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, dialogClassName }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -21,7 +23,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="m-auto max-w-lg rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40"
+      className={
+        dialogClassName ??
+        'm-auto max-w-lg rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40'
+      }
     >
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

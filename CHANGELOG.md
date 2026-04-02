@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.96.0-alpha.0] - 2026-04-02 — MONITOREO V2: UI INTEGRACIONES
+
+### Added
+- **`/integrations`** — `IntegrationsPage`: tabla, filtros tipo y estado, alta/edición con configuración JSON, eliminar, sincronizar (stub backend), historial de sync paginado
+- **API layer** — `types/integration.ts`, `integrationsEndpoints`, `useIntegrationsQuery` (+ sync logs y mutaciones)
+- **`Modal`** — prop opcional `dialogClassName` (formulario e historial más anchos)
+
+### Changed
+- **Sidebar** — entrada Integraciones (`integrations:read`)
+
+---
+
 ## [0.95.0-alpha.0] - 2026-04-02 — MONITOREO V2: EMAIL VÍA SES (OPCIONAL)
 
 ### Added

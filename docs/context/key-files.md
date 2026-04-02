@@ -89,15 +89,15 @@
 ## monitoreo-v2 Frontend
 | Archivo | Propósito |
 |---|---|
-| `monitoreo-v2/frontend/src/services/routes.ts` | Rutas API centralizadas (+ `reports`; `integrations` reservado en constantes) |
-| `monitoreo-v2/frontend/src/services/endpoints.ts` | Llamadas API tipadas (+ `reportsEndpoints`) |
+| `monitoreo-v2/frontend/src/services/routes.ts` | Rutas API centralizadas (`reports`, `integrations`, …) |
+| `monitoreo-v2/frontend/src/services/endpoints.ts` | Llamadas API tipadas (`reportsEndpoints`, `integrationsEndpoints`, …) |
 | `monitoreo-v2/frontend/src/services/api.ts` | Axios con cookies, refresh token rotation, 401 retry queue |
 | `monitoreo-v2/frontend/src/types/` | Tipos espejo del backend (+ `report.ts`, etc.) |
-| `monitoreo-v2/frontend/src/hooks/queries/` | Query hooks TanStack (+ `useReportsQuery` y mutaciones programados/generar) |
+| `monitoreo-v2/frontend/src/hooks/queries/` | Query hooks TanStack (`useReportsQuery`, `useIntegrationsQuery`, …) |
 | `monitoreo-v2/frontend/src/hooks/usePermissions.ts` | `has(module, action)`, `hasAny()`, `isAdmin` desde JWT permissions |
 | `monitoreo-v2/frontend/src/hooks/useQueryState.ts` | Reduce `useQuery` a fase UI: loading/error/empty/ready |
 | `monitoreo-v2/frontend/src/components/charts/` | `Chart`, `StockChart`, `MonthlyChart` — agnósticos, colores via CSS vars |
-| `monitoreo-v2/frontend/src/components/ui/Modal.tsx` | Dialog nativo HTML con backdrop |
+| `monitoreo-v2/frontend/src/components/ui/Modal.tsx` | Dialog nativo HTML; `dialogClassName` opcional |
 | `monitoreo-v2/frontend/src/components/ui/ConfirmDialog.tsx` | Confirmación eliminar (reutiliza Modal) |
 | `monitoreo-v2/frontend/src/components/ui/QueryStateView.tsx` | Estados query; acepta `onRetry` o `refetch`, `emptyDescription` o `emptyMessage` |
 | `monitoreo-v2/frontend/src/components/ui/DataWidget.tsx` | Wrapper loading/error/empty/ready (delega en `QueryStateView`) |
@@ -122,7 +122,8 @@
 | `monitoreo-v2/frontend/src/features/monitoring/lib/meterClassification.ts` | `isGenerationMeterType`, `formatMeterTypeLabel` |
 | `monitoreo-v2/frontend/src/features/monitoring/fault-history/FaultHistoryPage.tsx` | Timeline eventos de fallo por medidor |
 | `monitoreo-v2/frontend/src/features/reports/ReportsPage.tsx` | Reportes generados + programados (`/reports`) |
-| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, dashboards, buildings, meters, alerts, monitoring/* (incl. meters/type, generation, modbus-map), billing, reports, admin, components |
+| `monitoreo-v2/frontend/src/features/integrations/IntegrationsPage.tsx` | Integraciones CRUD + sync + historial (`/integrations`) |
+| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, dashboards, buildings, meters, alerts, monitoring/*, billing, reports, integrations, admin, components |
 | `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas; entradas monitoreo ampliadas (`end` en `/`) |
 
 ## Standalone Infra Scripts

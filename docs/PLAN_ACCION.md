@@ -231,6 +231,9 @@ Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 - [ ] Conectores: API externa para terceros (read-only) — stub en `POST :id/sync`
 - [x] Log de sincronizaciones (`GET :id/sync-logs` paginado)
 
+### 7.4 Integraciones frontend `/integrations`
+- [x] `IntegrationsPage` — tabla, filtros, CRUD (config JSON), sync, historial paginado; sidebar + rutas
+
 ---
 
 ## Fase 8 — Vistas adicionales XLSX

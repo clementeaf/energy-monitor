@@ -277,6 +277,7 @@ MeterReading {
 | `/billing` | Facturas | si | Tabla facturas con filtros edificio/estado, detalle line items, acciones aprobar/anular/eliminar, generación |
 | `/billing/rates` | Tarifas | si | Tabla tarifas CRUD con bloques horarios expandibles, filtro edificio |
 | `/reports` | Reportes | si | Lista generados + filtros; generar (modal); descarga; programados (cron, destinatarios, activo) |
+| `/integrations` | Integraciones | si | Tabla + filtros; CRUD con config JSON; sync (stub); historial paginado (`integrations:read` mín.) |
 
 ## API layer (v2)
 
@@ -294,6 +295,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Tariffs | `/tariffs` | `useTariffsQuery(buildingId?)`, `useTariffBlocksQuery(tariffId)` |
 | Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
 | Reports | `/reports`, `/reports/scheduled`, `/reports/generate`, `/reports/:id/export` | `useReportsQuery`, `useScheduledReportsQuery`, `useGenerateReport`, mutaciones scheduled/delete |
+| Integrations | `/integrations`, `/integrations/:id/sync`, `/integrations/:id/sync-logs` | `useIntegrationsQuery`, `useIntegrationSyncLogsQuery`, mutaciones CRUD + `useTriggerIntegrationSync` |
 
 ## CSP (v2)
 
@@ -317,6 +319,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `types/tariff.ts` | `Tariff`, `TariffBlock`, `CreateTariffPayload`, `UpdateTariffPayload`, `CreateTariffBlockPayload` |
 | `types/invoice.ts` | `Invoice`, `InvoiceLineItem`, `InvoiceStatus`, `InvoiceQueryParams`, `GenerateInvoicePayload` |
 | `types/report.ts` | `Report`, `ScheduledReport`, `PlatformReportType`, `GenerateReportPayload`, payloads programados |
+| `types/integration.ts` | `Integration`, `IntegrationSyncLog`, payloads y params de listado/logs |
 
 ## Componentes compartidos (v2)
 
@@ -326,10 +329,10 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `Chart` | Highcharts general-purpose con hover sync |
 | `MonthlyChart` | Bar/column charts mensuales |
 | `DataWidget` | Wrapper loading/error/empty/ready (usa `QueryStateView`: `onRetry` o alias `refetch`; vacío: `emptyDescription` o alias `emptyMessage`) |
-| `Modal` | Dialog nativo HTML |
+| `Modal` | Dialog nativo HTML; prop opcional `dialogClassName` para ancho |
 | `ConfirmDialog` | Confirmación eliminar |
 
 ## Navegación (v2)
 
-- **Sidebar directo**: Dashboard, Ejecutivo, Comparativo, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Medidores por tipo, Generación, Mapa Modbus, Facturas, Tarifas, Reportes (según permisos)
+- **Sidebar directo**: Dashboard, Ejecutivo, Comparativo, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Medidores por tipo, Generación, Mapa Modbus, Facturas, Tarifas, Reportes, Integraciones (según permisos)
 - **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links con breadcrumbs

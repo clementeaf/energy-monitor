@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal } from '../../../components/ui/Modal';
+import { Drawer } from '../../../components/ui/Drawer';
+import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
 
@@ -49,9 +50,30 @@ export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: Us
     }
   };
 
+  const formId = 'user-form';
+  const canSubmit = isEdit || (!!email && !!authProviderId);
+
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button
+            type="submit"
+            form={formId}
+            loading={isPending}
+            disabled={!canSubmit}
+          >
+            {isEdit ? 'Guardar' : 'Crear'}
+          </Button>
+        </div>
+      }
+    >
+      <form id={formId} onSubmit={handleSubmit} className="space-y-4">
         {!isEdit && (
           <Field label="Email" required>
             <input
@@ -126,25 +148,8 @@ export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: Us
             </div>
           </Field>
         )}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isPending || (!isEdit && (!email || !authProviderId))}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
-          </button>
-        </div>
       </form>
-    </Modal>
+    </Drawer>
   );
 }
 

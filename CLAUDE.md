@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-02)
+- **Drawer + Header cleanup (monitoreo-v2):** `Drawer` en `components/ui/` (dialog nativo, side/size/footer). `UserForm` migrado de Modal a Drawer. Header sin selector edificios. [CHANGELOG — 0.98.0-alpha.0](CHANGELOG.md)
 - **Componentes UI (monitoreo-v2):** `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card` en `components/ui/`. Agnósticos, tipados, tema vía `var(--color-primary)`. [CHANGELOG — 0.97.0-alpha.0](CHANGELOG.md)
 - **Responsividad desktop:** 11 tablas con `overflow-x-auto`, grids con breakpoints `lg:`, `max-w-screen-2xl` en layout
 - **Bugfixes:** Sidebar hooks crash, HierarchyPage loading infinito, permisos frontend corregidos, seed buildings + jerarquía + RBAC hierarchy create/delete
@@ -167,7 +168,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **Routing:** `appRoutes.ts` → `router.tsx` (lazy + ErrorBoundary + Suspense + ProtectedRoute)
 - **Feature folders:** `features/<domain>/<Domain>Page.tsx` + `components/`
 - **Shared utils:** `lib/formatters.ts`, `lib/constants.ts`, `lib/aggregations.ts`, `lib/chartConfig.ts`
-- **Shared UI:** `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card`, `DataWidget`, `Modal`, `ConfirmDialog`, `QueryStateView` en `components/ui/`
+- **Shared UI:** `Drawer`, `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card`, `DataWidget`, `Modal`, `ConfirmDialog`, `QueryStateView` en `components/ui/`
 - **Shared hooks:** `useClickOutside`, `useOperatorFilter` en `hooks/`
 - **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
@@ -228,4 +229,4 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.97.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.98.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.98.0-alpha.0] - 2026-04-02 — MONITOREO V2: DRAWER + HEADER CLEANUP
+
+### Added
+- **`Drawer`** — Componente reutilizable en `components/ui/Drawer.tsx`. Basado en `<dialog>` nativo (accesibilidad, Escape, backdrop click). Props: `side` (left/right), `size` (sm/md/lg/xl), `footer` slot, `dialogClassName` override. Body scrollable con header y footer fijos.
+
+### Changed
+- **`UserForm`** — Migrado de `Modal` a `Drawer` (slide-in derecho). Botones Cancelar/Crear en footer fijo usando `Button`. Form vinculado vía `id`/`form` attribute.
+- **`Header`** — Eliminado selector "Todos los edificios" del navbar superior. Queda hamburger + nombre/rol usuario.
+
+---
+
 ## [0.97.0-alpha.0] - 2026-04-02 — MONITOREO V2: COMPONENTES UI + RESPONSIVIDAD + BUGFIXES
 
 ### Added

@@ -4,6 +4,9 @@ export const APP_ROUTES = {
   buildings: '/buildings',
   meters: '/meters',
   alerts: '/alerts',
+  alertRules: '/alerts/rules',
+  escalation: '/alerts/escalation',
+  notifications: '/alerts/notifications',
   monitoring: {
     realtime: '/monitoring/realtime',
     drilldown: '/monitoring/drilldown/:siteId',

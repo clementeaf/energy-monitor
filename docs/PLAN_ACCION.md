@@ -162,24 +162,24 @@ Rutas objetivo del XLSX. Dependen de Fase 1 (API layer) y parcialmente Fase 2 (b
 ## Fase 5 — Admin
 
 ### 5.1 Usuarios `/admin/users`
-- [ ] Backend: `UsersModule` controller + service (CRUD)
-- [ ] Backend: endpoint asignacion de roles y buildings
-- [ ] Frontend: tabla usuarios, crear/editar/desactivar
-- [ ] Frontend: asignar rol + buildings por usuario
+- [x] Backend: `UsersModule` controller + service (CRUD) — 12 tests
+- [x] Backend: endpoint asignacion de roles (`PATCH /users/:id`) y buildings (`PATCH /users/:id/buildings`)
+- [x] Frontend: tabla usuarios, crear/editar/eliminar (UsersPage)
+- [x] Frontend: form con rol + buildings por usuario (UserForm)
 
 ### 5.2 Locatarios `/admin/tenants`
-- [ ] API layer frontend para TenantUnitsModule
-- [ ] Tabla de locatarios con medidores asignados
-- [ ] CRUD + asignacion de medidores
+- [x] API layer frontend: `tenantUnitsEndpoints` + `useTenantUnitsQuery` (CRUD + meters)
+- [x] Tabla de locatarios con filtro por edificio (TenantsPage)
+- [x] CRUD + formulario (TenantUnitForm)
 
 ### 5.3 Jerarquia electrica `/admin/hierarchy`
-- [ ] API layer frontend para HierarchyModule
-- [ ] Vista arbol: edificio → concentradores → medidores
-- [ ] Drag & drop para reorganizar (o formulario)
+- [x] API layer frontend: `hierarchyEndpoints` CRUD + `useHierarchyQuery` mutations
+- [x] Vista arbol recursiva: edificio → nodos con tipo coloreado (HierarchyPage)
+- [x] Formulario crear/editar nodos + agregar hijos (NodeFormModal)
 
 ### 5.4 Auditoria `/admin/audit`
-- [ ] Backend: endpoint `GET /audit-logs` con filtros (user, action, dateRange)
-- [ ] Frontend: tabla de logs con filtros y paginacion
+- [x] Backend: `AuditLogsModule` — `GET /audit-logs` con filtros (userId, action, resourceType, dateRange, paginacion) — 7 tests
+- [x] Frontend: tabla de logs con filtros, paginacion, badges por metodo HTTP (AuditPage)
 
 ---
 
@@ -188,23 +188,27 @@ Rutas objetivo del XLSX. Dependen de Fase 1 (API layer) y parcialmente Fase 2 (b
 Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 
 ### 6.1 Engine de alertas backend
-- [ ] Definir las 22 alert rules como seeds (tipo, variable, umbral, severidad, escalamiento)
-- [ ] Servicio de evaluacion: cron job que evalua readings vs rules
-- [ ] Logica de escalamiento (tiempo sin resolver → sube severidad)
-- [ ] Canales de notificacion: email (SES), webhook
+- [x] Definir las 22 alert rules como seeds (tipo, variable, umbral, severidad, escalamiento)
+- [x] Servicio de evaluacion: cron job que evalua readings vs rules (cada 5 min)
+- [x] Logica de escalamiento (tiempo sin resolver → sube severidad, cada 10 min)
+- [x] Canales de notificacion: email (log, SES pendiente), webhook
+- [x] NotificationLog entity + controller GET /notification-logs
+- [x] POST /alert-engine/evaluate (trigger manual)
+- [x] 27 tests nuevos (358 total, 37 suites)
 
-### 6.2 Familias de alertas
-- [ ] Comunicacion: `METER_OFFLINE`, `CONCENTRATOR_OFFLINE`, `COMM_DEGRADED`
-- [ ] Electrica: `VOLTAGE_OUT_OF_RANGE`, `LOW_POWER_FACTOR`, `HIGH_THD`, `PHASE_IMBALANCE`
-- [ ] Consumo: `ABNORMAL_CONSUMPTION`, `PEAK_DEMAND_EXCEEDED`, `ENERGY_DEVIATION`
-- [ ] Operativa: `METER_TAMPER`, `CONFIG_CHANGE`, `FIRMWARE_MISMATCH`
-- [ ] Generacion: `GENERATION_LOW`, `INVERTER_FAULT`, `GRID_EXPORT_LIMIT`
-- [ ] Bus/Concentrador: `BUS_ERROR`, `MODBUS_TIMEOUT`, `CRC_ERROR`
+### 6.2 Familias de alertas (6 evaluadores, strategy pattern)
+- [x] Comunicacion: `METER_OFFLINE`, `CONCENTRATOR_OFFLINE`, `COMM_DEGRADED`
+- [x] Electrica: `VOLTAGE_OUT_OF_RANGE`, `LOW_POWER_FACTOR`, `HIGH_THD`, `PHASE_IMBALANCE`, `FREQUENCY_OUT_OF_RANGE`, `OVERCURRENT`, `BREAKER_TRIP`, `NEUTRAL_FAULT`
+- [x] Consumo: `ABNORMAL_CONSUMPTION`, `PEAK_DEMAND_EXCEEDED`, `ENERGY_DEVIATION`
+- [x] Operativa: `METER_TAMPER`, `CONFIG_CHANGE`, `FIRMWARE_MISMATCH`
+- [x] Generacion: `GENERATION_LOW`, `INVERTER_FAULT`, `GRID_EXPORT_LIMIT`
+- [x] Bus/Concentrador: `BUS_ERROR`, `MODBUS_TIMEOUT`, `CRC_ERROR`
 
 ### 6.3 Frontend alertas avanzadas
-- [ ] Panel de configuracion de reglas por tipo
-- [ ] Vista de escalamiento y SLA
-- [ ] Historial de notificaciones enviadas
+- [x] AlertRulesPage — tabla reglas por familia, toggle activo, edicion umbrales/severidad/escalamiento/config
+- [x] EscalationPage — alertas abiertas con tiempo, cards por severidad, SLA visual
+- [x] NotificationsPage — historial notificaciones con filtros canal/estado, paginacion
+- [x] 3 rutas: /alerts/rules, /alerts/escalation, /alerts/notifications
 
 ---
 

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
@@ -22,6 +23,7 @@ import { ConcentratorsModule } from './modules/concentrators/concentrators.modul
 import { TenantUnitsModule } from './modules/tenant-units/tenant-units.module';
 import { TariffsModule } from './modules/tariffs/tariffs.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -30,6 +32,9 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
       isGlobal: true,
       envFilePath: ['.env'],
     }),
+
+    // Scheduler (cron jobs for alert engine + escalation)
+    ScheduleModule.forRoot(),
 
     // Database
     TypeOrmModule.forRootAsync({
@@ -73,6 +78,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
     TenantUnitsModule,
     TariffsModule,
     InvoicesModule,
+    AuditLogsModule,
   ],
   providers: [
     // Global rate limiter guard

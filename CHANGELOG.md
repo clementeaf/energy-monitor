@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.91.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 6: ALERTAS AVANZADAS
+
+### Added
+- **Alert Engine** — Servicio cron (cada 5 min) que evalúa reglas activas contra lecturas recientes, crea alertas con deduplicación y auto-resuelve cuando la condición ya no aplica
+- **6 evaluadores** (strategy pattern) para 22+ tipos de alerta:
+  - Comunicación — `METER_OFFLINE`, `CONCENTRATOR_OFFLINE`, `COMM_DEGRADED`
+  - Eléctrica — `VOLTAGE_OUT_OF_RANGE`, `LOW_POWER_FACTOR`, `HIGH_THD`, `PHASE_IMBALANCE`, `FREQUENCY_OUT_OF_RANGE`, `OVERCURRENT`, `BREAKER_TRIP`, `NEUTRAL_FAULT`
+  - Consumo — `ABNORMAL_CONSUMPTION`, `PEAK_DEMAND_EXCEEDED`, `ENERGY_DEVIATION`
+  - Operativa — `METER_TAMPER`, `CONFIG_CHANGE`, `FIRMWARE_MISMATCH`
+  - Generación — `GENERATION_LOW`, `INVERTER_FAULT`, `GRID_EXPORT_LIMIT`
+  - Bus — `BUS_ERROR`, `MODBUS_TIMEOUT`, `CRC_ERROR`
+- **Escalation Service** — Cron cada 10 min. Escala severidad (low→medium→high→critical) según umbrales L1/L2/L3 configurados por regla
+- **Notification Service** — Email (log, SES pendiente) + webhook con payload JSON. Notifica creación y escalamiento
+- **`notification_logs`** — Nueva entidad para historial de notificaciones (canal, estado, destinatario, error)
+- **`GET /notification-logs`** — Historial con filtros (alertId, channel, status) y paginación
+- **`POST /alert-engine/evaluate`** — Trigger manual de evaluación por tenant
+- **Seed SQL** — 22 reglas default con umbrales, severidad y escalamiento pre-configurados
+- **AlertRulesPage** (`/alerts/rules`) — Tabla de reglas por familia con toggle activo/inactivo, filtro por familia y edificio, edición de severidad/escalamiento/config en modal, botón "Evaluar Ahora"
+- **EscalationPage** (`/alerts/escalation`) — Alertas abiertas ordenadas por antigüedad, cards resumen por severidad, tiempo abierta con color coding
+- **NotificationsPage** (`/alerts/notifications`) — Historial de notificaciones con filtros canal/estado, badges de color, paginación
+
+### Changed
+- **`@nestjs/schedule`** — Instalado y registrado `ScheduleModule.forRoot()` en app.module
+- **AlertsModule** — Expandido con 6 evaluadores, engine, escalation, notification service, notification-logs controller
+- **Router** — 3 nuevas rutas: `/alerts/rules`, `/alerts/escalation`, `/alerts/notifications`
+- **API layer** — Nuevos endpoints `notificationLogsEndpoints` y `alertEngineEndpoints`, tipos `notification-log.ts` y `alert-engine.ts`
+- **Backend tests** — 358 passing (37 suites), +27 tests nuevos
+
+---
+
 ## [0.90.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 4: FACTURACIÓN
 
 ### Added

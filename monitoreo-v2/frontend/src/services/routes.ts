@@ -15,4 +15,9 @@ export const API_ROUTES = {
   faultEvents: '/fault-events',
   tariffs: '/tariffs',
   invoices: '/invoices',
+  users: '/users',
+  tenantUnits: '/tenant-units',
+  auditLogs: '/audit-logs',
+  notificationLogs: '/notification-logs',
+  alertEngine: '/alert-engine',
 } as const;

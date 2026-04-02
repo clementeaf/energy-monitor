@@ -74,3 +74,38 @@ export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };
 });
+
+export const LazyUsersPage = lazy(async () => {
+  const m = await import('../features/admin/users/UsersPage');
+  return { default: m.UsersPage };
+});
+
+export const LazyTenantsPage = lazy(async () => {
+  const m = await import('../features/admin/tenants/TenantsPage');
+  return { default: m.TenantsPage };
+});
+
+export const LazyHierarchyPage = lazy(async () => {
+  const m = await import('../features/admin/hierarchy/HierarchyPage');
+  return { default: m.HierarchyPage };
+});
+
+export const LazyAuditPage = lazy(async () => {
+  const m = await import('../features/admin/audit/AuditPage');
+  return { default: m.AuditPage };
+});
+
+export const LazyAlertRulesPage = lazy(async () => {
+  const m = await import('../features/alerts/AlertRulesPage');
+  return { default: m.AlertRulesPage };
+});
+
+export const LazyEscalationPage = lazy(async () => {
+  const m = await import('../features/alerts/EscalationPage');
+  return { default: m.EscalationPage };
+});
+
+export const LazyNotificationsPage = lazy(async () => {
+  const m = await import('../features/alerts/NotificationsPage');
+  return { default: m.NotificationsPage };
+});

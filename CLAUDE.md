@@ -21,6 +21,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 | [`ingest-pipeline.md`](docs/context/ingest-pipeline.md) | Drive pipeline, promotion, agregados, billing import |
 | [`functional-spec.md`](docs/context/functional-spec.md) | XLSX spec, alertas objetivo, navegación objetivo |
 | [`key-files.md`](docs/context/key-files.md) | Archivos clave backend/frontend/infra |
+| [`CHANGELOG.md`](CHANGELOG.md) | Notas por release; la entrada más reciente está al inicio del archivo |
 
 ## Próxima Sesión
 
@@ -30,6 +31,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
   - Backend: 365 tests, 39 suites; patch SQL `quality` en `report_type`
   - Frontend: `ReportsPage` `/reports` (generar, descargar, programar — emails persistidos, envío no implementado)
   - Dependencias: pdfkit, exceljs, cron-parser
+- **Fase 8 (parcial) — Dashboards ejecutivo / comparativo** — `ExecutiveDashboardPage` `/dashboard/executive`, `CompareDashboardPage` `/dashboard/compare`, utilidades `dashboardAggregations.ts`; KPIs multi-edificio, tendencias (kWh/kW/costo estimado vía tarifa), ranking intensidad, alertas críticas; comparativo 2+ edificios, curvas superpuestas, tabla con Δ vs media; opción periodo anterior vs actual en comparativo. **Detalle:** [CHANGELOG — 0.93.0-alpha.0](CHANGELOG.md)
 - **Fase 6 — Alertas avanzadas** — engine + evaluadores + escalamiento + notificaciones + frontend:
   - Backend: AlertEngineService (cron 5min), 6 evaluadores (22+ tipos), EscalationService (cron 10min)
   - Backend: NotificationService (email log + webhook), NotificationLog entity
@@ -105,7 +107,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: Fase 8 del PLAN_ACCION — vistas XLSX adicionales (dashboard ejecutivo/comparativo, etc.). UI de integraciones si se requiere
+- **monitoreo-v2**: Fase 8 restante del PLAN_ACCION — `/monitoring/meters/type`, `/monitoring/generation/:siteId`, `/monitoring/modbus-map/:siteId`. UI de integraciones si se requiere
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -119,7 +121,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
 Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications + reports + integrations (365 tests, 39 suites).
 Frontend: Fases 1-7 (reportes UI) — API layer con reports; 20 vistas activas (incl. ReportsPage en /reports).
-Pendiente: Fase 8 del PLAN_ACCION (vistas XLSX adicionales).
+Pendiente: Fase 8 restante (meters/type, generation, modbus-map).
 ```
 
 ## Prioridad Actual de Acceso
@@ -222,4 +224,4 @@ cd backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.93.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

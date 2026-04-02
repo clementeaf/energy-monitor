@@ -260,6 +260,8 @@ MeterReading {
 | Ruta | Vista | Sidebar | Descripción |
 |------|-------|---------|-------------|
 | `/` | Dashboard | si | KPIs, StockChart dual-axis, alertas activas, resumen edificios |
+| `/dashboard/executive` | Ejecutivo | si | KPIs portfolio, tendencias diarias (consumo/demanda/costo ref.), ranking intensidad, críticas |
+| `/dashboard/compare` | Comparativo | si | 7/30/90 días; ≥2 edificios: curvas y Δ vs media. Opcional: actual vs periodo anterior (barras + tabla) |
 | `/buildings` | Edificios | si | Tabla CRUD con datos reales |
 | `/meters` | Medidores | si | Tabla con filtro por edificio, CRUD |
 | `/alerts` | Alertas | si | Tabla con filtros status/severity/building, acciones acknowledge/resolve |
@@ -282,7 +284,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Buildings | `/buildings` | `useBuildingsQuery` |
 | Meters | `/meters` | `useMetersQuery(buildingId?)` |
 | Alerts | `/alerts`, `/alert-rules` | `useAlertsQuery(params?)` |
-| Readings | `/readings`, `/readings/latest`, `/readings/aggregated` | `useReadingsQuery`, `useLatestReadingsQuery`, `useAggregatedReadingsQuery` |
+| Readings | `/readings`, `/readings/latest`, `/readings/aggregated` | `useReadingsQuery`, `useLatestReadingsQuery`, `useAggregatedReadingsQuery` (ejecutivo/comparativo agregan en cliente desde `aggregated` + medidores) |
 | Hierarchy | `/hierarchy/buildings/:id`, `/hierarchy/:id/meters` | `useHierarchyByBuildingQuery` |
 | Concentrators | `/concentrators` | `useConcentratorsQuery(buildingId?)` |
 | Fault Events | `/fault-events` | `useFaultEventsQuery(params?)` |
@@ -318,5 +320,5 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 
 ## Navegación (v2)
 
-- **Sidebar directo**: Dashboard, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas, Reportes (según permisos)
+- **Sidebar directo**: Dashboard, Ejecutivo, Comparativo, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas, Reportes (según permisos)
 - **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links con breadcrumbs

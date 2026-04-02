@@ -18,9 +18,9 @@ La especificación funcional externa vive en `docs/POWER_Digital_Especificacion_
 - Cada alerta: variable monitoreada, umbral, severidad, escalamiento, canal, frecuencia, guía por rol.
 
 ## Navegación objetivo
-- Menú más amplio que el router actual.
-- Rutas objetivo: `/dashboard/executive`, `/dashboard/compare`, `/monitoring/realtime`, `/monitoring/drilldown/:siteId`, `/monitoring/devices`, `/monitoring/demand/:siteId`, `/monitoring/quality/:siteId`, `/monitoring/meters/type`, `/monitoring/generation/:siteId`, `/monitoring/modbus-map/:siteId`, `/monitoring/fault-history/:meterId`, `/billing/rates`, `/billing/generate`.
-- Usar como target funcional; no asumir que existen hoy.
+- Menú más amplio que el router histórico MVP.
+- Rutas objetivo (XLSX): `/monitoring/meters/type`, `/monitoring/generation/:siteId`, `/monitoring/modbus-map/:siteId`, `/billing/generate`, etc. Ver `PLAN_ACCION.md` Fase 8.
+- **Implementadas en monitoreo-v2:** `/dashboard/executive`, `/dashboard/compare`, `/monitoring/realtime`, `/monitoring/drilldown/:siteId`, `/monitoring/devices`, `/monitoring/demand/:siteId`, `/monitoring/quality/:siteId`, `/monitoring/fault-history/:meterId`, `/billing/rates`, `/billing` (facturas).
 
 ## Mapa objetivo y backlog
 - Mapa de vistas normalizado en `PLAN_ACCION.md`.

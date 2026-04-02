@@ -9,6 +9,8 @@ import {
   LazyAlertsPage,
   LazyComponentsPage,
   LazyDashboardPage,
+  LazyExecutiveDashboardPage,
+  LazyCompareDashboardPage,
   LazyRealtimePage,
   LazyDrilldownPage,
   LazyDemandPage,
@@ -51,6 +53,8 @@ export const router = createBrowserRouter([
             element: <LayoutShell />,
             children: [
               { index: true, element: <LazyDashboardPage /> },
+              { path: APP_ROUTES.executive, element: <LazyExecutiveDashboardPage /> },
+              { path: APP_ROUTES.compare, element: <LazyCompareDashboardPage /> },
               { path: APP_ROUTES.buildings, element: <LazyBuildingsPage /> },
               { path: APP_ROUTES.meters, element: <LazyMetersPage /> },
               { path: APP_ROUTES.alerts, element: <LazyAlertsPage /> },

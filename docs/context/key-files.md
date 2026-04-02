@@ -104,6 +104,9 @@
 | `monitoreo-v2/frontend/src/store/` | `useAuthStore` (user + tenant + buildings), `useAppStore` (sidebar + selectedBuildingId) |
 | `monitoreo-v2/frontend/src/features/auth/LoginPage.tsx` | Login Microsoft + Google |
 | `monitoreo-v2/frontend/src/features/dashboard/DashboardPage.tsx` | KPIs, StockChart time-series, alertas activas, resumen edificios |
+| `monitoreo-v2/frontend/src/features/dashboard/executive/ExecutiveDashboardPage.tsx` | `/dashboard/executive`: KPIs portfolio, tendencias, ranking, críticas |
+| `monitoreo-v2/frontend/src/features/dashboard/compare/CompareDashboardPage.tsx` | `/dashboard/compare`: edificios y/o periodo actual vs anterior |
+| `monitoreo-v2/frontend/src/features/dashboard/dashboardAggregations.ts` | Agregaciones cliente para dashboards (preset, periodo previo, series por edificio) |
 | `monitoreo-v2/frontend/src/features/buildings/` | `BuildingsPage` (tabla + CRUD), `BuildingForm` (modal crear/editar) |
 | `monitoreo-v2/frontend/src/features/meters/` | `MetersPage` (tabla + filtro + CRUD), `MeterForm` (modal crear/editar) |
 | `monitoreo-v2/frontend/src/features/alerts/AlertsPage.tsx` | Tabla alertas con filtros + acciones acknowledge/resolve |
@@ -114,8 +117,8 @@
 | `monitoreo-v2/frontend/src/features/monitoring/devices/DevicesPage.tsx` | Tabla unificada medidores + concentradores con filtros |
 | `monitoreo-v2/frontend/src/features/monitoring/fault-history/FaultHistoryPage.tsx` | Timeline eventos de fallo por medidor |
 | `monitoreo-v2/frontend/src/features/reports/ReportsPage.tsx` | Reportes generados + programados (`/reports`) |
-| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, dashboard, buildings, meters, alerts, monitoring/*, billing, reports, admin, components |
-| `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas activas |
+| `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, `/dashboard/executive`, `/dashboard/compare`, buildings, meters, alerts, monitoring/*, billing, reports, admin, components |
+| `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas; `end` en link del dashboard |
 
 ## Standalone Infra Scripts
 ```

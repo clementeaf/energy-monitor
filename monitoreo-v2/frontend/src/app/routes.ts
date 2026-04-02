@@ -1,6 +1,8 @@
 export const APP_ROUTES = {
   login: '/login',
   dashboard: '/',
+  executive: '/dashboard/executive',
+  compare: '/dashboard/compare',
   buildings: '/buildings',
   meters: '/meters',
   alerts: '/alerts',

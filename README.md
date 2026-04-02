@@ -17,6 +17,7 @@ Plataforma de monitoreo energético en tiempo real para edificios comerciales.
 - `patterns/playbooks/`: recetas ultracortas para tareas repetidas.
 - `docs/POWER_Digital_Especificacion_Modulos-rev2.1.xlsx`: especificación funcional objetivo del producto.
 - `PLAN_ACCION.md`: roadmap y prioridades, no contexto operativo.
+- [`CHANGELOG.md`](CHANGELOG.md): notas de versión por release (monitoreo-v2 y cambios recientes).
 
 ## Stack
 - Frontend: React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Highcharts Stock, TanStack Query, Zustand.

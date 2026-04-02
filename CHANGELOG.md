@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.93.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 8 (PARCIAL): DASHBOARDS EJECUTIVO Y COMPARATIVO
+
+### Added
+- **`/dashboard/executive`** — KPIs multi-edificio, tendencias diarias (kWh, demanda agregada, costo estimado si hay tarifa), ranking por intensidad (kWh/m² o kWh/medidor), lista de alertas críticas activas
+- **`/dashboard/compare`** — Comparación entre edificios (≥2) en un periodo: preset 7/30/90 días, curvas diarias superpuestas, tabla con Δ vs media del grupo. Opción **periodo anterior vs actual** (misma duración, inmediatamente anterior): barras agrupadas, tabla con energía actual/anterior y Δ entre periodos
+- **`dashboardAggregations.ts`** — Utilidades puras: rangos desde preset, periodo previo, agregación portfolio y por edificio
+- **Sidebar** — Entradas Ejecutivo y Comparativo; `NavLink` del dashboard en `/` con `end` para no marcar activo en rutas `/dashboard/*`
+
+### Changed
+- **`APP_ROUTES`** — `executive`, `compare`; lazy load en `router.tsx` / `lazyPages.ts`
+
+---
+
 ## [0.92.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 7: REPORTES E INTEGRACIONES
 
 ### Added

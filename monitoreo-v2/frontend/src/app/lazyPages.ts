@@ -10,6 +10,16 @@ export const LazyDashboardPage = lazy(async () => {
   return { default: m.DashboardPage };
 });
 
+export const LazyExecutiveDashboardPage = lazy(async () => {
+  const m = await import('../features/dashboard/executive/ExecutiveDashboardPage');
+  return { default: m.ExecutiveDashboardPage };
+});
+
+export const LazyCompareDashboardPage = lazy(async () => {
+  const m = await import('../features/dashboard/compare/CompareDashboardPage');
+  return { default: m.CompareDashboardPage };
+});
+
 export const LazyBuildingsPage = lazy(async () => {
   const m = await import('../features/buildings/BuildingsPage');
   return { default: m.BuildingsPage };

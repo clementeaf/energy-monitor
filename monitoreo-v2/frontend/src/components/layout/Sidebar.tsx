@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router';
+import { APP_ROUTES } from '../../app/routes';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
@@ -16,6 +17,16 @@ const NAV_ITEMS: NavItem[] = [
   {
     to: '/',
     label: 'Dashboard',
+    requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
+  },
+  {
+    to: APP_ROUTES.executive,
+    label: 'Ejecutivo',
+    requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
+  },
+  {
+    to: APP_ROUTES.compare,
+    label: 'Comparativo',
     requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
   },
   {
@@ -111,6 +122,7 @@ export function Sidebar() {
           <SidebarLink
             key={to}
             to={to}
+            end={to === APP_ROUTES.dashboard}
             label={label}
             badge={to === '/alerts' && activeAlertCount > 0 ? activeAlertCount : undefined}
           />
@@ -147,10 +159,11 @@ export function Sidebar() {
   );
 }
 
-function SidebarLink({ to, label, badge }: { to: string; label: string; badge?: number }) {
+function SidebarLink({ to, label, badge, end }: { to: string; label: string; badge?: number; end?: boolean }) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
           isActive

@@ -236,15 +236,15 @@ Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 ## Fase 8 — Vistas adicionales XLSX
 
 ### 8.1 Dashboard Ejecutivo `/dashboard/executive`
-- [ ] KPIs consolidados multi-edificio
-- [ ] Graficos de tendencia (consumo, costo, demanda)
-- [ ] Ranking de edificios por eficiencia
-- [ ] Alertas criticas activas
+- [x] KPIs consolidados multi-edificio
+- [x] Graficos de tendencia (consumo, costo, demanda)
+- [x] Ranking de edificios por eficiencia
+- [x] Alertas criticas activas
 
 ### 8.2 Dashboard Comparativo `/dashboard/compare`
-- [ ] Seleccion de 2+ edificios o periodos
-- [ ] Graficos superpuestos para comparacion
-- [ ] Tabla comparativa con deltas
+- [x] Seleccion de 2+ edificios o periodos
+- [x] Graficos superpuestos para comparacion
+- [x] Tabla comparativa con deltas
 
 ### 8.3 Medidores por tipo `/monitoring/meters/type`
 - [ ] Agrupacion por tipo de medidor

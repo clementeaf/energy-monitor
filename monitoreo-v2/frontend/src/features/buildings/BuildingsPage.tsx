@@ -74,7 +74,7 @@ export function BuildingsPage() {
                 <Th>Direccion</Th>
                 <Th className="text-right">Area (m2)</Th>
                 <Th>Estado</Th>
-                {canWrite && <Th></Th>}
+                {canWrite && <Th>Acciones</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

@@ -70,6 +70,11 @@ export const LazyTariffsPage = lazy(async () => {
   return { default: m.TariffsPage };
 });
 
+export const LazyReportsPage = lazy(async () => {
+  const m = await import('../features/reports/ReportsPage');
+  return { default: m.ReportsPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

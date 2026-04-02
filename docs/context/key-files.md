@@ -78,25 +78,28 @@
 | `monitoreo-v2/backend/src/modules/tenant-units/` | CRUD locatarios + gestión medidores asociados |
 | `monitoreo-v2/backend/src/modules/tariffs/` | CRUD tarifas + bloques horarios |
 | `monitoreo-v2/backend/src/modules/invoices/` | CRUD facturas + line items + approve/void |
+| `monitoreo-v2/backend/src/modules/reports/` | CRUD reportes + generate + export + scheduled + `ReportsSchedulerService` (cron 5 min) |
+| `monitoreo-v2/backend/src/modules/integrations/` | CRUD integraciones + sync-logs + sync stub |
 | `monitoreo-v2/backend/src/modules/fault-events/` | Read-only eventos de fallo con filtros |
-| `monitoreo-v2/backend/src/modules/platform/entities/` | Todas las entidades del dominio (20 entities) |
+| `monitoreo-v2/backend/src/modules/platform/entities/` | Entidades dominio (incl. Report, ScheduledReport, Integration, IntegrationSyncLog) |
 | `monitoreo-v2/backend/src/common/guards/` | `JwtAuthGuard`, `PermissionsGuard` (globales) |
 | `monitoreo-v2/backend/src/common/decorators/` | `@CurrentUser()`, `@Public()`, `@RequirePermission()` |
 
 ## monitoreo-v2 Frontend
 | Archivo | Propósito |
 |---|---|
-| `monitoreo-v2/frontend/src/services/routes.ts` | Rutas API centralizadas (auth, buildings, meters, alerts, alertRules, readings, hierarchy, concentrators, faultEvents) |
-| `monitoreo-v2/frontend/src/services/endpoints.ts` | Llamadas API tipadas: auth, buildings, meters, alerts, alertRules, readings, hierarchy, concentrators, faultEvents |
+| `monitoreo-v2/frontend/src/services/routes.ts` | Rutas API centralizadas (+ `reports`; `integrations` reservado en constantes) |
+| `monitoreo-v2/frontend/src/services/endpoints.ts` | Llamadas API tipadas (+ `reportsEndpoints`) |
 | `monitoreo-v2/frontend/src/services/api.ts` | Axios con cookies, refresh token rotation, 401 retry queue |
-| `monitoreo-v2/frontend/src/types/` | Tipos espejo del backend: `building.ts`, `meter.ts`, `alert.ts`, `reading.ts`, `hierarchy.ts`, `concentrator.ts`, `fault-event.ts`, `auth.ts` |
-| `monitoreo-v2/frontend/src/hooks/queries/` | Query hooks TanStack: buildings, meters, alerts+rules, readings, hierarchy, concentrators, faultEvents |
+| `monitoreo-v2/frontend/src/types/` | Tipos espejo del backend (+ `report.ts`, etc.) |
+| `monitoreo-v2/frontend/src/hooks/queries/` | Query hooks TanStack (+ `useReportsQuery` y mutaciones programados/generar) |
 | `monitoreo-v2/frontend/src/hooks/usePermissions.ts` | `has(module, action)`, `hasAny()`, `isAdmin` desde JWT permissions |
 | `monitoreo-v2/frontend/src/hooks/useQueryState.ts` | Reduce `useQuery` a fase UI: loading/error/empty/ready |
 | `monitoreo-v2/frontend/src/components/charts/` | `Chart`, `StockChart`, `MonthlyChart` — agnósticos, colores via CSS vars |
 | `monitoreo-v2/frontend/src/components/ui/Modal.tsx` | Dialog nativo HTML con backdrop |
 | `monitoreo-v2/frontend/src/components/ui/ConfirmDialog.tsx` | Confirmación eliminar (reutiliza Modal) |
-| `monitoreo-v2/frontend/src/components/ui/DataWidget.tsx` | Wrapper loading/error/empty/ready para widgets |
+| `monitoreo-v2/frontend/src/components/ui/QueryStateView.tsx` | Estados query; acepta `onRetry` o `refetch`, `emptyDescription` o `emptyMessage` |
+| `monitoreo-v2/frontend/src/components/ui/DataWidget.tsx` | Wrapper loading/error/empty/ready (delega en `QueryStateView`) |
 | `monitoreo-v2/frontend/src/lib/chart-config.ts` | Config central charts: `baseChartOptions()`, `stockChartExtras()` |
 | `monitoreo-v2/frontend/src/store/` | `useAuthStore` (user + tenant + buildings), `useAppStore` (sidebar + selectedBuildingId) |
 | `monitoreo-v2/frontend/src/features/auth/LoginPage.tsx` | Login Microsoft + Google |
@@ -110,6 +113,7 @@
 | `monitoreo-v2/frontend/src/features/monitoring/quality/QualityPage.tsx` | 4 charts calidad eléctrica + umbrales normativos |
 | `monitoreo-v2/frontend/src/features/monitoring/devices/DevicesPage.tsx` | Tabla unificada medidores + concentradores con filtros |
 | `monitoreo-v2/frontend/src/features/monitoring/fault-history/FaultHistoryPage.tsx` | Timeline eventos de fallo por medidor |
+| `monitoreo-v2/frontend/src/features/reports/ReportsPage.tsx` | Reportes generados + programados (`/reports`) |
 | `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, dashboard, buildings, meters, alerts, monitoring/*, billing, reports, admin, components |
 | `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas activas |
 

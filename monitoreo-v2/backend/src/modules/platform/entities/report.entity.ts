@@ -8,6 +8,7 @@ export type PlatformReportType =
   | 'consumption'
   | 'demand'
   | 'billing'
+  | 'quality'
   | 'sla'
   | 'esg'
   | 'benchmark'

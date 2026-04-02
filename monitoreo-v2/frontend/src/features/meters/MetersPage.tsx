@@ -102,7 +102,7 @@ export function MetersPage() {
                 <Th>Fase</Th>
                 <Th>Modelo</Th>
                 <Th>Estado</Th>
-                {canWrite && <Th></Th>}
+                {canWrite && <Th>Acciones</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

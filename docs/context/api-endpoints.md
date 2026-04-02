@@ -231,3 +231,27 @@ Todos los endpoints v2 requieren JWT cookie (httpOnly). Tenant scoping + buildin
 |---|---|---|---|
 | GET | `/fault-events` | `buildingId?`, `meterId?`, `severity?`, `faultType?`, `dateFrom?`, `dateTo?` | `FaultEvent[]` (order startedAt DESC) |
 | GET | `/fault-events/:id` | — | `FaultEvent` |
+
+### Reports (`/reports`) — permisos `reports:*`
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/reports` | `buildingId?`, `reportType?` | `Report[]` |
+| POST | `/reports/generate` | `reportType`, `periodStart`, `periodEnd`, `format`, `buildingId?` | `Report` |
+| GET | `/reports/:id` | — | `Report` |
+| GET | `/reports/:id/export` | — | Binario PDF / XLSX / CSV (según `format` del registro) |
+| DELETE | `/reports/:id` | — | 204 No Content |
+| GET | `/reports/scheduled` | `buildingId?`, `isActive?` | `ScheduledReport[]` |
+| POST | `/reports/scheduled` | `reportType`, `format`, `cronExpression`, `recipients[]`, `buildingId?`, `isActive?` | `ScheduledReport` |
+| PATCH | `/reports/scheduled/:id` | campos parciales | `ScheduledReport` |
+| DELETE | `/reports/scheduled/:id` | — | 204 No Content |
+
+### Integrations (`/integrations`) — permisos `integrations:*`
+| Method | Path | Body / Query | Response |
+|---|---|---|---|
+| GET | `/integrations` | `integrationType?`, `status?` | `Integration[]` |
+| POST | `/integrations` | `name`, `integrationType`, `config`, `status?` | `Integration` |
+| GET | `/integrations/:id` | — | `Integration` |
+| PATCH | `/integrations/:id` | campos parciales | `Integration` |
+| DELETE | `/integrations/:id` | — | 204 No Content |
+| GET | `/integrations/:id/sync-logs` | `page?`, `limit?` | `{ items, total, page, limit }` |
+| POST | `/integrations/:id/sync` | — | `IntegrationSyncLog` (stub) |

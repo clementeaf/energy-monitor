@@ -15,7 +15,6 @@ import type {
   HierarchyNode, CreateHierarchyNodePayload, UpdateHierarchyNodePayload,
 } from '../types/hierarchy';
 import type { Concentrator } from '../types/concentrator';
-import type { Meter } from '../types/meter';
 import type { FaultEvent, FaultEventQueryParams } from '../types/fault-event';
 import type {
   UserListItem, CreateUserPayload, UpdateUserPayload,
@@ -35,6 +34,15 @@ import type {
   Invoice, InvoiceLineItem, InvoiceQueryParams,
   CreateInvoicePayload, UpdateInvoicePayload, GenerateInvoicePayload,
 } from '../types/invoice';
+import type {
+  Report,
+  ReportQueryParams,
+  GenerateReportPayload,
+  ScheduledReport,
+  ScheduledReportQueryParams,
+  CreateScheduledReportPayload,
+  UpdateScheduledReportPayload,
+} from '../types/report';
 
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
@@ -210,6 +218,40 @@ export const invoicesEndpoints = {
 
   pdfUrl: (id: string) =>
     `${API_ROUTES.invoices}/${id}/pdf`,
+};
+
+const apiBase = (): string => {
+  const b = import.meta.env.VITE_API_BASE_URL || '/api';
+  return b.endsWith('/') ? b.slice(0, -1) : b;
+};
+
+export const reportsEndpoints = {
+  list: (params?: ReportQueryParams) =>
+    api.get<Report[]>(API_ROUTES.reports, { params }),
+
+  get: (id: string) =>
+    api.get<Report>(`${API_ROUTES.reports}/${id}`),
+
+  generate: (payload: GenerateReportPayload) =>
+    api.post<Report>(`${API_ROUTES.reports}/generate`, payload),
+
+  remove: (id: string) =>
+    api.delete(`${API_ROUTES.reports}/${id}`),
+
+  exportHref: (id: string): string =>
+    `${apiBase()}${API_ROUTES.reports}/${id}/export`,
+
+  scheduledList: (params?: ScheduledReportQueryParams) =>
+    api.get<ScheduledReport[]>(`${API_ROUTES.reports}/scheduled`, { params }),
+
+  scheduledCreate: (payload: CreateScheduledReportPayload) =>
+    api.post<ScheduledReport>(`${API_ROUTES.reports}/scheduled`, payload),
+
+  scheduledUpdate: (id: string, payload: UpdateScheduledReportPayload) =>
+    api.patch<ScheduledReport>(`${API_ROUTES.reports}/scheduled/${id}`, payload),
+
+  scheduledRemove: (id: string) =>
+    api.delete(`${API_ROUTES.reports}/scheduled/${id}`),
 };
 
 export const readingsEndpoints = {

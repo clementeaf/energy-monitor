@@ -4,7 +4,7 @@ import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
 
-interface ReadingRow {
+export interface ReadingRow {
   id: string;
   meter_id: string;
   timestamp: string;
@@ -24,7 +24,7 @@ interface ReadingRow {
   phase_imbalance_pct: string | null;
 }
 
-interface LatestRow {
+export interface LatestRow {
   meter_id: string;
   meter_name: string;
   building_id: string;
@@ -37,7 +37,7 @@ interface LatestRow {
   frequency_hz: string | null;
 }
 
-interface AggregatedRow {
+export interface AggregatedRow {
   bucket: string;
   meter_id: string;
   avg_power_kw: string;

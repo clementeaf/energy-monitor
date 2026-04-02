@@ -6,12 +6,16 @@ export type QueryStateVariant = 'page' | 'widget';
 export interface QueryStateViewProps {
   phase: 'loading' | 'error' | 'empty' | 'ready';
   error: unknown;
-  onRetry: () => void;
+  onRetry?: () => void;
+  /** Alias de onRetry usado en vistas existentes */
+  refetch?: () => void;
   /** Contenido cuando phase === 'ready' */
   children: ReactNode;
   /** Texto cuando no hay filas / datos */
   emptyTitle?: string;
   emptyDescription?: string;
+  /** Alias de emptyDescription */
+  emptyMessage?: string;
   /** Refetch en curso con datos ya mostrados (indicador discreto) */
   isFetching?: boolean;
   /**
@@ -30,13 +34,20 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
   const {
     phase,
     error,
-    onRetry,
+    onRetry: onRetryProp,
+    refetch,
     children,
     emptyTitle = 'Sin datos',
-    emptyDescription = 'No hay información para mostrar en este momento.',
+    emptyDescription: emptyDescriptionProp,
+    emptyMessage,
     isFetching = false,
     variant = 'page',
   } = props;
+  const onRetry = onRetryProp ?? refetch ?? ((): void => undefined);
+  const emptyDescription =
+    emptyDescriptionProp ??
+    emptyMessage ??
+    'No hay información para mostrar en este momento.';
 
   if (phase === 'loading') {
     return <QueryLoadingPanel variant={variant} />;

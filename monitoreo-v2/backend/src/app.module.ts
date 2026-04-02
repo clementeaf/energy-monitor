@@ -24,6 +24,8 @@ import { TenantUnitsModule } from './modules/tenant-units/tenant-units.module';
 import { TariffsModule } from './modules/tariffs/tariffs.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 
 @Module({
   imports: [
@@ -79,6 +81,8 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
     TariffsModule,
     InvoicesModule,
     AuditLogsModule,
+    ReportsModule,
+    IntegrationsModule,
   ],
   providers: [
     // Global rate limiter guard

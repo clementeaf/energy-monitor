@@ -25,6 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-02)
+- **Fase 7 — Reportes e integraciones** — backend + frontend reportes + API integraciones (sin UI integraciones):
+  - Backend: `ReportsModule` (CRUD, generate, export PDF/Excel/CSV, scheduled + cron 5 min), `IntegrationsModule` (CRUD, sync-logs, sync stub)
+  - Backend: 365 tests, 39 suites; patch SQL `quality` en `report_type`
+  - Frontend: `ReportsPage` `/reports` (generar, descargar, programar — emails persistidos, envío no implementado)
+  - Dependencias: pdfkit, exceljs, cron-parser
 - **Fase 6 — Alertas avanzadas** — engine + evaluadores + escalamiento + notificaciones + frontend:
   - Backend: AlertEngineService (cron 5min), 6 evaluadores (22+ tipos), EscalationService (cron 10min)
   - Backend: NotificationService (email log + webhook), NotificationLog entity
@@ -100,7 +105,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: Fases 7-8 del PLAN_ACCION — reportes, vistas adicionales
+- **monitoreo-v2**: Fase 8 del PLAN_ACCION — vistas XLSX adicionales (dashboard ejecutivo/comparativo, etc.). UI de integraciones si se requiere
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -112,9 +117,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Fases 1-6 completas — 14 módulos + alert engine + escalation + notifications (358 tests, 37 suites).
-Frontend: Fases 1-6 completas — API layer (17 dominios), 19 vistas activas (Dashboard, Buildings, Meters, Alerts, AlertRules, Escalation, Notifications, Realtime, Drilldown, Demand, Quality, Devices, FaultHistory, Invoices, Tariffs, Users, Tenants, Hierarchy, Audit).
-Pendiente: Fases 7-8 del PLAN_ACCION (reportes, vistas adicionales).
+Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications + reports + integrations (365 tests, 39 suites).
+Frontend: Fases 1-7 (reportes UI) — API layer con reports; 20 vistas activas (incl. ReportsPage en /reports).
+Pendiente: Fase 8 del PLAN_ACCION (vistas XLSX adicionales).
 ```
 
 ## Prioridad Actual de Acceso
@@ -134,7 +139,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 358 tests / 37 suites). Frontend sin tests.
+- **Testing:** Jest 30 (backend, 365 tests / 39 suites). Frontend sin tests.
 
 ## Architecture
 ```

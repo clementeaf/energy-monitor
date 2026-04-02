@@ -215,21 +215,21 @@ Hoy solo existe `METER_OFFLINE`. El XLSX define 22 tipos agrupados por familia.
 ## Fase 7 — Reportes e integraciones
 
 ### 7.1 ReportsModule backend
-- [ ] `reports.service.ts` — CRUD `Report` + `ScheduledReport`
-- [ ] Generacion de reportes: consumo, billing summary, calidad electrica
-- [ ] Scheduler: cron para reportes programados
-- [ ] Export: PDF + Excel
+- [x] `reports.service.ts` — CRUD `Report` + `ScheduledReport`
+- [x] Generacion de reportes: consumo, demanda, billing summary, calidad electrica, ejecutivo, alertas; otros tipos placeholder
+- [x] Scheduler: cron para reportes programados (cada 5 min)
+- [x] Export: PDF + Excel + CSV
 
 ### 7.2 Reportes frontend `/reports`
-- [ ] Reemplazar PlaceholderPage
-- [ ] Seleccion de tipo de reporte + parametros
-- [ ] Preview + descarga
-- [ ] Programar reportes recurrentes
+- [x] Reemplazar PlaceholderPage por `ReportsPage`
+- [x] Seleccion de tipo de reporte + parametros
+- [x] Descarga (`GET .../export`); preview no dedicado (abre archivo generado)
+- [x] Programar reportes recurrentes (cron + destinatarios + toggle)
 
 ### 7.3 IntegrationsModule backend
-- [ ] `integrations.service.ts` — CRUD `Integration` + `IntegrationSyncLog`
-- [ ] Conectores: API externa para terceros (read-only)
-- [ ] Log de sincronizaciones
+- [x] `integrations.service.ts` — CRUD `Integration` + lectura `IntegrationSyncLog`
+- [ ] Conectores: API externa para terceros (read-only) — stub en `POST :id/sync`
+- [x] Log de sincronizaciones (`GET :id/sync-logs` paginado)
 
 ---
 

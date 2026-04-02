@@ -289,7 +289,7 @@ CREATE TABLE reports (
     building_id UUID REFERENCES buildings(id) ON DELETE SET NULL,
     report_type VARCHAR(50) NOT NULL
         CHECK (report_type IN (
-            'executive', 'consumption', 'demand', 'billing',
+            'executive', 'consumption', 'demand', 'billing', 'quality',
             'sla', 'esg', 'benchmark', 'inventory', 'alerts_compliance'
         )),
     period_start DATE NOT NULL,

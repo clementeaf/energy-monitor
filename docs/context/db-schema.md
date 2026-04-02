@@ -86,3 +86,6 @@ Migraciones manuales: no hay migration runner; se aplican manualmente. Verificar
 
 ## Invitaciones
 Si en prod `external_id`/`provider` son NOT NULL, el backend usa centinela `provider='invitation'` y `external_id='inv:<hex>'` al crear la invitación; el primer login OAuth reemplaza por el valor real.
+
+## monitoreo-v2 (Timescale / init)
+Tablas `reports`, `scheduled_reports`, `integrations`, `integration_sync_logs` definidas en `monitoreo-v2/database/init/05-modules.sql`. Valor `quality` en `reports.report_type`: patch `monitoreo-v2/database/patches/2026-04-02-reports-add-quality-type.sql` para BDs ya creadas.

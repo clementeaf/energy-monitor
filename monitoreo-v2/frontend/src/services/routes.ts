@@ -20,4 +20,6 @@ export const API_ROUTES = {
   auditLogs: '/audit-logs',
   notificationLogs: '/notification-logs',
   alertEngine: '/alert-engine',
+  reports: '/reports',
+  integrations: '/integrations',
 } as const;

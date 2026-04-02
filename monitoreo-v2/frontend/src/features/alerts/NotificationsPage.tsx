@@ -87,7 +87,7 @@ export function NotificationsPage() {
         </button>
       </div>
 
-      <DataWidget state={qs}>
+      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch}>
         <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">

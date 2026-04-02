@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.92.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 7: REPORTES E INTEGRACIONES
+
+### Added
+- **ReportsModule** — CRUD `Report`, `POST /reports/generate`, `GET /reports/:id/export` (PDF / Excel / CSV). Tipos de dataset: consumo, demanda, facturación, ejecutivo, calidad eléctrica, alertas; resto genérico. RBAC `reports:*`, scoping por `buildingIds`
+- **Reportes programados** — `GET|POST|PATCH|DELETE /reports/scheduled`. Cron cada 5 min (`ReportsSchedulerService`) ejecuta vencidos y crea filas en `reports`. Expresiones vía `cron-parser` (v5)
+- **IntegrationsModule** — CRUD `Integration`, `GET /integrations/:id/sync-logs` (paginado), `POST /integrations/:id/sync` (stub: log + `last_sync_at`). RBAC `integrations:*`
+- **Frontend** — `ReportsPage` (`/reports`): filtros, generación en modal, descarga, tabla de programados (cron, destinatarios, toggle activo). API: `types/report.ts`, `reportsEndpoints`, `useReportsQuery`
+- **Dependencias backend** — `pdfkit`, `exceljs`, `cron-parser`, `@types/pdfkit`
+- **Patch DB** — `database/patches/2026-04-02-reports-add-quality-type.sql` (valor `quality` en `reports.report_type`). Init actualizado en `database/init/05-modules.sql`
+
+### Changed
+- **QueryStateView** — Alias opcionales `refetch` → reintento y `emptyMessage` → texto vacío (compatibilidad con vistas existentes)
+- **Backend tests** — 365 passing (39 suites), +specs controladores reports/integrations
+
+---
+
 ## [0.91.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 6: ALERTAS AVANZADAS
 
 ### Added

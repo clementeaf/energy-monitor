@@ -271,6 +271,7 @@ MeterReading {
 | `/monitoring/fault-history/:meterId` | Historial Fallos | — | Timeline eventos de fallo, filtros tipo/fecha |
 | `/billing` | Facturas | si | Tabla facturas con filtros edificio/estado, detalle line items, acciones aprobar/anular/eliminar, generación |
 | `/billing/rates` | Tarifas | si | Tabla tarifas CRUD con bloques horarios expandibles, filtro edificio |
+| `/reports` | Reportes | si | Lista generados + filtros; generar (modal); descarga; programados (cron, destinatarios, activo) |
 
 ## API layer (v2)
 
@@ -287,6 +288,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Fault Events | `/fault-events` | `useFaultEventsQuery(params?)` |
 | Tariffs | `/tariffs` | `useTariffsQuery(buildingId?)`, `useTariffBlocksQuery(tariffId)` |
 | Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
+| Reports | `/reports`, `/reports/scheduled`, `/reports/generate`, `/reports/:id/export` | `useReportsQuery`, `useScheduledReportsQuery`, `useGenerateReport`, mutaciones scheduled/delete |
 
 ## Tipos (v2)
 
@@ -301,6 +303,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `types/fault-event.ts` | `FaultEvent`, `FaultSeverity`, `FaultEventQueryParams` |
 | `types/tariff.ts` | `Tariff`, `TariffBlock`, `CreateTariffPayload`, `UpdateTariffPayload`, `CreateTariffBlockPayload` |
 | `types/invoice.ts` | `Invoice`, `InvoiceLineItem`, `InvoiceStatus`, `InvoiceQueryParams`, `GenerateInvoicePayload` |
+| `types/report.ts` | `Report`, `ScheduledReport`, `PlatformReportType`, `GenerateReportPayload`, payloads programados |
 
 ## Componentes compartidos (v2)
 
@@ -309,11 +312,11 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `StockChart` | Dual-axis time-series con range selector y adaptive resolution |
 | `Chart` | Highcharts general-purpose con hover sync |
 | `MonthlyChart` | Bar/column charts mensuales |
-| `DataWidget` | Wrapper loading/error/empty/ready |
+| `DataWidget` | Wrapper loading/error/empty/ready (usa `QueryStateView`: `onRetry` o alias `refetch`; vacío: `emptyDescription` o alias `emptyMessage`) |
 | `Modal` | Dialog nativo HTML |
 | `ConfirmDialog` | Confirmación eliminar |
 
 ## Navegación (v2)
 
-- **Sidebar directo**: Dashboard, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas
+- **Sidebar directo**: Dashboard, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas, Reportes (según permisos)
 - **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links con breadcrumbs

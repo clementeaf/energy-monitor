@@ -15,3 +15,14 @@ export type {
 } from './hierarchy';
 export type { Concentrator, ConcentratorStatus, ConcentratorMeterLink } from './concentrator';
 export type { FaultEvent, FaultSeverity, FaultEventQueryParams } from './fault-event';
+export type {
+  UserListItem, CreateUserPayload, UpdateUserPayload,
+  AssignBuildingsPayload, UserBuildingsResponse,
+} from './user';
+export type {
+  TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload,
+  TenantUnitMeter,
+} from './tenant-unit';
+export type {
+  AuditLogEntry, AuditLogQueryParams, AuditLogResult,
+} from './audit-log';

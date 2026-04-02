@@ -138,23 +138,24 @@ Rutas objetivo del XLSX. Dependen de Fase 1 (API layer) y parcialmente Fase 2 (b
 ## Fase 4 — Facturacion (frontend + backend)
 
 ### 4.1 Tarifas `/billing/rates`
-- [ ] API layer frontend: `tariffsEndpoints` + `useTariffsQuery`
-- [ ] Pagina con tabla de tarifas por ubicacion
-- [ ] Detalle tarifa con bloques horarios
-- [ ] CRUD tarifas (admin only)
+- [x] API layer frontend: `tariffsEndpoints` + `useTariffsQuery`
+- [x] Pagina con tabla de tarifas por ubicacion
+- [x] Detalle tarifa con bloques horarios (expandible inline)
+- [x] CRUD tarifas (admin only)
+- [x] CRUD bloques horarios (admin only)
 
-### 4.2 Generacion de facturacion `/billing/generate`
-- [ ] API layer frontend: `invoicesEndpoints` + `useInvoicesQuery`
-- [ ] Wizard: seleccionar periodo + edificio + locatarios
-- [ ] Preview de factura antes de confirmar
-- [ ] Generacion batch y descarga PDF
-- [ ] Historial de facturas generadas
+### 4.2 Generacion de facturacion
+- [x] Backend: `POST /invoices/generate` — calculo desde readings + tariff blocks
+- [x] Backend: `GET /invoices/:id/pdf` — HTML invoice con line items
+- [x] API layer frontend: `invoicesEndpoints` + `useInvoicesQuery`
+- [x] Modal wizard: seleccionar edificio + tarifa + periodo → generar
+- [x] Historial de facturas generadas (tabla principal)
 
 ### 4.3 Vista facturacion `/billing`
-- [ ] Reemplazar PlaceholderPage
-- [ ] Tabla de facturas con filtros (periodo, edificio, locatario, estado)
-- [ ] Detalle factura con line items
-- [ ] Acciones: descargar PDF, anular, re-generar
+- [x] Reemplazar PlaceholderPage con InvoicesPage
+- [x] Tabla de facturas con filtros (edificio, estado)
+- [x] Detalle factura con line items (modal)
+- [x] Acciones: descargar PDF, aprobar, anular, eliminar (draft)
 
 ---
 

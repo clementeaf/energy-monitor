@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.90.0-alpha.0] - 2026-04-02 — MONITOREO V2 FASE 4: FACTURACIÓN
+
+### Added
+- **`POST /invoices/generate`** — Genera factura desde readings + tariff blocks. Calcula consumo (kWh por bloque horario), demanda máxima (kW) y reactiva (kVArh) por medidor. Crea invoice + line items en transacción. Número auto-incremental `INV-XXXXXX`
+- **`GET /invoices/:id/pdf`** — Renderiza factura HTML con tabla de line items (medidor, kWh, kW max, cargos) y resumen (neto, IVA, total)
+- **`findOneWithLineItems`** — Helper que retorna invoice + line items en una sola llamada
+- **Tipos frontend** — `types/tariff.ts` (Tariff, TariffBlock, payloads) y `types/invoice.ts` (Invoice, InvoiceLineItem, InvoiceStatus, GenerateInvoicePayload)
+- **API layer** — `tariffsEndpoints` (list, get, create, update, remove, blocks, createBlock, removeBlock) y `invoicesEndpoints` (list, get, lineItems, create, update, remove, approve, void, generate, pdfUrl)
+- **Query hooks** — `useTariffsQuery` (7 hooks incl. bloques) y `useInvoicesQuery` (8 hooks incl. generate)
+- **TariffsPage** (`/billing/rates`) — Tabla de tarifas con filtro por edificio. CRUD tarifa en modal. Bloques horarios expandibles inline con formulario de creación y eliminación
+- **InvoicesPage** (`/billing`) — Tabla de facturas con filtros por edificio y estado. Badges de color por estado. Detalle con line items en modal. Acciones: aprobar (pending), anular, eliminar (draft), descargar PDF. Modal wizard para generación (edificio → tarifa → periodo)
+
+### Changed
+- **Sidebar** — Entrada "Facturación" reemplazada por dos entradas: "Facturas" y "Tarifas"
+- **APP_ROUTES** — `billing` cambia de string a objeto `{ invoices, rates }`
+- **Router** — Placeholder de facturación reemplazado por `InvoicesPage` y `TariffsPage`
+- **InvoicesModule** — Importa Meter, Tariff, TariffBlock, TenantUnitMeter, Reading para el cálculo de generación
+- **Backend tests** — 299 passing (28 suites), +9 tests nuevos para generate, pdf y findOneWithLineItems
+
+---
+
 ## [0.89.0-alpha.0] - 2026-04-01 — MONITOREO V2 FASE 3: VISTAS DE MONITOREO
 
 ### Added

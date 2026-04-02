@@ -13,4 +13,6 @@ export const API_ROUTES = {
   hierarchy: '/hierarchy',
   concentrators: '/concentrators',
   faultEvents: '/fault-events',
+  tariffs: '/tariffs',
+  invoices: '/invoices',
 } as const;

@@ -24,6 +24,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-02)
+- **Fase 4 — Facturación** — módulo completo backend + frontend:
+  - Backend: `POST /invoices/generate` (cálculo desde readings + tariff blocks, transaccional), `GET /invoices/:id/pdf` (HTML invoice)
+  - Backend: 9 tests nuevos (299 total, 28 suites)
+  - Frontend: `TariffsPage` — tabla tarifas CRUD + bloques horarios expandibles, filtro edificio
+  - Frontend: `InvoicesPage` — tabla facturas con filtros (edificio, estado), modal detalle line items, acciones aprobar/anular/eliminar, modal generación wizard
+  - API layer: tipos `tariff.ts` + `invoice.ts`, `tariffsEndpoints` + `invoicesEndpoints`, hooks CRUD + generate
+  - Sidebar: "Facturas" + "Tarifas" como entradas separadas
+
 ### Completado (2026-04-01)
 - **Fase 3 — Vistas de monitoreo** — 6 páginas nuevas bajo `/monitoring/*`:
   - `RealtimePage` — lecturas en vivo, auto-refresh 30s, status online/offline/alarma
@@ -72,8 +81,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **monitoreo-v2**: Invoices generate + PDF endpoints (pendiente Fase 4)
-- **monitoreo-v2**: Fases 4-8 del PLAN_ACCION — facturación, admin, alertas avanzadas, reportes, vistas adicionales
+- **monitoreo-v2**: Fases 5-8 del PLAN_ACCION — admin, alertas avanzadas, reportes, vistas adicionales
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -85,9 +93,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Fases 1-2 completas — 12 módulos activos (290 tests, 28 suites).
-Frontend: Fases 1-3 completas — API layer (10 dominios), 10 vistas activas (Dashboard, Buildings, Meters, Alerts, Realtime, Drilldown, Demand, Quality, Devices, FaultHistory).
-Pendiente: Fases 4-8 del PLAN_ACCION (facturacion, admin, alertas avanzadas, reportes, vistas adicionales).
+Backend: Fases 1-2 completas + Fase 4 generate/pdf — 12 módulos activos (299 tests, 28 suites).
+Frontend: Fases 1-4 completas — API layer (12 dominios), 12 vistas activas (Dashboard, Buildings, Meters, Alerts, Realtime, Drilldown, Demand, Quality, Devices, FaultHistory, Invoices, Tariffs).
+Pendiente: Fases 5-8 del PLAN_ACCION (admin, alertas avanzadas, reportes, vistas adicionales).
 ```
 
 ## Prioridad Actual de Acceso

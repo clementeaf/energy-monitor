@@ -45,8 +45,13 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     to: '/billing',
-    label: 'Facturacion',
-    requiredPerms: ['billing:read', 'billing:view_own'],
+    label: 'Facturas',
+    requiredPerms: ['billing_invoices:read', 'billing:read', 'billing:view_own'],
+  },
+  {
+    to: '/billing/rates',
+    label: 'Tarifas',
+    requiredPerms: ['billing_tariffs:read', 'billing:read'],
   },
   {
     to: '/reports',

@@ -58,11 +58,13 @@ describe('InvoicesController', () => {
       findAll: jest.fn(),
       findOne: jest.fn(),
       findLineItems: jest.fn(),
+      findOneWithLineItems: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
       approve: jest.fn(),
       void: jest.fn(),
+      generate: jest.fn(),
     };
 
     const module = await Test.createTestingModule({
@@ -158,5 +160,45 @@ describe('InvoicesController', () => {
   it('void throws NotFoundException when not found', async () => {
     service.void.mockResolvedValue(null);
     await expect(controller.void('missing', user)).rejects.toThrow(NotFoundException);
+  });
+
+  it('generate delegates to service', async () => {
+    const generated = { ...invoice, invoiceNumber: 'INV-000001' };
+    service.generate.mockResolvedValue(generated);
+    const dto = {
+      buildingId: 'b-1',
+      tariffId: 'tar-1',
+      periodStart: '2026-01-01',
+      periodEnd: '2026-01-31',
+    };
+    const result = await controller.generate(dto, user);
+    expect(service.generate).toHaveBeenCalledWith('t-1', 'u-1', dto);
+    expect(result).toEqual(generated);
+  });
+
+  it('pdf returns HTML when invoice found', async () => {
+    const invoiceWithItems = {
+      ...invoice,
+      lineItems: [lineItem],
+    };
+    service.findOneWithLineItems.mockResolvedValue(invoiceWithItems);
+
+    const res = {
+      set: jest.fn(),
+      send: jest.fn(),
+    } as any;
+
+    await controller.pdf('inv-1', user, res);
+
+    expect(res.set).toHaveBeenCalledWith(
+      expect.objectContaining({ 'Content-Type': 'text/html; charset=utf-8' }),
+    );
+    expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Factura INV-001'));
+  });
+
+  it('pdf throws NotFoundException when not found', async () => {
+    service.findOneWithLineItems.mockResolvedValue(null);
+    const res = { set: jest.fn(), send: jest.fn() } as any;
+    await expect(controller.pdf('missing', user, res)).rejects.toThrow(NotFoundException);
   });
 });

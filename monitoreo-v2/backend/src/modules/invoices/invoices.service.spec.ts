@@ -1,9 +1,15 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { Invoice } from '../platform/entities/invoice.entity';
 import { InvoiceLineItem } from '../platform/entities/invoice-line-item.entity';
+import { Meter } from '../platform/entities/meter.entity';
+import { Tariff } from '../platform/entities/tariff.entity';
+import { TariffBlock } from '../platform/entities/tariff-block.entity';
+import { TenantUnitMeter } from '../platform/entities/tenant-unit-meter.entity';
+import { Reading } from '../platform/entities/reading.entity';
 
 const TENANT_ID = 'tenant-1';
 
@@ -59,6 +65,11 @@ describe('InvoicesService', () => {
   let service: InvoicesService;
   let invoiceRepo: Record<string, jest.Mock>;
   let lineItemRepo: Record<string, jest.Mock>;
+  let meterRepo: Record<string, jest.Mock>;
+  let tariffRepo: Record<string, jest.Mock>;
+  let blockRepo: Record<string, jest.Mock>;
+  let tenantUnitMeterRepo: Record<string, jest.Mock>;
+  let dataSource: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     invoiceRepo = {
@@ -67,10 +78,32 @@ describe('InvoicesService', () => {
       save: jest.fn(),
       findOneBy: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     };
 
     lineItemRepo = {
       find: jest.fn(),
+    };
+
+    meterRepo = {
+      createQueryBuilder: jest.fn(),
+    };
+
+    tariffRepo = {
+      findOneBy: jest.fn(),
+    };
+
+    blockRepo = {
+      find: jest.fn(),
+    };
+
+    tenantUnitMeterRepo = {
+      createQueryBuilder: jest.fn(),
+    };
+
+    dataSource = {
+      query: jest.fn(),
+      transaction: jest.fn(),
     };
 
     const module = await Test.createTestingModule({
@@ -78,6 +111,12 @@ describe('InvoicesService', () => {
         InvoicesService,
         { provide: getRepositoryToken(Invoice), useValue: invoiceRepo },
         { provide: getRepositoryToken(InvoiceLineItem), useValue: lineItemRepo },
+        { provide: getRepositoryToken(Meter), useValue: meterRepo },
+        { provide: getRepositoryToken(Tariff), useValue: tariffRepo },
+        { provide: getRepositoryToken(TariffBlock), useValue: blockRepo },
+        { provide: getRepositoryToken(TenantUnitMeter), useValue: tenantUnitMeterRepo },
+        { provide: getRepositoryToken(Reading), useValue: {} },
+        { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
 
@@ -315,6 +354,135 @@ describe('InvoicesService', () => {
       invoiceRepo.findOneBy.mockResolvedValue(null);
 
       const result = await service.void('missing', TENANT_ID);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('generate', () => {
+    const dto = {
+      buildingId: 'b-1',
+      tariffId: 'tar-1',
+      periodStart: '2026-01-01',
+      periodEnd: '2026-01-31',
+    };
+
+    const mockBlock = {
+      id: 'block-1',
+      tariffId: 'tar-1',
+      blockName: 'punta',
+      hourStart: 8,
+      hourEnd: 20,
+      energyRate: '120.0000',
+      demandRate: '5000.0000',
+      reactiveRate: '100.0000',
+      fixedCharge: '500.00',
+    };
+
+    it('throws when tariff not found', async () => {
+      tariffRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.generate(TENANT_ID, 'u-1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('throws when tariff has no blocks', async () => {
+      tariffRepo.findOneBy.mockResolvedValue({ id: 'tar-1' });
+      blockRepo.find.mockResolvedValue([]);
+
+      await expect(service.generate(TENANT_ID, 'u-1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('throws when no meters found', async () => {
+      tariffRepo.findOneBy.mockResolvedValue({ id: 'tar-1' });
+      blockRepo.find.mockResolvedValue([mockBlock]);
+
+      const meterQb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      meterRepo.createQueryBuilder.mockReturnValue(meterQb);
+
+      await expect(service.generate(TENANT_ID, 'u-1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('generates invoice with line items', async () => {
+      tariffRepo.findOneBy.mockResolvedValue({ id: 'tar-1' });
+      blockRepo.find.mockResolvedValue([mockBlock]);
+
+      const meterQb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([{ id: 'm-1', isActive: true }]),
+      };
+      meterRepo.createQueryBuilder.mockReturnValue(meterQb);
+
+      const tumQb = {
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      tenantUnitMeterRepo.createQueryBuilder.mockReturnValue(tumQb);
+
+      // Aggregate readings
+      dataSource.query
+        .mockResolvedValueOnce([
+          { meter_id: 'm-1', kwh: '1000.00', kw_max: '50.00', kvarh: '200.00' },
+        ])
+        .mockResolvedValueOnce([
+          { meter_id: 'm-1', hr: '10', kwh: '400.00' },
+          { meter_id: 'm-1', hr: '14', kwh: '600.00' },
+        ]);
+
+      invoiceRepo.count.mockResolvedValue(0);
+
+      const savedInvoice = { ...mockInvoice(), id: 'new-inv' };
+      const manager = {
+        create: jest.fn().mockImplementation((_entity, data) => data),
+        save: jest.fn().mockImplementation((_entity, data) => {
+          if (Array.isArray(data)) return Promise.resolve(data);
+          return Promise.resolve({ ...data, id: 'new-inv' });
+        }),
+      };
+      dataSource.transaction.mockImplementation((cb: any) => cb(manager));
+
+      const result = await service.generate(TENANT_ID, 'u-1', dto);
+
+      expect(result.id).toBe('new-inv');
+      expect(manager.create).toHaveBeenCalledTimes(2); // invoice + 1 line item array
+      expect(manager.save).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('findOneWithLineItems', () => {
+    it('returns invoice with line items', async () => {
+      const inv = mockInvoice();
+      const items = [mockLineItem()];
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(inv),
+      };
+      invoiceRepo.createQueryBuilder.mockReturnValue(qb);
+      lineItemRepo.find.mockResolvedValue(items);
+
+      const result = await service.findOneWithLineItems('inv-1', TENANT_ID, []);
+      expect(result?.lineItems).toEqual(items);
+    });
+
+    it('returns null when invoice not found', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+      invoiceRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findOneWithLineItems('missing', TENANT_ID, []);
       expect(result).toBeNull();
     });
   });

@@ -223,6 +223,8 @@ Todos los endpoints v2 requieren JWT cookie (httpOnly). Tenant scoping + buildin
 | DELETE | `/invoices/:id` | — | 204 No Content (solo draft) |
 | PATCH | `/invoices/:id/approve` | — | `Invoice` (status=approved, solo desde pending) |
 | PATCH | `/invoices/:id/void` | — | `Invoice` (status=voided) |
+| POST | `/invoices/generate` | `{ buildingId, tariffId, periodStart, periodEnd, meterIds?, tenantUnitIds? }` | `Invoice` (genera line items por medidor desde readings + tariff blocks) |
+| GET | `/invoices/:id/pdf` | — | HTML invoice con line items y totales |
 
 ### Fault Events (`/fault-events`) — read-only
 | Method | Path | Query | Response |

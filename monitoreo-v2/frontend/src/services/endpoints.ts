@@ -15,6 +15,13 @@ import type { HierarchyNode } from '../types/hierarchy';
 import type { Concentrator } from '../types/concentrator';
 import type { Meter } from '../types/meter';
 import type { FaultEvent, FaultEventQueryParams } from '../types/fault-event';
+import type {
+  Tariff, TariffBlock, CreateTariffPayload, UpdateTariffPayload, CreateTariffBlockPayload,
+} from '../types/tariff';
+import type {
+  Invoice, InvoiceLineItem, InvoiceQueryParams,
+  CreateInvoicePayload, UpdateInvoicePayload, GenerateInvoicePayload,
+} from '../types/invoice';
 
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
@@ -123,6 +130,64 @@ export const faultEventsEndpoints = {
 
   get: (id: string) =>
     api.get<FaultEvent>(`${API_ROUTES.faultEvents}/${id}`),
+};
+
+export const tariffsEndpoints = {
+  list: (buildingId?: string) =>
+    api.get<Tariff[]>(API_ROUTES.tariffs, { params: buildingId ? { buildingId } : undefined }),
+
+  get: (id: string) =>
+    api.get<Tariff>(`${API_ROUTES.tariffs}/${id}`),
+
+  create: (payload: CreateTariffPayload) =>
+    api.post<Tariff>(API_ROUTES.tariffs, payload),
+
+  update: (id: string, payload: UpdateTariffPayload) =>
+    api.patch<Tariff>(`${API_ROUTES.tariffs}/${id}`, payload),
+
+  remove: (id: string) =>
+    api.delete(`${API_ROUTES.tariffs}/${id}`),
+
+  blocks: (tariffId: string) =>
+    api.get<TariffBlock[]>(`${API_ROUTES.tariffs}/${tariffId}/blocks`),
+
+  createBlock: (tariffId: string, payload: CreateTariffBlockPayload) =>
+    api.post<TariffBlock>(`${API_ROUTES.tariffs}/${tariffId}/blocks`, payload),
+
+  removeBlock: (tariffId: string, blockId: string) =>
+    api.delete(`${API_ROUTES.tariffs}/${tariffId}/blocks/${blockId}`),
+};
+
+export const invoicesEndpoints = {
+  list: (params?: InvoiceQueryParams) =>
+    api.get<Invoice[]>(API_ROUTES.invoices, { params }),
+
+  get: (id: string) =>
+    api.get<Invoice>(`${API_ROUTES.invoices}/${id}`),
+
+  lineItems: (id: string) =>
+    api.get<InvoiceLineItem[]>(`${API_ROUTES.invoices}/${id}/line-items`),
+
+  create: (payload: CreateInvoicePayload) =>
+    api.post<Invoice>(API_ROUTES.invoices, payload),
+
+  update: (id: string, payload: UpdateInvoicePayload) =>
+    api.patch<Invoice>(`${API_ROUTES.invoices}/${id}`, payload),
+
+  remove: (id: string) =>
+    api.delete(`${API_ROUTES.invoices}/${id}`),
+
+  approve: (id: string) =>
+    api.patch<Invoice>(`${API_ROUTES.invoices}/${id}/approve`),
+
+  void: (id: string) =>
+    api.patch<Invoice>(`${API_ROUTES.invoices}/${id}/void`),
+
+  generate: (payload: GenerateInvoicePayload) =>
+    api.post<Invoice>(`${API_ROUTES.invoices}/generate`, payload),
+
+  pdfUrl: (id: string) =>
+    `${API_ROUTES.invoices}/${id}/pdf`,
 };
 
 export const readingsEndpoints = {

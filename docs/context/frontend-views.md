@@ -269,6 +269,8 @@ MeterReading {
 | `/monitoring/quality/:siteId` | Calidad Eléctrica | — | 4 charts (THD V, THD I, PF, desequilibrio), umbrales normativos |
 | `/monitoring/devices` | Dispositivos | si | Tabla unificada medidores + concentradores, filtros building/tipo/estado |
 | `/monitoring/fault-history/:meterId` | Historial Fallos | — | Timeline eventos de fallo, filtros tipo/fecha |
+| `/billing` | Facturas | si | Tabla facturas con filtros edificio/estado, detalle line items, acciones aprobar/anular/eliminar, generación |
+| `/billing/rates` | Tarifas | si | Tabla tarifas CRUD con bloques horarios expandibles, filtro edificio |
 
 ## API layer (v2)
 
@@ -283,6 +285,8 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Hierarchy | `/hierarchy/buildings/:id`, `/hierarchy/:id/meters` | `useHierarchyByBuildingQuery` |
 | Concentrators | `/concentrators` | `useConcentratorsQuery(buildingId?)` |
 | Fault Events | `/fault-events` | `useFaultEventsQuery(params?)` |
+| Tariffs | `/tariffs` | `useTariffsQuery(buildingId?)`, `useTariffBlocksQuery(tariffId)` |
+| Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
 
 ## Tipos (v2)
 
@@ -295,6 +299,8 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `types/hierarchy.ts` | `HierarchyNode`, `HierarchyLevelType` |
 | `types/concentrator.ts` | `Concentrator`, `ConcentratorStatus` |
 | `types/fault-event.ts` | `FaultEvent`, `FaultSeverity`, `FaultEventQueryParams` |
+| `types/tariff.ts` | `Tariff`, `TariffBlock`, `CreateTariffPayload`, `UpdateTariffPayload`, `CreateTariffBlockPayload` |
+| `types/invoice.ts` | `Invoice`, `InvoiceLineItem`, `InvoiceStatus`, `InvoiceQueryParams`, `GenerateInvoicePayload` |
 
 ## Componentes compartidos (v2)
 
@@ -309,6 +315,5 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 
 ## Navegación (v2)
 
-Las vistas de monitoreo se acceden de dos formas:
-- **Sidebar**: Tiempo Real y Dispositivos son entradas directas
-- **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links. Todas incluyen breadcrumbs para volver
+- **Sidebar directo**: Dashboard, Edificios, Medidores, Alertas, Tiempo Real, Dispositivos, Facturas, Tarifas
+- **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links con breadcrumbs

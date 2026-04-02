@@ -16,6 +16,8 @@ import {
   LazyQualityPage,
   LazyDevicesPage,
   LazyFaultHistoryPage,
+  LazyInvoicesPage,
+  LazyTariffsPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -51,7 +53,8 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.monitoring.quality, element: <LazyQualityPage /> },
               { path: APP_ROUTES.monitoring.devices, element: <LazyDevicesPage /> },
               { path: APP_ROUTES.monitoring.faultHistory, element: <LazyFaultHistoryPage /> },
-              { path: APP_ROUTES.billing, element: <LazyPlaceholderPage label="Facturación" /> },
+              { path: APP_ROUTES.billing.invoices, element: <LazyInvoicesPage /> },
+              { path: APP_ROUTES.billing.rates, element: <LazyTariffsPage /> },
               { path: APP_ROUTES.reports, element: <LazyPlaceholderPage label="Reportes" /> },
               { path: APP_ROUTES.components, element: <LazyComponentsPage /> },
               { path: APP_ROUTES.admin.users, element: <LazyPlaceholderPage label="Usuarios" /> },

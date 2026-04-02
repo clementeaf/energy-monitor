@@ -7,15 +7,18 @@ import {
   Param,
   Query,
   Body,
+  Res,
   NotFoundException,
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { QueryInvoicesDto } from './dto/query-invoices.dto';
+import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
@@ -110,5 +113,85 @@ export class InvoicesController {
     const invoice = await this.invoicesService.void(id, user.tenantId);
     if (!invoice) throw new NotFoundException('Invoice not found');
     return invoice;
+  }
+
+  @Post('generate')
+  @RequirePermission('billing_invoices', 'create')
+  async generate(
+    @Body() dto: GenerateInvoiceDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.invoicesService.generate(user.tenantId, user.sub, dto);
+  }
+
+  @Get(':id/pdf')
+  @RequirePermission('billing_invoices', 'read')
+  async pdf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+    @Res() res: Response,
+  ) {
+    const invoice = await this.invoicesService.findOneWithLineItems(
+      id,
+      user.tenantId,
+      user.buildingIds,
+    );
+    if (!invoice) throw new NotFoundException('Invoice not found');
+
+    // Build simple HTML invoice
+    const lineRows = invoice.lineItems
+      .map(
+        (li) =>
+          `<tr>
+            <td>${li.meterId.slice(0, 8)}</td>
+            <td style="text-align:right">${li.kwhConsumption}</td>
+            <td style="text-align:right">${li.kwDemandMax}</td>
+            <td style="text-align:right">${li.energyCharge}</td>
+            <td style="text-align:right">${li.demandCharge}</td>
+            <td style="text-align:right">${li.reactiveCharge}</td>
+            <td style="text-align:right">${li.fixedCharge}</td>
+            <td style="text-align:right"><strong>${li.totalNet}</strong></td>
+          </tr>`,
+      )
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; font-size: 12px; }
+  h1 { color: #1a1a2e; font-size: 20px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+  th, td { border: 1px solid #ddd; padding: 6px 8px; }
+  th { background: #f0f0f5; text-align: left; }
+  .summary { margin-top: 20px; }
+  .summary td { border: none; padding: 4px 8px; }
+  .summary .label { text-align: right; font-weight: bold; }
+</style>
+</head><body>
+  <h1>Factura ${invoice.invoiceNumber}</h1>
+  <p><strong>Periodo:</strong> ${invoice.periodStart} a ${invoice.periodEnd}</p>
+  <p><strong>Estado:</strong> ${invoice.status}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Medidor</th><th>kWh</th><th>kW Max</th>
+        <th>Cargo Energia</th><th>Cargo Demanda</th>
+        <th>Cargo Reactiva</th><th>Cargo Fijo</th><th>Total Neto</th>
+      </tr>
+    </thead>
+    <tbody>${lineRows}</tbody>
+  </table>
+  <table class="summary">
+    <tr><td class="label">Total Neto:</td><td>$${invoice.totalNet}</td></tr>
+    <tr><td class="label">IVA (${(parseFloat(invoice.taxRate) * 100).toFixed(0)}%):</td><td>$${invoice.taxAmount}</td></tr>
+    <tr><td class="label">Total:</td><td><strong>$${invoice.total}</strong></td></tr>
+  </table>
+</body></html>`;
+
+    res.set({
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Disposition': `inline; filename="factura-${invoice.invoiceNumber}.html"`,
+    });
+    res.send(html);
   }
 }

@@ -12,7 +12,10 @@ export const APP_ROUTES = {
     devices: '/monitoring/devices',
     faultHistory: '/monitoring/fault-history/:meterId',
   },
-  billing: '/billing',
+  billing: {
+    invoices: '/billing',
+    rates: '/billing/rates',
+  },
   reports: '/reports',
   components: '/components',
   admin: {

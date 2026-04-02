@@ -60,6 +60,16 @@ export const LazyFaultHistoryPage = lazy(async () => {
   return { default: m.FaultHistoryPage };
 });
 
+export const LazyInvoicesPage = lazy(async () => {
+  const m = await import('../features/billing/InvoicesPage');
+  return { default: m.InvoicesPage };
+});
+
+export const LazyTariffsPage = lazy(async () => {
+  const m = await import('../features/billing/TariffsPage');
+  return { default: m.TariffsPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

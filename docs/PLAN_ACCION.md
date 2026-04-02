@@ -98,40 +98,40 @@ Las entidades TypeORM existen en PlatformModule pero sin service/controller.
 Rutas objetivo del XLSX. Dependen de Fase 1 (API layer) y parcialmente Fase 2 (backend modules).
 
 ### 3.1 Monitoreo Tiempo Real `/monitoring/realtime`
-- [ ] Ruta + pagina + sidebar entry
-- [ ] StockChart con auto-refresh (polling o WS) desde `GET /readings/latest`
-- [ ] Tabla de ultimas lecturas por medidor
-- [ ] Indicadores de estado (online/offline/alarma)
+- [x] Ruta + pagina + sidebar entry
+- [x] Auto-refresh (30s polling) desde `GET /readings/latest`
+- [x] Tabla de ultimas lecturas por medidor (potencia, voltaje, FP, frecuencia)
+- [x] Indicadores de estado (online/offline/alarma) con cards resumen
 
 ### 3.2 Drill-down por sitio `/monitoring/drilldown/:siteId`
-- [ ] Ruta + pagina
-- [ ] Vista jerarquica: edificio → concentradores → medidores
-- [ ] Charts por nivel de jerarquia
-- [ ] Navegacion breadcrumb
+- [x] Ruta + pagina
+- [x] Vista jerarquica: edificio → concentradores → medidores
+- [x] Tabla de medidores con lecturas en vivo
+- [x] Navegacion breadcrumb + links a Demanda/Calidad/Fallos
 
 ### 3.3 Demanda por sitio `/monitoring/demand/:siteId`
-- [ ] Ruta + pagina
-- [ ] Grafico de demanda (potencia activa vs tiempo)
-- [ ] Indicador peak demand vs contratada
-- [ ] Tabla historico de peaks
+- [x] Ruta + pagina
+- [x] StockChart de demanda (potencia promedio + max vs tiempo)
+- [x] Indicador peak demand vs contratada (plotLine rojo)
+- [x] Tabla Top 10 peaks con % contratada
 
 ### 3.4 Calidad electrica `/monitoring/quality/:siteId`
-- [ ] Ruta + pagina
-- [ ] Graficos: THD voltaje, THD corriente, factor de potencia, desequilibrio de fases
-- [ ] Indicadores vs umbrales normativos
-- [ ] Alertas de calidad activas
+- [x] Ruta + pagina
+- [x] 4 graficos: THD voltaje, THD corriente, factor de potencia, desequilibrio de fases
+- [x] Indicadores vs umbrales normativos (NCh/IEEE 519) con cards rojo/verde
+- [x] Alertas de calidad activas
 
 ### 3.5 Dispositivos `/monitoring/devices`
-- [ ] Ruta + pagina
-- [ ] Tabla de medidores + concentradores con estado
-- [ ] Filtros por edificio, tipo, estado
-- [ ] Detalle con ultima comunicacion y diagnostico
+- [x] Ruta + pagina + sidebar entry
+- [x] Tabla unificada de medidores + concentradores con estado
+- [x] Filtros por edificio, tipo, estado
+- [x] Detalle con ultima comunicacion y diagnostico
 
 ### 3.6 Historial de fallos `/monitoring/fault-history/:meterId`
-- [ ] Ruta + pagina
-- [ ] Timeline de eventos de fallo por medidor
-- [ ] Filtros por tipo de fallo y rango de fecha
-- [ ] Enlace a detalle de cada evento
+- [x] Ruta + pagina
+- [x] Timeline visual de eventos de fallo por medidor
+- [x] Filtros por tipo de fallo y rango de fecha
+- [x] Cards resumen (total, abiertos, resueltos, criticos)
 
 ---
 

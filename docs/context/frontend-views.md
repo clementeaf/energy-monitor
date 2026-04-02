@@ -248,3 +248,67 @@ MeterReading {
 - `ProtectedRoute` — componente guard
 - `appRoutes` + `permissions` — rutas y RBAC
 - `types/auth.ts` — `Role`, `AuthUser`, `AuthProvider`
+
+---
+
+# monitoreo-v2 Frontend
+
+> Todo lo que sigue vive en `monitoreo-v2/frontend/src/`.
+
+## Vistas activas (v2)
+
+| Ruta | Vista | Sidebar | Descripción |
+|------|-------|---------|-------------|
+| `/` | Dashboard | si | KPIs, StockChart dual-axis, alertas activas, resumen edificios |
+| `/buildings` | Edificios | si | Tabla CRUD con datos reales |
+| `/meters` | Medidores | si | Tabla con filtro por edificio, CRUD |
+| `/alerts` | Alertas | si | Tabla con filtros status/severity/building, acciones acknowledge/resolve |
+| `/monitoring/realtime` | Tiempo Real | si | Lecturas en vivo (auto-refresh 30s), status online/offline/alarma |
+| `/monitoring/drilldown/:siteId` | Drill-down | — | Jerarquía eléctrica + concentradores + medidores con breadcrumbs |
+| `/monitoring/demand/:siteId` | Demanda | — | StockChart demanda, peak vs contratada, Top 10 peaks |
+| `/monitoring/quality/:siteId` | Calidad Eléctrica | — | 4 charts (THD V, THD I, PF, desequilibrio), umbrales normativos |
+| `/monitoring/devices` | Dispositivos | si | Tabla unificada medidores + concentradores, filtros building/tipo/estado |
+| `/monitoring/fault-history/:meterId` | Historial Fallos | — | Timeline eventos de fallo, filtros tipo/fecha |
+
+## API layer (v2)
+
+Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use*.ts`
+
+| Dominio | Rutas API | Hook principal |
+|---------|-----------|----------------|
+| Buildings | `/buildings` | `useBuildingsQuery` |
+| Meters | `/meters` | `useMetersQuery(buildingId?)` |
+| Alerts | `/alerts`, `/alert-rules` | `useAlertsQuery(params?)` |
+| Readings | `/readings`, `/readings/latest`, `/readings/aggregated` | `useReadingsQuery`, `useLatestReadingsQuery`, `useAggregatedReadingsQuery` |
+| Hierarchy | `/hierarchy/buildings/:id`, `/hierarchy/:id/meters` | `useHierarchyByBuildingQuery` |
+| Concentrators | `/concentrators` | `useConcentratorsQuery(buildingId?)` |
+| Fault Events | `/fault-events` | `useFaultEventsQuery(params?)` |
+
+## Tipos (v2)
+
+| Archivo | Tipos principales |
+|---------|-------------------|
+| `types/building.ts` | `Building`, `CreateBuildingPayload`, `UpdateBuildingPayload` |
+| `types/meter.ts` | `Meter`, `MeterPhaseType`, `CreateMeterPayload`, `UpdateMeterPayload` |
+| `types/alert.ts` | `Alert`, `AlertRule`, `AlertSeverity`, `AlertStatus`, `AlertQueryParams` |
+| `types/reading.ts` | `Reading`, `LatestReading`, `AggregatedReading`, `ReadingResolution` |
+| `types/hierarchy.ts` | `HierarchyNode`, `HierarchyLevelType` |
+| `types/concentrator.ts` | `Concentrator`, `ConcentratorStatus` |
+| `types/fault-event.ts` | `FaultEvent`, `FaultSeverity`, `FaultEventQueryParams` |
+
+## Componentes compartidos (v2)
+
+| Componente | Uso |
+|------------|-----|
+| `StockChart` | Dual-axis time-series con range selector y adaptive resolution |
+| `Chart` | Highcharts general-purpose con hover sync |
+| `MonthlyChart` | Bar/column charts mensuales |
+| `DataWidget` | Wrapper loading/error/empty/ready |
+| `Modal` | Dialog nativo HTML |
+| `ConfirmDialog` | Confirmación eliminar |
+
+## Navegación (v2)
+
+Las vistas de monitoreo se acceden de dos formas:
+- **Sidebar**: Tiempo Real y Dispositivos son entradas directas
+- **Navegación interna**: Drill-down, Demanda, Calidad y Fallos se acceden desde otras vistas via links. Todas incluyen breadcrumbs para volver

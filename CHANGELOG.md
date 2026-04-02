@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.89.0-alpha.0] - 2026-04-01 — MONITOREO V2 FASE 3: VISTAS DE MONITOREO
+
+### Added
+- **API layer frontend** — Tipos, endpoints y query hooks para 3 nuevos dominios:
+  - `hierarchy` — `useHierarchyByBuildingQuery`, `useHierarchyNodeQuery`, `useHierarchyNodeMetersQuery`
+  - `concentrators` — `useConcentratorsQuery`, `useConcentratorQuery`, `useConcentratorMetersQuery`
+  - `fault-events` — `useFaultEventsQuery`, `useFaultEventQuery`
+- **RealtimePage** (`/monitoring/realtime`) — Tabla de lecturas en vivo con auto-refresh 30s. Cards resumen (en linea, sin datos, alarma, potencia total). Filtro por edificio. Indicadores de estado por medidor
+- **DrilldownPage** (`/monitoring/drilldown/:siteId`) — Vista jerárquica del edificio: árbol de jerarquía eléctrica, concentradores con estado, tabla de medidores con lecturas. Breadcrumbs y links a Demanda/Calidad/Fallos
+- **DemandPage** (`/monitoring/demand/:siteId`) — StockChart dual (potencia promedio + máxima). PlotLine rojo para demanda contratada. Tabla Top 10 peaks con porcentaje vs contratada
+- **QualityPage** (`/monitoring/quality/:siteId`) — 4 gráficos: THD voltaje, THD corriente, factor de potencia, desequilibrio de fases. Umbrales normativos (NCh/IEEE 519) con indicadores verde/rojo. Alertas de calidad activas
+- **DevicesPage** (`/monitoring/devices`) — Tabla unificada medidores + concentradores. Cards resumen por estado. Filtros por edificio, tipo de dispositivo y estado. Última comunicación y diagnóstico
+- **FaultHistoryPage** (`/monitoring/fault-history/:meterId`) — Timeline visual de eventos de fallo. Filtros por tipo y rango de fecha. Cards resumen (total, abiertos, resueltos, críticos). Duración calculada
+
+### Changed
+- **Sidebar** — 2 nuevas entradas: "Tiempo Real" y "Dispositivos" en nav principal
+- **Router** — 6 nuevas rutas bajo `/monitoring/*` con lazy loading
+- **APP_ROUTES** — Nuevo bloque `monitoring` con 6 rutas parametrizadas
+
+---
+
 ## [0.88.0-alpha.0] - 2026-04-01 — MONITOREO V2 FASE 2: BACKEND MODULES
 
 ### Added

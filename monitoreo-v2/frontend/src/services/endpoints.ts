@@ -11,6 +11,10 @@ import type {
   Reading, ReadingQueryParams, LatestQueryParams, LatestReading,
   AggregatedQueryParams, AggregatedReading,
 } from '../types/reading';
+import type { HierarchyNode } from '../types/hierarchy';
+import type { Concentrator } from '../types/concentrator';
+import type { Meter } from '../types/meter';
+import type { FaultEvent, FaultEventQueryParams } from '../types/fault-event';
 
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
@@ -89,6 +93,36 @@ export const alertRulesEndpoints = {
 
   remove: (id: string) =>
     api.delete(`${API_ROUTES.alertRules}/${id}`),
+};
+
+export const hierarchyEndpoints = {
+  byBuilding: (buildingId: string) =>
+    api.get<HierarchyNode[]>(`${API_ROUTES.hierarchy}/buildings/${buildingId}`),
+
+  get: (id: string) =>
+    api.get<HierarchyNode>(`${API_ROUTES.hierarchy}/${id}`),
+
+  meters: (nodeId: string) =>
+    api.get<Meter[]>(`${API_ROUTES.hierarchy}/${nodeId}/meters`),
+};
+
+export const concentratorsEndpoints = {
+  list: (buildingId?: string) =>
+    api.get<Concentrator[]>(API_ROUTES.concentrators, { params: buildingId ? { buildingId } : undefined }),
+
+  get: (id: string) =>
+    api.get<Concentrator>(`${API_ROUTES.concentrators}/${id}`),
+
+  meters: (id: string) =>
+    api.get<Meter[]>(`${API_ROUTES.concentrators}/${id}/meters`),
+};
+
+export const faultEventsEndpoints = {
+  list: (params?: FaultEventQueryParams) =>
+    api.get<FaultEvent[]>(API_ROUTES.faultEvents, { params }),
+
+  get: (id: string) =>
+    api.get<FaultEvent>(`${API_ROUTES.faultEvents}/${id}`),
 };
 
 export const readingsEndpoints = {

@@ -10,6 +10,12 @@ import {
   LazyComponentsPage,
   LazyDashboardPage,
   LazyPlaceholderPage,
+  LazyRealtimePage,
+  LazyDrilldownPage,
+  LazyDemandPage,
+  LazyQualityPage,
+  LazyDevicesPage,
+  LazyFaultHistoryPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -39,6 +45,12 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.buildings, element: <LazyBuildingsPage /> },
               { path: APP_ROUTES.meters, element: <LazyMetersPage /> },
               { path: APP_ROUTES.alerts, element: <LazyAlertsPage /> },
+              { path: APP_ROUTES.monitoring.realtime, element: <LazyRealtimePage /> },
+              { path: APP_ROUTES.monitoring.drilldown, element: <LazyDrilldownPage /> },
+              { path: APP_ROUTES.monitoring.demand, element: <LazyDemandPage /> },
+              { path: APP_ROUTES.monitoring.quality, element: <LazyQualityPage /> },
+              { path: APP_ROUTES.monitoring.devices, element: <LazyDevicesPage /> },
+              { path: APP_ROUTES.monitoring.faultHistory, element: <LazyFaultHistoryPage /> },
               { path: APP_ROUTES.billing, element: <LazyPlaceholderPage label="Facturación" /> },
               { path: APP_ROUTES.reports, element: <LazyPlaceholderPage label="Reportes" /> },
               { path: APP_ROUTES.components, element: <LazyComponentsPage /> },

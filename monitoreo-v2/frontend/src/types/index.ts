@@ -9,3 +9,9 @@ export type {
   Reading, LatestReading, ReadingResolution, AggregationInterval, ReadingQueryParams,
   LatestQueryParams, AggregatedQueryParams, AggregatedReading,
 } from './reading';
+export type {
+  HierarchyNode, HierarchyLevelType,
+  CreateHierarchyNodePayload, UpdateHierarchyNodePayload,
+} from './hierarchy';
+export type { Concentrator, ConcentratorStatus, ConcentratorMeterLink } from './concentrator';
+export type { FaultEvent, FaultSeverity, FaultEventQueryParams } from './fault-event';

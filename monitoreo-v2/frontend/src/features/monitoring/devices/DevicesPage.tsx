@@ -1,0 +1,239 @@
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
+import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQuery';
+import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { DataWidget } from '../../../components/ui/DataWidget';
+import { useQueryState } from '../../../hooks/useQueryState';
+import type { Concentrator } from '../../../types/concentrator';
+import type { Meter } from '../../../types/meter';
+
+type DeviceType = 'all' | 'meter' | 'concentrator';
+type StatusFilter = 'all' | 'online' | 'offline' | 'error';
+
+interface DeviceRow {
+  id: string;
+  name: string;
+  type: 'meter' | 'concentrator';
+  buildingId: string;
+  model: string | null;
+  status: string;
+  lastComm: string | null;
+  detail: string;
+}
+
+export function DevicesPage() {
+  const [buildingFilter, setBuildingFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<DeviceType>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+  const buildingsQuery = useBuildingsQuery();
+  const metersQuery = useMetersQuery(buildingFilter || undefined);
+  const concentratorsQuery = useConcentratorsQuery(buildingFilter || undefined);
+  const latestQuery = useLatestReadingsQuery(buildingFilter ? { buildingId: buildingFilter } : undefined);
+
+  const buildings = buildingsQuery.data ?? [];
+  const meters = metersQuery.data ?? [];
+  const concentrators = concentratorsQuery.data ?? [];
+  const readings = latestQuery.data ?? [];
+
+  const buildingMap = useMemo(() => {
+    const map = new Map<string, string>();
+    buildings.forEach((b) => map.set(b.id, b.name));
+    return map;
+  }, [buildings]);
+
+  const readingMap = useMemo(() => {
+    const map = new Map<string, typeof readings[0]>();
+    readings.forEach((r) => map.set(r.meter_id, r));
+    return map;
+  }, [readings]);
+
+  // Unify meters and concentrators into a single device list
+  const devices: DeviceRow[] = useMemo(() => {
+    const rows: DeviceRow[] = [];
+
+    meters.forEach((m: Meter) => {
+      const reading = readingMap.get(m.id);
+      const age = reading ? Date.now() - new Date(reading.timestamp).getTime() : Infinity;
+      const status = !m.isActive ? 'offline' : age < 30 * 60_000 ? 'online' : 'offline';
+      rows.push({
+        id: m.id,
+        name: m.name,
+        type: 'meter',
+        buildingId: m.buildingId,
+        model: m.model,
+        status,
+        lastComm: reading?.timestamp ?? null,
+        detail: `${m.meterType} · ${m.phaseType === 'three_phase' ? 'Trifasico' : 'Monofasico'}${m.modbusAddress ? ` · Modbus ${m.modbusAddress}` : ''}`,
+      });
+    });
+
+    concentrators.forEach((c: Concentrator) => {
+      rows.push({
+        id: c.id,
+        name: c.name,
+        type: 'concentrator',
+        buildingId: c.buildingId,
+        model: c.model,
+        status: c.status,
+        lastComm: c.lastHeartbeatAt,
+        detail: `${c.firmwareVersion ? `FW ${c.firmwareVersion}` : ''}${c.ipAddress ? ` · ${c.ipAddress}` : ''}${c.mqttConnected ? ' · MQTT' : ''}`,
+      });
+    });
+
+    return rows;
+  }, [meters, concentrators, readingMap]);
+
+  // Apply filters
+  const filtered = useMemo(() => {
+    return devices.filter((d) => {
+      if (typeFilter !== 'all' && d.type !== typeFilter) return false;
+      if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+      return true;
+    });
+  }, [devices, typeFilter, statusFilter]);
+
+  const qs = useQueryState(metersQuery, {
+    isEmpty: (d) => !d || d.length === 0,
+  });
+
+  const statusColors: Record<string, string> = {
+    online: 'bg-green-100 text-green-700',
+    offline: 'bg-gray-100 text-gray-600',
+    error: 'bg-red-100 text-red-700',
+    maintenance: 'bg-yellow-100 text-yellow-700',
+  };
+
+  const typeLabels: Record<string, string> = {
+    meter: 'Medidor',
+    concentrator: 'Concentrador',
+  };
+
+  // Summary
+  const onlineCount = devices.filter((d) => d.status === 'online').length;
+  const offlineCount = devices.filter((d) => d.status === 'offline').length;
+  const errorCount = devices.filter((d) => d.status === 'error').length;
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold text-gray-900">Dispositivos</h1>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <SummaryCard label="Total" value={String(devices.length)} />
+        <SummaryCard label="En linea" value={String(onlineCount)} color="text-green-600" />
+        <SummaryCard label="Sin conexion" value={String(offlineCount)} color="text-gray-500" />
+        <SummaryCard label="Error" value={String(errorCount)} color="text-red-600" />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <select
+          value={buildingFilter}
+          onChange={(e) => setBuildingFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+        >
+          <option value="">Todos los edificios</option>
+          {buildings.map((b) => (
+            <option key={b.id} value={b.id}>{b.name}</option>
+          ))}
+        </select>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value as DeviceType)}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+        >
+          <option value="all">Todos los tipos</option>
+          <option value="meter">Medidores</option>
+          <option value="concentrator">Concentradores</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+        >
+          <option value="all">Todos los estados</option>
+          <option value="online">En linea</option>
+          <option value="offline">Sin conexion</option>
+          <option value="error">Error</option>
+        </select>
+      </div>
+
+      <DataWidget
+        phase={qs.phase === 'loading' ? 'loading' : filtered.length === 0 ? 'empty' : 'ready'}
+        error={qs.error}
+        onRetry={() => { void metersQuery.refetch(); }}
+        isFetching={metersQuery.isFetching || concentratorsQuery.isFetching}
+        emptyTitle="Sin dispositivos"
+        emptyDescription="No hay dispositivos que coincidan con los filtros seleccionados."
+      >
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <Th>Estado</Th>
+                <Th>Nombre</Th>
+                <Th>Tipo</Th>
+                <Th>Edificio</Th>
+                <Th>Modelo</Th>
+                <Th>Detalle</Th>
+                <Th>Ultima comunicacion</Th>
+                <Th>Acciones</Th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filtered.map((d) => (
+                <tr key={d.id} className="hover:bg-gray-50">
+                  <Td>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[d.status] ?? statusColors.offline}`}>
+                      {d.status}
+                    </span>
+                  </Td>
+                  <Td className="font-medium">{d.name}</Td>
+                  <Td>{typeLabels[d.type]}</Td>
+                  <Td>{buildingMap.get(d.buildingId) ?? '—'}</Td>
+                  <Td>{d.model ?? '—'}</Td>
+                  <Td className="max-w-xs truncate text-xs text-gray-500">{d.detail || '—'}</Td>
+                  <Td className="text-xs text-gray-500">
+                    {d.lastComm ? new Date(d.lastComm).toLocaleString('es-CL') : '—'}
+                  </Td>
+                  <Td>
+                    {d.type === 'meter' && (
+                      <Link
+                        to={`/monitoring/fault-history/${d.id}`}
+                        className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
+                      >
+                        Fallos
+                      </Link>
+                    )}
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DataWidget>
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, color = 'text-gray-900' }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return (
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+}

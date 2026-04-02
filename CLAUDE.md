@@ -25,15 +25,17 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-01)
-- **Fase 2 backend completa** — 6 módulos: Hierarchy, Concentrators, TenantUnits, Tariffs, Invoices, FaultEvents. Tenant scoping + buildingIds RBAC. 40 endpoints, 152 tests nuevos
-- **Frontend conectado a backend** — API layer completo: routes, endpoints, tipos TS, query hooks para buildings, meters, alerts, alertRules, readings
-- **BuildingsPage** — Tabla con datos reales, click navega a medidores. CRUD modal (admin only)
-- **MetersPage** — Nueva ruta `/meters`, filtro por edificio, CRUD modal (admin only)
-- **AlertsPage** — Tabla con filtros (status, severity, building), acciones acknowledge/resolve
-- **DashboardPage** — KPIs reales, StockChart dual-axis (potencia + FP) con resolucion adaptativa, alertas activas, resumen por edificio
-- **Badge alertas** — Conteo alertas activas en sidebar
-- **Componentes UI** — `Modal`, `ConfirmDialog`, `BuildingForm`, `MeterForm`
-- **PLAN_ACCION.md** — Plan priorizado 8 fases con microtareas. Fases 1-2 completas
+- **Fase 3 — Vistas de monitoreo** — 6 páginas nuevas bajo `/monitoring/*`:
+  - `RealtimePage` — lecturas en vivo, auto-refresh 30s, status online/offline/alarma
+  - `DrilldownPage` — vista jerárquica: edificio → concentradores → medidores
+  - `DemandPage` — StockChart demanda, peak vs contratada, Top 10 peaks
+  - `QualityPage` — 4 charts calidad eléctrica, umbrales NCh/IEEE 519
+  - `DevicesPage` — tabla unificada medidores + concentradores
+  - `FaultHistoryPage` — timeline eventos de fallo
+- **API layer** — tipos, endpoints y hooks para hierarchy, concentrators, fault-events
+- **Fase 2 backend** — 6 módulos, 40 endpoints, 152 tests nuevos
+- **Fase 1 frontend** — API layer, BuildingsPage, MetersPage, AlertsPage, DashboardPage
+- **PLAN_ACCION.md** — Fases 1-3 completas
 
 ### Completado (2026-03-30)
 - **ReadingsModule** — Read-only: `GET /readings` (time-series con downsampling vía `time_bucket`), `GET /readings/latest` (última lectura por medidor), `GET /readings/aggregated` (hourly/daily/monthly). Tenant + buildingIds RBAC
@@ -71,7 +73,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Pendiente
 - **monitoreo-v2**: Invoices generate + PDF endpoints (pendiente Fase 4)
-- **monitoreo-v2**: Fases 3-8 del PLAN_ACCION — vistas monitoreo, facturación, admin, alertas avanzadas, reportes
+- **monitoreo-v2**: Fases 4-8 del PLAN_ACCION — facturación, admin, alertas avanzadas, reportes, vistas adicionales
 - Verificar backfill MG + re-ejecutar dbVerify para is_three_phase
 - Solicitar salida de SES sandbox (consola AWS)
 - Costo por Centro (pendiente definición con cliente)
@@ -84,8 +86,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
 Backend: Fases 1-2 completas — 12 módulos activos (290 tests, 28 suites).
-Frontend: Fase 1 completa — API layer, BuildingsPage, MetersPage, AlertsPage, DashboardPage conectados.
-Pendiente: Fases 3-8 del PLAN_ACCION (vistas monitoreo, facturacion, admin, alertas avanzadas, reportes).
+Frontend: Fases 1-3 completas — API layer (10 dominios), 10 vistas activas (Dashboard, Buildings, Meters, Alerts, Realtime, Drilldown, Demand, Quality, Devices, FaultHistory).
+Pendiente: Fases 4-8 del PLAN_ACCION (facturacion, admin, alertas avanzadas, reportes, vistas adicionales).
 ```
 
 ## Prioridad Actual de Acceso

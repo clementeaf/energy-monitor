@@ -34,6 +34,16 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['admin_alerts:read', 'monitoring_alerts:read'],
   },
   {
+    to: '/monitoring/realtime',
+    label: 'Tiempo Real',
+    requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
+  },
+  {
+    to: '/monitoring/devices',
+    label: 'Dispositivos',
+    requiredPerms: ['admin_concentrators:read', 'admin_meters:read'],
+  },
+  {
     to: '/billing',
     label: 'Facturacion',
     requiredPerms: ['billing:read', 'billing:view_own'],

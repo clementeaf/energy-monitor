@@ -10,4 +10,7 @@ export const API_ROUTES = {
   alerts: '/alerts',
   alertRules: '/alert-rules',
   readings: '/readings',
+  hierarchy: '/hierarchy',
+  concentrators: '/concentrators',
+  faultEvents: '/fault-events',
 } as const;

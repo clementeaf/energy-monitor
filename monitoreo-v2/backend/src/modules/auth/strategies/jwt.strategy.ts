@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -20,15 +20,39 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload): JwtPayload {
+  /**
+   * Strict validation of JWT payload structure.
+   * Rejects malformed tokens even if signature is valid — defense-in-depth.
+   */
+  validate(payload: Record<string, unknown>): JwtPayload {
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.email !== 'string' ||
+      typeof payload.tenantId !== 'string' ||
+      typeof payload.roleId !== 'string' ||
+      typeof payload.roleSlug !== 'string' ||
+      !Array.isArray(payload.permissions) ||
+      !payload.permissions.every((p: unknown) => typeof p === 'string')
+    ) {
+      throw new UnauthorizedException('Malformed token payload');
+    }
+
+    const buildingIds = payload.buildingIds;
+    if (
+      buildingIds !== undefined &&
+      (!Array.isArray(buildingIds) || !buildingIds.every((b: unknown) => typeof b === 'string'))
+    ) {
+      throw new UnauthorizedException('Malformed token payload');
+    }
+
     return {
       sub: payload.sub,
       email: payload.email,
       tenantId: payload.tenantId,
       roleId: payload.roleId,
-      roleSlug: payload.roleSlug,
-      permissions: payload.permissions,
-      buildingIds: payload.buildingIds ?? [],
+      roleSlug: payload.roleSlug as string,
+      permissions: payload.permissions as string[],
+      buildingIds: (buildingIds as string[]) ?? [],
     };
   }
 }

@@ -22,6 +22,7 @@ import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
+import { escapeHtml } from '../../common/security/html-escape';
 
 @Controller('invoices')
 export class InvoicesController {
@@ -139,18 +140,20 @@ export class InvoicesController {
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     // Build simple HTML invoice
+    // Security: escape ALL dynamic values to prevent stored XSS
+    const e = escapeHtml;
     const lineRows = invoice.lineItems
       .map(
         (li) =>
           `<tr>
-            <td>${li.meterId.slice(0, 8)}</td>
-            <td style="text-align:right">${li.kwhConsumption}</td>
-            <td style="text-align:right">${li.kwDemandMax}</td>
-            <td style="text-align:right">${li.energyCharge}</td>
-            <td style="text-align:right">${li.demandCharge}</td>
-            <td style="text-align:right">${li.reactiveCharge}</td>
-            <td style="text-align:right">${li.fixedCharge}</td>
-            <td style="text-align:right"><strong>${li.totalNet}</strong></td>
+            <td>${e(li.meterId.slice(0, 8))}</td>
+            <td style="text-align:right">${e(li.kwhConsumption)}</td>
+            <td style="text-align:right">${e(li.kwDemandMax)}</td>
+            <td style="text-align:right">${e(li.energyCharge)}</td>
+            <td style="text-align:right">${e(li.demandCharge)}</td>
+            <td style="text-align:right">${e(li.reactiveCharge)}</td>
+            <td style="text-align:right">${e(li.fixedCharge)}</td>
+            <td style="text-align:right"><strong>${e(li.totalNet)}</strong></td>
           </tr>`,
       )
       .join('');
@@ -168,9 +171,9 @@ export class InvoicesController {
   .summary .label { text-align: right; font-weight: bold; }
 </style>
 </head><body>
-  <h1>Factura ${invoice.invoiceNumber}</h1>
-  <p><strong>Periodo:</strong> ${invoice.periodStart} a ${invoice.periodEnd}</p>
-  <p><strong>Estado:</strong> ${invoice.status}</p>
+  <h1>Factura ${e(invoice.invoiceNumber)}</h1>
+  <p><strong>Periodo:</strong> ${e(invoice.periodStart)} a ${e(invoice.periodEnd)}</p>
+  <p><strong>Estado:</strong> ${e(invoice.status)}</p>
   <table>
     <thead>
       <tr>
@@ -182,9 +185,9 @@ export class InvoicesController {
     <tbody>${lineRows}</tbody>
   </table>
   <table class="summary">
-    <tr><td class="label">Total Neto:</td><td>$${invoice.totalNet}</td></tr>
-    <tr><td class="label">IVA (${(parseFloat(invoice.taxRate) * 100).toFixed(0)}%):</td><td>$${invoice.taxAmount}</td></tr>
-    <tr><td class="label">Total:</td><td><strong>$${invoice.total}</strong></td></tr>
+    <tr><td class="label">Total Neto:</td><td>$${e(invoice.totalNet)}</td></tr>
+    <tr><td class="label">IVA (${e((parseFloat(invoice.taxRate) * 100).toFixed(0))}%):</td><td>$${e(invoice.taxAmount)}</td></tr>
+    <tr><td class="label">Total:</td><td><strong>$${e(invoice.total)}</strong></td></tr>
   </table>
 </body></html>`;
 

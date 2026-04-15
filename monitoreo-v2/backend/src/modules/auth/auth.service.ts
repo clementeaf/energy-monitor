@@ -182,7 +182,23 @@ export class AuthService {
       );
 
       if (rows.length === 0) {
-        await queryRunner.rollbackTransaction();
+        // Token theft detection: if this hash was previously revoked,
+        // revoke ALL tokens for the user (attacker may have stolen the token)
+        const reused = await queryRunner.query(
+          `SELECT user_id FROM refresh_tokens WHERE token_hash = $1 AND revoked_at IS NOT NULL LIMIT 1`,
+          [tokenHash],
+        );
+        if (reused.length > 0) {
+          await queryRunner.query(
+            `UPDATE refresh_tokens SET revoked_at = NOW(), revoked_reason = 'theft_detected'
+             WHERE user_id = $1 AND revoked_at IS NULL`,
+            [reused[0].user_id],
+          );
+          await queryRunner.commitTransaction();
+          this.logger.warn(`Refresh token reuse detected for user ${maskEmail(reused[0].user_id)}. All sessions revoked.`);
+        } else {
+          await queryRunner.rollbackTransaction();
+        }
         throw new UnauthorizedException('Invalid or expired refresh token.');
       }
 

@@ -63,10 +63,29 @@ const INTERVAL_MAP: Record<string, string> = {
 };
 
 interface AggregateSource {
-  /** Materialized view name. */
+  /** Materialized view name — must be in SAFE_VIEW_NAMES. */
   view: string;
-  /** If set, re-bucket the view with this interval (e.g. monthly from daily). */
+  /** If set, re-bucket the view with this interval — must be in SAFE_INTERVALS. */
   reBucket?: string;
+}
+
+/**
+ * Whitelist of allowed view names and intervals to prevent SQL injection.
+ * These are the ONLY values that can be interpolated into SQL templates.
+ */
+const SAFE_VIEW_NAMES = new Set(['readings_hourly', 'readings_daily']);
+const SAFE_INTERVALS = new Set(['1 hour', '1 day', '1 month']);
+
+function assertSafeView(view: string): void {
+  if (!SAFE_VIEW_NAMES.has(view)) {
+    throw new Error(`Unsafe view name rejected: ${view}`);
+  }
+}
+
+function assertSafeInterval(interval: string): void {
+  if (!SAFE_INTERVALS.has(interval)) {
+    throw new Error(`Unsafe interval rejected: ${interval}`);
+  }
 }
 
 /** Maps interval to the continuous aggregate view to query. */
@@ -232,6 +251,10 @@ export class ReadingsService {
     query: AggregatedQueryDto,
     agg: AggregateSource,
   ): Promise<AggregatedRow[]> {
+    // Security: assert interpolated values are in whitelist (defense-in-depth)
+    assertSafeView(agg.view);
+    if (agg.reBucket) assertSafeInterval(agg.reBucket);
+
     const params: unknown[] = [tenantId, query.from, query.to];
     const conditions: string[] = [
       'a.tenant_id = $1',

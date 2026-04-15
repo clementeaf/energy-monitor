@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes, createHash, timingSafeEqual } from 'crypto';
 import { ApiKey } from './entities/api-key.entity';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { UpdateApiKeyDto } from './dto/update-api-key.dto';
@@ -108,28 +108,44 @@ export class ApiKeysService {
    */
   async validate(rawKey: string): Promise<ValidatedApiKeyPayload | null> {
     const keyHash = this.hashKey(rawKey);
+    const keyHashBuf = Buffer.from(keyHash, 'hex');
 
-    const row = await this.repo.findOneBy({ keyHash, isActive: true });
-    if (!row) return null;
+    // Fetch all active keys and compare with constant-time to prevent timing attacks.
+    // The key_prefix index narrows the scan; timingSafeEqual prevents hash enumeration.
+    const prefix = rawKey.slice(0, 8);
+    const candidates = await this.repo.find({
+      where: { keyPrefix: prefix, isActive: true },
+    });
+
+    let matched: ApiKey | null = null;
+    for (const candidate of candidates) {
+      const candidateBuf = Buffer.from(candidate.keyHash, 'hex');
+      if (candidateBuf.length === keyHashBuf.length && timingSafeEqual(keyHashBuf, candidateBuf)) {
+        matched = candidate;
+        break;
+      }
+    }
+
+    if (!matched) return null;
 
     // Check expiration
-    if (row.expiresAt && row.expiresAt < new Date()) {
+    if (matched.expiresAt && matched.expiresAt < new Date()) {
       return null;
     }
 
     // Update last used (fire-and-forget, don't block the request)
-    this.repo.update(row.id, { lastUsedAt: new Date() }).catch(() => {});
+    this.repo.update(matched.id, { lastUsedAt: new Date() }).catch(() => {});
 
     return {
-      sub: `apikey:${row.id}`,
-      email: `apikey-${row.keyPrefix}@system`,
-      tenantId: row.tenantId,
+      sub: `apikey:${matched.id}`,
+      email: `apikey-${matched.keyPrefix}@system`,
+      tenantId: matched.tenantId,
       roleId: 'api_key',
       roleSlug: 'api_key',
-      permissions: row.permissions,
-      buildingIds: row.buildingIds,
-      _apiKeyId: row.id,
-      _rateLimitPerMinute: row.rateLimitPerMinute,
+      permissions: matched.permissions,
+      buildingIds: matched.buildingIds,
+      _apiKeyId: matched.id,
+      _rateLimitPerMinute: matched.rateLimitPerMinute,
     };
   }
 

@@ -217,28 +217,37 @@ describe('ApiKeysService', () => {
   /* ------ Validation ------ */
 
   describe('validate', () => {
-    it('returns null for unknown key', async () => {
-      repo.findOneBy.mockResolvedValue(null);
+    it('returns null when no candidates match prefix', async () => {
+      repo.find.mockResolvedValue([]);
       const result = await service.validate('emk_unknown');
       expect(result).toBeNull();
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { keyPrefix: 'emk_unkn', isActive: true },
+      });
     });
 
     it('returns null for expired key', async () => {
-      const expired = mockApiKey({ expiresAt: new Date('2020-01-01') });
-      repo.findOneBy.mockResolvedValue(expired);
-      const result = await service.validate('emk_test');
+      const testKey = 'emk_testkey_expired';
+      const hash = createHash('sha256').update(testKey).digest('hex');
+      const expired = mockApiKey({ keyHash: hash, keyPrefix: testKey.slice(0, 8), expiresAt: new Date('2020-01-01') });
+      repo.find.mockResolvedValue([expired]);
+      const result = await service.validate(testKey);
       expect(result).toBeNull();
     });
 
     it('returns JwtPayload-compatible object for valid key', async () => {
+      const testKey = 'emk_validkey_for_test';
+      const hash = createHash('sha256').update(testKey).digest('hex');
       const key = mockApiKey({
         id: 'ak-99',
+        keyHash: hash,
+        keyPrefix: testKey.slice(0, 8),
         permissions: ['buildings:read', 'meters:read'],
         buildingIds: ['b-1'],
       });
-      repo.findOneBy.mockResolvedValue(key);
+      repo.find.mockResolvedValue([key]);
 
-      const result = await service.validate('emk_validkey');
+      const result = await service.validate(testKey);
 
       expect(result).not.toBeNull();
       expect(result!.sub).toBe('apikey:ak-99');
@@ -250,16 +259,26 @@ describe('ApiKeysService', () => {
     });
 
     it('updates lastUsedAt on successful validation', async () => {
-      repo.findOneBy.mockResolvedValue(mockApiKey());
-      await service.validate('emk_validkey');
+      const testKey = 'emk_lastused_test';
+      const hash = createHash('sha256').update(testKey).digest('hex');
+      repo.find.mockResolvedValue([mockApiKey({ keyHash: hash, keyPrefix: testKey.slice(0, 8) })]);
+      await service.validate(testKey);
       expect(repo.update).toHaveBeenCalledWith('ak-1', { lastUsedAt: expect.any(Date) });
     });
 
-    it('hashes input with SHA-256 before lookup', async () => {
-      repo.findOneBy.mockResolvedValue(null);
-      await service.validate('emk_testkey');
-      const expectedHash = createHash('sha256').update('emk_testkey').digest('hex');
-      expect(repo.findOneBy).toHaveBeenCalledWith({ keyHash: expectedHash, isActive: true });
+    it('uses constant-time comparison (timingSafeEqual)', async () => {
+      const testKey = 'emk_timing_test_key';
+      const hash = createHash('sha256').update(testKey).digest('hex');
+      const wrongHash = createHash('sha256').update('emk_wrong_key_xxxx').digest('hex');
+      // Two candidates: one wrong, one correct
+      repo.find.mockResolvedValue([
+        mockApiKey({ id: 'ak-wrong', keyHash: wrongHash, keyPrefix: testKey.slice(0, 8) }),
+        mockApiKey({ id: 'ak-right', keyHash: hash, keyPrefix: testKey.slice(0, 8) }),
+      ]);
+
+      const result = await service.validate(testKey);
+      expect(result).not.toBeNull();
+      expect(result!._apiKeyId).toBe('ak-right');
     });
   });
 });

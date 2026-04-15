@@ -104,12 +104,24 @@ export class FtpConnector implements IntegrationConnector {
     };
   }
 
-  /** Convert simple glob (*.csv, data_*.xml) to regex. */
+  /**
+   * Convert simple glob (*.csv, data_?.xml) to regex.
+   * Security: limits pattern length and rejects patterns with excessive wildcards (ReDoS prevention).
+   */
   private globToRegex(pattern: string): RegExp {
+    if (pattern.length > 100) {
+      throw new Error('filePattern too long (max 100 chars)');
+    }
+    // Count wildcards — reject if too many (prevents catastrophic backtracking)
+    const wildcardCount = (pattern.match(/[*?]/g) ?? []).length;
+    if (wildcardCount > 5) {
+      throw new Error('filePattern has too many wildcards (max 5)');
+    }
     const escaped = pattern
       .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
+      .replace(/\*\*/g, '.*')    // ** = any depth (single pass)
+      .replace(/\*/g, '[^/]*')   // * = non-greedy, no path separator
+      .replace(/\?/g, '[^/]');   // ? = single non-separator char
     return new RegExp(`^${escaped}$`, 'i');
   }
 }

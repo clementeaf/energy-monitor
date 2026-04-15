@@ -36,12 +36,17 @@ describe('WebhookConnector', () => {
 
     it('rejects non-http url', () => {
       const errors = connector.validateConfig({ url: 'ftp://host.com' });
-      expect(errors).toContain('url must use http or https protocol');
+      expect(errors.some((e) => e.includes('Blocked protocol'))).toBe(true);
     });
 
     it('rejects invalid url', () => {
       const errors = connector.validateConfig({ url: 'not-url' });
-      expect(errors).toContain('url must be a valid URL');
+      expect(errors).toContain('Invalid URL format');
+    });
+
+    it('rejects SSRF targeting private IPs', () => {
+      const errors = connector.validateConfig({ url: 'http://10.0.0.1/hook' });
+      expect(errors.some((e) => e.includes('Blocked'))).toBe(true);
     });
 
     it('accepts valid minimal config', () => {

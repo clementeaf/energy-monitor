@@ -58,6 +58,10 @@ async function bootstrap() {
     }),
   );
 
+  // Request body size limits (prevent DoS via large payloads)
+  app.use(require('express').json({ limit: '1mb' }));
+  app.use(require('express').urlencoded({ limit: '1mb', extended: true }));
+
   // ISO 27001: Secure cookie parsing
   app.use(cookieParser(process.env.COOKIE_SECRET));
 

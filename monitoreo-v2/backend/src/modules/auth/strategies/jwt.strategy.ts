@@ -10,8 +10,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // 1. httpOnly cookie (web clients — ISO 27001 compliant)
-        (req: Request) => req?.cookies?.['access_token'] ?? null,
+        // 1. httpOnly cookie — __Host- prefix in production, plain in dev
+        (req: Request) =>
+          req?.cookies?.['__Host-access_token'] ??
+          req?.cookies?.['access_token'] ??
+          null,
         // 2. Bearer header (API external clients)
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),

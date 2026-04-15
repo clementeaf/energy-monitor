@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { Integration } from '../../platform/entities/integration.entity';
 import type { IntegrationConnector, SyncResult, RestApiConfig } from './connector.interface';
 import { withRetry } from './retry.util';
+import { validateExternalUrl } from '../../../common/security/url-validator';
 
 /**
  * Connector for external REST APIs.
@@ -19,10 +20,9 @@ export class RestApiConnector implements IntegrationConnector {
     if (!c.url || typeof c.url !== 'string') {
       errors.push('url is required and must be a string');
     } else {
-      try {
-        new URL(c.url);
-      } catch {
-        errors.push('url must be a valid URL');
+      const ssrfError = validateExternalUrl(c.url);
+      if (ssrfError) {
+        errors.push(ssrfError);
       }
     }
 

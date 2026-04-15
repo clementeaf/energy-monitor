@@ -36,7 +36,17 @@ describe('RestApiConnector', () => {
 
     it('rejects invalid url', () => {
       const errors = connector.validateConfig({ url: 'not-a-url' });
-      expect(errors).toContain('url must be a valid URL');
+      expect(errors).toContain('Invalid URL format');
+    });
+
+    it('rejects SSRF targeting localhost', () => {
+      const errors = connector.validateConfig({ url: 'http://127.0.0.1/admin' });
+      expect(errors.some((e) => e.includes('Blocked'))).toBe(true);
+    });
+
+    it('rejects SSRF targeting AWS metadata', () => {
+      const errors = connector.validateConfig({ url: 'http://169.254.169.254/latest/' });
+      expect(errors.some((e) => e.includes('Blocked'))).toBe(true);
     });
 
     it('accepts valid minimal config', () => {

@@ -67,6 +67,13 @@ export class ApiKeyGuard implements CanActivate {
     const now = Date.now();
     const windowMs = 60_000;
 
+    // Periodic cleanup of stale windows (prevents unbounded memory growth)
+    if (this.rateLimits.size > 1000) {
+      for (const [key, w] of this.rateLimits) {
+        if (now - w.windowStart > 2 * windowMs) this.rateLimits.delete(key);
+      }
+    }
+
     let window = this.rateLimits.get(keyId);
     if (!window || now - window.windowStart >= windowMs) {
       // Start new window

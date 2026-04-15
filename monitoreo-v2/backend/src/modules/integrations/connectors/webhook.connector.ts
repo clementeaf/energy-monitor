@@ -3,6 +3,7 @@ import { createHmac } from 'crypto';
 import type { Integration } from '../../platform/entities/integration.entity';
 import type { IntegrationConnector, SyncResult, WebhookConfig } from './connector.interface';
 import { withRetry } from './retry.util';
+import { validateExternalUrl } from '../../../common/security/url-validator';
 
 /**
  * Connector for outbound webhooks.
@@ -20,13 +21,9 @@ export class WebhookConnector implements IntegrationConnector {
     if (!c.url || typeof c.url !== 'string') {
       errors.push('url is required and must be a string');
     } else {
-      try {
-        const parsed = new URL(c.url);
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          errors.push('url must use http or https protocol');
-        }
-      } catch {
-        errors.push('url must be a valid URL');
+      const ssrfError = validateExternalUrl(c.url);
+      if (ssrfError) {
+        errors.push(ssrfError);
       }
     }
 

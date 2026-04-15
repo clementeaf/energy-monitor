@@ -96,6 +96,10 @@ export class AuthController {
     // Lax en dev: Strict puede impedir que el navegador envíe la cookie en XHR
     // entre localhost:5173 y localhost:4000 (origen distinto, mismo sitio lax).
     const sameSite: 'strict' | 'lax' = isProduction ? 'strict' : 'lax';
+    // __Host- prefix enforces Secure + no Domain + path=/ (prevents cookie tossing attacks)
+    const accessName = isProduction ? '__Host-access_token' : 'access_token';
+    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
+
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
@@ -103,15 +107,15 @@ export class AuthController {
       path: '/',
     };
 
-    res.cookie('access_token', accessToken, {
+    res.cookie(accessName, accessToken, {
       ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
-    res.cookie('refresh_token', refreshToken, {
+    res.cookie(refreshName, refreshToken, {
       ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/api/auth/refresh',
+      path: isProduction ? '/api/auth/refresh' : '/',
     });
   }
 

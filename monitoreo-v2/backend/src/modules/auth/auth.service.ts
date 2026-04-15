@@ -107,12 +107,13 @@ export class AuthService {
       this.logger.warn(
         `OAuth login failed: user not found — provider=${profile.provider} providerId=${maskProviderId(profile.providerId)} email=${maskEmail(profile.email)}`,
       );
-      throw new UnauthorizedException('User not registered. Contact your administrator.');
+      throw new UnauthorizedException('Authentication failed.');
     }
 
     const user = rows[0];
     if (!user.is_active) {
-      throw new UnauthorizedException('Account is deactivated.');
+      this.logger.warn(`OAuth login blocked: deactivated account ${maskEmail(user.email)}`);
+      throw new UnauthorizedException('Authentication failed.');
     }
 
     // Update last login

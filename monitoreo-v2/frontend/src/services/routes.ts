@@ -22,4 +22,9 @@ export const API_ROUTES = {
   alertEngine: '/alert-engine',
   reports: '/reports',
   integrations: '/integrations',
+  supportedTypes: '/integrations/supported-types',
+  tenants: '/tenants',
+  apiKeys: '/api-keys',
+  roles: '/roles',
+  permissions: '/roles/permissions',
 } as const;

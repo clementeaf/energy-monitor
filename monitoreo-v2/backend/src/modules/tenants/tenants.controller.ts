@@ -34,6 +34,15 @@ export class TenantsController {
     return this.tenantsService.getTheme(user.tenantId);
   }
 
+  /** Self-service: update own tenant settings (admin only). */
+  @Patch('me')
+  @RequirePermission('admin_tenants', 'update')
+  async updateMyTenant(@Body() dto: UpdateTenantDto, @CurrentUser() user: JwtPayload) {
+    const row = await this.tenantsService.update(user.tenantId, dto);
+    if (!row) throw new NotFoundException('Tenant not found');
+    return row;
+  }
+
   /** List all tenants (super_admin only). */
   @Get()
   @RequirePermission('admin_tenants', 'read')

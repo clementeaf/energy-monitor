@@ -112,6 +112,21 @@ const ADMIN_ITEMS: NavItem[] = [
     label: 'Auditoria',
     requiredPerms: ['audit:read'],
   },
+  {
+    to: '/admin/roles',
+    label: 'Roles',
+    requiredPerms: ['admin_roles:read'],
+  },
+  {
+    to: '/admin/api-keys',
+    label: 'API Keys',
+    requiredPerms: ['api_keys:read'],
+  },
+  {
+    to: '/admin/settings',
+    label: 'Configuracion',
+    requiredPerms: ['admin_tenants:update'],
+  },
 ];
 
 export function Sidebar() {

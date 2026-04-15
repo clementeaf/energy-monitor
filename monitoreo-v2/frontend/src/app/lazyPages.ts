@@ -144,3 +144,18 @@ export const LazyNotificationsPage = lazy(async () => {
   const m = await import('../features/alerts/NotificationsPage');
   return { default: m.NotificationsPage };
 });
+
+export const LazyTenantSettingsPage = lazy(async () => {
+  const m = await import('../features/admin/settings/TenantSettingsPage');
+  return { default: m.TenantSettingsPage };
+});
+
+export const LazyApiKeysPage = lazy(async () => {
+  const m = await import('../features/admin/api-keys/ApiKeysPage');
+  return { default: m.ApiKeysPage };
+});
+
+export const LazyRolesPage = lazy(async () => {
+  const m = await import('../features/admin/roles/RolesPage');
+  return { default: m.RolesPage };
+});

@@ -31,6 +31,9 @@ import {
   LazyMetersByTypePage,
   LazyGenerationSitePage,
   LazyModbusMapPage,
+  LazyTenantSettingsPage,
+  LazyApiKeysPage,
+  LazyRolesPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -85,6 +88,9 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.admin.tenants, element: <LazyTenantsPage /> },
               { path: APP_ROUTES.admin.hierarchy, element: <LazyHierarchyPage /> },
               { path: APP_ROUTES.admin.audit, element: <LazyAuditPage /> },
+              { path: APP_ROUTES.admin.settings, element: <LazyTenantSettingsPage /> },
+              { path: APP_ROUTES.admin.apiKeys, element: <LazyApiKeysPage /> },
+              { path: APP_ROUTES.admin.roles, element: <LazyRolesPage /> },
             ],
           },
         ],

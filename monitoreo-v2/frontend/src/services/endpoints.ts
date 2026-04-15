@@ -1,6 +1,9 @@
 import api from './api';
 import { API_ROUTES } from './routes';
 import type { AuthProvider, MeResponse } from '../types/auth';
+import type { Tenant, UpdateTenantPayload } from '../types/tenant';
+import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload, UpdateApiKeyPayload } from '../types/api-key';
+import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../types/role';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../types/building';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../types/meter';
 import type {
@@ -359,4 +362,32 @@ export const notificationLogsEndpoints = {
 export const alertEngineEndpoints = {
   evaluate: () =>
     api.post<EvaluateResult>(`${API_ROUTES.alertEngine}/evaluate`),
+};
+
+export const tenantSettingsEndpoints = {
+  getMyTenant: () => api.get<Tenant>(`${API_ROUTES.tenants}/me`),
+  updateMyTenant: (payload: UpdateTenantPayload) => api.patch<Tenant>(`${API_ROUTES.tenants}/me`, payload),
+};
+
+export const apiKeysEndpoints = {
+  list: () => api.get<ApiKey[]>(API_ROUTES.apiKeys),
+  create: (payload: CreateApiKeyPayload) => api.post<ApiKeyCreationResult>(API_ROUTES.apiKeys, payload),
+  update: (id: string, payload: UpdateApiKeyPayload) => api.patch<ApiKey>(`${API_ROUTES.apiKeys}/${id}`, payload),
+  rotate: (id: string) => api.post<ApiKeyCreationResult>(`${API_ROUTES.apiKeys}/${id}/rotate`, {}),
+  remove: (id: string) => api.delete(`${API_ROUTES.apiKeys}/${id}`),
+};
+
+export const rolesEndpoints = {
+  list: () => api.get<Role[]>(API_ROUTES.roles),
+  create: (payload: CreateRolePayload) => api.post<Role>(API_ROUTES.roles, payload),
+  update: (id: string, payload: UpdateRolePayload) => api.patch<Role>(`${API_ROUTES.roles}/${id}`, payload),
+  remove: (id: string) => api.delete(`${API_ROUTES.roles}/${id}`),
+  getPermissions: (id: string) => api.get<Permission[]>(`${API_ROUTES.roles}/${id}/permissions`),
+  assignPermissions: (id: string, permissionIds: string[]) =>
+    api.put<Permission[]>(`${API_ROUTES.roles}/${id}/permissions`, { permissionIds }),
+  permissionsCatalog: () => api.get<Permission[]>(API_ROUTES.permissions),
+};
+
+export const integrationTypesEndpoints = {
+  list: () => api.get<{ type: string; label: string }[]>(API_ROUTES.supportedTypes),
 };

@@ -34,5 +34,8 @@ export const APP_ROUTES = {
     tenants: '/admin/tenants',
     hierarchy: '/admin/hierarchy',
     audit: '/admin/audit',
+    settings: '/admin/settings',
+    apiKeys: '/admin/api-keys',
+    roles: '/admin/roles',
   },
 } as const;

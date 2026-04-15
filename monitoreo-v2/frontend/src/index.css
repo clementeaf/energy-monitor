@@ -3,6 +3,8 @@
 :root {
   --color-primary: #3D3BF3;
   --color-secondary: #1E1E2F;
+  --color-sidebar: #1E1E2F;
+  --color-accent: #10B981;
 }
 
 body {

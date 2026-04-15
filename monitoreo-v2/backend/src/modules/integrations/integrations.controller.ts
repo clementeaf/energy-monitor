@@ -20,10 +20,21 @@ import { QueryIntegrationSyncLogsDto } from './dto/query-integration-sync-logs.d
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
+import { ConnectorRegistry } from './connectors/connector.registry';
 
 @Controller('integrations')
 export class IntegrationsController {
-  constructor(private readonly integrationsService: IntegrationsService) {}
+  constructor(
+    private readonly integrationsService: IntegrationsService,
+    private readonly connectorRegistry: ConnectorRegistry,
+  ) {}
+
+  /** List supported integration types with labels. */
+  @Get('supported-types')
+  @RequirePermission('integrations', 'read')
+  getSupportedTypes() {
+    return this.connectorRegistry.listTypes();
+  }
 
   @Get()
   @RequirePermission('integrations', 'read')

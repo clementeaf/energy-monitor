@@ -5,6 +5,7 @@ import { authEndpoints } from '../../services/endpoints';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { setSessionFlag, clearSessionFlag } from './useSessionResolver';
 import type { AuthProvider } from '../../types/auth';
+import { applyTenantTheme } from '../../lib/tenant-theme';
 
 export function useAuth() {
   const { user, tenant, isAuthenticated, isLoading, error, setSession, clearSession, setLoading, setError } =
@@ -24,7 +25,7 @@ export function useAuth() {
         const { buildings, ...user } = data.user;
         setSessionFlag();
         setSession(user, data.tenant, buildings ?? []);
-        applyTenantTheme(data.tenant.primaryColor, data.tenant.secondaryColor);
+        applyTenantTheme(data.tenant);
         navigate('/');
       } catch (err: unknown) {
         const message =
@@ -86,8 +87,3 @@ export function useAuth() {
   };
 }
 
-function applyTenantTheme(primaryColor: string, secondaryColor: string) {
-  const root = document.documentElement;
-  root.style.setProperty('--color-primary', primaryColor);
-  root.style.setProperty('--color-secondary', secondaryColor);
-}

@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.99.0-alpha.0] - 2026-04-15 — MONITOREO V2: PLATFORM HARDENING
+
+### Added
+- **Conectores reales** — Strategy pattern con 4 tipos (`rest_api`, `webhook`, `mqtt`, `ftp`). `ConnectorRegistry`, config validation por tipo, retry con exponential backoff. `triggerSync` ejecuta sync real. Endpoint `GET /integrations/supported-types`.
+- **API externa v1** — `ApiKey` entity (SHA-256, prefix, permissions, buildingIds, rate limit, expiration). `ApiKeyGuard` global (X-API-Key header). 9 endpoints read-only bajo `/api/v1/` (buildings, meters, readings, alerts). Swagger en `/api/v1/docs`.
+- **Tenant onboarding** — `POST /tenants` crea tenant + clona 7 roles + permisos + primer admin (transaccional). CRUD admin: `GET/PATCH/DELETE /tenants/:id`.
+- **TimescaleDB optimización** — Continuous aggregates `readings_hourly` + `readings_daily`. Compression policies (readings 7d, audit_logs 30d, integration_sync_logs 7d). Retention policies (readings 3y, audit_logs 5y, sync_logs 1y).
+- **Config encryption** — AES-256-GCM para secrets en integration config (`CONFIG_ENCRYPTION_KEY`). Encrypt on save, decrypt on sync.
+- **API key rate limiting** — Per-key in-memory rate counter, 429 cuando excede `rateLimitPerMinute`.
+- **Tenant guard** — `PermissionsGuard` valida que tenantId en request coincida con JWT (previene cross-tenant access).
+- **PII redaction** — `maskEmail()` y `maskProviderId()` en auth logs.
+- **Env validation** — `validateEnv()` en bootstrap: 5 vars requeridas en producción, exit(1) si faltan.
+- **Frontend tests** — @testing-library/react + jsdom. 7 nuevas suites: Button, Toggle, Card, useAuthStore, useAppStore, usePermissions, tenant-theme.
+
+### Changed
+- **Tenant entity** — Nuevos campos: `appTitle`, `sidebarColor`, `accentColor`, `settings` (jsonb). Migration `08-tenant-theme-extend.sql`.
+- **`/auth/me`** — Retorna tema extendido (7 campos) via `getTheme()`.
+- **Frontend theming** — `applyTenantTheme()` centralizado en `lib/tenant-theme.ts`: 4 CSS vars + `document.title` + favicon dinámico. Sidebar muestra `tenant.appTitle`.
+- **ReadingsService** — `findAggregated` usa continuous aggregates (hourly→`readings_hourly`, daily→`readings_daily`, monthly→re-bucket daily). Weighted average para monthly.
+- **Security headers** — Helmet explícito: HSTS 1yr, Referrer-Policy strict-origin-when-cross-origin.
+- **Integration DTOs** — `integrationType` validado contra `SUPPORTED_INTEGRATION_TYPES`.
+
+### Tests
+- Backend: 569 tests, 55 suites (antes 370/41)
+- Frontend: 73 tests, 10 suites (antes 20/3)
+
+### Dependencies
+- `mqtt@5.15.1`, `basic-ftp@5.3.0`, `@nestjs/swagger` (backend)
+- `@testing-library/react`, `@testing-library/dom`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom` (frontend dev)
+
+---
+
 ## [0.98.0-alpha.0] - 2026-04-02 — MONITOREO V2: DRAWER + HEADER CLEANUP
 
 ### Added

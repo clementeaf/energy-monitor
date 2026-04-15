@@ -10,6 +10,7 @@ import { DataSource } from 'typeorm';
 import { createHash, randomBytes } from 'crypto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RolesService } from '../roles/roles.service';
+import { maskEmail, maskProviderId } from '../../common/logging/pii-redaction';
 
 export interface OAuthProfile {
   provider: 'microsoft' | 'google';
@@ -97,14 +98,14 @@ export class AuthService {
           [profile.provider, profile.providerId, rows[0].id],
         );
         this.logger.log(
-          `Linked ${profile.provider} to existing user ${profile.email}`,
+          `Linked ${profile.provider} to existing user ${maskEmail(profile.email)}`,
         );
       }
     }
 
     if (rows.length === 0) {
       this.logger.warn(
-        `OAuth login failed: user not found — provider=${profile.provider} providerId=${profile.providerId} email=${profile.email} displayName=${profile.displayName}`,
+        `OAuth login failed: user not found — provider=${profile.provider} providerId=${maskProviderId(profile.providerId)} email=${maskEmail(profile.email)}`,
       );
       throw new UnauthorizedException('User not registered. Contact your administrator.');
     }

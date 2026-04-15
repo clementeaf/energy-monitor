@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Integration } from '../platform/entities/integration.entity';
 import { IntegrationSyncLog } from '../platform/entities/integration-sync-log.entity';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
+import { ConnectorRegistry } from './connectors/connector.registry';
+import { encryptConfig, decryptConfig } from '../../common/crypto/config-encryption';
 
 export interface IntegrationSyncLogsResult {
   items: IntegrationSyncLog[];
@@ -14,7 +16,7 @@ export interface IntegrationSyncLogsResult {
 }
 
 /**
- * CRUD for external integrations and read-only sync log history.
+ * CRUD for external integrations, config validation, and connector-based sync.
  */
 @Injectable()
 export class IntegrationsService {
@@ -23,6 +25,7 @@ export class IntegrationsService {
     private readonly integrationRepo: Repository<Integration>,
     @InjectRepository(IntegrationSyncLog)
     private readonly syncLogRepo: Repository<IntegrationSyncLog>,
+    private readonly connectorRegistry: ConnectorRegistry,
   ) {}
 
   async findAll(
@@ -52,12 +55,17 @@ export class IntegrationsService {
   }
 
   async create(tenantId: string, dto: CreateIntegrationDto): Promise<Integration> {
+    const configErrors = this.connectorRegistry.validateConfig(dto.integrationType, dto.config);
+    if (configErrors.length > 0) {
+      throw new BadRequestException(configErrors);
+    }
+
     const row = this.integrationRepo.create({
       tenantId,
       name: dto.name,
       integrationType: dto.integrationType,
       status: dto.status ?? 'active',
-      config: dto.config,
+      config: encryptConfig(dto.config),
       lastSyncAt: null,
       errorMessage: null,
     });
@@ -68,10 +76,20 @@ export class IntegrationsService {
     const row = await this.integrationRepo.findOneBy({ id, tenantId });
     if (!row) return null;
 
+    // If changing type or config, validate the new config against the (possibly new) type
+    const newType = dto.integrationType ?? row.integrationType;
+    const newConfig = dto.config ?? row.config;
+    if (dto.integrationType !== undefined || dto.config !== undefined) {
+      const configErrors = this.connectorRegistry.validateConfig(newType, newConfig);
+      if (configErrors.length > 0) {
+        throw new BadRequestException(configErrors);
+      }
+    }
+
     if (dto.name !== undefined) row.name = dto.name;
     if (dto.integrationType !== undefined) row.integrationType = dto.integrationType;
     if (dto.status !== undefined) row.status = dto.status;
-    if (dto.config !== undefined) row.config = dto.config;
+    if (dto.config !== undefined) row.config = encryptConfig(dto.config);
 
     return this.integrationRepo.save(row);
   }
@@ -82,10 +100,8 @@ export class IntegrationsService {
   }
 
   /**
-   * Records a successful sync run and updates integration timestamps (read-only API connector stub).
-   * @param id - Integration id
-   * @param tenantId - Tenant scope
-   * @returns Persisted sync log row
+   * Execute a real sync via the connector for this integration type.
+   * Logs the result and updates integration status accordingly.
    */
   async triggerSync(id: string, tenantId: string): Promise<IntegrationSyncLog> {
     const integration = await this.integrationRepo.findOneBy({ id, tenantId });
@@ -93,23 +109,34 @@ export class IntegrationsService {
       throw new NotFoundException('Integration not found');
     }
 
+    const connector = this.connectorRegistry.get(integration.integrationType);
     const startedAt = new Date();
-    const completedAt = new Date();
 
+    // Decrypt config secrets before passing to connector
+    const decrypted = { ...integration, config: decryptConfig(integration.config) } as Integration;
+    const result = await connector.sync(decrypted);
+
+    const completedAt = new Date();
     const log = this.syncLogRepo.create({
       integrationId: id,
-      status: 'success',
-      recordsSynced: 0,
-      errorMessage: null,
+      status: result.status,
+      recordsSynced: result.recordsSynced,
+      errorMessage: result.errorMessage,
       startedAt,
       completedAt,
     });
     const saved = await this.syncLogRepo.save(log);
 
+    // Update integration status based on sync result
     integration.lastSyncAt = completedAt;
-    integration.errorMessage = null;
-    if (integration.status === 'error' || integration.status === 'pending') {
-      integration.status = 'active';
+    if (result.status === 'failed') {
+      integration.status = 'error';
+      integration.errorMessage = result.errorMessage;
+    } else {
+      integration.errorMessage = null;
+      if (integration.status === 'error' || integration.status === 'pending') {
+        integration.status = 'active';
+      }
     }
     await this.integrationRepo.save(integration);
 

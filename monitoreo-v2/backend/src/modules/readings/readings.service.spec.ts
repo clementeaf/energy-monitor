@@ -198,43 +198,6 @@ describe('ReadingsService', () => {
       interval: 'daily' as const,
     };
 
-    it('returns aggregated readings with time_bucket', async () => {
-      const rows = [{ bucket: '2026-01-01', avg_power_kw: '10.5' }];
-      ds.query.mockResolvedValue(rows);
-
-      const result = await service.findAggregated(TENANT_ID, [], baseQuery);
-
-      expect(result).toEqual(rows);
-      const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('time_bucket');
-      expect(sql).toContain('AVG(r.power_kw::numeric)');
-      expect(sql).toContain('energy_delta_kwh');
-      const params = ds.query.mock.calls[0][1];
-      expect(params[0]).toBe('1 day');
-    });
-
-    it('uses correct interval mapping', async () => {
-      ds.query.mockResolvedValue([]);
-
-      await service.findAggregated(TENANT_ID, [], {
-        ...baseQuery,
-        interval: 'hourly',
-      });
-
-      expect(ds.query.mock.calls[0][1][0]).toBe('1 hour');
-    });
-
-    it('maps monthly interval', async () => {
-      ds.query.mockResolvedValue([]);
-
-      await service.findAggregated(TENANT_ID, [], {
-        ...baseQuery,
-        interval: 'monthly',
-      });
-
-      expect(ds.query.mock.calls[0][1][0]).toBe('1 month');
-    });
-
     it('returns empty for invalid interval', async () => {
       const result = await service.findAggregated(TENANT_ID, [], {
         ...baseQuery,
@@ -245,16 +208,74 @@ describe('ReadingsService', () => {
       expect(ds.query).not.toHaveBeenCalled();
     });
 
-    it('scopes by buildingIds', async () => {
+    /* --- Continuous aggregate paths --- */
+
+    it('hourly: queries readings_hourly continuous aggregate', async () => {
+      const rows = [{ bucket: '2026-01-01T01:00:00', avg_power_kw: '10.5' }];
+      ds.query.mockResolvedValue(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        interval: 'hourly',
+      });
+
+      expect(result).toEqual(rows);
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_hourly');
+      expect(sql).toContain('a.bucket');
+      expect(sql).toContain('a.avg_power_kw');
+      expect(sql).not.toContain('time_bucket');
+    });
+
+    it('daily: queries readings_daily continuous aggregate', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], baseQuery);
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_daily');
+      expect(sql).not.toContain('time_bucket');
+    });
+
+    it('monthly: re-aggregates readings_daily with time_bucket(1 month)', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        interval: 'monthly',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_daily');
+      expect(sql).toContain("time_bucket('1 month'");
+      expect(sql).toContain('SUM(a.avg_power_kw * a.reading_count)');
+    });
+
+    /* --- Scoping --- */
+
+    it('scopes by tenant in aggregate query', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], baseQuery);
+
+      const params = ds.query.mock.calls[0][1];
+      expect(params[0]).toBe(TENANT_ID);
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('a.tenant_id = $1');
+    });
+
+    it('scopes by buildingIds in aggregate query', async () => {
       ds.query.mockResolvedValue([]);
 
       await service.findAggregated(TENANT_ID, ['bld-1'], baseQuery);
 
       const sql = ds.query.mock.calls[0][0] as string;
       expect(sql).toContain('m.building_id IN');
+      const params = ds.query.mock.calls[0][1];
+      expect(params).toContain('bld-1');
     });
 
-    it('filters by buildingId query param', async () => {
+    it('filters by buildingId query param in aggregate', async () => {
       ds.query.mockResolvedValue([]);
 
       await service.findAggregated(TENANT_ID, [], {
@@ -263,10 +284,12 @@ describe('ReadingsService', () => {
       });
 
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('m.building_id = $5');
+      expect(sql).toContain('m.building_id');
+      const params = ds.query.mock.calls[0][1];
+      expect(params).toContain('bld-x');
     });
 
-    it('filters by meterId query param', async () => {
+    it('filters by meterId query param in aggregate', async () => {
       ds.query.mockResolvedValue([]);
 
       await service.findAggregated(TENANT_ID, [], {
@@ -275,7 +298,20 @@ describe('ReadingsService', () => {
       });
 
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('m.id = $5');
+      expect(sql).toContain('a.meter_id');
+      const params = ds.query.mock.calls[0][1];
+      expect(params).toContain('m-x');
+    });
+
+    it('energy_delta_kwh uses max_energy - min_energy from aggregate', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], baseQuery);
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('max_energy_kwh_total');
+      expect(sql).toContain('min_energy_kwh_total');
+      expect(sql).toContain('energy_delta_kwh');
     });
   });
 });

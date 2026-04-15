@@ -29,6 +29,9 @@ export interface AuthUser {
 export interface TenantTheme {
   primaryColor: string;
   secondaryColor: string;
+  sidebarColor: string;
+  accentColor: string;
+  appTitle: string;
   logoUrl: string | null;
   faviconUrl: string | null;
 }

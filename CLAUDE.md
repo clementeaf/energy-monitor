@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-15)
+- **Platform hardening (monitoreo-v2):** Conectores reales (4 tipos), API externa v1 + API keys, tenant onboarding, TimescaleDB optimización, ISO 27001 hardening, frontend tests. Backend: 569 tests / 55 suites. Frontend: 73 tests / 10 suites. [CHANGELOG — 0.99.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-02)
 - **Drawer + Header cleanup (monitoreo-v2):** `Drawer` en `components/ui/` (dialog nativo, side/size/footer). `UserForm` migrado de Modal a Drawer. Header sin selector edificios. [CHANGELOG — 0.98.0-alpha.0](CHANGELOG.md)
 - **Componentes UI (monitoreo-v2):** `DropdownSelect`, `DataTable`, `Button`, `Toggle`, `Card` en `components/ui/`. Agnósticos, tipados, tema vía `var(--color-primary)`. [CHANGELOG — 0.97.0-alpha.0](CHANGELOG.md)
@@ -122,8 +125,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Fases 1-7 completas — 16 módulos + alert engine + escalation + notifications (SES opcional) + reports + integrations (~370 tests, 41 suites).
-Frontend: Fases 1-8 — incl. reportes, integraciones, dashboards ejecutivo/comparativo, vistas monitoring. Componentes UI reutilizables (DropdownSelect, DataTable, Button, Toggle, Card). Responsividad desktop verificada.
+Backend: Fases 1-8 + platform hardening completos — 20 módulos (incl. api-keys, external-api), conectores reales (4 tipos), API v1 + Swagger, tenant onboarding, TimescaleDB continuous aggregates, ISO 27001 (config encryption, env validation, rate limiting, PII redaction). 569 tests, 55 suites.
+Frontend: Fases 1-8 + test infra — 16 páginas, theming dinámico N-tenant (logo, favicon, título, 4 CSS vars), @testing-library. 73 tests, 10 suites.
 ```
 
 ## Prioridad Actual de Acceso
@@ -143,7 +146,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 365+ tests). Frontend: Vitest, pruebas unitarias en `*.test.ts`.
+- **Testing:** Jest 30 (backend, 569 tests / 55 suites). Frontend: Vitest + @testing-library/react (73 tests / 10 suites).
 
 ## Architecture
 ```
@@ -178,7 +181,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **TypeORM:** autoLoadEntities, synchronize: false. Raw SQL con `this.dataSource.query()`. rawVal() para pg minúsculas.
 - **Auth:** Guard global JWT + `@RequirePermissions(module, action)` + `RolesGuard`
 - **Validation:** Global ValidationPipe({ whitelist, transform }). DTOs con class-validator.
-- **Swagger:** @ApiOperation (español), @ApiOkResponse, @ApiParam, @ApiQuery. Prod: `/api/spec` (JSON), `/api/docs` (redirige a UI pública). Dev: UI embebida en `/api/docs`
+- **Swagger:** `/api/v1/docs` — OpenAPI para API externa (X-API-Key auth). Configurado via `@nestjs/swagger` en main.ts.
 - **Error handling:** service null → controller NotFoundException; auth null on failure
 - **IoT module:** `IotReadingsModule` — 9 endpoints read-only desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`, `alerts`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh). Alertas generadas on-the-fly desde anomalías (voltaje, PF, potencia, THD)
 
@@ -197,7 +200,7 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 **DB local:** docker `pg-arauco` → `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=arauco DB_USERNAME=postgres DB_PASSWORD=arauco`
 
 ## Environment Variables
-- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json` (logs una línea JSON también en no-producción); opcional `RDS_CA_BUNDLE_PATH` (ruta a PEM si no se usa `backend/certs/rds-global-bundle.pem` empaquetado)
+- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json`; opcional `RDS_CA_BUNDLE_PATH`; opcional `CONFIG_ENCRYPTION_KEY` (AES-256-GCM para secrets en integration config). En producción `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `DB_HOST`, `DB_PASSWORD` son requeridos (bootstrap falla sin ellos).
 - **Email (SES):** opcional `SES_FROM_EMAIL` (identidad verificada en SES), `SES_REGION` (default `AWS_REGION` / `us-east-1`), `ALERT_EMAIL_RECIPIENTS` (coma-separados) para alertas/escalamiento; `notifyUserCreated` envía al email del usuario cuando `SES_FROM_EMAIL` está definido. Ver [AWS Runbook — SES](docs/aws-runbook.md#amazon-ses-email-saliente).
 - **Frontend:** `VITE_AUTH_MODE`, `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID`, `VITE_GOOGLE_CLIENT_ID`
 
@@ -214,8 +217,8 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 ## Known Issues & Tech Debt
 - **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.
 - **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
-- **API hardening ya presente:** Helmet, `ThrottlerGuard`, CORS con credenciales, `trust proxy` en producción (IP correcta detrás de ALB/API GW). Logs en una línea JSON si `NODE_ENV=production` o `LOG_FORMAT=json`.
-- **Tests frontend:** Vitest (`npm run test` en `monitoreo-v2/frontend`), cobertura aún acotada a utilidades; sin E2E salvo auth legacy donde existan.
+- **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers), CORS whitelist, `trust proxy` en prod, API key rate limiting per-key, tenant cross-access guard, PII redaction en logs, env validation en bootstrap. Config encryption AES-256-GCM para integration secrets.
+- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 73 tests / 10 suites. E2E pendiente (Playwright).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 
 ## Playbooks Opcionales
@@ -229,4 +232,4 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.98.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 0.99.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

@@ -3,6 +3,7 @@ import { useMsal } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
+import { applyTenantTheme } from '../../lib/tenant-theme';
 
 /**
  * Marca que existe sesión de aplicación (cookie httpOnly ya establecida).
@@ -53,9 +54,7 @@ export function useSessionResolver() {
       .then(({ data }) => {
         const { buildings, ...user } = data.user;
         setSession(user, data.tenant, buildings ?? []);
-        const root = document.documentElement;
-        root.style.setProperty('--color-primary', data.tenant.primaryColor);
-        root.style.setProperty('--color-secondary', data.tenant.secondaryColor);
+        applyTenantTheme(data.tenant);
       })
       .catch(() => {
         clearSessionFlag();

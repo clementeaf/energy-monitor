@@ -34,6 +34,18 @@ export class Tenant {
   @Column({ name: 'favicon_url', type: 'text', nullable: true })
   faviconUrl!: string | null;
 
+  @Column({ name: 'app_title', length: 100, default: 'Energy Monitor' })
+  appTitle!: string;
+
+  @Column({ name: 'sidebar_color', length: 7, default: '#1E1E2F' })
+  sidebarColor!: string;
+
+  @Column({ name: 'accent_color', length: 7, default: '#10B981' })
+  accentColor!: string;
+
+  @Column({ type: 'jsonb', default: () => "'{}'" })
+  settings!: Record<string, unknown>;
+
   @Column({ length: 50, default: 'America/Santiago' })
   timezone!: string;
 

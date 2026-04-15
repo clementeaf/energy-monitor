@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { JsonLoggerService } from './common/logging/json-logger.service';
+import { validateEnv } from './common/validation/env-validation';
 
 /**
  * Activa logs en una línea JSON (CloudWatch / agregadores).
@@ -31,6 +33,9 @@ function configureTrustProxy(app: INestApplication): void {
 }
 
 async function bootstrap() {
+  // ISO 27001: validate critical env vars before startup
+  validateEnv();
+
   const jsonLogs = useJsonLogging();
   const jsonLogger = new JsonLoggerService();
   const app = await NestFactory.create(AppModule, {
@@ -43,10 +48,13 @@ async function bootstrap() {
 
   configureTrustProxy(app);
 
-  // ISO 27001: Security headers (COOP allow-popups evita bloqueo de OAuth popups / window.closed)
+  // ISO 27001: Security headers
   app.use(
     helmet({
-      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // OAuth popups
+      hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      contentSecurityPolicy: false, // Handled by frontend CSP meta tag
     }),
   );
 
@@ -65,7 +73,7 @@ async function bootstrap() {
         ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'x-api-key'],
   });
 
   // Global validation (ISO 27001: input validation at boundary)
@@ -79,6 +87,22 @@ async function bootstrap() {
 
   // API prefix
   app.setGlobalPrefix('api');
+
+  // Swagger / OpenAPI for external v1 API
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Energy Monitor — External API')
+    .setDescription('Read-only API for third-party consumers. Authenticate via X-API-Key header.')
+    .setVersion('1.0')
+    .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    include: [],  // all modules — Swagger decorators only on ExternalApiController
+  });
+  if (isProduction) {
+    SwaggerModule.setup('api/v1/docs', app, document);
+  } else {
+    SwaggerModule.setup('api/v1/docs', app, document);
+  }
 
   await app.listen(port);
   Logger.log(`Server running on port ${port}`, 'Bootstrap');

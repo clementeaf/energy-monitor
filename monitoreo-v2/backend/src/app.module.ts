@@ -26,6 +26,9 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { ApiKeysModule } from './modules/api-keys/api-keys.module';
+import { ExternalApiModule } from './modules/external-api/external-api.module';
+import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 
 @Module({
   imports: [
@@ -83,6 +86,8 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
     AuditLogsModule,
     ReportsModule,
     IntegrationsModule,
+    ApiKeysModule,
+    ExternalApiModule,
   ],
   providers: [
     // Global rate limiter guard
@@ -90,7 +95,12 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    // Global JWT auth guard (skip with @Public())
+    // Global API key guard (runs before JWT; activates only when X-API-Key header present)
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard,
+    },
+    // Global JWT auth guard (skip with @Public() or when ApiKeyGuard already authenticated)
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

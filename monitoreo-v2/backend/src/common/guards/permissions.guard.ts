@@ -42,6 +42,16 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException(`Missing permission: ${required.join(' | ')}`);
     }
 
+    // ISO 27001: prevent cross-tenant access from parameter tampering
+    // If the route or query has a tenantId, verify it matches the JWT tenant
+    if (user.roleSlug !== 'super_admin') {
+      const request = context.switchToHttp().getRequest();
+      const paramTenant = request.params?.tenantId ?? request.query?.tenantId ?? request.body?.tenantId;
+      if (paramTenant && paramTenant !== user.tenantId) {
+        throw new ForbiddenException('Cross-tenant access denied');
+      }
+    }
+
     return true;
   }
 }

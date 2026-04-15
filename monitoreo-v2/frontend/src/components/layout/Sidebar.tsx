@@ -133,7 +133,7 @@ export function Sidebar() {
         {tenant?.logoUrl && (
           <img src={tenant.logoUrl} alt="Logo" className="h-8 w-8 object-contain" />
         )}
-        <span className="text-sm font-semibold text-gray-900">Energy Monitor</span>
+        <span className="text-sm font-semibold text-gray-900">{tenant?.appTitle ?? 'Energy Monitor'}</span>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-2">

@@ -62,6 +62,20 @@ const INTERVAL_MAP: Record<string, string> = {
   monthly: '1 month',
 };
 
+interface AggregateSource {
+  /** Materialized view name. */
+  view: string;
+  /** If set, re-bucket the view with this interval (e.g. monthly from daily). */
+  reBucket?: string;
+}
+
+/** Maps interval to the continuous aggregate view to query. */
+const AGGREGATE_VIEW_MAP: Record<string, AggregateSource> = {
+  hourly: { view: 'readings_hourly' },
+  daily: { view: 'readings_daily' },
+  monthly: { view: 'readings_daily', reBucket: '1 month' },
+};
+
 @Injectable()
 export class ReadingsService {
   constructor(private readonly dataSource: DataSource) {}
@@ -183,6 +197,13 @@ export class ReadingsService {
     );
   }
 
+  /**
+   * Aggregated readings using TimescaleDB continuous aggregates when available.
+   * - hourly → reads from `readings_hourly` materialized view
+   * - daily  → reads from `readings_daily` materialized view
+   * - monthly → re-aggregates `readings_daily` with time_bucket('1 month')
+   * Falls back to raw `time_bucket()` on `readings` if aggregates are unavailable.
+   */
   async findAggregated(
     tenantId: string,
     buildingIds: string[],
@@ -191,6 +212,106 @@ export class ReadingsService {
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
 
+    // Use continuous aggregates for hourly/daily/monthly
+    const useAggregate = AGGREGATE_VIEW_MAP[query.interval];
+    if (useAggregate) {
+      return this.findFromAggregate(tenantId, buildingIds, query, useAggregate);
+    }
+
+    // Fallback: raw time_bucket on readings table
+    return this.findFromRawBucket(tenantId, buildingIds, query, pgInterval);
+  }
+
+  /**
+   * Query pre-computed continuous aggregate views.
+   * For monthly: re-aggregate the daily view with time_bucket('1 month').
+   */
+  private async findFromAggregate(
+    tenantId: string,
+    buildingIds: string[],
+    query: AggregatedQueryDto,
+    agg: AggregateSource,
+  ): Promise<AggregatedRow[]> {
+    const params: unknown[] = [tenantId, query.from, query.to];
+    const conditions: string[] = [
+      'a.tenant_id = $1',
+      'a.bucket >= $2',
+      'a.bucket <= $3',
+    ];
+    let paramIdx = 4;
+
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`m.building_id IN (${placeholders.join(', ')})`);
+      params.push(...buildingIds);
+      paramIdx += buildingIds.length;
+    }
+
+    if (query.buildingId) {
+      conditions.push(`m.building_id = $${paramIdx}`);
+      params.push(query.buildingId);
+      paramIdx++;
+    }
+
+    if (query.meterId) {
+      conditions.push(`a.meter_id = $${paramIdx}`);
+      params.push(query.meterId);
+      paramIdx++;
+    }
+
+    const where = conditions.join(' AND ');
+
+    if (agg.reBucket) {
+      // Monthly: re-aggregate daily view rows
+      return this.dataSource.query(
+        `SELECT
+           time_bucket('${agg.reBucket}', a.bucket) AS bucket,
+           a.meter_id,
+           (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           (MAX(a.max_energy_kwh_total) - MIN(a.min_energy_kwh_total))::text AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM ${agg.view} a
+         INNER JOIN meters m ON m.id = a.meter_id
+         WHERE ${where}
+         GROUP BY time_bucket('${agg.reBucket}', a.bucket), a.meter_id
+         ORDER BY bucket ASC, a.meter_id ASC`,
+        params,
+      );
+    }
+
+    // Direct read from hourly or daily aggregate
+    return this.dataSource.query(
+      `SELECT
+         a.bucket,
+         a.meter_id,
+         a.avg_power_kw::text AS avg_power_kw,
+         a.max_power_kw::text AS max_power_kw,
+         a.min_power_kw::text AS min_power_kw,
+         a.avg_power_factor::text AS avg_power_factor,
+         a.avg_voltage_l1::text AS avg_voltage_l1,
+         (a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+         a.reading_count::text AS reading_count
+       FROM ${agg.view} a
+       INNER JOIN meters m ON m.id = a.meter_id
+       WHERE ${where}
+       ORDER BY a.bucket ASC, a.meter_id ASC`,
+      params,
+    );
+  }
+
+  /**
+   * Fallback: raw time_bucket() aggregation on the readings table.
+   */
+  private async findFromRawBucket(
+    tenantId: string,
+    buildingIds: string[],
+    query: AggregatedQueryDto,
+    pgInterval: string,
+  ): Promise<AggregatedRow[]> {
     const params: unknown[] = [pgInterval, tenantId, query.from, query.to];
     const conditions: string[] = [
       'm.tenant_id = $2',

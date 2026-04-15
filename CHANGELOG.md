@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.99.1-alpha.0] - 2026-04-15 — MONITOREO V2: SECURITY HARDENING
+
+### Fixed
+- **SSRF protection** — URL validator blocks private IPs (10/172/192), localhost, AWS metadata (169.254.169.254), internal service ports (5432, 3306, 6379). Applied to REST API and Webhook connectors.
+- **HTML injection in PDFs** — `escapeHtml()` on all interpolated invoice values (stored XSS prevention).
+- **Timing attack on API keys** — `timingSafeEqual` with prefix-scoped candidate lookup replaces direct DB hash comparison.
+- **JWT payload validation** — Strict type checking in `jwt.strategy.ts`; rejects malformed tokens with 401.
+- **Account enumeration** — Generic "Authentication failed" message for all OAuth login failures.
+- **Refresh token replay** — Reuse of revoked token triggers revocation of ALL user sessions (theft detection).
+- **ReDoS in FTP glob** — Pattern bounded to 100 chars, max 5 wildcards, non-greedy character classes.
+- **Cookie hardening** — `__Host-` prefix in production (prevents cookie tossing/domain override).
+- **Body size limits** — Express JSON/URL-encoded capped at 1mb.
+- **Rate limiter cleanup** — Stale API key windows evicted when map exceeds 1000 entries.
+
+### Tests
+- Backend: 613 tests, 58 suites (antes 569/55)
+- Frontend: 73 tests, 10 suites (sin cambios)
+
+---
+
 ## [0.99.0-alpha.0] - 2026-04-15 — MONITOREO V2: PLATFORM HARDENING
 
 ### Added

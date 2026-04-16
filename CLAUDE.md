@@ -25,9 +25,12 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-16)
+- **Self-service + IoT + SonarQube (monitoreo-v2):** TenantSettingsPage, ApiKeysPage, RolesPage (con grid permisos), IotReadingsModule (EAV, 5 endpoints), CronBuilder, TablePrimitives, SonarQube QG OK. [CHANGELOG — 1.0.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-15)
-- **Security hardening (monitoreo-v2):** SSRF blocker, HTML escape PDFs, constant-time API key comparison, JWT strict validation, account enumeration fix, refresh token theft detection, ReDoS protection, `__Host-` cookies, body size limits. [CHANGELOG — 0.99.1-alpha.0](CHANGELOG.md)
-- **Platform hardening (monitoreo-v2):** Conectores reales (4 tipos), API externa v1 + API keys, tenant onboarding, TimescaleDB optimización, ISO 27001 hardening, frontend tests. [CHANGELOG — 0.99.0-alpha.0](CHANGELOG.md)
+- **Security hardening (monitoreo-v2):** SSRF blocker, HTML escape PDFs, constant-time API key, JWT strict validation, refresh token theft detection, ReDoS, `__Host-` cookies. [CHANGELOG — 0.99.1-alpha.0](CHANGELOG.md)
+- **Platform hardening (monitoreo-v2):** Conectores reales (4 tipos), API externa v1, tenant onboarding, TimescaleDB, ISO 27001. [CHANGELOG — 0.99.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-02)
 - **Drawer + Header cleanup (monitoreo-v2):** `Drawer` en `components/ui/` (dialog nativo, side/size/footer). `UserForm` migrado de Modal a Drawer. Header sin selector edificios. [CHANGELOG — 0.98.0-alpha.0](CHANGELOG.md)
@@ -126,8 +129,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md y docs/PLAN_ACCION.md. Retomando monitoreo-v2.
-Backend: Fases 1-8 + platform + security hardening — 20 módulos, conectores reales (4 tipos), API v1 + Swagger, tenant onboarding, TimescaleDB continuous aggregates, ISO 27001 + pentesting hardening (SSRF, XSS, timing attacks, JWT validation, token theft detection, ReDoS, __Host- cookies). 613 tests, 58 suites.
-Frontend: Fases 1-8 + test infra — 16 páginas, theming dinámico N-tenant (logo, favicon, título, 4 CSS vars), @testing-library. 73 tests, 10 suites.
+Backend: 21 módulos (incl. iot-readings, api-keys, external-api, roles CRUD), conectores reales, API v1 + Swagger, tenant onboarding, TimescaleDB, ISO 27001 + pentesting hardening, SonarQube QG OK. 656 tests, 61 suites.
+Frontend: 19 páginas (incl. TenantSettings, ApiKeys, Roles), theming dinámico N-tenant, CronBuilder, TablePrimitives, @testing-library. 185 tests, 18 suites.
 ```
 
 ## Prioridad Actual de Acceso
@@ -147,7 +150,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 613 tests / 58 suites). Frontend: Vitest + @testing-library/react (73 tests / 10 suites).
+- **Testing:** Jest 30 (backend, 656 tests / 61 suites). Frontend: Vitest + @testing-library/react (185 tests / 18 suites).
 
 ## Architecture
 ```
@@ -233,4 +236,4 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 0.99.1-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 1.0.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

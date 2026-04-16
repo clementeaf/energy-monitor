@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.0.0-alpha.0] - 2026-04-16 — MONITOREO V2: SELF-SERVICE + IOT + SONARQUBE
+
+### Added
+- **Self-service admin** — 3 nuevas páginas: TenantSettingsPage (`/admin/settings`), ApiKeysPage (`/admin/api-keys`), RolesPage (`/admin/roles` con grid de permisos)
+- **Roles CRUD backend** — `GET/POST/PATCH/DELETE /roles`, `GET/PUT /roles/:id/permissions`, `GET /roles/permissions` (catálogo)
+- **IotReadingsModule** — 5 endpoints (`/iot-readings/latest`, `/timeseries`, `/`, `/alerts`, `/stats`). EAV→columnar pivot, TimescaleDB time_bucket, anomaly detection on-the-fly
+- **CronBuilder** — Componente UI con 4 presets + cron custom + descripción en español
+- **TablePrimitives** — Componentes compartidos (Th, Td, StatusBadge, ActionBtn) para deduplicación
+- **IoT data migration** — Script `transform-iot.sql` (v1 columnar→v2 EAV: 281→3,917 filas)
+
+### Changed
+- **IntegrationsPage** — Tipo de integración via selector (GET /integrations/supported-types)
+- **ReportsPage** — CronBuilder reemplaza input cron raw
+- **Sidebar** — 3 entradas admin nuevas (Configuracion, API Keys, Roles)
+
+### Fixed
+- **SonarQube Quality Gate** — 0 bugs, 0 vulnerabilities, A/A/A. Readonly props (~75 componentes), Chart `this` extraction, regex grouping, accesibilidad, void operators removidos
+- **Duplicaciones** — 25.4%→3.2% via TablePrimitives compartidos
+
+### Tests
+- Backend: 656 tests, 61 suites (antes 613/58)
+- Frontend: 185 tests, 18 suites (antes 73/10)
+
+---
+
 ## [0.99.1-alpha.0] - 2026-04-15 — MONITOREO V2: SECURITY HARDENING
 
 ### Fixed

@@ -79,7 +79,7 @@ export function TenantSettingsPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin datos"
         emptyDescription="No se pudo cargar la configuracion del tenant."

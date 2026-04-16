@@ -53,7 +53,7 @@ export function useCreateIntegration() {
     mutationFn: (payload: CreateIntegrationPayload) =>
       integrationsEndpoints.create(payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
+      qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
     },
   });
 }
@@ -67,7 +67,7 @@ export function useUpdateIntegration() {
     mutationFn: ({ id, payload }: { id: string; payload: UpdateIntegrationPayload }) =>
       integrationsEndpoints.update(id, payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
+      qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
     },
   });
 }
@@ -80,7 +80,7 @@ export function useDeleteIntegration() {
   return useMutation({
     mutationFn: (id: string) => integrationsEndpoints.remove(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
+      qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
     },
   });
 }
@@ -93,8 +93,8 @@ export function useTriggerIntegrationSync() {
   return useMutation({
     mutationFn: (id: string) => integrationsEndpoints.sync(id).then((r) => r.data),
     onSuccess: (_data, id) => {
-      void qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
-      void qc.invalidateQueries({ queryKey: [...INTEGRATIONS_KEY, id, 'sync-logs'] });
+      qc.invalidateQueries({ queryKey: INTEGRATIONS_KEY });
+      qc.invalidateQueries({ queryKey: [...INTEGRATIONS_KEY, id, 'sync-logs'] });
     },
   });
 }

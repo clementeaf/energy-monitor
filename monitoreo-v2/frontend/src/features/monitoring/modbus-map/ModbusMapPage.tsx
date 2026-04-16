@@ -129,7 +129,7 @@ export function ModbusMapPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void metersQuery.refetch(); }}
+        onRetry={() => { metersQuery.refetch(); }}
         emptyTitle="Sin medidores"
         emptyDescription="No hay medidores en este edificio."
       >

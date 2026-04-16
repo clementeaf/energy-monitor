@@ -75,59 +75,53 @@ export function CronBuilder({ value, onChange, disabled = false, className = '' 
   );
 }
 
-/**
- * Translate a cron expression into a human-readable Spanish description.
- * Supports standard 5-field cron (minute hour day-of-month month day-of-week).
- */
+const PRESET_DESCRIPTIONS: Record<string, string> = {
+  '0 * * * *': 'Cada hora, al minuto 0',
+  '0 8 * * *': 'Todos los dias a las 08:00',
+  '0 8 * * 1': 'Cada lunes a las 08:00',
+  '0 8 1 * *': 'El dia 1 de cada mes a las 08:00',
+};
+
+const MONTH_NAMES = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DAY_NAMES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+
+function describeMinute(minute: string): string | null {
+  if (minute === '*') return 'cada minuto';
+  if (minute.startsWith('*/')) return `cada ${minute.slice(2)} minutos`;
+  return null;
+}
+
+function describeHour(hour: string, minute: string): string | null {
+  if (hour === '*') return null;
+  if (hour.startsWith('*/')) return `cada ${hour.slice(2)} horas`;
+  const m = minute === '*' ? '00' : minute.padStart(2, '0');
+  return `a las ${hour.padStart(2, '0')}:${m}`;
+}
+
+function describeField(value: string, names: string[], prefix: string, offset: number): string | null {
+  if (value === '*') return null;
+  const idx = parseInt(value, 10);
+  if (idx >= offset && idx < offset + names.length) return `${prefix}${names[idx - offset]}`;
+  return `${prefix}${value}`;
+}
+
+/** Translate a 5-field cron expression into a human-readable Spanish description. */
 function describeCron(cron: string): string {
+  const preset = PRESET_DESCRIPTIONS[cron];
+  if (preset) return preset;
+
   const parts = cron.trim().split(/\s+/);
   if (parts.length !== 5) return 'Expresion cron invalida';
 
   const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
 
-  // Exact presets
-  if (cron === '0 * * * *') return 'Cada hora, al minuto 0';
-  if (cron === '0 8 * * *') return 'Todos los dias a las 08:00';
-  if (cron === '0 8 * * 1') return 'Cada lunes a las 08:00';
-  if (cron === '0 8 1 * *') return 'El dia 1 de cada mes a las 08:00';
-
-  const segments: string[] = [];
-
-  // Minute
-  if (minute === '*') {
-    segments.push('cada minuto');
-  } else if (minute!.startsWith('*/')) {
-    segments.push(`cada ${minute!.slice(2)} minutos`);
-  }
-
-  // Hour
-  if (hour !== '*') {
-    if (hour!.startsWith('*/')) {
-      segments.push(`cada ${hour!.slice(2)} horas`);
-    } else {
-      const m = minute === '*' ? '00' : minute!.padStart(2, '0');
-      segments.push(`a las ${hour!.padStart(2, '0')}:${m}`);
-    }
-  }
-
-  // Day of month
-  if (dayOfMonth !== '*') {
-    segments.push(`dia ${dayOfMonth} del mes`);
-  }
-
-  // Month
-  if (month !== '*') {
-    const monthNames = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    const idx = parseInt(month!, 10);
-    segments.push(idx >= 1 && idx <= 12 ? `en ${monthNames[idx]}` : `mes ${month}`);
-  }
-
-  // Day of week
-  if (dayOfWeek !== '*') {
-    const dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    const idx = parseInt(dayOfWeek!, 10);
-    segments.push(idx >= 0 && idx <= 6 ? `los ${dayNames[idx]}` : `dia semana ${dayOfWeek}`);
-  }
+  const segments = [
+    describeMinute(minute),
+    describeHour(hour, minute),
+    dayOfMonth !== '*' ? `dia ${dayOfMonth} del mes` : null,
+    describeField(month, MONTH_NAMES.slice(1), 'en ', 1),
+    describeField(dayOfWeek, DAY_NAMES, 'los ', 0),
+  ].filter(Boolean) as string[];
 
   return segments.length > 0 ? segments.join(', ') : 'Cada minuto';
 }

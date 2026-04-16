@@ -52,7 +52,7 @@ export function useGenerateReport() {
     mutationFn: (payload: GenerateReportPayload) =>
       reportsEndpoints.generate(payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: REPORTS_KEY });
+      qc.invalidateQueries({ queryKey: REPORTS_KEY });
     },
   });
 }
@@ -65,7 +65,7 @@ export function useDeleteReport() {
   return useMutation({
     mutationFn: (id: string) => reportsEndpoints.remove(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: REPORTS_KEY });
+      qc.invalidateQueries({ queryKey: REPORTS_KEY });
     },
   });
 }
@@ -79,7 +79,7 @@ export function useCreateScheduledReport() {
     mutationFn: (payload: CreateScheduledReportPayload) =>
       reportsEndpoints.scheduledCreate(payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
+      qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
     },
   });
 }
@@ -93,7 +93,7 @@ export function useUpdateScheduledReport() {
     mutationFn: ({ id, payload }: { id: string; payload: UpdateScheduledReportPayload }) =>
       reportsEndpoints.scheduledUpdate(id, payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
+      qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
     },
   });
 }
@@ -106,7 +106,7 @@ export function useDeleteScheduledReport() {
   return useMutation({
     mutationFn: (id: string) => reportsEndpoints.scheduledRemove(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
+      qc.invalidateQueries({ queryKey: SCHEDULED_KEY });
     },
   });
 }

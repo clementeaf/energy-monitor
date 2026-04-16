@@ -6,7 +6,7 @@ export function useEvaluateAlerts() {
   return useMutation({
     mutationFn: () => alertEngineEndpoints.evaluate().then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['alerts'] });
+      qc.invalidateQueries({ queryKey: ['alerts'] });
     },
   });
 }

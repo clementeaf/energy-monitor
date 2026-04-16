@@ -40,11 +40,11 @@ export function HierarchyPage() {
 
   // Derive combined phase: buildings must load first
   const qs: typeof hierarchyQs = buildingsQuery.isPending
-    ? { phase: 'loading', data: undefined, error: undefined, refetch: () => { void buildingsQuery.refetch(); } }
+    ? { phase: 'loading', data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
     : buildingsQuery.isError
-      ? { phase: 'error', data: undefined, error: buildingsQuery.error, refetch: () => { void buildingsQuery.refetch(); } }
+      ? { phase: 'error', data: undefined, error: buildingsQuery.error, refetch: () => { buildingsQuery.refetch(); } }
       : buildings.length === 0
-        ? { phase: 'empty', data: undefined, error: undefined, refetch: () => { void buildingsQuery.refetch(); } }
+        ? { phase: 'empty', data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
         : hierarchyQs;
   const { has } = usePermissions();
   const canWrite = has('admin_hierarchy', 'create');
@@ -104,7 +104,7 @@ export function HierarchyPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle={buildings.length === 0 ? 'Sin edificios' : 'Sin jerarquia'}
         emptyDescription={buildings.length === 0 ? 'No hay edificios registrados.' : 'No hay nodos de jerarquia para este edificio.'}

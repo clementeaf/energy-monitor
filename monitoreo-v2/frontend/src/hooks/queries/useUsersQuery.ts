@@ -48,7 +48,7 @@ export function useCreateUser() {
   return useMutation({
     mutationFn: (payload: CreateUserPayload) =>
       usersEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -57,7 +57,7 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateUserPayload }) =>
       usersEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -65,7 +65,7 @@ export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => usersEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -75,7 +75,7 @@ export function useAssignBuildings() {
     mutationFn: ({ id, payload }: { id: string; payload: AssignBuildingsPayload }) =>
       usersEndpoints.assignBuildings(id, payload).then((r) => r.data),
     onSuccess: (_data, { id }) => {
-      void qc.invalidateQueries({ queryKey: KEYS.buildings(id) });
+      qc.invalidateQueries({ queryKey: KEYS.buildings(id) });
     },
   });
 }

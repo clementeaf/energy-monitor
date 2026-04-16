@@ -221,7 +221,7 @@ export function GenerationSitePage() {
       <DataWidget
         phase={aggQs.phase}
         error={aggQs.error}
-        onRetry={() => { void aggQuery.refetch(); }}
+        onRetry={() => { aggQuery.refetch(); }}
         emptyTitle="Sin series agregadas"
         emptyDescription="No hay lecturas en el rango para este sitio."
       >

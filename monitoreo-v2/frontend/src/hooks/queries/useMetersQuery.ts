@@ -33,7 +33,7 @@ export function useCreateMeter() {
   return useMutation({
     mutationFn: (payload: CreateMeterPayload) =>
       metersEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['meters'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meters'] }); },
   });
 }
 
@@ -42,7 +42,7 @@ export function useUpdateMeter() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateMeterPayload }) =>
       metersEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['meters'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meters'] }); },
   });
 }
 
@@ -50,6 +50,6 @@ export function useDeleteMeter() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => metersEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['meters'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meters'] }); },
   });
 }

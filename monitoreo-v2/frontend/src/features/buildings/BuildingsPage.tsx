@@ -60,7 +60,7 @@ export function BuildingsPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin edificios"
         emptyDescription="No hay edificios registrados para este tenant."
@@ -82,7 +82,7 @@ export function BuildingsPage() {
                 <tr
                   key={b.id}
                   className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => { void navigate(`/meters?buildingId=${b.id}`); }}
+                  onClick={() => { navigate(`/meters?buildingId=${b.id}`); }}
                 >
                   <Td className="font-medium text-gray-900">{b.name}</Td>
                   <Td>{b.code}</Td>

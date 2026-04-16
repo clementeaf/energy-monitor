@@ -36,7 +36,7 @@ export function useCreateTenantUnit() {
   return useMutation({
     mutationFn: (payload: CreateTenantUnitPayload) =>
       tenantUnitsEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -45,7 +45,7 @@ export function useUpdateTenantUnit() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateTenantUnitPayload }) =>
       tenantUnitsEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -53,7 +53,7 @@ export function useDeleteTenantUnit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => tenantUnitsEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -63,7 +63,7 @@ export function useAddTenantUnitMeter() {
     mutationFn: ({ id, meterId }: { id: string; meterId: string }) =>
       tenantUnitsEndpoints.addMeter(id, meterId).then((r) => r.data),
     onSuccess: (_data, { id }) => {
-      void qc.invalidateQueries({ queryKey: KEYS.meters(id) });
+      qc.invalidateQueries({ queryKey: KEYS.meters(id) });
     },
   });
 }
@@ -74,7 +74,7 @@ export function useRemoveTenantUnitMeter() {
     mutationFn: ({ id, meterId }: { id: string; meterId: string }) =>
       tenantUnitsEndpoints.removeMeter(id, meterId),
     onSuccess: (_data, { id }) => {
-      void qc.invalidateQueries({ queryKey: KEYS.meters(id) });
+      qc.invalidateQueries({ queryKey: KEYS.meters(id) });
     },
   });
 }

@@ -140,7 +140,7 @@ export function QualityPage() {
       <DataWidget
         phase={readingsQs.phase}
         error={readingsQs.error}
-        onRetry={() => { void readingsQuery.refetch(); }}
+        onRetry={() => { readingsQuery.refetch(); }}
         emptyTitle="Sin datos de calidad"
         emptyDescription="No hay lecturas de calidad electrica para este medidor."
       >

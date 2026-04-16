@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/281</span>
+                <span class='fraction'>0/264</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/281</span>
+                <span class='fraction'>0/264</span>
             </div>
         
             
@@ -375,29 +375,8 @@
 <a name='L310'></a><a href='#L310'>310</a>
 <a name='L311'></a><a href='#L311'>311</a>
 <a name='L312'></a><a href='#L312'>312</a>
-<a name='L313'></a><a href='#L313'>313</a>
-<a name='L314'></a><a href='#L314'>314</a>
-<a name='L315'></a><a href='#L315'>315</a>
-<a name='L316'></a><a href='#L316'>316</a>
-<a name='L317'></a><a href='#L317'>317</a>
-<a name='L318'></a><a href='#L318'>318</a>
-<a name='L319'></a><a href='#L319'>319</a>
-<a name='L320'></a><a href='#L320'>320</a>
-<a name='L321'></a><a href='#L321'>321</a>
-<a name='L322'></a><a href='#L322'>322</a>
-<a name='L323'></a><a href='#L323'>323</a>
-<a name='L324'></a><a href='#L324'>324</a>
-<a name='L325'></a><a href='#L325'>325</a>
-<a name='L326'></a><a href='#L326'>326</a>
-<a name='L327'></a><a href='#L327'>327</a>
-<a name='L328'></a><a href='#L328'>328</a>
-<a name='L329'></a><a href='#L329'>329</a>
-<a name='L330'></a><a href='#L330'>330</a>
-<a name='L331'></a><a href='#L331'>331</a>
-<a name='L332'></a><a href='#L332'>332</a>
-<a name='L333'></a><a href='#L333'>333</a>
-<a name='L334'></a><a href='#L334'>334</a>
-<a name='L335'></a><a href='#L335'>335</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L313'></a><a href='#L313'>313</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -687,29 +666,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -737,6 +693,7 @@
 <span class="cstat-no" title="statement not covered" >import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';</span>
 <span class="cstat-no" title="statement not covered" >import { Button } from '../../../components/ui/Button';</span>
 <span class="cstat-no" title="statement not covered" >import { Toggle } from '../../../components/ui/Toggle';</span>
+<span class="cstat-no" title="statement not covered" >import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';</span>
 <span class="cstat-no" title="statement not covered" >import { useQueryState } from '../../../hooks/useQueryState';</span>
 <span class="cstat-no" title="statement not covered" >import { usePermissions } from '../../../hooks/usePermissions';</span>
 <span class="cstat-no" title="statement not covered" >import {</span>
@@ -841,7 +798,7 @@ import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../..
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const handleCopy = () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!createdKey) return;</span>
-<span class="cstat-no" title="statement not covered" >    void navigator.clipboard.writeText(createdKey.key);</span>
+<span class="cstat-no" title="statement not covered" >    navigator.clipboard.writeText(createdKey.key);</span>
 <span class="cstat-no" title="statement not covered" >    setCopied(true);</span>
 <span class="cstat-no" title="statement not covered" >    setTimeout(() =&gt; { setCopied(false); }, 2000);</span>
 <span class="cstat-no" title="statement not covered" >  };</span>
@@ -858,7 +815,7 @@ import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../..
 <span class="cstat-no" title="statement not covered" >      &lt;DataWidget</span>
 <span class="cstat-no" title="statement not covered" >        phase={qs.phase}</span>
 <span class="cstat-no" title="statement not covered" >        error={qs.error}</span>
-<span class="cstat-no" title="statement not covered" >        onRetry={() =&gt; { void query.refetch(); }}</span>
+<span class="cstat-no" title="statement not covered" >        onRetry={() =&gt; { query.refetch(); }}</span>
 <span class="cstat-no" title="statement not covered" >        isFetching={query.isFetching &amp;&amp; qs.phase === 'ready'}</span>
 <span class="cstat-no" title="statement not covered" >        emptyTitle="Sin API Keys"</span>
 <span class="cstat-no" title="statement not covered" >        emptyDescription="No hay API keys configuradas para este tenant."</span>
@@ -1032,18 +989,6 @@ import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../..
   );
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >function Th({ children, className = '' }: Readonly&lt;{ children?: React.ReactNode; className?: string }&gt;) {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}&gt;</span>
-<span class="cstat-no" title="statement not covered" >      {children}</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/th&gt;</span>
-  );
-<span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >function Td({ children, className = '' }: Readonly&lt;{ children: React.ReactNode; className?: string }&gt;) {</span>
-<span class="cstat-no" title="statement not covered" >  return &lt;td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}&gt;{children}&lt;/td&gt;;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >function Field({ label, required, children }: Readonly&lt;{ label: string; required?: boolean; children: React.ReactNode }&gt;) {</span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;label className="block"&gt;</span>
@@ -1054,17 +999,6 @@ import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../..
 <span class="cstat-no" title="statement not covered" >    &lt;/label&gt;</span>
   );
 <span class="cstat-no" title="statement not covered" >}</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >function ActionBtn({ label, onClick, variant = 'default' }: Readonly&lt;{ label: string; onClick: () =&gt; void; variant?: 'default' | 'danger' }&gt;) {</span>
-<span class="cstat-no" title="statement not covered" >  const cls = variant === 'danger'</span>
-<span class="cstat-no" title="statement not covered" >    ? 'text-red-600 hover:bg-red-50'</span>
-<span class="cstat-no" title="statement not covered" >    : 'text-gray-600 hover:bg-gray-100';</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}&gt;</span>
-<span class="cstat-no" title="statement not covered" >      {label}</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/button&gt;</span>
-  );
-<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1072,7 +1006,7 @@ import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../..
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-16T11:46:27.771Z
+                at 2026-04-16T12:08:19.408Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

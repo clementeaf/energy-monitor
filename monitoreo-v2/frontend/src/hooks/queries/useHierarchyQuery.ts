@@ -48,7 +48,7 @@ export function useCreateHierarchyNode() {
     mutationFn: (payload: CreateHierarchyNodePayload) =>
       hierarchyEndpoints.create(payload).then((r) => r.data),
     onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({ queryKey: KEYS.byBuilding(vars.buildingId) });
+      qc.invalidateQueries({ queryKey: KEYS.byBuilding(vars.buildingId) });
     },
   });
 }
@@ -59,7 +59,7 @@ export function useUpdateHierarchyNode() {
     mutationFn: ({ id, payload }: { id: string; payload: UpdateHierarchyNodePayload }) =>
       hierarchyEndpoints.update(id, payload).then((r) => r.data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['hierarchy'] });
+      qc.invalidateQueries({ queryKey: ['hierarchy'] });
     },
   });
 }
@@ -69,7 +69,7 @@ export function useDeleteHierarchyNode() {
   return useMutation({
     mutationFn: (id: string) => hierarchyEndpoints.remove(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['hierarchy'] });
+      qc.invalidateQueries({ queryKey: ['hierarchy'] });
     },
   });
 }

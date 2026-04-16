@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { Th, Td, StatusBadge, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useUsersQuery, useCreateUser, useUpdateUser, useDeleteUser } from '../../../hooks/queries/useUsersQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
@@ -60,7 +61,7 @@ export function UsersPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin usuarios"
         emptyDescription="No hay usuarios registrados para este tenant."
@@ -133,39 +134,4 @@ function uniqueRoles(users: UserListItem[]): { id: string; name: string; slug: s
     if (!map.has(u.role.id)) map.set(u.role.id, u.role);
   }
   return Array.from(map.values());
-}
-
-function Th({ children, className = '' }: Readonly<{ children?: React.ReactNode; className?: string }>) {
-  return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
-}
-
-function StatusBadge({ active }: Readonly<{ active: boolean }>) {
-  return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-      }`}
-    >
-      {active ? 'Activo' : 'Inactivo'}
-    </span>
-  );
-}
-
-function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
-  const cls = variant === 'danger'
-    ? 'text-red-600 hover:bg-red-50'
-    : 'text-gray-600 hover:bg-gray-100';
-  return (
-    <button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}>
-      {label}
-    </button>
-  );
 }

@@ -24,7 +24,7 @@ export function useCreateApiKey() {
   return useMutation({
     mutationFn: (payload: CreateApiKeyPayload) =>
       apiKeysEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -33,7 +33,7 @@ export function useUpdateApiKey() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateApiKeyPayload }) =>
       apiKeysEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -42,7 +42,7 @@ export function useRotateApiKey() {
   return useMutation({
     mutationFn: (id: string) =>
       apiKeysEndpoints.rotate(id).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -50,6 +50,6 @@ export function useDeleteApiKey() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiKeysEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }

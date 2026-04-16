@@ -68,7 +68,7 @@ export function AuditPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin registros"
         emptyDescription="No hay registros de auditoria con estos filtros."

@@ -25,7 +25,7 @@ export function useAcknowledgeAlert() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => alertsEndpoints.acknowledge(id).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['alerts'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['alerts'] }); },
   });
 }
 
@@ -34,7 +34,7 @@ export function useResolveAlert() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload?: ResolveAlertPayload }) =>
       alertsEndpoints.resolve(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['alerts'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['alerts'] }); },
   });
 }
 
@@ -55,7 +55,7 @@ export function useCreateAlertRule() {
   return useMutation({
     mutationFn: (payload: CreateAlertRulePayload) =>
       alertRulesEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
   });
 }
 
@@ -64,7 +64,7 @@ export function useUpdateAlertRule() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateAlertRulePayload }) =>
       alertRulesEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
   });
 }
 
@@ -72,6 +72,6 @@ export function useDeleteAlertRule() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => alertRulesEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['alert-rules'] }); },
   });
 }

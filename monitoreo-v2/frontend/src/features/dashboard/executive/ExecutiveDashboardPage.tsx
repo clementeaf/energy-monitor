@@ -224,8 +224,8 @@ export function ExecutiveDashboardPage(): ReactElement {
             phase={buildingsQs.phase === 'loading' || aggQuery.isPending ? 'loading' : buildingsQs.phase}
             error={buildingsQs.error ?? aggQuery.error}
             onRetry={() => {
-              void buildingsQuery.refetch();
-              void aggQuery.refetch();
+              buildingsQuery.refetch();
+              aggQuery.refetch();
             }}
             emptyTitle="Sin datos"
             emptyDescription="No hay edificios o lecturas agregadas en el periodo."
@@ -267,7 +267,7 @@ export function ExecutiveDashboardPage(): ReactElement {
           <DataWidget
             phase={activeAlertsQuery.isPending ? 'loading' : activeAlertsQuery.isError ? 'error' : 'ready'}
             error={activeAlertsQuery.error}
-            onRetry={() => { void activeAlertsQuery.refetch(); }}
+            onRetry={() => { activeAlertsQuery.refetch(); }}
             emptyTitle="Sin alertas críticas"
             emptyDescription="No hay alertas activas con severidad crítica."
           >

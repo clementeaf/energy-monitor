@@ -116,7 +116,7 @@ export function MetersByTypePage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void metersQuery.refetch(); }}
+        onRetry={() => { metersQuery.refetch(); }}
         emptyTitle="Sin medidores"
         emptyDescription="No hay medidores visibles para su usuario."
       >

@@ -91,7 +91,7 @@ export function AlertsPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void alertsQuery.refetch(); }}
+        onRetry={() => { alertsQuery.refetch(); }}
         isFetching={alertsQuery.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin alertas"
         emptyDescription="No hay alertas que coincidan con los filtros seleccionados."

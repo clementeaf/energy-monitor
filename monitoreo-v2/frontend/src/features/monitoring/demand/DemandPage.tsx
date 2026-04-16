@@ -148,7 +148,7 @@ export function DemandPage() {
       <DataWidget
         phase={aggQs.phase}
         error={aggQs.error}
-        onRetry={() => { void aggQuery.refetch(); }}
+        onRetry={() => { aggQuery.refetch(); }}
         emptyTitle="Sin datos de demanda"
         emptyDescription="No hay datos agregados para el periodo seleccionado."
       >

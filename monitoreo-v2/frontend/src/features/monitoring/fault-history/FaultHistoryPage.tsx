@@ -119,7 +119,7 @@ export function FaultHistoryPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void faultEventsQuery.refetch(); }}
+        onRetry={() => { faultEventsQuery.refetch(); }}
         isFetching={faultEventsQuery.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin eventos de fallo"
         emptyDescription="No hay eventos de fallo registrados para este medidor."

@@ -87,7 +87,7 @@ export function MetersPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void metersQuery.refetch(); }}
+        onRetry={() => { metersQuery.refetch(); }}
         isFetching={metersQuery.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin medidores"
         emptyDescription={buildingId ? 'No hay medidores en este edificio.' : 'No hay medidores registrados.'}

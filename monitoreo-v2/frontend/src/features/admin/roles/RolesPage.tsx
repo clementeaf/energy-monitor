@@ -4,6 +4,7 @@ import { Drawer } from '../../../components/ui/Drawer';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Button } from '../../../components/ui/Button';
 import { Toggle } from '../../../components/ui/Toggle';
+import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { usePermissions } from '../../../hooks/usePermissions';
 import {
@@ -175,7 +176,7 @@ export function RolesPage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void query.refetch(); }}
+        onRetry={() => { query.refetch(); }}
         isFetching={query.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin roles"
         emptyDescription="No hay roles configurados para este tenant."
@@ -354,18 +355,6 @@ export function RolesPage() {
   );
 }
 
-function Th({ children, className = '' }: Readonly<{ children?: React.ReactNode; className?: string }>) {
-  return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className = '', title }: Readonly<{ children: React.ReactNode; className?: string; title?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`} title={title}>{children}</td>;
-}
-
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
@@ -374,16 +363,5 @@ function Field({ label, required, children }: Readonly<{ label: string; required
       </span>
       <div className="mt-1">{children}</div>
     </label>
-  );
-}
-
-function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
-  const cls = variant === 'danger'
-    ? 'text-red-600 hover:bg-red-50'
-    : 'text-gray-600 hover:bg-gray-100';
-  return (
-    <button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}>
-      {label}
-    </button>
   );
 }

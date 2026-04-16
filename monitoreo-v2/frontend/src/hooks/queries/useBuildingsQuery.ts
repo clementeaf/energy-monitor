@@ -33,7 +33,7 @@ export function useCreateBuilding() {
   return useMutation({
     mutationFn: (payload: CreateBuildingPayload) =>
       buildingsEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -42,7 +42,7 @@ export function useUpdateBuilding() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateBuildingPayload }) =>
       buildingsEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -50,6 +50,6 @@ export function useDeleteBuilding() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => buildingsEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }

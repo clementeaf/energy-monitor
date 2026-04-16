@@ -162,7 +162,7 @@ export function DevicesPage() {
       <DataWidget
         phase={qs.phase === 'loading' ? 'loading' : filtered.length === 0 ? 'empty' : 'ready'}
         error={qs.error}
-        onRetry={() => { void metersQuery.refetch(); }}
+        onRetry={() => { metersQuery.refetch(); }}
         isFetching={metersQuery.isFetching || concentratorsQuery.isFetching}
         emptyTitle="Sin dispositivos"
         emptyDescription="No hay dispositivos que coincidan con los filtros seleccionados."

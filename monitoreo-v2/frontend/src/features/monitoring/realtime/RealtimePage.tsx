@@ -36,7 +36,7 @@ export function RealtimePage() {
 
   // Refetch every 30s for near-realtime
   useEffect(() => {
-    const id = setInterval(() => { void latestQuery.refetch(); }, 30_000);
+    const id = setInterval(() => { latestQuery.refetch(); }, 30_000);
     return () => clearInterval(id);
   }, [latestQuery]);
 
@@ -89,7 +89,7 @@ export function RealtimePage() {
       <DataWidget
         phase={qs.phase}
         error={qs.error}
-        onRetry={() => { void latestQuery.refetch(); }}
+        onRetry={() => { latestQuery.refetch(); }}
         isFetching={latestQuery.isFetching && qs.phase === 'ready'}
         emptyTitle="Sin lecturas"
         emptyDescription="No hay lecturas recientes disponibles."

@@ -119,7 +119,7 @@ export function DashboardPage() {
           <DataWidget
             phase={alertsQuery.isPending ? 'loading' : alertsQuery.isError ? 'error' : activeAlerts.length === 0 ? 'empty' : 'ready'}
             error={alertsQuery.error}
-            onRetry={() => { void alertsQuery.refetch(); }}
+            onRetry={() => { alertsQuery.refetch(); }}
             emptyTitle="Sin alertas"
             emptyDescription="No hay alertas activas."
           >
@@ -142,7 +142,7 @@ export function DashboardPage() {
           <DataWidget
             phase={buildingsQs.phase}
             error={buildingsQs.error}
-            onRetry={() => { void buildingsQuery.refetch(); }}
+            onRetry={() => { buildingsQuery.refetch(); }}
             emptyTitle="Sin edificios"
             emptyDescription="No hay edificios registrados."
           >

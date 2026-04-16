@@ -126,7 +126,7 @@ export function DrilldownPage() {
       <DataWidget
         phase={hierarchyQs.phase}
         error={hierarchyQs.error}
-        onRetry={() => { void hierarchyQuery.refetch(); }}
+        onRetry={() => { hierarchyQuery.refetch(); }}
         emptyTitle="Sin jerarquia"
         emptyDescription="Este edificio no tiene jerarquia electrica configurada. Mostrando concentradores y medidores."
       >

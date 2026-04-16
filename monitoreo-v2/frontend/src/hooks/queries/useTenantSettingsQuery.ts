@@ -21,6 +21,6 @@ export function useUpdateMyTenant() {
   return useMutation({
     mutationFn: (payload: UpdateTenantPayload) =>
       tenantSettingsEndpoints.updateMyTenant(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.me }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.me }); },
   });
 }

@@ -211,9 +211,9 @@ export function CompareDashboardPage(): ReactElement {
     : aggRows.length === 0;
 
   const onRetry = (): void => {
-    void aggQuery.refetch();
+    aggQuery.refetch();
     if (compareWithPrevious) {
-      void aggQueryPrev.refetch();
+      aggQueryPrev.refetch();
     }
   };
 

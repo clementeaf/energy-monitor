@@ -261,7 +261,7 @@ export function IntegrationsPage() {
               phase={qs.phase}
               error={qs.error}
               onRetry={() => {
-                void listQuery.refetch();
+                listQuery.refetch();
               }}
               emptyDescription="No hay integraciones configuradas"
             >
@@ -310,7 +310,7 @@ export function IntegrationsPage() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  void syncMutation.mutateAsync(row.id).catch(() => undefined);
+                                  syncMutation.mutateAsync(row.id).catch(() => undefined);
                                 }}
                                 disabled={syncMutation.isPending}
                                 className="mr-2 text-sm font-medium text-gray-800 hover:underline disabled:opacity-50"
@@ -492,7 +492,7 @@ function SyncLogsPanel({
       phase={qs.phase}
       error={qs.error}
       onRetry={() => {
-        void query.refetch();
+        query.refetch();
       }}
       emptyDescription="No hay sincronizaciones registradas"
     >

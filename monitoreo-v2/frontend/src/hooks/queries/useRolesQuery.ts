@@ -27,7 +27,7 @@ export function useCreateRole() {
   return useMutation({
     mutationFn: (payload: CreateRolePayload) =>
       rolesEndpoints.create(payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -36,7 +36,7 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateRolePayload }) =>
       rolesEndpoints.update(id, payload).then((r) => r.data),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -44,7 +44,7 @@ export function useDeleteRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => rolesEndpoints.remove(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEYS.all }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEYS.all }); },
   });
 }
 
@@ -64,8 +64,8 @@ export function useAssignPermissions() {
     mutationFn: ({ id, permissionIds }: { id: string; permissionIds: string[] }) =>
       rolesEndpoints.assignPermissions(id, permissionIds).then((r) => r.data),
     onSuccess: (_data, { id }) => {
-      void qc.invalidateQueries({ queryKey: KEYS.all });
-      void qc.invalidateQueries({ queryKey: KEYS.permissions(id) });
+      qc.invalidateQueries({ queryKey: KEYS.all });
+      qc.invalidateQueries({ queryKey: KEYS.permissions(id) });
     },
   });
 }

@@ -28,6 +28,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { ExternalApiModule } from './modules/external-api/external-api.module';
+import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 
 @Module({
@@ -88,6 +89,7 @@ import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
     IntegrationsModule,
     ApiKeysModule,
     ExternalApiModule,
+    IotReadingsModule,
   ],
   providers: [
     // Global rate limiter guard

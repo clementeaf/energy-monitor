@@ -2,3 +2,7 @@
 *.env.local
 node_modules/
 dist/
+
+# SonarQube
+.scannerwork/
+coverage/

@@ -299,7 +299,7 @@ export function ApiKeysPage() {
   );
 }
 
-function Th({ children, className = '' }: { children?: React.ReactNode; className?: string }) {
+function Th({ children, className = '' }: Readonly<{ children?: React.ReactNode; className?: string }>) {
   return (
     <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
       {children}
@@ -307,11 +307,11 @@ function Th({ children, className = '' }: { children?: React.ReactNode; classNam
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">
@@ -322,7 +322,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-function ActionBtn({ label, onClick, variant = 'default' }: { label: string; onClick: () => void; variant?: 'default' | 'danger' }) {
+function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
   const cls = variant === 'danger'
     ? 'text-red-600 hover:bg-red-50'
     : 'text-gray-600 hover:bg-gray-100';

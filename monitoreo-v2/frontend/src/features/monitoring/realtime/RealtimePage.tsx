@@ -144,7 +144,7 @@ export function RealtimePage() {
   );
 }
 
-function SummaryCard({ label, value, color }: { label: string; value: string; color: string }) {
+function SummaryCard({ label, value, color }: Readonly<{ label: string; value: string; color: string }>) {
   return (
     <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
       <p className="text-xs font-medium text-gray-500">{label}</p>
@@ -153,7 +153,7 @@ function SummaryCard({ label, value, color }: { label: string; value: string; co
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
       {children}
@@ -161,6 +161,6 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }

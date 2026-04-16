@@ -14,7 +14,7 @@ export interface QueryStateResult<T> {
   phase: QueryUiPhase;
   data: T | undefined;
   error: unknown;
-  refetch: () => void;
+  refetch: () => Promise<unknown>;
 }
 
 /**

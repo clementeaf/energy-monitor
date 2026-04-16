@@ -12,7 +12,7 @@ interface TenantUnitFormProps {
   buildings: Building[];
 }
 
-export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit, buildings }: TenantUnitFormProps) {
+export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit, buildings }: Readonly<TenantUnitFormProps>) {
   const isEdit = !!tenantUnit;
   const [name, setName] = useState(tenantUnit?.name ?? '');
   const [unitCode, setUnitCode] = useState(tenantUnit?.unitCode ?? '');
@@ -116,7 +116,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">

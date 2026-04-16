@@ -91,7 +91,7 @@ export function BuildingsPage() {
                   <Td><StatusBadge active={b.isActive} /></Td>
                   {canWrite && (
                     <Td>
-                      <div className="flex gap-1" onClick={(e) => { e.stopPropagation(); }}>
+                      <div className="flex gap-1" role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>
                         <ActionBtn label="Editar" onClick={() => { openEdit(b); }} />
                         <ActionBtn label="Eliminar" onClick={() => { setDeleting(b); }} variant="danger" />
                       </div>
@@ -124,7 +124,7 @@ export function BuildingsPage() {
   );
 }
 
-function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
     <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
       {children}
@@ -132,11 +132,11 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }
 
-function StatusBadge({ active }: { active: boolean }) {
+function StatusBadge({ active }: Readonly<{ active: boolean }>) {
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -148,7 +148,7 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
-function ActionBtn({ label, onClick, variant = 'default' }: { label: string; onClick: () => void; variant?: 'default' | 'danger' }) {
+function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
   const cls = variant === 'danger'
     ? 'text-red-600 hover:bg-red-50'
     : 'text-gray-600 hover:bg-gray-100';

@@ -46,7 +46,7 @@ export function DataTable<T>({
   emptyMessage = 'Sin datos',
   className = '',
   compact = false,
-}: DataTableProps<T>) {
+}: Readonly<DataTableProps<T>>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [page, setPage] = useState(0);
@@ -169,7 +169,7 @@ export function DataTable<T>({
   );
 }
 
-function SortArrow({ dir }: { dir: SortDir }) {
+function SortArrow({ dir }: Readonly<{ dir: SortDir }>) {
   return (
     <svg className="size-3" viewBox="0 0 10 10" fill="currentColor">
       {dir === 'asc'

@@ -192,7 +192,7 @@ export function ModbusMapPage() {
   );
 }
 
-function StatusPill({ status, crcError }: { status: 'online' | 'offline'; crcError: boolean }) {
+function StatusPill({ status, crcError }: Readonly<{ status: 'online' | 'offline'; crcError: boolean }>) {
   if (crcError) {
     return (
       <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
@@ -214,7 +214,7 @@ function StatusPill({ status, crcError }: { status: 'online' | 'offline'; crcErr
   );
 }
 
-function ConcentratorCard({ c }: { c: Concentrator }) {
+function ConcentratorCard({ c }: Readonly<{ c: Concentrator }>) {
   const st =
     c.status === 'online'
       ? 'online'

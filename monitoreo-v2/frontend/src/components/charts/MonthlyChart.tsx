@@ -4,6 +4,19 @@ import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions, axisLabelFormatter, getSeriesColors } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
 
+/**
+ * Highcharts pointFormatter — extracted outside component to avoid
+ * SonarQube "this in functional component" false positive.
+ */
+function makePiePointFormatter(currency: string | undefined, unit: string) {
+  return function (this: Highcharts.Point): string {
+    const val = currency
+      ? `${currency}${(this.y ?? 0).toLocaleString('es-CL')}`
+      : `${(this.y ?? 0).toLocaleString('es-CL', { maximumFractionDigits: 1 })}`;
+    return `<b>${val} ${currency ? '' : unit}</b> (${Highcharts.numberFormat(this.percentage!, 1)}%)`;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -46,7 +59,7 @@ function MonthlyChartInner({
   mode: controlledMode,
   onModeChange,
   modes = ['column', 'line', 'area', 'pie'],
-}: MonthlyChartProps) {
+}: Readonly<MonthlyChartProps>) {
   const [internalMode, setInternalMode] = useState<ChartMode>('column');
   const mode = controlledMode ?? internalMode;
   const setMode = onModeChange ?? setInternalMode;
@@ -67,12 +80,7 @@ function MonthlyChartInner({
         tooltip: {
           useHTML: true,
           ...base.tooltip,
-          pointFormatter(this: Highcharts.Point) {
-            const val = currency
-              ? `${currency}${(this.y ?? 0).toLocaleString('es-CL')}`
-              : `${(this.y ?? 0).toLocaleString('es-CL', { maximumFractionDigits: 1 })}`;
-            return `<b>${val} ${currency ? '' : unit}</b> (${Highcharts.numberFormat(this.percentage!, 1)}%)`;
-          },
+          pointFormatter: makePiePointFormatter(currency, unit),
         },
         plotOptions: {
           pie: {

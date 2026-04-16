@@ -262,7 +262,7 @@ function HierarchyTreeNode({
   );
 }
 
-function ConcentratorRow({ concentrator }: { concentrator: Concentrator }) {
+function ConcentratorRow({ concentrator }: Readonly<{ concentrator: Concentrator }>) {
   const statusColors: Record<string, string> = {
     online: 'bg-green-100 text-green-700',
     offline: 'bg-gray-100 text-gray-600',
@@ -287,7 +287,7 @@ function ConcentratorRow({ concentrator }: { concentrator: Concentrator }) {
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
       {children}
@@ -295,6 +295,6 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }

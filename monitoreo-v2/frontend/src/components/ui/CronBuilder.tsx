@@ -19,7 +19,7 @@ const PRESETS: Preset[] = [
   { label: 'Mensual dia 1', cron: '0 8 1 * *' },
 ];
 
-export function CronBuilder({ value, onChange, disabled = false, className = '' }: CronBuilderProps) {
+export function CronBuilder({ value, onChange, disabled = false, className = '' }: Readonly<CronBuilderProps>) {
   const description = useMemo(() => describeCron(value), [value]);
   const activePreset = PRESETS.find((p) => p.cron === value);
 

@@ -10,7 +10,7 @@ interface BuildingFormProps {
   building?: Building | null;
 }
 
-export function BuildingForm({ open, onClose, onSubmit, isPending, building }: BuildingFormProps) {
+export function BuildingForm({ open, onClose, onSubmit, isPending, building }: Readonly<BuildingFormProps>) {
   const isEdit = !!building;
   const [name, setName] = useState(building?.name ?? '');
   const [code, setCode] = useState(building?.code ?? '');
@@ -102,7 +102,7 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: B
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">

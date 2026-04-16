@@ -168,7 +168,7 @@ export function DashboardPage() {
   );
 }
 
-function Card({ title, value }: { title: string; value: string }) {
+function Card({ title, value }: Readonly<{ title: string; value: string }>) {
   return (
     <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
       <p className="text-xs font-medium text-gray-500">{title}</p>
@@ -177,7 +177,7 @@ function Card({ title, value }: { title: string; value: string }) {
   );
 }
 
-function SeverityDot({ severity }: { severity: string }) {
+function SeverityDot({ severity }: Readonly<{ severity: string }>) {
   const colors: Record<string, string> = {
     critical: 'bg-red-500',
     high: 'bg-orange-500',

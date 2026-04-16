@@ -288,7 +288,7 @@ export function ExecutiveDashboardPage(): ReactElement {
   );
 }
 
-function KpiCard({ title, value }: { title: string; value: string }): ReactElement {
+function KpiCard({ title, value }: Readonly<{ title: string; value: string }>): ReactElement {
   return (
     <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
       <p className="text-xs font-medium text-gray-500">{title}</p>

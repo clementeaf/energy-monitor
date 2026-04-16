@@ -12,7 +12,7 @@ interface MeterFormProps {
   defaultBuildingId?: string;
 }
 
-export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBuildingId }: MeterFormProps) {
+export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBuildingId }: Readonly<MeterFormProps>) {
   const isEdit = !!meter;
   const buildingsQuery = useBuildingsQuery();
 
@@ -137,7 +137,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">

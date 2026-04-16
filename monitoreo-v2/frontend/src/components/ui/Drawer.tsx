@@ -34,7 +34,7 @@ export function Drawer({
   size = 'md',
   footer,
   dialogClassName,
-}: DrawerProps) {
+}: Readonly<DrawerProps>) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const isOpen = useRef(false);
 
@@ -71,6 +71,7 @@ export function Drawer({
       ref={dialogRef}
       onClose={handleClose}
       onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClose(); } }}
       className={
         dialogClassName ??
         `fixed inset-y-0 m-0 flex h-full max-h-full flex-col bg-white p-0 shadow-xl backdrop:bg-black/40 ${positionCls} ${SIZE_CLS[size]}`

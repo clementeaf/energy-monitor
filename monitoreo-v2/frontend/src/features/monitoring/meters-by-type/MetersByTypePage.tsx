@@ -206,7 +206,7 @@ export function MetersByTypePage() {
   );
 }
 
-function KpiCard({ title, value, sub }: { title: string; value: string; sub: string }) {
+function KpiCard({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
@@ -216,7 +216,7 @@ function KpiCard({ title, value, sub }: { title: string; value: string; sub: str
   );
 }
 
-function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
     <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
       {children}
@@ -224,6 +224,6 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useSessionResolver } from '../../hooks/auth/useSessionResolver';
 import { useAuthStore } from '../../store/useAuthStore';
 
-export function SessionGate({ children }: { children: ReactNode }) {
+export function SessionGate({ children }: Readonly<{ children: ReactNode }>) {
   useSessionResolver();
   const isLoading = useAuthStore((s) => s.isLoading);
 

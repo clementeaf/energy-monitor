@@ -482,7 +482,7 @@ function SyncLogsPanel({
   logsLimit,
   logsTotalPages,
   onPageChange,
-}: SyncLogsPanelProps) {
+}: Readonly<SyncLogsPanelProps>) {
   const qs = useQueryState(query, {
     isEmpty: (d) => d === undefined || d.items.length === 0,
   });

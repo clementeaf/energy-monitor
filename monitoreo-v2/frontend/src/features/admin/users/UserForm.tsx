@@ -13,7 +13,7 @@ interface UserFormProps {
   roles: { id: string; name: string; slug: string }[];
 }
 
-export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: UserFormProps) {
+export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: Readonly<UserFormProps>) {
   const isEdit = !!user;
   const [email, setEmail] = useState(user?.email ?? '');
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
@@ -153,7 +153,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: Us
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">

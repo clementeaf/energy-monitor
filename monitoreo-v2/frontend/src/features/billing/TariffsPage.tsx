@@ -225,7 +225,7 @@ function TariffRow({
   );
 }
 
-function TariffBlocksPanel({ tariffId, canWrite }: { tariffId: string; canWrite: boolean }) {
+function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; canWrite: boolean }>) {
   const blocksQuery = useTariffBlocksQuery(tariffId);
   const createBlock = useCreateTariffBlock();
   const deleteBlock = useDeleteTariffBlock();

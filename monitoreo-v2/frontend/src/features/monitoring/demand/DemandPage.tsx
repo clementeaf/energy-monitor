@@ -77,7 +77,7 @@ export function DemandPage() {
     if (demandByBucket.length === 0) return { value: 0, time: '' };
     const peak = demandByBucket.reduce((best, cur) =>
       cur.maxPower > best.maxPower ? cur : best,
-    );
+    demandByBucket[0]);
     return { value: peak.maxPower, time: peak.bucket };
   }, [demandByBucket]);
 
@@ -196,7 +196,7 @@ export function DemandPage() {
   );
 }
 
-function Card({ title, value, sub }: { title: string; value: string; sub: string }) {
+function Card({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
     <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
       <p className="text-xs font-medium text-gray-500">{title}</p>
@@ -206,7 +206,7 @@ function Card({ title, value, sub }: { title: string; value: string; sub: string
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
       {children}
@@ -214,6 +214,6 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }

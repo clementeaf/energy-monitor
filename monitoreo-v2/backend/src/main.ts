@@ -102,11 +102,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig, {
     include: [],  // all modules — Swagger decorators only on ExternalApiController
   });
-  if (isProduction) {
-    SwaggerModule.setup('api/v1/docs', app, document);
-  } else {
-    SwaggerModule.setup('api/v1/docs', app, document);
-  }
+  SwaggerModule.setup('api/v1/docs', app, document);
 
   await app.listen(port);
   Logger.log(`Server running on port ${port}`, 'Bootstrap');

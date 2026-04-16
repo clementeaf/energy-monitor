@@ -25,7 +25,7 @@ interface StockChartProps {
   onRangeChange?: (min: number, max: number) => void;
 }
 
-function StockChartInner({ options, className, loading, onRangeChange }: StockChartProps) {
+function StockChartInner({ options, className, loading, onRangeChange }: Readonly<StockChartProps>) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   // Lock range selector config on first render so chart.update() doesn't

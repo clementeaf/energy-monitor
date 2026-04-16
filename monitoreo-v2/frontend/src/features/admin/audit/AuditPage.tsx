@@ -121,7 +121,7 @@ export function AuditPage() {
   );
 }
 
-function MethodBadge({ action }: { action: string }) {
+function MethodBadge({ action }: Readonly<{ action: string }>) {
   const method = action.split(' ')[0] ?? action;
   const colors: Record<string, string> = {
     POST: 'bg-green-50 text-green-700',
@@ -136,7 +136,7 @@ function MethodBadge({ action }: { action: string }) {
   );
 }
 
-function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
     <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
       {children}
@@ -144,11 +144,11 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
   );
 }
 
-function Td({ children, className = '', title }: { children: React.ReactNode; className?: string; title?: string }) {
+function Td({ children, className = '', title }: Readonly<{ children: React.ReactNode; className?: string; title?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`} title={title}>{children}</td>;
 }
 
-function PageBtn({ children, disabled, onClick }: { children: React.ReactNode; disabled: boolean; onClick: () => void }) {
+function PageBtn({ children, disabled, onClick }: Readonly<{ children: React.ReactNode; disabled: boolean; onClick: () => void }>) {
   return (
     <button
       type="button"

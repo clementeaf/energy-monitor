@@ -32,12 +32,15 @@ export function Card({
   onClick,
   className = '',
   noPadding = false,
-}: CardProps) {
+}: Readonly<CardProps>) {
   const hasHeader = title || subtitle || action;
 
   return (
     <div
       onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={
         `rounded-lg ${VARIANT_CLS[variant]} ` +
         (onClick ? 'cursor-pointer transition-shadow hover:shadow-md ' : '') +

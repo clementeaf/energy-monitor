@@ -135,7 +135,7 @@ export function ComponentsPage() {
   );
 }
 
-function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function Section({ title, description, children }: Readonly<{ title: string; description: string; children: React.ReactNode }>) {
   return (
     <div className="space-y-2">
       <div>

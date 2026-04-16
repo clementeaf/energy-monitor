@@ -224,7 +224,7 @@ function InvoiceRow({
   );
 }
 
-function InvoiceDetailModal({ invoiceId, onClose }: { invoiceId: string; onClose: () => void }) {
+function InvoiceDetailModal({ invoiceId, onClose }: Readonly<{ invoiceId: string; onClose: () => void }>) {
   const lineItemsQuery = useInvoiceLineItemsQuery(invoiceId);
 
   return (

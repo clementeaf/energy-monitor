@@ -193,7 +193,7 @@ export function Sidebar() {
   );
 }
 
-function SidebarLink({ to, label, badge, end }: { to: string; label: string; badge?: number; end?: boolean }) {
+function SidebarLink({ to, label, badge, end }: Readonly<{ to: string; label: string; badge?: number; end?: boolean }>) {
   return (
     <NavLink
       to={to}

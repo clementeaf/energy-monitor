@@ -203,7 +203,7 @@ export function TenantSettingsPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">{title}</h2>
@@ -212,7 +212,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -226,12 +226,12 @@ function ColorField({
   value,
   onChange,
   disabled,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   onChange: (v: string) => void;
   disabled: boolean;
-}) {
+}>) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -256,7 +256,7 @@ function ColorField({
   );
 }
 
-function Swatch({ color, label }: { color: string; label: string }) {
+function Swatch({ color, label }: Readonly<{ color: string; label: string }>) {
   return (
     <div className="text-center" title={`${label}: ${color}`}>
       <div

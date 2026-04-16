@@ -4,6 +4,14 @@ import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
 
+/** Extracted outside component — avoids SonarQube "this in functional component" */
+function makePointEvents(onPointHover?: (index: number | null) => void) {
+  return {
+    mouseOver(this: Highcharts.Point) { onPointHover?.(this.index); },
+    mouseOut() { onPointHover?.(null); },
+  };
+}
+
 interface ChartProps {
   options: Highcharts.Options;
   className?: string;
@@ -13,7 +21,7 @@ interface ChartProps {
   onPointHover?: (index: number | null) => void;
 }
 
-function ChartInner({ options, className, highlightIndex, onPointHover }: ChartProps) {
+function ChartInner({ options, className, highlightIndex, onPointHover }: Readonly<ChartProps>) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   const merged = useMemo<Highcharts.Options>(() => {
@@ -33,10 +41,7 @@ function ChartInner({ options, className, highlightIndex, onPointHover }: ChartP
           ...base.plotOptions?.series,
           ...options.plotOptions?.series,
           point: {
-            events: {
-              mouseOver(this: Highcharts.Point) { onPointHover?.(this.index); },
-              mouseOut() { onPointHover?.(null); },
-            },
+            events: makePointEvents(onPointHover),
           },
         },
       },

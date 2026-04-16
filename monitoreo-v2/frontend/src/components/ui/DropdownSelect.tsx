@@ -24,7 +24,7 @@ export function DropdownSelect<T extends string = string>({
   disabled = false,
   className = '',
   searchThreshold = 8,
-}: DropdownSelectProps<T>) {
+}: Readonly<DropdownSelectProps<T>>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [highlightIdx, setHighlightIdx] = useState(-1);
@@ -143,8 +143,10 @@ export function DropdownSelect<T extends string = string>({
                 key={opt.value}
                 role="option"
                 aria-selected={opt.value === value}
+                tabIndex={0}
                 onMouseEnter={() => setHighlightIdx(i)}
                 onClick={() => select(opt.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(opt.value); } }}
                 className={
                   'cursor-pointer px-3 py-2 text-sm transition-colors ' +
                   (opt.value === value ? 'font-medium text-[var(--color-primary,#3D3BF3)]' : 'text-gray-700') + ' ' +

@@ -54,7 +54,7 @@ export function FaultHistoryPage() {
   const faultTypes = useMemo(() => {
     const types = new Set<string>();
     events.forEach((e) => types.add(e.faultType));
-    return Array.from(types).sort();
+    return Array.from(types).sort((a, b) => a.localeCompare(b));
   }, [events]);
 
   // Stats
@@ -198,7 +198,7 @@ function formatDuration(start: Date, end: Date): string {
   return `${mins}m`;
 }
 
-function SummaryCard({ label, value, color = 'text-gray-900' }: { label: string; value: string; color?: string }) {
+function SummaryCard({ label, value, color = 'text-gray-900' }: Readonly<{ label: string; value: string; color?: string }>) {
   return (
     <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
       <p className="text-xs font-medium text-gray-500">{label}</p>

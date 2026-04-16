@@ -259,7 +259,7 @@ function ThresholdCard({ label, value, threshold, ok }: {
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <h3 className="mb-2 text-sm font-medium text-gray-700">{title}</h3>
@@ -268,7 +268,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function SeverityDot({ severity }: { severity: string }) {
+function SeverityDot({ severity }: Readonly<{ severity: string }>) {
   const colors: Record<string, string> = {
     critical: 'bg-red-500',
     high: 'bg-orange-500',

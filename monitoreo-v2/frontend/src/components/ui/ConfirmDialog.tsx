@@ -10,7 +10,7 @@ interface ConfirmDialogProps {
   isPending?: boolean;
 }
 
-export function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Eliminar', isPending }: ConfirmDialogProps) {
+export function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Eliminar', isPending }: Readonly<ConfirmDialogProps>) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <p className="text-sm text-gray-600">{message}</p>

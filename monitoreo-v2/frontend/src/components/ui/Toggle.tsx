@@ -19,7 +19,7 @@ export function Toggle({
   disabled = false,
   size = 'md',
   className = '',
-}: ToggleProps) {
+}: Readonly<ToggleProps>) {
   const s = SIZE[size];
 
   return (

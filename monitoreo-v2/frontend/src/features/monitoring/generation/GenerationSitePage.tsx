@@ -235,7 +235,7 @@ export function GenerationSitePage() {
   );
 }
 
-function Kpi({ title, value, sub }: { title: string; value: string; sub: string }) {
+function Kpi({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>

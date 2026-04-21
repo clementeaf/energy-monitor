@@ -125,6 +125,11 @@ export const LazyIntegrationsPage = lazy(async () => {
   return { default: m.IntegrationsPage };
 });
 
+export const LazyBenchmarkPage = lazy(async () => {
+  const m = await import('../features/analytics/BenchmarkPage');
+  return { default: m.BenchmarkPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

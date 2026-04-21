@@ -105,6 +105,11 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['reports:update'],
   },
   {
+    to: '/analytics/benchmark',
+    label: 'Benchmarking',
+    requiredPerms: ['dashboard_executive:read'],
+  },
+  {
     to: APP_ROUTES.integrations,
     label: 'Integraciones',
     requiredPerms: ['integrations:read'],

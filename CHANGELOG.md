@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-2)
+## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-3)
 
 ### Added — Batch 1
 - **Dashboard ejecutivo por edificio** — `/dashboard/executive/:siteId`. KPIs, chart tendencias, tabla medidores.
@@ -14,6 +14,9 @@
 - **Integrations sub-rutas** — `/integrations/status`, `/integrations/config`, `/integrations/sync-log` como rutas alias.
 - **Audit sub-vistas** — `/admin/audit/changes` (log de cambios, pre-filtro PATCH) y `/admin/audit/access` (log de accesos, pre-filtro LOGIN). `AuditPage` acepta prop `mode`.
 - **Sidebar** — 6 entradas nuevas: Aprobar Facturas, Historial Facturación, Reportes Programados, Historial / SLA, Log de Cambios, Log de Accesos.
+
+### Added — Batch 3
+- **Benchmarking entre edificios** — `BenchmarkPage` en `/analytics/benchmark`. Ranking horizontal (bar chart), radar multi-KPI (top 5), tabla con kWh/m², demanda peak, FP. Selector periodo y métrica.
 
 ### Changed
 - **InvoicesPage** — Prop `defaultStatus`, chart evolución mensual.

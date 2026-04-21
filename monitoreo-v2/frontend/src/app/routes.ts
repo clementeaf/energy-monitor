@@ -37,6 +37,9 @@ export const APP_ROUTES = {
   integrationsStatus: '/integrations/status',
   integrationsConfig: '/integrations/config',
   integrationsSyncLog: '/integrations/sync-log',
+  analytics: {
+    benchmark: '/analytics/benchmark',
+  },
   components: '/components',
   admin: {
     users: '/admin/users',

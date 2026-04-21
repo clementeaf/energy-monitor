@@ -75,6 +75,16 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['billing:read', 'billing:view_own'],
   },
   {
+    to: '/billing/approve',
+    label: 'Aprobar Facturas',
+    requiredPerms: ['billing:update'],
+  },
+  {
+    to: '/billing/history',
+    label: 'Historial Facturación',
+    requiredPerms: ['billing:read'],
+  },
+  {
     to: '/billing/rates',
     label: 'Tarifas',
     requiredPerms: ['billing:read'],
@@ -83,6 +93,11 @@ const NAV_ITEMS: NavItem[] = [
     to: '/reports',
     label: 'Reportes',
     requiredPerms: ['reports:read', 'reports:view_own'],
+  },
+  {
+    to: '/reports/scheduled',
+    label: 'Reportes Programados',
+    requiredPerms: ['reports:update'],
   },
   {
     to: APP_ROUTES.integrations,

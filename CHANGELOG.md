@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1)
+
+### Added
+- **Dashboard ejecutivo por edificio** — `ExecutiveSitePage` en `/dashboard/executive/:siteId`. KPIs (medidores, potencia, demanda peak, FP, área), chart tendencias (consumo + demanda + costo estimado), tabla medidores con última lectura. Links clickeables desde ranking en dashboard ejecutivo.
+- **Historial de facturación** — `/billing/history` con chart evolución mensual (columnas neto + línea total c/IVA), filtro automático a estados completados.
+- **Aprobación de facturas** — `/billing/approve` con vista pre-filtrada a facturas pendientes.
+- **Diagnóstico de concentrador** — `ConcentratorPage` en `/monitoring/concentrator/:concentratorId`. Info del equipo (modelo, serial, IP, firmware, MQTT, heartbeat, batería), resumen online/offline/sin datos, tabla de medidores con status badge. Link "Diagnostico" desde DevicesPage.
+- **Reportes programados** — `/reports/scheduled` como ruta dedicada (misma página ReportsPage, ya tenía sección programados).
+- **Sidebar** — 3 entradas nuevas: Aprobar Facturas, Historial Facturación, Reportes Programados.
+
+### Changed
+- **InvoicesPage** — Acepta prop `defaultStatus` para modo approve/history. Chart evolución mensual sobre la tabla.
+- **ExecutiveDashboardPage** — Nombres de edificio en ranking son links a `/dashboard/executive/:siteId`.
+- **DevicesPage** — Columna acciones muestra "Diagnostico" para concentradores.
+
+---
+
 ## [1.0.0-alpha.0] - 2026-04-16 — MONITOREO V2: SELF-SERVICE + IOT + SONARQUBE
 
 ### Added

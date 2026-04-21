@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
+import { Link } from 'react-router';
 import type { SeriesOptionsType } from 'highcharts';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -244,7 +245,14 @@ export function ExecutiveDashboardPage(): ReactElement {
                   {ranking.map((row, idx) => (
                     <tr key={row.buildingId}>
                       <td className="px-4 py-2 text-gray-500">{idx + 1}</td>
-                      <td className="px-4 py-2 font-medium text-gray-900">{row.buildingName}</td>
+                      <td className="px-4 py-2 font-medium text-gray-900">
+                        <Link
+                          to={`/dashboard/executive/${row.buildingId}`}
+                          className="text-[var(--color-primary,#3D3BF3)] hover:underline"
+                        >
+                          {row.buildingName}
+                        </Link>
+                      </td>
                       <td className="px-4 py-2 text-right tabular-nums">
                         {row.totalEnergyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                       </td>

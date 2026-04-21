@@ -198,14 +198,24 @@ export function DevicesPage() {
                     {d.lastComm ? new Date(d.lastComm).toLocaleString('es-CL') : '—'}
                   </Td>
                   <Td>
-                    {d.type === 'meter' && (
-                      <Link
-                        to={`/monitoring/fault-history/${d.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
-                      >
-                        Fallos
-                      </Link>
-                    )}
+                    <div className="flex gap-2">
+                      {d.type === 'meter' && (
+                        <Link
+                          to={`/monitoring/fault-history/${d.id}`}
+                          className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
+                        >
+                          Fallos
+                        </Link>
+                      )}
+                      {d.type === 'concentrator' && (
+                        <Link
+                          to={`/monitoring/concentrator/${d.id}`}
+                          className="rounded px-2 py-1 text-xs font-medium text-[var(--color-primary,#3D3BF3)] hover:bg-[var(--color-primary,#3D3BF3)]/10"
+                        >
+                          Diagnostico
+                        </Link>
+                      )}
+                    </div>
                   </Td>
                 </tr>
               ))}

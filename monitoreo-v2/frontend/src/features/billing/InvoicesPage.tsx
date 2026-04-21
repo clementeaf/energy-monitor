@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { Chart } from '../../components/charts/Chart';
 import { useQueryState } from '../../hooks/useQueryState';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
@@ -16,6 +17,11 @@ import {
 } from '../../hooks/queries/useInvoicesQuery';
 import { invoicesEndpoints } from '../../services/endpoints';
 import type { Invoice, InvoiceStatus, InvoiceQueryParams, GenerateInvoicePayload } from '../../types/invoice';
+
+export interface InvoicesPageProps {
+  /** Pre-filter by status when mounted from /billing/approve or /billing/history */
+  defaultStatus?: InvoiceStatus | 'history';
+}
 
 const STATUS_BADGE: Record<InvoiceStatus, string> = {
   draft: 'bg-gray-100 text-gray-600',
@@ -40,14 +46,63 @@ function fmtCurrency(val: string | number): string {
   return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
 }
 
-export function InvoicesPage() {
-  const [filters, setFilters] = useState<InvoiceQueryParams>({});
+export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
+  const initialStatus = defaultStatus === 'history' ? undefined : defaultStatus;
+  const [filters, setFilters] = useState<InvoiceQueryParams>(
+    initialStatus ? { status: initialStatus } : {},
+  );
   const invoicesQuery = useInvoicesQuery(filters);
   const buildingsQuery = useBuildingsQuery();
   const qs = useQueryState(invoicesQuery, { isEmpty: (d) => !d || d.length === 0 });
   const { has } = usePermissions();
   const canWrite = has('billing', 'create');
   const canUpdate = has('billing', 'update');
+
+  // Filter for history mode: only completed statuses
+  const displayInvoices = useMemo(() => {
+    const data = qs.data ?? [];
+    if (defaultStatus === 'history') {
+      return data.filter((inv) => ['approved', 'sent', 'paid', 'voided'].includes(inv.status));
+    }
+    return data;
+  }, [qs.data, defaultStatus]);
+
+  // Monthly evolution chart data
+  const monthlyChartOptions = useMemo(() => {
+    const source = defaultStatus === 'history' ? displayInvoices : (qs.data ?? []);
+    if (source.length === 0) return null;
+
+    const byMonth = new Map<string, { net: number; total: number; count: number }>();
+    for (const inv of source) {
+      const key = inv.periodStart.slice(0, 7); // YYYY-MM
+      const cur = byMonth.get(key) ?? { net: 0, total: 0, count: 0 };
+      cur.net += parseFloat(inv.totalNet);
+      cur.total += parseFloat(inv.total);
+      cur.count += 1;
+      byMonth.set(key, cur);
+    }
+
+    const sorted = Array.from(byMonth.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const categories = sorted.map(([m]) => m);
+    const netData = sorted.map(([, v]) => v.net);
+    const totalData = sorted.map(([, v]) => v.total);
+
+    return {
+      chart: { type: 'column' as const, height: 260 },
+      title: { text: undefined },
+      xAxis: { categories, crosshair: true },
+      yAxis: { title: { text: 'CLP' } },
+      tooltip: {
+        shared: true,
+        valuePrefix: '$',
+        valueDecimals: 0,
+      },
+      series: [
+        { type: 'column' as const, name: 'Neto', data: netData, color: 'var(--color-primary, #3D3BF3)' },
+        { type: 'line' as const, name: 'Total (c/IVA)', data: totalData, color: '#f59e0b' },
+      ],
+    };
+  }, [qs.data, displayInvoices, defaultStatus]);
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Invoice | null>(null);
@@ -66,7 +121,9 @@ export function InvoicesPage() {
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Facturas</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          {defaultStatus === 'pending' ? 'Aprobación de Facturas' : defaultStatus === 'history' ? 'Historial de Facturación' : 'Facturas'}
+        </h1>
         <div className="flex items-center gap-3">
           <select
             value={filters.buildingId ?? ''}
@@ -100,6 +157,13 @@ export function InvoicesPage() {
         </div>
       </div>
 
+      {monthlyChartOptions && (
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <h2 className="mb-2 text-sm font-medium text-gray-700">Evolución mensual</h2>
+          <Chart options={monthlyChartOptions} />
+        </div>
+      )}
+
       <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch} emptyMessage="No hay facturas">
         <div className="overflow-auto rounded-lg border border-gray-200">
           <table className="w-full text-sm">
@@ -115,7 +179,7 @@ export function InvoicesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {qs.data?.map((inv) => (
+              {displayInvoices.map((inv) => (
                 <InvoiceRow
                   key={inv.id}
                   invoice={inv}

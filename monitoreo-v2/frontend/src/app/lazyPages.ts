@@ -15,6 +15,11 @@ export const LazyExecutiveDashboardPage = lazy(async () => {
   return { default: m.ExecutiveDashboardPage };
 });
 
+export const LazyExecutiveSitePage = lazy(async () => {
+  const m = await import('../features/dashboard/executive/ExecutiveSitePage');
+  return { default: m.ExecutiveSitePage };
+});
+
 export const LazyCompareDashboardPage = lazy(async () => {
   const m = await import('../features/dashboard/compare/CompareDashboardPage');
   return { default: m.CompareDashboardPage };
@@ -85,9 +90,24 @@ export const LazyModbusMapPage = lazy(async () => {
   return { default: m.ModbusMapPage };
 });
 
+export const LazyConcentratorPage = lazy(async () => {
+  const m = await import('../features/monitoring/concentrator/ConcentratorPage');
+  return { default: m.ConcentratorPage };
+});
+
 export const LazyInvoicesPage = lazy(async () => {
   const m = await import('../features/billing/InvoicesPage');
   return { default: m.InvoicesPage };
+});
+
+export const LazyBillingHistoryPage = lazy(async () => {
+  const m = await import('../features/billing/InvoicesPage');
+  return { default: () => m.InvoicesPage({ defaultStatus: 'history' }) };
+});
+
+export const LazyBillingApprovePage = lazy(async () => {
+  const m = await import('../features/billing/InvoicesPage');
+  return { default: () => m.InvoicesPage({ defaultStatus: 'pending' }) };
 });
 
 export const LazyTariffsPage = lazy(async () => {

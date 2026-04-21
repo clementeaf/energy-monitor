@@ -1,19 +1,25 @@
 # Changelog
 
-## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1)
+## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-2)
 
-### Added
-- **Dashboard ejecutivo por edificio** — `ExecutiveSitePage` en `/dashboard/executive/:siteId`. KPIs (medidores, potencia, demanda peak, FP, área), chart tendencias (consumo + demanda + costo estimado), tabla medidores con última lectura. Links clickeables desde ranking en dashboard ejecutivo.
-- **Historial de facturación** — `/billing/history` con chart evolución mensual (columnas neto + línea total c/IVA), filtro automático a estados completados.
-- **Aprobación de facturas** — `/billing/approve` con vista pre-filtrada a facturas pendientes.
-- **Diagnóstico de concentrador** — `ConcentratorPage` en `/monitoring/concentrator/:concentratorId`. Info del equipo (modelo, serial, IP, firmware, MQTT, heartbeat, batería), resumen online/offline/sin datos, tabla de medidores con status badge. Link "Diagnostico" desde DevicesPage.
-- **Reportes programados** — `/reports/scheduled` como ruta dedicada (misma página ReportsPage, ya tenía sección programados).
-- **Sidebar** — 3 entradas nuevas: Aprobar Facturas, Historial Facturación, Reportes Programados.
+### Added — Batch 1
+- **Dashboard ejecutivo por edificio** — `/dashboard/executive/:siteId`. KPIs, chart tendencias, tabla medidores.
+- **Historial de facturación** — `/billing/history` con chart evolución mensual.
+- **Aprobación de facturas** — `/billing/approve` pre-filtrada a pendientes.
+- **Diagnóstico de concentrador** — `/monitoring/concentrator/:concentratorId`. Info equipo, status MQTT, tabla medidores.
+- **Reportes programados** — `/reports/scheduled` como ruta dedicada.
+
+### Added — Batch 2
+- **Historial alertas + SLA** — `AlertsHistoryPage` en `/alerts/history`. KPIs globales (total, resueltas, activas, % SLA), charts tendencia mensual y cumplimiento SLA, tabla mensual con tiempo medio resolución.
+- **Integrations sub-rutas** — `/integrations/status`, `/integrations/config`, `/integrations/sync-log` como rutas alias.
+- **Audit sub-vistas** — `/admin/audit/changes` (log de cambios, pre-filtro PATCH) y `/admin/audit/access` (log de accesos, pre-filtro LOGIN). `AuditPage` acepta prop `mode`.
+- **Sidebar** — 6 entradas nuevas: Aprobar Facturas, Historial Facturación, Reportes Programados, Historial / SLA, Log de Cambios, Log de Accesos.
 
 ### Changed
-- **InvoicesPage** — Acepta prop `defaultStatus` para modo approve/history. Chart evolución mensual sobre la tabla.
-- **ExecutiveDashboardPage** — Nombres de edificio en ranking son links a `/dashboard/executive/:siteId`.
-- **DevicesPage** — Columna acciones muestra "Diagnostico" para concentradores.
+- **InvoicesPage** — Prop `defaultStatus`, chart evolución mensual.
+- **ExecutiveDashboardPage** — Links clickeables en ranking de edificios.
+- **DevicesPage** — Link "Diagnostico" para concentradores.
+- **AuditPage** — Prop `mode` para pre-filtrar por tipo de acción.
 
 ---
 

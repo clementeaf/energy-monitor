@@ -6,9 +6,28 @@ import type { AuditLogQueryParams } from '../../../types/audit-log';
 
 const PAGE_SIZE = 50;
 
-export function AuditPage() {
-  const [filters, setFilters] = useState<AuditLogQueryParams>({ limit: PAGE_SIZE, offset: 0 });
-  const [actionFilter, setActionFilter] = useState('');
+export type AuditViewMode = 'all' | 'changes' | 'access';
+
+export interface AuditPageProps {
+  /** Pre-filter mode: 'changes' for config edits, 'access' for login/logout */
+  mode?: AuditViewMode;
+}
+
+const MODE_CONFIG: Record<AuditViewMode, { title: string; resourceType?: string; defaultAction?: string }> = {
+  all: { title: 'Auditoria' },
+  changes: { title: 'Log de Cambios', resourceType: undefined, defaultAction: 'PATCH' },
+  access: { title: 'Log de Accesos', defaultAction: 'LOGIN' },
+};
+
+export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
+  const config = MODE_CONFIG[mode];
+  const [filters, setFilters] = useState<AuditLogQueryParams>({
+    limit: PAGE_SIZE,
+    offset: 0,
+    action: config.defaultAction,
+    resourceType: config.resourceType,
+  });
+  const [actionFilter, setActionFilter] = useState(config.defaultAction ?? '');
   const [userFilter, setUserFilter] = useState('');
 
   const query = useAuditLogsQuery(filters);
@@ -35,7 +54,7 @@ export function AuditPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Auditoria</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">{config.title}</h1>
 
       <div className="flex items-end gap-3">
         <div>

@@ -150,6 +150,21 @@ export const LazyAuditPage = lazy(async () => {
   return { default: m.AuditPage };
 });
 
+export const LazyAuditChangesPage = lazy(async () => {
+  const m = await import('../features/admin/audit/AuditPage');
+  return { default: () => m.AuditPage({ mode: 'changes' }) };
+});
+
+export const LazyAuditAccessPage = lazy(async () => {
+  const m = await import('../features/admin/audit/AuditPage');
+  return { default: () => m.AuditPage({ mode: 'access' }) };
+});
+
+export const LazyAlertsHistoryPage = lazy(async () => {
+  const m = await import('../features/alerts/AlertsHistoryPage');
+  return { default: m.AlertsHistoryPage };
+});
+
 export const LazyAlertRulesPage = lazy(async () => {
   const m = await import('../features/alerts/AlertRulesPage');
   return { default: m.AlertRulesPage };

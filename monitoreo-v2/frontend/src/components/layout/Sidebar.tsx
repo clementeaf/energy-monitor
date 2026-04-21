@@ -45,6 +45,11 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['alerts:read'],
   },
   {
+    to: '/alerts/history',
+    label: 'Historial / SLA',
+    requiredPerms: ['alerts:read'],
+  },
+  {
     to: '/monitoring/realtime',
     label: 'Tiempo Real',
     requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
@@ -125,6 +130,16 @@ const ADMIN_ITEMS: NavItem[] = [
   {
     to: '/admin/audit',
     label: 'Auditoria',
+    requiredPerms: ['audit:read'],
+  },
+  {
+    to: '/admin/audit/changes',
+    label: 'Log de Cambios',
+    requiredPerms: ['audit:read'],
+  },
+  {
+    to: '/admin/audit/access',
+    label: 'Log de Accesos',
     requiredPerms: ['audit:read'],
   },
   {

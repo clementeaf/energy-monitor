@@ -26,7 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-21)
-- **XLSX spec views batch 1 (monitoreo-v2):** 5 vistas nuevas alineadas con spec XLSX. Dashboard ejecutivo por edificio (`/dashboard/executive/:siteId`), historial facturación (`/billing/history`), aprobación facturas (`/billing/approve`), diagnóstico concentrador (`/monitoring/concentrator/:id`), reportes programados (`/reports/scheduled`). Chart evolución mensual en facturas. Links navegación entre vistas. [CHANGELOG — 1.1.0-alpha.0](CHANGELOG.md)
+- **XLSX spec views batch 1-2 (monitoreo-v2):** 8 vistas nuevas alineadas con spec XLSX. Batch 1: dashboard por edificio, historial/aprobación facturas, diagnóstico concentrador, reportes programados. Batch 2: historial alertas + SLA (`/alerts/history`), integrations sub-rutas (status/config/sync-log), audit sub-vistas (changes/access). [CHANGELOG — 1.1.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-16)
 - **Self-service + IoT + SonarQube (monitoreo-v2):** TenantSettingsPage, ApiKeysPage, RolesPage (con grid permisos), IotReadingsModule (EAV, 5 endpoints), CronBuilder, TablePrimitives, SonarQube QG OK. [CHANGELOG — 1.0.0-alpha.0](CHANGELOG.md)

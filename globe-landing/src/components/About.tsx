@@ -29,15 +29,17 @@ export function About() {
           </p>
         </div>
 
-        <a
-          href="#industrias"
-          className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors"
-        >
-          Conocer más sobre Grupo Globe
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-        </a>
+        <div className="mt-10 flex justify-end">
+          <a
+            href="#industrias"
+            className="inline-flex items-center gap-3 rounded-full border border-gray-900 px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white transition-colors"
+          >
+            Conocer más sobre Grupo Globe
+            <svg className="w-8 h-3" fill="none" viewBox="0 0 32 12" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M26 1l5 5m0 0l-5 5M31 6H1" />
+            </svg>
+          </a>
+        </div>
       </div>
     </section>
   );

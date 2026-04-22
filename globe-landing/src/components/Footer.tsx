@@ -1,4 +1,9 @@
 import logo from '../assets/globe-logo.png';
+import clcLogo from '../assets/CLC.png';
+import googleLogo from '../assets/google.png';
+import bboschLogo from '../assets/bbosch.png';
+import angloLogo from '../assets/angloAmerican.png';
+import roseLogo from '../assets/rose.png';
 
 export function Footer() {
   return (
@@ -54,6 +59,15 @@ export function Footer() {
               </ul>
             </div>
           </div>
+        </div>
+
+        {/* Row 3: Client logos */}
+        <div className="pt-10 mt-10 border-t border-gray-200 flex items-center justify-between flex-wrap gap-y-6">
+          <img src={clcLogo} alt="CLC" className="h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={googleLogo} alt="Google" className="h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={bboschLogo} alt="Bosch" className="h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={angloLogo} alt="Anglo American" className="h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={roseLogo} alt="Rose" className="h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
         </div>
       </div>
     </footer>

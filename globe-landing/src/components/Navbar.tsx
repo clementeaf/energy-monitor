@@ -18,8 +18,8 @@ export function Navbar() {
           <img src={logo} alt="Grupo Globe" className="h-[65px] w-auto" />
         </a>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-10 text-sm font-medium text-gray-600">
+        {/* Desktop links — right-shifted */}
+        <div className="hidden md:flex items-center gap-10 text-sm font-medium text-gray-600 ml-auto mr-10">
           {links.map((l) => (
             <a
               key={l.label}

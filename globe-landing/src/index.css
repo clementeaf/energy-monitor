@@ -110,3 +110,12 @@
     box-shadow: 0 8px 24px 0 rgba(26, 58, 42, 0.14);
   }
 }
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 20s linear infinite;
+}

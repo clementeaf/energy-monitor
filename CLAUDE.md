@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-22)
+- **Globe Landing UI polish:** Hero con overlay oscuro, carousel infinito de logos (blanco, 2/3 ancho, esquina redondeada), CTA+flechas junto a subtítulo, dots placeholder, navbar links a la derecha, About con botón pill alineado derecha, Footer con fila de logos clientes. [CHANGELOG — 1.1.2-alpha.0](CHANGELOG.md)
 - **Globe Landing redesign:** Todas las secciones reemplazadas desde PDF "Inicio Globe Power.pdf". Navbar con logo, Hero con image1.png, About, Valores, Industrias, Ecosistema Globe, 4 cards, Stats, Presencia (mapa), Innovación, Contact (formulario), Footer blanco. 2 componentes nuevos (Presence, Innovation). Deploy manual pendiente. [CHANGELOG — 1.1.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-21)

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.2-alpha.0] - 2026-04-22 — GLOBE LANDING: UI POLISH
+
+### Changed (globe-landing)
+- **Hero** — Dark overlay mask, CTA + arrows alongside subtitle, dots placeholder for future slides, arrows with extended tails and no borders.
+- **Hero carousel** — Infinite scroll left (CSS animation), white bg over image (2/3 width), quarter-circle top-right corner, logos in #3C3C3C. Full-width on mobile, no rounding.
+- **Navbar** — Nav links shifted right (`ml-auto`).
+- **About** — "Conocer más sobre Grupo Globe" button with pill border, right-aligned.
+- **Footer** — Client logos row (CLC, Google, Bosch, Anglo American, Rose) with grayscale hover effect, full-width justified.
+
+---
+
 ## [1.1.1-alpha.0] - 2026-04-22 — GLOBE LANDING: REDESIGN FROM PDF
 
 ### Changed (globe-landing)

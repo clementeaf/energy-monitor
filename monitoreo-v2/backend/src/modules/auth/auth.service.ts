@@ -70,7 +70,7 @@ export class AuthService {
     };
   }
 
-  async validateOAuthLogin(profile: OAuthProfile): Promise<TokenPair> {
+  async validateOAuthLogin(profile: OAuthProfile): Promise<TokenPair | { mfaRequired: true; userId: string }> {
     // 1. Try exact match: provider + providerId
     let rows = await this.dataSource.query(
       `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
@@ -121,6 +121,15 @@ export class AuthService {
       `UPDATE users SET last_login_at = NOW() WHERE id = $1`,
       [user.id],
     );
+
+    // Check if MFA is enabled — if so, defer token issuance
+    const mfaRows = await this.dataSource.query(
+      `SELECT mfa_enabled FROM users WHERE id = $1`,
+      [user.id],
+    );
+    if (mfaRows.length > 0 && mfaRows[0].mfa_enabled) {
+      return { mfaRequired: true, userId: user.id };
+    }
 
     // Load permissions from DB → flatten to "module:action" strings for JWT
     const permissions = await this.rolesService.getPermissionsByRoleId(user.role_id);
@@ -253,6 +262,39 @@ export class AuthService {
       [userId],
     );
     return rows.map((r: { id: string; name: string }) => ({ id: r.id, name: r.name }));
+  }
+
+  /**
+   * Issue tokens for a user by ID (used after MFA validation).
+   */
+  async issueTokensForUser(userId: string): Promise<TokenPair> {
+    const rows = await this.dataSource.query(
+      `SELECT u.id, u.email, u.tenant_id, u.role_id, r.slug AS role_slug
+       FROM users u JOIN roles r ON r.id = u.role_id
+       WHERE u.id = $1 AND u.is_active = true`,
+      [userId],
+    );
+    if (rows.length === 0) {
+      throw new UnauthorizedException('User not found or inactive.');
+    }
+    const user = rows[0];
+    const permissions = await this.rolesService.getPermissionsByRoleId(user.role_id);
+    const permissionStrings = permissions.map((p) => `${p.module}:${p.action}`);
+    const buildingIds = await this.rolesService.getUserBuildingIds(userId);
+    const role = await this.rolesService.getRoleByUserId(userId);
+
+    return this.generateTokenPair(
+      {
+        sub: userId,
+        email: user.email,
+        tenantId: user.tenant_id,
+        roleId: user.role_id,
+        roleSlug: user.role_slug,
+        permissions: permissionStrings,
+        buildingIds,
+      },
+      role?.maxSessionMinutes ?? 30,
+    );
   }
 
   async revokeAllTokens(userId: string): Promise<void> {

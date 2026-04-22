@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   Res,
   HttpCode,
@@ -13,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { AuthService } from './auth.service';
 import type { OAuthProfile } from './auth.service';
+import { MfaService } from './mfa.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -26,6 +28,7 @@ export class AuthController {
 
   constructor(
     private readonly authService: AuthService,
+    private readonly mfaService: MfaService,
     private readonly configService: ConfigService,
     private readonly tenantsService: TenantsService,
   ) {
@@ -46,8 +49,14 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const profile = await this.verifyIdToken(dto.provider, dto.idToken);
-    const tokens = await this.authService.validateOAuthLogin(profile);
-    this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+    const result = await this.authService.validateOAuthLogin(profile);
+
+    // If user has MFA enabled, don't issue tokens yet — require MFA validation
+    if ('mfaRequired' in result) {
+      return { mfaRequired: true, userId: result.userId };
+    }
+
+    this.setTokenCookies(res, result.accessToken, result.refreshToken);
     return { success: true };
   }
 
@@ -83,6 +92,50 @@ export class AuthController {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
     return { success: true };
+  }
+
+  @Post('mfa/setup')
+  async mfaSetup(@CurrentUser() user: JwtPayload) {
+    return this.mfaService.setupMfa(user.sub, user.email);
+  }
+
+  @Post('mfa/verify')
+  @HttpCode(HttpStatus.OK)
+  async mfaVerify(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { code: string },
+  ) {
+    await this.mfaService.verifyAndEnable(user.sub, body.code);
+    return { success: true, mfaEnabled: true };
+  }
+
+  @Public()
+  @Post('mfa/validate')
+  @HttpCode(HttpStatus.OK)
+  async mfaValidate(
+    @Body() body: { userId: string; code: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const isValid = await this.mfaService.validate(body.userId, body.code);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid MFA code.');
+    }
+    const tokens = await this.authService.issueTokensForUser(body.userId);
+    this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+    return { success: true };
+  }
+
+  @Delete('mfa')
+  @HttpCode(HttpStatus.OK)
+  async mfaDisable(@CurrentUser() user: JwtPayload) {
+    await this.mfaService.disable(user.sub);
+    return { success: true, mfaEnabled: false };
+  }
+
+  @Get('mfa/status')
+  async mfaStatus(@CurrentUser() user: JwtPayload) {
+    const enabled = await this.mfaService.isMfaEnabled(user.sub);
+    return { mfaEnabled: enabled };
   }
 
   private setTokenCookies(

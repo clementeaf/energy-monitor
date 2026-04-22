@@ -46,6 +46,12 @@ export class User {
   @Column({ name: 'is_active', default: true })
   isActive!: boolean;
 
+  @Column({ name: 'mfa_secret', type: 'varchar', length: 255, nullable: true, default: null })
+  mfaSecret!: string | null;
+
+  @Column({ name: 'mfa_enabled', default: false })
+  mfaEnabled!: boolean;
+
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
   lastLoginAt!: Date | null;
 

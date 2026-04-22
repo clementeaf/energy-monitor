@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
@@ -13,20 +13,33 @@ export function useAuth() {
   const navigate = useNavigate();
   const microsoft = useMicrosoftAuth();
   const msResolved = useRef(false);
+  const [mfaPending, setMfaPending] = useState<{ userId: string } | null>(null);
+
+  const completeLogin = useCallback(async () => {
+    const { data } = await authEndpoints.me();
+    const { buildings, ...usr } = data.user;
+    setSessionFlag();
+    setSession(usr, data.tenant, buildings ?? []);
+    applyTenantTheme(data.tenant);
+    navigate('/');
+  }, [navigate, setSession]);
 
   const loginWithProvider = useCallback(
     async (provider: AuthProvider, idToken: string) => {
       setLoading(true);
       setError(null);
+      setMfaPending(null);
 
       try {
-        await authEndpoints.login(provider, idToken);
-        const { data } = await authEndpoints.me();
-        const { buildings, ...user } = data.user;
-        setSessionFlag();
-        setSession(user, data.tenant, buildings ?? []);
-        applyTenantTheme(data.tenant);
-        navigate('/');
+        const { data } = await authEndpoints.login(provider, idToken);
+
+        if (data.mfaRequired && data.userId) {
+          setMfaPending({ userId: data.userId });
+          setLoading(false);
+          return;
+        }
+
+        await completeLogin();
       } catch (err: unknown) {
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
@@ -34,7 +47,25 @@ export function useAuth() {
         setError(message);
       }
     },
-    [navigate, setSession, setLoading, setError],
+    [completeLogin, setLoading, setError],
+  );
+
+  const validateMfa = useCallback(
+    async (code: string) => {
+      if (!mfaPending) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        await authEndpoints.mfaValidate(mfaPending.userId, code);
+        setMfaPending(null);
+        await completeLogin();
+      } catch {
+        setError('Código MFA inválido.');
+        setLoading(false);
+      }
+    },
+    [mfaPending, completeLogin, setLoading, setError],
   );
 
   // Detect Microsoft redirect completing — MSAL sets isAuthenticated after redirect
@@ -84,6 +115,8 @@ export function useAuth() {
     loginMicrosoft,
     loginGoogle,
     logout,
+    mfaPending,
+    validateMfa,
   };
 }
 

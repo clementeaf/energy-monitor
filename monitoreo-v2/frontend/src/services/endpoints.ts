@@ -56,9 +56,15 @@ import type {
   UpdateIntegrationPayload,
 } from '../types/integration';
 
+export interface MfaSetupResponse {
+  secret: string;
+  qrDataUrl: string;
+  otpauthUrl: string;
+}
+
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
-    api.post<{ success: boolean }>(API_ROUTES.auth.login, { provider, idToken }),
+    api.post<{ success?: boolean; mfaRequired?: boolean; userId?: string }>(API_ROUTES.auth.login, { provider, idToken }),
 
   me: () =>
     api.get<MeResponse>(API_ROUTES.auth.me),
@@ -68,6 +74,21 @@ export const authEndpoints = {
 
   refresh: () =>
     api.post<{ success: boolean }>(API_ROUTES.auth.refresh),
+
+  mfaSetup: () =>
+    api.post<MfaSetupResponse>(API_ROUTES.auth.mfaSetup),
+
+  mfaVerify: (code: string) =>
+    api.post<{ success: boolean; mfaEnabled: boolean }>(API_ROUTES.auth.mfaVerify, { code }),
+
+  mfaValidate: (userId: string, code: string) =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.mfaValidate, { userId, code }),
+
+  mfaStatus: () =>
+    api.get<{ mfaEnabled: boolean }>(API_ROUTES.auth.mfaStatus),
+
+  mfaDisable: () =>
+    api.delete<{ success: boolean; mfaEnabled: boolean }>(API_ROUTES.auth.mfaDisable),
 };
 
 export const buildingsEndpoints = {

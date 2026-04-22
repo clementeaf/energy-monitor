@@ -5,6 +5,7 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import { useMyTenantQuery, useUpdateMyTenant } from '../../../hooks/queries/useTenantSettingsQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { applyTenantTheme } from '../../../lib/tenant-theme';
+import { MfaSection } from './MfaSection';
 import type { UpdateTenantPayload } from '../../../types/tenant';
 import type { TenantTheme } from '../../../types/auth';
 
@@ -75,6 +76,8 @@ export function TenantSettingsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-gray-900">Configuracion del Tenant</h1>
+
+      <MfaSection />
 
       <DataWidget
         phase={qs.phase}

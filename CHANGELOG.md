@@ -2,6 +2,10 @@
 
 ## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-6)
 
+### Added — MFA (Batch 7)
+- **TOTP MFA backend** — `MfaService` con setup (QR + secret), verify, validate, disable. Columnas `mfa_secret` y `mfa_enabled` en `users`. Login retorna `{ mfaRequired, userId }` si MFA habilitado; `POST /auth/mfa/validate` emite tokens post-verificación.
+- **MFA frontend** — `MfaSection` en TenantSettingsPage: QR code, input 6 dígitos, enable/disable con confirmación. `LoginPage`: flujo condicional con input MFA cuando el backend lo requiere.
+
 ### Added — Batch 5-6
 - **Tendencias y proyección** — `TrendsPage` en `/analytics/trends`. Regresión lineal, forecast punteado + banda confianza 95%, variación mes a mes, tabla proyección.
 - **Patrones y anomalías** — `PatternsPage` en `/analytics/patterns`. Heatmap consumo hora×día, detección anomalías por z-score, chart consumo diario con anomalías resaltadas, tabla anomalías con desviación % y z-score. Selector sensibilidad (alta/media/baja).

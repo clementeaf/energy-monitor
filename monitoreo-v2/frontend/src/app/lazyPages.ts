@@ -135,6 +135,11 @@ export const LazyBenchmarkPage = lazy(async () => {
   return { default: m.BenchmarkPage };
 });
 
+export const LazyTrendsPage = lazy(async () => {
+  const m = await import('../features/analytics/TrendsPage');
+  return { default: m.TrendsPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

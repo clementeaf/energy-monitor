@@ -1,6 +1,9 @@
 # Changelog
 
-## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-4)
+## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-5)
+
+### Added — Batch 5
+- **Tendencias y proyección** — `TrendsPage` en `/analytics/trends`. Regresión lineal sobre datos mensuales, StockChart con línea histórica + forecast punteado + banda confianza 95%, chart variación mes a mes, tabla proyección. Selectores: edificio, variable (energía/demanda/costo), horizonte (3/6/12 meses).
 
 ### Added — Batch 1
 - **Dashboard ejecutivo por edificio** — `/dashboard/executive/:siteId`. KPIs, chart tendencias, tabla medidores.

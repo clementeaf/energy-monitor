@@ -115,6 +115,11 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['dashboard_executive:read'],
   },
   {
+    to: '/analytics/trends',
+    label: 'Tendencias',
+    requiredPerms: ['dashboard_executive:read'],
+  },
+  {
     to: APP_ROUTES.integrations,
     label: 'Integraciones',
     requiredPerms: ['integrations:read'],

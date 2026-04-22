@@ -40,6 +40,7 @@ export const APP_ROUTES = {
   integrationsSyncLog: '/integrations/sync-log',
   analytics: {
     benchmark: '/analytics/benchmark',
+    trends: '/analytics/trends',
   },
   components: '/components',
   admin: {

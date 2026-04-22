@@ -1,58 +1,48 @@
-const pillars = [
-  {
-    num: '01',
-    title: 'Subdistribución y Remarcación',
-    desc: 'Medición real por operador con precisión >99%. Eliminamos el prorrateo por metro cuadrado y asignamos consumos reales a cada inquilino con datos auditables y transparentes.',
-  },
-  {
-    num: '02',
-    title: 'Mantenimiento Eléctrico',
-    desc: 'Continuidad operativa 24/7 con mantenimiento preventivo y correctivo. Telemetría activa para anticipar fallas en salas eléctricas y transformadores antes de que ocurran.',
-  },
-  {
-    num: '03',
-    title: 'Eficiencia Energética',
-    desc: 'Optimización alineada a normativas ISO 50.001. Detectamos consumos anómalos, identificamos oportunidades de ahorro y habilitamos contratos competitivos para activos >300 kW.',
-  },
-  {
-    num: '04',
-    title: 'Software y Reportería',
-    desc: 'Plataforma Power Digital para análisis predictivo, gestión en tiempo real y reportería avanzada. Integración nativa con Powercenter 3000 vía Modbus TCP/RTU.',
-  },
+const VALUES = [
+  'Integridad',
+  'Cliente en el centro',
+  'Excelencia operacional',
+  'Impacto positivo',
 ];
 
 export function Ecosystem() {
   return (
-    <section id="ecosistema" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-gp-50">
-      <div className="max-w-5xl mx-auto">
-        <p className="section-label text-center">Nuestros Servicios</p>
-        <h2 className="section-title text-center">
-          Un ecosistema integral bajo un solo responsable
-        </h2>
-        <p className="mt-4 text-sm text-text-body text-center max-w-2xl mx-auto font-light">
-          Cuatro pilares que cubren toda la cadena energética de tu edificio: desde la medición hasta el mantenimiento.
-        </p>
+    <section id="valores" className="py-20 sm:py-28 px-5 sm:px-10 lg:px-12 bg-[#F9F9F9]">
+      <div className="max-w-7xl mx-auto">
+        {/* Top row: two columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+          {/* Left column */}
+          <div>
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+              Valores
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+              Los principios que sostienen cada operación
+            </h2>
+          </div>
 
-        <div className="mt-16 grid sm:grid-cols-2 gap-8">
-          {pillars.map((p) => (
-            <div
-              key={p.num}
-              className="group p-6 bg-white rounded-lg border border-gp-200/60 shadow-card card-hover relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-1 h-full bg-gp-700 transition-all duration-300 group-hover:w-1.5" />
-              <div className="pl-4">
-                <span className="text-xs font-bold text-gp-300">{p.num}</span>
-                <h3 className="mt-1 text-base font-semibold text-gp-800">{p.title}</h3>
-                <p className="mt-3 text-sm text-text-body leading-relaxed font-light">{p.desc}</p>
-              </div>
-            </div>
-          ))}
+          {/* Right column */}
+          <div className="flex items-end">
+            <p className="text-[15px] text-gray-600 leading-[1.8]">
+              No son declaraciones. Son los criterios que usamos para tomar decisiones técnicas, operacionales y comerciales todos los días.
+            </p>
+          </div>
         </div>
 
-        <div className="mt-16 text-center">
-          <a href="#contacto" className="btn-primary">
-            Contáctanos
-          </a>
+        {/* Bottom row: 4 image placeholders */}
+        <div className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {VALUES.map((label) => (
+            <div
+              key={label}
+              className="relative aspect-[4/3] rounded-xl bg-gray-200 overflow-hidden flex items-end"
+            >
+              {/* Placeholder for image */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <span className="relative z-10 px-4 pb-4 text-sm font-semibold text-white">
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

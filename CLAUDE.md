@@ -25,8 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-22)
+- **Globe Landing redesign:** Todas las secciones reemplazadas desde PDF "Inicio Globe Power.pdf". Navbar con logo, Hero con image1.png, About, Valores, Industrias, Ecosistema Globe, 4 cards, Stats, Presencia (mapa), Innovación, Contact (formulario), Footer blanco. 2 componentes nuevos (Presence, Innovation). Deploy manual pendiente. [CHANGELOG — 1.1.1-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-21)
-- **XLSX spec completo (monitoreo-v2):** 12 vistas nuevas + MFA. B1: dashboard por edificio, billing history/approve, concentrador, reportes programados. B2: alertas SLA, integrations/audit sub-rutas. B3: benchmarking. B4: portal locatario. B5: tendencias y proyección. B6: patrones y anomalías. B7: MFA TOTP — backend (otplib, QR setup, validate en login) + frontend (MfaSection en settings, flujo condicional en LoginPage). [CHANGELOG — 1.1.0-alpha.0](CHANGELOG.md)
+- **XLSX spec completo (monitoreo-v2):** 12 vistas nuevas + MFA. B1-B7 completos. [CHANGELOG — 1.1.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-16)
 - **Self-service + IoT + SonarQube (monitoreo-v2):** TenantSettingsPage, ApiKeysPage, RolesPage (con grid permisos), IotReadingsModule (EAV, 5 endpoints), CronBuilder, TablePrimitives, SonarQube QG OK. [CHANGELOG — 1.0.0-alpha.0](CHANGELOG.md)

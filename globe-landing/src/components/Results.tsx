@@ -1,35 +1,18 @@
-const results = [
-  { value: '+70', label: 'Activos Gestionados' },
-  { value: '+2000', label: 'Puntos de Medición' },
-  { value: '>90%', label: 'Cobertura Instalación' },
-  { value: '99%', label: 'Uptime del Sistema' },
-  { value: '15%', label: 'Reducción Consumo No Facturado' },
-  { value: '20%', label: 'Ahorro en Mantenimiento' },
-];
-
 export function Results() {
   return (
-    <section id="resultados" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-gp-50">
-      <div className="max-w-4xl mx-auto">
-        <p className="section-label text-center">Resultados</p>
-        <h2 className="section-title text-center">
-          Cifras que respaldan nuestra operación
+    <section id="ecosistema" className="py-20 sm:py-28 px-5 sm:px-10 lg:px-12 bg-white">
+      <div className="max-w-3xl mx-auto text-center">
+        <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+          Ecosistema Globe
+        </span>
+
+        <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+          La ventaja de operar con un solo grupo
         </h2>
 
-        <div className="mt-16 grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-          {results.map((r) => (
-            <div key={r.label} className="text-center">
-              <p className="text-4xl sm:text-5xl font-bold text-gp-700">{r.value}</p>
-              <p className="mt-3 text-sm text-text-body font-light">{r.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16 text-center">
-          <a href="#contacto" className="btn-primary">
-            Agenda una Consulta
-          </a>
-        </div>
+        <p className="mt-6 text-[15px] text-gray-600 leading-[1.8]">
+          Integramos capacidades técnicas, operacionales y tecnológicas bajo una sola estructura. Una mirada; un responsable; continuidad garantizada.
+        </p>
       </div>
     </section>
   );

@@ -1,52 +1,42 @@
 const items = [
   {
-    title: 'Alianza Siemens',
-    desc: 'Rigor industrial con hardware y software de clase mundial para edificios comerciales.',
+    title: 'Eficiencia operativa',
+    desc: 'Estructuramos cada operación para que los recursos se traduzcan en resultados.',
   },
   {
-    title: 'Mantenimiento 24/7',
-    desc: 'Mantenimiento preventivo y correctivo con telemetría activa. Anticipamos fallas, no las reparamos.',
+    title: 'Integradores',
+    desc: 'Trabajamos junto a partners de clase mundial (Siemens, Meypar, Otis, Schindler, entre otros), integrando tecnología líder con ejecución local.',
   },
   {
-    title: 'Cloud + IA',
-    desc: 'Detección temprana de anomalías y análisis predictivo en plataformas cloud empresariales.',
+    title: 'Tecnología y visibilidad',
+    desc: 'Desarrollamos plataformas propias de monitoreo, análisis y trazabilidad. Nuestros clientes ven sus activos en tiempo real, no en un reporte mensual.',
   },
   {
-    title: 'Despliegue sin Impacto',
-    desc: 'Implementación escalonada en 5 fases que no interrumpe la operación diaria de tu activo.',
-  },
-  {
-    title: 'Soporte Humano',
-    desc: 'Atención personalizada por especialistas. Sin bots, sin tickets perdidos. Respuesta en menos de 1 hora.',
-  },
-  {
-    title: 'Sostenibilidad Validada',
-    desc: 'Certificación Sistema B, respaldo I-RECs y apoyo para cumplimiento de estándares ISO 50.001.',
+    title: 'Experiencia técnica',
+    desc: 'Equipos especializados con conocimiento profundo en sistemas críticos: energía, transporte vertical e infraestructura.',
   },
 ];
 
 export function Differentiation() {
   return (
-    <section className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12">
-      <div className="max-w-5xl mx-auto">
-        <h2 className="section-title text-center">
-          ¿Por qué Globe Power?
-        </h2>
-        <p className="mt-4 text-sm text-text-body text-center max-w-2xl mx-auto font-light">
-          El único integrador en Chile que combina rigor industrial y soporte humano.
-        </p>
-
-        <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <section className="bg-white">
+      <div className="grid grid-cols-1 sm:grid-cols-2">
           {items.map((item) => (
             <div
               key={item.title}
-              className="p-6 rounded-lg bg-white border border-gp-200/60 shadow-card card-hover"
+              className="flex gap-5 border border-gray-100 bg-white p-8"
             >
-              <h3 className="text-base font-semibold text-gp-800">{item.title}</h3>
-              <p className="mt-2 text-sm text-text-body leading-relaxed font-light">{item.desc}</p>
+              {/* Icon circle placeholder */}
+              <div className="shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-600/10">
+                <div className="w-5 h-5 rounded-full bg-red-600/30" />
+              </div>
+
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
+                <p className="mt-2 text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+              </div>
             </div>
           ))}
-        </div>
       </div>
     </section>
   );

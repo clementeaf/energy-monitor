@@ -1,38 +1,103 @@
+const SERVICES = [
+  'Gestión energética',
+  'Transporte vertical',
+  'Infraestructura modular',
+  'Mantenimiento eléctrico',
+  'Consultoría técnica',
+];
+
 export function Contact() {
   return (
-    <section id="contacto">
-      <div className="relative py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-gp-900 overflow-hidden">
-        <div className="absolute top-10 right-10 w-[300px] h-[300px] bg-gp-700/10 rounded-full blur-3xl" />
+    <section id="contacto" className="bg-[#9A2D29] py-20 sm:py-28 px-5 sm:px-10 lg:px-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+        {/* Left column: text */}
+        <div className="flex flex-col justify-center">
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-white/60">
+            Contáctanos
+          </span>
 
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white leading-tight">
-            Lideremos juntos la gestión energética corporativa en Chile
+          <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white leading-tight">
+            Conversemos
           </h2>
-          <p className="mt-5 text-gp-300 text-sm sm:text-base font-light max-w-xl mx-auto">
-            Nuestra propuesta es una alianza a largo plazo para transformar la energía en el mayor activo de tus edificios.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="mailto:comercial@globepower.cl" className="btn-white w-full sm:w-auto">
-              Agenda una Consultoría Estratégica
-            </a>
-            <a href="mailto:comercial@globepower.cl" className="btn-ghost w-full sm:w-auto">
-              Contactar Ahora
-            </a>
-          </div>
-        </div>
-      </div>
 
-      <div className="py-16 sm:py-20 px-5 sm:px-10 lg:px-12">
-        <div className="max-w-sm mx-auto text-center">
-          <h3 className="text-lg font-bold text-gp-800">Globe Power</h3>
-          <div className="mt-4 space-y-1 text-sm text-text-body font-light">
-            <p>comercial@globepower.cl</p>
-            <p>www.globepower.com</p>
-          </div>
-          <p className="mt-5 text-sm text-text-muted italic font-light">
-            Cuidamos tu energía, todos los días.
+          <p className="mt-6 text-[15px] text-white/70 leading-[1.8] max-w-md">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
         </div>
+
+        {/* Right column: form */}
+        <form className="space-y-5">
+          {/* Nombre — full width */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-1.5">Nombre</label>
+            <input
+              type="text"
+              placeholder="Juan Pérez"
+              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
+            />
+          </div>
+
+          {/* Correo + Empresa */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-1.5">Correo electrónico</label>
+              <input
+                type="email"
+                placeholder="juan.perez@empresa.cl"
+                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-1.5">Empresa</label>
+              <input
+                type="text"
+                placeholder="Constructora Andes Ltda."
+                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Teléfono + Servicio de interés */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-1.5">Teléfono</label>
+              <input
+                type="tel"
+                placeholder="+56 9 1234 5678"
+                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-1.5">Servicio de interés</label>
+              <select
+                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white/80 outline-none focus:border-white/50 focus:bg-white/15 transition-colors appearance-none"
+                defaultValue=""
+              >
+                <option value="" disabled className="text-gray-900">Selecciona un servicio</option>
+                {SERVICES.map((s) => (
+                  <option key={s} value={s} className="text-gray-900">{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Mensaje — textarea */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-1.5">Mensaje</label>
+            <textarea
+              rows={4}
+              placeholder="Cuéntanos brevemente sobre tu requerimiento o proyecto"
+              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors resize-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full sm:w-auto rounded-lg bg-white px-8 py-3 text-sm font-semibold text-[#9A2D29] hover:bg-white/90 transition-colors"
+          >
+            Enviar
+          </button>
+        </form>
       </div>
     </section>
   );

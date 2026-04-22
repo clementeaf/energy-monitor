@@ -1,41 +1,43 @@
 export function About() {
   return (
-    <section id="nosotros" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center">
-          <p className="section-label">Quiénes Somos</p>
-          <h2 className="section-title">
-            Convertimos un gasto fijo en un activo estratégico
-          </h2>
-          <p className="mt-5 text-sm sm:text-base text-text-body leading-relaxed max-w-2xl mx-auto font-light">
-            Cuando se mide, gestiona y optimiza correctamente, la energía deja de ser un costo ciego.
-            Globe Power integra subdistribución, eficiencia energética, software y mantenimiento eléctrico
-            bajo un solo responsable, transformando el gasto operativo en eficiencia, sostenibilidad y rentabilidad.
+    <section id="nosotros" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+          Quiénes somos
+        </span>
+
+        <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+          Un partner, toda la operación
+        </h2>
+
+        <div className="mt-8 max-w-4xl space-y-6 text-[15px] text-gray-600 leading-[1.8]">
+          <p>
+            Grupo Globe es un grupo empresarial chileno de origen canadiense, dedicado al desarrollo y operación de
+            soluciones integrales de energía, mantenimiento de sistemas críticos e infraestructuras. A través de nuestras
+            empresas participamos en minería, retail, hotelería, hospitales, oficinas, residenciales, industria y otras;
+            combinando ingeniería, tecnología y ejecución propia en cada proyecto.
+          </p>
+          <p>
+            Operamos con herramientas desarrolladas internamente para monitorear, analizar y gestionar la continuidad de los
+            activos de nuestros clientes. Nuestro crecimiento ha sido coherente: no expandimos hacia industrias donde no
+            podemos aportar profundidad técnica; crecemos donde identificamos una necesidad real y podemos resolverla
+            con estándar.
+          </p>
+          <p>
+            Ese estándar —de origen canadiense— es el que asegura calidad, trazabilidad y confiabilidad en cada servicio, y el
+            que hoy nos permite operar en Chile, Perú y Colombia.
           </p>
         </div>
 
-        <div className="mt-16 grid sm:grid-cols-2 gap-6">
-          <div className="p-6 rounded-lg border border-gp-200 card-hover bg-white">
-            <p className="text-sm font-semibold text-text-muted">Antes</p>
-            <p className="mt-1 text-lg font-semibold text-gp-800">Gasto ciego</p>
-            <p className="mt-3 text-sm text-text-body leading-relaxed font-light">
-              Facturación por metro cuadrado, sin medición real por operador, costos ocultos y mantenimiento reactivo.
-            </p>
-          </div>
-          <div className="p-6 rounded-lg border-2 border-gp-400/30 bg-gp-50 card-hover">
-            <p className="text-sm font-semibold text-gp-500">Después</p>
-            <p className="mt-1 text-lg font-semibold text-gp-800">Activo estratégico</p>
-            <p className="mt-3 text-sm text-text-body leading-relaxed font-light">
-              Medición real por operador, facturación exacta, mantenimiento predictivo y nueva línea de ingresos recuperados.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <a href="#ecosistema" className="btn-primary">
-            Conoce el Ecosistema
-          </a>
-        </div>
+        <a
+          href="#industrias"
+          className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors"
+        >
+          Conocer más sobre Grupo Globe
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
       </div>
     </section>
   );

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.1.1-alpha.0] - 2026-04-22 — GLOBE LANDING: REDESIGN FROM PDF
+
+### Changed (globe-landing)
+- **Full redesign** from "Inicio Globe Power.pdf" — all sections replaced with new content and layout.
+- **Navbar** — Logo image, 3 nav links (Nosotros, Industrias, Innovación), pill CTA with arrow.
+- **Hero** — Background image with overlay, ENERGÍA label, title, subtitle, CTA pill, carousel arrows, client logos bar.
+- **About** — "Quiénes Somos" / "Un partner, toda la operación" with 3 paragraphs.
+- **Ecosystem** — Valores section, 2-column header + 4 image placeholders.
+- **SiemensBanner → Industries** — "Áreas de negocios", 3 image cards (Energía, Transporte Vertical, Infraestructura Modular).
+- **Results → Ecosistema Globe** — Centered text block.
+- **Differentiation** — 4 cards grid 2×2 edge-to-edge with icon placeholders.
+- **Stats** — Dark background (#1C1C1C), "Grupo Globe en números", 4 metrics.
+- **Presence** — New component: 2-column layout with map (continent.png).
+- **Innovation** — New component: "Cómo innovamos", 3 square image placeholders.
+- **Contact** — Background #9A2D29, 2-column form with 5 fields + textarea.
+- **Footer** — White background, logo + LinkedIn, 3-column layout (contact, business areas, legal).
+
+---
+
 ## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-6)
 
 ### Added — MFA (Batch 7)

@@ -1,20 +1,23 @@
 const stats = [
-  { value: '+70', label: 'Activos Gestionados' },
-  { value: '99%', label: 'Uptime Continuo' },
-  { value: '15%', label: 'Reducción Consumo' },
+  { value: '+430', label: 'Clientes' },
+  { value: '+20%', label: 'Ahorro en consumo energético a clientes' },
+  { value: '+90.000', label: 'Llamados de emergencia resueltos' },
+  { value: '+150.000 m²', label: 'De construcción modular' },
 ];
 
 export function Stats() {
   return (
-    <section className="py-16 sm:py-20 bg-gp-900">
-      <div className="max-w-4xl mx-auto px-5 sm:px-10 lg:px-12">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-6">
+    <section className="bg-[#1C1C1C] py-16 sm:py-20 px-5 sm:px-10 lg:px-12">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-center text-2xl sm:text-3xl font-bold text-white">
+          Grupo Globe en números
+        </h2>
+
+        <div className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="text-5xl sm:text-6xl font-bold text-white">{s.value}</p>
-              <p className="mt-3 text-xs font-semibold text-gp-300 tracking-widest uppercase">
-                {s.label}
-              </p>
+              <p className="text-3xl sm:text-4xl font-bold text-white">{s.value}</p>
+              <p className="mt-2 text-sm text-white/60">{s.label}</p>
             </div>
           ))}
         </div>

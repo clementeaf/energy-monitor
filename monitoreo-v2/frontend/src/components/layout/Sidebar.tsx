@@ -120,6 +120,11 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['dashboard_executive:read'],
   },
   {
+    to: '/analytics/patterns',
+    label: 'Patrones',
+    requiredPerms: ['dashboard_executive:read'],
+  },
+  {
     to: APP_ROUTES.integrations,
     label: 'Integraciones',
     requiredPerms: ['integrations:read'],

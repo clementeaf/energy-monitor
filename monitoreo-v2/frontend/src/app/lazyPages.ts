@@ -140,6 +140,11 @@ export const LazyTrendsPage = lazy(async () => {
   return { default: m.TrendsPage };
 });
 
+export const LazyPatternsPage = lazy(async () => {
+  const m = await import('../features/analytics/PatternsPage');
+  return { default: m.PatternsPage };
+});
+
 export const LazyPlaceholderPage = lazy(async () => {
   const m = await import('../features/placeholder/PlaceholderPage');
   return { default: m.PlaceholderPage };

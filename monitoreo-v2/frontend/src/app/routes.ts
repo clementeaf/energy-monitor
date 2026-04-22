@@ -41,6 +41,7 @@ export const APP_ROUTES = {
   analytics: {
     benchmark: '/analytics/benchmark',
     trends: '/analytics/trends',
+    patterns: '/analytics/patterns',
   },
   components: '/components',
   admin: {

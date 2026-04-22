@@ -46,3 +46,9 @@ infra/**/handler.js.map
 
 # Generated PDFs
 infra/**/*.pdf
+
+# Test coverage reports
+coverage/
+**/coverage/
+.scannerwork/
+**/.scannerwork/

@@ -110,6 +110,11 @@ export const LazyBillingApprovePage = lazy(async () => {
   return { default: () => m.InvoicesPage({ defaultStatus: 'pending' }) };
 });
 
+export const LazyMyInvoicePage = lazy(async () => {
+  const m = await import('../features/billing/MyInvoicePage');
+  return { default: m.MyInvoicePage };
+});
+
 export const LazyTariffsPage = lazy(async () => {
   const m = await import('../features/billing/TariffsPage');
   return { default: m.TariffsPage };

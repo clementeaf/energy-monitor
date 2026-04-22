@@ -30,6 +30,7 @@ export const APP_ROUTES = {
     rates: '/billing/rates',
     history: '/billing/history',
     approve: '/billing/approve',
+    myInvoice: '/billing/my-invoice',
   },
   reports: '/reports',
   reportsScheduled: '/reports/scheduled',

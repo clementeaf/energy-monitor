@@ -42,6 +42,12 @@ export class InvoicesController {
     });
   }
 
+  @Get('my')
+  @RequirePermission('billing', 'view_own')
+  async findMy(@CurrentUser() user: JwtPayload) {
+    return this.invoicesService.findAll(user.tenantId, user.buildingIds, {});
+  }
+
   @Get(':id')
   @RequirePermission('billing', 'read')
   async findOne(

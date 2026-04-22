@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-3)
+## [1.1.0-alpha.0] - 2026-04-21 — MONITOREO V2: XLSX SPEC VIEWS (BATCH 1-4)
 
 ### Added — Batch 1
 - **Dashboard ejecutivo por edificio** — `/dashboard/executive/:siteId`. KPIs, chart tendencias, tabla medidores.
@@ -17,6 +17,9 @@
 
 ### Added — Batch 3
 - **Benchmarking entre edificios** — `BenchmarkPage` en `/analytics/benchmark`. Ranking horizontal (bar chart), radar multi-KPI (top 5), tabla con kWh/m², demanda peak, FP. Selector periodo y métrica.
+
+### Added — Batch 4
+- **Portal locatario** — `MyInvoicePage` en `/billing/my-invoice`. Chart consumo últimos 6 meses, tabla facturas con periodo/estado/total/PDF, selector mes. Backend: `GET /invoices/my` con permiso `billing:view_own`.
 
 ### Changed
 - **InvoicesPage** — Prop `defaultStatus`, chart evolución mensual.

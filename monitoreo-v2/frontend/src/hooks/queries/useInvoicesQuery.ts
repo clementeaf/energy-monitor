@@ -16,6 +16,13 @@ export function useInvoicesQuery(params?: InvoiceQueryParams) {
   });
 }
 
+export function useMyInvoicesQuery() {
+  return useQuery({
+    queryKey: [...INVOICES_KEY, 'my'],
+    queryFn: () => invoicesEndpoints.my().then((r) => r.data),
+  });
+}
+
 export function useInvoiceLineItemsQuery(invoiceId: string | null) {
   return useQuery({
     queryKey: ['invoice-line-items', invoiceId],

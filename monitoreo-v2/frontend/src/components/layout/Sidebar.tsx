@@ -90,6 +90,11 @@ const NAV_ITEMS: NavItem[] = [
     requiredPerms: ['billing:read'],
   },
   {
+    to: '/billing/my-invoice',
+    label: 'Mi Factura',
+    requiredPerms: ['billing:view_own'],
+  },
+  {
     to: '/billing/rates',
     label: 'Tarifas',
     requiredPerms: ['billing:read'],

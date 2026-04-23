@@ -8,7 +8,7 @@ const SERVICES = [
 
 export function Contact() {
   return (
-    <section id="contacto" className="bg-[#9A2D29] py-20 sm:py-28 px-5 sm:px-10 lg:px-12">
+    <section id="contacto" className="bg-brand py-20 sm:py-28 px-5 sm:px-10 lg:px-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
         {/* Left column: text */}
         <div className="flex flex-col justify-center">
@@ -73,9 +73,9 @@ export function Contact() {
                 className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white/80 outline-none focus:border-white/50 focus:bg-white/15 transition-colors appearance-none"
                 defaultValue=""
               >
-                <option value="" disabled className="text-gray-900">Selecciona un servicio</option>
+                <option value="" disabled className="text-grey-900">Selecciona un servicio</option>
                 {SERVICES.map((s) => (
-                  <option key={s} value={s} className="text-gray-900">{s}</option>
+                  <option key={s} value={s} className="text-grey-900">{s}</option>
                 ))}
               </select>
             </div>
@@ -93,7 +93,7 @@ export function Contact() {
 
           <button
             type="submit"
-            className="w-full sm:w-auto rounded-lg bg-white px-8 py-3 text-sm font-semibold text-[#9A2D29] hover:bg-white/90 transition-colors"
+            className="w-full sm:w-auto rounded-lg bg-white px-8 py-3 text-sm font-semibold text-brand hover:bg-white/90 transition-colors"
           >
             Enviar
           </button>

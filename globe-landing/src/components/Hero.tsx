@@ -16,7 +16,7 @@ const CLIENT_LOGOS = [
 export function Hero() {
   return (
     <section
-      className="relative min-h-[85vh] flex flex-col overflow-hidden bg-cover bg-center"
+      className="relative min-h-[85vh] flex flex-col overflow-hidden bg-cover bg-center sm:rounded-br-[5rem]"
       style={{ backgroundImage: `url(${heroBg})` }}
     >
       {/* Dark overlay mask */}
@@ -91,16 +91,16 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Client logos bar — 2/3 carousel over image */}
+      {/* Client logos bar — Figma: 1043 x 117 */}
       <div className="relative z-10">
-        <div className="overflow-hidden w-full sm:w-2/3 sm:rounded-tr-[5rem] bg-white">
-          <div className="flex items-center py-6 animate-scroll-left w-max">
+        <div className="overflow-hidden w-full sm:max-w-[1043px] h-[100px] sm:h-[117px] sm:rounded-tr-[5rem] bg-white">
+          <div className="flex items-center h-full animate-scroll-left w-max">
             {[...CLIENT_LOGOS, ...CLIENT_LOGOS].map((logo, i) => (
               <img
                 key={`${logo.alt}-${i}`}
                 src={logo.src}
                 alt={logo.alt}
-                className="h-6 sm:h-9 w-auto mx-10 sm:mx-16 shrink-0"
+                className="h-8 sm:h-11 w-auto mx-10 sm:mx-16 shrink-0"
                 style={{ filter: 'brightness(0) saturate(100%) invert(22%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(89%)' }}
               />
             ))}

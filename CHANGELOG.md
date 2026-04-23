@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.0-alpha.0] - 2026-04-23 — GLOBE LANDING: FIGMA DESIGN SYSTEM
+
+### Changed (globe-landing)
+- **Design tokens** — Tailwind config aligned to Figma Design System: Plus Jakarta Sans (headings) + Inter (body), typography scale H1–H6 + body variants with desktop/mobile sizes, color palette green/grey/red/brand from Figma.
+- **Navbar** — 6 links matching Figma (Quiénes somos, Valores, Industrias, Ecosistema Globe, Cultura e Innovación, Contáctanos). Inter 500 14px, CTA pill button, dehaze hamburger on mobile.
+- **Buttons** — Refactored to 3 Figma types: Primary (`#3c3c3c`), Secondary (white), Tertiary/brand (`#ab2f2a`). Added `.btn-tertiary`, `.icon-btn`, `.icon-btn-lg`.
+- **Footer** — Logo 58px, LinkedIn icon button (64px), contact info with Material Symbols icons (call, mail, location), section titles in `brand-dark` (`#772825`), copyright text.
+- **Valores** — Real images from `assets/values/`, hover "Ver más" button slides in from right with transparent pill style.
+- **Industrias** — Real images from `assets/industry/`, natural aspect ratio (no crop), hover "Ver más" button.
+- **Innovación** — Real images from `assets/innovation/`, square aspect ratio.
+- **Differentiation** — Material Symbols icons (engineering, handshake, dashboard, support_agent) replacing circle placeholders. Cards sized 600×260.
+- **Hero** — Carousel resized to Figma spec (1043×117), `rounded-br-[5rem]` on desktop matching carousel corner.
+- **Stats** — Migrated `bg-[#1C1C1C]` → `bg-grey-900`.
+- **Color migration** — All active components migrated from `gray-*` → `grey-*` and hardcoded hex → Tailwind tokens.
+
+### Added
+- `@fontsource-variable/inter` — Inter variable font for body text.
+- `brand` / `brand-dark` color tokens for Figma accent colors.
+
+---
+
 ## [1.1.2-alpha.0] - 2026-04-22 — GLOBE LANDING: UI POLISH
 
 ### Changed (globe-landing)

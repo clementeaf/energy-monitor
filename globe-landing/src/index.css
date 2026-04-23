@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design System: Base ── */
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -10,88 +11,139 @@
   }
 
   body {
-    font-weight: 300;
-    line-height: 1.5;
-    color: #2d3a33;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: #1c1c1c;
+  }
+
+  /* Headings — Plus Jakarta Sans */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  h1 { font-size: 3rem;     line-height: 3.5rem;   font-weight: 800; }
+  h2 { font-size: 2.25rem;  line-height: 2.75rem;  font-weight: 800; }
+  h3 { font-size: 1.75rem;  line-height: 2.25rem;  font-weight: 800; }
+  h4 { font-size: 1.375rem; line-height: 1.875rem; font-weight: 800; }
+  h5 { font-size: 1.125rem; line-height: 1.625rem; font-weight: 800; }
+  h6 { font-size: 1rem;     line-height: 1.5rem;   font-weight: 800; }
+
+  /* Mobile headings */
+  @media (max-width: 767px) {
+    h1 { font-size: 2rem;     line-height: 2.5rem;  }
+    h2 { font-size: 1.625rem; line-height: 2.125rem; }
+    h3 { font-size: 1.375rem; line-height: 1.875rem; }
+    h4 { font-size: 1.125rem; line-height: 1.625rem; }
+    h5 { font-size: 1rem;     line-height: 1.5rem;   }
+    h6 { font-size: 0.875rem; line-height: 1.375rem; }
   }
 }
 
+/* ── Design System: Components ── */
 @layer components {
+  /* Figma: Button type=Primary — dark pill, white text on hover */
   .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 2rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #fff;
-    background-color: #2d6148;
-    border-radius: 50px;
+    color: #3c3c3c;
+    border: 1px solid #3c3c3c;
+    border-radius: 100px;
     transition: all 0.3s;
-    box-shadow: 0 4px 12px rgba(45, 97, 72, 0.25);
   }
   .btn-primary:hover {
-    background-color: #234d38;
-    box-shadow: 0 6px 20px rgba(45, 97, 72, 0.35);
-    transform: translateY(-1px);
+    background-color: #3c3c3c;
+    color: #ffffff;
   }
 
+  /* Figma: Button type=Secondary — white text, transparent bg */
   .btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 2rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #2d6148;
-    border: 1px solid #2d6148;
-    border-radius: 50px;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 100px;
     transition: all 0.3s;
   }
   .btn-secondary:hover {
-    background-color: #2d6148;
-    color: #fff;
+    background-color: #ffffff;
+    color: #1c1c1c;
   }
 
-  .btn-white {
+  /* Figma: Button type=Tertiary — brand accent */
+  .btn-tertiary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 2rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #234d38;
-    background-color: #fff;
-    border-radius: 50px;
+    color: #ab2f2a;
+    border: 1px solid #ab2f2a;
+    border-radius: 100px;
     transition: all 0.3s;
   }
-  .btn-white:hover {
-    background-color: #f4f9f6;
-    transform: translateY(-1px);
+  .btn-tertiary:hover {
+    background-color: #ab2f2a;
+    color: #ffffff;
   }
 
+  /* Ghost — for overlays on dark backgrounds */
   .btn-ghost {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 2rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 50px;
+    border-radius: 100px;
     transition: all 0.3s;
   }
   .btn-ghost:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
 
+  /* Icon Button — circle, multiple types */
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 100px;
+    border: 1px solid currentColor;
+    transition: all 0.3s;
+  }
+  .icon-btn-lg {
+    width: 64px;
+    height: 64px;
+  }
+  .icon-btn:hover {
+    transform: translateY(-1px);
+  }
+
   .section-label {
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #5a9e78;
+    color: #617c4b;
   }
 
   .section-title {
@@ -99,7 +151,7 @@
     font-size: 2rem;
     font-weight: 700;
     line-height: 1.2;
-    color: #234d38;
+    color: #35531b;
   }
 
   .card-hover {
@@ -107,10 +159,11 @@
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px 0 rgba(26, 58, 42, 0.14);
+    box-shadow: 0 8px 24px 0 rgba(24, 38, 13, 0.14);
   }
 }
 
+/* ── Animations ── */
 @keyframes scroll-left {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }

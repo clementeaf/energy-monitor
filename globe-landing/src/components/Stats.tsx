@@ -7,7 +7,7 @@ const stats = [
 
 export function Stats() {
   return (
-    <section className="bg-[#1C1C1C] py-16 sm:py-20 px-5 sm:px-10 lg:px-12">
+    <section className="bg-grey-900 py-16 sm:py-20 px-5 sm:px-10 lg:px-12">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center text-2xl sm:text-3xl font-bold text-white">
           Grupo Globe en números

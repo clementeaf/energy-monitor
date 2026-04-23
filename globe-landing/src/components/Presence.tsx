@@ -6,16 +6,16 @@ export function Presence() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         {/* Left column: text */}
         <div>
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-grey-400">
             Presencia
           </span>
 
-          <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+          <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-grey-900 leading-tight">
             De origen canadiense,<br />
             operación regional
           </h2>
 
-          <div className="mt-6 space-y-5 text-[15px] text-gray-600 leading-[1.8]">
+          <div className="mt-6 space-y-5 text-[15px] text-grey-700 leading-[1.8]">
             <p>
               Grupo Globe tiene su origen en Canadá y hoy opera en Chile. Desarrollando proyectos de energía e
               infraestructura en activos críticos para minería, retail, hospitales e industrias.

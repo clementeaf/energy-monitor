@@ -25,9 +25,12 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-23)
+- **Globe Landing Figma Design System:** Tokens tipográficos (Plus Jakarta Sans + Inter, desktop/mobile), paleta Figma (green, grey, red, brand), Navbar 6 links, Buttons 3 tipos, Footer con íconos Material, imágenes reales en Valores/Industrias/Innovación, íconos Differentiation, hover "Ver más" en cards, Hero carousel 1043×117 con esquina redondeada. Migración completa de colores hardcoded → tokens Tailwind. [CHANGELOG — 1.2.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-22)
 - **Globe Landing UI polish:** Hero con overlay oscuro, carousel infinito de logos (blanco, 2/3 ancho, esquina redondeada), CTA+flechas junto a subtítulo, dots placeholder, navbar links a la derecha, About con botón pill alineado derecha, Footer con fila de logos clientes. [CHANGELOG — 1.1.2-alpha.0](CHANGELOG.md)
-- **Globe Landing redesign:** Todas las secciones reemplazadas desde PDF "Inicio Globe Power.pdf". Navbar con logo, Hero con image1.png, About, Valores, Industrias, Ecosistema Globe, 4 cards, Stats, Presencia (mapa), Innovación, Contact (formulario), Footer blanco. 2 componentes nuevos (Presence, Innovation). Deploy manual pendiente. [CHANGELOG — 1.1.1-alpha.0](CHANGELOG.md)
+- **Globe Landing redesign:** Todas las secciones reemplazadas desde PDF "Inicio Globe Power.pdf". [CHANGELOG — 1.1.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-21)
 - **XLSX spec completo (monitoreo-v2):** 12 vistas nuevas + MFA. B1-B7 completos. [CHANGELOG — 1.1.0-alpha.0](CHANGELOG.md)

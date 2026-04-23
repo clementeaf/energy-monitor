@@ -2,6 +2,9 @@
 
 ## [1.5.0-alpha.0] - 2026-04-23 — GLOBE LANDING: HERO CAROUSEL, VALUES, INNOVATION & RESPONSIVE
 
+### Added (globe-landing)
+- **deploy-preview.sh** — One-command temporary S3+CloudFront deploy for preview. Isolated bucket, does not touch production. Supports `update` and `destroy`.
+
 ### Changed (globe-landing)
 - **Hero carousel** — 3 background images (Santiago, Frame 122, Modular) with crossfade, auto-advance 6s, functional dots and arrows. Each slide has its own label, title, and subtitle.
 - **Values cards** — Full image display (no crop), click "Ver más" reveals description overlay with close button. Text justified, title responsive with clamp. Mobile: 1 column, button always visible.

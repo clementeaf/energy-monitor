@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0-alpha.0] - 2026-04-23 — MONITOREO V2: TENANT ONBOARDING (CREATE COMPANY)
+
+### Added (monitoreo-v2)
+- **CompaniesPage** — `/admin/companies` with table of tenants and "Nueva empresa" drawer. Form: name, slug, app title, admin email/name/auth provider, theme colors. Protected by `admin_tenants:create`.
+- **Backend integration** — `tenantsEndpoints.create()` calls `POST /tenants` (onboarding: tenant + 7 roles + first admin, transactional). Success shows roles created and admin ID.
+- **Types** — `CreateTenantPayload`, `OnboardingResult` in `types/tenant.ts`.
+- **Hook** — `useCreateTenant()` mutation + `useTenantsAdminQuery()`.
+- **CSS** — `.input-field` reusable class for form inputs.
+- **Sidebar** — "Empresas" added as first sub-item under Administración.
+
+---
+
 ## [1.6.0-alpha.0] - 2026-04-23 — MONITOREO V2: V1 DESIGN GRID + GLOBE POWER COLORS
 
 ### Changed (monitoreo-v2/frontend)

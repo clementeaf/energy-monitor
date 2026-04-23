@@ -109,6 +109,7 @@ const NAV_ENTRIES: NavEntry[] = [
     basePath: '/admin',
     requiredPerms: ['admin_users:read'],
     children: [
+      { to: '/admin/companies', label: 'Empresas' },
       { to: '/admin/users', label: 'Usuarios' },
       { to: '/admin/tenants', label: 'Locatarios' },
       { to: '/admin/hierarchy', label: 'Jerarquía' },

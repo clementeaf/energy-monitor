@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-23)
+- **Tenant onboarding:** CompaniesPage en `/admin/companies` — crear empresa con roles + admin en un paso. Drawer con formulario completo, resultado con roles creados. [CHANGELOG — 1.7.0-alpha.0](CHANGELOG.md)
 - **V1 design grid + Globe Power colors:** Sidebar numerado (01-10) con sub-items expandibles, Header con banderas CL/CO/PE + WhatsApp + Email + menú usuario, paleta Globe Power (green/grey/brand). 30 tablas con sticky header + scroll interno. Alertas clickeables con highlight en destino. RealtimePage infinite scroll 15 rows. [CHANGELOG — 1.6.0-alpha.0](CHANGELOG.md)
 - **Globe Landing overhaul:** Hero carousel 3 slides con copy dinámico, Values con overlay descripción, Innovation con text overlay + nuevas imágenes, custom ServiceSelect en Contacto, footer logos carousel, responsive mobile-first en todas las secciones. [CHANGELOG — 1.5.0-alpha.0](CHANGELOG.md)
 - **Skeleton loading + dashboard perf:** Chart skeleton estilo TradingView (SVG curve, volume bars, shimmer). Dashboard: waterfall 3-queries → fast path via `useMetersQuery` (2+1 paralelo). RealtimePage: skeleton tabla 8 columnas. Fix `@IsUUID` → `@IsString` en LatestQueryDto (seed UUIDs no RFC 4122). [CHANGELOG — 1.4.0-alpha.0](CHANGELOG.md)

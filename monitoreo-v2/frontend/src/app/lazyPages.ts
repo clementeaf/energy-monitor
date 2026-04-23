@@ -214,3 +214,8 @@ export const LazyRolesPage = lazy(async () => {
   const m = await import('../features/admin/roles/RolesPage');
   return { default: m.RolesPage };
 });
+
+export const LazyCompaniesPage = lazy(async () => {
+  const m = await import('../features/admin/companies/CompaniesPage');
+  return { default: m.CompaniesPage };
+});

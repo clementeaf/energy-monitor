@@ -1,7 +1,7 @@
 import api from './api';
 import { API_ROUTES } from './routes';
 import type { AuthProvider, MeResponse } from '../types/auth';
-import type { Tenant, UpdateTenantPayload } from '../types/tenant';
+import type { Tenant, CreateTenantPayload, OnboardingResult, UpdateTenantPayload } from '../types/tenant';
 import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload, UpdateApiKeyPayload } from '../types/api-key';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../types/role';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../types/building';
@@ -391,6 +391,14 @@ export const alertEngineEndpoints = {
 export const tenantSettingsEndpoints = {
   getMyTenant: () => api.get<Tenant>(`${API_ROUTES.tenants}/me`),
   updateMyTenant: (payload: UpdateTenantPayload) => api.patch<Tenant>(`${API_ROUTES.tenants}/me`, payload),
+};
+
+export const tenantsEndpoints = {
+  list: () => api.get<Tenant[]>(API_ROUTES.tenants),
+  create: (payload: CreateTenantPayload) => api.post<OnboardingResult>(API_ROUTES.tenants, payload),
+  get: (id: string) => api.get<Tenant>(`${API_ROUTES.tenants}/${id}`),
+  update: (id: string, payload: UpdateTenantPayload) => api.patch<Tenant>(`${API_ROUTES.tenants}/${id}`, payload),
+  remove: (id: string) => api.delete(`${API_ROUTES.tenants}/${id}`),
 };
 
 export const apiKeysEndpoints = {

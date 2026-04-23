@@ -54,5 +54,6 @@ export const APP_ROUTES = {
     settings: '/admin/settings',
     apiKeys: '/admin/api-keys',
     roles: '/admin/roles',
+    companies: '/admin/companies',
   },
 } as const;

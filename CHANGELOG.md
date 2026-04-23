@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.1-alpha.0] - 2026-04-23 — DOCS & DEPLOY
+
+### Added
+- **monitoreo-v2 documentation** — Backend README (architecture, modules, env vars, security), Frontend README (structure, patterns, testing), auth-rbac, db-schema (30 tables), api-overview (all endpoints), deploy guide.
+- **globe-landing/deploy.sh** — One-command deploy to S3 + CloudFront. Supports `globepower`, `energymonitor`, or `both`. Immutable cache on assets, no-cache on index.html, auto-invalidation, HTTP verification.
+
+### Changed
+- **BACKLOG.md** — Cleaned up, all items marked as completed.
+
+---
+
 ## [1.3.0-alpha.0] - 2026-04-23 — MONITOREO V2: SIDEBAR, ROLES, SECURITY & DESIGN SYSTEM
 
 ### Changed (monitoreo-v2/frontend)

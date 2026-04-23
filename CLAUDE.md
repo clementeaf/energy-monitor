@@ -26,8 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-23)
-- **Monitoreo-v2 Sidebar accordion:** 7 grupos colapsables, protección de rutas con `RequirePerms` en 47 rutas, RolesPage con UI de módulos/capacidades, design system patterns en 8 componentes atómicos, layout responsivo, reduced-motion, 28 tests brute-force, 8 permisos nuevos en DB. [CHANGELOG — 1.3.0-alpha.0](CHANGELOG.md)
-- **Globe Landing Figma Design System:** Tokens tipográficos, paleta Figma, Navbar 6 links, Buttons 3 tipos, Footer con íconos Material, imágenes reales, hover effects, carousel 1043×117. [CHANGELOG — 1.2.0-alpha.0](CHANGELOG.md)
+- **Docs + deploy:** monitoreo-v2 documentación completa (6 docs), `globe-landing/deploy.sh` para S3+CloudFront (globepower/energymonitor/both). [CHANGELOG — 1.3.1-alpha.0](CHANGELOG.md)
+- **Monitoreo-v2 Sidebar, roles, seguridad, design system:** Acordeón 7 grupos, `RequirePerms` en 47 rutas, RolesPage con módulos/capacidades, 8 componentes atómicos refinados, 28 tests brute-force, 8 permisos nuevos en DB. [CHANGELOG — 1.3.0-alpha.0](CHANGELOG.md)
+- **Globe Landing Figma Design System:** Tokens, paleta, Navbar 6 links, Buttons 3 tipos, imágenes reales, hover effects, carousel 1043×117. [CHANGELOG — 1.2.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-22)
 - **Globe Landing UI polish:** Hero con overlay oscuro, carousel infinito de logos (blanco, 2/3 ancho, esquina redondeada), CTA+flechas junto a subtítulo, dots placeholder, navbar links a la derecha, About con botón pill alineado derecha, Footer con fila de logos clientes. [CHANGELOG — 1.1.2-alpha.0](CHANGELOG.md)

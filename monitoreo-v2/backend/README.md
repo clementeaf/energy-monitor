@@ -1,98 +1,121 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend — Monitoreo V2
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS 11 + TypeORM + TimescaleDB (PostgreSQL 16). Multi-tenant, ISO 27001.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Quick Start
 
 ```bash
-$ npm install
+# Docker DB
+docker run -d --name pg-arauco -p 5434:5432 -e POSTGRES_PASSWORD=arauco -e POSTGRES_DB=arauco timescale/timescaledb:latest-pg16
+
+# Install & run
+npm ci
+npm run start:dev   # http://localhost:4000
+npm run test        # 656+ tests, 61 suites
+npm run test:cov    # coverage (80% threshold)
 ```
 
-## Compile and run the project
+## Environment Variables
 
-```bash
-# development
-$ npm run start
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DB_HOST` | yes (prod) | `127.0.0.1` | Database host |
+| `DB_PORT` | no | `5434` | Database port |
+| `DB_NAME` | no | `arauco` | Database name |
+| `DB_USERNAME` | no | `postgres` | Database user |
+| `DB_PASSWORD` | yes (prod) | `arauco` | Database password |
+| `JWT_SECRET` | yes (prod) | — | Secret for JWT signing |
+| `COOKIE_SECRET` | yes (prod) | — | Secret for cookie signing |
+| `FRONTEND_URL` | yes (prod) | — | CORS origin |
+| `GOOGLE_CLIENT_ID` | yes | — | Google OAuth client ID |
+| `MICROSOFT_CLIENT_ID` | yes | — | Microsoft OAuth client ID |
+| `MICROSOFT_TENANT_ID` | yes | — | Microsoft tenant ID |
+| `NODE_ENV` | no | `development` | Environment |
+| `PORT` | no | `4000` | Server port |
+| `LOG_FORMAT` | no | `text` | `json` for structured logging |
+| `CONFIG_ENCRYPTION_KEY` | no | — | AES-256-GCM for integration secrets |
+| `SES_FROM_EMAIL` | no | — | AWS SES verified sender |
+| `SES_REGION` | no | `us-east-1` | AWS SES region |
+| `ALERT_EMAIL_RECIPIENTS` | no | — | Comma-separated alert emails |
+| `RDS_CA_BUNDLE_PATH` | no | — | TLS cert bundle for RDS |
 
-# watch mode
-$ npm run start:dev
+## Architecture
 
-# production mode
-$ npm run start:prod
+```
+Request → Helmet → ThrottlerGuard → ApiKeyGuard → JwtAuthGuard → PermissionsGuard
+       → Controller → Service → TypeORM / Raw SQL → TimescaleDB
+       → AuditLogInterceptor (writes audit trail)
 ```
 
-## Run tests
+### Global Guards (execution order)
+1. **ThrottlerGuard** — 3 tiers: 10/s, 100/min, 1000/hr
+2. **ApiKeyGuard** — X-API-Key header → constant-time hash compare
+3. **JwtAuthGuard** — httpOnly cookie → JWT verify. `@Public()` to skip
+4. **PermissionsGuard** — `@RequirePermission('module', 'action')` per endpoint
 
-```bash
-# unit tests
-$ npm run test
+### Module Pattern (4 files)
+```
+entity.ts → service.ts → controller.ts → module.ts
+```
+Register in `app.module.ts`. Raw SQL via `this.dataSource.query()`.
 
-# e2e tests
-$ npm run test:e2e
+## Modules (22)
 
-# test coverage
-$ npm run test:cov
+| Module | Endpoints | Description |
+|---|---|---|
+| auth | login, refresh, logout, MFA setup/verify/validate | OAuth (Microsoft/Google) → JWT cookies |
+| users | CRUD + building assignment | User management |
+| roles | CRUD + permission catalog + assign | RBAC management |
+| buildings | CRUD | Sites/buildings |
+| meters | CRUD | Energy meters |
+| concentrators | CRUD + meter assignment | Data concentrators |
+| readings | list, latest, aggregated | Time-series (TimescaleDB) |
+| iot-readings | 9 read-only endpoints | Siemens IoT data |
+| alerts | CRUD + acknowledge/resolve | Alert management |
+| alert-engine | evaluate (cron 5min) | 6 evaluators, 22+ alert types |
+| tariffs | CRUD + blocks | Rate structures |
+| invoices | generate, approve, cancel, PDF | Billing |
+| reports | generate, schedule, export | PDF reports |
+| integrations | CRUD + sync + logs | External connectors (MQTT, REST, FTP, Webhook) |
+| hierarchy | CRUD tree nodes | Electrical hierarchy |
+| tenant-units | CRUD + meter assign | Tenant unit management |
+| tenants | CRUD + onboarding + theme | Multi-tenant config |
+| audit-logs | list with filters | Audit trail (ISO 27001) |
+| api-keys | CRUD + rotate | External API access |
+| external-api | 9 read-only under /api/v1 | Third-party API |
+| fault-events | list + detail | Equipment fault history |
+| sessions | (internal) | Refresh token rotation |
+
+## Database
+
+30 tables. Key ones:
+
+```
+tenants → users → roles → permissions (via role_permissions)
+       → buildings → meters → readings (hypertable, partitioned)
+       → alerts → alert_rules
+       → invoices → invoice_line_items
+       → tariffs → tariff_blocks
+       → integrations → integration_sync_logs
+       → audit_logs (hypertable, 5yr retention)
 ```
 
-## Deployment
+Migrations in `src/database/migrations/` and `../database/init/`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Security
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Helmet (HSTS 1yr, Referrer-Policy, COOP)
+- CORS whitelist (no wildcard in prod)
+- Body limit 1MB
+- `__Host-` cookie prefix in production
+- Refresh token rotation with theft detection
+- SSRF blocker in connectors
+- HTML escape in PDF generation
+- ReDoS-safe patterns
+- PII redaction in logs
+- Config encryption (AES-256-GCM)
+- Constant-time API key comparison
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Swagger
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Available at `/api/docs` in development. Auth via cookie or `X-API-Key` header.

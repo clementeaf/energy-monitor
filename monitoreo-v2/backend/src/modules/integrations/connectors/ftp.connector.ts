@@ -48,7 +48,7 @@ export class FtpConnector implements IntegrationConnector {
   }
 
   async sync(integration: Integration): Promise<SyncResult> {
-    const config = integration.config as FtpConfig;
+    const config = integration.config as unknown as FtpConfig;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { Client } = require('basic-ftp') as typeof import('basic-ftp');
 

@@ -176,7 +176,7 @@ export class TenantsService {
    * Returns number of roles created.
    */
   private async cloneRoles(
-    manager: Parameters<Parameters<DataSource['transaction']>[0]>[0],
+    manager: import('typeorm').EntityManager,
     newTenantId: string,
   ): Promise<number> {
     // Get template tenant (first by created_at)

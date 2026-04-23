@@ -249,8 +249,8 @@ export const invoicesEndpoints = {
   generate: (payload: GenerateInvoicePayload) =>
     api.post<Invoice>(`${API_ROUTES.invoices}/generate`, payload),
 
-  my: () =>
-    api.get<Invoice[]>(`${API_ROUTES.invoices}/my`),
+  my: (params?: { limit?: number; offset?: number }) =>
+    api.get<Invoice[]>(`${API_ROUTES.invoices}/my`, { params }),
 
   pdfUrl: (id: string) =>
     `${API_ROUTES.invoices}/${id}/pdf`,

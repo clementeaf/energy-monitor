@@ -77,7 +77,7 @@ describe('Modal', () => {
     render(<Modal {...defaultProps} />);
     const dialog = getDialog();
     expect(dialog.className).toContain('max-w-lg');
-    expect(dialog.className).toContain('rounded-lg');
+    expect(dialog.className).toContain('rounded-xl');
   });
 
   it('applies custom dialogClassName when provided', () => {

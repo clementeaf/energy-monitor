@@ -12,15 +12,19 @@ import {
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { OAuthProfile } from './auth.service';
 import { MfaService } from './mfa.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
+import { MfaCodeDto, MfaValidateDto } from './dto/mfa.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { Throttle } from '@nestjs/throttler';
 
+@ApiTags('Auth & MFA')
 @Controller('auth')
 export class AuthController {
   private readonly msJwks;
@@ -44,6 +48,9 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'OAuth login (Microsoft/Google)' })
+  @ApiResponse({ status: 200, description: 'Login successful or MFA required' })
+  @ApiResponse({ status: 401, description: 'Invalid token' })
   async login(
     @Body() dto: OAuthLoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -61,6 +68,9 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiOperation({ summary: 'Get current user profile and tenant theme' })
+  @ApiResponse({ status: 200, description: 'User profile with tenant info' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
   async me(@CurrentUser() user: JwtPayload) {
     const profile = await this.authService.getUserProfile(user.sub);
     const theme = await this.tenantsService.getTheme(user.tenantId);
@@ -73,6 +83,9 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Tokens rotated' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(
     @Body() dto: RefreshTokenDto,
     @Res({ passthrough: true }) res: Response,
@@ -84,6 +97,8 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Logout and revoke all tokens' })
+  @ApiResponse({ status: 200, description: 'Logged out' })
   async logout(
     @CurrentUser() user: JwtPayload,
     @Res({ passthrough: true }) res: Response,
@@ -95,25 +110,34 @@ export class AuthController {
   }
 
   @Post('mfa/setup')
+  @ApiOperation({ summary: 'Generate TOTP secret and QR code for MFA setup' })
+  @ApiResponse({ status: 201, description: 'TOTP secret and QR URI' })
   async mfaSetup(@CurrentUser() user: JwtPayload) {
     return this.mfaService.setupMfa(user.sub, user.email);
   }
 
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify TOTP code and enable MFA' })
+  @ApiResponse({ status: 200, description: 'MFA enabled with recovery codes' })
+  @ApiResponse({ status: 400, description: 'Invalid code' })
   async mfaVerify(
     @CurrentUser() user: JwtPayload,
-    @Body() body: { code: string },
+    @Body() body: MfaCodeDto,
   ) {
-    await this.mfaService.verifyAndEnable(user.sub, body.code);
-    return { success: true, mfaEnabled: true };
+    const { recoveryCodes } = await this.mfaService.verifyAndEnable(user.sub, body.code);
+    return { success: true, mfaEnabled: true, recoveryCodes };
   }
 
   @Public()
   @Post('mfa/validate')
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Validate MFA code during login (rate-limited)' })
+  @ApiResponse({ status: 200, description: 'MFA validated, tokens issued' })
+  @ApiResponse({ status: 401, description: 'Invalid MFA code' })
   async mfaValidate(
-    @Body() body: { userId: string; code: string },
+    @Body() body: MfaValidateDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const isValid = await this.mfaService.validate(body.userId, body.code);
@@ -127,12 +151,16 @@ export class AuthController {
 
   @Delete('mfa')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Disable MFA for current user' })
+  @ApiResponse({ status: 200, description: 'MFA disabled' })
   async mfaDisable(@CurrentUser() user: JwtPayload) {
     await this.mfaService.disable(user.sub);
     return { success: true, mfaEnabled: false };
   }
 
   @Get('mfa/status')
+  @ApiOperation({ summary: 'Check if MFA is enabled for current user' })
+  @ApiResponse({ status: 200, description: 'MFA status' })
   async mfaStatus(@CurrentUser() user: JwtPayload) {
     const enabled = await this.mfaService.isMfaEnabled(user.sub);
     return { mfaEnabled: enabled };

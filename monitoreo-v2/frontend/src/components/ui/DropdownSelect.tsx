@@ -118,7 +118,7 @@ export function DropdownSelect<T extends string = string>({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white">
           {showSearch && (
             <div className="border-b border-gray-100 p-2">
               <input

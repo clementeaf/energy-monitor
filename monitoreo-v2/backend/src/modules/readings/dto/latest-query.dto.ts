@@ -1,11 +1,11 @@
-import { IsUUID, IsOptional } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class LatestQueryDto {
   @IsOptional()
-  @IsUUID()
+  @IsString()
   buildingId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   meterId?: string;
 }

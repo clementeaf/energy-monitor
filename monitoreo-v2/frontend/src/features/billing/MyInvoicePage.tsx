@@ -35,7 +35,7 @@ function fmtCurrency(val: string | number): string {
  */
 export function MyInvoicePage(): ReactElement {
   const [monthFilter, setMonthFilter] = useState('');
-  const invoicesQuery = useMyInvoicesQuery();
+  const invoicesQuery = useMyInvoicesQuery({ limit: 10 });
   const qs = useQueryState(invoicesQuery, { isEmpty: (d) => !d || d.length === 0 });
 
   const invoices = invoicesQuery.data ?? [];

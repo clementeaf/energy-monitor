@@ -32,7 +32,7 @@ function ChartInner({ options, className, highlightIndex, onPointHover }: Readon
       chart: { ...base.chart, height: 280, ...options.chart },
       title: { ...base.title, ...options.title },
       xAxis: { ...(base.xAxis as object), ...(options.xAxis as object) },
-      yAxis: { ...(base.yAxis as object), ...(options.yAxis as object) },
+      yAxis: Array.isArray(options.yAxis) ? options.yAxis : { ...(base.yAxis as object), ...(options.yAxis as object) },
       tooltip: { ...base.tooltip, ...options.tooltip },
       plotOptions: {
         ...base.plotOptions,

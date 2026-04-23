@@ -51,7 +51,7 @@ export class WebhookConnector implements IntegrationConnector {
   }
 
   async sync(integration: Integration): Promise<SyncResult> {
-    const config = integration.config as WebhookConfig;
+    const config = integration.config as unknown as WebhookConfig;
     const timeoutMs = config.timeoutMs ?? 10_000;
 
     const payload = {

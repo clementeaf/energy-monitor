@@ -59,7 +59,7 @@ export class MqttConnector implements IntegrationConnector {
   }
 
   async sync(integration: Integration): Promise<SyncResult> {
-    const config = integration.config as MqttConfig;
+    const config = integration.config as unknown as MqttConfig;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mqtt = require('mqtt') as typeof import('mqtt');
 

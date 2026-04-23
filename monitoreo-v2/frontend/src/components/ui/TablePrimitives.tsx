@@ -19,7 +19,7 @@ export function Td({ children, className = '', title }: Readonly<{ children: Rea
 export function StatusBadge({ active }: Readonly<{ active: boolean }>) {
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium transition-colors duration-150 ${
+      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium transition-colors duration-150 ${
         active ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-gray-50 text-gray-500 ring-1 ring-gray-200'
       }`}
     >

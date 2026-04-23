@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ConcentratorsService } from './concentrators.service';
 import { CreateConcentratorDto } from './dto/create-concentrator.dto';
 import { UpdateConcentratorDto } from './dto/update-concentrator.dto';
@@ -23,12 +24,16 @@ import {
   RequireAnyPermission,
 } from '../../common/guards/permissions.guard';
 
+@ApiTags('Concentrators')
 @Controller('concentrators')
 export class ConcentratorsController {
   constructor(private readonly concentratorsService: ConcentratorsService) {}
 
   @Get()
   @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
+  @ApiOperation({ summary: 'List all concentrators' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  @ApiResponse({ status: 200, description: 'Concentrators list returned' })
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
@@ -38,6 +43,10 @@ export class ConcentratorsController {
 
   @Get(':id')
   @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
+  @ApiOperation({ summary: 'Get a concentrator by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Concentrator returned' })
+  @ApiResponse({ status: 404, description: 'Concentrator not found' })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -49,6 +58,9 @@ export class ConcentratorsController {
 
   @Post()
   @RequirePermission('admin_meters', 'create')
+  @ApiOperation({ summary: 'Create a concentrator' })
+  @ApiResponse({ status: 201, description: 'Concentrator created' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
   async create(
     @Body() dto: CreateConcentratorDto,
     @CurrentUser() user: JwtPayload,
@@ -58,6 +70,10 @@ export class ConcentratorsController {
 
   @Patch(':id')
   @RequirePermission('admin_meters', 'update')
+  @ApiOperation({ summary: 'Update a concentrator' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Concentrator updated' })
+  @ApiResponse({ status: 404, description: 'Concentrator not found' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateConcentratorDto,
@@ -71,6 +87,10 @@ export class ConcentratorsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_meters', 'delete')
+  @ApiOperation({ summary: 'Delete a concentrator' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Concentrator deleted' })
+  @ApiResponse({ status: 404, description: 'Concentrator not found' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -81,6 +101,9 @@ export class ConcentratorsController {
 
   @Get(':id/meters')
   @RequireAnyPermission('diagnostics:read', 'admin_meters:read')
+  @ApiOperation({ summary: 'List meters linked to a concentrator' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Meters list returned' })
   async findMeters(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -90,6 +113,10 @@ export class ConcentratorsController {
 
   @Post(':id/meters')
   @RequirePermission('admin_meters', 'update')
+  @ApiOperation({ summary: 'Add a meter to a concentrator' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 201, description: 'Meter linked' })
+  @ApiResponse({ status: 404, description: 'Concentrator not found' })
   async addMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddConcentratorMeterDto,
@@ -103,6 +130,11 @@ export class ConcentratorsController {
   @Delete(':id/meters/:meterId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_meters', 'update')
+  @ApiOperation({ summary: 'Remove a meter from a concentrator' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiParam({ name: 'meterId', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Meter unlinked' })
+  @ApiResponse({ status: 404, description: 'Concentrator or meter link not found' })
   async removeMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('meterId', ParseUUIDPipe) meterId: string,

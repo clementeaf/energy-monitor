@@ -4,12 +4,12 @@ import { MainContentOutlet } from './MainContentOutlet';
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-base">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-l-xl bg-white">
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto w-full max-w-screen-2xl">
+        <main className="flex-1 overflow-hidden p-4 md:p-6">
+          <div className="mx-auto h-full w-full max-w-screen-2xl overflow-y-auto">
             <MainContentOutlet />
           </div>
         </main>

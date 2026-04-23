@@ -58,8 +58,8 @@ export function Drawer({
   };
 
   const positionCls = side === 'left'
-    ? 'mr-auto ml-0 rounded-r-lg'
-    : 'ml-auto mr-0 rounded-l-lg';
+    ? 'mr-auto ml-0 rounded-r-xl'
+    : 'ml-auto mr-0 rounded-l-xl';
 
   return (
     <dialog
@@ -69,7 +69,7 @@ export function Drawer({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClose(); } }}
       className={
         dialogClassName ??
-        `fixed inset-y-0 m-0 flex h-full max-h-full flex-col bg-white p-0 shadow-xl ` +
+        `fixed inset-y-0 m-0 flex h-full max-h-full flex-col border border-gray-200 bg-white p-0 ` +
         `backdrop:bg-black/50 backdrop:backdrop-blur-sm ` +
         `${positionCls} ${SIZE_CLS[size]}`
       }

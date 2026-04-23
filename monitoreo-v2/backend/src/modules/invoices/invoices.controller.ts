@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -24,11 +25,15 @@ import type { JwtPayload } from '../../common/decorators/current-user.decorator'
 import { RequirePermission } from '../../common/guards/permissions.guard';
 import { escapeHtml } from '../../common/security/html-escape';
 
+@ApiTags('Invoices')
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List invoices with optional filters' })
+  @ApiResponse({ status: 200, description: 'List of invoices' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'read')
   async findAll(
     @CurrentUser() user: JwtPayload,
@@ -39,16 +44,32 @@ export class InvoicesController {
       status: query.status,
       periodStart: query.periodStart,
       periodEnd: query.periodEnd,
+      limit: query.limit,
+      offset: query.offset,
     });
   }
 
   @Get('my')
+  @ApiOperation({ summary: 'List invoices for current user' })
+  @ApiResponse({ status: 200, description: 'User invoices' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'view_own')
-  async findMy(@CurrentUser() user: JwtPayload) {
-    return this.invoicesService.findAll(user.tenantId, user.buildingIds, {});
+  async findMy(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: QueryInvoicesDto,
+  ) {
+    return this.invoicesService.findAll(user.tenantId, user.buildingIds, {
+      limit: query.limit,
+      offset: query.offset,
+    });
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get invoice by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Invoice details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @RequirePermission('billing', 'read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -60,6 +81,10 @@ export class InvoicesController {
   }
 
   @Get(':id/line-items')
+  @ApiOperation({ summary: 'Get line items for an invoice' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Invoice line items' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'read')
   async findLineItems(
     @Param('id', ParseUUIDPipe) id: string,
@@ -69,6 +94,10 @@ export class InvoicesController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create an invoice' })
+  @ApiResponse({ status: 201, description: 'Invoice created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'create')
   async create(
     @Body() dto: CreateInvoiceDto,
@@ -78,6 +107,11 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update an invoice' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Invoice updated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @RequirePermission('billing', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -90,6 +124,11 @@ export class InvoicesController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete an invoice' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Invoice deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('billing', 'delete')
   async remove(
@@ -101,6 +140,11 @@ export class InvoicesController {
   }
 
   @Patch(':id/approve')
+  @ApiOperation({ summary: 'Approve an invoice' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Invoice approved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @RequirePermission('billing', 'update')
   async approve(
     @Param('id', ParseUUIDPipe) id: string,
@@ -112,6 +156,11 @@ export class InvoicesController {
   }
 
   @Patch(':id/void')
+  @ApiOperation({ summary: 'Void an invoice' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Invoice voided' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @RequirePermission('billing', 'update')
   async void(
     @Param('id', ParseUUIDPipe) id: string,
@@ -123,6 +172,10 @@ export class InvoicesController {
   }
 
   @Post('generate')
+  @ApiOperation({ summary: 'Generate invoice from readings and tariff' })
+  @ApiResponse({ status: 201, description: 'Invoice generated' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'create')
   async generate(
     @Body() dto: GenerateInvoiceDto,
@@ -132,6 +185,11 @@ export class InvoicesController {
   }
 
   @Get(':id/pdf')
+  @ApiOperation({ summary: 'Download invoice as HTML/PDF' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'HTML invoice document' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
   @RequirePermission('billing', 'read')
   async pdf(
     @Param('id', ParseUUIDPipe) id: string,

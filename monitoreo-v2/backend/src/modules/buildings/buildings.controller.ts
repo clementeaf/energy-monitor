@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
@@ -21,17 +22,25 @@ import {
   RequireAnyPermission,
 } from '../../common/guards/permissions.guard';
 
+@ApiTags('Buildings')
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all buildings for the current tenant' })
+  @ApiResponse({ status: 200, description: 'List of buildings' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequireAnyPermission('admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read')
   async findAll(@CurrentUser() user: JwtPayload) {
     return this.buildingsService.findAll(user.tenantId, user.buildingIds);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a building by ID' })
+  @ApiResponse({ status: 200, description: 'Building found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Building not found' })
   @RequireAnyPermission('admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -43,6 +52,10 @@ export class BuildingsController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a new building' })
+  @ApiResponse({ status: 201, description: 'Building created' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('admin_buildings', 'create')
   async create(
     @Body() dto: CreateBuildingDto,
@@ -52,6 +65,11 @@ export class BuildingsController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a building' })
+  @ApiResponse({ status: 200, description: 'Building updated' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Building not found' })
   @RequirePermission('admin_buildings', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -64,6 +82,10 @@ export class BuildingsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a building' })
+  @ApiResponse({ status: 204, description: 'Building deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Building not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_buildings', 'delete')
   async remove(

@@ -31,13 +31,13 @@ describe('StatusBadge', () => {
   it('shows Activo for active=true', () => {
     render(<StatusBadge active={true} />);
     expect(screen.getByText('Activo')).toBeInTheDocument();
-    expect(screen.getByText('Activo').className).toContain('bg-green-100');
+    expect(screen.getByText('Activo').className).toContain('bg-green-50');
   });
 
   it('shows Inactivo for active=false', () => {
     render(<StatusBadge active={false} />);
     expect(screen.getByText('Inactivo')).toBeInTheDocument();
-    expect(screen.getByText('Inactivo').className).toContain('bg-gray-100');
+    expect(screen.getByText('Inactivo').className).toContain('bg-gray-50');
   });
 });
 

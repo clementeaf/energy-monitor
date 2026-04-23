@@ -92,17 +92,16 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api');
 
-  // Swagger / OpenAPI for external v1 API
+  // Swagger / OpenAPI — full platform API
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Energy Monitor — External API')
-    .setDescription('Read-only API for third-party consumers. Authenticate via X-API-Key header.')
-    .setVersion('1.0')
+    .setTitle('Energy Monitor API')
+    .setDescription('Multi-tenant energy monitoring platform. JWT cookie auth for internal, X-API-Key for external.')
+    .setVersion('1.1')
+    .addCookieAuth('access_token')
     .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig, {
-    include: [],  // all modules — Swagger decorators only on ExternalApiController
-  });
-  SwaggerModule.setup('api/v1/docs', app, document);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(port);
   Logger.log(`Server running on port ${port}`, 'Bootstrap');

@@ -26,10 +26,10 @@ describe('Card', () => {
     expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument();
   });
 
-  it('applies default variant (shadow-sm + ring)', () => {
+  it('applies default variant (border, no shadow)', () => {
     const { container } = render(<Card>Content</Card>);
-    expect(container.firstElementChild!.className).toContain('shadow-sm');
-    expect(container.firstElementChild!.className).toContain('ring-1');
+    expect(container.firstElementChild!.className).toContain('border');
+    expect(container.firstElementChild!.className).not.toContain('shadow');
   });
 
   it('applies outlined variant', () => {
@@ -37,9 +37,10 @@ describe('Card', () => {
     expect(container.firstElementChild!.className).toContain('border');
   });
 
-  it('applies elevated variant', () => {
+  it('applies elevated variant (border, no shadow)', () => {
     const { container } = render(<Card variant="elevated">Content</Card>);
-    expect(container.firstElementChild!.className).toContain('shadow-md');
+    expect(container.firstElementChild!.className).toContain('border');
+    expect(container.firstElementChild!.className).not.toContain('shadow');
   });
 
   it('adds cursor-pointer when onClick is set', async () => {
@@ -52,7 +53,7 @@ describe('Card', () => {
 
   it('removes padding when noPadding is true', () => {
     const { container } = render(<Card noPadding>Content</Card>);
-    const contentDiv = container.querySelector('.p-4');
+    const contentDiv = container.querySelector('.p-6');
     expect(contentDiv).toBeNull();
   });
 });

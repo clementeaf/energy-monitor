@@ -9,19 +9,18 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import {
   compareMetricsByBuilding,
   dailyEnergySeriesByBuilding,
-  dateRangeFromPreset,
   meterToBuildingMap,
   previousPeriodRange,
 } from '../dashboardAggregations';
 
-type RangePreset = '7d' | '30d' | '90d';
+type RangePreset = 'day' | 'week' | 'month';
 
-/**
- * Formatea un rango ISO para etiquetas cortas en español.
- * @param fromIso - Inicio ISO
- * @param toIso - Fin ISO
- * @returns Texto legible
- */
+const RANGE_PRESETS: { key: RangePreset; label: string; days: number }[] = [
+  { key: 'day', label: 'Día', days: 1 },
+  { key: 'week', label: 'Semana', days: 7 },
+  { key: 'month', label: 'Mes', days: 30 },
+];
+
 function formatRangeLabel(fromIso: string, toIso: string): string {
   const from = new Date(fromIso);
   const to = new Date(toIso);
@@ -29,14 +28,17 @@ function formatRangeLabel(fromIso: string, toIso: string): string {
   return `${from.toLocaleDateString('es-CL', opts)} — ${to.toLocaleDateString('es-CL', opts)}`;
 }
 
-/**
- * Dashboard comparativo: edificios y/o periodo actual vs anterior.
- * @returns Vista de la ruta `/dashboard/compare`
- */
 export function CompareDashboardPage(): ReactElement {
-  const [preset, setPreset] = useState<RangePreset>('30d');
-  const { from, to } = useMemo(() => dateRangeFromPreset(preset), [preset]);
+  const [preset, setPreset] = useState<RangePreset>('month');
   const [compareWithPrevious, setCompareWithPrevious] = useState(false);
+
+  const rangeConfig = RANGE_PRESETS.find((r) => r.key === preset)!;
+  const { from, to } = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - rangeConfig.days);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }, [rangeConfig.days]);
 
   const prevRange = useMemo(() => previousPeriodRange(from, to), [from, to]);
 
@@ -54,21 +56,13 @@ export function CompareDashboardPage(): ReactElement {
     : selectedIds.length >= 2;
 
   const toggleBuilding = (id: string): void => {
-    setSelectedIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((x) => x !== id);
-      }
-      return [...prev, id];
-    });
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   };
 
-  const selectAll = (): void => {
-    setSelectedIds(buildings.map((b) => b.id));
-  };
-
-  const clearSelection = (): void => {
-    setSelectedIds([]);
-  };
+  const selectAll = (): void => setSelectedIds(buildings.map((b) => b.id));
+  const clearSelection = (): void => setSelectedIds([]);
 
   const aggQuery = useAggregatedReadingsQuery(
     { from, to, interval: 'daily' },
@@ -144,14 +138,7 @@ export function CompareDashboardPage(): ReactElement {
   }, [selectedIds, buildings, metrics, metricsPrev]);
 
   const lineChartOptions = useMemo(() => {
-    const colors = [
-      'var(--color-primary, #3D3BF3)',
-      '#E84C6F',
-      '#2D9F5D',
-      '#F5A623',
-      '#6366F1',
-      '#8B5CF6',
-    ];
+    const colors = ['var(--color-pa-blue)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
     const series: SeriesOptionsType[] = selectedIds.map((id, idx) => {
       const b = buildings.find((x) => x.id === id);
       const pts = seriesByBuilding.get(id) ?? [];
@@ -164,6 +151,9 @@ export function CompareDashboardPage(): ReactElement {
     });
 
     return {
+      rangeSelector: { enabled: false },
+      navigator: { enabled: false },
+      scrollbar: { enabled: false },
       title: { text: 'Consumo diario por edificio (kWh)' },
       yAxis: [{ title: { text: 'kWh' } }],
       series,
@@ -180,128 +170,100 @@ export function CompareDashboardPage(): ReactElement {
       xAxis: { categories, labels: { rotation: -25 } },
       yAxis: [{ title: { text: 'kWh' }, min: 0 }],
       plotOptions: {
-        column: {
-          grouping: true,
-          groupPadding: 0.12,
-          pointPadding: 0.05,
-        },
+        column: { grouping: true, groupPadding: 0.12, pointPadding: 0.05 },
       },
       series: [
-        {
-          type: 'column',
-          name: 'Periodo actual',
-          data: dataCurrent,
-        },
-        {
-          type: 'column',
-          name: 'Periodo anterior',
-          data: dataPrevious,
-        },
+        { type: 'column', name: 'Periodo actual', data: dataCurrent },
+        { type: 'column', name: 'Periodo anterior', data: dataPrevious },
       ],
     };
   }, [selectedIds, buildings, metrics, metricsPrev]);
 
-  const loading =
-    aggQuery.isPending || (compareWithPrevious && aggQueryPrev.isPending);
+  const loading = aggQuery.isPending || (compareWithPrevious && aggQueryPrev.isPending);
   const fetchError = aggQuery.error ?? aggQueryPrev.error;
   const isError = aggQuery.isError || (compareWithPrevious && aggQueryPrev.isError);
-
   const emptyData = compareWithPrevious
     ? aggRows.length === 0 && aggRowsPrev.length === 0
     : aggRows.length === 0;
 
   const onRetry = (): void => {
     aggQuery.refetch();
-    if (compareWithPrevious) {
-      aggQueryPrev.refetch();
-    }
+    if (compareWithPrevious) aggQueryPrev.refetch();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Dashboard comparativo</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-lg font-semibold text-pa-text">Dashboard comparativo</h1>
+          <p className="mt-0.5 text-[13px] text-pa-text-muted">
             {compareWithPrevious
-              ? 'Compara el periodo actual con el anterior (misma duración). Puedes elegir uno o más edificios.'
-              : 'Selecciona al menos dos edificios para comparar consumo y demanda en el mismo periodo.'}
+              ? 'Compara periodo actual con anterior'
+              : 'Selecciona al menos dos edificios'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-white p-1">
-          {(['7d', '30d', '90d'] as const).map((p) => (
+        <div className="flex gap-1 rounded-lg border border-pa-border bg-white p-0.5">
+          {RANGE_PRESETS.map((r) => (
             <button
-              key={p}
+              key={r.key}
               type="button"
-              onClick={() => { setPreset(p); }}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                preset === p
-                  ? 'bg-[var(--color-primary,#3D3BF3)]/15 text-[var(--color-primary,#3D3BF3)]'
-                  : 'text-gray-600 hover:bg-gray-50'
+              onClick={() => setPreset(r.key)}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                preset === r.key
+                  ? 'bg-pa-blue text-white'
+                  : 'text-pa-text-muted hover:text-pa-text'
               }`}
             >
-              {p === '7d' ? '7 días' : p === '30d' ? '30 días' : '90 días'}
+              {r.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      {/* Compare toggle */}
+      <div className="rounded-lg border border-pa-border bg-white p-4">
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={compareWithPrevious}
-            onChange={(e) => { setCompareWithPrevious(e.target.checked); }}
-            className="mt-1 size-4 rounded border-gray-300 text-[var(--color-primary,#3D3BF3)] focus:ring-[var(--color-primary,#3D3BF3)]"
+            onChange={(e) => setCompareWithPrevious(e.target.checked)}
+            className="mt-1 size-4 rounded border-pa-border text-pa-blue focus:ring-pa-blue"
           />
           <span>
-            <span className="text-sm font-medium text-gray-900">
-              Comparar con periodo anterior
-            </span>
-            <span className="mt-1 block text-xs text-gray-500">
-              El periodo anterior tiene la misma duración y termina justo antes del inicio del
-              periodo actual (según el preset 7/30/90 días).
+            <span className="text-[13px] font-medium text-pa-text">Comparar con periodo anterior</span>
+            <span className="mt-0.5 block text-[11px] text-pa-text-muted">
+              Misma duración, termina justo antes del periodo actual.
             </span>
           </span>
         </label>
         {compareWithPrevious && (
-          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
-            <div className="rounded-md bg-gray-50 px-3 py-2">
-              <span className="font-medium text-gray-700">Periodo actual</span>
-              <div className="tabular-nums text-gray-600">{formatRangeLabel(from, to)}</div>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
+              <span className="font-medium text-pa-text">Actual</span>
+              <div className="tabular-nums text-pa-text-muted">{formatRangeLabel(from, to)}</div>
             </div>
-            <div className="rounded-md bg-gray-50 px-3 py-2">
-              <span className="font-medium text-gray-700">Periodo anterior</span>
-              <div className="tabular-nums text-gray-600">
-                {formatRangeLabel(prevRange.from, prevRange.to)}
-              </div>
+            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
+              <span className="font-medium text-pa-text">Anterior</span>
+              <div className="tabular-nums text-pa-text-muted">{formatRangeLabel(prevRange.from, prevRange.to)}</div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      {/* Building selector */}
+      <div className="rounded-lg border border-pa-border bg-white p-4">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Edificios</span>
-          <button
-            type="button"
-            onClick={selectAll}
-            className="text-xs text-[var(--color-primary,#3D3BF3)] hover:underline"
-          >
+          <span className="text-[13px] font-medium text-pa-text">Edificios</span>
+          <button type="button" onClick={selectAll} className="text-[11px] text-pa-blue hover:underline">
             Seleccionar todos
           </button>
-          <button
-            type="button"
-            onClick={clearSelection}
-            className="text-xs text-gray-500 hover:underline"
-          >
+          <button type="button" onClick={clearSelection} className="text-[11px] text-pa-text-muted hover:underline">
             Limpiar
           </button>
           {!canCompare && (
-            <span className="text-xs text-amber-600">
-              {compareWithPrevious
-                ? 'Selecciona al menos un edificio.'
-                : 'Elige al menos dos edificios.'}
+            <span className="text-[11px] text-pa-amber">
+              {compareWithPrevious ? 'Selecciona al menos un edificio.' : 'Elige al menos dos.'}
             </span>
           )}
         </div>
@@ -312,11 +274,11 @@ export function CompareDashboardPage(): ReactElement {
               <button
                 key={b.id}
                 type="button"
-                onClick={() => { toggleBuilding(b.id); }}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                onClick={() => toggleBuilding(b.id)}
+                className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
                   on
-                    ? 'border-[var(--color-primary,#3D3BF3)] bg-[var(--color-primary,#3D3BF3)]/10 text-[var(--color-primary,#3D3BF3)]'
-                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    ? 'border-pa-blue bg-pa-blue/10 text-pa-blue'
+                    : 'border-pa-border bg-surface text-pa-text-muted hover:bg-raised'
                 }`}
               >
                 {b.name}
@@ -326,17 +288,14 @@ export function CompareDashboardPage(): ReactElement {
         </div>
       </div>
 
+      {/* Results */}
       <DataWidget
         phase={
-          !canCompare
-            ? 'empty'
-            : loading
-              ? 'loading'
-              : isError
-                ? 'error'
-                : emptyData
-                  ? 'empty'
-                  : 'ready'
+          !canCompare ? 'empty'
+            : loading ? 'loading'
+            : isError ? 'error'
+            : emptyData ? 'empty'
+            : 'ready'
         }
         error={fetchError}
         onRetry={onRetry}
@@ -345,111 +304,91 @@ export function CompareDashboardPage(): ReactElement {
           !canCompare
             ? compareWithPrevious
               ? 'Marca al menos un edificio.'
-              : 'Marca al menos dos edificios para generar la comparación.'
-            : 'No hay datos agregados en el periodo para los edificios elegidos.'
+              : 'Marca al menos dos edificios para comparar.'
+            : 'No hay datos agregados en el periodo.'
         }
       >
         {canCompare && !emptyData && (
-          <div className="space-y-6">
+          <div className="space-y-4">
+            {/* Chart */}
             {compareWithPrevious ? (
-              <div className="space-y-2">
-                <h2 className="text-sm font-medium text-gray-700">
-                  Energía total: periodo actual vs anterior
-                </h2>
+              <div className="rounded-lg border border-pa-border bg-white p-4">
+                <h2 className="mb-2 text-[13px] font-medium text-pa-text">Energía total: actual vs anterior</h2>
                 <Chart options={columnChartOptions} />
               </div>
             ) : (
-              <div className="space-y-2">
-                <h2 className="text-sm font-medium text-gray-700">Curvas superpuestas</h2>
+              <div className="rounded-lg border border-pa-border bg-white p-4">
+                <h2 className="mb-2 text-[13px] font-medium text-pa-text">Curvas superpuestas</h2>
                 <StockChart options={lineChartOptions} loading={aggQuery.isFetching} />
               </div>
             )}
 
+            {/* Table */}
             <div className="space-y-2">
-              <h2 className="text-sm font-medium text-gray-700">Tabla comparativa</h2>
-              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+              <h2 className="text-[13px] font-medium text-pa-text">Tabla comparativa</h2>
+              <div className="overflow-x-auto rounded-lg border border-pa-border bg-white">
                 {compareWithPrevious ? (
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+                  <table className="min-w-full text-[13px]">
+                    <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
                       <tr>
-                        <th className="px-4 py-2">Edificio</th>
-                        <th className="px-4 py-2 text-right">Energía actual (kWh)</th>
-                        <th className="px-4 py-2 text-right">Energía anterior (kWh)</th>
-                        <th className="px-4 py-2 text-right">Δ periodos</th>
-                        <th className="px-4 py-2 text-right">Pico demanda (kW)</th>
-                        <th className="px-4 py-2 text-right">FP medio</th>
+                        <th className="px-3 py-2">Edificio</th>
+                        <th className="px-3 py-2 text-right">Actual (kWh)</th>
+                        <th className="px-3 py-2 text-right">Anterior (kWh)</th>
+                        <th className="px-3 py-2 text-right">Δ</th>
+                        <th className="px-3 py-2 text-right">Pico (kW)</th>
+                        <th className="px-3 py-2 text-right">FP</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-pa-border">
                       {tableRowsDual.map((r) => (
                         <tr key={r.buildingId}>
-                          <td className="px-4 py-2 font-medium text-gray-900">{r.name}</td>
-                          <td className="px-4 py-2 text-right tabular-nums">
+                          <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">
                             {r.energyCurrent.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums">
+                          <td className="px-3 py-1.5 text-right tabular-nums">
                             {r.energyPrevious.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
-                          <td
-                            className={`px-4 py-2 text-right tabular-nums ${
-                              r.deltaPeriodPct == null
-                                ? 'text-gray-500'
-                                : r.deltaPeriodPct > 1
-                                  ? 'text-red-600'
-                                  : r.deltaPeriodPct < -1
-                                    ? 'text-emerald-600'
-                                    : 'text-gray-700'
-                            }`}
-                          >
-                            {r.deltaPeriodPct == null
-                              ? '—'
-                              : `${r.deltaPeriodPct > 0 ? '+' : ''}${r.deltaPeriodPct.toFixed(1)}%`}
+                          <td className={`px-3 py-1.5 text-right tabular-nums ${
+                            r.deltaPeriodPct == null ? 'text-pa-text-muted'
+                              : r.deltaPeriodPct > 1 ? 'text-pa-coral'
+                              : r.deltaPeriodPct < -1 ? 'text-pa-green'
+                              : 'text-pa-text'
+                          }`}>
+                            {r.deltaPeriodPct == null ? '—' : `${r.deltaPeriodPct > 0 ? '+' : ''}${r.deltaPeriodPct.toFixed(1)}%`}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums">
-                            {r.peakDemandKw.toFixed(1)}
-                          </td>
-                          <td className="px-4 py-2 text-right tabular-nums">
-                            {r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}
-                          </td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">{r.peakDemandKw.toFixed(1)}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 ) : (
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+                  <table className="min-w-full text-[13px]">
+                    <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
                       <tr>
-                        <th className="px-4 py-2">Edificio</th>
-                        <th className="px-4 py-2 text-right">Energía (kWh)</th>
-                        <th className="px-4 py-2 text-right">Pico demanda (kW)</th>
-                        <th className="px-4 py-2 text-right">FP medio</th>
-                        <th className="px-4 py-2 text-right">Δ vs media grupo</th>
+                        <th className="px-3 py-2">Edificio</th>
+                        <th className="px-3 py-2 text-right">Energía (kWh)</th>
+                        <th className="px-3 py-2 text-right">Pico (kW)</th>
+                        <th className="px-3 py-2 text-right">FP</th>
+                        <th className="px-3 py-2 text-right">Δ vs media</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-pa-border">
                       {tableRowsSingle.map((r) => (
                         <tr key={r.buildingId}>
-                          <td className="px-4 py-2 font-medium text-gray-900">{r.name}</td>
-                          <td className="px-4 py-2 text-right tabular-nums">
+                          <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">
                             {r.energyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums">
-                            {r.peakDemandKw.toFixed(1)}
-                          </td>
-                          <td className="px-4 py-2 text-right tabular-nums">
-                            {r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}
-                          </td>
-                          <td
-                            className={`px-4 py-2 text-right tabular-nums ${
-                              r.deltaPct > 1
-                                ? 'text-red-600'
-                                : r.deltaPct < -1
-                                  ? 'text-emerald-600'
-                                  : 'text-gray-700'
-                            }`}
-                          >
-                            {r.deltaPct > 0 ? '+' : ''}
-                            {r.deltaPct.toFixed(1)}%
+                          <td className="px-3 py-1.5 text-right tabular-nums">{r.peakDemandKw.toFixed(1)}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
+                          <td className={`px-3 py-1.5 text-right tabular-nums ${
+                            r.deltaPct > 1 ? 'text-pa-coral'
+                              : r.deltaPct < -1 ? 'text-pa-green'
+                              : 'text-pa-text'
+                          }`}>
+                            {r.deltaPct > 0 ? '+' : ''}{r.deltaPct.toFixed(1)}%
                           </td>
                         </tr>
                       ))}
@@ -457,10 +396,10 @@ export function CompareDashboardPage(): ReactElement {
                   </table>
                 )}
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-[11px] text-pa-text-muted">
                 {compareWithPrevious
-                  ? 'Δ periodos: variación porcentual de la energía del periodo actual respecto al anterior.'
-                  : 'Delta referido al promedio de energía del grupo en el periodo seleccionado.'}
+                  ? 'Δ: variación energía actual vs anterior.'
+                  : 'Delta referido al promedio del grupo.'}
               </p>
             </div>
           </div>
@@ -468,7 +407,7 @@ export function CompareDashboardPage(): ReactElement {
       </DataWidget>
 
       {!buildingsQuery.isPending && buildings.length === 0 && (
-        <p className="text-sm text-gray-500">No hay edificios disponibles en tu alcance.</p>
+        <p className="text-[13px] text-pa-text-muted">No hay edificios disponibles en tu alcance.</p>
       )}
     </div>
   );

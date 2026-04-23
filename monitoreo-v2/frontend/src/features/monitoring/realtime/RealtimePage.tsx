@@ -25,8 +25,13 @@ export function RealtimePage() {
   const [buildingFilter, setBuildingFilter] = useState<string>('');
 
   const buildingsQuery = useBuildingsQuery();
+
+  // Default to first building to avoid loading 875+ meters at once
+  const buildings = buildingsQuery.data ?? [];
+  const effectiveFilter = buildingFilter || buildings[0]?.id || '';
+
   const latestQuery = useLatestReadingsQuery(
-    buildingFilter ? { buildingId: buildingFilter } : undefined,
+    effectiveFilter ? { buildingId: effectiveFilter } : undefined,
   );
   const alertsQuery = useAlertsQuery({ status: 'active' });
 
@@ -34,11 +39,19 @@ export function RealtimePage() {
     isEmpty: (d) => !d || d.length === 0,
   });
 
+  // Auto-select first building once loaded
+  useEffect(() => {
+    if (!buildingFilter && buildings.length > 0) {
+      setBuildingFilter(buildings[0].id);
+    }
+  }, [buildings, buildingFilter]);
+
   // Refetch every 30s for near-realtime
   useEffect(() => {
     const id = setInterval(() => { latestQuery.refetch(); }, 30_000);
     return () => clearInterval(id);
-  }, [latestQuery]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveFilter]);
 
   const alertMeterIds = useMemo(() => {
     const ids = new Set<string>();
@@ -49,7 +62,6 @@ export function RealtimePage() {
   }, [alertsQuery.data]);
 
   const readings = latestQuery.data ?? [];
-  const buildings = buildingsQuery.data ?? [];
 
   const buildingMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -86,60 +98,64 @@ export function RealtimePage() {
         <SummaryCard label="Potencia total" value={`${totalPower.toFixed(1)} kW`} color="text-gray-900" />
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { latestQuery.refetch(); }}
-        isFetching={latestQuery.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin lecturas"
-        emptyDescription="No hay lecturas recientes disponibles."
-      >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <Th>Estado</Th>
-                <Th>Medidor</Th>
-                <Th>Edificio</Th>
-                <Th>Potencia (kW)</Th>
-                <Th>Voltaje (V)</Th>
-                <Th>FP</Th>
-                <Th>Frecuencia</Th>
-                <Th>Ultima lectura</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {readings.map((r) => {
-                const status = getMeterStatus(r, alertMeterIds);
-                const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.offline;
-                return (
-                  <tr
-                    key={r.meter_id}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => navigate(`/monitoring/demand/${r.building_id}`)}
-                  >
-                    <Td>
-                      <span className="flex items-center gap-2">
-                        <span className={`inline-block size-2 rounded-full ${cfg.dot}`} />
-                        <span className="text-xs">{cfg.label}</span>
-                      </span>
-                    </Td>
-                    <Td className="font-medium">{r.meter_name}</Td>
-                    <Td>{buildingMap.get(r.building_id) ?? '—'}</Td>
-                    <Td>{Number(r.power_kw || 0).toFixed(2)}</Td>
-                    <Td>{r.voltage_l1 ? Number(r.voltage_l1).toFixed(1) : '—'}</Td>
-                    <Td>{r.power_factor ? Number(r.power_factor).toFixed(3) : '—'}</Td>
-                    <Td>{r.frequency_hz ? `${Number(r.frequency_hz).toFixed(1)} Hz` : '—'}</Td>
-                    <Td className="text-xs text-gray-500">
-                      {new Date(r.timestamp).toLocaleString('es-CL')}
-                    </Td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+      {qs.phase === 'loading' ? (
+        <TableSkeleton />
+      ) : (
+        <DataWidget
+          phase={qs.phase}
+          error={qs.error}
+          onRetry={() => { latestQuery.refetch(); }}
+          isFetching={latestQuery.isFetching && qs.phase === 'ready'}
+          emptyTitle="Sin lecturas"
+          emptyDescription="No hay lecturas recientes disponibles."
+        >
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <Th>Estado</Th>
+                  <Th>Medidor</Th>
+                  <Th>Edificio</Th>
+                  <Th>Potencia (kW)</Th>
+                  <Th>Voltaje (V)</Th>
+                  <Th>FP</Th>
+                  <Th>Frecuencia</Th>
+                  <Th>Ultima lectura</Th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {readings.map((r) => {
+                  const status = getMeterStatus(r, alertMeterIds);
+                  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.offline;
+                  return (
+                    <tr
+                      key={r.meter_id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => navigate(`/monitoring/demand/${r.building_id}`)}
+                    >
+                      <Td>
+                        <span className="flex items-center gap-2">
+                          <span className={`inline-block size-2 rounded-full ${cfg.dot}`} />
+                          <span className="text-xs">{cfg.label}</span>
+                        </span>
+                      </Td>
+                      <Td className="font-medium">{r.meter_name}</Td>
+                      <Td>{buildingMap.get(r.building_id) ?? '—'}</Td>
+                      <Td>{Number(r.power_kw || 0).toFixed(2)}</Td>
+                      <Td>{r.voltage_l1 ? Number(r.voltage_l1).toFixed(1) : '—'}</Td>
+                      <Td>{r.power_factor ? Number(r.power_factor).toFixed(3) : '—'}</Td>
+                      <Td>{r.frequency_hz ? `${Number(r.frequency_hz).toFixed(1)} Hz` : '—'}</Td>
+                      <Td className="text-xs text-gray-500">
+                        {new Date(r.timestamp).toLocaleString('es-CL')}
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DataWidget>
+      )}
     </div>
   );
 }
@@ -163,4 +179,39 @@ function Th({ children }: Readonly<{ children: React.ReactNode }>) {
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+}
+
+const SKELETON_ROWS = 8;
+const SKELETON_COLS = ['w-16', 'w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-20', 'w-28'];
+
+function TableSkeleton() {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <Th>Estado</Th>
+            <Th>Medidor</Th>
+            <Th>Edificio</Th>
+            <Th>Potencia (kW)</Th>
+            <Th>Voltaje (V)</Th>
+            <Th>FP</Th>
+            <Th>Frecuencia</Th>
+            <Th>Ultima lectura</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+            <tr key={i}>
+              {SKELETON_COLS.map((w, j) => (
+                <td key={j} className="whitespace-nowrap px-4 py-3">
+                  <div className={`h-4 ${w} animate-pulse rounded bg-gray-200`} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

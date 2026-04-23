@@ -24,7 +24,7 @@ export function Modal({ open, onClose, title, children, dialogClassName }: Reado
       onClose={onClose}
       className={
         dialogClassName ??
-        'm-auto max-w-lg rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm'
+        'm-auto max-w-lg rounded-xl border border-gray-200 bg-white p-0 backdrop:bg-black/50 backdrop:backdrop-blur-sm'
       }
     >
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">

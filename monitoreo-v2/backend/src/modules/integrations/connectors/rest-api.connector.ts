@@ -62,7 +62,7 @@ export class RestApiConnector implements IntegrationConnector {
   }
 
   async sync(integration: Integration): Promise<SyncResult> {
-    const config = integration.config as RestApiConfig;
+    const config = integration.config as unknown as RestApiConfig;
     const method = config.method ?? 'GET';
     const timeoutMs = config.timeoutMs ?? 30_000;
 

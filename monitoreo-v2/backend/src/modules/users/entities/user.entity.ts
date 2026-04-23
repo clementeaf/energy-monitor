@@ -52,6 +52,9 @@ export class User {
   @Column({ name: 'mfa_enabled', default: false })
   mfaEnabled!: boolean;
 
+  @Column({ name: 'mfa_recovery_codes', type: 'text', nullable: true, default: null })
+  mfaRecoveryCodes!: string | null;
+
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
   lastLoginAt!: Date | null;
 

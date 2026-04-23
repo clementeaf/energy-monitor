@@ -43,6 +43,8 @@ export interface InvoiceQueryParams {
   status?: InvoiceStatus;
   periodStart?: string;
   periodEnd?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface CreateInvoicePayload {

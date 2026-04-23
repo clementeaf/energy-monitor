@@ -37,6 +37,8 @@ export class InvoicesService {
       status?: string;
       periodStart?: string;
       periodEnd?: string;
+      limit?: number;
+      offset?: number;
     },
   ): Promise<Invoice[]> {
     const qb = this.invoiceRepo
@@ -63,6 +65,13 @@ export class InvoicesService {
 
     if (filters?.periodEnd) {
       qb.andWhere('i.period_end <= :periodEnd', { periodEnd: filters.periodEnd });
+    }
+
+    if (filters?.limit) {
+      qb.take(filters.limit);
+    }
+    if (filters?.offset) {
+      qb.skip(filters.offset);
     }
 
     return qb.getMany();

@@ -77,12 +77,13 @@ describe('AuthService', () => {
       ds.query
         .mockResolvedValueOnce([{ id: 'u-1', tenant_id: 't-1', email: 'a@b.com', role_id: 'r-1', is_active: true, role_slug: 'operator' }])
         .mockResolvedValueOnce(undefined) // UPDATE last_login
+        .mockResolvedValueOnce([{ mfa_enabled: false }]) // MFA check
         .mockResolvedValueOnce(undefined); // INSERT refresh_token
 
       const result = await service.validateOAuthLogin(profile);
 
-      expect(result.accessToken).toBe('jwt-token');
-      expect(result.refreshToken).toBeDefined();
+      expect((result as any).accessToken).toBe('jwt-token');
+      expect((result as any).refreshToken).toBeDefined();
     });
 
     it('falls back to email match and links provider', async () => {
@@ -91,10 +92,11 @@ describe('AuthService', () => {
         .mockResolvedValueOnce([{ id: 'u-1', tenant_id: 't-1', email: 'a@b.com', role_id: 'r-1', is_active: true, role_slug: 'operator' }]) // email match
         .mockResolvedValueOnce(undefined) // UPDATE link provider
         .mockResolvedValueOnce(undefined) // UPDATE last_login
+        .mockResolvedValueOnce([{ mfa_enabled: false }]) // MFA check
         .mockResolvedValueOnce(undefined); // INSERT refresh_token
 
       const result = await service.validateOAuthLogin(profile);
-      expect(result.accessToken).toBe('jwt-token');
+      expect((result as any).accessToken).toBe('jwt-token');
     });
 
     it('throws UnauthorizedException for unknown user', async () => {

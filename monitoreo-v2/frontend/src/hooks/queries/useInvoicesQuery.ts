@@ -16,10 +16,10 @@ export function useInvoicesQuery(params?: InvoiceQueryParams) {
   });
 }
 
-export function useMyInvoicesQuery() {
+export function useMyInvoicesQuery(params?: { limit?: number; offset?: number }) {
   return useQuery({
-    queryKey: [...INVOICES_KEY, 'my'],
-    queryFn: () => invoicesEndpoints.my().then((r) => r.data),
+    queryKey: [...INVOICES_KEY, 'my', params ?? {}],
+    queryFn: () => invoicesEndpoints.my(params).then((r) => r.data),
   });
 }
 

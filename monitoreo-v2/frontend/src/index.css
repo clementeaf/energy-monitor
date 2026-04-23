@@ -1,17 +1,89 @@
+@import "@fontsource-variable/inter";
 @import 'tailwindcss';
 
-:root {
-  --color-primary: #3D3BF3;
-  --color-secondary: #1E1E2F;
-  --color-sidebar: #1E1E2F;
-  --color-accent: #10B981;
+@theme {
+  --color-base:    #ffffff;
+  --color-surface: #f9fafb;
+  --color-raised:  #f3f4f6;
+  --color-border:  #e5e7eb;
+  --color-text:    #111827;
+  --color-muted:   #6b7280;
+  --color-subtle:  #9ca3af;
+  --color-accent:  #2563eb;
+
+  /* Brand tokens — overridden by [data-theme] below */
+  --color-pa-navy:       #1B1464;
+  --color-pa-blue:       #3D3BF3;
+  --color-pa-blue-light: #5B59F5;
+  --color-pa-coral:      #E84C6F;
+  --color-pa-green:      #2D9F5D;
+  --color-pa-amber:      #F5A623;
+  --color-pa-bg-alt:     #F3F4F6;
+  --color-pa-border:     #E5E7EB;
+  --color-pa-text:       #1F2937;
+  --color-pa-text-muted: #6B7280;
+}
+
+/* ── Theme: Siemens ──────────────────────────────────── */
+[data-theme="siemens"] {
+  --color-pa-navy:       #00646E;
+  --color-pa-blue:       #009999;
+  --color-pa-blue-light: #00B3B3;
+  --color-pa-coral:      #E84C6F;
+  --color-pa-green:      #2D9F5D;
+  --color-pa-amber:      #E6830F;
+  --color-pa-bg-alt:     #F3F3F0;
+  --color-pa-border:     #E0E0DC;
+  --color-pa-text:       #2D2D2D;
+  --color-pa-text-muted: #6B7280;
 }
 
 body {
-  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-base);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin: 0;
+}
+
+html, body, #root {
+  overflow: hidden;
+  height: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+}
+
+/* Skeleton shimmer sweep */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* Reduced motion: disable animations for users who prefer it */

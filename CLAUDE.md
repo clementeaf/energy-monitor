@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-23)
+- **Skeleton loading + dashboard perf:** Chart skeleton estilo TradingView (SVG curve, volume bars, shimmer). Dashboard: waterfall 3-queries → fast path via `useMetersQuery` (2+1 paralelo). RealtimePage: skeleton tabla 8 columnas. Fix `@IsUUID` → `@IsString` en LatestQueryDto (seed UUIDs no RFC 4122). [CHANGELOG — 1.4.0-alpha.0](CHANGELOG.md)
 - **Docs + deploy:** monitoreo-v2 documentación completa (6 docs), `globe-landing/deploy.sh` para S3+CloudFront (globepower/energymonitor/both). [CHANGELOG — 1.3.1-alpha.0](CHANGELOG.md)
 - **Monitoreo-v2 Sidebar, roles, seguridad, design system:** Acordeón 7 grupos, `RequirePerms` en 47 rutas, RolesPage con módulos/capacidades, 8 componentes atómicos refinados, 28 tests brute-force, 8 permisos nuevos en DB. [CHANGELOG — 1.3.0-alpha.0](CHANGELOG.md)
 - **Globe Landing Figma Design System:** Tokens, paleta, Navbar 6 links, Buttons 3 tipos, imágenes reales, hover effects, carousel 1043×117. [CHANGELOG — 1.2.0-alpha.0](CHANGELOG.md)

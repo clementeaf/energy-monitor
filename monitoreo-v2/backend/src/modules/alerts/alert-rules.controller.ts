@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AlertRulesService } from './alert-rules.service';
 import { CreateAlertRuleDto } from './dto/create-alert-rule.dto';
 import { UpdateAlertRuleDto } from './dto/update-alert-rule.dto';
@@ -22,11 +23,16 @@ import {
   RequireAnyPermission,
 } from '../../common/guards/permissions.guard';
 
+@ApiTags('Alert Rules')
 @Controller('alert-rules')
 export class AlertRulesController {
   constructor(private readonly alertRulesService: AlertRulesService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List alert rules' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  @ApiResponse({ status: 200, description: 'List of alert rules' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequireAnyPermission('alerts:read')
   async findAll(
     @CurrentUser() user: JwtPayload,
@@ -36,6 +42,11 @@ export class AlertRulesController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get alert rule by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Alert rule details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Alert rule not found' })
   @RequireAnyPermission('alerts:read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -47,6 +58,10 @@ export class AlertRulesController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a new alert rule' })
+  @ApiResponse({ status: 201, description: 'Alert rule created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('alerts', 'create')
   async create(
     @Body() dto: CreateAlertRuleDto,
@@ -56,6 +71,12 @@ export class AlertRulesController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update an alert rule' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Alert rule updated' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Alert rule not found' })
   @RequirePermission('alerts', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -68,6 +89,11 @@ export class AlertRulesController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete an alert rule' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Alert rule deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Alert rule not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('alerts', 'delete')
   async remove(

@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { TariffsService } from './tariffs.service';
 import { CreateTariffDto } from './dto/create-tariff.dto';
 import { UpdateTariffDto } from './dto/update-tariff.dto';
@@ -20,11 +21,16 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
 
+@ApiTags('Tariffs')
 @Controller('tariffs')
 export class TariffsController {
   constructor(private readonly tariffsService: TariffsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List tariffs' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  @ApiResponse({ status: 200, description: 'List of tariffs' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'read')
   async findAll(
     @CurrentUser() user: JwtPayload,
@@ -34,6 +40,11 @@ export class TariffsController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get tariff by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Tariff details' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tariff not found' })
   @RequirePermission('billing', 'read')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -45,6 +56,10 @@ export class TariffsController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a new tariff' })
+  @ApiResponse({ status: 201, description: 'Tariff created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'create')
   async create(
     @Body() dto: CreateTariffDto,
@@ -54,6 +69,11 @@ export class TariffsController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a tariff' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Tariff updated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tariff not found' })
   @RequirePermission('billing', 'update')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -66,6 +86,11 @@ export class TariffsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a tariff' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Tariff deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tariff not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('billing', 'delete')
   async remove(
@@ -77,6 +102,10 @@ export class TariffsController {
   }
 
   @Get(':id/blocks')
+  @ApiOperation({ summary: 'List tariff blocks' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'List of tariff blocks' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequirePermission('billing', 'read')
   async findBlocks(
     @Param('id', ParseUUIDPipe) id: string,
@@ -86,6 +115,12 @@ export class TariffsController {
   }
 
   @Post(':id/blocks')
+  @ApiOperation({ summary: 'Create a tariff block' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 201, description: 'Tariff block created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tariff not found' })
   @RequirePermission('billing', 'create')
   async createBlock(
     @Param('id', ParseUUIDPipe) id: string,
@@ -98,6 +133,12 @@ export class TariffsController {
   }
 
   @Delete(':id/blocks/:blockId')
+  @ApiOperation({ summary: 'Delete a tariff block' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiParam({ name: 'blockId', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 204, description: 'Tariff block deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tariff block not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('billing', 'delete')
   async removeBlock(

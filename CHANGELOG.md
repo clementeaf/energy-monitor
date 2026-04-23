@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.4.0-alpha.0] - 2026-04-23 — MONITOREO V2: SKELETON LOADING & DASHBOARD PERFORMANCE
+
+### Changed (monitoreo-v2/frontend)
+- **Dashboard chart performance** — Replaced 3-query waterfall (buildings → latest readings → time series) with 2-step fast path: buildings → meters (lightweight table) → time series. Global KPIs from `useLatestReadingsQuery` now run in parallel without blocking the chart.
+- **Dashboard skeleton** — Chart area renders immediately with a TradingView-style skeleton (SVG area curve, volume bars, grid lines, axis labels, shimmer sweep) instead of waiting for data.
+- **RealtimePage skeleton** — Table loading state replaced spinner with skeleton rows matching the 8-column table layout.
+
+### Fixed (monitoreo-v2/backend)
+- **Readings latest DTO** — Changed `@IsUUID()` to `@IsString()` for `buildingId` and `meterId` in `LatestQueryDto`. Seed UUIDs (`b0000001-...`) are not RFC 4122 compliant and were rejected by class-validator.
+
+### Added (monitoreo-v2/frontend)
+- **Shimmer keyframe** — `@keyframes shimmer` in `index.css` for skeleton sweep animation.
+
+---
+
 ## [1.3.1-alpha.0] - 2026-04-23 — DOCS & DEPLOY
 
 ### Added

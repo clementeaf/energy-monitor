@@ -73,14 +73,14 @@ describe('Drawer', () => {
     render(<Drawer {...defaultProps} />);
     const dialog = getDialog();
     expect(dialog.className).toContain('ml-auto');
-    expect(dialog.className).toContain('rounded-l-lg');
+    expect(dialog.className).toContain('rounded-l-xl');
   });
 
   it('applies left side classes when side="left"', () => {
     render(<Drawer {...defaultProps} side="left" />);
     const dialog = getDialog();
     expect(dialog.className).toContain('mr-auto');
-    expect(dialog.className).toContain('rounded-r-lg');
+    expect(dialog.className).toContain('rounded-r-xl');
   });
 
   it('applies md size by default (w-96)', () => {

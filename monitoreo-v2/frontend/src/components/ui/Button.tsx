@@ -43,7 +43,7 @@ export function Button({
       {...rest}
       disabled={isDisabled}
       className={
-        'inline-flex items-center justify-center gap-2 rounded-md font-medium ' +
+        'inline-flex items-center justify-center gap-2 rounded-lg font-medium ' +
         'transition-all duration-150 ease-in-out ' +
         'focus:outline-none focus:ring-2 focus:ring-offset-1 ' +
         'disabled:opacity-40 disabled:cursor-not-allowed ' +

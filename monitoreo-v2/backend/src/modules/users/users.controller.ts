@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,18 +20,24 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
 
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
   @RequirePermission('admin_users', 'read')
+  @ApiOperation({ summary: 'List all users for current tenant' })
+  @ApiResponse({ status: 200, description: 'User list' })
   async findAll(@CurrentUser() user: JwtPayload) {
     return this.usersService.findAll(user.tenantId);
   }
 
   @Get(':id')
   @RequirePermission('admin_users', 'read')
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -42,6 +49,9 @@ export class UsersController {
 
   @Post()
   @RequirePermission('admin_users', 'create')
+  @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, description: 'User created' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
   async create(
     @Body() dto: CreateUserDto,
     @CurrentUser() user: JwtPayload,
@@ -51,6 +61,9 @@ export class UsersController {
 
   @Patch(':id')
   @RequirePermission('admin_users', 'update')
+  @ApiOperation({ summary: 'Update user by ID' })
+  @ApiResponse({ status: 200, description: 'User updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateUserDto,
@@ -64,6 +77,9 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermission('admin_users', 'delete')
+  @ApiOperation({ summary: 'Delete user by ID' })
+  @ApiResponse({ status: 204, description: 'User deleted' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -74,6 +90,9 @@ export class UsersController {
 
   @Get(':id/buildings')
   @RequirePermission('admin_users', 'read')
+  @ApiOperation({ summary: 'Get building IDs assigned to a user' })
+  @ApiResponse({ status: 200, description: 'Building IDs list' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async getBuildingIds(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -86,6 +105,9 @@ export class UsersController {
 
   @Patch(':id/buildings')
   @RequirePermission('admin_users', 'update')
+  @ApiOperation({ summary: 'Assign buildings to a user' })
+  @ApiResponse({ status: 200, description: 'Buildings assigned' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async assignBuildings(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignBuildingsDto,

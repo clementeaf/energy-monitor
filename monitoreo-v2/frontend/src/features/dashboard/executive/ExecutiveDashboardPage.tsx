@@ -12,28 +12,48 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { useQueryState } from '../../../hooks/useQueryState';
 import {
   aggregatePortfolioByBucket,
-  dateRangeFromPreset,
   meterToBuildingMap,
   rankBuildingsByIntensity,
   sumEnergyByBuilding,
   countMetersByBuilding,
 } from '../dashboardAggregations';
 
-type RangePreset = '7d' | '30d' | '90d';
+type RangePreset = 'day' | 'week' | 'month';
+type ChartView = 'energy' | 'demand' | 'cost';
+
+const RANGE_PRESETS: { key: RangePreset; label: string; days: number; interval: 'hourly' | 'daily' | 'daily' }[] = [
+  { key: 'day', label: 'Día', days: 1, interval: 'hourly' },
+  { key: 'week', label: 'Semana', days: 7, interval: 'daily' },
+  { key: 'month', label: 'Mes', days: 30, interval: 'daily' },
+];
+
+const CHART_VIEWS: { key: ChartView; label: string }[] = [
+  { key: 'energy', label: 'Energía' },
+  { key: 'demand', label: 'Demanda' },
+  { key: 'cost', label: 'Costo' },
+];
 
 /**
  * Dashboard ejecutivo multi-edificio: KPIs, tendencias y ranking de intensidad.
  * @returns Vista principal de la ruta `/dashboard/executive`
  */
 export function ExecutiveDashboardPage(): ReactElement {
-  const [preset, setPreset] = useState<RangePreset>('30d');
-  const { from, to } = useMemo(() => dateRangeFromPreset(preset), [preset]);
+  const [preset, setPreset] = useState<RangePreset>('month');
+  const [chartView, setChartView] = useState<ChartView>('energy');
+
+  const rangeConfig = RANGE_PRESETS.find((r) => r.key === preset)!;
+  const { from, to } = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - rangeConfig.days);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }, [rangeConfig.days]);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'daily' },
+    { from, to, interval: rangeConfig.interval },
     true,
   );
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
@@ -101,195 +121,206 @@ export function ExecutiveDashboardPage(): ReactElement {
   );
 
   const chartOptions = useMemo(() => {
-    const energyData = portfolioSeries.map((p) => [
-      new Date(p.bucket).getTime(),
-      p.energyKwh,
-    ]);
-    const demandData = portfolioSeries.map((p) => [
-      new Date(p.bucket).getTime(),
-      p.demandKw,
-    ]);
-    const costData =
-      refEnergyRate != null
-        ? portfolioSeries.map((p) => [
-            new Date(p.bucket).getTime(),
-            p.energyKwh * refEnergyRate,
-          ])
-        : [];
+    const ts = (p: (typeof portfolioSeries)[number]) => new Date(p.bucket).getTime();
+    const base = {
+      rangeSelector: { enabled: false },
+      navigator: { enabled: false },
+      scrollbar: { enabled: false },
+    };
 
-    const series: SeriesOptionsType[] = [
-      {
-        type: 'column',
-        name: 'Consumo (kWh)',
-        data: energyData,
-        yAxis: 0,
-      },
-      {
-        type: 'line',
-        name: 'Demanda agregada (kW)',
-        data: demandData,
-        yAxis: 1,
-      },
-    ];
-    if (refEnergyRate != null && costData.length > 0) {
-      series.push({
-        type: 'line',
-        name: 'Costo estimado (CLP)',
-        data: costData,
-        yAxis: 2,
-        dashStyle: 'ShortDash',
-      });
+    if (chartView === 'energy') {
+      return {
+        ...base,
+        title: { text: 'Consumo energético' },
+        yAxis: [{ title: { text: 'Energía (kWh)' } }],
+        series: [{
+          type: 'column' as const,
+          name: 'Consumo (kWh)',
+          data: portfolioSeries.map((p) => [ts(p), p.energyKwh]),
+        }],
+      };
     }
 
+    if (chartView === 'demand') {
+      return {
+        ...base,
+        title: { text: 'Demanda agregada' },
+        yAxis: [{ title: { text: 'Potencia (kW)' } }],
+        series: [{
+          type: 'line' as const,
+          name: 'Demanda (kW)',
+          data: portfolioSeries.map((p) => [ts(p), p.demandKw]),
+        }],
+      };
+    }
+
+    // cost
+    const rate = refEnergyRate ?? 0;
     return {
-      title: { text: 'Tendencias del portfolio' },
-      yAxis: [
-        { title: { text: 'Energía (kWh)' } },
-        { title: { text: 'Potencia (kW)' }, opposite: true },
-        ...(refEnergyRate != null
-          ? [{ title: { text: 'Costo (CLP)' }, opposite: true, offset: 60 }]
-          : []),
-      ],
-      series,
+      ...base,
+      title: { text: 'Costo estimado' },
+      yAxis: [{ title: { text: 'Costo (CLP)' } }],
+      series: [{
+        type: 'line' as const,
+        name: 'Costo (CLP)',
+        data: portfolioSeries.map((p) => [ts(p), p.energyKwh * rate]),
+        dashStyle: 'ShortDash' as const,
+      }],
     };
-  }, [portfolioSeries, refEnergyRate]);
+  }, [portfolioSeries, refEnergyRate, chartView]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Dashboard ejecutivo</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Vista consolidada multi-edificio. Costo estimado usa tarifa activa (primer bloque
-            disponible) cuando existe configuración.
+          <h1 className="text-lg font-semibold text-pa-text">Dashboard ejecutivo</h1>
+          <p className="mt-0.5 text-[13px] text-pa-text-muted">
+            Vista consolidada multi-edificio
           </p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
-          {(['7d', '30d', '90d'] as const).map((p) => (
+        <div className="flex gap-1 rounded-lg border border-pa-border bg-white p-0.5">
+          {RANGE_PRESETS.map((r) => (
             <button
-              key={p}
+              key={r.key}
               type="button"
-              onClick={() => { setPreset(p); }}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                preset === p
-                  ? 'bg-[var(--color-primary,#3D3BF3)]/15 text-[var(--color-primary,#3D3BF3)]'
-                  : 'text-gray-600 hover:bg-gray-50'
+              onClick={() => { setPreset(r.key); }}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                preset === r.key
+                  ? 'bg-pa-blue text-white'
+                  : 'text-pa-text-muted hover:text-pa-text'
               }`}
             >
-              {p === '7d' ? '7 días' : p === '30d' ? '30 días' : '90 días'}
+              {r.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Edificios" value={String(buildings.length)} />
-        <KpiCard title="Medidores (última lectura)" value={String(latestReadings.length)} />
-        <KpiCard title="Potencia actual" value={`${totalPowerKw.toFixed(1)} kW`} />
-        <KpiCard
-          title="Factor de potencia (prom.)"
-          value={avgPf > 0 ? avgPf.toFixed(3) : '—'}
-        />
-      </div>
+      {/* 2-column layout: Cards+Chart | Ranking+Alerts */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Column 1: KPIs + Chart */}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {/* KPI row */}
+          <div className="flex flex-wrap gap-3">
+            <KpiCard title="Edificios" value={String(buildings.length)} />
+            <KpiCard title="Medidores" value={String(latestReadings.length)} />
+            <KpiCard title="Potencia actual" value={`${totalPowerKw.toFixed(1)} kW`} />
+            <KpiCard title="FP (prom.)" value={avgPf > 0 ? avgPf.toFixed(3) : '—'} />
+            <KpiCard title={`Energía (${rangeConfig.label})`} value={`${totalEnergyPeriod.toLocaleString('es-CL', { maximumFractionDigits: 0 })} kWh`} />
+            <KpiCard
+              title="Costo est."
+              value={estimatedCost != null ? `$${estimatedCost.toLocaleString('es-CL', { maximumFractionDigits: 0 })}` : '—'}
+            />
+          </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <KpiCard
-          title={`Energía periodo (${preset})`}
-          value={`${totalEnergyPeriod.toLocaleString('es-CL', { maximumFractionDigits: 0 })} kWh`}
-        />
-        <KpiCard
-          title="Costo estimado (periodo)"
-          value={
-            estimatedCost != null
-              ? `$${estimatedCost.toLocaleString('es-CL', { maximumFractionDigits: 0 })}`
-              : 'Sin tarifa'
-          }
-        />
-        <KpiCard title="Alertas críticas activas" value={String(criticalAlerts.length)} />
-      </div>
-
-      {portfolioSeries.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-gray-700">Consumo, demanda y costo</h2>
-          <StockChart
-            options={chartOptions}
-            loading={aggQuery.isFetching}
-          />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-gray-700">Ranking por intensidad energética</h2>
-          <DataWidget
-            phase={buildingsQs.phase === 'loading' || aggQuery.isPending ? 'loading' : buildingsQs.phase}
-            error={buildingsQs.error ?? aggQuery.error}
-            onRetry={() => {
-              buildingsQuery.refetch();
-              aggQuery.refetch();
-            }}
-            emptyTitle="Sin datos"
-            emptyDescription="No hay edificios o lecturas agregadas en el periodo."
-          >
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
-                  <tr>
-                    <th className="px-4 py-2">#</th>
-                    <th className="px-4 py-2">Edificio</th>
-                    <th className="px-4 py-2 text-right">kWh periodo</th>
-                    <th className="px-4 py-2 text-right">Intensidad</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {ranking.map((row, idx) => (
-                    <tr key={row.buildingId}>
-                      <td className="px-4 py-2 text-gray-500">{idx + 1}</td>
-                      <td className="px-4 py-2 font-medium text-gray-900">
-                        <Link
-                          to={`/dashboard/executive/${row.buildingId}`}
-                          className="text-[var(--color-primary,#3D3BF3)] hover:underline"
-                        >
-                          {row.buildingName}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {row.totalEnergyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {row.intensity.toFixed(2)} {row.intensityUnit}
-                      </td>
-                    </tr>
+          {/* Chart */}
+          {portfolioSeries.length > 0 && (
+            <div className="rounded-lg border border-pa-border bg-white p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-[13px] font-medium text-pa-text">{chartOptions.title.text}</h2>
+                <div className="flex gap-1 rounded-lg border border-pa-border bg-surface p-0.5">
+                  {CHART_VIEWS.map((v) => (
+                    <button
+                      key={v.key}
+                      type="button"
+                      onClick={() => setChartView(v.key)}
+                      className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        chartView === v.key
+                          ? 'bg-white text-pa-blue'
+                          : 'text-pa-text-muted hover:text-pa-text'
+                      }`}
+                    >
+                      {v.label}
+                    </button>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
+              <StockChart options={chartOptions} loading={aggQuery.isFetching} />
             </div>
-            <p className="text-xs text-gray-400">
-              Intensidad menor implica menor consumo relativo (por m² o por medidor si no hay área).
-            </p>
-          </DataWidget>
+          )}
         </div>
 
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-gray-700">Alertas críticas</h2>
-          <DataWidget
-            phase={activeAlertsQuery.isPending ? 'loading' : activeAlertsQuery.isError ? 'error' : 'ready'}
-            error={activeAlertsQuery.error}
-            onRetry={() => { activeAlertsQuery.refetch(); }}
-            emptyTitle="Sin alertas críticas"
-            emptyDescription="No hay alertas activas con severidad crítica."
-          >
-            <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
-              {criticalAlerts.slice(0, 12).map((a) => (
-                <li key={a.id} className="flex items-start justify-between gap-2 px-4 py-2 text-sm">
-                  <span className="text-gray-900">{a.message}</span>
-                  <span className="shrink-0 text-xs text-gray-400">
-                    {new Date(a.createdAt).toLocaleString('es-CL')}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </DataWidget>
+        {/* Column 2: Ranking + Alerts stacked */}
+        <div className="flex w-full flex-col gap-4 lg:w-80">
+          {/* Ranking */}
+          <div className="flex flex-col gap-2">
+            <h2 className="text-[13px] font-medium text-pa-text">Ranking intensidad</h2>
+            <DataWidget
+              phase={buildingsQs.phase === 'loading' || aggQuery.isPending ? 'loading' : buildingsQs.phase}
+              error={buildingsQs.error ?? aggQuery.error}
+              onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
+              emptyTitle="Sin datos"
+              emptyDescription="No hay edificios o lecturas agregadas."
+            >
+              <div className="overflow-x-auto rounded-lg border border-pa-border bg-white">
+                <table className="min-w-full text-[13px]">
+                  <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                    <tr>
+                      <th className="px-3 py-2">#</th>
+                      <th className="px-3 py-2">Edificio</th>
+                      <th className="px-3 py-2 text-right">kWh</th>
+                      <th className="px-3 py-2 text-right">Int.</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-pa-border">
+                    {ranking.map((row, idx) => (
+                      <tr key={row.buildingId}>
+                        <td className="px-3 py-1.5 text-pa-text-muted">{idx + 1}</td>
+                        <td className="px-3 py-1.5 font-medium">
+                          <Link
+                            to={`/dashboard/executive/${row.buildingId}`}
+                            className="text-pa-blue hover:underline"
+                          >
+                            {row.buildingName}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">
+                          {row.totalEnergyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
+                        </td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">
+                          {row.intensity.toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] text-pa-text-muted">
+                Menor = menos consumo relativo (por m² o por medidor).
+              </p>
+            </DataWidget>
+          </div>
+
+          {/* Critical alerts */}
+          <div className="flex flex-col gap-2">
+            <h2 className="text-[13px] font-medium text-pa-text">
+              Alertas críticas
+              {criticalAlerts.length > 0 && (
+                <span className="ml-1.5 inline-flex size-5 items-center justify-center rounded-full bg-pa-coral text-[10px] font-bold text-white">
+                  {criticalAlerts.length}
+                </span>
+              )}
+            </h2>
+            <DataWidget
+              phase={activeAlertsQuery.isPending ? 'loading' : activeAlertsQuery.isError ? 'error' : 'ready'}
+              error={activeAlertsQuery.error}
+              onRetry={() => { activeAlertsQuery.refetch(); }}
+              emptyTitle="Sin alertas críticas"
+              emptyDescription="No hay alertas activas con severidad crítica."
+            >
+              <ul className="max-h-64 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
+                {criticalAlerts.map((a) => (
+                  <li key={a.id} className="px-3 py-2 text-[13px]">
+                    <span className="text-pa-text">{a.message}</span>
+                    <div className="mt-0.5 text-[11px] text-pa-text-muted">
+                      {new Date(a.createdAt).toLocaleString('es-CL')}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </DataWidget>
+          </div>
         </div>
       </div>
     </div>
@@ -298,9 +329,9 @@ export function ExecutiveDashboardPage(): ReactElement {
 
 function KpiCard({ title, value }: Readonly<{ title: string; value: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{title}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
+    <div className="flex-1 basis-32 rounded-lg border border-pa-border bg-white px-3 py-2.5">
+      <p className="text-[11px] font-medium text-pa-text-muted">{title}</p>
+      <p className="mt-0.5 text-base font-semibold text-pa-text">{value}</p>
     </div>
   );
 }

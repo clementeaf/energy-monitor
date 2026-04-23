@@ -49,7 +49,7 @@ function fmtCurrency(val: string | number): string {
 export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   const initialStatus = defaultStatus === 'history' ? undefined : defaultStatus;
   const [filters, setFilters] = useState<InvoiceQueryParams>(
-    initialStatus ? { status: initialStatus } : {},
+    initialStatus ? { status: initialStatus, limit: 10 } : { limit: 10 },
   );
   const invoicesQuery = useInvoicesQuery(filters);
   const buildingsQuery = useBuildingsQuery();

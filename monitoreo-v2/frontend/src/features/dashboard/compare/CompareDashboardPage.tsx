@@ -326,10 +326,10 @@ export function CompareDashboardPage(): ReactElement {
             {/* Table */}
             <div className="space-y-2">
               <h2 className="text-[13px] font-medium text-pa-text">Tabla comparativa</h2>
-              <div className="overflow-x-auto rounded-lg border border-pa-border bg-white">
+              <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-pa-border bg-white">
                 {compareWithPrevious ? (
                   <table className="min-w-full text-[13px]">
-                    <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Actual (kWh)</th>
@@ -365,7 +365,7 @@ export function CompareDashboardPage(): ReactElement {
                   </table>
                 ) : (
                   <table className="min-w-full text-[13px]">
-                    <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Energía (kWh)</th>

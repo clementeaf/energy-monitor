@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.6.0-alpha.0] - 2026-04-23 — MONITOREO V2: V1 DESIGN GRID + GLOBE POWER COLORS
+
+### Changed (monitoreo-v2/frontend)
+- **Color palette** — Migrated from PASA blue/navy to Globe Power palette: green `#3a5b1e`, navy `#1C1C1C`, coral `#ab2f2a`, bg `#F9F9F9`, border `#E4E4E4`.
+- **Sidebar** — V1 numbered style (01–10) with expandable sub-items, pill active state, logo+title, Soporte y Contacto expandible, Cerrar Sesión footer.
+- **Header** — Country selector (CL/CO/PE flags), WhatsApp and Email contact icons, user menu dropdown with "Configuración perfil".
+- **AppLayout** — Header restored above main content area.
+- **All tables (30 files)** — Sticky thead with `top-0 z-10`, internal scroll `max-h-[70vh] overflow-y-auto`.
+- **AlertsPage** — Removed title, limited to 50 rows, highlight row via `?highlight=id` query param from dashboard click.
+- **Dashboard alerts** — Badge replaced with `(N)` text, click navigates to `/alerts?highlight=id`.
+- **Executive Dashboard** — Same alert click-to-highlight pattern.
+- **RealtimePage** — Infinite scroll (15 initial, load more on scroll), internal table scroll.
+
+### Added (monitoreo-v2/frontend)
+- `useClickOutside` hook for Header user menu dropdown.
+- `globe-logo.png` asset for sidebar branding.
+
+---
+
 ## [1.5.0-alpha.0] - 2026-04-23 — GLOBE LANDING: HERO CAROUSEL, VALUES, INNOVATION & RESPONSIVE
 
 ### Added (globe-landing)

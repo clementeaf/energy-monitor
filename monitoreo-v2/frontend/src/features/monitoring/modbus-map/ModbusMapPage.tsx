@@ -141,7 +141,7 @@ export function ModbusMapPage() {
                 <p className="text-xs text-gray-500">{g.meters.length} medidor(es)</p>
               </div>
               <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-white">
+                <thead className="sticky top-0 z-10 bg-white">
                   <tr className="text-left text-xs uppercase text-gray-500">
                     <th className="px-4 py-2">Modbus</th>
                     <th className="px-4 py-2">Medidor</th>

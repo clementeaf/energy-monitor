@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import type { SeriesOptionsType } from 'highcharts';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -38,6 +38,7 @@ const CHART_VIEWS: { key: ChartView; label: string }[] = [
  * @returns Vista principal de la ruta `/dashboard/executive`
  */
 export function ExecutiveDashboardPage(): ReactElement {
+  const navigate = useNavigate();
   const [preset, setPreset] = useState<RangePreset>('month');
   const [chartView, setChartView] = useState<ChartView>('energy');
 
@@ -253,9 +254,9 @@ export function ExecutiveDashboardPage(): ReactElement {
               emptyTitle="Sin datos"
               emptyDescription="No hay edificios o lecturas agregadas."
             >
-              <div className="overflow-x-auto rounded-lg border border-pa-border bg-white">
+              <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-pa-border bg-white">
                 <table className="min-w-full text-[13px]">
-                  <thead className="bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                  <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
                     <tr>
                       <th className="px-3 py-2">#</th>
                       <th className="px-3 py-2">Edificio</th>
@@ -297,8 +298,8 @@ export function ExecutiveDashboardPage(): ReactElement {
             <h2 className="text-[13px] font-medium text-pa-text">
               Alertas críticas
               {criticalAlerts.length > 0 && (
-                <span className="ml-1.5 inline-flex size-5 items-center justify-center rounded-full bg-pa-coral text-[10px] font-bold text-white">
-                  {criticalAlerts.length}
+                <span className="ml-1.5 text-[11px] font-normal text-pa-text-muted">
+                  ({criticalAlerts.length})
                 </span>
               )}
             </h2>
@@ -311,7 +312,11 @@ export function ExecutiveDashboardPage(): ReactElement {
             >
               <ul className="max-h-64 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
                 {criticalAlerts.map((a) => (
-                  <li key={a.id} className="px-3 py-2 text-[13px]">
+                  <li
+                    key={a.id}
+                    className="cursor-pointer px-3 py-2 text-[13px] transition-colors hover:bg-gray-50"
+                    onClick={() => navigate(`/alerts?highlight=${a.id}`)}
+                  >
                     <span className="text-pa-text">{a.message}</span>
                     <div className="mt-0.5 text-[11px] text-pa-text-muted">
                       {new Date(a.createdAt).toLocaleString('es-CL')}

@@ -201,9 +201,9 @@ export function RolesPage() {
         emptyTitle="Sin roles"
         emptyDescription="No hay roles configurados para este tenant."
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <Th>Nombre</Th>
                 <Th>Descripción</Th>

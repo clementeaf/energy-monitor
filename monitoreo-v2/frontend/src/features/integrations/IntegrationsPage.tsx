@@ -267,7 +267,7 @@ export function IntegrationsPage() {
             >
               <div className="overflow-auto rounded-lg border border-gray-200">
                 <table className="w-full text-sm">
-                  <thead>
+                  <thead className="sticky top-0 z-10 bg-white">
                     <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       <th className="px-4 py-3">Nombre</th>
                       <th className="px-4 py-3">Tipo</th>
@@ -498,7 +498,7 @@ function SyncLogsPanel({
     >
       <div className="max-h-96 overflow-auto rounded border border-gray-200">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10 bg-white">
             <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               <th className="px-3 py-2">Inicio</th>
               <th className="px-3 py-2">Fin</th>

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
@@ -25,7 +26,22 @@ const STATUS_LABELS: Record<AlertStatus, string> = {
 };
 
 export function AlertsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
+  const highlightRef = useRef<HTMLTableRowElement>(null);
   const [filters, setFilters] = useState<AlertQueryParams>({});
+
+  // Scroll to highlighted row and clear param after 3s
+  useEffect(() => {
+    if (!highlightId) return;
+    const timer = setTimeout(() => {
+      highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+    const clearTimer = setTimeout(() => {
+      setSearchParams({}, { replace: true });
+    }, 3000);
+    return () => { clearTimeout(timer); clearTimeout(clearTimer); };
+  }, [highlightId, setSearchParams]);
 
   const buildingsQuery = useBuildingsQuery();
   const alertsQuery = useAlertsQuery(filters);
@@ -49,9 +65,7 @@ export function AlertsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Alertas</h1>
-
+    <div className="flex h-full flex-col gap-3">
       <div className="flex flex-wrap gap-2">
         <select
           value={filters.status ?? ''}
@@ -96,9 +110,9 @@ export function AlertsPage() {
         emptyTitle="Sin alertas"
         emptyDescription="No hay alertas que coincidan con los filtros seleccionados."
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <Th>Severidad</Th>
                 <Th>Tipo</Th>
@@ -109,8 +123,16 @@ export function AlertsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {(alertsQuery.data ?? []).map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50">
+              {(alertsQuery.data ?? []).slice(0, 50).map((a) => (
+                <tr
+                  key={a.id}
+                  ref={a.id === highlightId ? highlightRef : undefined}
+                  className={`transition-colors duration-500 ${
+                    a.id === highlightId
+                      ? 'bg-pa-blue/10 ring-1 ring-inset ring-pa-blue/30'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
                   <Td>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[a.severity]}`}>
                       {a.severity}

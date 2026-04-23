@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -20,9 +20,13 @@ function getMeterStatus(reading: LatestReading, alertMeterIds: Set<string>): str
   return 'online';
 }
 
+const PAGE_SIZE = 15;
+
 export function RealtimePage() {
   const navigate = useNavigate();
   const [buildingFilter, setBuildingFilter] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const buildingsQuery = useBuildingsQuery();
 
@@ -62,6 +66,22 @@ export function RealtimePage() {
   }, [alertsQuery.data]);
 
   const readings = latestQuery.data ?? [];
+  const visibleReadings = readings.slice(0, visibleCount);
+  const hasMore = visibleCount < readings.length;
+
+  // Reset visible count when filter changes
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [effectiveFilter]);
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    if (!hasMore || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount((c) => c + PAGE_SIZE); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
 
   const buildingMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -109,9 +129,9 @@ export function RealtimePage() {
           emptyTitle="Sin lecturas"
           emptyDescription="No hay lecturas recientes disponibles."
         >
-          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="sticky top-0 z-10 bg-gray-50">
                 <tr>
                   <Th>Estado</Th>
                   <Th>Medidor</Th>
@@ -124,7 +144,7 @@ export function RealtimePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {readings.map((r) => {
+                {visibleReadings.map((r) => {
                   const status = getMeterStatus(r, alertMeterIds);
                   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.offline;
                   return (
@@ -153,6 +173,8 @@ export function RealtimePage() {
                 })}
               </tbody>
             </table>
+            {/* Infinite scroll sentinel */}
+            {hasMore && <div ref={sentinelRef} className="h-4" />}
           </div>
         </DataWidget>
       )}

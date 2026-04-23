@@ -95,7 +95,7 @@ export function TariffsPage() {
       <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch} emptyMessage="No hay tarifas configuradas">
         <div className="overflow-auto rounded-lg border border-gray-200">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-white">
               <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                 <th className="px-4 py-3">Nombre</th>
                 <th className="px-4 py-3">Vigencia</th>
@@ -280,7 +280,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
         <p className="text-sm text-gray-400">Sin bloques configurados</p>
       ) : (
         <table className="w-full text-xs">
-          <thead>
+          <thead className="sticky top-0 z-10 bg-white">
             <tr className="text-left text-gray-500">
               <th className="pb-1">Bloque</th>
               <th className="pb-1">Horario</th>

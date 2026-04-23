@@ -156,7 +156,7 @@ export function ReportsPage() {
         >
           <div className="overflow-auto rounded-lg border border-gray-200">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-white">
                 <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Periodo</th>
@@ -213,7 +213,7 @@ export function ReportsPage() {
         >
           <div className="overflow-auto rounded-lg border border-gray-200">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-white">
                 <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Cron</th>

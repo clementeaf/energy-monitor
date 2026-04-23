@@ -120,9 +120,9 @@ export function MetersByTypePage() {
         emptyTitle="Sin medidores"
         emptyDescription="No hay medidores visibles para su usuario."
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <Th>Tipo</Th>
                 <Th>Cantidad</Th>
@@ -150,9 +150,9 @@ export function MetersByTypePage() {
                   {expanded.has(g.typeKey) && (
                     <tr key={`${g.typeKey}-detail`} className="bg-gray-50">
                       <td colSpan={4} className="p-0">
-                        <div className="overflow-x-auto px-4 py-3">
+                        <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
                           <table className="min-w-full text-sm">
-                            <thead>
+                            <thead className="sticky top-0 z-10 bg-white">
                               <tr className="text-left text-xs uppercase text-gray-500">
                                 <th className="pb-2 pr-4">Nombre</th>
                                 <th className="pb-2 pr-4">Codigo</th>

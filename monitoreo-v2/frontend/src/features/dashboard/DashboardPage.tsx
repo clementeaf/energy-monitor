@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
@@ -23,6 +24,7 @@ const CHART_VIEWS: { key: ChartView; label: string }[] = [
 ];
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const [preset, setPreset] = useState<RangePreset>('week');
   const [chartView, setChartView] = useState<ChartView>('power');
   const [selectedMeterId, setSelectedMeterId] = useState<string | null>(null);
@@ -188,8 +190,8 @@ export function DashboardPage() {
             <h2 className="text-[13px] font-medium text-pa-text">
               Alertas activas
               {activeAlerts.length > 0 && (
-                <span className="ml-1.5 inline-flex size-5 items-center justify-center rounded-full bg-pa-coral text-[10px] font-bold text-white">
-                  {activeAlerts.length}
+                <span className="ml-1.5 text-[11px] font-normal text-pa-text-muted">
+                  ({activeAlerts.length})
                 </span>
               )}
             </h2>
@@ -202,7 +204,11 @@ export function DashboardPage() {
             >
               <ul className="max-h-48 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
                 {activeAlerts.map((a) => (
-                  <li key={a.id} className="flex items-center justify-between px-3 py-2 text-[13px]">
+                  <li
+                    key={a.id}
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-gray-50"
+                    onClick={() => navigate(`/alerts?highlight=${a.id}`)}
+                  >
                     <div className="flex items-center gap-2">
                       <SeverityDot severity={a.severity} />
                       <span className="text-pa-text">{a.message}</span>

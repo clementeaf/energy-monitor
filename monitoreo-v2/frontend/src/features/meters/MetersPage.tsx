@@ -92,9 +92,9 @@ export function MetersPage() {
         emptyTitle="Sin medidores"
         emptyDescription={buildingId ? 'No hay medidores en este edificio.' : 'No hay medidores registrados.'}
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <Th>Nombre</Th>
                 <Th>Codigo</Th>

@@ -161,12 +161,12 @@ export function DrilldownPage() {
       )}
 
       {/* Meters table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
         <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
           Medidores ({meters.length})
         </h2>
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="sticky top-0 z-10 bg-gray-50">
             <tr>
               <Th>Nombre</Th>
               <Th>Tipo</Th>

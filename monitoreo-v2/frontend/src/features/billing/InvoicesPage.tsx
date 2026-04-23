@@ -167,7 +167,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
       <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch} emptyMessage="No hay facturas">
         <div className="overflow-auto rounded-lg border border-gray-200">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-white">
               <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                 <th className="px-4 py-3">N° Factura</th>
                 <th className="px-4 py-3">Periodo</th>
@@ -301,7 +301,7 @@ function InvoiceDetailModal({ invoiceId, onClose }: Readonly<{ invoiceId: string
       {lineItemsQuery.data && lineItemsQuery.data.length > 0 && (
         <div className="max-h-96 overflow-auto">
           <table className="w-full text-xs">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-white">
               <tr className="text-left text-gray-500">
                 <th className="pb-2">Medidor</th>
                 <th className="pb-2 text-right">kWh</th>

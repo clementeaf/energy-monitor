@@ -208,9 +208,9 @@ export function BenchmarkPage(): ReactElement {
         emptyTitle="Sin datos"
         emptyDescription="No hay datos de edificios o lecturas para el periodo seleccionado."
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
               <tr>
                 <th className="px-4 py-2">#</th>
                 <th className="px-4 py-2">Edificio</th>

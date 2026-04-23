@@ -51,9 +51,9 @@ export function EscalationPage() {
       </div>
 
       <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch}>
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Mensaje</th>

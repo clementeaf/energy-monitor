@@ -167,9 +167,9 @@ export function DevicesPage() {
         emptyTitle="Sin dispositivos"
         emptyDescription="No hay dispositivos que coincidan con los filtros seleccionados."
       >
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="sticky top-0 z-10 bg-gray-50">
               <tr>
                 <Th>Estado</Th>
                 <Th>Nombre</Th>

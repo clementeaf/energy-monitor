@@ -8,13 +8,9 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  /** Side the drawer slides from. Default: 'right' */
   side?: DrawerSide;
-  /** Width preset. Default: 'md' */
   size?: DrawerSize;
-  /** Optional footer (e.g. action buttons). */
   footer?: ReactNode;
-  /** Override the dialog className entirely. */
   dialogClassName?: string;
 }
 
@@ -57,7 +53,6 @@ export function Drawer({
     onClose();
   };
 
-  /** Close on backdrop click (click on <dialog> itself, not children). */
   const handleClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     if (e.target === dialogRef.current) handleClose();
   };
@@ -74,7 +69,9 @@ export function Drawer({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClose(); } }}
       className={
         dialogClassName ??
-        `fixed inset-y-0 m-0 flex h-full max-h-full flex-col bg-white p-0 shadow-xl backdrop:bg-black/40 ${positionCls} ${SIZE_CLS[size]}`
+        `fixed inset-y-0 m-0 flex h-full max-h-full flex-col bg-white p-0 shadow-xl ` +
+        `backdrop:bg-black/50 backdrop:backdrop-blur-sm ` +
+        `${positionCls} ${SIZE_CLS[size]}`
       }
     >
       {/* Header */}
@@ -83,7 +80,7 @@ export function Drawer({
         <button
           type="button"
           onClick={handleClose}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded-md p-1.5 text-gray-400 transition-all duration-150 hover:bg-gray-100 hover:text-gray-600"
         >
           <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -91,10 +88,10 @@ export function Drawer({
         </button>
       </div>
 
-      {/* Body — scrollable */}
+      {/* Body */}
       <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
 
-      {/* Footer (optional) */}
+      {/* Footer */}
       {footer && (
         <div className="shrink-0 border-t border-gray-200 px-6 py-4">{footer}</div>
       )}

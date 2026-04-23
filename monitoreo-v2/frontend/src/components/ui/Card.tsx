@@ -5,22 +5,18 @@ type CardVariant = 'default' | 'outlined' | 'elevated';
 interface CardProps {
   children: ReactNode;
   variant?: CardVariant;
-  /** Optional header section */
   title?: string;
   subtitle?: string;
-  /** Top-right slot (badge, button, icon) */
   action?: ReactNode;
-  /** Clickable card */
   onClick?: () => void;
   className?: string;
-  /** Remove internal padding */
   noPadding?: boolean;
 }
 
 const VARIANT_CLS: Record<CardVariant, string> = {
-  default: 'bg-white shadow-sm ring-1 ring-gray-200',
-  outlined: 'bg-white border border-gray-200',
-  elevated: 'bg-white shadow-md',
+  default: 'bg-white ring-1 ring-gray-200 hover:ring-gray-300',
+  outlined: 'bg-white border border-gray-200 hover:border-gray-300',
+  elevated: 'bg-white shadow-sm hover:shadow-md',
 };
 
 export function Card({
@@ -42,8 +38,8 @@ export function Card({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={
-        `rounded-lg ${VARIANT_CLS[variant]} ` +
-        (onClick ? 'cursor-pointer transition-shadow hover:shadow-md ' : '') +
+        `rounded-lg transition-all duration-200 ease-in-out ${VARIANT_CLS[variant]} ` +
+        (onClick ? 'cursor-pointer active:scale-[0.99] ' : '') +
         className
       }
     >

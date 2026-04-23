@@ -9,15 +9,15 @@ export function Footer() {
   return (
     <footer className="py-12 px-5 sm:px-10 lg:px-12 bg-white">
       <div className="max-w-[1200px] mx-auto">
-        {/* Row 1: Logo + LinkedIn icon button */}
-        <div className="flex items-center justify-between pb-10 border-b border-grey-200">
+        {/* Logo + LinkedIn — stacked on mobile, row on desktop */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-10 border-b border-grey-200">
           <img src={logo} alt="Grupo Globe" className="h-[58px] w-auto" />
 
           <a
             href="https://www.linkedin.com/company/grupo-globe"
             target="_blank"
             rel="noopener noreferrer"
-            className="icon-btn icon-btn-lg text-grey-800 border-grey-300 hover:bg-grey-100"
+            className="icon-btn icon-btn-lg text-grey-800 border-grey-300 hover:bg-grey-100 mt-4 lg:mt-0"
             aria-label="LinkedIn"
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -26,8 +26,8 @@ export function Footer() {
           </a>
         </div>
 
-        {/* Row 2: 3 columns */}
-        <div className="pt-10 flex flex-col lg:flex-row justify-between gap-10">
+        {/* Content — single column on mobile, 3 columns on desktop */}
+        <div className="pt-10 flex flex-col lg:flex-row lg:justify-between gap-10">
           {/* Contact */}
           <div>
             <h4 className="text-sm font-bold text-brand-dark mb-4">Contáctanos</h4>
@@ -36,7 +36,7 @@ export function Footer() {
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                 </svg>
-                +56 22 2158820
+                566000061666              
               </li>
               <li className="flex items-center gap-2">
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -51,41 +51,42 @@ export function Footer() {
                 Isidora Goyenechea 3520, Of. 300, Las Condes.
               </li>
             </ul>
-            <p className="mt-6 text-sm font-bold text-grey-700">
-              Todos los derechos reservados 2026.
-            </p>
           </div>
 
-          {/* Business + Legal */}
-          <div className="flex gap-16 sm:gap-20">
-            <div>
-              <h4 className="text-sm font-bold text-brand-dark mb-4">Nuestras áreas de negocios</h4>
-              <ul className="space-y-2 text-sm text-grey-700">
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Power</a></li>
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Services</a></li>
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Modular</a></li>
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Lift Parts</a></li>
-              </ul>
-            </div>
+          {/* Business areas */}
+          <div>
+            <h4 className="text-sm font-bold text-brand-dark mb-4">Nuestras áreas de negocios</h4>
+            <ul className="space-y-2 text-sm text-grey-700">
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Power</a></li>
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Services</a></li>
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Modular</a></li>
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Globe Lift Parts</a></li>
+            </ul>
+          </div>
 
-            <div>
-              <h4 className="text-sm font-bold text-brand-dark mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-grey-700">
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Políticas de privacidad</a></li>
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Canal de denuncias</a></li>
-                <li><a href="#" className="hover:text-grey-900 transition-colors">Código de ética</a></li>
-              </ul>
-            </div>
+          {/* Legal */}
+          <div>
+            <h4 className="text-sm font-bold text-brand-dark mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm text-grey-700">
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Políticas de privacidad</a></li>
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Canal de denuncias</a></li>
+              <li><a href="#" className="hover:text-grey-900 transition-colors">Código de ética</a></li>
+            </ul>
           </div>
         </div>
 
-        {/* Row 3: Client logos carousel */}
-        <div className="pt-10 mt-10 border-t border-grey-200 flex items-center justify-between flex-wrap gap-y-6">
-          <img src={clcLogo} alt="CLC" className="h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={googleLogo} alt="Google" className="h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={bboschLogo} alt="Bosch" className="h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={angloLogo} alt="Anglo American" className="h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={roseLogo} alt="Rose" className="h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+        {/* Copyright — desktop only */}
+        <p className="hidden lg:block mt-6 text-sm font-bold text-grey-700">
+          Todos los derechos reservados 2026.
+        </p>
+
+        {/* Client logos */}
+        <div className="pt-10 mt-10 border-t border-grey-200 flex items-center gap-8 overflow-x-auto">
+          <img src={clcLogo} alt="CLC" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={googleLogo} alt="Google" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={bboschLogo} alt="Bosch" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={angloLogo} alt="Anglo American" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+          <img src={roseLogo} alt="Rose" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
         </div>
       </div>
     </footer>

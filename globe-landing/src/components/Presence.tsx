@@ -17,12 +17,10 @@ export function Presence() {
 
           <div className="mt-6 space-y-5 text-[15px] text-grey-700 leading-[1.8]">
             <p>
-              Grupo Globe tiene su origen en Canadá y hoy opera en Chile. Desarrollando proyectos de energía e
-              infraestructura en activos críticos para minería, retail, hospitales e industrias.
+            Grupo Globe tiene su origen en Canadá y hoy opera en Chile. Desarrollando proyectos de energía e infraestructura en activos críticos para minería, retail, hospitales e industrias. 
             </p>
             <p>
-              Seguimos expandiendo nuestras capacidades en la región para acompañar a clientes actuales y nuevos
-              proyectos operacionales. Este 2026 abriremos nuestra operación en Perú.
+            Seguimos expandiendo nuestras capacidades en la región para acompañar a clientes actuales y nuevos proyectos operacionales. Este 2026 aperturaremos nuestra operación en Perú. 
             </p>
           </div>
         </div>

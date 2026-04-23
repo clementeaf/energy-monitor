@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useRolesQuery } from '../../../hooks/queries/useRolesQuery';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
 
 interface UserFormProps {
@@ -10,16 +11,17 @@ interface UserFormProps {
   onSubmit: (payload: CreateUserPayload | UpdateUserPayload) => void;
   isPending: boolean;
   user?: UserListItem | null;
-  roles: { id: string; name: string; slug: string }[];
 }
 
-export function UserForm({ open, onClose, onSubmit, isPending, user, roles }: Readonly<UserFormProps>) {
+export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<UserFormProps>) {
   const isEdit = !!user;
   const [email, setEmail] = useState(user?.email ?? '');
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [authProvider, setAuthProvider] = useState<'microsoft' | 'google'>(user?.authProvider ?? 'google');
   const [authProviderId, setAuthProviderId] = useState('');
-  const [roleId, setRoleId] = useState(user?.roleId ?? (roles[0]?.id ?? ''));
+  const rolesQuery = useRolesQuery();
+  const roles = rolesQuery.data ?? [];
+  const [roleId, setRoleId] = useState(user?.roleId ?? '');
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
 
   const buildingsQuery = useBuildingsQuery();

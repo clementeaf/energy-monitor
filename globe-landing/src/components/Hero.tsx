@@ -41,9 +41,7 @@ export function Hero() {
           <div className="mt-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
               <p className="text-[14px] sm:text-[15px] text-white/85 max-w-[540px] leading-[1.7] font-normal">
-                Diseñamos, operamos y optimizamos infraestructura energética para activos de alta
-                exigencia. Integramos ingeniería, tecnología propia y gestión en terreno para asegurar
-                continuidad, eficiencia y control en tiempo real.
+              Diseñamos, operamos y optimizamos infraestructura energética para activos de alta exigencia. Integramos ingeniería, tecnología propia y gestión en terreno para asegurar continuidad, eficiencia y control en tiempo real. 
               </p>
 
               {/* Carousel dots */}

@@ -23,7 +23,7 @@ export function Toggle({
   const s = SIZE[size];
 
   return (
-    <label className={`inline-flex items-center gap-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}>
+    <label className={`inline-flex items-center gap-2 ${disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'} ${className}`}>
       <button
         type="button"
         role="switch"
@@ -31,13 +31,14 @@ export function Toggle({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={
-          `relative inline-flex shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary,#3D3BF3)] focus:ring-offset-1 ${s.track} ` +
+          `relative inline-flex shrink-0 items-center rounded-full transition-all duration-200 ease-in-out ` +
+          `focus:outline-none focus:ring-2 focus:ring-[var(--color-primary,#3D3BF3)] focus:ring-offset-1 ${s.track} ` +
           (checked ? 'bg-[var(--color-primary,#3D3BF3)]' : 'bg-gray-300')
         }
       >
         <span
           className={
-            `inline-block rounded-full bg-white shadow transition-transform duration-200 ${s.knob} ` +
+            `inline-block rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${s.knob} ` +
             (checked ? s.translate : 'translate-x-1')
           }
         />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { Drawer } from '../../../components/ui/Drawer';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
@@ -15,6 +15,7 @@ import {
   usePermissionsCatalog,
   useAssignPermissions,
 } from '../../../hooks/queries/useRolesQuery';
+import { ROLE_MODULE_GROUPS } from './role-modules';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../../types/role';
 
 export function RolesPage() {
@@ -39,28 +40,18 @@ export function RolesPage() {
   const [formName, setFormName] = useState('');
   const [formSlug, setFormSlug] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formSessionMinutes, setFormSessionMinutes] = useState('480');
   const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
 
   const catalog = catalogQuery.data ?? [];
 
-  // Group permissions by module
-  const permissionsByModule = useMemo(() => {
-    const groups = new Map<string, Permission[]>();
-    for (const perm of catalog) {
-      const list = groups.get(perm.module) ?? [];
-      list.push(perm);
-      groups.set(perm.module, list);
-    }
-    return groups;
-  }, [catalog]);
+  // Build lookup: module+action → permission id
+  const permLookup = buildPermLookup(catalog);
 
   const openCreate = () => {
     setEditing(null);
     setFormName('');
     setFormSlug('');
     setFormDescription('');
-    setFormSessionMinutes('480');
     setSelectedPermIds(new Set());
     setDrawerOpen(true);
   };
@@ -70,7 +61,6 @@ export function RolesPage() {
     setFormName(role.name);
     setFormSlug(role.slug);
     setFormDescription(role.description ?? '');
-    setFormSessionMinutes(String(role.maxSessionMinutes));
     setSelectedPermIds(new Set(role.permissions.map((p) => p.id)));
     setDrawerOpen(true);
   };
@@ -90,19 +80,16 @@ export function RolesPage() {
     e.preventDefault();
     if (!formName.trim() || !formSlug.trim()) return;
 
+    const permissionIds = Array.from(selectedPermIds);
+
     if (editing) {
       const payload: UpdateRolePayload = {
         name: formName.trim(),
         description: formDescription.trim() || undefined,
-        maxSessionMinutes: parseInt(formSessionMinutes, 10) || 480,
       };
       updateMutation.mutate({ id: editing.id, payload }, {
         onSuccess: () => {
-          // Save permissions
-          assignPermsMutation.mutate(
-            { id: editing.id, permissionIds: Array.from(selectedPermIds) },
-            { onSuccess: closeDrawer },
-          );
+          assignPermsMutation.mutate({ id: editing.id, permissionIds }, { onSuccess: closeDrawer });
         },
       });
     } else {
@@ -110,15 +97,11 @@ export function RolesPage() {
         name: formName.trim(),
         slug: formSlug.trim(),
         description: formDescription.trim() || undefined,
-        maxSessionMinutes: parseInt(formSessionMinutes, 10) || 480,
       };
       createMutation.mutate(payload, {
         onSuccess: (created) => {
-          if (selectedPermIds.size > 0) {
-            assignPermsMutation.mutate(
-              { id: created.id, permissionIds: Array.from(selectedPermIds) },
-              { onSuccess: closeDrawer },
-            );
+          if (permissionIds.length > 0) {
+            assignPermsMutation.mutate({ id: created.id, permissionIds }, { onSuccess: closeDrawer });
           } else {
             closeDrawer();
           }
@@ -127,7 +110,14 @@ export function RolesPage() {
     }
   };
 
-  const togglePerm = (id: string) => {
+  const isPermSelected = (module: string, action: string) => {
+    const id = permLookup.get(`${module}:${action}`);
+    return id ? selectedPermIds.has(id) : false;
+  };
+
+  const togglePerm = (module: string, action: string) => {
+    const id = permLookup.get(`${module}:${action}`);
+    if (!id) return;
     setSelectedPermIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -136,17 +126,50 @@ export function RolesPage() {
     });
   };
 
-  const toggleModuleAll = (module: string) => {
-    const perms = permissionsByModule.get(module) ?? [];
-    const allSelected = perms.every((p) => selectedPermIds.has(p.id));
+  const toggleGroupAll = (groupIdx: number) => {
+    const group = ROLE_MODULE_GROUPS[groupIdx];
+    const ids: string[] = [];
+    for (const mod of group.modules) {
+      for (const cap of mod.capabilities) {
+        const id = permLookup.get(`${mod.permissionModule}:${cap.action}`);
+        if (id) ids.push(id);
+      }
+    }
+    const allSelected = ids.every((id) => selectedPermIds.has(id));
     setSelectedPermIds((prev) => {
       const next = new Set(prev);
-      for (const p of perms) {
-        if (allSelected) next.delete(p.id);
-        else next.add(p.id);
+      for (const id of ids) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
       }
       return next;
     });
+  };
+
+  const isGroupAllSelected = (groupIdx: number) => {
+    const group = ROLE_MODULE_GROUPS[groupIdx];
+    const ids: string[] = [];
+    for (const mod of group.modules) {
+      for (const cap of mod.capabilities) {
+        const id = permLookup.get(`${mod.permissionModule}:${cap.action}`);
+        if (id) ids.push(id);
+      }
+    }
+    return ids.length > 0 && ids.every((id) => selectedPermIds.has(id));
+  };
+
+  const isGroupPartial = (groupIdx: number) => {
+    const group = ROLE_MODULE_GROUPS[groupIdx];
+    const ids: string[] = [];
+    for (const mod of group.modules) {
+      for (const cap of mod.capabilities) {
+        const id = permLookup.get(`${mod.permissionModule}:${cap.action}`);
+        if (id) ids.push(id);
+      }
+    }
+    const some = ids.some((id) => selectedPermIds.has(id));
+    const all = ids.every((id) => selectedPermIds.has(id));
+    return some && !all;
   };
 
   const handleDelete = () => {
@@ -155,10 +178,7 @@ export function RolesPage() {
   };
 
   const handleToggleActive = (role: Role) => {
-    updateMutation.mutate({
-      id: role.id,
-      payload: { isActive: !role.isActive },
-    });
+    updateMutation.mutate({ id: role.id, payload: { isActive: !role.isActive } });
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending || assignPermsMutation.isPending;
@@ -167,7 +187,7 @@ export function RolesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Roles y Permisos</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Roles</h1>
         {canWrite && (
           <Button onClick={openCreate}>Nuevo Rol</Button>
         )}
@@ -186,9 +206,7 @@ export function RolesPage() {
             <thead className="bg-gray-50">
               <tr>
                 <Th>Nombre</Th>
-                <Th>Slug</Th>
-                <Th>Descripcion</Th>
-                <Th>Sesion (min)</Th>
+                <Th>Descripción</Th>
                 <Th>Permisos</Th>
                 <Th>Activo</Th>
                 {canWrite && <Th></Th>}
@@ -198,16 +216,12 @@ export function RolesPage() {
               {(query.data ?? []).map((role) => (
                 <tr key={role.id} className="hover:bg-gray-50">
                   <Td className="font-medium text-gray-900">{role.name}</Td>
-                  <Td>
-                    <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono">{role.slug}</code>
-                  </Td>
-                  <Td className="max-w-[200px] truncate" title={role.description ?? undefined}>
+                  <Td className="max-w-[250px] truncate" title={role.description ?? undefined}>
                     {role.description ?? '—'}
                   </Td>
-                  <Td>{role.maxSessionMinutes}</Td>
                   <Td>
                     <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {role.permissions.length} permisos
+                      {role.permissions.length}
                     </span>
                   </Td>
                   <Td>
@@ -244,99 +258,92 @@ export function RolesPage() {
         footer={
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={closeDrawer}>Cancelar</Button>
-            <Button type="submit" form={formId} loading={isPending} disabled={!formName.trim() || !formSlug.trim()}>
+            <Button type="submit" form={formId} loading={isPending} disabled={!formName.trim()}>
               {editing ? 'Guardar' : 'Crear'}
             </Button>
           </div>
         }
       >
-        <form id={formId} onSubmit={handleSubmit} className="space-y-5">
-          {/* Basic fields */}
+        <form id={formId} onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic info */}
           <div className="space-y-4">
-            <Field label="Nombre" required>
+            <Field label="Nombre del rol" required>
               <input
                 value={formName}
                 onChange={(e) => { setFormName(e.target.value); }}
                 required
+                placeholder="Ej: Operador, Administrador, Locatario"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               />
             </Field>
 
-            <Field label="Slug" required>
-              <input
-                value={formSlug}
-                onChange={(e) => { setFormSlug(e.target.value); }}
-                required
-                disabled={!!editing}
-                placeholder="nombre_del_rol"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono disabled:bg-gray-50"
-              />
-            </Field>
-
-            <Field label="Descripcion">
+            <Field label="Descripción">
               <textarea
                 value={formDescription}
                 onChange={(e) => { setFormDescription(e.target.value); }}
                 rows={2}
+                placeholder="Breve descripción de este rol"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              />
-            </Field>
-
-            <Field label="Duracion Sesion (minutos)">
-              <input
-                type="number"
-                value={formSessionMinutes}
-                onChange={(e) => { setFormSessionMinutes(e.target.value); }}
-                min={5}
-                max={43200}
-                className="w-32 rounded-md border border-gray-300 px-3 py-2 text-sm"
               />
             </Field>
           </div>
 
-          {/* Permission Grid */}
+          {/* Module-based permissions */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Permisos</h3>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900">Accesos y capacidades</h3>
             {catalogQuery.isPending && (
-              <p className="text-sm text-gray-400">Cargando permisos...</p>
+              <p className="text-sm text-gray-400">Cargando módulos...</p>
             )}
-            <div className="space-y-4">
-              {Array.from(permissionsByModule.entries()).map(([module, perms]) => {
-                const allChecked = perms.every((p) => selectedPermIds.has(p.id));
-                const someChecked = perms.some((p) => selectedPermIds.has(p.id));
-                return (
-                  <div key={module} className="rounded-md border border-gray-200">
-                    {/* Module header */}
-                    <label className="flex cursor-pointer items-center gap-2 border-b border-gray-100 bg-gray-50 px-3 py-2">
-                      <input
-                        type="checkbox"
-                        checked={allChecked}
-                        ref={(el) => { if (el) el.indeterminate = someChecked && !allChecked; }}
-                        onChange={() => { toggleModuleAll(module); }}
-                        className="size-4 rounded border-gray-300"
-                      />
-                      <span className="text-sm font-medium text-gray-700 capitalize">{module.replace(/_/g, ' ')}</span>
-                      <span className="ml-auto text-xs text-gray-400">
-                        {perms.filter((p) => selectedPermIds.has(p.id)).length}/{perms.length}
-                      </span>
-                    </label>
-                    {/* Actions */}
-                    <div className="grid grid-cols-2 gap-1 p-2 sm:grid-cols-3">
-                      {perms.map((perm) => (
-                        <label key={perm.id} className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={selectedPermIds.has(perm.id)}
-                            onChange={() => { togglePerm(perm.id); }}
-                            className="size-3.5 rounded border-gray-300"
-                          />
-                          <span className="text-gray-700">{perm.action}</span>
-                        </label>
-                      ))}
-                    </div>
+
+            <div className="space-y-3">
+              {ROLE_MODULE_GROUPS.map((group, gi) => (
+                <div key={group.group} className="rounded-lg border border-gray-200 overflow-hidden">
+                  {/* Group header */}
+                  <label className="flex cursor-pointer items-center gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={isGroupAllSelected(gi)}
+                      ref={(el) => { if (el) el.indeterminate = isGroupPartial(gi); }}
+                      onChange={() => { toggleGroupAll(gi); }}
+                      className="size-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm font-semibold text-gray-800">{group.group}</span>
+                  </label>
+
+                  {/* Modules inside group */}
+                  <div className="divide-y divide-gray-100">
+                    {group.modules.map((mod) => (
+                      <div key={`${mod.permissionModule}-${mod.label}`} className="px-4 py-3">
+                        <div className="mb-1">
+                          <span className="text-sm font-medium text-gray-700">{mod.label}</span>
+                          <p className="text-xs text-gray-400">{mod.description}</p>
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-3">
+                          {mod.capabilities.map((cap) => {
+                            const checked = isPermSelected(mod.permissionModule, cap.action);
+                            return (
+                              <label
+                                key={cap.action}
+                                className="flex items-center gap-1.5 text-sm cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => { togglePerm(mod.permissionModule, cap.action); }}
+                                  className="size-3.5 rounded border-gray-300"
+                                />
+                                <span className={checked ? 'text-gray-800' : 'text-gray-500'}>
+                                  {cap.label}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </form>
@@ -348,7 +355,7 @@ export function RolesPage() {
         onClose={() => { setDeleting(null); }}
         onConfirm={handleDelete}
         title="Eliminar Rol"
-        message={`Eliminar "${deleting?.name}"? Los usuarios asignados a este rol perderan acceso.`}
+        message={`Eliminar "${deleting?.name}"? Los usuarios asignados a este rol perderán acceso.`}
         isPending={deleteMutation.isPending}
       />
     </div>
@@ -364,4 +371,13 @@ function Field({ label, required, children }: Readonly<{ label: string; required
       <div className="mt-1">{children}</div>
     </label>
   );
+}
+
+/** Build a map of "module:action" → permission.id for fast lookup */
+function buildPermLookup(catalog: Permission[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const p of catalog) {
+    map.set(`${p.module}:${p.action}`, p.id);
+  }
+  return map;
 }

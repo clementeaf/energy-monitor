@@ -21,8 +21,7 @@ export function Contact() {
           </h2>
 
           <p className="mt-6 text-[15px] text-white/70 leading-[1.8] max-w-md">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </p>
+          Cuéntanos sobre tu proyecto u operación. Te contactamos en un máximo de 24 horas hábiles para evaluar cómo podemos ayudar.           </p>
         </div>
 
         {/* Right column: form */}

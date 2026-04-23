@@ -23,8 +23,7 @@ export function Innovation() {
           </h2>
 
           <p className="mt-4 text-[15px] text-grey-700 leading-[1.8]">
-            Segmentamos nuestra cultura de innovación en tres pilares fundamentales
-          </p>
+          Nuestra cultura de innovación se sostiene en tres pilares fundamentales.          </p>
         </div>
 
         {/* Bottom row: 3 innovation cards */}

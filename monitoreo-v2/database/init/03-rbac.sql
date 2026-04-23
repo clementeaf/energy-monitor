@@ -128,4 +128,16 @@ INSERT INTO permissions (module, action, description) VALUES
     ('integrations', 'create', 'Configurar APIs/Datalake'),
     ('integrations', 'update', 'Modificar integraciones'),
     -- Analitica avanzada
-    ('analytics', 'read', 'Ver benchmarking, tendencias, patrones');
+    ('analytics', 'read', 'Ver benchmarking, tendencias, patrones'),
+    -- Lecturas
+    ('readings', 'read', 'Ver lecturas tiempo real, demanda, calidad electrica'),
+    -- Administracion — Roles
+    ('admin_roles', 'read', 'Ver roles y permisos'),
+    ('admin_roles', 'create', 'Crear roles'),
+    ('admin_roles', 'update', 'Modificar roles y asignar permisos'),
+    -- Administracion — API Keys
+    ('api_keys', 'read', 'Ver API keys'),
+    ('api_keys', 'create', 'Crear API keys'),
+    ('api_keys', 'update', 'Revocar/modificar API keys'),
+    -- Monitoreo — Fallas
+    ('monitoring_faults', 'read', 'Ver historial de fallas y eventos');

@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.0-alpha.0] - 2026-04-23 — MONITOREO V2: SIDEBAR, ROLES, SECURITY & DESIGN SYSTEM
+
+### Changed (monitoreo-v2/frontend)
+- **Sidebar accordion** — 7 collapsible groups (Dashboard, Monitoreo, Alertas, Facturación, Reportes, Analítica, Integraciones) + standalone items + admin section with audit sub-accordion. Auto-expands active group.
+- **Route protection** — `RequirePerms` guard on all 47 routes. Users without permission are redirected to dashboard.
+- **RolesPage** — Drawer with module-based permission UI mapped to sidebar structure. Groups with select-all, capabilities per module (Ver, Crear, Editar, Eliminar).
+- **UserForm** — Roles fetched from `useRolesQuery()` instead of extracting from existing users.
+- **UI components** — Design system patterns applied to 8 atomic components: Button (active:scale, duration-150), Card (hover border transition), Toggle, Modal/Drawer (backdrop-blur), ConfirmDialog (uses Button), TablePrimitives (StatusBadge with dot+ring), DropdownSelect.
+- **Layout** — Responsive padding (p-4/p-6/p-8), subtle borders (200/80), Header role badge with ring, consistent transition-all duration-150.
+- **Reduced motion** — Global `prefers-reduced-motion` support in index.css.
+
+### Added (monitoreo-v2)
+- `role-modules.ts` — Sidebar-to-permissions mapping for role management UI.
+- `RequirePerms.tsx` — Route-level permission guard component.
+- `design-system/` — 10 reference docs (colors, typography, layout, borders, buttons, cards, animations, contrast, components, images).
+- `brute-force.spec.ts` — 28 tests covering 10 attack vectors (rate limiting, MFA, token theft, API keys, JWT, SSRF, permission escalation).
+- `10-add-missing-permissions.sql` — Migration adding 8 permissions (readings, admin_roles, api_keys, monitoring_faults).
+
+### Fixed
+- `03-rbac.sql` seed updated with missing permission entries.
+- `role-modules.ts` corrected `admin_tenants` → `admin_tenant_config` to match DB.
+
+---
+
 ## [1.2.0-alpha.0] - 2026-04-23 — GLOBE LANDING: FIGMA DESIGN SYSTEM
 
 ### Changed (globe-landing)

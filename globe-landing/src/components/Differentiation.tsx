@@ -51,7 +51,7 @@ export function Differentiation() {
           {items.map((item) => (
             <div
               key={item.title}
-              className="flex gap-5 border border-grey-100 bg-white p-8 min-h-[260px]"
+              className="flex flex-col gap-5 bg-white p-8 min-h-[260px]"
             >
               <div className="shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-brand/10 text-brand">
                 {item.icon}

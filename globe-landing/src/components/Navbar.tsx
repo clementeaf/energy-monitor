@@ -17,7 +17,7 @@ export function Navbar() {
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-12 flex items-center justify-between h-[72px]">
         {/* Logo */}
         <a href="#" className="shrink-0">
-          <img src={logo} alt="Grupo Globe" className="h-[52px] w-auto" />
+          <img src={logo} alt="Grupo Globe" className="h-[70px] w-auto" />
         </a>
 
         {/* Desktop links */}

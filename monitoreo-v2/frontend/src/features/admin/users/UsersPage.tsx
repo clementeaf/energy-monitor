@@ -41,8 +41,6 @@ export function UsersPage() {
     deleteMutation.mutate(deleting.id, { onSuccess: () => { setDeleting(null); } });
   };
 
-  const roles = uniqueRoles(query.data ?? []);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -113,7 +111,6 @@ export function UsersPage() {
         onSubmit={handleSubmit}
         isPending={createMutation.isPending || updateMutation.isPending}
         user={editing}
-        roles={roles}
       />
 
       <ConfirmDialog
@@ -126,12 +123,4 @@ export function UsersPage() {
       />
     </div>
   );
-}
-
-function uniqueRoles(users: UserListItem[]): { id: string; name: string; slug: string }[] {
-  const map = new Map<string, { id: string; name: string; slug: string }>();
-  for (const u of users) {
-    if (!map.has(u.role.id)) map.set(u.role.id, u.role);
-  }
-  return Array.from(map.values());
 }

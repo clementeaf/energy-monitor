@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useBuildingsQuery, useCreateBuilding, useUpdateBuilding, useDeleteBuilding } from '../../hooks/queries/useBuildingsQuery';
@@ -57,52 +57,50 @@ export function BuildingsPage() {
         )}
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin edificios"
-        emptyDescription="No hay edificios registrados para este tenant."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Nombre</Th>
-                <Th>Codigo</Th>
-                <Th>Direccion</Th>
-                <Th className="text-right">Area (m2)</Th>
-                <Th>Estado</Th>
-                {canWrite && <Th>Acciones</Th>}
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Codigo</Th>
+              <Th>Direccion</Th>
+              <Th className="text-right">Area (m2)</Th>
+              <Th>Estado</Th>
+              {canWrite && <Th>Acciones</Th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 6 : 5}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="No hay edificios registrados."
+            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
+          >
+            {(query.data ?? []).map((b) => (
+              <tr
+                key={b.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => { navigate(`/meters?buildingId=${b.id}`); }}
+              >
+                <Td className="font-medium text-gray-900">{b.name}</Td>
+                <Td>{b.code}</Td>
+                <Td>{b.address ?? '—'}</Td>
+                <Td className="text-right">{b.areaSqm ? Number(b.areaSqm).toLocaleString('es-CL') : '—'}</Td>
+                <Td><StatusBadge active={b.isActive} /></Td>
+                {canWrite && (
+                  <Td>
+                    <div className="flex gap-1" role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>
+                      <ActionBtn label="Editar" onClick={() => { openEdit(b); }} />
+                      <ActionBtn label="Eliminar" onClick={() => { setDeleting(b); }} variant="danger" />
+                    </div>
+                  </Td>
+                )}
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(query.data ?? []).map((b) => (
-                <tr
-                  key={b.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => { navigate(`/meters?buildingId=${b.id}`); }}
-                >
-                  <Td className="font-medium text-gray-900">{b.name}</Td>
-                  <Td>{b.code}</Td>
-                  <Td>{b.address ?? '—'}</Td>
-                  <Td className="text-right">{b.areaSqm ? Number(b.areaSqm).toLocaleString('es-CL') : '—'}</Td>
-                  <Td><StatusBadge active={b.isActive} /></Td>
-                  {canWrite && (
-                    <Td>
-                      <div className="flex gap-1" role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>
-                        <ActionBtn label="Editar" onClick={() => { openEdit(b); }} />
-                        <ActionBtn label="Eliminar" onClick={() => { setDeleting(b); }} variant="danger" />
-                      </div>
-                    </Td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       <BuildingForm
         open={formOpen}

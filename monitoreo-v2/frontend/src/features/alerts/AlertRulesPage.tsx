@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import {
   useAlertRulesQuery,
@@ -116,69 +116,74 @@ export function AlertRulesPage() {
         </div>
       </div>
 
-      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch}>
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Nombre</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Intervalo</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Escalamiento</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-500">Activa</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-500">Acciones</th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Nombre</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Intervalo</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Escalamiento</th>
+              <th className="px-4 py-3 text-center font-medium text-gray-500">Activa</th>
+              <th className="px-4 py-3 text-center font-medium text-gray-500">Acciones</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={7}
+            error={qs.error}
+            onRetry={() => { rulesQuery.refetch(); }}
+            emptyMessage="Sin reglas de alerta configuradas"
+            skeletonWidths={['w-24', 'w-28', 'w-16', 'w-16', 'w-32', 'w-12', 'w-20']}
+          >
+            {filtered.map((rule) => (
+              <tr key={rule.id} className={rule.isActive ? '' : 'opacity-50'}>
+                <td className="px-4 py-3 font-mono text-xs">{ALERT_TYPE_LABELS[rule.alertTypeCode] ?? rule.alertTypeCode}</td>
+                <td className="px-4 py-3">{rule.name}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[rule.severity] ?? ''}`}>
+                    {rule.severity}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-gray-600">{rule.checkIntervalSeconds}s</td>
+                <td className="px-4 py-3 text-xs text-gray-500">
+                  L1: {rule.escalationL1Minutes}m / L2: {rule.escalationL2Minutes}m / L3: {rule.escalationL3Minutes}m
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => { handleToggle(rule); }}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      rule.isActive ? 'bg-pa-blue' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      rule.isActive ? 'translate-x-4' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => { setEditingRule({ ...rule }); }}
+                    className="text-pa-blue hover:underline text-xs mr-2"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm('Eliminar regla?')) deleteRule.mutate(rule.id); }}
+                    className="text-red-600 hover:underline text-xs"
+                  >
+                    Eliminar
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.map((rule) => (
-                <tr key={rule.id} className={rule.isActive ? '' : 'opacity-50'}>
-                  <td className="px-4 py-3 font-mono text-xs">{ALERT_TYPE_LABELS[rule.alertTypeCode] ?? rule.alertTypeCode}</td>
-                  <td className="px-4 py-3">{rule.name}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[rule.severity] ?? ''}`}>
-                      {rule.severity}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{rule.checkIntervalSeconds}s</td>
-                  <td className="px-4 py-3 text-xs text-gray-500">
-                    L1: {rule.escalationL1Minutes}m / L2: {rule.escalationL2Minutes}m / L3: {rule.escalationL3Minutes}m
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => { handleToggle(rule); }}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        rule.isActive ? 'bg-pa-blue' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                        rule.isActive ? 'translate-x-4' : 'translate-x-1'
-                      }`} />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => { setEditingRule({ ...rule }); }}
-                      className="text-pa-blue hover:underline text-xs mr-2"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { if (confirm('Eliminar regla?')) deleteRule.mutate(rule.id); }}
-                      className="text-red-600 hover:underline text-xs"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {editingRule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">

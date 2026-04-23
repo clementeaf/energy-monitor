@@ -69,8 +69,8 @@ export function Drawer({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClose(); } }}
       className={
         dialogClassName ??
-        `fixed inset-y-0 m-0 flex h-full max-h-full flex-col border border-gray-200 bg-white p-0 ` +
-        `backdrop:bg-black/50 backdrop:backdrop-blur-sm ` +
+        `fixed inset-y-0 z-[9999] m-0 flex h-full max-h-full flex-col border-none bg-white p-0 shadow-2xl ` +
+        `backdrop:bg-black/40 backdrop:backdrop-blur-[2px] ` +
         `${positionCls} ${SIZE_CLS[size]}`
       }
     >

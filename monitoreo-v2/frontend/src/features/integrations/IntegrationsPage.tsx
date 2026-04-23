@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
@@ -257,93 +257,93 @@ export function IntegrationsPage() {
               </div>
             </div>
 
-            <DataWidget
-              phase={qs.phase}
-              error={qs.error}
-              onRetry={() => {
-                listQuery.refetch();
-              }}
-              emptyDescription="No hay integraciones configuradas"
-            >
-              <div className="overflow-auto rounded-lg border border-gray-200">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10 bg-white">
-                    <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      <th className="px-4 py-3">Nombre</th>
-                      <th className="px-4 py-3">Tipo</th>
-                      <th className="px-4 py-3">Estado</th>
-                      <th className="px-4 py-3">Ultima sync</th>
-                      <th className="px-4 py-3">Error</th>
-                      <th className="px-4 py-3 text-right">Acciones</th>
+            <div className="overflow-auto rounded-lg border border-gray-200">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-white">
+                  <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3">Nombre</th>
+                    <th className="px-4 py-3">Tipo</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3">Ultima sync</th>
+                    <th className="px-4 py-3">Error</th>
+                    <th className="px-4 py-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <TableStateBody
+                  phase={qs.phase}
+                  colSpan={6}
+                  error={qs.error}
+                  onRetry={() => {
+                    listQuery.refetch();
+                  }}
+                  emptyMessage="No hay integraciones configuradas"
+                  skeletonWidths={['w-24', 'w-20', 'w-16', 'w-24', 'w-24', 'w-28']}
+                >
+                  {listQuery.data?.map((row) => (
+                    <tr key={row.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
+                      <td className="px-4 py-3 text-gray-700">{row.integrationType}</td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
+                          {labelStatus(row.status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {row.lastSyncAt
+                          ? new Date(row.lastSyncAt).toLocaleString('es-CL')
+                          : '—'}
+                      </td>
+                      <td className="max-w-xs truncate px-4 py-3 text-gray-500" title={row.errorMessage ?? undefined}>
+                        {row.errorMessage ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openLogs(row);
+                          }}
+                          className="mr-2 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                        >
+                          Historial
+                        </button>
+                        {canUpdate && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                syncMutation.mutateAsync(row.id).catch(() => undefined);
+                              }}
+                              disabled={syncMutation.isPending}
+                              className="mr-2 text-sm font-medium text-gray-800 hover:underline disabled:opacity-50"
+                            >
+                              Sincronizar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                openEdit(row);
+                              }}
+                              className="mr-2 text-sm font-medium text-gray-800 hover:underline"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleting(row);
+                              }}
+                              className="text-sm text-red-600 hover:underline"
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {listQuery.data?.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
-                        <td className="px-4 py-3 text-gray-700">{row.integrationType}</td>
-                        <td className="px-4 py-3">
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
-                            {labelStatus(row.status)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600">
-                          {row.lastSyncAt
-                            ? new Date(row.lastSyncAt).toLocaleString('es-CL')
-                            : '—'}
-                        </td>
-                        <td className="max-w-xs truncate px-4 py-3 text-gray-500" title={row.errorMessage ?? undefined}>
-                          {row.errorMessage ?? '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              openLogs(row);
-                            }}
-                            className="mr-2 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
-                          >
-                            Historial
-                          </button>
-                          {canUpdate && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  syncMutation.mutateAsync(row.id).catch(() => undefined);
-                                }}
-                                disabled={syncMutation.isPending}
-                                className="mr-2 text-sm font-medium text-gray-800 hover:underline disabled:opacity-50"
-                              >
-                                Sincronizar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  openEdit(row);
-                                }}
-                                className="mr-2 text-sm font-medium text-gray-800 hover:underline"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setDeleting(row);
-                                }}
-                                className="text-sm text-red-600 hover:underline"
-                              >
-                                Eliminar
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </DataWidget>
+                  ))}
+                </TableStateBody>
+              </table>
+            </div>
           </section>
 
           <Modal
@@ -488,14 +488,7 @@ function SyncLogsPanel({
   });
 
   return (
-    <DataWidget
-      phase={qs.phase}
-      error={qs.error}
-      onRetry={() => {
-        query.refetch();
-      }}
-      emptyDescription="No hay sincronizaciones registradas"
-    >
+    <>
       <div className="max-h-96 overflow-auto rounded border border-gray-200">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-white">
@@ -507,7 +500,16 @@ function SyncLogsPanel({
               <th className="px-3 py-2">Mensaje</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={5}
+            error={qs.error}
+            onRetry={() => {
+              query.refetch();
+            }}
+            emptyMessage="No hay sincronizaciones registradas"
+            skeletonWidths={['w-24', 'w-24', 'w-16', 'w-16', 'w-28']}
+          >
             {query.data?.items.map((log: IntegrationSyncLog) => (
               <tr key={log.id}>
                 <td className="whitespace-nowrap px-3 py-2 text-gray-700">
@@ -523,7 +525,7 @@ function SyncLogsPanel({
                 </td>
               </tr>
             ))}
-          </tbody>
+          </TableStateBody>
         </table>
       </div>
       {query.data != null && query.data.total > logsLimit && (
@@ -555,6 +557,6 @@ function SyncLogsPanel({
           </div>
         </div>
       )}
-    </DataWidget>
+    </>
   );
 }

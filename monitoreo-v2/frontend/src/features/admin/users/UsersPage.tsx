@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Th, Td, StatusBadge, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
@@ -56,54 +56,52 @@ export function UsersPage() {
         )}
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin usuarios"
-        emptyDescription="No hay usuarios registrados para este tenant."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Email</Th>
-                <Th>Nombre</Th>
-                <Th>Rol</Th>
-                <Th>Proveedor</Th>
-                <Th>Estado</Th>
-                <Th>Ultimo Login</Th>
-                {canWrite && <Th></Th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(query.data ?? []).map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{u.email}</Td>
-                  <Td>{u.displayName ?? '—'}</Td>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Email</Th>
+              <Th>Nombre</Th>
+              <Th>Rol</Th>
+              <Th>Proveedor</Th>
+              <Th>Estado</Th>
+              <Th>Ultimo Login</Th>
+              {canWrite && <Th></Th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 7 : 6}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="No hay usuarios registrados."
+            skeletonWidths={['w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-24', 'w-20']}
+          >
+            {(query.data ?? []).map((u) => (
+              <tr key={u.id} className="hover:bg-gray-50">
+                <Td className="font-medium text-gray-900">{u.email}</Td>
+                <Td>{u.displayName ?? '—'}</Td>
+                <Td>
+                  <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    {u.role.name}
+                  </span>
+                </Td>
+                <Td className="capitalize">{u.authProvider}</Td>
+                <Td><StatusBadge active={u.isActive} /></Td>
+                <Td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
+                {canWrite && (
                   <Td>
-                    <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {u.role.name}
-                    </span>
+                    <div className="flex gap-1">
+                      <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
+                      <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
+                    </div>
                   </Td>
-                  <Td className="capitalize">{u.authProvider}</Td>
-                  <Td><StatusBadge active={u.isActive} /></Td>
-                  <Td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
-                  {canWrite && (
-                    <Td>
-                      <div className="flex gap-1">
-                        <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
-                        <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
-                      </div>
-                    </Td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+                )}
+              </tr>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       <UserForm
         open={formOpen}

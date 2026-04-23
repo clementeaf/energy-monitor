@@ -1,4 +1,4 @@
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { ALERT_TYPE_LABELS } from '../../types/alert-engine';
@@ -50,53 +50,53 @@ export function EscalationPage() {
         })}
       </div>
 
-      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch}>
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Mensaje</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Tiempo Abierta</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Valor / Umbral</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {openAlerts.map((alert) => {
-                const mins = minutesAgo(alert.createdAt);
-                return (
-                  <tr key={alert.id}>
-                    <td className="px-4 py-3 text-xs font-mono">{ALERT_TYPE_LABELS[alert.alertTypeCode] ?? alert.alertTypeCode}</td>
-                    <td className="px-4 py-3 max-w-xs truncate" title={alert.message}>{alert.message}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[alert.severity]}`}>
-                        {alert.severity}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">{alert.status}</td>
-                    <td className="px-4 py-3 font-mono text-xs">
-                      <span className={mins > 1440 ? 'text-red-600 font-bold' : mins > 120 ? 'text-orange-600' : 'text-gray-600'}>
-                        {formatDuration(mins)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
-                      {alert.triggeredValue !== null ? alert.triggeredValue : '—'} / {alert.thresholdValue !== null ? alert.thresholdValue : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Mensaje</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Tiempo Abierta</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Valor / Umbral</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={6}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="Sin alertas abiertas"
+            skeletonWidths={['w-24', 'w-40', 'w-16', 'w-16', 'w-20', 'w-20']}
+          >
+            {openAlerts.map((alert) => {
+              const mins = minutesAgo(alert.createdAt);
+              return (
+                <tr key={alert.id}>
+                  <td className="px-4 py-3 text-xs font-mono">{ALERT_TYPE_LABELS[alert.alertTypeCode] ?? alert.alertTypeCode}</td>
+                  <td className="px-4 py-3 max-w-xs truncate" title={alert.message}>{alert.message}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[alert.severity]}`}>
+                      {alert.severity}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600">{alert.status}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <span className={mins > 1440 ? 'text-red-600 font-bold' : mins > 120 ? 'text-orange-600' : 'text-gray-600'}>
+                      {formatDuration(mins)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600">
+                    {alert.triggeredValue !== null ? alert.triggeredValue : '—'} / {alert.thresholdValue !== null ? alert.thresholdValue : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </TableStateBody>
+        </table>
+      </div>
 
-      {openAlerts.length === 0 && !query.isLoading && (
-        <div className="rounded-md bg-green-50 border border-green-200 px-4 py-8 text-center text-sm text-green-800">
-          Sin alertas abiertas
-        </div>
-      )}
     </div>
   );
 }

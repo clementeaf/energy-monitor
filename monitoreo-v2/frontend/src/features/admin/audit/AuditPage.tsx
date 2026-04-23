@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 import type { AuditLogQueryParams } from '../../../types/audit-log';
@@ -84,58 +84,56 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
         </button>
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin registros"
-        emptyDescription="No hay registros de auditoria con estos filtros."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Fecha</Th>
-                <Th>Usuario</Th>
-                <Th>Accion</Th>
-                <Th>Recurso</Th>
-                <Th>ID Recurso</Th>
-                <Th>IP</Th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Fecha</Th>
+              <Th>Usuario</Th>
+              <Th>Accion</Th>
+              <Th>Recurso</Th>
+              <Th>ID Recurso</Th>
+              <Th>IP</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={6}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="No hay registros de auditoria."
+            skeletonWidths={['w-28', 'w-32', 'w-20', 'w-24', 'w-20', 'w-24']}
+          >
+            {(query.data?.data ?? []).map((log) => (
+              <tr key={log.id} className="hover:bg-gray-50">
+                <Td>{new Date(log.createdAt).toLocaleString('es-CL')}</Td>
+                <Td>{log.userEmail ?? log.userId ?? '—'}</Td>
+                <Td>
+                  <MethodBadge action={log.action} />
+                </Td>
+                <Td>{log.resourceType ?? '—'}</Td>
+                <Td className="max-w-[120px] truncate" title={log.resourceId ?? undefined}>
+                  {log.resourceId ? log.resourceId.slice(0, 8) + '...' : '—'}
+                </Td>
+                <Td>{log.ipAddress ?? '—'}</Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(query.data?.data ?? []).map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
-                  <Td>{new Date(log.createdAt).toLocaleString('es-CL')}</Td>
-                  <Td>{log.userEmail ?? log.userId ?? '—'}</Td>
-                  <Td>
-                    <MethodBadge action={log.action} />
-                  </Td>
-                  <Td>{log.resourceType ?? '—'}</Td>
-                  <Td className="max-w-[120px] truncate" title={log.resourceId ?? undefined}>
-                    {log.resourceId ? log.resourceId.slice(0, 8) + '...' : '—'}
-                  </Td>
-                  <Td>{log.ipAddress ?? '—'}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between pt-3">
-            <span className="text-sm text-gray-500">{total} registros</span>
-            <div className="flex gap-1">
-              <PageBtn disabled={currentPage <= 1} onClick={() => { goToPage(currentPage - 1); }}>Anterior</PageBtn>
-              <span className="px-3 py-1 text-sm text-gray-700">
-                {currentPage} / {totalPages}
-              </span>
-              <PageBtn disabled={currentPage >= totalPages} onClick={() => { goToPage(currentPage + 1); }}>Siguiente</PageBtn>
-            </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-3">
+          <span className="text-sm text-gray-500">{total} registros</span>
+          <div className="flex gap-1">
+            <PageBtn disabled={currentPage <= 1} onClick={() => { goToPage(currentPage - 1); }}>Anterior</PageBtn>
+            <span className="px-3 py-1 text-sm text-gray-700">
+              {currentPage} / {totalPages}
+            </span>
+            <PageBtn disabled={currentPage >= totalPages} onClick={() => { goToPage(currentPage + 1); }}>Siguiente</PageBtn>
           </div>
-        )}
-      </DataWidget>
+        </div>
+      )}
     </div>
   );
 }

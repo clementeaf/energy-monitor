@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.8.0-alpha.0] - 2026-04-23 — MONITOREO V2: TABLE STATE PATTERN + SUPER ADMIN BYPASS
+
+### Changed (monitoreo-v2/frontend)
+- **TableStateBody** — Reusable component for consistent table states: skeleton rows, error with retry, empty message, all rendered inside `<tbody>` so headers always stay visible. Applied to ~20 tables across the app.
+- **super_admin bypass** — `usePermissions` returns `true` for all checks when role is `super_admin`. No more permission gaps.
+- **Sidebar sub-items** — Active sub-item styled with white bg + green ring for better visibility.
+- **Drawer z-index** — Raised to `z-[9999]` with `shadow-2xl` to prevent overlap with sticky table headers.
+- **Login fix** — `useSessionResolver` calls `setLoading(false)` when MSAL has accounts but no session flag, preventing infinite spinner.
+
+### Fixed (monitoreo-v2/backend)
+- **super_admin bypass** — `PermissionsGuard` returns `true` immediately for `super_admin` role, bypassing all permission checks.
+- **Missing permissions** — Migration `11-add-admin-tenant-permissions.sql` adds `admin_tenants`, `admin_tenant_config`, `admin_tenants_units`, `admin_hierarchy` permissions and assigns all to `super_admin`.
+
+### Added (monitoreo-v2/frontend)
+- `TableStateBody` component in `components/ui/`.
+- `.input-field` CSS class for form inputs.
+
+---
+
 ## [1.7.0-alpha.0] - 2026-04-23 — MONITOREO V2: TENANT ONBOARDING (CREATE COMPANY)
 
 ### Added (monitoreo-v2)

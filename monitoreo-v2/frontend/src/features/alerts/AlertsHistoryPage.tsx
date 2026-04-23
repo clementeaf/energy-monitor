@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { Chart } from '../../components/charts/Chart';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { Alert, AlertSeverity } from '../../types/alert';
 
@@ -181,42 +181,41 @@ export function AlertsHistoryPage(): ReactElement {
       )}
 
       {/* Monthly table */}
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { alertsQuery.refetch(); }}
-        emptyTitle="Sin alertas"
-        emptyDescription="No hay alertas con los filtros seleccionados."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
-              <tr>
-                <th className="px-4 py-2">Mes</th>
-                <th className="px-4 py-2 text-right">Total</th>
-                <th className="px-4 py-2 text-right">Resueltas</th>
-                <th className="px-4 py-2 text-right">Tiempo medio (h)</th>
-                <th className="px-4 py-2 text-right">SLA %</th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <tr>
+              <th className="px-4 py-2">Mes</th>
+              <th className="px-4 py-2 text-right">Total</th>
+              <th className="px-4 py-2 text-right">Resueltas</th>
+              <th className="px-4 py-2 text-right">Tiempo medio (h)</th>
+              <th className="px-4 py-2 text-right">SLA %</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={5}
+            error={qs.error}
+            onRetry={() => { alertsQuery.refetch(); }}
+            emptyMessage="No hay alertas con datos SLA."
+            skeletonWidths={['w-20', 'w-16', 'w-16', 'w-24', 'w-16']}
+          >
+            {monthlySla.map((row) => (
+              <tr key={row.month} className="hover:bg-gray-50">
+                <td className="px-4 py-2 font-medium text-gray-900">{row.month}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{row.total}</td>
+                <td className="px-4 py-2 text-right tabular-nums text-green-600">{row.resolved}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{row.avgResolutionHours.toFixed(1)}</td>
+                <td className="px-4 py-2 text-right tabular-nums">
+                  <span className={row.slaPct >= 90 ? 'text-green-600' : row.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'}>
+                    {row.slaPct.toFixed(1)}%
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {monthlySla.map((row) => (
-                <tr key={row.month} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium text-gray-900">{row.month}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{row.total}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-green-600">{row.resolved}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{row.avgResolutionHours.toFixed(1)}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">
-                    <span className={row.slaPct >= 90 ? 'text-green-600' : row.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'}>
-                      {row.slaPct.toFixed(1)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

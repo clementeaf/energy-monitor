@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Chart } from '../../components/charts/Chart';
@@ -164,37 +164,42 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         </div>
       )}
 
-      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch} emptyMessage="No hay facturas">
-        <div className="overflow-auto rounded-lg border border-gray-200">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                <th className="px-4 py-3">N° Factura</th>
-                <th className="px-4 py-3">Periodo</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Neto</th>
-                <th className="px-4 py-3 text-right">IVA</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {displayInvoices.map((inv) => (
-                <InvoiceRow
-                  key={inv.id}
-                  invoice={inv}
-                  canUpdate={canUpdate}
-                  canWrite={canWrite}
-                  onViewDetail={() => setDetailId(inv.id)}
-                  onApprove={() => approveMutation.mutate(inv.id)}
-                  onVoid={() => voidMutation.mutate(inv.id)}
-                  onDelete={() => setDeleting(inv)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+      <div className="overflow-auto rounded-lg border border-gray-200">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-white">
+            <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              <th className="px-4 py-3">N° Factura</th>
+              <th className="px-4 py-3">Periodo</th>
+              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3 text-right">Neto</th>
+              <th className="px-4 py-3 text-right">IVA</th>
+              <th className="px-4 py-3 text-right">Total</th>
+              <th className="px-4 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={7}
+            error={qs.error}
+            onRetry={() => { invoicesQuery.refetch(); }}
+            emptyMessage="No hay facturas registradas."
+            skeletonWidths={['w-24', 'w-32', 'w-20', 'w-24', 'w-20', 'w-24', 'w-28']}
+          >
+            {displayInvoices.map((inv) => (
+              <InvoiceRow
+                key={inv.id}
+                invoice={inv}
+                canUpdate={canUpdate}
+                canWrite={canWrite}
+                onViewDetail={() => setDetailId(inv.id)}
+                onApprove={() => approveMutation.mutate(inv.id)}
+                onVoid={() => voidMutation.mutate(inv.id)}
+                onDelete={() => setDeleting(inv)}
+              />
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {detailId && (
         <InvoiceDetailModal invoiceId={detailId} onClose={() => setDetailId(null)} />

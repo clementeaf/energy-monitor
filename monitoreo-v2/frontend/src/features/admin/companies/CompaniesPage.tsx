@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTenantsAdminQuery, useCreateTenant } from '../../../hooks/queries/useTenantsQuery';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { Drawer } from '../../../components/ui/Drawer';
 import type { CreateTenantPayload } from '../../../types/tenant';
@@ -52,44 +52,43 @@ export function CompaniesPage() {
         </button>
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { tenantsQuery.refetch(); }}
-        emptyTitle="Sin empresas"
-        emptyDescription="No hay empresas registradas. Crea la primera."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Nombre</Th>
-                <Th>Slug</Th>
-                <Th>Título App</Th>
-                <Th>Estado</Th>
-                <Th>Creada</Th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Slug</Th>
+              <Th>Título App</Th>
+              <Th>Estado</Th>
+              <Th>Creada</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={5}
+            error={qs.error}
+            onRetry={() => { tenantsQuery.refetch(); }}
+            emptyMessage="No hay empresas registradas. Crea la primera."
+            skeletonWidths={['w-24', 'w-20', 'w-24', 'w-16', 'w-20']}
+          >
+            {tenants.map((t) => (
+              <tr key={t.id} className="hover:bg-gray-50">
+                <Td className="font-medium">{t.name}</Td>
+                <Td className="font-mono text-[12px]">{t.slug}</Td>
+                <Td>{t.appTitle || '—'}</Td>
+                <Td>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                    t.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {t.isActive ? 'Activa' : 'Inactiva'}
+                  </span>
+                </Td>
+                <Td>{new Date(t.createdAt).toLocaleDateString('es-CL')}</Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {tenants.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <Td className="font-medium">{t.name}</Td>
-                  <Td className="font-mono text-[12px]">{t.slug}</Td>
-                  <Td>{t.appTitle || '—'}</Td>
-                  <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      t.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {t.isActive ? 'Activa' : 'Inactiva'}
-                    </span>
-                  </Td>
-                  <Td>{new Date(t.createdAt).toLocaleDateString('es-CL')}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {/* Create drawer */}
       <Drawer open={drawerOpen} onClose={handleClose} title="Nueva empresa" side="right" size="md">

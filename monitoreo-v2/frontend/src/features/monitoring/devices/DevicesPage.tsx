@@ -4,7 +4,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { Concentrator } from '../../../types/concentrator';
 import type { Meter } from '../../../types/meter';
@@ -159,70 +159,68 @@ export function DevicesPage() {
         </select>
       </div>
 
-      <DataWidget
-        phase={qs.phase === 'loading' ? 'loading' : filtered.length === 0 ? 'empty' : 'ready'}
-        error={qs.error}
-        onRetry={() => { metersQuery.refetch(); }}
-        isFetching={metersQuery.isFetching || concentratorsQuery.isFetching}
-        emptyTitle="Sin dispositivos"
-        emptyDescription="No hay dispositivos que coincidan con los filtros seleccionados."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Estado</Th>
-                <Th>Nombre</Th>
-                <Th>Tipo</Th>
-                <Th>Edificio</Th>
-                <Th>Modelo</Th>
-                <Th>Detalle</Th>
-                <Th>Ultima comunicacion</Th>
-                <Th>Acciones</Th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Estado</Th>
+              <Th>Nombre</Th>
+              <Th>Tipo</Th>
+              <Th>Edificio</Th>
+              <Th>Modelo</Th>
+              <Th>Detalle</Th>
+              <Th>Ultima comunicacion</Th>
+              <Th>Acciones</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase === 'loading' ? 'loading' : filtered.length === 0 ? 'empty' : 'ready'}
+            colSpan={8}
+            error={qs.error}
+            onRetry={() => { metersQuery.refetch(); }}
+            emptyMessage="No hay dispositivos que coincidan con los filtros seleccionados."
+            skeletonWidths={['w-16', 'w-32', 'w-20', 'w-28', 'w-24', 'w-40', 'w-28', 'w-20']}
+          >
+            {filtered.map((d) => (
+              <tr key={d.id} className="hover:bg-gray-50">
+                <Td>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[d.status] ?? statusColors.offline}`}>
+                    {d.status}
+                  </span>
+                </Td>
+                <Td className="font-medium">{d.name}</Td>
+                <Td>{typeLabels[d.type]}</Td>
+                <Td>{buildingMap.get(d.buildingId) ?? '—'}</Td>
+                <Td>{d.model ?? '—'}</Td>
+                <Td className="max-w-xs truncate text-xs text-gray-500">{d.detail || '—'}</Td>
+                <Td className="text-xs text-gray-500">
+                  {d.lastComm ? new Date(d.lastComm).toLocaleString('es-CL') : '—'}
+                </Td>
+                <Td>
+                  <div className="flex gap-2">
+                    {d.type === 'meter' && (
+                      <Link
+                        to={`/monitoring/fault-history/${d.id}`}
+                        className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
+                      >
+                        Fallos
+                      </Link>
+                    )}
+                    {d.type === 'concentrator' && (
+                      <Link
+                        to={`/monitoring/concentrator/${d.id}`}
+                        className="rounded px-2 py-1 text-xs font-medium text-[var(--color-primary,#3D3BF3)] hover:bg-[var(--color-primary,#3D3BF3)]/10"
+                      >
+                        Diagnostico
+                      </Link>
+                    )}
+                  </div>
+                </Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map((d) => (
-                <tr key={d.id} className="hover:bg-gray-50">
-                  <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[d.status] ?? statusColors.offline}`}>
-                      {d.status}
-                    </span>
-                  </Td>
-                  <Td className="font-medium">{d.name}</Td>
-                  <Td>{typeLabels[d.type]}</Td>
-                  <Td>{buildingMap.get(d.buildingId) ?? '—'}</Td>
-                  <Td>{d.model ?? '—'}</Td>
-                  <Td className="max-w-xs truncate text-xs text-gray-500">{d.detail || '—'}</Td>
-                  <Td className="text-xs text-gray-500">
-                    {d.lastComm ? new Date(d.lastComm).toLocaleString('es-CL') : '—'}
-                  </Td>
-                  <Td>
-                    <div className="flex gap-2">
-                      {d.type === 'meter' && (
-                        <Link
-                          to={`/monitoring/fault-history/${d.id}`}
-                          className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
-                        >
-                          Fallos
-                        </Link>
-                      )}
-                      {d.type === 'concentrator' && (
-                        <Link
-                          to={`/monitoring/concentrator/${d.id}`}
-                          className="rounded px-2 py-1 text-xs font-medium text-[var(--color-primary,#3D3BF3)] hover:bg-[var(--color-primary,#3D3BF3)]/10"
-                        >
-                          Diagnostico
-                        </Link>
-                      )}
-                    </div>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

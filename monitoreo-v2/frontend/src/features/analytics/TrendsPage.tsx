@@ -1,12 +1,11 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { StockChart } from '../../components/charts/StockChart';
 import { Chart } from '../../components/charts/Chart';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
-import { meterToBuildingMap } from '../dashboard/dashboardAggregations';
 
 type Variable = 'energy' | 'demand' | 'cost';
 type Horizon = 3 | 6 | 12;
@@ -63,7 +62,6 @@ export function TrendsPage(): ReactElement {
   const to = useMemo(() => new Date().toISOString(), []);
 
   const buildingsQuery = useBuildingsQuery();
-  const metersQuery = useMetersQuery(buildingFilter || undefined);
   const aggQuery = useAggregatedReadingsQuery(
     { from, to, interval: 'monthly', buildingId: buildingFilter || undefined },
     true,
@@ -71,8 +69,6 @@ export function TrendsPage(): ReactElement {
 
   const qs = useQueryState(aggQuery, { isEmpty: (d) => !d || d.length === 0 });
 
-  const meters = metersQuery.data ?? [];
-  const meterById = useMemo(() => meterToBuildingMap(meters), [meters]);
 
   // Aggregate by month
   const monthly = useMemo((): MonthlyPoint[] => {
@@ -275,7 +271,14 @@ export function TrendsPage(): ReactElement {
                   <th className="px-4 py-2 text-right">Rango superior</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <TableStateBody
+                phase={forecast.length > 0 ? 'ready' : 'empty'}
+                colSpan={4}
+                error={null}
+                onRetry={() => { aggQuery.refetch(); }}
+                emptyMessage="Sin proyecciones disponibles"
+                skeletonWidths={['w-20', 'w-20', 'w-20', 'w-20']}
+              >
                 {forecast.map((f) => (
                   <tr key={f.month} className="hover:bg-gray-50">
                     <td className="px-4 py-2 font-medium text-gray-900">{f.month}</td>
@@ -284,7 +287,7 @@ export function TrendsPage(): ReactElement {
                     <td className="px-4 py-2 text-right tabular-nums text-gray-500">{fmt(f.yHigh)}</td>
                   </tr>
                 ))}
-              </tbody>
+              </TableStateBody>
             </table>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
@@ -92,34 +92,39 @@ export function TariffsPage() {
         </div>
       </div>
 
-      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch} emptyMessage="No hay tarifas configuradas">
-        <div className="overflow-auto rounded-lg border border-gray-200">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3">Vigencia</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Bloques</th>
-                {canWrite && <th className="px-4 py-3 text-right">Acciones</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {qs.data?.map((tariff) => (
-                <TariffRow
-                  key={tariff.id}
-                  tariff={tariff}
-                  expanded={expandedId === tariff.id}
-                  onToggle={() => setExpandedId(expandedId === tariff.id ? null : tariff.id)}
-                  canWrite={canWrite}
-                  onEdit={() => openEdit(tariff)}
-                  onDelete={() => setDeleting(tariff)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+      <div className="overflow-auto rounded-lg border border-gray-200">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-white">
+            <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              <th className="px-4 py-3">Nombre</th>
+              <th className="px-4 py-3">Vigencia</th>
+              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3">Bloques</th>
+              {canWrite && <th className="px-4 py-3 text-right">Acciones</th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 5 : 4}
+            error={qs.error}
+            onRetry={() => { tariffsQuery.refetch(); }}
+            emptyMessage="No hay tarifas configuradas."
+            skeletonWidths={['w-32', 'w-28', 'w-20', 'w-24', ...(canWrite ? ['w-20'] : [])]}
+          >
+            {qs.data?.map((tariff) => (
+              <TariffRow
+                key={tariff.id}
+                tariff={tariff}
+                expanded={expandedId === tariff.id}
+                onToggle={() => setExpandedId(expandedId === tariff.id ? null : tariff.id)}
+                canWrite={canWrite}
+                onEdit={() => openEdit(tariff)}
+                onDelete={() => setDeleting(tariff)}
+              />
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       <Modal open={formOpen} onClose={closeForm} title={editing ? 'Editar Tarifa' : 'Nueva Tarifa'}>
         <form onSubmit={handleSubmit} className="space-y-4">

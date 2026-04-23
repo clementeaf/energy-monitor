@@ -226,10 +226,10 @@ export function Sidebar() {
                       to={sub.to}
                       end={sub.end}
                       className={({ isActive: subActive }) =>
-                        `block rounded-md px-2 py-1.5 text-[12px] transition-colors ${
+                        `flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] transition-all ${
                           subActive
-                            ? 'font-medium text-pa-blue'
-                            : 'text-pa-text-muted hover:text-pa-text'
+                            ? 'bg-white text-pa-blue font-semibold ring-1 ring-pa-blue/30 shadow-sm'
+                            : 'text-pa-text-muted hover:bg-gray-100 hover:text-pa-text'
                         }`
                       }
                     >

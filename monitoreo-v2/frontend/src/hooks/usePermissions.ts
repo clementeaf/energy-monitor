@@ -10,15 +10,16 @@ export function usePermissions() {
     [user?.permissions],
   );
 
+  const roleSlug: RoleSlug | null = user?.role.slug ?? null;
+  const isSuperAdmin = roleSlug === 'super_admin';
+  const isAdmin = isSuperAdmin || roleSlug === 'corp_admin' || roleSlug === 'site_admin';
+
+  // super_admin bypasses all permission checks — omnipotent
   const has = (module: string, action: string): boolean =>
-    permSet.has(`${module}:${action}`);
+    isSuperAdmin || permSet.has(`${module}:${action}`);
 
   const hasAny = (...perms: string[]): boolean =>
-    perms.some((p) => permSet.has(p));
+    isSuperAdmin || perms.some((p) => permSet.has(p));
 
-  const roleSlug: RoleSlug | null = user?.role.slug ?? null;
-
-  const isAdmin = roleSlug === 'super_admin' || roleSlug === 'corp_admin' || roleSlug === 'site_admin';
-
-  return { has, hasAny, roleSlug, isAdmin, permSet };
+  return { has, hasAny, roleSlug, isAdmin, isSuperAdmin, permSet };
 }

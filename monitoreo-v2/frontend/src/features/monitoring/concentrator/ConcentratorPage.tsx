@@ -4,6 +4,7 @@ import { useConcentratorQuery, useConcentratorMetersQuery } from '../../../hooks
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ConcentratorStatus } from '../../../types/concentrator';
 import type { LatestReading } from '../../../types/reading';
@@ -139,50 +140,49 @@ export function ConcentratorPage(): ReactElement {
       {/* Meters table */}
       <div className="space-y-2">
         <h2 className="text-sm font-medium text-gray-700">Medidores del concentrador</h2>
-        <DataWidget
-          phase={metersQuery.isPending ? 'loading' : metersQuery.isError ? 'error' : 'ready'}
-          error={metersQuery.error}
-          onRetry={() => { metersQuery.refetch(); }}
-          emptyTitle="Sin medidores"
-          emptyDescription="No hay medidores asignados a este concentrador."
-        >
-          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
-                <tr>
-                  <th className="px-4 py-2">Medidor</th>
-                  <th className="px-4 py-2">Estado</th>
-                  <th className="px-4 py-2 text-right">Potencia (kW)</th>
-                  <th className="px-4 py-2 text-right">Voltaje L1 (V)</th>
-                  <th className="px-4 py-2 text-right">FP</th>
-                  <th className="px-4 py-2">Última lectura</th>
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+          <table className="min-w-full text-sm">
+            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+              <tr>
+                <th className="px-4 py-2">Medidor</th>
+                <th className="px-4 py-2">Estado</th>
+                <th className="px-4 py-2 text-right">Potencia (kW)</th>
+                <th className="px-4 py-2 text-right">Voltaje L1 (V)</th>
+                <th className="px-4 py-2 text-right">FP</th>
+                <th className="px-4 py-2">Última lectura</th>
+              </tr>
+            </thead>
+            <TableStateBody
+              phase={metersQuery.isPending ? 'loading' : metersQuery.isError ? 'error' : meterStatus.length === 0 ? 'empty' : 'ready'}
+              colSpan={6}
+              error={metersQuery.error}
+              onRetry={() => { metersQuery.refetch(); }}
+              emptyMessage="No hay medidores asignados a este concentrador."
+              skeletonWidths={['w-32', 'w-20', 'w-24', 'w-24', 'w-16', 'w-28']}
+            >
+              {meterStatus.map(({ meter, status, latest }) => (
+                <tr key={meter.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 font-medium text-gray-900">{meter.name ?? meter.code}</td>
+                  <td className="px-4 py-2">
+                    <MeterStatusBadge status={status} />
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {latest ? fmt(latest.power_kw) : '—'}
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {latest ? fmt(latest.voltage_l1) : '—'}
+                  </td>
+                  <td className="px-4 py-2 text-right tabular-nums">
+                    {latest ? fmt(latest.power_factor, 3) : '—'}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-500">
+                    {latest ? new Date(latest.timestamp).toLocaleString('es-CL') : '—'}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {meterStatus.map(({ meter, status, latest }) => (
-                  <tr key={meter.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-900">{meter.name ?? meter.code}</td>
-                    <td className="px-4 py-2">
-                      <MeterStatusBadge status={status} />
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {latest ? fmt(latest.power_kw) : '—'}
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {latest ? fmt(latest.voltage_l1) : '—'}
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {latest ? fmt(latest.power_factor, 3) : '—'}
-                    </td>
-                    <td className="px-4 py-2 text-xs text-gray-500">
-                      {latest ? new Date(latest.timestamp).toLocaleString('es-CL') : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </DataWidget>
+              ))}
+            </TableStateBody>
+          </table>
+        </div>
       </div>
     </div>
   );

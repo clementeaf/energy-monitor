@@ -39,12 +39,12 @@ export function HierarchyPage() {
   });
 
   // Derive combined phase: buildings must load first
-  const qs: typeof hierarchyQs = buildingsQuery.isPending
-    ? { phase: 'loading', data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
+  const qs = buildingsQuery.isPending
+    ? { phase: 'loading' as const, data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
     : buildingsQuery.isError
-      ? { phase: 'error', data: undefined, error: buildingsQuery.error, refetch: () => { buildingsQuery.refetch(); } }
+      ? { phase: 'error' as const, data: undefined, error: buildingsQuery.error, refetch: () => { buildingsQuery.refetch(); } }
       : buildings.length === 0
-        ? { phase: 'empty', data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
+        ? { phase: 'empty' as const, data: undefined, error: undefined, refetch: () => { buildingsQuery.refetch(); } }
         : hierarchyQs;
   const { has } = usePermissions();
   const canWrite = has('admin_hierarchy', 'create');

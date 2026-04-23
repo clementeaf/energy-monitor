@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-23)
+- **Table state pattern + super_admin bypass:** `TableStateBody` reutilizable (skeleton/error/vacío en tbody). super_admin omnipotente frontend+backend. Drawer z-[9999]. Login spinner fix. Sidebar sub-items con ring activo. Migración permisos admin. [CHANGELOG — 1.8.0-alpha.0](CHANGELOG.md)
 - **Tenant onboarding:** CompaniesPage en `/admin/companies` — crear empresa con roles + admin en un paso. Drawer con formulario completo, resultado con roles creados. [CHANGELOG — 1.7.0-alpha.0](CHANGELOG.md)
 - **V1 design grid + Globe Power colors:** Sidebar numerado (01-10) con sub-items expandibles, Header con banderas CL/CO/PE + WhatsApp + Email + menú usuario, paleta Globe Power (green/grey/brand). 30 tablas con sticky header + scroll interno. Alertas clickeables con highlight en destino. RealtimePage infinite scroll 15 rows. [CHANGELOG — 1.6.0-alpha.0](CHANGELOG.md)
 - **Globe Landing overhaul:** Hero carousel 3 slides con copy dinámico, Values con overlay descripción, Innovation con text overlay + nuevas imágenes, custom ServiceSelect en Contacto, footer logos carousel, responsive mobile-first en todas las secciones. [CHANGELOG — 1.5.0-alpha.0](CHANGELOG.md)

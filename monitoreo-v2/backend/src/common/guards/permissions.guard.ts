@@ -31,6 +31,10 @@ export class PermissionsGuard implements CanActivate {
     if (!required?.length) return true;
 
     const user = context.switchToHttp().getRequest().user as JwtPayload;
+
+    // super_admin bypasses all permission checks
+    if (user?.roleSlug === 'super_admin') return true;
+
     if (!user?.permissions?.length) {
       throw new ForbiddenException('No permissions found');
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
@@ -102,80 +102,78 @@ export function AlertsPage() {
         </select>
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { alertsQuery.refetch(); }}
-        isFetching={alertsQuery.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin alertas"
-        emptyDescription="No hay alertas que coincidan con los filtros seleccionados."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Severidad</Th>
-                <Th>Tipo</Th>
-                <Th>Mensaje</Th>
-                <Th>Estado</Th>
-                <Th>Fecha</Th>
-                <Th>Acciones</Th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Severidad</Th>
+              <Th>Tipo</Th>
+              <Th>Mensaje</Th>
+              <Th>Estado</Th>
+              <Th>Fecha</Th>
+              <Th>Acciones</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={6}
+            error={qs.error}
+            onRetry={() => { alertsQuery.refetch(); }}
+            emptyMessage="No hay alertas registradas."
+            skeletonWidths={['w-20', 'w-24', 'w-32', 'w-20', 'w-28', 'w-24']}
+          >
+            {(alertsQuery.data ?? []).slice(0, 50).map((a) => (
+              <tr
+                key={a.id}
+                ref={a.id === highlightId ? highlightRef : undefined}
+                className={`transition-colors duration-500 ${
+                  a.id === highlightId
+                    ? 'bg-pa-blue/10 ring-1 ring-inset ring-pa-blue/30'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <Td>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[a.severity]}`}>
+                    {a.severity}
+                  </span>
+                </Td>
+                <Td>{a.alertTypeCode}</Td>
+                <Td className="max-w-xs truncate">{a.message}</Td>
+                <Td>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[a.status]}`}>
+                    {STATUS_LABELS[a.status]}
+                  </span>
+                </Td>
+                <Td>{new Date(a.createdAt).toLocaleString('es-CL')}</Td>
+                <Td>
+                  <div className="flex gap-1">
+                    {a.status === 'active' && (
+                      <button
+                        type="button"
+                        onClick={() => { acknowledgeMutation.mutate(a.id); }}
+                        disabled={acknowledgeMutation.isPending}
+                        className="rounded px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
+                      >
+                        Reconocer
+                      </button>
+                    )}
+                    {a.status !== 'resolved' && (
+                      <button
+                        type="button"
+                        onClick={() => { resolveMutation.mutate({ id: a.id }); }}
+                        disabled={resolveMutation.isPending}
+                        className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+                      >
+                        Resolver
+                      </button>
+                    )}
+                  </div>
+                </Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(alertsQuery.data ?? []).slice(0, 50).map((a) => (
-                <tr
-                  key={a.id}
-                  ref={a.id === highlightId ? highlightRef : undefined}
-                  className={`transition-colors duration-500 ${
-                    a.id === highlightId
-                      ? 'bg-pa-blue/10 ring-1 ring-inset ring-pa-blue/30'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[a.severity]}`}>
-                      {a.severity}
-                    </span>
-                  </Td>
-                  <Td>{a.alertTypeCode}</Td>
-                  <Td className="max-w-xs truncate">{a.message}</Td>
-                  <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[a.status]}`}>
-                      {STATUS_LABELS[a.status]}
-                    </span>
-                  </Td>
-                  <Td>{new Date(a.createdAt).toLocaleString('es-CL')}</Td>
-                  <Td>
-                    <div className="flex gap-1">
-                      {a.status === 'active' && (
-                        <button
-                          type="button"
-                          onClick={() => { acknowledgeMutation.mutate(a.id); }}
-                          disabled={acknowledgeMutation.isPending}
-                          className="rounded px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
-                        >
-                          Reconocer
-                        </button>
-                      )}
-                      {a.status !== 'resolved' && (
-                        <button
-                          type="button"
-                          onClick={() => { resolveMutation.mutate({ id: a.id }); }}
-                          disabled={resolveMutation.isPending}
-                          className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
-                        >
-                          Resolver
-                        </button>
-                      )}
-                    </div>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

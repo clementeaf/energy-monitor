@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useMetersQuery, useCreateMeter, useUpdateMeter, useDeleteMeter } from '../../hooks/queries/useMetersQuery';
@@ -84,50 +84,48 @@ export function MetersPage() {
         </div>
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { metersQuery.refetch(); }}
-        isFetching={metersQuery.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin medidores"
-        emptyDescription={buildingId ? 'No hay medidores en este edificio.' : 'No hay medidores registrados.'}
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Nombre</Th>
-                <Th>Codigo</Th>
-                <Th>Tipo</Th>
-                <Th>Fase</Th>
-                <Th>Modelo</Th>
-                <Th>Estado</Th>
-                {canWrite && <Th>Acciones</Th>}
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Codigo</Th>
+              <Th>Tipo</Th>
+              <Th>Fase</Th>
+              <Th>Modelo</Th>
+              <Th>Estado</Th>
+              {canWrite && <Th>Acciones</Th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 7 : 6}
+            error={qs.error}
+            onRetry={() => { metersQuery.refetch(); }}
+            emptyMessage="No hay medidores registrados."
+            skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-24', 'w-16', 'w-20']}
+          >
+            {(metersQuery.data ?? []).map((m) => (
+              <tr key={m.id} className="hover:bg-gray-50">
+                <Td className="font-medium text-gray-900">{m.name}</Td>
+                <Td>{m.code}</Td>
+                <Td>{m.meterType}</Td>
+                <Td>{m.phaseType === 'three_phase' ? 'Trifasico' : 'Monofasico'}</Td>
+                <Td>{m.model ?? '—'}</Td>
+                <Td><StatusBadge active={m.isActive} /></Td>
+                {canWrite && (
+                  <Td>
+                    <div className="flex gap-1">
+                      <ActionBtn label="Editar" onClick={() => { openEdit(m); }} />
+                      <ActionBtn label="Eliminar" onClick={() => { setDeleting(m); }} variant="danger" />
+                    </div>
+                  </Td>
+                )}
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(metersQuery.data ?? []).map((m) => (
-                <tr key={m.id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{m.name}</Td>
-                  <Td>{m.code}</Td>
-                  <Td>{m.meterType}</Td>
-                  <Td>{m.phaseType === 'three_phase' ? 'Trifasico' : 'Monofasico'}</Td>
-                  <Td>{m.model ?? '—'}</Td>
-                  <Td><StatusBadge active={m.isActive} /></Td>
-                  {canWrite && (
-                    <Td>
-                      <div className="flex gap-1">
-                        <ActionBtn label="Editar" onClick={() => { openEdit(m); }} />
-                        <ActionBtn label="Eliminar" onClick={() => { setDeleting(m); }} variant="danger" />
-                      </div>
-                    </Td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       <MeterForm
         open={formOpen}

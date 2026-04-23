@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { Modal } from '../../../components/ui/Modal';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Button } from '../../../components/ui/Button';
@@ -123,74 +123,72 @@ export function ApiKeysPage() {
         )}
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin API Keys"
-        emptyDescription="No hay API keys configuradas para este tenant."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Nombre</Th>
-                <Th>Prefijo</Th>
-                <Th>Permisos</Th>
-                <Th>Rate Limit</Th>
-                <Th>Expira</Th>
-                <Th>Ultimo Uso</Th>
-                <Th>Activa</Th>
-                {canWrite && <Th></Th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(query.data ?? []).map((key) => (
-                <tr key={key.id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{key.name}</Td>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Prefijo</Th>
+              <Th>Permisos</Th>
+              <Th>Rate Limit</Th>
+              <Th>Expira</Th>
+              <Th>Ultimo Uso</Th>
+              <Th>Activa</Th>
+              {canWrite && <Th></Th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 8 : 7}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="No hay API keys configuradas."
+            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-16', 'w-20', 'w-24', 'w-16', 'w-20']}
+          >
+            {(query.data ?? []).map((key) => (
+              <tr key={key.id} className="hover:bg-gray-50">
+                <Td className="font-medium text-gray-900">{key.name}</Td>
+                <Td>
+                  <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono">{key.keyPrefix}...</code>
+                </Td>
+                <Td>
+                  <div className="flex flex-wrap gap-1">
+                    {key.permissions.slice(0, 3).map((p) => (
+                      <span key={p} className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {p}
+                      </span>
+                    ))}
+                    {key.permissions.length > 3 && (
+                      <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        +{key.permissions.length - 3}
+                      </span>
+                    )}
+                  </div>
+                </Td>
+                <Td>{key.rateLimitPerMinute}/min</Td>
+                <Td>{key.expiresAt ? new Date(key.expiresAt).toLocaleDateString('es-CL') : 'Sin expiracion'}</Td>
+                <Td>{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString('es-CL') : 'Nunca'}</Td>
+                <Td>
+                  <Toggle
+                    checked={key.isActive}
+                    onChange={() => { handleToggleActive(key); }}
+                    size="sm"
+                    disabled={!canWrite}
+                  />
+                </Td>
+                {canWrite && (
                   <Td>
-                    <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono">{key.keyPrefix}...</code>
-                  </Td>
-                  <Td>
-                    <div className="flex flex-wrap gap-1">
-                      {key.permissions.slice(0, 3).map((p) => (
-                        <span key={p} className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          {p}
-                        </span>
-                      ))}
-                      {key.permissions.length > 3 && (
-                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                          +{key.permissions.length - 3}
-                        </span>
-                      )}
+                    <div className="flex gap-1">
+                      <ActionBtn label="Rotar" onClick={() => { setRotating(key); }} />
+                      <ActionBtn label="Eliminar" onClick={() => { setDeleting(key); }} variant="danger" />
                     </div>
                   </Td>
-                  <Td>{key.rateLimitPerMinute}/min</Td>
-                  <Td>{key.expiresAt ? new Date(key.expiresAt).toLocaleDateString('es-CL') : 'Sin expiracion'}</Td>
-                  <Td>{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString('es-CL') : 'Nunca'}</Td>
-                  <Td>
-                    <Toggle
-                      checked={key.isActive}
-                      onChange={() => { handleToggleActive(key); }}
-                      size="sm"
-                      disabled={!canWrite}
-                    />
-                  </Td>
-                  {canWrite && (
-                    <Td>
-                      <div className="flex gap-1">
-                        <ActionBtn label="Rotar" onClick={() => { setRotating(key); }} />
-                        <ActionBtn label="Eliminar" onClick={() => { setDeleting(key); }} variant="danger" />
-                      </div>
-                    </Td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+                )}
+              </tr>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {/* Create Modal */}
       <Modal open={createOpen} onClose={closeCreate} title="Nueva API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40">

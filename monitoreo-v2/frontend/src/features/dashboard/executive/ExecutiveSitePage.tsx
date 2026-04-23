@@ -9,7 +9,6 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useTariffsQuery, useTariffBlocksQuery } from '../../../hooks/queries/useTariffsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { DataWidget } from '../../../components/ui/DataWidget';
-import { useQueryState } from '../../../hooks/useQueryState';
 import { aggregatePortfolioByBucket, dateRangeFromPreset } from '../dashboardAggregations';
 import { APP_ROUTES } from '../../../app/routes';
 
@@ -41,9 +40,6 @@ export function ExecutiveSitePage(): ReactElement {
   const firstTariffId = tariffsQuery.data?.find((t) => t.isActive)?.id ?? tariffsQuery.data?.[0]?.id ?? null;
   const tariffBlocksQuery = useTariffBlocksQuery(firstTariffId);
 
-  const buildingQs = useQueryState(buildingsQuery, {
-    isEmpty: (d) => !d || d.length === 0,
-  });
 
   const meters = metersQuery.data ?? [];
   const latestReadings = latestQuery.data ?? [];

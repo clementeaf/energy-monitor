@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { useMyInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { invoicesEndpoints } from '../../services/endpoints';
 import { Chart } from '../../components/charts/Chart';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { Invoice, InvoiceStatus } from '../../types/invoice';
 
@@ -109,32 +109,31 @@ export function MyInvoicePage(): ReactElement {
       )}
 
       {/* Table */}
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { invoicesQuery.refetch(); }}
-        emptyTitle="Sin facturas"
-        emptyDescription="No hay facturas asociadas a su cuenta."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
-              <tr>
-                <th className="px-4 py-2">Periodo</th>
-                <th className="px-4 py-2">N° Factura</th>
-                <th className="px-4 py-2">Estado</th>
-                <th className="px-4 py-2 text-right">Total</th>
-                <th className="px-4 py-2 text-right">PDF</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map((inv) => (
-                <MyInvoiceRow key={inv.id} invoice={inv} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <tr>
+              <th className="px-4 py-2">Periodo</th>
+              <th className="px-4 py-2">N° Factura</th>
+              <th className="px-4 py-2">Estado</th>
+              <th className="px-4 py-2 text-right">Total</th>
+              <th className="px-4 py-2 text-right">PDF</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={5}
+            error={qs.error}
+            onRetry={() => { invoicesQuery.refetch(); }}
+            emptyMessage="No hay facturas asociadas a su cuenta."
+            skeletonWidths={['w-32', 'w-24', 'w-20', 'w-24', 'w-20']}
+          >
+            {filtered.map((inv) => (
+              <MyInvoiceRow key={inv.id} invoice={inv} />
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

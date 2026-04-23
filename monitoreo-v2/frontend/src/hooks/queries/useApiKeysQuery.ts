@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiKeysEndpoints } from '../../services/endpoints';
 import type {
-  ApiKey, ApiKeyCreationResult,
+  ApiKey,
   CreateApiKeyPayload, UpdateApiKeyPayload,
 } from '../../types/api-key';
 

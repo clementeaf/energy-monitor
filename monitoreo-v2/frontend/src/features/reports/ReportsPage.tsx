@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
@@ -148,125 +148,125 @@ export function ReportsPage() {
           </div>
         </div>
 
-        <DataWidget
-          phase={reportsQs.phase}
-          error={reportsQs.error}
-          onRetry={reportsQs.refetch}
-          emptyDescription="No hay reportes generados"
-        >
-          <div className="overflow-auto rounded-lg border border-gray-200">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-white">
-                <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">Tipo</th>
-                  <th className="px-4 py-3">Periodo</th>
-                  <th className="px-4 py-3">Formato</th>
-                  <th className="px-4 py-3">Creado</th>
-                  <th className="px-4 py-3 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {reportsQs.data?.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-800">{labelForReportType(row.reportType)}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {row.periodStart} — {row.periodEnd}
-                    </td>
-                    <td className="px-4 py-3">{FORMAT_LABELS[row.format]}</td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {new Date(row.createdAt).toLocaleString('es-CL')}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <a
-                        href={reportsEndpoints.exportHref(row.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mr-3 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+        <div className="overflow-auto rounded-lg border border-gray-200">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10 bg-white">
+              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-4 py-3">Tipo</th>
+                <th className="px-4 py-3">Periodo</th>
+                <th className="px-4 py-3">Formato</th>
+                <th className="px-4 py-3">Creado</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <TableStateBody
+              phase={reportsQs.phase}
+              colSpan={5}
+              error={reportsQs.error}
+              onRetry={reportsQs.refetch}
+              emptyMessage="No hay reportes generados"
+              skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
+            >
+              {reportsQs.data?.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-gray-800">{labelForReportType(row.reportType)}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {row.periodStart} — {row.periodEnd}
+                  </td>
+                  <td className="px-4 py-3">{FORMAT_LABELS[row.format]}</td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {new Date(row.createdAt).toLocaleString('es-CL')}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <a
+                      href={reportsEndpoints.exportHref(row.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mr-3 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                    >
+                      Descargar
+                    </a>
+                    {canSchedule && (
+                      <button
+                        type="button"
+                        onClick={() => setDeletingReport(row)}
+                        className="text-sm text-red-600 hover:underline"
                       >
-                        Descargar
-                      </a>
-                      {canSchedule && (
-                        <button
-                          type="button"
-                          onClick={() => setDeletingReport(row)}
-                          className="text-sm text-red-600 hover:underline"
-                        >
-                          Eliminar
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </DataWidget>
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </TableStateBody>
+          </table>
+        </div>
       </section>
 
       <section>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Reportes programados</h2>
-        <DataWidget
-          phase={scheduledQs.phase}
-          error={scheduledQs.error}
-          onRetry={scheduledQs.refetch}
-          emptyDescription="No hay reportes programados"
-        >
-          <div className="overflow-auto rounded-lg border border-gray-200">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-white">
-                <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">Tipo</th>
-                  <th className="px-4 py-3">Cron</th>
-                  <th className="px-4 py-3">Activo</th>
-                  <th className="px-4 py-3">Próxima ejecución</th>
-                  <th className="px-4 py-3 text-right">Acciones</th>
+        <div className="overflow-auto rounded-lg border border-gray-200">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10 bg-white">
+              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-4 py-3">Tipo</th>
+                <th className="px-4 py-3">Cron</th>
+                <th className="px-4 py-3">Activo</th>
+                <th className="px-4 py-3">Próxima ejecución</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <TableStateBody
+              phase={scheduledQs.phase}
+              colSpan={5}
+              error={scheduledQs.error}
+              onRetry={scheduledQs.refetch}
+              emptyMessage="No hay reportes programados"
+              skeletonWidths={['w-20', 'w-24', 'w-12', 'w-28', 'w-20']}
+            >
+              {scheduledQs.data?.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-700">{row.cronExpression}</td>
+                  <td className="px-4 py-3">
+                    {canSchedule ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateScheduledMutation.mutate({
+                            id: row.id,
+                            payload: { isActive: !row.isActive },
+                          })
+                        }
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          row.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {row.isActive ? 'Sí' : 'No'}
+                      </button>
+                    ) : (
+                      <span>{row.isActive ? 'Sí' : 'No'}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {row.nextRunAt ? new Date(row.nextRunAt).toLocaleString('es-CL') : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {canSchedule && (
+                      <button
+                        type="button"
+                        onClick={() => setDeletingScheduled(row)}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {scheduledQs.data?.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-700">{row.cronExpression}</td>
-                    <td className="px-4 py-3">
-                      {canSchedule ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateScheduledMutation.mutate({
-                              id: row.id,
-                              payload: { isActive: !row.isActive },
-                            })
-                          }
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            row.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {row.isActive ? 'Sí' : 'No'}
-                        </button>
-                      ) : (
-                        <span>{row.isActive ? 'Sí' : 'No'}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {row.nextRunAt ? new Date(row.nextRunAt).toLocaleString('es-CL') : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {canSchedule && (
-                        <button
-                          type="button"
-                          onClick={() => setDeletingScheduled(row)}
-                          className="text-sm text-red-600 hover:underline"
-                        >
-                          Eliminar
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </DataWidget>
+              ))}
+            </TableStateBody>
+          </table>
+        </div>
       </section>
 
       {generateOpen && (

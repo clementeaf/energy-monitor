@@ -4,7 +4,7 @@ import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { Chart } from '../../components/charts/Chart';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import {
   dateRangeFromPreset,
@@ -201,44 +201,43 @@ export function BenchmarkPage(): ReactElement {
       </div>
 
       {/* Ranking table */}
-      <DataWidget
-        phase={qs.phase === 'loading' || aggQuery.isPending ? 'loading' : rows.length === 0 ? 'empty' : 'ready'}
-        error={qs.error ?? aggQuery.error}
-        onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
-        emptyTitle="Sin datos"
-        emptyDescription="No hay datos de edificios o lecturas para el periodo seleccionado."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
-              <tr>
-                <th className="px-4 py-2">#</th>
-                <th className="px-4 py-2">Edificio</th>
-                <th className="px-4 py-2 text-right">Área (m²)</th>
-                <th className="px-4 py-2 text-right">Medidores</th>
-                <th className="px-4 py-2 text-right">Energía (kWh)</th>
-                <th className="px-4 py-2 text-right">kWh/m²</th>
-                <th className="px-4 py-2 text-right">Demanda peak (kW)</th>
-                <th className="px-4 py-2 text-right">FP promedio</th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <tr>
+              <th className="px-4 py-2">#</th>
+              <th className="px-4 py-2">Edificio</th>
+              <th className="px-4 py-2 text-right">Área (m²)</th>
+              <th className="px-4 py-2 text-right">Medidores</th>
+              <th className="px-4 py-2 text-right">Energía (kWh)</th>
+              <th className="px-4 py-2 text-right">kWh/m²</th>
+              <th className="px-4 py-2 text-right">Demanda peak (kW)</th>
+              <th className="px-4 py-2 text-right">FP promedio</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase === 'loading' || aggQuery.isPending ? 'loading' : rows.length === 0 ? 'empty' : 'ready'}
+            colSpan={8}
+            error={qs.error ?? aggQuery.error}
+            onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
+            emptyMessage="No hay datos de edificios o lecturas para el periodo seleccionado."
+            skeletonWidths={['w-8', 'w-28', 'w-16', 'w-12', 'w-20', 'w-16', 'w-20', 'w-16']}
+          >
+            {rows.map((r) => (
+              <tr key={r.buildingId} className="hover:bg-gray-50">
+                <td className="px-4 py-2 text-gray-500">{r.rank}</td>
+                <td className="px-4 py-2 font-medium text-gray-900">{r.buildingName}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{r.areaSqm > 0 ? r.areaSqm.toLocaleString('es-CL') : '—'}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{r.meterCount}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{r.energyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+                <td className="px-4 py-2 text-right tabular-nums font-semibold">{r.kwhPerSqm > 0 ? r.kwhPerSqm.toFixed(2) : '—'}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{r.peakDemandKw.toFixed(1)}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {rows.map((r) => (
-                <tr key={r.buildingId} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 text-gray-500">{r.rank}</td>
-                  <td className="px-4 py-2 font-medium text-gray-900">{r.buildingName}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.areaSqm > 0 ? r.areaSqm.toLocaleString('es-CL') : '—'}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.meterCount}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.energyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
-                  <td className="px-4 py-2 text-right tabular-nums font-semibold">{r.kwhPerSqm > 0 ? r.kwhPerSqm.toFixed(2) : '—'}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.peakDemandKw.toFixed(1)}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

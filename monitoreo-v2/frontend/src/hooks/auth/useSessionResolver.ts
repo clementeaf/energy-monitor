@@ -33,8 +33,8 @@ export function clearSessionFlag(): void {
  * clearSession() fires before MSAL can handle the redirect response.
  */
 export function useSessionResolver() {
-  const { setSession, clearSession } = useAuthStore();
-  const { inProgress } = useMsal();
+  const { setSession, clearSession, setLoading } = useAuthStore();
+  const { inProgress, accounts } = useMsal();
   const resolved = useRef(false);
 
   useEffect(() => {
@@ -42,6 +42,13 @@ export function useSessionResolver() {
     if (inProgress !== InteractionStatus.None) return;
     if (resolved.current) return;
     resolved.current = true;
+
+    // If MSAL just completed a redirect login, let useAuth handle it.
+    // Stop loading spinner so LoginPage renders while useAuth processes the token.
+    if (accounts.length > 0 && !localStorage.getItem(SESSION_FLAG)) {
+      setLoading(false);
+      return;
+    }
 
     // No flag = no session — skip the request entirely
     if (!localStorage.getItem(SESSION_FLAG)) {
@@ -60,5 +67,5 @@ export function useSessionResolver() {
         clearSessionFlag();
         clearSession();
       });
-  }, [inProgress, setSession, clearSession]);
+  }, [inProgress, accounts, setSession, clearSession, setLoading]);
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataWidget } from '../../components/ui/DataWidget';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useNotificationLogsQuery } from '../../hooks/queries/useNotificationLogsQuery';
 import type { NotificationLogQueryParams } from '../../types/notification-log';
@@ -87,46 +87,51 @@ export function NotificationsPage() {
         </button>
       </div>
 
-      <DataWidget phase={qs.phase} error={qs.error} refetch={qs.refetch}>
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Fecha</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Canal</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Asunto</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Destinatario</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Error</th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Fecha</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Canal</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Asunto</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Destinatario</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Error</th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={6}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="Sin notificaciones registradas"
+            skeletonWidths={['w-24', 'w-16', 'w-16', 'w-32', 'w-24', 'w-24']}
+          >
+            {(query.data?.data ?? []).map((log) => (
+              <tr key={log.id}>
+                <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                  {new Date(log.createdAt).toLocaleString('es-CL')}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${CHANNEL_COLORS[log.channel] ?? ''}`}>
+                    {log.channel}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[log.status] ?? ''}`}>
+                    {log.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 max-w-xs truncate" title={log.subject}>{log.subject}</td>
+                <td className="px-4 py-3 text-xs text-gray-500">{log.recipient ?? '—'}</td>
+                <td className="px-4 py-3 text-xs text-red-600 max-w-xs truncate" title={log.errorMessage ?? ''}>
+                  {log.errorMessage ?? '—'}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {(query.data?.data ?? []).map((log) => (
-                <tr key={log.id}>
-                  <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-                    {new Date(log.createdAt).toLocaleString('es-CL')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${CHANNEL_COLORS[log.channel] ?? ''}`}>
-                      {log.channel}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[log.status] ?? ''}`}>
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 max-w-xs truncate" title={log.subject}>{log.subject}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500">{log.recipient ?? '—'}</td>
-                  <td className="px-4 py-3 text-xs text-red-600 max-w-xs truncate" title={log.errorMessage ?? ''}>
-                    {log.errorMessage ?? '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm text-gray-600">

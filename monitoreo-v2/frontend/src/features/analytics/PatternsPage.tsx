@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { Chart } from '../../components/charts/Chart';
+import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
 
@@ -107,8 +108,9 @@ export function PatternsPage(): ReactElement {
       },
       legend: { align: 'right' as const, layout: 'vertical' as const, verticalAlign: 'middle' as const },
       tooltip: {
-        formatter: function (this: { point: { x: number; y: number; value: number } }): string {
-          return `<b>${DAY_LABELS[this.point.y]} ${this.point.x}:00</b><br/>Promedio: ${this.point.value} kWh`;
+        formatter(this: unknown): string {
+          const p = (this as { point: { x: number; y: number; value: number } }).point;
+          return `<b>${DAY_LABELS[p.y]} ${p.x}:00</b><br/>Promedio: ${p.value} kWh`;
         },
       },
       series: [{
@@ -269,7 +271,14 @@ export function PatternsPage(): ReactElement {
                   <th className="px-4 py-2 text-right">z-Score</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <TableStateBody
+                phase={anomalies.length > 0 ? 'ready' : 'empty'}
+                colSpan={5}
+                error={null}
+                onRetry={() => { aggQuery.refetch(); }}
+                emptyMessage="Sin anomalías detectadas"
+                skeletonWidths={['w-20', 'w-20', 'w-20', 'w-20', 'w-16']}
+              >
                 {anomalies.map((a) => (
                   <tr key={a.bucket} className="hover:bg-gray-50">
                     <td className="px-4 py-2 font-medium text-gray-900">{a.bucket}</td>
@@ -283,7 +292,7 @@ export function PatternsPage(): ReactElement {
                     <td className="px-4 py-2 text-right tabular-nums font-mono">{a.zScore.toFixed(2)}</td>
                   </tr>
                 ))}
-              </tbody>
+              </TableStateBody>
             </table>
           </div>
         )}

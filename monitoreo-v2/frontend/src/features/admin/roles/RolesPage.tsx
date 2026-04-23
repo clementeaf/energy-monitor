@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { Drawer } from '../../../components/ui/Drawer';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Button } from '../../../components/ui/Button';
@@ -193,61 +193,59 @@ export function RolesPage() {
         )}
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle="Sin roles"
-        emptyDescription="No hay roles configurados para este tenant."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Nombre</Th>
-                <Th>Descripción</Th>
-                <Th>Permisos</Th>
-                <Th>Activo</Th>
-                {canWrite && <Th></Th>}
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Descripción</Th>
+              <Th>Permisos</Th>
+              <Th>Activo</Th>
+              {canWrite && <Th></Th>}
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={canWrite ? 5 : 4}
+            error={qs.error}
+            onRetry={() => { query.refetch(); }}
+            emptyMessage="No hay roles configurados."
+            skeletonWidths={['w-28', 'w-32', 'w-16', 'w-16', 'w-20']}
+          >
+            {(query.data ?? []).map((role) => (
+              <tr key={role.id} className="hover:bg-gray-50">
+                <Td className="font-medium text-gray-900">{role.name}</Td>
+                <Td className="max-w-[250px] truncate" title={role.description ?? undefined}>
+                  {role.description ?? '—'}
+                </Td>
+                <Td>
+                  <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    {role.permissions.length}
+                  </span>
+                </Td>
+                <Td>
+                  <Toggle
+                    checked={role.isActive}
+                    onChange={() => { handleToggleActive(role); }}
+                    size="sm"
+                    disabled={!canWrite || role.isDefault}
+                  />
+                </Td>
+                {canWrite && (
+                  <Td>
+                    <div className="flex gap-1">
+                      <ActionBtn label="Editar" onClick={() => { openEdit(role); }} />
+                      {!role.isDefault && (
+                        <ActionBtn label="Eliminar" onClick={() => { setDeleting(role); }} variant="danger" />
+                      )}
+                    </div>
+                  </Td>
+                )}
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(query.data ?? []).map((role) => (
-                <tr key={role.id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{role.name}</Td>
-                  <Td className="max-w-[250px] truncate" title={role.description ?? undefined}>
-                    {role.description ?? '—'}
-                  </Td>
-                  <Td>
-                    <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {role.permissions.length}
-                    </span>
-                  </Td>
-                  <Td>
-                    <Toggle
-                      checked={role.isActive}
-                      onChange={() => { handleToggleActive(role); }}
-                      size="sm"
-                      disabled={!canWrite || role.isDefault}
-                    />
-                  </Td>
-                  {canWrite && (
-                    <Td>
-                      <div className="flex gap-1">
-                        <ActionBtn label="Editar" onClick={() => { openEdit(role); }} />
-                        {!role.isDefault && (
-                          <ActionBtn label="Eliminar" onClick={() => { setDeleting(role); }} variant="danger" />
-                        )}
-                      </div>
-                    </Td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
 
       {/* Create/Edit Drawer */}
       <Drawer

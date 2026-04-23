@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { formatMeterTypeLabel } from '../lib/meterClassification';
 import type { Meter } from '../../../types/meter';
@@ -113,95 +113,94 @@ export function MetersByTypePage() {
         />
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { metersQuery.refetch(); }}
-        emptyTitle="Sin medidores"
-        emptyDescription="No hay medidores visibles para su usuario."
-      >
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr>
-                <Th>Tipo</Th>
-                <Th>Cantidad</Th>
-                <Th>Potencia sumada (kW)</Th>
-                <Th className="w-28">Detalle</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {groups.map((g) => (
-                <Fragment key={g.typeKey}>
-                  <tr className="hover:bg-gray-50">
-                    <Td className="font-medium text-gray-900">{formatMeterTypeLabel(g.typeKey)}</Td>
-                    <Td>{g.meters.length}</Td>
-                    <Td>{g.totalKw.toFixed(1)}</Td>
-                    <Td>
-                      <button
-                        type="button"
-                        onClick={() => { toggle(g.typeKey); }}
-                        className="text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
-                      >
-                        {expanded.has(g.typeKey) ? 'Ocultar' : 'Ver medidores'}
-                      </button>
-                    </Td>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Tipo</Th>
+              <Th>Cantidad</Th>
+              <Th>Potencia sumada (kW)</Th>
+              <Th className="w-28">Detalle</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={4}
+            error={qs.error}
+            onRetry={() => { metersQuery.refetch(); }}
+            emptyMessage="No hay medidores visibles para su usuario."
+            skeletonWidths={['w-28', 'w-16', 'w-24', 'w-20']}
+          >
+            {groups.map((g) => (
+              <Fragment key={g.typeKey}>
+                <tr className="hover:bg-gray-50">
+                  <Td className="font-medium text-gray-900">{formatMeterTypeLabel(g.typeKey)}</Td>
+                  <Td>{g.meters.length}</Td>
+                  <Td>{g.totalKw.toFixed(1)}</Td>
+                  <Td>
+                    <button
+                      type="button"
+                      onClick={() => { toggle(g.typeKey); }}
+                      className="text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                    >
+                      {expanded.has(g.typeKey) ? 'Ocultar' : 'Ver medidores'}
+                    </button>
+                  </Td>
+                </tr>
+                {expanded.has(g.typeKey) && (
+                  <tr key={`${g.typeKey}-detail`} className="bg-gray-50">
+                    <td colSpan={4} className="p-0">
+                      <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
+                        <table className="min-w-full text-sm">
+                          <thead className="sticky top-0 z-10 bg-white">
+                            <tr className="text-left text-xs uppercase text-gray-500">
+                              <th className="pb-2 pr-4">Nombre</th>
+                              <th className="pb-2 pr-4">Codigo</th>
+                              <th className="pb-2 pr-4">Edificio</th>
+                              <th className="pb-2 pr-4">Potencia kW</th>
+                              <th className="pb-2">Enlace</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {g.meters.map((m) => {
+                              const p = powerByMeterId.get(m.id);
+                              const ts = (latestQuery.data ?? []).find((r) => r.meter_id === m.id)?.timestamp ?? null;
+                              const st = commStatus(ts, m.isActive);
+                              return (
+                                <tr key={m.id}>
+                                  <td className="py-2 pr-4 font-medium text-gray-800">{m.name}</td>
+                                  <td className="py-2 pr-4">{m.code}</td>
+                                  <td className="py-2 pr-4">{buildingNameById.get(m.buildingId) ?? m.buildingId}</td>
+                                  <td className="py-2 pr-4">{(p ?? 0).toFixed(1)}</td>
+                                  <td className="py-2">
+                                    <span
+                                      className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-xs ${
+                                        st === 'online' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                      }`}
+                                    >
+                                      {st === 'online' ? 'Online' : 'Offline'}
+                                    </span>
+                                    <Link
+                                      to={`/meters?buildingId=${m.buildingId}`}
+                                      className="text-[var(--color-primary,#3D3BF3)] hover:underline"
+                                    >
+                                      Listado edificio
+                                    </Link>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
                   </tr>
-                  {expanded.has(g.typeKey) && (
-                    <tr key={`${g.typeKey}-detail`} className="bg-gray-50">
-                      <td colSpan={4} className="p-0">
-                        <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
-                          <table className="min-w-full text-sm">
-                            <thead className="sticky top-0 z-10 bg-white">
-                              <tr className="text-left text-xs uppercase text-gray-500">
-                                <th className="pb-2 pr-4">Nombre</th>
-                                <th className="pb-2 pr-4">Codigo</th>
-                                <th className="pb-2 pr-4">Edificio</th>
-                                <th className="pb-2 pr-4">Potencia kW</th>
-                                <th className="pb-2">Enlace</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                              {g.meters.map((m) => {
-                                const p = powerByMeterId.get(m.id);
-                                const ts = (latestQuery.data ?? []).find((r) => r.meter_id === m.id)?.timestamp ?? null;
-                                const st = commStatus(ts, m.isActive);
-                                return (
-                                  <tr key={m.id}>
-                                    <td className="py-2 pr-4 font-medium text-gray-800">{m.name}</td>
-                                    <td className="py-2 pr-4">{m.code}</td>
-                                    <td className="py-2 pr-4">{buildingNameById.get(m.buildingId) ?? m.buildingId}</td>
-                                    <td className="py-2 pr-4">{(p ?? 0).toFixed(1)}</td>
-                                    <td className="py-2">
-                                      <span
-                                        className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-xs ${
-                                          st === 'online' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                      >
-                                        {st === 'online' ? 'Online' : 'Offline'}
-                                      </span>
-                                      <Link
-                                        to={`/meters?buildingId=${m.buildingId}`}
-                                        className="text-[var(--color-primary,#3D3BF3)] hover:underline"
-                                      >
-                                        Listado edificio
-                                      </Link>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataWidget>
+                )}
+              </Fragment>
+            ))}
+          </TableStateBody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -4,12 +4,13 @@ import {
   Get,
   Delete,
   Body,
+  Req,
   Res,
   HttpCode,
   HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -88,9 +89,15 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(
     @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.refreshTokens(dto.refreshToken);
+    // Accept refresh token from body or httpOnly cookie
+    const refreshToken = dto.refreshToken || (req.cookies?.refresh_token as string);
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+    const tokens = await this.authService.refreshTokens(refreshToken);
     this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
     return { success: true };
   }

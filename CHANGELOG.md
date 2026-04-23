@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.9.0-alpha.0] - 2026-04-23 — MONITOREO V2: REALTIME FILTERS + TOKEN REFRESH FIX
+
+### Changed (monitoreo-v2/frontend)
+- **RealtimePage** — Compact KPI pills replacing large cards. Added status filter, text search, and result counter. 15-row pages with infinite scroll.
+
+### Fixed (monitoreo-v2/backend)
+- **Token refresh** — `POST /auth/refresh` now reads refresh token from httpOnly cookie when body is empty. DTO field made optional. Fixes 401 errors when Axios interceptor retries without body.
+
+---
+
 ## [1.8.0-alpha.0] - 2026-04-23 — MONITOREO V2: TABLE STATE PATTERN + SUPER ADMIN BYPASS
 
 ### Changed (monitoreo-v2/frontend)

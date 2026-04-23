@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class OAuthLoginDto {
   @IsIn(['microsoft', 'google'])
@@ -11,8 +11,8 @@ export class OAuthLoginDto {
 }
 
 export class RefreshTokenDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(256)
-  refreshToken!: string;
+  refreshToken?: string;
 }

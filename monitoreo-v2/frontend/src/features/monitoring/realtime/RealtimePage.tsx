@@ -25,6 +25,8 @@ const PAGE_SIZE = 15;
 export function RealtimePage() {
   const navigate = useNavigate();
   const [buildingFilter, setBuildingFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -66,11 +68,34 @@ export function RealtimePage() {
   }, [alertsQuery.data]);
 
   const readings = latestQuery.data ?? [];
-  const visibleReadings = readings.slice(0, visibleCount);
-  const hasMore = visibleCount < readings.length;
+
+  const buildingMap = useMemo(() => {
+    const map = new Map<string, string>();
+    buildings.forEach((b) => map.set(b.id, b.name));
+    return map;
+  }, [buildings]);
+
+  // Client-side filtering by status and search
+  const filteredReadings = useMemo(() => {
+    let result = readings;
+    if (statusFilter) {
+      result = result.filter((r) => getMeterStatus(r, alertMeterIds) === statusFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((r) =>
+        r.meter_name.toLowerCase().includes(q) ||
+        (buildingMap.get(r.building_id) ?? '').toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [readings, statusFilter, search, alertMeterIds, buildingMap]);
+
+  const visibleReadings = filteredReadings.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredReadings.length;
 
   // Reset visible count when filter changes
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [effectiveFilter]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [effectiveFilter, statusFilter, search]);
 
   // Infinite scroll via IntersectionObserver
   useEffect(() => {
@@ -83,12 +108,6 @@ export function RealtimePage() {
     return () => observer.disconnect();
   }, [hasMore, visibleCount]);
 
-  const buildingMap = useMemo(() => {
-    const map = new Map<string, string>();
-    buildings.forEach((b) => map.set(b.id, b.name));
-    return map;
-  }, [buildings]);
-
   // Summary cards
   const onlineCount = readings.filter((r) => getMeterStatus(r, alertMeterIds) === 'online').length;
   const offlineCount = readings.filter((r) => getMeterStatus(r, alertMeterIds) === 'offline').length;
@@ -96,26 +115,47 @@ export function RealtimePage() {
   const totalPower = readings.reduce((s, r) => s + Number(r.power_kw || 0), 0);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Monitoreo Tiempo Real</h1>
+    <div className="space-y-3">
+      {/* Header + filters row */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={buildingFilter}
           onChange={(e) => setBuildingFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
         >
           <option value="">Todos los edificios</option>
           {buildings.map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
           ))}
         </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
+        >
+          <option value="">Todos los estados</option>
+          <option value="online">En linea</option>
+          <option value="offline">Sin datos</option>
+          <option value="alarm">En alarma</option>
+        </select>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar medidor..."
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-44"
+        />
+        <span className="ml-auto text-[11px] text-pa-text-muted">
+          {filteredReadings.length} de {readings.length} medidores
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <SummaryCard label="En linea" value={String(onlineCount)} color="text-green-600" />
-        <SummaryCard label="Sin datos" value={String(offlineCount)} color="text-gray-500" />
-        <SummaryCard label="En alarma" value={String(alarmCount)} color="text-red-600" />
-        <SummaryCard label="Potencia total" value={`${totalPower.toFixed(1)} kW`} color="text-gray-900" />
+      {/* Compact KPI row */}
+      <div className="flex flex-wrap gap-2">
+        <MiniKpi label="En linea" value={onlineCount} color="text-green-600" />
+        <MiniKpi label="Sin datos" value={offlineCount} color="text-gray-500" />
+        <MiniKpi label="Alarma" value={alarmCount} color="text-red-600" />
+        <MiniKpi label="Potencia" value={`${totalPower.toFixed(1)} kW`} color="text-pa-text" />
       </div>
 
       {qs.phase === 'loading' ? (
@@ -182,11 +222,11 @@ export function RealtimePage() {
   );
 }
 
-function SummaryCard({ label, value, color }: Readonly<{ label: string; value: string; color: string }>) {
+function MiniKpi({ label, value, color }: Readonly<{ label: string; value: number | string; color: string }>) {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
+    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
+      <span className="text-[11px] text-gray-500">{label}</span>
+      <span className={`text-[13px] font-semibold ${color}`}>{value}</span>
     </div>
   );
 }

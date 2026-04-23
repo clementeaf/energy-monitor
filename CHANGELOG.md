@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0-alpha.0] - 2026-04-23 — GLOBE LANDING: HERO CAROUSEL, VALUES, INNOVATION & RESPONSIVE
+
+### Changed (globe-landing)
+- **Hero carousel** — 3 background images (Santiago, Frame 122, Modular) with crossfade, auto-advance 6s, functional dots and arrows. Each slide has its own label, title, and subtitle.
+- **Values cards** — Full image display (no crop), click "Ver más" reveals description overlay with close button. Text justified, title responsive with clamp. Mobile: 1 column, button always visible.
+- **Innovation cards** — New images from hero assets, text overlay with tag pill, title, and description matching Figma reference.
+- **Industries cards** — "Ver más" button hidden (commented out).
+- **Differentiation cards** — SVG icons replaced with PNG assets (engine, hands, check, worker).
+- **Stats section** — Mobile: 1 column, larger text for readability.
+- **Footer logos** — Infinite scroll carousel replacing static row. Logo shrink-0 fix.
+- **Contact form** — Custom ServiceSelect dropdown (Globe Power, Globe Services, Globe Modular) with white background, click-outside close, chevron rotation.
+
+---
+
 ## [1.4.0-alpha.0] - 2026-04-23 — MONITOREO V2: SKELETON LOADING & DASHBOARD PERFORMANCE
 
 ### Changed (monitoreo-v2/frontend)

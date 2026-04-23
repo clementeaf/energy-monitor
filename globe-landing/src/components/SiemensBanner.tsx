@@ -39,14 +39,14 @@ export function SiemensBanner() {
                 alt={item.alt}
                 className="w-full"
               />
-              <div className="absolute bottom-6 right-0 translate-x-full group-hover:translate-x-[-1rem] transition-transform duration-500 ease-out">
+              {/* <div className="absolute bottom-6 right-0 translate-x-full group-hover:translate-x-[-1rem] transition-transform duration-500 ease-out">
                 <span className="inline-flex items-center gap-2 rounded-full bg-transparent border border-white px-5 py-2.5 text-sm font-medium text-white">
                   Ver más
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
                   </svg>
                 </span>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>

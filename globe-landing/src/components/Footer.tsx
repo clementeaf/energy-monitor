@@ -5,13 +5,21 @@ import bboschLogo from '../assets/bbosch.png';
 import angloLogo from '../assets/angloAmerican.png';
 import roseLogo from '../assets/rose.png';
 
+const FOOTER_LOGOS = [
+  { src: clcLogo, alt: 'CLC' },
+  { src: googleLogo, alt: 'Google' },
+  { src: bboschLogo, alt: 'Bosch' },
+  { src: angloLogo, alt: 'Anglo American' },
+  { src: roseLogo, alt: 'Rose' },
+];
+
 export function Footer() {
   return (
     <footer className="py-12 px-5 sm:px-10 lg:px-12 bg-white">
       <div className="max-w-[1200px] mx-auto">
         {/* Logo + LinkedIn — stacked on mobile, row on desktop */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-10 border-b border-grey-200">
-          <img src={logo} alt="Grupo Globe" className="h-[58px] w-auto" />
+          <img src={logo} alt="Grupo Globe" className="h-[58px] w-auto object-contain shrink-0" />
 
           <a
             href="https://www.linkedin.com/company/grupo-globe"
@@ -80,13 +88,18 @@ export function Footer() {
           Todos los derechos reservados 2026.
         </p>
 
-        {/* Client logos */}
-        <div className="pt-10 mt-10 border-t border-grey-200 flex items-center gap-8 overflow-x-auto">
-          <img src={clcLogo} alt="CLC" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={googleLogo} alt="Google" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={bboschLogo} alt="Bosch" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={angloLogo} alt="Anglo American" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
-          <img src={roseLogo} alt="Rose" className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all" />
+        {/* Client logos — infinite scroll carousel */}
+        <div className="pt-10 mt-10 border-t border-grey-200 overflow-hidden">
+          <div className="flex items-center w-max animate-scroll-left">
+            {[...FOOTER_LOGOS, ...FOOTER_LOGOS].map((logo, i) => (
+              <img
+                key={`${logo.alt}-${i}`}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-10 w-auto object-contain mx-8 sm:mx-12 shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all"
+              />
+            ))}
+          </div>
         </div>
       </div>
     </footer>

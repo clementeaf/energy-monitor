@@ -13,11 +13,11 @@ export function Stats() {
           Grupo Globe en números
         </h2>
 
-        <div className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-white">{s.value}</p>
-              <p className="mt-2 text-sm text-white/60">{s.label}</p>
+              <p className="text-4xl sm:text-4xl font-bold text-white">{s.value}</p>
+              <p className="mt-2 text-base sm:text-sm text-white/60">{s.label}</p>
             </div>
           ))}
         </div>

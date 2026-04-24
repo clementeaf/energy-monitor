@@ -61,9 +61,9 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative overflow-hidden rounded-br-[100px]">
-      {/* Banner — Figma: h=598, px-60, py reduced to fit content + dots + logo bar */}
-      <div className="relative h-[598px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] pt-[80px] pb-[140px]">
+    <section className="relative overflow-hidden sm:rounded-br-[100px]">
+      {/* Banner */}
+      <div className="relative min-h-[480px] sm:min-h-[520px] lg:h-[598px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] pt-[60px] pb-[130px] sm:pt-[80px] sm:pb-[140px]">
         {/* Background slides */}
         {HERO_SLIDES.map((s, i) => (
           <img
@@ -74,39 +74,39 @@ export function Hero() {
             style={{ opacity: i === current ? 1 : 0, objectPosition: s.position }}
           />
         ))}
-        {/* Figma: dual gradient overlay */}
+        {/* Gradient overlay */}
         <div className="absolute inset-0" style={{ backgroundImage: HERO_GRADIENT }} />
 
-        {/* Content — Figma: max-w-1200, flex col gap-52, justify-center */}
-        <div className="relative z-10 flex flex-col gap-[32px] w-full max-w-[1200px]">
-          {/* Slide text layers — grid stack: all cells occupy same grid area, tallest wins */}
+        {/* Content */}
+        <div className="relative z-10 flex flex-col gap-6 sm:gap-[32px] w-full max-w-[1200px]">
+          {/* Slide text layers — grid stack for no-reflow crossfade */}
           <div className="grid">
             {HERO_SLIDES.map((s, i) => (
               <div
                 key={s.src}
-                className={`col-start-1 row-start-1 flex gap-[60px] items-end transition-opacity duration-700 ease-in-out ${
+                className={`col-start-1 row-start-1 flex flex-col sm:flex-row sm:gap-[60px] sm:items-end transition-opacity duration-700 ease-in-out ${
                   i === current ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
               >
                 {/* Text column */}
-                <div className="flex-1 min-w-0 flex flex-col gap-[40px]">
+                <div className="flex-1 min-w-0 flex flex-col gap-6 sm:gap-[40px]">
                   {/* Label + Title */}
                   <div className="flex flex-col gap-[2px] text-white">
-                    <span className="font-body text-[16px] leading-[20px] font-normal">
+                    <span className="font-body text-[14px] sm:text-[16px] leading-[20px] font-normal">
                       {s.label}
                     </span>
-                    <h1 className="font-heading text-[48px] leading-[56px] font-extrabold">
+                    <h1 className="font-heading text-[28px] sm:text-[36px] lg:text-[48px] leading-[1.15] sm:leading-[1.15] lg:leading-[56px] font-extrabold">
                       {s.title}
                     </h1>
                   </div>
                   {/* Subtitle */}
-                  <p className="font-heading text-[18px] leading-[26px] font-medium text-white">
+                  <p className="font-heading text-[15px] sm:text-[16px] lg:text-[18px] leading-[22px] sm:leading-[24px] lg:leading-[26px] font-medium text-white">
                     {s.subtitle}
                   </p>
                 </div>
 
-                {/* CTA button — aligned bottom-right */}
-                <div className="hidden sm:flex flex-col items-end shrink-0 h-[48px]">
+                {/* CTA button — desktop only */}
+                <div className="hidden lg:flex flex-col items-end shrink-0 h-[48px]">
                   <a
                     href="#contacto"
                     className="inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
@@ -121,9 +121,8 @@ export function Hero() {
             ))}
           </div>
 
-          {/* Row 2: dots left + arrows right */}
+          {/* Dots + arrows */}
           <div className="flex items-center justify-between">
-            {/* Dots */}
             <div className="flex items-center gap-2">
               {HERO_SLIDES.map((_, i) => (
                 <button
@@ -138,7 +137,6 @@ export function Hero() {
               ))}
             </div>
 
-            {/* Arrow buttons — Figma: 42px, gap 36px */}
             <div className="hidden sm:flex items-center gap-9">
               <button
                 type="button"
@@ -165,15 +163,15 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Client logos bar — Figma: w-1043, h-117, rounded-tr-[100px], pt-36 pb-16 */}
-      <div className="absolute bottom-0 left-0 z-10 overflow-hidden w-full sm:max-w-[1043px] h-[117px] sm:rounded-tr-[100px] bg-white pt-9 pb-4">
-        <div className="flex items-center animate-scroll-left w-max gap-[60px]">
+      {/* Client logos bar */}
+      <div className="absolute bottom-0 left-0 z-10 overflow-hidden w-full sm:max-w-[1043px] h-[80px] sm:h-[117px] sm:rounded-tr-[100px] bg-white pt-5 sm:pt-9 pb-3 sm:pb-4">
+        <div className="flex items-center animate-scroll-left w-max gap-8 sm:gap-[60px]">
           {[...CLIENT_LOGOS, ...CLIENT_LOGOS].map((logo, i) => (
             <img
               key={`${logo.alt}-${i}`}
               src={logo.src}
               alt={logo.alt}
-              className="h-8 sm:h-11 w-auto shrink-0"
+              className="h-6 sm:h-11 w-auto shrink-0"
               style={{ filter: 'brightness(0) saturate(100%) invert(22%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(89%)' }}
             />
           ))}

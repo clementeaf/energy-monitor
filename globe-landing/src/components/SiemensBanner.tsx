@@ -23,10 +23,6 @@ const INDUSTRIES = [
   },
 ];
 
-/* Figma: dual gradient overlay on area cards */
-const CARD_GRADIENT =
-  'linear-gradient(0deg, rgba(60, 60, 60, 0.9) 0%, rgba(149, 31, 34, 0) 100%), linear-gradient(0deg, rgba(28, 28, 28, 0.9) 0%, rgba(60, 60, 60, 0) 100%)';
-
 /* Figma hover: rojizo gradient */
 const HOVER_GRADIENT =
   'linear-gradient(-0.07deg, rgba(91, 25, 27, 0.6) 38.1%, rgba(91, 25, 27, 0) 110.7%), linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%)';
@@ -57,43 +53,28 @@ export function SiemensBanner() {
       </div>
 
       {/* Cards — Figma: full-width, 3 cards, gap-1, h-380 */}
-      <div className="flex gap-1">
+      {/* Cards — images already contain title + subtitle + gradient baked in */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-1 px-5 sm:px-0">
         {INDUSTRIES.map((item) => (
-          <div key={item.title} className="group relative flex-1 h-[380px] overflow-hidden rounded-[4px]">
-            {/* Background image */}
+          <div key={item.title} className="group relative h-[300px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-[4px]">
             <img
               src={item.src}
               alt={item.title}
               className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            {/* Default gradient overlay */}
-            <div className="absolute inset-0 rounded-[4px] transition-opacity duration-300 group-hover:opacity-0" style={{ backgroundImage: CARD_GRADIENT }} />
-            {/* Hover: rojizo gradient overlay */}
-            <div className="absolute inset-0 rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
+            {/* Hover: rojizo gradient overlay (desktop only) */}
+            <div className="absolute inset-0 rounded-[4px] opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
 
-            {/* Content: title + subtitle centered, CTA bottom-center */}
-            <div className="relative flex flex-col items-center justify-center h-full p-6">
-              {/* Title + subtitle block */}
-              <div className="flex flex-col gap-2 text-center text-white">
-                <h3 className="font-heading text-[28px] leading-[36px] font-extrabold">
-                  {item.title}
-                </h3>
-                <p className="font-body text-[18px] leading-[28px] font-normal">
-                  {item.subtitle}
-                </p>
-              </div>
-
-              {/* CTA pill — centered at bottom */}
-              <a
-                href="#contacto"
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
-              >
-                {item.cta}
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-                </svg>
-              </a>
-            </div>
+            {/* CTA pill — centered at bottom */}
+            <a
+              href="#contacto"
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+            >
+              {item.cta}
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+              </svg>
+            </a>
           </div>
         ))}
       </div>

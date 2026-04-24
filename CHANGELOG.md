@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.3.0-alpha.0] - 2026-04-24 — GLOBE LANDING: FIGMA PIXEL-PERFECT REDESIGN
+
+### Changed (globe-landing)
+- **Navbar** — Solid CTA pill (`#3c3c3c`), backdrop-blur 5px, py-32 px-60, logo 245x52, fixed positioning.
+- **Hero** — 598px banner, dual gradient overlay, 3-slide crossfade (text + images), per-slide CTA buttons, grid-stack layout (no reflow), dots + arrow nav, logo bar h-117 with infinite scroll.
+- **About** — Label 16px + title H2 36px/44px + body 22px/30px Plus Jakarta Sans Medium. Max-w 1200, py-128.
+- **Valores (Ecosystem)** — Header 2-col grid, full-width image cards. 3 states: default (arrow icon), hover (rojizo gradient + "Ver más" pill), pressed (white bg + description + close). Mobile: 1-col, arrow always visible.
+- **Industrias (SiemensBanner)** — Header 1fr/2fr grid, image cards with baked text. CTA pill per card. Hover rojizo gradient (desktop).
+- **Diferenciacion (Differentiation)** — Centered header, 2x2 card grid, 68px icon with radial gradient, hover bg-grey-50.
+- **Stats** — H1 48px/56px numbers, H4 22px/30px labels, flex row text-left, py-80.
+- **Presencia (Presence)** — Flex row gap-128, map 463px, body 22px/30px.
+- **Innovacion (Innovation)** — Centered header, 3 cards h-380, badge pills, dual gradient + hover rojizo.
+- **Contacto (Contact)** — bg `#9a2d29`, 1fr/2fr grid, white inputs, labels 14px grey-100, submit pill outline.
+- **Footer** — py-52, logo 276px, LinkedIn icon (no border), 3-col content with border-t/b, logo carousel gap-60.
+- **App** — Removed `Results` component. Reordered sections to match Figma. Navbar spacer for fixed nav.
+- **Responsividad** — All sections responsive: hero min-h adaptive, cards grid-cols-1 on mobile, font sizes scale down, logo bar shrinks, hover effects desktop-only.
+- **Scroll** — `scroll-padding-top` compensates fixed navbar. Smooth scroll to section anchors.
+
+---
+
 ## [2.2.0-alpha.0] - 2026-04-24 — PROD DEPLOY, SUPER ADMIN CROSS-TENANT, HEALTH ENDPOINT
 
 ### Added (monitoreo-v2/backend)

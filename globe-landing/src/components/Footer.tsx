@@ -25,7 +25,7 @@ export function Footer() {
             href="https://www.linkedin.com/company/grupo-globe"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-14 h-14 rounded-full border border-grey-800 text-grey-800 hover:bg-grey-100 transition-colors"
+            className="flex items-center justify-center w-14 h-14 rounded-full text-grey-800 hover:bg-grey-100 transition-colors"
             aria-label="LinkedIn"
           >
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">

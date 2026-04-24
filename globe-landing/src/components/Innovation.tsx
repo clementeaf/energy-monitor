@@ -53,7 +53,7 @@ export function Innovation() {
         {/* Cards — Figma: 3 cards, gap-12, h-380, rounded-8 */}
         <div className="flex flex-col sm:flex-row gap-3">
           {PILLARS.map((item) => (
-            <div key={item.tag} className="group relative flex-1 h-[380px] overflow-hidden rounded-lg">
+            <div key={item.tag} className="group relative flex-1 h-[300px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-lg">
               {/* Background image */}
               <img
                 src={item.src}

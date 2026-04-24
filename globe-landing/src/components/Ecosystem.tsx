@@ -43,9 +43,9 @@ export function Ecosystem() {
       </div>
 
       {/* Cards — Figma: full-width, 4 cards, gap-1, h-380, 3 states */}
-      <div className="flex gap-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px sm:gap-1">
         {VALUES.map((v, i) => (
-          <div key={v.label} className="group relative flex-1 h-[380px] overflow-hidden rounded-[4px] cursor-pointer">
+          <div key={v.label} className="group relative h-[280px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-[4px] cursor-pointer">
             {/* Pressed state: white bg, text content, close button */}
             {pressed === i ? (
               <div className="bg-white flex flex-col gap-5 h-full p-6 rounded-[4px]">
@@ -78,15 +78,15 @@ export function Ecosystem() {
                 />
                 {/* Hover: rojizo gradient overlay */}
                 <div
-                  className="absolute inset-0 rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 rounded-[4px] opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
                   style={{ backgroundImage: HOVER_GRADIENT }}
                 />
 
-                {/* Default: arrow icon button — bottom-right */}
+                {/* Mobile: arrow icon always visible, tap opens pressed */}
                 <button
                   type="button"
                   onClick={() => setPressed(i)}
-                  className="absolute bottom-6 right-6 z-10 flex items-center justify-center w-12 h-12 rounded-full border border-white text-white opacity-0 group-hover:opacity-0 transition-all duration-300"
+                  className="absolute bottom-6 right-6 z-10 flex lg:hidden items-center justify-center w-12 h-12 rounded-full border border-white text-white"
                   aria-label={`Ver ${v.label}`}
                 >
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -94,11 +94,11 @@ export function Ecosystem() {
                   </svg>
                 </button>
 
-                {/* Hover: "Ver más" pill button — bottom-right */}
+                {/* Desktop: "Ver más" pill appears on hover */}
                 <button
                   type="button"
                   onClick={() => setPressed(i)}
-                  className="absolute bottom-6 right-6 z-10 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-white/10"
+                  className="absolute bottom-6 right-6 z-10 hidden lg:inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-200 hover:bg-white/10"
                 >
                   Ver más
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">

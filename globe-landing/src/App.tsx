@@ -14,8 +14,8 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      {/* Spacer for fixed navbar — Figma: Navbar h=116, content starts at y=116 */}
-      <div className="h-[116px]" />
+      {/* Spacer for fixed navbar */}
+      <div className="h-[88px] lg:h-[116px]" />
       <Hero />
       <About />
       <Ecosystem />

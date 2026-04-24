@@ -197,21 +197,28 @@ export class ReadingsService {
     const where = conditions.join(' AND ');
 
     return this.dataSource.query(
-      `SELECT DISTINCT ON (r.meter_id)
-         r.meter_id,
+      `SELECT
+         m.id AS meter_id,
          m.name AS meter_name,
          m.building_id,
-         r.timestamp,
-         r.power_kw,
-         r.energy_kwh_total,
-         r.voltage_l1,
-         r.current_l1,
-         r.power_factor,
-         r.frequency_hz
-       FROM readings r
-       INNER JOIN meters m ON m.id = r.meter_id
+         lr.timestamp,
+         lr.power_kw,
+         lr.energy_kwh_total,
+         lr.voltage_l1,
+         lr.current_l1,
+         lr.power_factor,
+         lr.frequency_hz
+       FROM meters m
+       LEFT JOIN LATERAL (
+         SELECT r.timestamp, r.power_kw, r.energy_kwh_total,
+                r.voltage_l1, r.current_l1, r.power_factor, r.frequency_hz
+         FROM readings r
+         WHERE r.meter_id = m.id
+         ORDER BY r.timestamp DESC
+         LIMIT 1
+       ) lr ON true
        WHERE ${where}
-       ORDER BY r.meter_id, r.timestamp DESC`,
+       ORDER BY m.name`,
       params,
     );
   }

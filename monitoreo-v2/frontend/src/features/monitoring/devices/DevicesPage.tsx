@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -23,10 +23,15 @@ interface DeviceRow {
   detail: string;
 }
 
+const PAGE_SIZE = 15;
+
 export function DevicesPage() {
   const [buildingFilter, setBuildingFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<DeviceType>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [search, setSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery(buildingFilter || undefined);
@@ -91,9 +96,30 @@ export function DevicesPage() {
     return devices.filter((d) => {
       if (typeFilter !== 'all' && d.type !== typeFilter) return false;
       if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        if (!d.name.toLowerCase().includes(q) && !(buildingMap.get(d.buildingId) ?? '').toLowerCase().includes(q)) return false;
+      }
       return true;
     });
-  }, [devices, typeFilter, statusFilter]);
+  }, [devices, typeFilter, statusFilter, search, buildingMap]);
+
+  const visibleDevices = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  // Reset on filter change
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [buildingFilter, typeFilter, statusFilter, search]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (!hasMore || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount((c) => c + PAGE_SIZE); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
 
   const qs = useQueryState(metersQuery, {
     isEmpty: (d) => !d || d.length === 0,
@@ -117,21 +143,13 @@ export function DevicesPage() {
   const errorCount = devices.filter((d) => d.status === 'error').length;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Dispositivos</h1>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <SummaryCard label="Total" value={String(devices.length)} />
-        <SummaryCard label="En linea" value={String(onlineCount)} color="text-green-600" />
-        <SummaryCard label="Sin conexion" value={String(offlineCount)} color="text-gray-500" />
-        <SummaryCard label="Error" value={String(errorCount)} color="text-red-600" />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-3">
+      {/* Filters row */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={buildingFilter}
           onChange={(e) => setBuildingFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
         >
           <option value="">Todos los edificios</option>
           {buildings.map((b) => (
@@ -141,7 +159,7 @@ export function DevicesPage() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as DeviceType)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
         >
           <option value="all">Todos los tipos</option>
           <option value="meter">Medidores</option>
@@ -150,13 +168,31 @@ export function DevicesPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
         >
           <option value="all">Todos los estados</option>
           <option value="online">En linea</option>
           <option value="offline">Sin conexion</option>
           <option value="error">Error</option>
         </select>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar dispositivo..."
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-44"
+        />
+        <span className="ml-auto text-[11px] text-pa-text-muted">
+          {filtered.length} de {devices.length} dispositivos
+        </span>
+      </div>
+
+      {/* Compact KPIs */}
+      <div className="flex flex-wrap gap-2">
+        <MiniKpi label="Total" value={devices.length} />
+        <MiniKpi label="En linea" value={onlineCount} color="text-green-600" />
+        <MiniKpi label="Sin conexion" value={offlineCount} color="text-gray-500" />
+        <MiniKpi label="Error" value={errorCount} color="text-red-600" />
       </div>
 
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
@@ -181,7 +217,7 @@ export function DevicesPage() {
             emptyMessage="No hay dispositivos que coincidan con los filtros seleccionados."
             skeletonWidths={['w-16', 'w-32', 'w-20', 'w-28', 'w-24', 'w-40', 'w-28', 'w-20']}
           >
-            {filtered.map((d) => (
+            {visibleDevices.map((d) => (
               <tr key={d.id} className="hover:bg-gray-50">
                 <Td>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[d.status] ?? statusColors.offline}`}>
@@ -220,16 +256,17 @@ export function DevicesPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
     </div>
   );
 }
 
-function SummaryCard({ label, value, color = 'text-gray-900' }: Readonly<{ label: string; value: string; color?: string }>) {
+function MiniKpi({ label, value, color = 'text-pa-text' }: Readonly<{ label: string; value: number | string; color?: string }>) {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
+    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
+      <span className="text-[11px] text-gray-500">{label}</span>
+      <span className={`text-[13px] font-semibold ${color}`}>{value}</span>
     </div>
   );
 }

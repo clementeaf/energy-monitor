@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -45,10 +45,15 @@ function commStatus(timestampIso: string | null, isActive: boolean): 'online' | 
   return age < 30 * 60_000 ? 'online' : 'offline';
 }
 
+const PAGE_SIZE = 15;
+
 export function MetersByTypePage() {
   const metersQuery = useMetersQuery();
   const buildingsQuery = useBuildingsQuery();
   const latestQuery = useLatestReadingsQuery();
+  const [search, setSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const qs = useQueryState(metersQuery, {
     isEmpty: (d) => !d || d.length === 0,
@@ -81,6 +86,31 @@ export function MetersByTypePage() {
     [groups],
   );
 
+  // Filter groups by search
+  const filteredGroups = useMemo(() => {
+    if (!search.trim()) return groups;
+    const q = search.toLowerCase();
+    return groups.filter((g) =>
+      formatMeterTypeLabel(g.typeKey).toLowerCase().includes(q) ||
+      g.meters.some((m) => m.name.toLowerCase().includes(q)),
+    );
+  }, [groups, search]);
+
+  const visibleGroups = filteredGroups.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredGroups.length;
+
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [search]);
+
+  useEffect(() => {
+    if (!hasMore || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount((c) => c + PAGE_SIZE); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
+
   const toggle = (typeKey: string): void => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -91,26 +121,26 @@ export function MetersByTypePage() {
   };
 
   return (
-    <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
-        <span>/</span>
-        <span className="text-gray-900">Medidores por tipo</span>
-      </nav>
-
-      <h1 className="text-2xl font-semibold text-gray-900">Medidores por tipo</h1>
-      <p className="text-sm text-gray-500">
-        Agrupacion por tipo de medidor, KPIs desde ultimas lecturas y acceso al listado filtrado por edificio.
-      </p>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <KpiCard title="Medidores" value={String(meters.length)} sub="En alcance RBAC" />
-        <KpiCard title="Tipos distintos" value={String(groups.length)} sub="Valores unicos de tipo" />
-        <KpiCard
-          title="Potencia instantanea (suma)"
-          value={`${totalKw.toFixed(1)} kW`}
-          sub="Suma ultimas lecturas"
+    <div className="space-y-3">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar tipo o medidor..."
+          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-52"
         />
+        <span className="ml-auto text-[11px] text-pa-text-muted">
+          {filteredGroups.length} tipos · {meters.length} medidores
+        </span>
+      </div>
+
+      {/* Compact KPIs */}
+      <div className="flex flex-wrap gap-2">
+        <MiniKpi label="Medidores" value={meters.length} />
+        <MiniKpi label="Tipos" value={groups.length} />
+        <MiniKpi label="Potencia total" value={`${totalKw.toFixed(1)} kW`} />
       </div>
 
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
@@ -131,7 +161,7 @@ export function MetersByTypePage() {
             emptyMessage="No hay medidores visibles para su usuario."
             skeletonWidths={['w-28', 'w-16', 'w-24', 'w-20']}
           >
-            {groups.map((g) => (
+            {visibleGroups.map((g) => (
               <Fragment key={g.typeKey}>
                 <tr className="hover:bg-gray-50">
                   <Td className="font-medium text-gray-900">{formatMeterTypeLabel(g.typeKey)}</Td>
@@ -200,17 +230,17 @@ export function MetersByTypePage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
     </div>
   );
 }
 
-function KpiCard({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
+function MiniKpi({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
-      <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-400">{sub}</p>
+    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
+      <span className="text-[11px] text-gray-500">{label}</span>
+      <span className="text-[13px] font-semibold text-pa-text">{value}</span>
     </div>
   );
 }

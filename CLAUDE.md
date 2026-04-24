@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-24)
+- **Role impersonation + query perf + UX:** super_admin switcher de rol con dropdown custom. `DISTINCT ON` → `LEFT JOIN LATERAL` en readings/latest. DevicesPage y MetersByTypePage con search + infinite scroll. Sidebar collapse via logo. Generación y Mapa Modbus ocultos. Drawer phantom fix. [CHANGELOG — 2.0.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-23)
 - **Realtime filters + token refresh fix:** RealtimePage con KPI compactos, filtro status/búsqueda, 15 filas + infinite scroll. Fix refresh token: backend lee cookie httpOnly cuando body vacío (elimina 401 intermitentes). [CHANGELOG — 1.9.0-alpha.0](CHANGELOG.md)
 - **Table state pattern + super_admin bypass:** `TableStateBody` reutilizable (skeleton/error/vacío en tbody). super_admin omnipotente frontend+backend. Drawer z-[9999]. Login spinner fix. Sidebar sub-items con ring activo. Migración permisos admin. [CHANGELOG — 1.8.0-alpha.0](CHANGELOG.md)

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import { APP_ROUTES } from '../../app/routes';
-import { useAppStore } from '../../store/useAppStore';
+import { useAppStore, VIEW_AS_LABELS } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
+import type { RoleSlug } from '../../types/auth';
 import globeLogo from '../../assets/globe-logo.png';
 
 interface SubItem {
@@ -42,8 +43,8 @@ const NAV_ENTRIES: NavEntry[] = [
       { to: '/monitoring/realtime', label: 'Tiempo Real' },
       { to: '/monitoring/devices', label: 'Dispositivos' },
       { to: '/monitoring/meters/type', label: 'Medidores por tipo' },
-      { to: '/monitoring/generation', label: 'Generación' },
-      { to: '/monitoring/modbus-map', label: 'Mapa Modbus' },
+      // { to: '/monitoring/generation', label: 'Generación' },
+      // { to: '/monitoring/modbus-map', label: 'Mapa Modbus' },
     ],
   },
   {
@@ -121,11 +122,13 @@ const NAV_ENTRIES: NavEntry[] = [
   },
 ];
 
+const VIEW_AS_ROLES: RoleSlug[] = ['super_admin', 'corp_admin', 'site_admin', 'operator', 'tenant_user', 'analyst', 'auditor'];
+
 export function Sidebar() {
-  const { sidebarOpen } = useAppStore();
+  const { sidebarOpen, toggleSidebar, viewAsRole, setViewAsRole } = useAppStore();
   const { tenant } = useAuthStore();
   const { logout } = useAuth();
-  const { hasAny } = usePermissions();
+  const { hasAny, isSuperAdmin, isImpersonating } = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
   const [contactOpen, setContactOpen] = useState(false);
@@ -144,26 +147,24 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-52 shrink-0 flex-col bg-pa-bg-alt">
-      {/* Logo + title */}
-      <div className="px-4 pt-5 pb-4">
-        <button
-          type="button"
-          className="flex items-center gap-2.5"
-          onClick={() => navigate('/')}
-        >
-          <div className="h-8 w-8 shrink-0 overflow-hidden">
-            <img src={tenant?.logoUrl ?? globeLogo} alt="Globe Power" className="h-8 w-auto max-w-none" />
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-pa-navy">
-              {tenant?.appTitle ?? 'Globe Power'}
-            </span>
-            <span className="text-[11px] text-pa-text-muted">
-              Energy Monitor
-            </span>
-          </div>
+      {/* Logo */}
+      <div className="flex justify-center px-4 pt-5 pb-4">
+        <button type="button" onClick={toggleSidebar} title="Colapsar menú">
+          <img src={tenant?.logoUrl ?? globeLogo} alt="Globe Power" className="h-9 w-auto object-contain" />
         </button>
       </div>
+
+      {/* Role switcher — super_admin only */}
+      {isSuperAdmin && (
+        <div className="px-3 pb-3">
+          <RoleSwitcher
+            value={viewAsRole ?? 'super_admin'}
+            onChange={(val) => { setViewAsRole(val === 'super_admin' ? null : val); navigate('/'); }}
+            isImpersonating={isImpersonating}
+            onReset={() => { setViewAsRole(null); navigate('/'); }}
+          />
+        </div>
+      )}
 
       {/* Nav — numbered items */}
       <nav className="flex-1 space-y-1.5 overflow-y-auto px-3 pt-2">
@@ -288,5 +289,82 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+  );
+}
+
+/* ── Role Switcher (custom dropdown) ── */
+function RoleSwitcher({
+  value,
+  onChange,
+  isImpersonating,
+  onReset,
+}: Readonly<{
+  value: string;
+  onChange: (slug: RoleSlug) => void;
+  isImpersonating: boolean;
+  onReset: () => void;
+}>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open]);
+
+  const currentLabel = VIEW_AS_LABELS[value] ?? value;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-semibold transition-colors ${
+          isImpersonating
+            ? 'border-2 border-pa-coral bg-pa-coral/10 text-pa-coral'
+            : 'border border-pa-border bg-white text-pa-navy'
+        }`}
+      >
+        <span className="truncate">Vista: {currentLabel}</span>
+        <svg
+          className={`h-3 w-3 shrink-0 opacity-50 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
+        >
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border border-pa-border bg-white shadow-lg">
+          {VIEW_AS_ROLES.map((slug) => (
+            <li key={slug}>
+              <button
+                type="button"
+                onClick={() => { onChange(slug); setOpen(false); }}
+                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-gray-100 ${
+                  value === slug ? 'font-semibold text-pa-blue' : 'text-pa-text'
+                }`}
+              >
+                {VIEW_AS_LABELS[slug]}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {isImpersonating && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="mt-1 w-full rounded-md bg-pa-coral px-2 py-1 text-[10px] font-medium text-white hover:bg-pa-coral/90"
+        >
+          Volver a Super Admin
+        </button>
+      )}
+    </div>
   );
 }

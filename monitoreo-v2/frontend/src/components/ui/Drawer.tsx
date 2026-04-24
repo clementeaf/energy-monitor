@@ -32,24 +32,22 @@ export function Drawer({
   dialogClassName,
 }: Readonly<DrawerProps>) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const isOpen = useRef(false);
 
   useEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
 
-    if (open && !isOpen.current) {
+    if (open && !el.open) {
       el.showModal();
-      isOpen.current = true;
     }
-    if (!open && isOpen.current) {
+    if (!open && el.open) {
       el.close();
-      isOpen.current = false;
     }
   }, [open]);
 
+  if (!open) return null;
+
   const handleClose = () => {
-    isOpen.current = false;
     onClose();
   };
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal } from '../../../components/ui/Modal';
+import { Drawer } from '../../../components/ui/Drawer';
 import type { TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload } from '../../../types/tenant-unit';
 import type { Building } from '../../../types/building';
 
@@ -41,7 +41,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Locatario' : 'Nuevo Locatario'}>
+    <Drawer open={open} onClose={onClose} title={isEdit ? 'Editar Locatario' : 'Nuevo Locatario'} side="right" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isEdit && (
           <Field label="Edificio" required>
@@ -112,7 +112,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
           </button>
         </div>
       </form>
-    </Modal>
+    </Drawer>
   );
 }
 

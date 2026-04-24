@@ -64,11 +64,11 @@ export function Header() {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-3 border-b border-pa-border bg-white px-4">
-      {/* Hamburger — mobile only */}
+      {/* Hamburger — always visible when sidebar collapsed */}
       <button
         type="button"
         onClick={toggleSidebar}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100 lg:hidden"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100"
         aria-label="Toggle sidebar"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

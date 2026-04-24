@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.0-alpha.0] - 2026-04-24 — MONITOREO V2: ROLE IMPERSONATION, QUERY PERF, UX POLISH
+
+### Added (monitoreo-v2/frontend)
+- **Role impersonation** — super_admin can switch view to any role (Multi Operador, Operador, Técnico, Locatario, Analista, Auditor). Custom dropdown in sidebar with red border when impersonating. Sidebar/routes filter based on simulated role permissions.
+- **Sidebar collapse** — Logo click collapses sidebar, hamburger in header reopens it.
+
+### Changed (monitoreo-v2)
+- **Readings latest query** — Replaced `DISTINCT ON` (seq scan 30M rows) with `LEFT JOIN LATERAL` using index `(meter_id, timestamp DESC)`. Orders of magnitude faster.
+- **DevicesPage** — Compact KPIs, search filter, 15-row infinite scroll.
+- **MetersByTypePage** — Search, compact KPIs, 15-group infinite scroll.
+- **Sidebar** — Hidden Generación and Mapa Modbus sub-modules (no client data yet). Logo centered, no duplicate title.
+- **Drawer** — Returns `null` when closed (fixes phantom drawer in Roles/Companies).
+
+### Fixed (monitoreo-v2/backend)
+- **PermissionsGuard** — super_admin bypasses all permission checks.
+
+---
+
 ## [1.9.0-alpha.0] - 2026-04-23 — MONITOREO V2: REALTIME FILTERS + TOKEN REFRESH FIX
 
 ### Changed (monitoreo-v2/frontend)

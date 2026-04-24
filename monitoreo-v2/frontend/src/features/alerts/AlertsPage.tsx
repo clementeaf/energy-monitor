@@ -96,7 +96,7 @@ export function AlertsPage() {
   const rawAlerts = alertsQuery.data ?? [];
   const allAlerts = useMemo(() => {
     if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
-    return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
+    return rawAlerts.filter((a) => a.meterId && operatorMeterIds.has(a.meterId));
   }, [rawAlerts, isFilteredMode, operatorMeterIds]);
   const activeCount = allAlerts.filter((a) => a.status === 'active').length;
   const ackCount = allAlerts.filter((a) => a.status === 'acknowledged').length;

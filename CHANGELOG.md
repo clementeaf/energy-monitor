@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.4.0-alpha.0] - 2026-04-24 — MONITOREO V2: OPERATOR FILTER SYSTEM + DATA MIGRATION
+
+### Added (monitoreo-v2/frontend)
+- **useOperatorFilter hook** — Maps `viewAsRole` to v1 user modes: Holding (super_admin), Multi Operador (corp_admin), Operador (site_admin), Técnico (operator), Locatario (tenant_user). Returns `isFilteredMode`, `needsSelection`, `operatorMeterIds`, `operatorBuildingIds`, `isTecnico`.
+
+### Changed (monitoreo-v2/frontend)
+- **DashboardPage** — Filters buildings, meters, readings, and alerts by operator. Blocks Técnico mode with "Dashboard no disponible". Shows "Selecciona un operador" when no operator selected.
+- **RealtimePage** — Filters buildings dropdown and readings table by operator meter IDs.
+- **AlertsPage** — Filters alerts by operator meter IDs.
+- **BuildingsPage** — Filters buildings by operator. CRUD restricted to Holding mode only.
+
+### Infra
+- **RDS readings migration** — 2.6M readings (Mar 25 – Apr 25) migrated from v1 `meter_readings` to v2 `readings` table with UUID mapping. Dashboard charts and KPIs now functional in production.
+
+---
+
 ## [2.3.0-alpha.0] - 2026-04-24 — GLOBE LANDING: FIGMA PIXEL-PERFECT REDESIGN
 
 ### Changed (globe-landing)

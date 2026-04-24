@@ -5,6 +5,7 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { Concentrator } from '../../../types/concentrator';
 import type { Meter } from '../../../types/meter';
@@ -146,35 +147,36 @@ export function DevicesPage() {
     <div className="space-y-3">
       {/* Filters row */}
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los edificios' },
+            ...buildings.map((b) => ({ value: b.id, label: b.name })),
+          ]}
           value={buildingFilter}
-          onChange={(e) => setBuildingFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
-        >
-          <option value="">Todos los edificios</option>
-          {buildings.map((b) => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
-        <select
+          onChange={(val) => setBuildingFilter(val)}
+          className="w-48"
+        />
+        <DropdownSelect
+          options={[
+            { value: 'all', label: 'Todos los tipos' },
+            { value: 'meter', label: 'Medidores' },
+            { value: 'concentrator', label: 'Concentradores' },
+          ]}
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as DeviceType)}
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
-        >
-          <option value="all">Todos los tipos</option>
-          <option value="meter">Medidores</option>
-          <option value="concentrator">Concentradores</option>
-        </select>
-        <select
+          onChange={(val) => setTypeFilter(val as DeviceType)}
+          className="w-48"
+        />
+        <DropdownSelect
+          options={[
+            { value: 'all', label: 'Todos los estados' },
+            { value: 'online', label: 'En linea' },
+            { value: 'offline', label: 'Sin conexion' },
+            { value: 'error', label: 'Error' },
+          ]}
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="online">En linea</option>
-          <option value="offline">Sin conexion</option>
-          <option value="error">Error</option>
-        </select>
+          onChange={(val) => setStatusFilter(val as StatusFilter)}
+          className="w-48"
+        />
         <input
           type="text"
           value={search}

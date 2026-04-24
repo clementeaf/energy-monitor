@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import type { SeriesOptionsType } from 'highcharts';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
@@ -163,24 +164,26 @@ export function BenchmarkPage(): ReactElement {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Benchmarking entre Edificios</h1>
         <div className="flex gap-2">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '30d', label: '30 días' },
+              { value: '90d', label: '90 días' },
+              { value: '365d', label: '1 año' },
+            ]}
             value={preset}
-            onChange={(e) => setPreset(e.target.value as RangePreset)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="30d">30 días</option>
-            <option value="90d">90 días</option>
-            <option value="365d">1 año</option>
-          </select>
-          <select
+            onChange={(val) => setPreset(val as RangePreset)}
+            className="w-36"
+          />
+          <DropdownSelect
+            options={[
+              { value: 'kwhPerSqm', label: 'kWh/m²' },
+              { value: 'peakDemand', label: 'Demanda peak' },
+              { value: 'avgPf', label: 'Factor de potencia' },
+            ]}
             value={metric}
-            onChange={(e) => setMetric(e.target.value as Metric)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="kwhPerSqm">kWh/m²</option>
-            <option value="peakDemand">Demanda peak</option>
-            <option value="avgPf">Factor de potencia</option>
-          </select>
+            onChange={(val) => setMetric(val as Metric)}
+            className="w-48"
+          />
         </div>
       </div>
 

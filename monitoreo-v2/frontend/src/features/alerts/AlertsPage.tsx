@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
@@ -67,39 +68,40 @@ export function AlertsPage() {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex flex-wrap gap-2">
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los estados' },
+            { value: 'active', label: 'Activa' },
+            { value: 'acknowledged', label: 'Reconocida' },
+            { value: 'resolved', label: 'Resuelta' },
+          ]}
           value={filters.status ?? ''}
-          onChange={(e) => { updateFilter('status', e.target.value); }}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Todos los estados</option>
-          <option value="active">Activa</option>
-          <option value="acknowledged">Reconocida</option>
-          <option value="resolved">Resuelta</option>
-        </select>
+          onChange={(val) => { updateFilter('status', val); }}
+          className="w-48"
+        />
 
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todas las severidades' },
+            { value: 'critical', label: 'Critica' },
+            { value: 'high', label: 'Alta' },
+            { value: 'medium', label: 'Media' },
+            { value: 'low', label: 'Baja' },
+          ]}
           value={filters.severity ?? ''}
-          onChange={(e) => { updateFilter('severity', e.target.value); }}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Todas las severidades</option>
-          <option value="critical">Critica</option>
-          <option value="high">Alta</option>
-          <option value="medium">Media</option>
-          <option value="low">Baja</option>
-        </select>
+          onChange={(val) => { updateFilter('severity', val); }}
+          className="w-48"
+        />
 
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los edificios' },
+            ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+          ]}
           value={filters.buildingId ?? ''}
-          onChange={(e) => { updateFilter('buildingId', e.target.value); }}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Todos los edificios</option>
-          {(buildingsQuery.data ?? []).map((b) => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
+          onChange={(val) => { updateFilter('buildingId', val); }}
+          className="w-48"
+        />
       </div>
 
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">

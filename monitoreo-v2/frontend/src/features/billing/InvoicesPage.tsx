@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { PdfPreviewModal } from '../../components/ui/PdfPreviewModal';
 import { Chart } from '../../components/charts/Chart';
 import { useQueryState } from '../../hooks/useQueryState';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -105,6 +107,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   }, [qs.data, displayInvoices, defaultStatus]);
 
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Invoice | null>(null);
   const [generateOpen, setGenerateOpen] = useState(false);
 
@@ -125,26 +128,24 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
           {defaultStatus === 'pending' ? 'Aprobación de Facturas' : defaultStatus === 'history' ? 'Historial de Facturación' : 'Facturas'}
         </h1>
         <div className="flex items-center gap-3">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data?.map((b) => ({ value: b.id, label: b.name })) ?? []),
+            ]}
             value={filters.buildingId ?? ''}
-            onChange={(e) => setFilters({ ...filters, buildingId: e.target.value || undefined })}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <select
+            onChange={(val) => setFilters({ ...filters, buildingId: val || undefined })}
+            className="w-48"
+          />
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los estados' },
+              ...Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v })),
+            ]}
             value={filters.status ?? ''}
-            onChange={(e) => setFilters({ ...filters, status: (e.target.value || undefined) as InvoiceStatus | undefined })}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los estados</option>
-            {Object.entries(STATUS_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
+            onChange={(val) => setFilters({ ...filters, status: (val || undefined) as InvoiceStatus | undefined })}
+            className="w-44"
+          />
           {canWrite && (
             <button
               type="button"
@@ -192,6 +193,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
                 canUpdate={canUpdate}
                 canWrite={canWrite}
                 onViewDetail={() => setDetailId(inv.id)}
+                onPreview={() => setPreviewInvoiceId(inv.id)}
                 onApprove={() => approveMutation.mutate(inv.id)}
                 onVoid={() => voidMutation.mutate(inv.id)}
                 onDelete={() => setDeleting(inv)}
@@ -223,6 +225,12 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
           isPending={generateMutation.isPending}
         />
       )}
+
+      <PdfPreviewModal
+        pdfPath={previewInvoiceId ? `/invoices/${previewInvoiceId}/pdf` : null}
+        title={`Factura ${displayInvoices.find((i) => i.id === previewInvoiceId)?.invoiceNumber ?? ''}`}
+        onClose={() => setPreviewInvoiceId(null)}
+      />
     </div>
   );
 }
@@ -232,6 +240,7 @@ function InvoiceRow({
   canUpdate,
   canWrite,
   onViewDetail,
+  onPreview,
   onApprove,
   onVoid,
   onDelete,
@@ -240,6 +249,7 @@ function InvoiceRow({
   canUpdate: boolean;
   canWrite: boolean;
   onViewDetail: () => void;
+  onPreview: () => void;
   onApprove: () => void;
   onVoid: () => void;
   onDelete: () => void;
@@ -268,10 +278,24 @@ function InvoiceRow({
             href={invoicesEndpoints.pdfUrl(invoice.id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700"
+            title="Descargar PDF"
           >
-            PDF
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+            </svg>
           </a>
+          <button
+            type="button"
+            onClick={onPreview}
+            className="text-gray-500 hover:text-gray-700"
+            title="Previsualizar PDF"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           {canUpdate && invoice.status === 'pending' && (
             <button type="button" onClick={onApprove} className="text-xs text-green-600 hover:text-green-800">
               Aprobar

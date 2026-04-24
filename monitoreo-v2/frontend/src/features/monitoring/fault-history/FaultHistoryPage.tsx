@@ -4,6 +4,7 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useFaultEventsQuery } from '../../../hooks/queries/useFaultEventsQuery';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { FaultEventQueryParams } from '../../../types/fault-event';
 
@@ -90,16 +91,15 @@ export function FaultHistoryPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los tipos' },
+            ...faultTypes.map((t) => ({ value: t, label: t })),
+          ]}
           value={faultType}
-          onChange={(e) => setFaultType(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Todos los tipos</option>
-          {faultTypes.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+          onChange={(val) => setFaultType(val)}
+          className="w-48"
+        />
         <input
           type="date"
           value={dateFrom}

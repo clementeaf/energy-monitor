@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
@@ -70,16 +71,15 @@ export function TariffsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Tarifas</h1>
         <div className="flex items-center gap-3">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data?.map((b) => ({ value: b.id, label: b.name })) ?? []),
+            ]}
             value={buildingFilter}
-            onChange={(e) => setBuildingFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setBuildingFilter(val)}
+            className="w-48"
+          />
           {canWrite && (
             <button
               type="button"

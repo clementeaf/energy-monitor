@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { Chart } from '../../components/charts/Chart';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
@@ -124,27 +125,27 @@ export function AlertsHistoryPage(): ReactElement {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Historial de Alertas y SLA</h1>
         <div className="flex gap-2">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingFilter}
-            onChange={(e) => setBuildingFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <select
+            onChange={(val) => setBuildingFilter(val)}
+            className="w-48"
+          />
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todas las severidades' },
+              { value: 'critical', label: 'Critica' },
+              { value: 'high', label: 'Alta' },
+              { value: 'medium', label: 'Media' },
+              { value: 'low', label: 'Baja' },
+            ]}
             value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todas las severidades</option>
-            <option value="critical">Critica</option>
-            <option value="high">Alta</option>
-            <option value="medium">Media</option>
-            <option value="low">Baja</option>
-          </select>
+            onChange={(val) => setSeverityFilter(val)}
+            className="w-48"
+          />
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TableStateBody } from '../../components/ui/TableStateBody';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useQueryState } from '../../hooks/useQueryState';
 import {
   useAlertRulesQuery,
@@ -90,29 +91,27 @@ export function AlertRulesPage() {
       <div className="flex items-end gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500">Familia</label>
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todas' },
+              ...(Object.keys(ALERT_FAMILIES) as AlertFamily[]).map((f) => ({ value: f, label: FAMILY_LABELS[f] })),
+            ]}
             value={familyFilter}
-            onChange={(e) => { setFamilyFilter(e.target.value as AlertFamily | ''); }}
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Todas</option>
-            {(Object.keys(ALERT_FAMILIES) as AlertFamily[]).map((f) => (
-              <option key={f} value={f}>{FAMILY_LABELS[f]}</option>
-            ))}
-          </select>
+            onChange={(val) => { setFamilyFilter(val as AlertFamily | ''); }}
+            className="w-48"
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500">Edificio</label>
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos (globales)' },
+              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingFilter}
-            onChange={(e) => { setBuildingFilter(e.target.value); }}
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Todos (globales)</option>
-            {(buildingsQuery.data ?? []).map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => { setBuildingFilter(val); }}
+            className="w-48"
+          />
         </div>
       </div>
 

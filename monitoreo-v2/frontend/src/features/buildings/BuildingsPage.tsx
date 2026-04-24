@@ -81,7 +81,7 @@ export function BuildingsPage() {
               <tr
                 key={b.id}
                 className="cursor-pointer hover:bg-gray-50"
-                onClick={() => { navigate(`/meters?buildingId=${b.id}`); }}
+                onClick={() => { navigate(`/buildings/${b.id}`); }}
               >
                 <Td className="font-medium text-gray-900">{b.name}</Td>
                 <Td>{b.code}</Td>

@@ -4,6 +4,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { LatestReading } from '../../../types/reading';
 
@@ -118,26 +119,26 @@ export function RealtimePage() {
     <div className="space-y-3">
       {/* Header + filters row */}
       <div className="flex flex-wrap items-center gap-2">
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los edificios' },
+            ...buildings.map((b) => ({ value: b.id, label: b.name })),
+          ]}
           value={buildingFilter}
-          onChange={(e) => setBuildingFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
-        >
-          <option value="">Todos los edificios</option>
-          {buildings.map((b) => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
-        <select
+          onChange={(val) => setBuildingFilter(val)}
+          className="w-48"
+        />
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los estados' },
+            { value: 'online', label: 'En linea' },
+            { value: 'offline', label: 'Sin datos' },
+            { value: 'alarm', label: 'En alarma' },
+          ]}
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px]"
-        >
-          <option value="">Todos los estados</option>
-          <option value="online">En linea</option>
-          <option value="offline">Sin datos</option>
-          <option value="alarm">En alarma</option>
-        </select>
+          onChange={(val) => setStatusFilter(val)}
+          className="w-48"
+        />
         <input
           type="text"
           value={search}
@@ -191,7 +192,7 @@ export function RealtimePage() {
                     <tr
                       key={r.meter_id}
                       className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => navigate(`/monitoring/demand/${r.building_id}`)}
+                      onClick={() => navigate(`/monitoring/meter/${r.meter_id}`)}
                     >
                       <Td>
                         <span className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { StockChart } from '../../components/charts/StockChart';
 import { Chart } from '../../components/charts/Chart';
@@ -205,34 +206,35 @@ export function TrendsPage(): ReactElement {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Tendencias y Proyección</h1>
         <div className="flex gap-2">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingFilter}
-            onChange={(e) => setBuildingFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <select
+            onChange={(val) => setBuildingFilter(val)}
+            className="w-48"
+          />
+          <DropdownSelect
+            options={[
+              { value: 'energy', label: 'Energía (kWh)' },
+              { value: 'demand', label: 'Demanda (kW)' },
+              { value: 'cost', label: 'Costo (CLP)' },
+            ]}
             value={variable}
-            onChange={(e) => setVariable(e.target.value as Variable)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="energy">Energía (kWh)</option>
-            <option value="demand">Demanda (kW)</option>
-            <option value="cost">Costo (CLP)</option>
-          </select>
-          <select
+            onChange={(val) => setVariable(val as Variable)}
+            className="w-44"
+          />
+          <DropdownSelect
+            options={[
+              { value: '3', label: '3 meses' },
+              { value: '6', label: '6 meses' },
+              { value: '12', label: '12 meses' },
+            ]}
             value={String(horizon)}
-            onChange={(e) => setHorizon(Number(e.target.value) as Horizon)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="3">3 meses</option>
-            <option value="6">6 meses</option>
-            <option value="12">12 meses</option>
-          </select>
+            onChange={(val) => setHorizon(Number(val) as Horizon)}
+            className="w-36"
+          />
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { useReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { Chart } from '../../../components/charts/Chart';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ReadingResolution } from '../../../types/reading';
 
@@ -97,15 +98,12 @@ export function QualityPage() {
           Calidad Electrica — {building?.name ?? 'Sitio'}
         </h1>
         {meters.length > 0 && (
-          <select
+          <DropdownSelect
+            options={meters.map((m) => ({ value: m.id, label: m.name }))}
             value={meterId ?? ''}
-            onChange={(e) => setSelectedMeterId(e.target.value || null)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            {meters.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedMeterId(val || null)}
+            className="w-48"
+          />
         )}
       </div>
 

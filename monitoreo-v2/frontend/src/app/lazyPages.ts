@@ -219,3 +219,18 @@ export const LazyCompaniesPage = lazy(async () => {
   const m = await import('../features/admin/companies/CompaniesPage');
   return { default: m.CompaniesPage };
 });
+
+export const LazyBuildingDetailPage = lazy(async () => {
+  const m = await import('../features/buildings/BuildingDetailPage');
+  return { default: m.BuildingDetailPage };
+});
+
+export const LazyMeterDetailPage = lazy(async () => {
+  const m = await import('../features/monitoring/meter-detail/MeterDetailPage');
+  return { default: m.MeterDetailPage };
+});
+
+export const LazyMeterReadingsPage = lazy(async () => {
+  const m = await import('../features/monitoring/meter-readings/MeterReadingsPage');
+  return { default: m.MeterReadingsPage };
+});

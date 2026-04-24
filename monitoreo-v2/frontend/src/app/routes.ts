@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   executiveSite: '/dashboard/executive/:siteId',
   compare: '/dashboard/compare',
   buildings: '/buildings',
+  buildingDetail: '/buildings/:buildingId',
   meters: '/meters',
   alerts: '/alerts',
   alertRules: '/alerts/rules',
@@ -24,6 +25,8 @@ export const APP_ROUTES = {
     modbusMapIndex: '/monitoring/modbus-map',
     modbusMapSite: '/monitoring/modbus-map/:siteId',
     concentrator: '/monitoring/concentrator/:concentratorId',
+    meterDetail: '/monitoring/meter/:meterId',
+    meterReadings: '/monitoring/meter/:meterId/readings/:month',
   },
   billing: {
     invoices: '/billing',

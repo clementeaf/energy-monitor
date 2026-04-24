@@ -47,6 +47,9 @@ import {
   LazyApiKeysPage,
   LazyRolesPage,
   LazyCompaniesPage,
+  LazyBuildingDetailPage,
+  LazyMeterDetailPage,
+  LazyMeterReadingsPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -110,6 +113,7 @@ export const router = createBrowserRouter([
 
               /* Edificios & Medidores */
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },
+              { path: APP_ROUTES.buildingDetail, element: <P any={BUILDINGS}><LazyBuildingDetailPage /></P> },
               { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersPage /></P> },
 
               /* Alertas */
@@ -132,6 +136,8 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.monitoring.modbusMapSite, element: <P any={DASH_TECH}><LazyModbusMapPage /></P> },
               { path: APP_ROUTES.monitoring.concentrator, element: <P any={DEVICES}><LazyConcentratorPage /></P> },
               { path: APP_ROUTES.monitoring.faultHistory, element: <P any={FAULTS}><LazyFaultHistoryPage /></P> },
+              { path: APP_ROUTES.monitoring.meterDetail, element: <P any={MONITORING}><LazyMeterDetailPage /></P> },
+              { path: APP_ROUTES.monitoring.meterReadings, element: <P any={MONITORING}><LazyMeterReadingsPage /></P> },
 
               /* Facturación */
               { path: APP_ROUTES.billing.invoices, element: <P any={BILLING_READ}><LazyInvoicesPage /></P> },

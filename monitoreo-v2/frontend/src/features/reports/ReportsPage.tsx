@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
-import { Modal } from '../../components/ui/Modal';
+import { Drawer } from '../../components/ui/Drawer';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -93,40 +94,24 @@ export function ReportsPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-gray-900">Reportes</h1>
           <div className="flex flex-wrap items-center gap-3">
-            <select
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Todos los edificios' },
+                ...buildingOptions.map((b) => ({ value: b.id, label: b.name })),
+              ]}
               value={reportFilters.buildingId ?? ''}
-              onChange={(e) =>
-                setReportFilters({
-                  ...reportFilters,
-                  buildingId: e.target.value || undefined,
-                })
-              }
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-            >
-              <option value="">Todos los edificios</option>
-              {buildingOptions.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <select
+              onChange={(val) => setReportFilters({ ...reportFilters, buildingId: val || undefined })}
+              className="w-48"
+            />
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Todos los tipos' },
+                ...REPORT_TYPES.map((t) => ({ value: t.value, label: t.label })),
+              ]}
               value={reportFilters.reportType ?? ''}
-              onChange={(e) =>
-                setReportFilters({
-                  ...reportFilters,
-                  reportType: (e.target.value || undefined) as PlatformReportType | undefined,
-                })
-              }
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-            >
-              <option value="">Todos los tipos</option>
-              {REPORT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setReportFilters({ ...reportFilters, reportType: (val || undefined) as PlatformReportType | undefined })}
+              className="w-48"
+            />
             {canCreate && (
               <button
                 type="button"
@@ -269,27 +254,25 @@ export function ReportsPage() {
         </div>
       </section>
 
-      {generateOpen && (
-        <GenerateModal
-          buildings={buildingOptions}
-          onClose={() => setGenerateOpen(false)}
-          onSubmit={(payload) => {
-            generateMutation.mutate(payload, { onSuccess: () => setGenerateOpen(false) });
-          }}
-          isPending={generateMutation.isPending}
-        />
-      )}
+      <GenerateDrawer
+        open={generateOpen}
+        buildings={buildingOptions}
+        onClose={() => setGenerateOpen(false)}
+        onSubmit={(payload) => {
+          generateMutation.mutate(payload, { onSuccess: () => setGenerateOpen(false) });
+        }}
+        isPending={generateMutation.isPending}
+      />
 
-      {scheduleOpen && (
-        <ScheduleModal
-          buildings={buildingOptions}
-          onClose={() => setScheduleOpen(false)}
-          onSubmit={(payload) => {
-            createScheduledMutation.mutate(payload, { onSuccess: () => setScheduleOpen(false) });
-          }}
-          isPending={createScheduledMutation.isPending}
-        />
-      )}
+      <ScheduleDrawer
+        open={scheduleOpen}
+        buildings={buildingOptions}
+        onClose={() => setScheduleOpen(false)}
+        onSubmit={(payload) => {
+          createScheduledMutation.mutate(payload, { onSuccess: () => setScheduleOpen(false) });
+        }}
+        isPending={createScheduledMutation.isPending}
+      />
 
       <ConfirmDialog
         open={!!deletingReport}
@@ -322,12 +305,14 @@ export function ReportsPage() {
   );
 }
 
-function GenerateModal({
+function GenerateDrawer({
+  open,
   buildings,
   onClose,
   onSubmit,
   isPending,
 }: {
+  open: boolean;
   buildings: Array<{ id: string; name: string }>;
   onClose: () => void;
   onSubmit: (p: GenerateReportPayload) => void;
@@ -350,19 +335,35 @@ function GenerateModal({
   };
 
   return (
-    <Modal open title="Generar reporte" onClose={onClose}>
-      <div className="flex flex-col gap-3 text-sm">
+    <Drawer open={open} title="Generar reporte" onClose={onClose} footer={
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isPending}
+          className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+        >
+          {isPending ? 'Generando…' : 'Generar'}
+        </button>
+      </div>
+    }>
+      <div className="flex flex-col gap-4 text-sm">
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Tipo</span>
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value as PlatformReportType)}
-            className="rounded-md border border-gray-300 px-3 py-2"
+            className="input-field"
           >
             {REPORT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+              <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </label>
@@ -371,34 +372,22 @@ function GenerateModal({
           <select
             value={buildingId}
             onChange={(e) => setBuildingId(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2"
+            className="input-field"
           >
             <option value="">Todos (según permisos)</option>
             {buildings.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
+              <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
         </label>
         <div className="flex gap-3">
           <label className="flex flex-1 flex-col gap-1">
             <span className="text-gray-600">Inicio</span>
-            <input
-              type="date"
-              value={periodStart}
-              onChange={(e) => setPeriodStart(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2"
-            />
+            <input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} className="input-field" />
           </label>
           <label className="flex flex-1 flex-col gap-1">
             <span className="text-gray-600">Fin</span>
-            <input
-              type="date"
-              value={periodEnd}
-              onChange={(e) => setPeriodEnd(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2"
-            />
+            <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} className="input-field" />
           </label>
         </div>
         <label className="flex flex-col gap-1">
@@ -406,43 +395,26 @@ function GenerateModal({
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ReportFormat)}
-            className="rounded-md border border-gray-300 px-3 py-2"
+            className="input-field"
           >
             {(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => (
-              <option key={f} value={f}>
-                {FORMAT_LABELS[f]}
-              </option>
+              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
             ))}
           </select>
         </label>
-        <div className="mt-2 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 font-medium text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {isPending ? 'Generando…' : 'Generar'}
-          </button>
-        </div>
       </div>
-    </Modal>
+    </Drawer>
   );
 }
 
-function ScheduleModal({
+function ScheduleDrawer({
+  open,
   buildings,
   onClose,
   onSubmit,
   isPending,
 }: {
+  open: boolean;
   buildings: Array<{ id: string; name: string }>;
   onClose: () => void;
   onSubmit: (p: CreateScheduledReportPayload) => void;
@@ -472,89 +444,63 @@ function ScheduleModal({
   };
 
   return (
-    <Modal open title="Programar reporte" onClose={onClose}>
-      <div className="flex flex-col gap-3 text-sm">
+    <Drawer open={open} title="Programar reporte" onClose={onClose} footer={
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isPending}
+          className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+        >
+          {isPending ? 'Guardando…' : 'Guardar'}
+        </button>
+      </div>
+    }>
+      <div className="flex flex-col gap-4 text-sm">
         <p className="text-xs text-gray-500">
           Use una expresión cron (5 campos: minuto hora día mes día-semana). Ejemplo: 0 8 * * 1 = lunes 08:00.
         </p>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Tipo</span>
-          <select
-            value={reportType}
-            onChange={(e) => setReportType(e.target.value as PlatformReportType)}
-            className="rounded-md border border-gray-300 px-3 py-2"
-          >
+          <select value={reportType} onChange={(e) => setReportType(e.target.value as PlatformReportType)} className="input-field">
             {REPORT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+              <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Edificio (opcional)</span>
-          <select
-            value={buildingId}
-            onChange={(e) => setBuildingId(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2"
-          >
+          <select value={buildingId} onChange={(e) => setBuildingId(e.target.value)} className="input-field">
             <option value="">Todos (según permisos)</option>
             {buildings.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
+              <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Formato</span>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value as ReportFormat)}
-            className="rounded-md border border-gray-300 px-3 py-2"
-          >
+          <select value={format} onChange={(e) => setFormat(e.target.value as ReportFormat)} className="input-field">
             {(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => (
-              <option key={f} value={f}>
-                {FORMAT_LABELS[f]}
-              </option>
+              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Cron</span>
-          <input
-            value={cronExpression}
-            onChange={(e) => setCronExpression(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
-          />
+          <input value={cronExpression} onChange={(e) => setCronExpression(e.target.value)} className="input-field font-mono text-xs" />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Destinatarios (emails, separados por coma)</span>
-          <input
-            value={recipientsRaw}
-            onChange={(e) => setRecipientsRaw(e.target.value)}
-            placeholder="a@empresa.cl, b@empresa.cl"
-            className="rounded-md border border-gray-300 px-3 py-2"
-          />
+          <input value={recipientsRaw} onChange={(e) => setRecipientsRaw(e.target.value)} placeholder="a@empresa.cl, b@empresa.cl" className="input-field" />
         </label>
-        <div className="mt-2 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 font-medium text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {isPending ? 'Guardando…' : 'Guardar'}
-          </button>
-        </div>
       </div>
-    </Modal>
+    </Drawer>
   );
 }

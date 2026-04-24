@@ -1,13 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
+import { useInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { StockChart } from '../../components/charts/StockChart';
 import { useQueryState } from '../../hooks/useQueryState';
+import { fmtClp } from '../../lib/formatters';
 import type { ReadingResolution } from '../../types/reading';
+import type { Invoice } from '../../types/invoice';
 
 type RangePreset = 'day' | 'week' | 'month';
 type ChartView = 'power' | 'pf';
@@ -49,6 +53,11 @@ export function DashboardPage() {
 
   // KPIs: latest readings (heavier, runs in parallel — doesn't block chart)
   const allLatestQuery = useLatestReadingsQuery();
+
+  // Billing KPIs
+  const invoicesQuery = useInvoicesQuery();
+  const invoices = invoicesQuery.data ?? [];
+  const billingKpis = useMemo(() => computeBillingKpis(invoices), [invoices]);
 
   const buildingsQs = useQueryState(buildingsQuery, {
     isEmpty: (d) => !d || d.length === 0,
@@ -137,6 +146,9 @@ export function DashboardPage() {
             <KpiCard title="Medidores" value={String(totalMeters)} />
             <KpiCard title="Potencia total" value={`${totalPowerKw.toFixed(1)} kW`} />
             <KpiCard title="FP promedio" value={avgPowerFactor > 0 ? avgPowerFactor.toFixed(3) : '—'} />
+            <KpiCard title="Pagadas" value={fmtClp(billingKpis.paid)} color="text-emerald-600" />
+            <KpiCard title="Por cobrar" value={fmtClp(billingKpis.pending)} color="text-amber-600" />
+            <KpiCard title="Vencidas" value={fmtClp(billingKpis.overdue)} color={billingKpis.overdue > 0 ? 'text-red-600' : undefined} />
           </div>
 
           {/* Chart */}
@@ -145,15 +157,12 @@ export function DashboardPage() {
               <div className="flex items-center gap-2">
                 <h2 className="text-[13px] font-medium text-pa-text">{chartOptions.title.text}</h2>
                 {meters.length > 0 ? (
-                  <select
+                  <DropdownSelect
+                    options={meters.map((m) => ({ value: m.id, label: m.name }))}
                     value={chartMeterId ?? ''}
-                    onChange={(e) => setSelectedMeterId(e.target.value || null)}
-                    className="rounded-lg border border-pa-border px-2 py-1 text-[11px] text-pa-text-muted"
-                  >
-                    {meters.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedMeterId(val || null)}
+                    className="w-44"
+                  />
                 ) : (
                   <div className="h-6 w-32 animate-pulse rounded-lg bg-gray-200" />
                 )}
@@ -249,17 +258,87 @@ export function DashboardPage() {
               </ul>
             </DataWidget>
           </div>
+
+          {/* Overdue invoices */}
+          {billingKpis.overdueInvoices.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-[13px] font-medium text-pa-text">
+                Facturas vencidas
+                <span className="ml-1.5 text-[11px] font-normal text-red-500">
+                  ({billingKpis.overdueInvoices.length})
+                </span>
+              </h2>
+              <ul className="max-h-48 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
+                {billingKpis.overdueInvoices.map((inv) => (
+                  <li
+                    key={inv.id}
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-gray-50"
+                    onClick={() => navigate(`/buildings/${inv.buildingId}`)}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium text-pa-text">{inv.invoiceNumber}</span>
+                      <span className="text-[11px] text-pa-text-muted">{inv.periodStart.slice(0, 7)}</span>
+                    </div>
+                    <span className="shrink-0 text-[12px] font-medium text-red-600">
+                      {fmtClp(inv.total)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function KpiCard({ title, value }: Readonly<{ title: string; value: string }>) {
+/* ── Billing KPI helpers ── */
+
+interface BillingKpis {
+  paid: number;
+  pending: number;
+  overdue: number;
+  overdueInvoices: Invoice[];
+}
+
+function computeBillingKpis(invoices: Invoice[]): BillingKpis {
+  const now = new Date();
+  let paid = 0;
+  let pending = 0;
+  let overdue = 0;
+  const overdueInvoices: Invoice[] = [];
+
+  for (const inv of invoices) {
+    if (inv.status === 'voided') continue;
+    const total = parseFloat(inv.total) || 0;
+
+    if (inv.status === 'paid') {
+      paid += total;
+      continue;
+    }
+
+    // Non-paid: check if overdue (periodEnd in the past)
+    const periodEnd = new Date(inv.periodEnd);
+    if (periodEnd < now) {
+      overdue += total;
+      overdueInvoices.push(inv);
+    } else {
+      pending += total;
+    }
+  }
+
+  // Sort overdue by amount desc
+  overdueInvoices.sort((a, b) => (parseFloat(b.total) || 0) - (parseFloat(a.total) || 0));
+
+  return { paid, pending, overdue, overdueInvoices };
+}
+
+function KpiCard({ title, value, color }: Readonly<{ title: string; value: string; color?: string }>) {
   return (
     <div className="flex-1 basis-32 rounded-lg border border-pa-border bg-white px-3 py-2.5">
       <p className="text-[11px] font-medium text-pa-text-muted">{title}</p>
-      <p className="mt-0.5 text-base font-semibold text-pa-text">{value}</p>
+      <p className={`mt-0.5 text-base font-semibold ${color ?? 'text-pa-text'}`}>{value}</p>
     </div>
   );
 }

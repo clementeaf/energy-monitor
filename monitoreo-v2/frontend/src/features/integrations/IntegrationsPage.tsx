@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
@@ -225,26 +226,20 @@ export function IntegrationsPage() {
                   }
                   className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
                 />
-                <select
+                <DropdownSelect
+                  options={[
+                    { value: '', label: 'Todos los estados' },
+                    ...STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                  ]}
                   value={filters.status ?? ''}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setFilters({
                       ...filters,
-                      status:
-                        e.target.value === ''
-                          ? undefined
-                          : (e.target.value as IntegrationStatus),
+                      status: val === '' ? undefined : (val as IntegrationStatus),
                     })
                   }
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-                >
-                  <option value="">Todos los estados</option>
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
+                  className="w-48"
+                />
                 {canCreate && (
                   <button
                     type="button"

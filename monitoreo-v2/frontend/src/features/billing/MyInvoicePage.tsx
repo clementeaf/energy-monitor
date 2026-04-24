@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useMyInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { invoicesEndpoints } from '../../services/endpoints';
 import { Chart } from '../../components/charts/Chart';
@@ -88,16 +89,15 @@ export function MyInvoicePage(): ReactElement {
           <h1 className="text-2xl font-semibold text-gray-900">Mi Factura</h1>
           <p className="mt-0.5 text-sm text-gray-500">Historial de facturación de sus espacios asignados.</p>
         </div>
-        <select
+        <DropdownSelect
+          options={[
+            { value: '', label: 'Todos los meses' },
+            ...months.map((m) => ({ value: m, label: m })),
+          ]}
           value={monthFilter}
-          onChange={(e) => setMonthFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Todos los meses</option>
-          {months.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
+          onChange={(val) => setMonthFilter(val)}
+          className="w-44"
+        />
       </div>
 
       {/* Chart */}

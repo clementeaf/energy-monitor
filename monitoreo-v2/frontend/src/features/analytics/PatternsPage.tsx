@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { Chart } from '../../components/charts/Chart';
 import { TableStateBody } from '../../components/ui/TableStateBody';
@@ -202,25 +203,25 @@ export function PatternsPage(): ReactElement {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Patrones y Anomalías</h1>
         <div className="flex gap-2">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingFilter}
-            onChange={(e) => setBuildingFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <select
+            onChange={(val) => setBuildingFilter(val)}
+            className="w-48"
+          />
+          <DropdownSelect
+            options={[
+              { value: 'high', label: 'Alta sensibilidad' },
+              { value: 'medium', label: 'Media' },
+              { value: 'low', label: 'Baja' },
+            ]}
             value={sensitivity}
-            onChange={(e) => setSensitivity(e.target.value as Sensitivity)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-          >
-            <option value="high">Alta sensibilidad</option>
-            <option value="medium">Media</option>
-            <option value="low">Baja</option>
-          </select>
+            onChange={(val) => setSensitivity(val as Sensitivity)}
+            className="w-44"
+          />
         </div>
       </div>
 

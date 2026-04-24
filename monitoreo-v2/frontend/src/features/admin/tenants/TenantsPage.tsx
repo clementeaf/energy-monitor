@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { Th, Td, StatusBadge, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
@@ -57,16 +58,15 @@ export function TenantsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-pa-text">Locatarios</h1>
         <div className="flex items-center gap-3">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...buildings.map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingFilter}
-            onChange={(e) => { setBuildingFilter(e.target.value); }}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Todos los edificios</option>
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => { setBuildingFilter(val); }}
+            className="w-48"
+          />
           {canWrite && (
             <button
               type="button"

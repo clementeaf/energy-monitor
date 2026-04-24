@@ -107,7 +107,7 @@ export function DropdownSelect<T extends string = string>({
         className={
           'flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ' +
           'text-left transition-all duration-150 ' +
-          'hover:border-gray-400 focus:border-[var(--color-primary,#3D3BF3)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#3D3BF3)] ' +
+          'hover:border-gray-400 focus:border-gray-400 focus:outline-none ' +
           (disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer')
         }
       >

@@ -84,10 +84,7 @@ const NAV_ENTRIES: NavEntry[] = [
     label: 'Reportes',
     basePath: '/reports',
     requiredPerms: ['reports:read', 'reports:view_own'],
-    children: [
-      { to: '/reports', label: 'Reportes', end: true },
-      { to: '/reports/scheduled', label: 'Programados' },
-    ],
+    to: '/reports',
   },
   {
     label: 'Analítica',

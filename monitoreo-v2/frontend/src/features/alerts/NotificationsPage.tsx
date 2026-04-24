@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TableStateBody } from '../../components/ui/TableStateBody';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useNotificationLogsQuery } from '../../hooks/queries/useNotificationLogsQuery';
 import type { NotificationLogQueryParams } from '../../types/notification-log';
@@ -54,29 +55,31 @@ export function NotificationsPage() {
       <div className="flex items-end gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500">Canal</label>
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'email', label: 'Email' },
+              { value: 'webhook', label: 'Webhook' },
+              { value: 'push', label: 'Push' },
+            ]}
             value={channelFilter}
-            onChange={(e) => { setChannelFilter(e.target.value); }}
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Todos</option>
-            <option value="email">Email</option>
-            <option value="webhook">Webhook</option>
-            <option value="push">Push</option>
-          </select>
+            onChange={(val) => { setChannelFilter(val); }}
+            className="w-40"
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500">Estado</label>
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'sent', label: 'Enviado' },
+              { value: 'failed', label: 'Fallido' },
+              { value: 'pending', label: 'Pendiente' },
+            ]}
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); }}
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Todos</option>
-            <option value="sent">Enviado</option>
-            <option value="failed">Fallido</option>
-            <option value="pending">Pendiente</option>
-          </select>
+            onChange={(val) => { setStatusFilter(val); }}
+            className="w-40"
+          />
         </div>
         <button
           type="button"

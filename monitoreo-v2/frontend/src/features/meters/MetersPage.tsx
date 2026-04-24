@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
@@ -10,6 +11,7 @@ import { MeterForm } from './MeterForm';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../../types/meter';
 
 export function MetersPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const buildingId = searchParams.get('buildingId') ?? undefined;
   const { has } = usePermissions();
@@ -46,8 +48,7 @@ export function MetersPage() {
     deleteMutation.mutate(deleting.id, { onSuccess: () => { setDeleting(null); } });
   };
 
-  const handleBuildingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleBuildingChange = (val: string) => {
     if (val) {
       setSearchParams({ buildingId: val });
     } else {
@@ -61,16 +62,15 @@ export function MetersPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Medidores</h1>
 
         <div className="flex gap-2">
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingId ?? ''}
             onChange={handleBuildingChange}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700"
-          >
-            <option value="">Todos los edificios</option>
-            {(buildingsQuery.data ?? []).map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            className="w-48"
+          />
 
           {canWrite && (
             <button
@@ -106,7 +106,11 @@ export function MetersPage() {
             skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
             {(metersQuery.data ?? []).map((m) => (
-              <tr key={m.id} className="hover:bg-gray-50">
+              <tr
+                key={m.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => navigate(`/monitoring/meter/${m.id}`)}
+              >
                 <Td className="font-medium text-gray-900">{m.name}</Td>
                 <Td>{m.code}</Td>
                 <Td>{m.meterType}</Td>
@@ -115,7 +119,7 @@ export function MetersPage() {
                 <Td><StatusBadge active={m.isActive} /></Td>
                 {canWrite && (
                   <Td>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                       <ActionBtn label="Editar" onClick={() => { openEdit(m); }} />
                       <ActionBtn label="Eliminar" onClick={() => { setDeleting(m); }} variant="danger" />
                     </div>

@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.1.0-alpha.0] - 2026-04-24 — MONITOREO V2: METER DRILL-DOWN, BILLING, UX OVERHAUL
+
+### Added (monitoreo-v2/frontend)
+- **MeterDetailPage** — `/monitoring/meter/:meterId`. Monthly aggregated chart (5 metrics), table with per-month drill-down. Breadcrumb: Edificios / Building / Meter.
+- **MeterReadingsPage** — `/monitoring/meter/:meterId/readings/:month`. Raw 15-min readings with daily/stock chart, 7-metric selector (composite voltage/current), day summary table with alert plotlines.
+- **BuildingDetailPage** — `/buildings/:buildingId`. Tabs: Facturación (monthly chart, invoice table with totals, line items drawer) and Medidores (list with click-through to meter detail).
+- **Dashboard billing KPIs** — 3 financial cards (Pagadas, Por cobrar, Vencidas) with color coding. Overdue invoices widget in right column.
+- **PdfPreviewModal** — Reusable component (fetch blob → iframe overlay). Integrated in BuildingDetailPage and InvoicesPage with download + preview icons.
+- **Formatters** — `fmtNum`, `fmtClp`, `monthLabel`, month name constants in `lib/formatters.ts`.
+
+### Changed (monitoreo-v2/frontend)
+- **DropdownSelect everywhere** — Replaced 52 native `<select>` filters across 24 pages with `DropdownSelect` (white bg, search, keyboard nav).
+- **DropdownSelect focus** — Removed blue ring on focus, subtle gray border instead.
+- **BuildingsPage** — Row click navigates to `/buildings/:buildingId` (was `/meters?buildingId=`).
+- **MetersPage** — Row click navigates to `/monitoring/meter/:id`. Edit/Delete buttons stop propagation.
+- **RealtimePage** — Row click navigates to meter detail (was building demand page).
+- **ReportsPage** — Removed sub-items from sidebar (single "Reportes" entry). Generate and Schedule forms open in Drawer instead of Modal.
+- **Global cursor** — `button, [role="button"] { cursor: pointer }` in `index.css`.
+
+---
+
 ## [2.0.0-alpha.0] - 2026-04-24 — MONITOREO V2: ROLE IMPERSONATION, QUERY PERF, UX POLISH
 
 ### Added (monitoreo-v2/frontend)

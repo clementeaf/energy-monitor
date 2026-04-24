@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-24)
+- **Meter drill-down + billing + UX overhaul:** MeterDetailPage (mensual) y MeterReadingsPage (15-min) portan el flujo completo de v1. BuildingDetailPage con tabs Facturación/Medidores, chart mensual, drawer line items. Dashboard con 3 KPIs financieros + widget facturas vencidas. PdfPreviewModal (iframe) en facturas. 52 `<select>` nativos migrados a DropdownSelect. ReportsPage sin sub-items, drawers en vez de modales. `cursor: pointer` global en buttons. [CHANGELOG — 2.1.0-alpha.0](CHANGELOG.md)
 - **Role impersonation + query perf + UX:** super_admin switcher de rol con dropdown custom. `DISTINCT ON` → `LEFT JOIN LATERAL` en readings/latest. DevicesPage y MetersByTypePage con search + infinite scroll. Sidebar collapse via logo. Generación y Mapa Modbus ocultos. Drawer phantom fix. [CHANGELOG — 2.0.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-23)

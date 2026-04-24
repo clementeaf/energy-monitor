@@ -85,46 +85,12 @@ export function DashboardPage() {
     return rawAlerts.filter((a) => a.meterId && operatorMeterIds.has(a.meterId));
   }, [rawAlerts, isFilteredMode, operatorMeterIds]);
 
-  // Técnico: no dashboard financiero
-  if (isTecnico) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg font-semibold text-pa-text">Dashboard no disponible</p>
-          <p className="mt-1 text-sm text-pa-text-muted">
-            El dashboard financiero no está disponible en modo técnico.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Filtered mode without operator selected
-  if (needsSelection) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg font-semibold text-pa-text">Selecciona un operador</p>
-          <p className="mt-1 text-sm text-pa-text-muted">
-            Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalMeters = allLatestReadings.length;
-  const totalPowerKw = allLatestReadings.reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
-  const avgPowerFactor = allLatestReadings.length > 0
-    ? allLatestReadings.reduce((sum, r) => sum + Number(r.power_factor || 0), 0) / allLatestReadings.length
-    : 0;
-
   // Chart meter: from meters table (fast) — no waterfall through latest readings
   const chartMeterId = selectedMeterId ?? meters[0]?.id ?? null;
 
   const readingsQuery = useReadingsQuery(
     { meterId: chartMeterId ?? '', from, to, resolution: rangeConfig.resolution },
-    !!chartMeterId,
+    !!chartMeterId && !isTecnico && !needsSelection,
   );
 
   const chartOptions = useMemo(() => {
@@ -159,6 +125,40 @@ export function DashboardPage() {
       }],
     };
   }, [readingsQuery.data, chartView]);
+
+  // Técnico: no dashboard financiero
+  if (isTecnico) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-text">Dashboard no disponible</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            El dashboard financiero no está disponible en modo técnico.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Filtered mode without operator selected
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-text">Selecciona un operador</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalMeters = allLatestReadings.length;
+  const totalPowerKw = allLatestReadings.reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
+  const avgPowerFactor = allLatestReadings.length > 0
+    ? allLatestReadings.reduce((sum, r) => sum + Number(r.power_factor || 0), 0) / allLatestReadings.length
+    : 0;
 
   return (
     <div className="space-y-4">

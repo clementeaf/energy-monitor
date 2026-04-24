@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.1-alpha.0] - 2026-04-24 — GLOBE LANDING: HERO MOBILE FIXES
+
+### Fixed (globe-landing)
+- **Hero arrows mobile** — Navigation arrows now visible on mobile (were hidden below `sm` breakpoint).
+- **Hero text overflow mobile** — Increased mobile `min-h` from 480px to 560px so slide subtitles display fully without clipping.
+
+---
+
 ## [2.4.0-alpha.0] - 2026-04-24 — MONITOREO V2: OPERATOR FILTER SYSTEM + DATA MIGRATION
 
 ### Added (monitoreo-v2/frontend)

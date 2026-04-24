@@ -63,7 +63,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden sm:rounded-br-[100px]">
       {/* Banner */}
-      <div className="relative min-h-[480px] sm:min-h-[520px] lg:h-[598px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] pt-[60px] pb-[130px] sm:pt-[80px] sm:pb-[140px]">
+      <div className="relative min-h-[560px] sm:min-h-[520px] lg:h-[598px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] pt-[60px] pb-[130px] sm:pt-[80px] sm:pb-[140px]">
         {/* Background slides */}
         {HERO_SLIDES.map((s, i) => (
           <img
@@ -137,7 +137,7 @@ export function Hero() {
               ))}
             </div>
 
-            <div className="hidden sm:flex items-center gap-9">
+            <div className="flex items-center gap-4 sm:gap-9">
               <button
                 type="button"
                 onClick={() => goTo(current - 1)}

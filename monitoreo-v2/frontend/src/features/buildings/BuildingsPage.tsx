@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useBuildingsQuery, useCreateBuilding, useUpdateBuilding, useDeleteBuilding } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { BuildingForm } from './BuildingForm';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../../types/building';
 
@@ -15,7 +16,23 @@ export function BuildingsPage() {
   });
   const navigate = useNavigate();
   const { has } = usePermissions();
-  const canWrite = has('admin_buildings', 'create');
+  const { isHolding, isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+  const canWrite = isHolding && has('admin_buildings', 'create');
+
+  // Filter buildings by operator
+  const filteredBuildings = useMemo(() => {
+    const all = query.data ?? [];
+    if (!isFilteredMode || !operatorBuildingIds) return all;
+    return all.filter((b) => operatorBuildingIds.has(b.id));
+  }, [query.data, isFilteredMode, operatorBuildingIds]);
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en la barra lateral para ver edificios.</p>
+      </div>
+    );
+  }
 
   const createMutation = useCreateBuilding();
   const updateMutation = useUpdateBuilding();
@@ -77,7 +94,7 @@ export function BuildingsPage() {
             emptyMessage="No hay edificios registrados."
             skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
           >
-            {(query.data ?? []).map((b) => (
+            {filteredBuildings.map((b) => (
               <tr
                 key={b.id}
                 className="cursor-pointer hover:bg-gray-50"

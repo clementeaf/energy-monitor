@@ -6,6 +6,7 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { LatestReading } from '../../../types/reading';
 
 const STATUS_CONFIG: Record<string, { label: string; dot: string }> = {
@@ -25,6 +26,7 @@ const PAGE_SIZE = 15;
 
 export function RealtimePage() {
   const navigate = useNavigate();
+  const { isFilteredMode, needsSelection, operatorMeterIds, operatorBuildingIds } = useOperatorFilter();
   const [buildingFilter, setBuildingFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [search, setSearch] = useState('');
@@ -34,7 +36,11 @@ export function RealtimePage() {
   const buildingsQuery = useBuildingsQuery();
 
   // Default to first building to avoid loading 875+ meters at once
-  const buildings = buildingsQuery.data ?? [];
+  const allBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return allBuildings;
+    return allBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [allBuildings, isFilteredMode, operatorBuildingIds]);
   const effectiveFilter = buildingFilter || buildings[0]?.id || '';
 
   const latestQuery = useLatestReadingsQuery(
@@ -68,7 +74,11 @@ export function RealtimePage() {
     return ids;
   }, [alertsQuery.data]);
 
-  const readings = latestQuery.data ?? [];
+  const rawReadings = latestQuery.data ?? [];
+  const readings = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawReadings;
+    return rawReadings.filter((r) => operatorMeterIds.has(r.meter_id));
+  }, [rawReadings, isFilteredMode, operatorMeterIds]);
 
   const buildingMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -114,6 +124,14 @@ export function RealtimePage() {
   const offlineCount = readings.filter((r) => getMeterStatus(r, alertMeterIds) === 'offline').length;
   const alarmCount = readings.filter((r) => getMeterStatus(r, alertMeterIds) === 'alarm').length;
   const totalPower = readings.reduce((s, r) => s + Number(r.power_kw || 0), 0);
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en la barra lateral para ver medidores en tiempo real.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

@@ -6,6 +6,7 @@ import { Drawer } from '../../components/ui/Drawer';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { Alert, AlertStatus, AlertSeverity, AlertQueryParams } from '../../types/alert';
 
 const SEVERITY_COLORS: Record<AlertSeverity, string> = {
@@ -28,6 +29,7 @@ const STATUS_LABELS: Record<AlertStatus, string> = {
 };
 
 export function AlertsPage() {
+  const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
   const highlightRef = useRef<HTMLTableRowElement>(null);
@@ -90,8 +92,12 @@ export function AlertsPage() {
     { value: 'resolved', label: 'Resueltas' },
   ];
 
-  // All alerts (unfiltered by status) for counts
-  const allAlerts = alertsQuery.data ?? [];
+  // All alerts (unfiltered by status) for counts — filtered by operator
+  const rawAlerts = alertsQuery.data ?? [];
+  const allAlerts = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
+    return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
+  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
   const activeCount = allAlerts.filter((a) => a.status === 'active').length;
   const ackCount = allAlerts.filter((a) => a.status === 'acknowledged').length;
   const resolvedCount = allAlerts.filter((a) => a.status === 'resolved').length;
@@ -99,6 +105,14 @@ export function AlertsPage() {
 
   // Client-side status filter
   const displayAlerts = statusTab ? allAlerts.filter((a) => a.status === statusTab) : allAlerts;
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-pa-text-muted">Selecciona un operador en la barra lateral para ver alertas.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col gap-3">

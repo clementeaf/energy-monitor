@@ -9,6 +9,7 @@ import { useInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { StockChart } from '../../components/charts/StockChart';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fmtClp } from '../../lib/formatters';
 import type { ReadingResolution } from '../../types/reading';
 import type { Invoice } from '../../types/invoice';
@@ -29,6 +30,7 @@ const CHART_VIEWS: { key: ChartView; label: string }[] = [
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { isTecnico, isFilteredMode, needsSelection, operatorMeterIds, operatorBuildingIds } = useOperatorFilter();
   const [preset, setPreset] = useState<RangePreset>('week');
   const [chartView, setChartView] = useState<ChartView>('power');
   const [selectedMeterId, setSelectedMeterId] = useState<string | null>(null);
@@ -44,12 +46,20 @@ export function DashboardPage() {
   const buildingsQuery = useBuildingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
 
-  const buildings = buildingsQuery.data ?? [];
+  const allBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return allBuildings;
+    return allBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [allBuildings, isFilteredMode, operatorBuildingIds]);
   const firstBuildingId = buildings[0]?.id ?? '';
 
   // Fast path: meters list from `meters` table (no DISTINCT ON readings)
   const metersQuery = useMetersQuery(firstBuildingId || undefined);
-  const meters = metersQuery.data ?? [];
+  const allMeters = metersQuery.data ?? [];
+  const meters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return allMeters;
+    return allMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [allMeters, isFilteredMode, operatorMeterIds]);
 
   // KPIs: latest readings (heavier, runs in parallel — doesn't block chart)
   const allLatestQuery = useLatestReadingsQuery();
@@ -63,8 +73,45 @@ export function DashboardPage() {
     isEmpty: (d) => !d || d.length === 0,
   });
 
-  const allLatestReadings = allLatestQuery.data ?? [];
-  const activeAlerts = alertsQuery.data ?? [];
+  const rawLatestReadings = allLatestQuery.data ?? [];
+  const allLatestReadings = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawLatestReadings;
+    return rawLatestReadings.filter((r) => operatorMeterIds.has(r.meter_id));
+  }, [rawLatestReadings, isFilteredMode, operatorMeterIds]);
+
+  const rawAlerts = alertsQuery.data ?? [];
+  const activeAlerts = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
+    return rawAlerts.filter((a) => operatorMeterIds.has(a.meterId));
+  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
+
+  // Técnico: no dashboard financiero
+  if (isTecnico) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-text">Dashboard no disponible</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            El dashboard financiero no está disponible en modo técnico.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Filtered mode without operator selected
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-pa-text">Selecciona un operador</p>
+          <p className="mt-1 text-sm text-pa-text-muted">
+            Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const totalMeters = allLatestReadings.length;
   const totalPowerKw = allLatestReadings.reduce((sum, r) => sum + Number(r.power_kw || 0), 0);

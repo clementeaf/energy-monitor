@@ -26,7 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-24)
-- **Meter drill-down + billing + UX overhaul:** MeterDetailPage y MeterReadingsPage portan flujo v1. BuildingDetailPage con tabs Facturación/Medidores. Dashboard KPIs financieros. DropdownSelect en 24 páginas. InvoicesPage con status tabs + infinite scroll 15 filas + preview en Drawer. AlertsPage con status tabs + resolve Drawer con notas. AlertsHistoryPage compacta (pills + chart toggle). ReportsPage drawers. Charts con spacingTop. PDF URL fix. Auth preserva ruta al recargar. [CHANGELOG — 2.1.0-alpha.0](CHANGELOG.md)
+- **Meter drill-down + billing + multi-tenant theming + UX:** MeterDetailPage y MeterReadingsPage portan flujo v1. BuildingDetailPage con tabs Facturación/Medidores. Dashboard KPIs financieros. DropdownSelect en 24 páginas. InvoicesPage status tabs + 15-row scroll + preview Drawer. AlertsPage status tabs + resolve Drawer. Sidebar smooth collapse + TenantSwitcher (selector empresa con search, aplica theme). Themes PASA (azul) y Siemens (teal) via `data-theme`. Tenant PASA creado, 5 malls reasignados. PDF URL fix. Auth preserva ruta. [CHANGELOG — 2.1.0-alpha.0](CHANGELOG.md)
 - **Role impersonation + query perf + UX:** super_admin switcher de rol con dropdown custom. `DISTINCT ON` → `LEFT JOIN LATERAL` en readings/latest. DevicesPage y MetersByTypePage con search + infinite scroll. Sidebar collapse via logo. Generación y Mapa Modbus ocultos. Drawer phantom fix. [CHANGELOG — 2.0.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-23)

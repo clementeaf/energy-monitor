@@ -24,6 +24,10 @@
 ### Fixed (monitoreo-v2/frontend)
 - **PDF download** — `invoicesEndpoints.pdfUrl()` now includes API base URL prefix, preventing React Router 404.
 - **InvoicesPage perf** — `statusCounts` and `displayInvoices` memoized. 15-row pagination prevents rendering 5000+ rows.
+- **Sidebar collapse** — Smooth `transition-[width] duration-300` animation instead of instant show/hide.
+- **TenantSwitcher** — Company selector in sidebar (super_admin only). Search input, first 10 shown, selects tenant and applies its theme (colors, title, favicon). `selectedTenantId` in AppStore.
+- **Multi-tenant themes** — `[data-theme="pasa"]` (blue `#3D3BF3`) and `[data-theme="siemens"]` (teal `#009999`) CSS blocks. `applyTenantTheme` sets `data-theme` attribute for slug-based overrides.
+- **DB: PASA tenant** — Created tenant (slug `pasa`). Reassigned 5 mall buildings (MG, MM, OT, SC52, SC53) from Globe Power to PASA.
 
 ---
 

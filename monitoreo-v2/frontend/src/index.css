@@ -24,6 +24,20 @@
   --color-pa-text-muted: #808080;
 }
 
+/* ── Theme: PASA ────────────────────────────────────── */
+[data-theme="pasa"] {
+  --color-pa-navy:       #1E3A5F;
+  --color-pa-blue:       #3D3BF3;
+  --color-pa-blue-light: #5B59F5;
+  --color-pa-coral:      #E84C6F;
+  --color-pa-green:      #10B981;
+  --color-pa-amber:      #F5A623;
+  --color-pa-bg-alt:     #F5F7FA;
+  --color-pa-border:     #E2E8F0;
+  --color-pa-text:       #1E3A5F;
+  --color-pa-text-muted: #64748B;
+}
+
 /* ── Theme: Siemens ──────────────────────────────────── */
 [data-theme="siemens"] {
   --color-pa-navy:       #00646E;

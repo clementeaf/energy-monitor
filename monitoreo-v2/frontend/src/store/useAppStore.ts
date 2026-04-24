@@ -17,18 +17,22 @@ interface AppState {
   sidebarOpen: boolean;
   selectedBuildingId: string | null;
   viewAsRole: ViewAsRole;
+  selectedTenantId: string | null;
   setSidebarOpen: (open: boolean) => void;
   toggleSidebar: () => void;
   setSelectedBuildingId: (id: string | null) => void;
   setViewAsRole: (role: ViewAsRole) => void;
+  setSelectedTenantId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   sidebarOpen: true,
   selectedBuildingId: null,
   viewAsRole: null,
+  selectedTenantId: null,
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId }),
   setViewAsRole: (viewAsRole) => set({ viewAsRole }),
+  setSelectedTenantId: (selectedTenantId) => set({ selectedTenantId }),
 }));

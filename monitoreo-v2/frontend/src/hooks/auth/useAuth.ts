@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
@@ -11,6 +11,7 @@ export function useAuth() {
   const { user, tenant, isAuthenticated, isLoading, error, setSession, clearSession, setLoading, setError } =
     useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const microsoft = useMicrosoftAuth();
   const msResolved = useRef(false);
   const [mfaPending, setMfaPending] = useState<{ userId: string } | null>(null);
@@ -21,8 +22,9 @@ export function useAuth() {
     setSessionFlag();
     setSession(usr, data.tenant, buildings ?? []);
     applyTenantTheme(data.tenant);
-    navigate('/');
-  }, [navigate, setSession]);
+    const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
+    navigate(returnTo, { replace: true });
+  }, [navigate, location.state, setSession]);
 
   const loginWithProvider = useCallback(
     async (provider: AuthProvider, idToken: string) => {

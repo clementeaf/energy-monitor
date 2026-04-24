@@ -252,8 +252,11 @@ export const invoicesEndpoints = {
   my: (params?: { limit?: number; offset?: number }) =>
     api.get<Invoice[]>(`${API_ROUTES.invoices}/my`, { params }),
 
-  pdfUrl: (id: string) =>
-    `${API_ROUTES.invoices}/${id}/pdf`,
+  pdfUrl: (id: string) => {
+    const b = import.meta.env.VITE_API_BASE_URL || '/api';
+    const base = b.endsWith('/') ? b.slice(0, -1) : b;
+    return `${base}${API_ROUTES.invoices}/${id}/pdf`;
+  },
 };
 
 const apiBase = (): string => {

@@ -74,8 +74,6 @@ const NAV_ENTRIES: NavEntry[] = [
     requiredPerms: ['billing:read', 'billing:view_own'],
     children: [
       { to: '/billing', label: 'Facturas', end: true },
-      { to: '/billing/approve', label: 'Aprobar' },
-      { to: '/billing/history', label: 'Historial' },
       { to: '/billing/my-invoice', label: 'Mi Factura' },
       { to: '/billing/rates', label: 'Tarifas' },
     ],

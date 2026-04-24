@@ -75,7 +75,7 @@ function MonthlyChartInner({
     if (mode === 'pie') {
       const pieColors = getSeriesColors();
       return {
-        chart: { height: 260, backgroundColor: 'transparent' },
+        chart: { height: 260, backgroundColor: 'transparent', spacingTop: 16 },
         title: { text: undefined },
         tooltip: {
           useHTML: true,
@@ -108,7 +108,7 @@ function MonthlyChartInner({
 
     return {
       ...base,
-      chart: { ...base.chart, type: mode, height: 300, backgroundColor: 'transparent', spacingBottom: 15 },
+      chart: { ...base.chart, type: mode, height: 300, backgroundColor: 'transparent', spacingTop: 16, spacingBottom: 15 },
       title: { text: undefined },
       xAxis: {
         ...(base.xAxis as object),
@@ -137,23 +137,25 @@ function MonthlyChartInner({
   }, [data, seriesName, unit, currency, mode, categories, values]);
 
   return (
-    <div className="relative">
+    <div>
       {showToggle && modes.length > 1 && (
-        <div className="absolute right-0 top-0 z-10 flex rounded-full border border-gray-200">
-          {modes.map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`px-2.5 py-0.5 text-[11px] transition-colors first:rounded-l-full last:rounded-r-full ${
-                mode === m
-                  ? 'bg-[var(--color-primary,#3D3BF3)] text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {MODE_LABELS[m]}
-            </button>
-          ))}
+        <div className="mb-2 flex justify-end">
+          <div className="flex rounded-full border border-gray-200">
+            {modes.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`px-2.5 py-0.5 text-[11px] transition-colors first:rounded-l-full last:rounded-r-full ${
+                  mode === m
+                    ? 'bg-[var(--color-primary,#3D3BF3)] text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {MODE_LABELS[m]}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       <HighchartsReact highcharts={Highcharts} options={options} />

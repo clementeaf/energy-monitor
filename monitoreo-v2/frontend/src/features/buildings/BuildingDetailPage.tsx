@@ -3,11 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router';
 import { Card } from '../../components/ui/Card';
 import { MonthlyChart } from '../../components/charts/MonthlyChart';
 import { Drawer } from '../../components/ui/Drawer';
-import { PdfPreviewModal } from '../../components/ui/PdfPreviewModal';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useInvoicesQuery, useInvoiceLineItemsQuery } from '../../hooks/queries/useInvoicesQuery';
+import { invoicesEndpoints } from '../../services/endpoints';
 import { fmtNum, fmtClp, monthLabel } from '../../lib/formatters';
 import type { Invoice, InvoiceLineItem } from '../../types/invoice';
 
@@ -228,7 +228,7 @@ export function BuildingDetailPage() {
                         <Td>
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                             <a
-                              href={`/api/invoices/${inv.id}/pdf`}
+                              href={invoicesEndpoints.pdfUrl(inv.id)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[var(--color-primary,#3a5b1e)] hover:opacity-70"
@@ -385,12 +385,21 @@ export function BuildingDetailPage() {
         )}
       </Drawer>
 
-      {/* ── PDF preview modal ── */}
-      <PdfPreviewModal
-        pdfPath={previewInvoiceId ? `/invoices/${previewInvoiceId}/pdf` : null}
-        title={`Factura ${invoices.find((i) => i.id === previewInvoiceId)?.invoiceNumber ?? ''}`}
+      {/* ── Invoice preview drawer ── */}
+      <Drawer
+        open={!!previewInvoiceId}
         onClose={() => setPreviewInvoiceId(null)}
-      />
+        title={`Factura ${invoices.find((i) => i.id === previewInvoiceId)?.invoiceNumber ?? ''}`}
+        size="xl"
+      >
+        {previewInvoiceId && (
+          <iframe
+            src={invoicesEndpoints.pdfUrl(previewInvoiceId)}
+            className="h-full w-full rounded border-0"
+            title="Previsualizacion factura"
+          />
+        )}
+      </Drawer>
     </div>
   );
 }

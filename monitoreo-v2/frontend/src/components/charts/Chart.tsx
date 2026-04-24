@@ -29,7 +29,7 @@ function ChartInner({ options, className, highlightIndex, onPointHover }: Readon
     return {
       ...base,
       ...options,
-      chart: { ...base.chart, height: 280, ...options.chart },
+      chart: { ...base.chart, height: 280, spacingTop: 16, ...options.chart },
       title: { ...base.title, ...options.title },
       xAxis: { ...(base.xAxis as object), ...(options.xAxis as object) },
       yAxis: Array.isArray(options.yAxis) ? options.yAxis : { ...(base.yAxis as object), ...(options.yAxis as object) },

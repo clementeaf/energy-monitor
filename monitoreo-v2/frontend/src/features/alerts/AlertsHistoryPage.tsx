@@ -21,9 +21,12 @@ const SLA_TARGET_HOURS = 24;
  * Historial de alertas con métricas SLA.
  * Ruta: `/alerts/history`
  */
+type ChartTab = 'trend' | 'sla';
+
 export function AlertsHistoryPage(): ReactElement {
   const [buildingFilter, setBuildingFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
+  const [chartTab, setChartTab] = useState<ChartTab>('trend');
 
   const alertsQuery = useAlertsQuery({
     buildingId: buildingFilter || undefined,
@@ -121,7 +124,7 @@ export function AlertsHistoryPage(): ReactElement {
   }, [monthlySla]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Historial de Alertas y SLA</h1>
         <div className="flex gap-2">
@@ -144,40 +147,51 @@ export function AlertsHistoryPage(): ReactElement {
             ]}
             value={severityFilter}
             onChange={(val) => setSeverityFilter(val)}
-            className="w-48"
+            className="w-56"
           />
         </div>
       </div>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Total alertas" value={String(alerts.length)} />
-        <KpiCard title="Resueltas" value={String(globalSla.totalResolved)} color="text-green-600" />
-        <KpiCard title="Activas" value={String(globalSla.totalActive)} color={globalSla.totalActive > 0 ? 'text-red-600' : 'text-gray-900'} />
-        <KpiCard
-          title={`SLA (≤${SLA_TARGET_HOURS}h)`}
-          value={`${globalSla.slaPct.toFixed(1)}%`}
-          color={globalSla.slaPct >= 90 ? 'text-green-600' : globalSla.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'}
-        />
+      {/* KPI pills */}
+      <div className="flex flex-wrap gap-2">
+        <MiniKpi label="Total" value={String(alerts.length)} />
+        <MiniKpi label="Resueltas" value={String(globalSla.totalResolved)} color="text-green-600" />
+        <MiniKpi label="Activas" value={String(globalSla.totalActive)} color={globalSla.totalActive > 0 ? 'text-red-600' : undefined} />
+        <MiniKpi label={`SLA (≤${SLA_TARGET_HOURS}h)`} value={`${globalSla.slaPct.toFixed(1)}%`} color={globalSla.slaPct >= 90 ? 'text-green-600' : globalSla.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'} />
+        <MiniKpi label="Tiempo medio" value={`${globalSla.avgHours.toFixed(1)} h`} />
+        <MiniKpi label="Meses" value={String(monthlySla.length)} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <KpiCard title="Tiempo medio resolución" value={`${globalSla.avgHours.toFixed(1)} h`} />
-        <KpiCard title="Meses con datos" value={String(monthlySla.length)} />
-      </div>
-
-      {/* Charts */}
-      {trendChartOptions && (
+      {/* Chart with toggle */}
+      {(trendChartOptions || slaChartOptions) && (
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Tendencia mensual</h2>
-          <Chart options={trendChartOptions} />
-        </div>
-      )}
-
-      {slaChartOptions && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Cumplimiento SLA mensual</h2>
-          <Chart options={slaChartOptions} />
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-gray-700">
+              {chartTab === 'trend' ? 'Tendencia mensual' : 'Cumplimiento SLA mensual'}
+            </h2>
+            <div className="flex rounded-full border border-gray-200">
+              <button
+                type="button"
+                onClick={() => setChartTab('trend')}
+                className={`px-2.5 py-0.5 text-[11px] rounded-l-full transition-colors ${
+                  chartTab === 'trend' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Tendencia
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartTab('sla')}
+                className={`px-2.5 py-0.5 text-[11px] rounded-r-full transition-colors ${
+                  chartTab === 'sla' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                SLA
+              </button>
+            </div>
+          </div>
+          {chartTab === 'trend' && trendChartOptions && <Chart options={trendChartOptions} />}
+          {chartTab === 'sla' && slaChartOptions && <Chart options={slaChartOptions} />}
         </div>
       )}
 
@@ -221,11 +235,11 @@ export function AlertsHistoryPage(): ReactElement {
   );
 }
 
-function KpiCard({ title, value, color = 'text-gray-900' }: Readonly<{ title: string; value: string; color?: string }>): ReactElement {
+function MiniKpi({ label, value, color }: Readonly<{ label: string; value: string; color?: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{title}</p>
-      <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
+    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
+      <span className="text-[11px] text-gray-500">{label}</span>
+      <span className={`text-[13px] font-semibold ${color ?? 'text-gray-900'}`}>{value}</span>
     </div>
   );
 }

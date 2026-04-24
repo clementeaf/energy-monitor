@@ -68,7 +68,7 @@ function StockChartInner({ options, className, loading, onRangeChange }: Readonl
       ...base,
       ...extras,
       ...options,
-      chart: { ...base.chart, height: 380, ...options.chart },
+      chart: { ...base.chart, height: 380, spacingTop: 16, ...options.chart },
       title: { ...base.title, ...options.title },
       xAxis,
       yAxis,

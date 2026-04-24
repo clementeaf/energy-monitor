@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
+import { Drawer } from '../../components/ui/Drawer';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { PdfPreviewModal } from '../../components/ui/PdfPreviewModal';
 import { Chart } from '../../components/charts/Chart';
 import { useQueryState } from '../../hooks/useQueryState';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -11,7 +11,6 @@ import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useTariffsQuery } from '../../hooks/queries/useTariffsQuery';
 import {
   useInvoicesQuery,
-  useInvoiceLineItemsQuery,
   useApproveInvoice,
   useVoidInvoice,
   useDeleteInvoice,
@@ -48,11 +47,14 @@ function fmtCurrency(val: string | number): string {
   return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
 }
 
+const PAGE_SIZE = 15;
+
 export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
-  const initialStatus = defaultStatus === 'history' ? undefined : defaultStatus;
-  const [filters, setFilters] = useState<InvoiceQueryParams>(
-    initialStatus ? { status: initialStatus, limit: 10 } : { limit: 10 },
-  );
+  const [statusTab, setStatusTab] = useState<string>(defaultStatus === 'pending' ? 'pending' : defaultStatus === 'history' ? 'approved' : '');
+  const [filters, setFilters] = useState<InvoiceQueryParams>({});
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   const invoicesQuery = useInvoicesQuery(filters);
   const buildingsQuery = useBuildingsQuery();
   const qs = useQueryState(invoicesQuery, { isEmpty: (d) => !d || d.length === 0 });
@@ -60,53 +62,70 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   const canWrite = has('billing', 'create');
   const canUpdate = has('billing', 'update');
 
-  // Filter for history mode: only completed statuses
-  const displayInvoices = useMemo(() => {
-    const data = qs.data ?? [];
-    if (defaultStatus === 'history') {
-      return data.filter((inv) => ['approved', 'sent', 'paid', 'voided'].includes(inv.status));
+  const allInvoices = qs.data ?? [];
+
+  // Counts memoized — single pass
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { '': 0, draft: 0, pending: 0, approved: 0, paid: 0, voided: 0 };
+    for (const inv of allInvoices) {
+      counts[''] += 1;
+      if (counts[inv.status] !== undefined) counts[inv.status] += 1;
     }
-    return data;
-  }, [qs.data, defaultStatus]);
+    return counts;
+  }, [allInvoices]);
+
+  // Client-side status filter
+  const displayInvoices = useMemo(
+    () => statusTab ? allInvoices.filter((inv) => inv.status === statusTab) : allInvoices,
+    [allInvoices, statusTab],
+  );
 
   // Monthly evolution chart data
   const monthlyChartOptions = useMemo(() => {
-    const source = defaultStatus === 'history' ? displayInvoices : (qs.data ?? []);
-    if (source.length === 0) return null;
+    if (displayInvoices.length === 0) return null;
 
-    const byMonth = new Map<string, { net: number; total: number; count: number }>();
-    for (const inv of source) {
-      const key = inv.periodStart.slice(0, 7); // YYYY-MM
-      const cur = byMonth.get(key) ?? { net: 0, total: 0, count: 0 };
+    const byMonth = new Map<string, { net: number; total: number }>();
+    for (const inv of displayInvoices) {
+      const key = inv.periodStart.slice(0, 7);
+      const cur = byMonth.get(key) ?? { net: 0, total: 0 };
       cur.net += parseFloat(inv.totalNet);
       cur.total += parseFloat(inv.total);
-      cur.count += 1;
       byMonth.set(key, cur);
     }
 
     const sorted = Array.from(byMonth.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    const categories = sorted.map(([m]) => m);
-    const netData = sorted.map(([, v]) => v.net);
-    const totalData = sorted.map(([, v]) => v.total);
 
     return {
       chart: { type: 'column' as const, height: 260 },
       title: { text: undefined },
-      xAxis: { categories, crosshair: true },
+      xAxis: { categories: sorted.map(([m]) => m), crosshair: true },
       yAxis: { title: { text: 'CLP' } },
-      tooltip: {
-        shared: true,
-        valuePrefix: '$',
-        valueDecimals: 0,
-      },
+      tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
       series: [
-        { type: 'column' as const, name: 'Neto', data: netData, color: 'var(--color-primary, #3D3BF3)' },
-        { type: 'line' as const, name: 'Total (c/IVA)', data: totalData, color: '#f59e0b' },
+        { type: 'column' as const, name: 'Neto', data: sorted.map(([, v]) => v.net), color: 'var(--color-primary, #3D3BF3)' },
+        { type: 'line' as const, name: 'Total (c/IVA)', data: sorted.map(([, v]) => v.total), color: '#f59e0b' },
       ],
     };
-  }, [qs.data, displayInvoices, defaultStatus]);
+  }, [displayInvoices]);
 
-  const [detailId, setDetailId] = useState<string | null>(null);
+  // Infinite scroll
+  const visibleInvoices = displayInvoices.slice(0, visibleCount);
+  const hasMore = visibleCount < displayInvoices.length;
+
+  // Reset visible count when filters/tab change
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [statusTab, filters]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!hasMore || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisibleCount((c) => c + PAGE_SIZE); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, visibleCount]);
+
   const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Invoice | null>(null);
   const [generateOpen, setGenerateOpen] = useState(false);
@@ -122,11 +141,9 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {defaultStatus === 'pending' ? 'Aprobación de Facturas' : defaultStatus === 'history' ? 'Historial de Facturación' : 'Facturas'}
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Facturas</h1>
         <div className="flex items-center gap-3">
           <DropdownSelect
             options={[
@@ -136,15 +153,6 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             value={filters.buildingId ?? ''}
             onChange={(val) => setFilters({ ...filters, buildingId: val || undefined })}
             className="w-48"
-          />
-          <DropdownSelect
-            options={[
-              { value: '', label: 'Todos los estados' },
-              ...Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v })),
-            ]}
-            value={filters.status ?? ''}
-            onChange={(val) => setFilters({ ...filters, status: (val || undefined) as InvoiceStatus | undefined })}
-            className="w-44"
           />
           {canWrite && (
             <button
@@ -156,6 +164,33 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Status tabs */}
+      <div className="flex gap-1">
+        {[
+          { value: '', label: 'Todas' },
+          { value: 'pending', label: 'Pendientes' },
+          { value: 'approved', label: 'Aprobadas' },
+          { value: 'paid', label: 'Pagadas' },
+          { value: 'voided', label: 'Anuladas' },
+        ].map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setStatusTab(tab.value)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              statusTab === tab.value
+                ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
+                : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {tab.label}
+            {statusCounts[tab.value] > 0 && (
+              <span className="ml-1 opacity-70">({statusCounts[tab.value]})</span>
+            )}
+          </button>
+        ))}
       </div>
 
       {monthlyChartOptions && (
@@ -186,13 +221,12 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             emptyMessage="No hay facturas registradas."
             skeletonWidths={['w-24', 'w-32', 'w-20', 'w-24', 'w-20', 'w-24', 'w-28']}
           >
-            {displayInvoices.map((inv) => (
+            {visibleInvoices.map((inv) => (
               <InvoiceRow
                 key={inv.id}
                 invoice={inv}
                 canUpdate={canUpdate}
                 canWrite={canWrite}
-                onViewDetail={() => setDetailId(inv.id)}
                 onPreview={() => setPreviewInvoiceId(inv.id)}
                 onApprove={() => approveMutation.mutate(inv.id)}
                 onVoid={() => voidMutation.mutate(inv.id)}
@@ -201,11 +235,8 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-
-      {detailId && (
-        <InvoiceDetailModal invoiceId={detailId} onClose={() => setDetailId(null)} />
-      )}
 
       <ConfirmDialog
         open={!!deleting}
@@ -226,11 +257,20 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         />
       )}
 
-      <PdfPreviewModal
-        pdfPath={previewInvoiceId ? `/invoices/${previewInvoiceId}/pdf` : null}
-        title={`Factura ${displayInvoices.find((i) => i.id === previewInvoiceId)?.invoiceNumber ?? ''}`}
+      <Drawer
+        open={!!previewInvoiceId}
         onClose={() => setPreviewInvoiceId(null)}
-      />
+        title={`Factura ${displayInvoices.find((i) => i.id === previewInvoiceId)?.invoiceNumber ?? ''}`}
+        size="xl"
+      >
+        {previewInvoiceId && (
+          <iframe
+            src={invoicesEndpoints.pdfUrl(previewInvoiceId)}
+            className="h-full w-full rounded border-0"
+            title="Previsualizacion factura"
+          />
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -239,7 +279,6 @@ function InvoiceRow({
   invoice,
   canUpdate,
   canWrite,
-  onViewDetail,
   onPreview,
   onApprove,
   onVoid,
@@ -248,7 +287,6 @@ function InvoiceRow({
   invoice: Invoice;
   canUpdate: boolean;
   canWrite: boolean;
-  onViewDetail: () => void;
   onPreview: () => void;
   onApprove: () => void;
   onVoid: () => void;
@@ -256,11 +294,7 @@ function InvoiceRow({
 }) {
   return (
     <tr className="hover:bg-gray-50">
-      <td className="px-4 py-3">
-        <button type="button" onClick={onViewDetail} className="font-medium text-[var(--color-primary,#3D3BF3)] hover:underline">
-          {invoice.invoiceNumber}
-        </button>
-      </td>
+      <td className="px-4 py-3 font-medium text-gray-900">{invoice.invoiceNumber}</td>
       <td className="px-4 py-3 text-gray-600">
         {invoice.periodStart} — {invoice.periodEnd}
       </td>
@@ -314,52 +348,6 @@ function InvoiceRow({
         </div>
       </td>
     </tr>
-  );
-}
-
-function InvoiceDetailModal({ invoiceId, onClose }: Readonly<{ invoiceId: string; onClose: () => void }>) {
-  const lineItemsQuery = useInvoiceLineItemsQuery(invoiceId);
-
-  return (
-    <Modal open onClose={onClose} title="Detalle de Factura">
-      {lineItemsQuery.isPending && <p className="text-sm text-gray-400">Cargando...</p>}
-      {lineItemsQuery.isError && <p className="text-sm text-red-500">Error cargando line items</p>}
-      {lineItemsQuery.data && lineItemsQuery.data.length === 0 && (
-        <p className="text-sm text-gray-400">Sin detalle de items</p>
-      )}
-      {lineItemsQuery.data && lineItemsQuery.data.length > 0 && (
-        <div className="max-h-96 overflow-auto">
-          <table className="w-full text-xs">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="text-left text-gray-500">
-                <th className="pb-2">Medidor</th>
-                <th className="pb-2 text-right">kWh</th>
-                <th className="pb-2 text-right">kW Max</th>
-                <th className="pb-2 text-right">Energia</th>
-                <th className="pb-2 text-right">Demanda</th>
-                <th className="pb-2 text-right">Reactiva</th>
-                <th className="pb-2 text-right">Fijo</th>
-                <th className="pb-2 text-right font-semibold">Total Neto</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {lineItemsQuery.data.map((li) => (
-                <tr key={li.id}>
-                  <td className="py-1.5 font-mono">{li.meterId.slice(0, 8)}</td>
-                  <td className="py-1.5 text-right">{li.kwhConsumption}</td>
-                  <td className="py-1.5 text-right">{li.kwDemandMax}</td>
-                  <td className="py-1.5 text-right">{fmtCurrency(li.energyCharge)}</td>
-                  <td className="py-1.5 text-right">{fmtCurrency(li.demandCharge)}</td>
-                  <td className="py-1.5 text-right">{fmtCurrency(li.reactiveCharge)}</td>
-                  <td className="py-1.5 text-right">{fmtCurrency(li.fixedCharge)}</td>
-                  <td className="py-1.5 text-right font-semibold">{fmtCurrency(li.totalNet)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Modal>
   );
 }
 

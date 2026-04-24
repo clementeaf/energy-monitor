@@ -3,21 +3,27 @@
 ## [2.1.0-alpha.0] - 2026-04-24 — MONITOREO V2: METER DRILL-DOWN, BILLING, UX OVERHAUL
 
 ### Added (monitoreo-v2/frontend)
-- **MeterDetailPage** — `/monitoring/meter/:meterId`. Monthly aggregated chart (5 metrics), table with per-month drill-down. Breadcrumb: Edificios / Building / Meter.
-- **MeterReadingsPage** — `/monitoring/meter/:meterId/readings/:month`. Raw 15-min readings with daily/stock chart, 7-metric selector (composite voltage/current), day summary table with alert plotlines.
-- **BuildingDetailPage** — `/buildings/:buildingId`. Tabs: Facturación (monthly chart, invoice table with totals, line items drawer) and Medidores (list with click-through to meter detail).
-- **Dashboard billing KPIs** — 3 financial cards (Pagadas, Por cobrar, Vencidas) with color coding. Overdue invoices widget in right column.
-- **PdfPreviewModal** — Reusable component (fetch blob → iframe overlay). Integrated in BuildingDetailPage and InvoicesPage with download + preview icons.
-- **Formatters** — `fmtNum`, `fmtClp`, `monthLabel`, month name constants in `lib/formatters.ts`.
+- **MeterDetailPage** — `/monitoring/meter/:meterId`. Monthly aggregated chart (5 metrics), table with per-month drill-down.
+- **MeterReadingsPage** — `/monitoring/meter/:meterId/readings/:month`. Raw 15-min readings, daily/stock chart, 7-metric selector, day summary table.
+- **BuildingDetailPage** — `/buildings/:buildingId`. Tabs: Facturación (chart, invoices, line items drawer) and Medidores (click-through to meter detail).
+- **Dashboard billing KPIs** — 3 financial cards (Pagadas, Por cobrar, Vencidas). Overdue invoices widget.
+- **Formatters** — `fmtNum`, `fmtClp`, `monthLabel` in `lib/formatters.ts`.
 
 ### Changed (monitoreo-v2/frontend)
-- **DropdownSelect everywhere** — Replaced 52 native `<select>` filters across 24 pages with `DropdownSelect` (white bg, search, keyboard nav).
-- **DropdownSelect focus** — Removed blue ring on focus, subtle gray border instead.
-- **BuildingsPage** — Row click navigates to `/buildings/:buildingId` (was `/meters?buildingId=`).
-- **MetersPage** — Row click navigates to `/monitoring/meter/:id`. Edit/Delete buttons stop propagation.
-- **RealtimePage** — Row click navigates to meter detail (was building demand page).
-- **ReportsPage** — Removed sub-items from sidebar (single "Reportes" entry). Generate and Schedule forms open in Drawer instead of Modal.
-- **Global cursor** — `button, [role="button"] { cursor: pointer }` in `index.css`.
+- **DropdownSelect migration** — 52 native `<select>` → `DropdownSelect` across 24 pages. No blue focus ring.
+- **Navigation** — BuildingsPage → building detail. MetersPage/RealtimePage → meter detail.
+- **Sidebar** — Reportes as single entry (no sub-items). Facturación: removed Aprobar/Historial sub-items.
+- **InvoicesPage** — Status tabs (Todas/Pendientes/Aprobadas/Pagadas/Anuladas) with counts, client-side filter, 15-row infinite scroll. Invoice preview in Drawer (iframe). Removed row-click detail drawer.
+- **AlertsPage** — Status tabs (Todas/Activas/Reconocidas/Resueltas) with counts, client-side filter. Resolve via Drawer with notes form.
+- **AlertsHistoryPage** — Compact KPI pills, merged charts into single card with Tendencia/SLA toggle. Wider severity selector.
+- **ReportsPage** — Generate/Schedule forms in Drawer instead of Modal.
+- **Charts** — `spacingTop: 16` on Chart, StockChart, MonthlyChart. MonthlyChart toggle above chart (not overlapping).
+- **Global** — `cursor: pointer` on all buttons. PDF download URL includes `/api` prefix.
+- **Auth** — `ProtectedRoute` passes `location.pathname` to login. `completeLogin` returns to saved path.
+
+### Fixed (monitoreo-v2/frontend)
+- **PDF download** — `invoicesEndpoints.pdfUrl()` now includes API base URL prefix, preventing React Router 404.
+- **InvoicesPage perf** — `statusCounts` and `displayInvoices` memoized. 15-row pagination prevents rendering 5000+ rows.
 
 ---
 

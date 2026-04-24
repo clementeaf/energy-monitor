@@ -6,6 +6,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
+import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
+import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { applyTenantTheme } from '../../lib/tenant-theme';
 import type { RoleSlug, TenantTheme } from '../../types/auth';
 import type { Tenant } from '../../types/tenant';
@@ -123,7 +125,7 @@ const NAV_ENTRIES: NavEntry[] = [
 const VIEW_AS_ROLES: RoleSlug[] = ['super_admin', 'corp_admin', 'site_admin', 'operator', 'tenant_user', 'analyst', 'auditor'];
 
 export function Sidebar() {
-  const { sidebarOpen, toggleSidebar, viewAsRole, setViewAsRole, selectedTenantId, setSelectedTenantId } = useAppStore();
+  const { sidebarOpen, toggleSidebar, viewAsRole, setViewAsRole, selectedTenantId, setSelectedTenantId, selectedOperator, setSelectedOperator, selectedBuildingId, setSelectedBuildingId } = useAppStore();
   const { tenant } = useAuthStore();
   const { logout } = useAuth();
   const { hasAny, isSuperAdmin, isImpersonating } = usePermissions();
@@ -174,6 +176,20 @@ export function Sidebar() {
               }
             }}
           />
+          {(viewAsRole === 'corp_admin' || viewAsRole === 'site_admin') && (
+            <OperatorSwitcher
+              selectedName={selectedOperator}
+              onChange={setSelectedOperator}
+              tenantId={selectedTenantId}
+            />
+          )}
+          {viewAsRole === 'site_admin' && selectedOperator && (
+            <BuildingSwitcher
+              selectedId={selectedBuildingId}
+              operatorName={selectedOperator}
+              onChange={setSelectedBuildingId}
+            />
+          )}
         </div>
       )}
 
@@ -510,6 +526,221 @@ function TenantSwitcher({
             )}
           </ul>
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Operator Switcher (store/brand selector for Multi Operador) ── */
+
+const OPERATOR_PAGE_SIZE = 10;
+
+function OperatorSwitcher({
+  selectedName,
+  onChange,
+  tenantId,
+}: Readonly<{
+  selectedName: string | null;
+  onChange: (name: string | null) => void;
+  tenantId: string | null;
+}>) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const metersQuery = useMetersQuery();
+  const buildingsQuery = useBuildingsQuery();
+  const allMeters = metersQuery.data ?? [];
+  const allBuildings = buildingsQuery.data ?? [];
+
+  // Building IDs that belong to the selected tenant
+  const tenantBuildingIds = useMemo(() => {
+    if (!tenantId) return null;
+    const ids = new Set<string>();
+    for (const b of allBuildings) {
+      if (b.tenantId === tenantId) ids.add(b.id);
+    }
+    return ids;
+  }, [tenantId, allBuildings]);
+
+  // Distinct store/brand names, filtered by tenant
+  const operators = useMemo(() => {
+    const names = new Set<string>();
+    for (const m of allMeters) {
+      if (m.name && (!tenantBuildingIds || tenantBuildingIds.has(m.buildingId))) {
+        names.add(m.name);
+      }
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [allMeters, tenantBuildingIds]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    const matched = q ? operators.filter((n) => n.toLowerCase().includes(q)) : operators;
+    return matched.slice(0, OPERATOR_PAGE_SIZE);
+  }, [operators, search]);
+
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) { setSearch(''); inputRef.current?.focus(); }
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition-colors ${
+          selectedName
+            ? 'border-amber-400 bg-amber-50 text-amber-800'
+            : 'border-pa-border bg-white text-pa-navy'
+        }`}
+      >
+        <span className="truncate">{selectedName ?? 'Seleccionar tienda'}</span>
+        <svg
+          className={`h-3 w-3 shrink-0 opacity-50 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
+        >
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border border-pa-border bg-white shadow-lg">
+          <div className="border-b border-gray-100 p-2">
+            <input
+              ref={inputRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar tienda..."
+              className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-[11px] outline-none focus:border-gray-300"
+            />
+          </div>
+
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {filtered.map((name) => (
+              <li key={name}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(name); setOpen(false); }}
+                  className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-gray-100 ${
+                    selectedName === name ? 'font-semibold text-pa-blue' : 'text-pa-text'
+                  }`}
+                >
+                  {name}
+                </button>
+              </li>
+            ))}
+
+            {filtered.length === 0 && (
+              <li className="px-3 py-2 text-[11px] text-gray-400">Sin resultados</li>
+            )}
+
+            {operators.length > OPERATOR_PAGE_SIZE && !search && (
+              <li className="border-t border-gray-100 px-3 py-1.5 text-[10px] text-gray-400">
+                Mostrando {OPERATOR_PAGE_SIZE} de {operators.length} — usa el buscador
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Building Switcher (for Operador: buildings where operator has meters) ── */
+
+function BuildingSwitcher({
+  selectedId,
+  operatorName,
+  onChange,
+}: Readonly<{
+  selectedId: string | null;
+  operatorName: string;
+  onChange: (id: string | null) => void;
+}>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const metersQuery = useMetersQuery();
+  const buildingsQuery = useBuildingsQuery();
+  const allMeters = metersQuery.data ?? [];
+  const allBuildings = buildingsQuery.data ?? [];
+
+  const operatorBuildingIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const m of allMeters) {
+      if (m.name === operatorName) ids.add(m.buildingId);
+    }
+    return ids;
+  }, [allMeters, operatorName]);
+
+  const buildings = useMemo(
+    () => allBuildings.filter((b) => operatorBuildingIds.has(b.id)),
+    [allBuildings, operatorBuildingIds],
+  );
+
+  const selectedName = selectedId
+    ? buildings.find((b) => b.id === selectedId)?.name ?? 'Edificio'
+    : 'Seleccionar edificio';
+
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-[11px] font-semibold transition-colors ${
+          selectedId
+            ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+            : 'border-pa-border bg-white text-pa-navy'
+        }`}
+      >
+        <span className="truncate">{selectedName}</span>
+        <svg
+          className={`h-3 w-3 shrink-0 opacity-50 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
+        >
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border border-pa-border bg-white py-1 shadow-lg">
+          {buildings.map((b) => (
+            <li key={b.id}>
+              <button
+                type="button"
+                onClick={() => { onChange(b.id); setOpen(false); }}
+                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-gray-100 ${
+                  selectedId === b.id ? 'font-semibold text-pa-blue' : 'text-pa-text'
+                }`}
+              >
+                {b.name}
+              </button>
+            </li>
+          ))}
+          {buildings.length === 0 && (
+            <li className="px-3 py-2 text-[11px] text-gray-400">Sin edificios para esta tienda</li>
+          )}
+        </ul>
       )}
     </div>
   );

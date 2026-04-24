@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 
 const SERVICES = ['Globe Power', 'Globe Services', 'Globe Modular'];
 
+const INPUT_CLS =
+  'w-full min-h-[44px] rounded-lg border border-grey-200 bg-white p-3 font-body text-[16px] leading-[20px] text-grey-700 placeholder-grey-400 outline-none focus:border-grey-400 transition-colors';
+
 function ServiceSelect() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState('');
@@ -20,13 +23,13 @@ function ServiceSelect() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-left text-sm outline-none transition-colors focus:border-white/50 focus:bg-white/15"
+        className={`${INPUT_CLS} flex items-center justify-between text-left`}
       >
-        <span className={selected ? 'text-white' : 'text-white/40'}>
+        <span className={selected ? 'text-grey-700' : 'text-grey-400'}>
           {selected || 'Selecciona un servicio'}
         </span>
         <svg
-          className={`h-4 w-4 shrink-0 text-white/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`h-5 w-5 shrink-0 text-grey-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -39,7 +42,7 @@ function ServiceSelect() {
               <button
                 type="button"
                 onClick={() => { setSelected(s); setOpen(false); }}
-                className={`flex w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-grey-100 ${
+                className={`flex w-full px-4 py-2.5 text-left text-[16px] transition-colors hover:bg-grey-100 ${
                   selected === s ? 'font-medium text-grey-900' : 'text-grey-700'
                 }`}
               >
@@ -56,86 +59,78 @@ function ServiceSelect() {
 
 export function Contact() {
   return (
-    <section id="contacto" className="bg-brand py-20 sm:py-28 px-5 sm:px-10 lg:px-12">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+    <section id="contacto" className="bg-[#9a2d29] py-[128px]">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-y-12 lg:gap-x-[80px]">
         {/* Left column: text */}
-        <div className="flex flex-col justify-center">
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-white/60">
-            Contáctanos
-          </span>
+        <div>
+          {/* Label + Title — pb-60 */}
+          <div className="flex flex-col gap-2 pb-[60px] text-white">
+            <span className="font-body text-[16px] leading-[20px] font-normal">
+              CONTÁCTANOS
+            </span>
+            <h2 className="font-heading text-[36px] leading-[44px] font-extrabold">
+              Conversemos
+            </h2>
+          </div>
 
-          <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white leading-tight">
-            Conversemos
-          </h2>
-
-          <p className="mt-6 text-[15px] text-white/70 leading-[1.8] max-w-md">
-          Cuéntanos sobre tu proyecto u operación. Te contactamos en un máximo de 24 horas hábiles para evaluar cómo podemos ayudar.           </p>
+          <p className="font-heading text-[22px] leading-[30px] font-medium text-grey-50">
+            Cuéntanos sobre tu proyecto u operación. Te contactamos en un máximo de 24 horas hábiles para evaluar cómo podemos ayudar.
+          </p>
         </div>
 
-        {/* Right column: form */}
-        <form className="space-y-5">
-          {/* Nombre — full width */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-1.5">Nombre</label>
-            <input
-              type="text"
-              placeholder="Juan Pérez"
-              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
-            />
+        {/* Right column: form — Figma: gap-20, white inputs, labels grey-100 14px */}
+        <form className="flex flex-col gap-5">
+          {/* Nombre completo — full width */}
+          <div className="flex flex-col gap-2">
+            <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Nombre completo</label>
+            <input type="text" placeholder="Luis Miranda" className={INPUT_CLS} />
           </div>
 
           {/* Correo + Empresa */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">Correo electrónico</label>
-              <input
-                type="email"
-                placeholder="juan.perez@empresa.cl"
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
-              />
+            <div className="flex flex-col gap-2">
+              <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Correo electrónico</label>
+              <input type="email" placeholder="luism@empresa.cl" className={INPUT_CLS} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">Empresa</label>
-              <input
-                type="text"
-                placeholder="Constructora Andes Ltda."
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
-              />
+            <div className="flex flex-col gap-2">
+              <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Empresa</label>
+              <input type="text" placeholder="Administradora de edificios Andes SPA" className={INPUT_CLS} />
             </div>
           </div>
 
           {/* Teléfono + Servicio de interés */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">Teléfono</label>
-              <input
-                type="tel"
-                placeholder="+56 9 1234 5678"
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors"
-              />
+            <div className="flex flex-col gap-2">
+              <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Teléfono</label>
+              <input type="tel" placeholder="+56 9 1234 5678" className={INPUT_CLS} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">Servicio de interés</label>
+            <div className="flex flex-col gap-2">
+              <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Servicio de interés</label>
               <ServiceSelect />
             </div>
           </div>
 
-          {/* Mensaje — textarea */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-1.5">Mensaje</label>
+          {/* Mensaje — textarea h-115 */}
+          <div className="flex flex-col gap-2">
+            <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Mensaje</label>
             <textarea
-              rows={4}
               placeholder="Cuéntanos brevemente sobre tu requerimiento o proyecto"
-              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-white/50 focus:bg-white/15 transition-colors resize-none"
+              className={`${INPUT_CLS} h-[115px] resize-none items-start`}
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full sm:w-auto rounded-lg bg-white px-8 py-3 text-sm font-semibold text-brand hover:bg-white/90 transition-colors"
-          >
-            Enviar
-          </button>
+          {/* Submit — Figma: pill outline white, aligned right, pt-40 */}
+          <div className="flex justify-end pt-10">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              Enviar
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+              </svg>
+            </button>
+          </div>
         </form>
       </div>
     </section>

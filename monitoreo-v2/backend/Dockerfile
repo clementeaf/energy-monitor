@@ -19,6 +19,7 @@ RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
+COPY certs ./certs
 
 USER appuser
 EXPOSE 4000

@@ -1,11 +1,10 @@
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { Stats } from './components/Stats';
 import { About } from './components/About';
 import { Ecosystem } from './components/Ecosystem';
 import { SiemensBanner } from './components/SiemensBanner';
-import { Results } from './components/Results';
 import { Differentiation } from './components/Differentiation';
+import { Stats } from './components/Stats';
 import { Presence } from './components/Presence';
 import { Innovation } from './components/Innovation';
 import { Contact } from './components/Contact';
@@ -15,11 +14,12 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
+      {/* Spacer for fixed navbar — Figma: Navbar h=116, content starts at y=116 */}
+      <div className="h-[116px]" />
       <Hero />
       <About />
       <Ecosystem />
       <SiemensBanner />
-      <Results />
       <Differentiation />
       <Stats />
       <Presence />

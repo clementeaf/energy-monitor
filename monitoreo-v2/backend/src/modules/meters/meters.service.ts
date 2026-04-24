@@ -16,11 +16,15 @@ export class MetersService {
     tenantId: string,
     buildingIds: string[],
     filterBuildingId?: string,
+    isSuperAdmin = false,
   ): Promise<Meter[]> {
     const qb = this.repo
       .createQueryBuilder('m')
-      .where('m.tenant_id = :tenantId', { tenantId })
       .orderBy('m.name', 'ASC');
+
+    if (!isSuperAdmin) {
+      qb.where('m.tenant_id = :tenantId', { tenantId });
+    }
 
     if (buildingIds.length > 0) {
       qb.andWhere('m.building_id IN (:...buildingIds)', { buildingIds });

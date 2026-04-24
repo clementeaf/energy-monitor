@@ -12,11 +12,14 @@ export class BuildingsService {
     private readonly repo: Repository<Building>,
   ) {}
 
-  async findAll(tenantId: string, buildingIds: string[]): Promise<Building[]> {
+  async findAll(tenantId: string, buildingIds: string[], isSuperAdmin = false): Promise<Building[]> {
     const qb = this.repo
       .createQueryBuilder('b')
-      .where('b.tenant_id = :tenantId', { tenantId })
       .orderBy('b.name', 'ASC');
+
+    if (!isSuperAdmin) {
+      qb.where('b.tenant_id = :tenantId', { tenantId });
+    }
 
     if (buildingIds.length > 0) {
       qb.andWhere('b.id IN (:...buildingIds)', { buildingIds });

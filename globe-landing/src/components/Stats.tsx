@@ -7,17 +7,23 @@ const stats = [
 
 export function Stats() {
   return (
-    <section className="bg-grey-900 py-16 sm:py-20 px-5 sm:px-10 lg:px-12">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl font-bold text-white">
+    <section className="bg-grey-900 py-[80px]">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 flex flex-col gap-[60px] text-center">
+        {/* Title — Figma: H2 ExtraBold 36px/44px, white */}
+        <h2 className="font-heading text-[36px] leading-[44px] font-extrabold text-white">
           Grupo Globe en números
         </h2>
 
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
+        {/* Stats row — Figma: flex, gap-32, text-left */}
+        <div className="flex flex-col sm:flex-row gap-8 sm:gap-8">
           {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="text-4xl sm:text-4xl font-bold text-white">{s.value}</p>
-              <p className="mt-2 text-base sm:text-sm text-white/60">{s.label}</p>
+            <div key={s.label} className="flex-1 flex flex-col gap-2.5 text-left">
+              <p className="font-heading text-[48px] leading-[56px] font-extrabold text-white">
+                {s.value}
+              </p>
+              <p className="font-heading text-[22px] leading-[30px] font-medium text-grey-200">
+                {s.label}
+              </p>
             </div>
           ))}
         </div>

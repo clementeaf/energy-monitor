@@ -1,5 +1,35 @@
 # Changelog
 
+## [2.2.0-alpha.0] - 2026-04-24 — PROD DEPLOY, SUPER ADMIN CROSS-TENANT, HEALTH ENDPOINT
+
+### Added (monitoreo-v2/backend)
+- **Health endpoint** — `GET /health` (public, no auth). Returns `{ status, timestamp }`.
+- **RDS TLS in Docker** — `COPY certs ./certs` in Dockerfile so production image includes CA bundle.
+- **DB_SYNC env var** — `synchronize` driven by `DB_SYNC=true` instead of hardcoded `false`.
+
+### Changed (monitoreo-v2/backend)
+- **super_admin cross-tenant** — `BuildingsService.findAll` and `MetersService.findAll` skip tenant filter for super_admin, allowing full visibility across tenants.
+- **Refresh token cookie** — `AuthController.refresh` reads `__Host-refresh_token` cookie (production prefix) with `refresh_token` fallback.
+
+### Added (monitoreo-v2/frontend)
+- **Operator switcher** — Sidebar dropdown for corp_admin/site_admin impersonation: select store/brand name, filters meters by tenant.
+- **Building switcher** — Sidebar dropdown for site_admin: select building within selected operator.
+- **AppStore** — `selectedOperator`, `setSelectedOperator`. Role switch resets operator and building.
+- **Building type** — Added `tenantId` field to `Building` interface.
+
+### Changed (monitoreo-v2/frontend)
+- **Realtime search** — Wider input (`w-48`), white background, `text-sm` for consistency.
+
+### Changed (globe-landing)
+- **UI refresh** — Hero, About, Contact, Differentiation, Ecosystem, Footer, Innovation, Navbar, Presence, SiemensBanner, Stats components updated with layout and styling improvements.
+
+### Infra
+- **CloudFront** — `plataforma.globepower.cl` added as alternate domain on distribution `E1SNFETXON2VSI` with multi-SAN ACM certificate.
+- **Lambda iot-ingest** — Redeployed with corrected VARIABLE_MAP.
+- **RDS monitoreo-v2** — Data fully synced: iot_readings (4,110 EAV rows), tenant_units, all core tables verified.
+
+---
+
 ## [2.1.0-alpha.0] - 2026-04-24 — MONITOREO V2: METER DRILL-DOWN, BILLING, UX OVERHAUL
 
 ### Added (monitoreo-v2/frontend)

@@ -144,7 +144,7 @@ export function RealtimePage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar medidor..."
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-44"
+          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm w-48"
         />
         <span className="ml-auto text-[11px] text-pa-text-muted">
           {filteredReadings.length} de {readings.length} medidores

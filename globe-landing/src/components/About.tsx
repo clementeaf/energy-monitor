@@ -1,23 +1,28 @@
 export function About() {
   return (
-    <section id="nosotros" className="py-24 sm:py-32 px-5 sm:px-10 lg:px-12 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <span className="text-xs font-medium uppercase tracking-[0.2em] text-grey-400">
-          Quiénes somos
-        </span>
+    <section id="nosotros" className="bg-white">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 py-[128px]">
+        {/* Label + Title — Figma: w-560, gap-8, pb-60 */}
+        <div className="flex flex-col gap-2 max-w-[560px] pb-[60px] text-grey-900">
+          <span className="font-body text-[16px] leading-[20px] font-normal">
+            QUIÉNES SOMOS
+          </span>
+          <h2 className="font-heading text-[36px] leading-[44px] font-extrabold">
+            Grupo Globe
+          </h2>
+        </div>
 
-        <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-grey-900 leading-tight">
-        Grupo Globe
-        </h2>
-
-        <div className="mt-8 max-w-4xl space-y-6 text-[15px] text-grey-700 leading-[1.8]">
+        {/* Body — Figma: Plus Jakarta Sans Medium 22px/30px, grey-700 */}
+        <div className="font-heading text-[22px] leading-[30px] font-medium text-grey-700">
           <p>
-          Grupo empresarial chileno de origen canadiense, dedicado al desarrollo y operación de soluciones integrales de energía, mantenimiento de sistemas críticos e infraestructuras. A través de nuestras empresas participamos en minería, retail, hotelería, hospitales, oficinas, residenciales, industria y otras; combinando ingeniería, tecnología y ejecución propia en cada proyecto. 
-          Estamos generando un nuevo estándar en las industrias que participamos.
+            Somos un grupo empresarial de origen canadiense que desarrolla y opera soluciones en energía e infraestructura crítica. Actuamos como partner estratégico, integrando ingeniería, tecnología y ejecución propia para asegurar continuidad, eficiencia y control en activos complejos.
           </p>
-          <p>
-          Ese estándar —de origen canadiense— es el que asegura calidad, trazabilidad y confiabilidad en cada servicio, y el
-          que hoy nos permite operar en Chile, Perú y Colombia.
+          <p className="mt-[30px]">
+            Operamos en tres líneas:{'\n'}
+            energía y sistemas eléctricos, transporte vertical e infraestructura modular.
+          </p>
+          <p className="mt-[30px]">
+            Impulsamos un nuevo estándar basado en seguridad, tecnología, confiabilidad y gestión en tiempo real.
           </p>
         </div>
       </div>

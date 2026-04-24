@@ -12,7 +12,7 @@ export const getDatabaseConfig = (
   username: configService.getOrThrow<string>('DB_USERNAME'),
   password: configService.getOrThrow<string>('DB_PASSWORD'),
   autoLoadEntities: true,
-  synchronize: false,
+  synchronize: configService.get<string>('DB_SYNC') === 'true',
   ssl: getTypeOrmSslForRds(),
   logging: configService.get<string>('NODE_ENV') === 'development',
 });

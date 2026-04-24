@@ -92,8 +92,11 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // Accept refresh token from body or httpOnly cookie
-    const refreshToken = dto.refreshToken || (req.cookies?.refresh_token as string);
+    // Accept refresh token from body or httpOnly cookie (__Host- prefix in production)
+    const refreshToken =
+      dto.refreshToken ||
+      (req.cookies?.['__Host-refresh_token'] as string) ||
+      (req.cookies?.['refresh_token'] as string);
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token provided');
     }

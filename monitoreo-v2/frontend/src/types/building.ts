@@ -1,5 +1,6 @@
 export interface Building {
   id: string;
+  tenantId: string;
   name: string;
   code: string;
   address: string | null;

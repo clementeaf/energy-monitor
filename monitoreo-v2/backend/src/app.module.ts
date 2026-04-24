@@ -30,6 +30,7 @@ import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { ExternalApiModule } from './modules/external-api/external-api.module';
 import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
     ExternalApiModule,
     IotReadingsModule,
   ],
+  controllers: [HealthController],
   providers: [
     // Global rate limiter guard
     {

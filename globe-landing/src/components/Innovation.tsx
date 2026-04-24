@@ -23,47 +23,66 @@ const PILLARS = [
   },
 ];
 
+/* Figma: dual gradient overlay on innovation cards */
+const CARD_GRADIENT =
+  'linear-gradient(0deg, rgba(60, 60, 60, 0.72) 0%, rgba(149, 31, 34, 0) 100%), linear-gradient(0deg, rgba(28, 28, 28, 0.72) 0%, rgba(60, 60, 60, 0) 100%)';
+
+/* Figma hover: rojizo gradient */
+const HOVER_GRADIENT =
+  'linear-gradient(-0.07deg, rgba(91, 25, 27, 0.6) 38.1%, rgba(91, 25, 27, 0) 110.7%), linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%)';
+
 export function Innovation() {
   return (
-    <section id="innovacion" className="py-20 sm:py-28 px-5 sm:px-10 lg:px-12 bg-white">
-      <div className="max-w-7xl mx-auto">
-        {/* Top row: centered text */}
-        <div className="text-center max-w-2xl mx-auto">
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-grey-400">
-            Cultura e innovación
-          </span>
-
-          <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-grey-900 leading-tight">
-            Cómo innovamos
-          </h2>
-
-          <p className="mt-4 text-[15px] text-grey-700 leading-[1.8]">
-          Nuestra cultura de innovación se sostiene en tres pilares fundamentales.          </p>
+    <section id="innovacion" className="bg-white">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 py-[128px] flex flex-col gap-[80px]">
+        {/* Header — Figma: centered, label + title + subtitle */}
+        <div className="text-center">
+          <div className="flex flex-col gap-2 items-center pb-9 text-grey-900">
+            <span className="font-body text-[16px] leading-[20px] font-normal">
+              CULTURA E INNOVACIÓN
+            </span>
+            <h2 className="font-heading text-[36px] leading-[44px] font-extrabold">
+              Cómo innovamos
+            </h2>
+          </div>
+          <p className="font-heading text-[22px] leading-[30px] font-medium text-grey-700">
+            Nuestra cultura de innovación se sostiene en tres pilares fundamentales.
+          </p>
         </div>
 
-        {/* Bottom row: 3 innovation cards */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-1">
+        {/* Cards — Figma: 3 cards, gap-12, h-380, rounded-8 */}
+        <div className="flex flex-col sm:flex-row gap-3">
           {PILLARS.map((item) => (
-            <div key={item.tag} className="relative overflow-hidden rounded-md">
+            <div key={item.tag} className="group relative flex-1 h-[380px] overflow-hidden rounded-lg">
+              {/* Background image */}
               <img
                 src={item.src}
                 alt={item.tag}
-                className="w-full aspect-square object-cover"
+                className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              {/* Dark overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
-              {/* Tag pill */}
-              <span className="absolute top-5 left-5 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-[13px] font-medium text-white">
-                {item.tag}
-              </span>
-              {/* Text content */}
-              <div className="absolute bottom-5 left-5 right-5">
-                <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-[13px] sm:text-[14px] leading-[1.6] text-white/80">
-                  {item.desc}
-                </p>
+              {/* Default gradient overlay */}
+              <div className="absolute inset-0 rounded-lg transition-opacity duration-300 group-hover:opacity-0" style={{ backgroundImage: CARD_GRADIENT }} />
+              {/* Hover: rojizo gradient overlay */}
+              <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
+
+              {/* Content — justify-end, p-24 */}
+              <div className="relative flex flex-col justify-between h-full p-6">
+                {/* Tag badge — top-left */}
+                <div>
+                  <span className="inline-block rounded-[100px] bg-white/20 border border-white/30 px-3 py-1.5 font-body text-[16px] leading-[22px] font-medium text-white">
+                    {item.tag}
+                  </span>
+                </div>
+
+                {/* Title + description — bottom */}
+                <div className="flex flex-col gap-3 text-white">
+                  <h3 className="font-heading text-[28px] leading-[36px] font-extrabold">
+                    {item.title}
+                  </h3>
+                  <p className="font-body text-[16px] leading-[24px] font-normal">
+                    {item.desc}
+                  </p>
+                </div>
               </div>
             </div>
           ))}

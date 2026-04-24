@@ -13,32 +13,36 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-grey-200">
-      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-12 flex items-center justify-between h-[72px]">
-        {/* Logo */}
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-[5px]">
+      <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-[60px] flex items-center justify-between py-8">
+        {/* Logo — Figma: 245×52, shadow */}
         <a href="#" className="shrink-0">
-          <img src={logo} alt="Grupo Globe" className="h-[70px] w-auto" />
+          <img
+            src={logo}
+            alt="Grupo Globe"
+            className="h-[52px] w-[245px] object-contain drop-shadow-[4px_-8px_26px_rgba(255,255,255,0.2)]"
+          />
         </a>
 
-        {/* Desktop links */}
-        <div className="hidden lg:flex items-center gap-8 ml-auto">
+        {/* Desktop links + CTA */}
+        <div className="hidden lg:flex items-center gap-8">
           {links.map((l) => (
             <a
               key={l.label}
               href={l.href}
-              className="font-body text-sm font-medium text-grey-900 hover:text-grey-600 transition-colors duration-200"
+              className="font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:text-grey-600 transition-colors duration-200 whitespace-nowrap"
             >
               {l.label}
             </a>
           ))}
 
-          {/* CTA — Contáctanos (differentiated button, 48px tall) */}
+          {/* CTA — Figma: solid #3c3c3c pill, white text, arrow icon */}
           <a
             href="#contacto"
-            className="inline-flex items-center gap-2 rounded-pill border border-grey-900 px-6 py-3 font-body text-sm font-medium text-grey-900 hover:bg-grey-900 hover:text-white transition-colors duration-200"
+            className="inline-flex items-center gap-3.5 rounded-[100px] bg-grey-800 px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-grey-900 transition-colors duration-200 whitespace-nowrap"
           >
             Contáctanos
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
             </svg>
           </a>
@@ -69,7 +73,7 @@ export function Navbar() {
             <a
               key={l.label}
               href={l.href}
-              className="block font-body text-sm font-medium text-grey-900 hover:text-grey-600 transition-colors"
+              className="block font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:text-grey-600 transition-colors"
               onClick={() => setOpen(false)}
             >
               {l.label}
@@ -77,11 +81,11 @@ export function Navbar() {
           ))}
           <a
             href="#contacto"
-            className="flex items-center justify-center gap-2 rounded-pill border border-grey-900 px-5 py-3 font-body text-sm font-medium text-grey-900 hover:bg-grey-900 hover:text-white transition-colors"
+            className="flex items-center justify-center gap-3.5 rounded-[100px] bg-grey-800 px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-grey-900 transition-colors"
             onClick={() => setOpen(false)}
           >
             Contáctanos
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
             </svg>
           </a>

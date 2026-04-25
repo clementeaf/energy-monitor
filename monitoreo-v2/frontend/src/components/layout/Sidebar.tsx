@@ -174,6 +174,7 @@ export function Sidebar() {
           />
           <TenantSwitcher
             selectedId={selectedTenantId}
+            excludeOwnerTenant
             onChange={(id, tenantTheme, slug) => {
               setSelectedTenantId(id);
               queryClient.clear();
@@ -414,9 +415,11 @@ const TENANT_PAGE_SIZE = 10;
 
 function TenantSwitcher({
   selectedId,
+  excludeOwnerTenant,
   onChange,
 }: Readonly<{
   selectedId: string | null;
+  excludeOwnerTenant?: boolean;
   onChange: (id: string | null, theme: TenantTheme | null, slug?: string) => void;
 }>) {
   const [open, setOpen] = useState(false);
@@ -425,7 +428,11 @@ function TenantSwitcher({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const tenantsQuery = useTenantsAdminQuery();
-  const allTenants = tenantsQuery.data ?? [];
+  const allTenants = useMemo(() => {
+    const list = tenantsQuery.data ?? [];
+    // Globe Power is the platform owner, not a selectable tenant
+    return excludeOwnerTenant ? list.filter((t) => t.slug !== 'globe-power') : list;
+  }, [tenantsQuery.data, excludeOwnerTenant]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();

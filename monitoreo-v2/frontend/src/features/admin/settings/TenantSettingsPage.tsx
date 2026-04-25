@@ -79,6 +79,41 @@ export function TenantSettingsPage() {
 
       <MfaSection />
 
+      {qs.phase === 'loading' && (
+        <div className="animate-pulse max-w-2xl space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+          <div className="space-y-3">
+            <div className="h-3 w-16 rounded bg-gray-200" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <div className="h-3 w-28 rounded bg-gray-200" />
+                <div className="h-9 w-full rounded-md bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            <div className="h-3 w-24 rounded bg-gray-200" />
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="h-3 w-20 rounded bg-gray-200" />
+                  <div className="h-9 w-full rounded-md bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-3 w-20 rounded bg-gray-200" />
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="space-y-1">
+                <div className="h-3 w-28 rounded bg-gray-200" />
+                <div className="h-9 w-full rounded-md bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {qs.phase !== 'loading' && (
       <DataWidget
         phase={qs.phase}
         error={qs.error}
@@ -202,6 +237,7 @@ export function TenantSettingsPage() {
           )}
         </div>
       </DataWidget>
+      )}
     </div>
   );
 }

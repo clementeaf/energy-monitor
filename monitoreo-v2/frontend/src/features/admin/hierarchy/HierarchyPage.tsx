@@ -101,28 +101,42 @@ export function HierarchyPage() {
         </div>
       </div>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { query.refetch(); }}
-        isFetching={query.isFetching && qs.phase === 'ready'}
-        emptyTitle={buildings.length === 0 ? 'Sin edificios' : 'Sin jerarquia'}
-        emptyDescription={buildings.length === 0 ? 'No hay edificios registrados.' : 'No hay nodos de jerarquia para este edificio.'}
-      >
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          {(query.data ?? []).map((node) => (
-            <TreeNode
-              key={node.id}
-              node={node}
-              depth={0}
-              canWrite={canWrite}
-              onAdd={openCreate}
-              onEdit={openEdit}
-              onDelete={setDeleting}
-            />
+      {qs.phase === 'loading' && (
+        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2" style={{ marginLeft: `${(i % 3) * 20}px` }}>
+              <div className="size-5 rounded bg-gray-200" />
+              <div className="h-5 w-16 rounded-full bg-gray-200" />
+              <div className="h-4 rounded bg-gray-200" style={{ width: `${80 + (i % 4) * 30}px` }} />
+            </div>
           ))}
         </div>
-      </DataWidget>
+      )}
+
+      {qs.phase !== 'loading' && (
+        <DataWidget
+          phase={qs.phase}
+          error={qs.error}
+          onRetry={() => { query.refetch(); }}
+          isFetching={query.isFetching && qs.phase === 'ready'}
+          emptyTitle={buildings.length === 0 ? 'Sin edificios' : 'Sin jerarquia'}
+          emptyDescription={buildings.length === 0 ? 'No hay edificios registrados.' : 'No hay nodos de jerarquia para este edificio.'}
+        >
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            {(query.data ?? []).map((node) => (
+              <TreeNode
+                key={node.id}
+                node={node}
+                depth={0}
+                canWrite={canWrite}
+                onAdd={openCreate}
+                onEdit={openEdit}
+                onDelete={setDeleting}
+              />
+            ))}
+          </div>
+        </DataWidget>
+      )}
 
       <NodeFormModal
         open={formOpen}

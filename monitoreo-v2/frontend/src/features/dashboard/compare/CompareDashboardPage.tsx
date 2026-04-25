@@ -289,6 +289,27 @@ export function CompareDashboardPage(): ReactElement {
       </div>
 
       {/* Results */}
+      {canCompare && loading && (
+        <div className="animate-pulse space-y-4">
+          <div className="rounded-lg border border-pa-border bg-white p-4">
+            <div className="mb-2 h-4 w-48 rounded bg-gray-200" />
+            <div className="h-64 w-full rounded bg-gray-200" />
+          </div>
+          <div className="rounded-lg border border-pa-border bg-white">
+            <div className="h-8 w-full rounded-t bg-gray-200" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex gap-4 border-t border-pa-border px-3 py-2">
+                <div className="h-4 w-32 rounded bg-gray-200" />
+                <div className="ml-auto h-4 w-20 rounded bg-gray-200" />
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!(canCompare && loading) && (
       <DataWidget
         phase={
           !canCompare ? 'empty'
@@ -405,6 +426,7 @@ export function CompareDashboardPage(): ReactElement {
           </div>
         )}
       </DataWidget>
+      )}
 
       {!buildingsQuery.isPending && buildings.length === 0 && (
         <p className="text-[13px] text-pa-text-muted">No hay edificios disponibles en tu alcance.</p>

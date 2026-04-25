@@ -173,39 +173,66 @@ export function ExecutiveSitePage(): ReactElement {
       </div>
 
       {/* KPI cards fila 1 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <KpiCard title="Medidores" value={String(meters.length)} />
-        <KpiCard title="Potencia actual" value={`${totalPowerKw.toFixed(1)} kW`} />
-        <KpiCard title="Demanda peak" value={`${peakDemandKw.toFixed(1)} kW`} />
-        <KpiCard
-          title="Factor de potencia"
-          value={avgPf > 0 ? avgPf.toFixed(3) : '—'}
-        />
-        <KpiCard
-          title="Área"
-          value={building?.areaSqm ? `${Number(building.areaSqm).toLocaleString('es-CL')} m²` : '—'}
-        />
-      </div>
+      {metersQuery.isPending || latestQuery.isPending ? (
+        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+              <div className="h-3 w-20 rounded bg-gray-200" />
+              <div className="mt-2 h-6 w-24 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <KpiCard title="Medidores" value={String(meters.length)} />
+          <KpiCard title="Potencia actual" value={`${totalPowerKw.toFixed(1)} kW`} />
+          <KpiCard title="Demanda peak" value={`${peakDemandKw.toFixed(1)} kW`} />
+          <KpiCard
+            title="Factor de potencia"
+            value={avgPf > 0 ? avgPf.toFixed(3) : '—'}
+          />
+          <KpiCard
+            title="Área"
+            value={building?.areaSqm ? `${Number(building.areaSqm).toLocaleString('es-CL')} m²` : '—'}
+          />
+        </div>
+      )}
 
       {/* KPI cards fila 2 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiCard
-          title={`Energía periodo (${preset})`}
-          value={`${totalEnergyPeriod.toLocaleString('es-CL', { maximumFractionDigits: 0 })} kWh`}
-        />
-        <KpiCard
-          title="Costo estimado (periodo)"
-          value={
-            estimatedCost != null
-              ? `$${estimatedCost.toLocaleString('es-CL', { maximumFractionDigits: 0 })}`
-              : 'Sin tarifa'
-          }
-        />
-        <KpiCard title="Alertas críticas activas" value={String(criticalAlerts.length)} />
-      </div>
+      {aggQuery.isPending ? (
+        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+              <div className="h-3 w-28 rounded bg-gray-200" />
+              <div className="mt-2 h-6 w-32 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiCard
+            title={`Energía periodo (${preset})`}
+            value={`${totalEnergyPeriod.toLocaleString('es-CL', { maximumFractionDigits: 0 })} kWh`}
+          />
+          <KpiCard
+            title="Costo estimado (periodo)"
+            value={
+              estimatedCost != null
+                ? `$${estimatedCost.toLocaleString('es-CL', { maximumFractionDigits: 0 })}`
+                : 'Sin tarifa'
+            }
+          />
+          <KpiCard title="Alertas críticas activas" value={String(criticalAlerts.length)} />
+        </div>
+      )}
 
       {/* Chart tendencias */}
-      {portfolioSeries.length > 0 && (
+      {aggQuery.isPending ? (
+        <div className="animate-pulse space-y-2">
+          <div className="h-4 w-40 rounded bg-gray-200" />
+          <div className="h-64 w-full rounded bg-gray-200" />
+        </div>
+      ) : portfolioSeries.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-medium text-gray-700">Consumo, demanda y costo</h2>
           <StockChart options={chartOptions} loading={aggQuery.isFetching} />
@@ -217,6 +244,20 @@ export function ExecutiveSitePage(): ReactElement {
         <h2 className="text-sm font-medium text-gray-700">
           Medidores ({latestReadings.length} con última lectura)
         </h2>
+        {latestQuery.isPending ? (
+          <div className="animate-pulse rounded-lg border border-gray-200 bg-white">
+            <div className="h-8 rounded-t bg-gray-200" />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex gap-4 border-t border-gray-200 px-4 py-2">
+                <div className="h-4 w-32 rounded bg-gray-200" />
+                <div className="ml-auto h-4 w-16 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-4 w-12 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        ) : (
         <DataWidget
           phase={latestQuery.isPending ? 'loading' : latestQuery.isError ? 'error' : 'ready'}
           error={latestQuery.error}
@@ -255,6 +296,7 @@ export function ExecutiveSitePage(): ReactElement {
             </table>
           </div>
         </DataWidget>
+        )}
       </div>
 
       {/* Alertas críticas */}

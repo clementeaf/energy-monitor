@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import {
   useAlertRulesQuery,
   useUpdateAlertRule,
@@ -43,6 +44,8 @@ export function AlertRulesPage() {
   const filtered = familyFilter
     ? rules.filter((r) => ALERT_FAMILIES[familyFilter].includes(r.alertTypeCode))
     : rules;
+
+  const { visible: visibleRules, hasMore, sentinelRef, total } = useInfiniteScroll(filtered, [familyFilter, buildingFilter]);
 
   const handleToggle = (rule: AlertRule) => {
     updateRule.mutate({
@@ -136,7 +139,7 @@ export function AlertRulesPage() {
             emptyMessage="Sin reglas de alerta configuradas"
             skeletonWidths={['w-24', 'w-28', 'w-16', 'w-16', 'w-32', 'w-12', 'w-20']}
           >
-            {filtered.map((rule) => (
+            {visibleRules.map((rule) => (
               <tr key={rule.id} className={rule.isActive ? '' : 'opacity-50'}>
                 <td className="px-4 py-3 font-mono text-xs">{ALERT_TYPE_LABELS[rule.alertTypeCode] ?? rule.alertTypeCode}</td>
                 <td className="px-4 py-3">{rule.name}</td>
@@ -182,7 +185,9 @@ export function AlertRulesPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleRules.length} de {total}</p>}
 
       {editingRule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">

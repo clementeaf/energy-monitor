@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTenantsAdminQuery, useCreateTenant } from '../../../hooks/queries/useTenantsQuery';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { Drawer } from '../../../components/ui/Drawer';
 import type { CreateTenantPayload } from '../../../types/tenant';
 
@@ -21,6 +22,7 @@ export function CompaniesPage() {
   const [result, setResult] = useState<{ adminUserId: string; rolesCreated: number } | null>(null);
 
   const tenants = tenantsQuery.data ?? [];
+  const { visible: visibleTenants, hasMore, sentinelRef, total } = useInfiniteScroll(tenants);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +73,7 @@ export function CompaniesPage() {
             emptyMessage="No hay empresas registradas. Crea la primera."
             skeletonWidths={['w-24', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
-            {tenants.map((t) => (
+            {visibleTenants.map((t) => (
               <tr key={t.id} className="hover:bg-gray-50">
                 <Td className="font-medium">{t.name}</Td>
                 <Td className="font-mono text-[12px]">{t.slug}</Td>
@@ -88,7 +90,9 @@ export function CompaniesPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       {/* Create drawer */}
       <Drawer open={drawerOpen} onClose={handleClose} title="Nueva empresa" side="right" size="md">

@@ -4,6 +4,8 @@ import { Card } from '../../components/ui/Card';
 import { MonthlyChart } from '../../components/charts/MonthlyChart';
 import { Drawer } from '../../components/ui/Drawer';
 import { TableStateBody } from '../../components/ui/TableStateBody';
+import { DataWidget } from '../../components/ui/DataWidget';
+import { useQueryState } from '../../hooks/useQueryState';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useInvoicesQuery, useInvoiceLineItemsQuery } from '../../hooks/queries/useInvoicesQuery';
@@ -112,6 +114,9 @@ export function BuildingDetailPage() {
 
   const isLoading = buildingsQuery.isPending || invoicesQuery.isPending;
 
+  const invoicesQs = useQueryState(invoicesQuery, { isEmpty: (d) => !d || d.length === 0 });
+  const metersQs = useQueryState(metersQuery, { isEmpty: (d) => !d || d.length === 0 });
+
   // Switch tab when invoice data arrives
   useMemo(() => {
     if (!invoicesQuery.isPending && invoices.length > 0 && activeTab === 'meters') {
@@ -188,6 +193,13 @@ export function BuildingDetailPage() {
               <h2 className="text-sm font-semibold text-gray-900">Facturas del edificio</h2>
               <span className="text-[11px] text-gray-500">{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
             </div>
+            <DataWidget
+              phase={invoicesQs.phase === 'loading' ? 'ready' : invoicesQs.phase}
+              error={invoicesQs.error}
+              onRetry={() => { void invoicesQuery.refetch(); }}
+              emptyTitle="Sin facturas"
+              emptyDescription="No hay facturas para este edificio."
+            >
             <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="sticky top-0 z-10 bg-white">
@@ -269,6 +281,7 @@ export function BuildingDetailPage() {
                 </TableStateBody>
               </table>
             </div>
+            </DataWidget>
           </Card>
         </>
       )}
@@ -280,6 +293,13 @@ export function BuildingDetailPage() {
             <h2 className="text-sm font-semibold text-gray-900">Medidores</h2>
             <span className="text-[11px] text-gray-500">{meters.length} medidor{meters.length !== 1 ? 'es' : ''}</span>
           </div>
+          <DataWidget
+            phase={metersQs.phase === 'loading' ? 'ready' : metersQs.phase}
+            error={metersQs.error}
+            onRetry={() => { void metersQuery.refetch(); }}
+            emptyTitle="Sin medidores"
+            emptyDescription="No hay medidores en este edificio."
+          >
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="sticky top-0 z-10 bg-white">
@@ -321,6 +341,7 @@ export function BuildingDetailPage() {
               </TableStateBody>
             </table>
           </div>
+          </DataWidget>
         </Card>
       )}
 

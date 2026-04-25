@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useBuildingsQuery, useCreateBuilding, useUpdateBuilding, useDeleteBuilding } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
@@ -25,6 +26,8 @@ export function BuildingsPage() {
     if (!isFilteredMode || !operatorBuildingIds) return all;
     return all.filter((b) => operatorBuildingIds.has(b.id));
   }, [query.data, isFilteredMode, operatorBuildingIds]);
+
+  const { visible: visibleBuildings, hasMore, sentinelRef, total } = useInfiniteScroll(filteredBuildings);
 
   if (needsSelection) {
     return (
@@ -94,7 +97,7 @@ export function BuildingsPage() {
             emptyMessage="No hay edificios registrados."
             skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
           >
-            {filteredBuildings.map((b) => (
+            {visibleBuildings.map((b) => (
               <tr
                 key={b.id}
                 className="cursor-pointer hover:bg-gray-50"
@@ -117,7 +120,9 @@ export function BuildingsPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleBuildings.length} de {total}</p>}
 
       <BuildingForm
         open={formOpen}

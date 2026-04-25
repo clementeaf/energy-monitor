@@ -3,6 +3,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Th, Td, StatusBadge, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { useUsersQuery, useCreateUser, useUpdateUser, useDeleteUser } from '../../../hooks/queries/useUsersQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { UserForm } from './UserForm';
@@ -15,6 +16,9 @@ export function UsersPage() {
   });
   const { has } = usePermissions();
   const canWrite = has('admin_users', 'create');
+
+  const allUsers = query.data ?? [];
+  const { visible: visibleUsers, hasMore, sentinelRef, total } = useInfiniteScroll(allUsers);
 
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -77,7 +81,7 @@ export function UsersPage() {
             emptyMessage="No hay usuarios registrados."
             skeletonWidths={['w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-24', 'w-20']}
           >
-            {(query.data ?? []).map((u) => (
+            {visibleUsers.map((u) => (
               <tr key={u.id} className="hover:bg-gray-50">
                 <Td className="font-medium text-gray-900">{u.email}</Td>
                 <Td>{u.displayName ?? '—'}</Td>
@@ -101,7 +105,9 @@ export function UsersPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleUsers.length} de {total}</p>}
 
       <UserForm
         open={formOpen}

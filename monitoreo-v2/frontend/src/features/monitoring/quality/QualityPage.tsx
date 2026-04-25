@@ -108,33 +108,55 @@ export function QualityPage() {
       </div>
 
       {/* Threshold indicators */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <ThresholdCard
-          label="THD Voltaje"
-          value={avgThd != null ? `${avgThd.toFixed(1)}%` : '—'}
-          threshold={`< ${THRESHOLDS.thdVoltage}%`}
-          ok={avgThd != null && avgThd < THRESHOLDS.thdVoltage}
-        />
-        <ThresholdCard
-          label="Factor Potencia"
-          value={avgPf != null ? avgPf.toFixed(3) : '—'}
-          threshold={`> ${THRESHOLDS.powerFactor}`}
-          ok={avgPf != null && avgPf > THRESHOLDS.powerFactor}
-        />
-        <ThresholdCard
-          label="Desequilibrio"
-          value={avgImbalance != null ? `${avgImbalance.toFixed(1)}%` : '—'}
-          threshold={`< ${THRESHOLDS.phaseImbalance}%`}
-          ok={avgImbalance != null && avgImbalance < THRESHOLDS.phaseImbalance}
-        />
-        <ThresholdCard
-          label="Alertas calidad"
-          value={String(qualityAlerts.length)}
-          threshold="0 activas"
-          ok={qualityAlerts.length === 0}
-        />
-      </div>
+      {readingsQuery.isLoading ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+              <div className="h-3 w-24 rounded bg-gray-200" />
+              <div className="mt-2 h-6 w-16 rounded bg-gray-300" />
+              <div className="mt-1 h-3 w-20 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <ThresholdCard
+            label="THD Voltaje"
+            value={avgThd != null ? `${avgThd.toFixed(1)}%` : '—'}
+            threshold={`< ${THRESHOLDS.thdVoltage}%`}
+            ok={avgThd != null && avgThd < THRESHOLDS.thdVoltage}
+          />
+          <ThresholdCard
+            label="Factor Potencia"
+            value={avgPf != null ? avgPf.toFixed(3) : '—'}
+            threshold={`> ${THRESHOLDS.powerFactor}`}
+            ok={avgPf != null && avgPf > THRESHOLDS.powerFactor}
+          />
+          <ThresholdCard
+            label="Desequilibrio"
+            value={avgImbalance != null ? `${avgImbalance.toFixed(1)}%` : '—'}
+            threshold={`< ${THRESHOLDS.phaseImbalance}%`}
+            ok={avgImbalance != null && avgImbalance < THRESHOLDS.phaseImbalance}
+          />
+          <ThresholdCard
+            label="Alertas calidad"
+            value={String(qualityAlerts.length)}
+            threshold="0 activas"
+            ok={qualityAlerts.length === 0}
+          />
+        </div>
+      )}
 
+      {readingsQuery.isLoading ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="mb-2 h-4 w-40 rounded bg-gray-200" />
+              <div className="h-48 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      ) : (
       <DataWidget
         phase={readingsQs.phase}
         error={readingsQs.error}
@@ -219,6 +241,7 @@ export function QualityPage() {
           </ChartCard>
         </div>
       </DataWidget>
+      )}
 
       {/* Active quality alerts */}
       {qualityAlerts.length > 0 && (

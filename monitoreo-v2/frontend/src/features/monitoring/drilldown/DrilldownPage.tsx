@@ -123,6 +123,17 @@ export function DrilldownPage() {
       </div>
 
       {/* Hierarchy tree */}
+      {hierarchyQs.phase === 'loading' ? (
+        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+          <div className="mb-3 h-4 w-36 rounded bg-gray-200" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2" style={{ paddingLeft: `${(i % 3) * 20}px` }}>
+              <div className="h-3 w-12 rounded bg-gray-200" />
+              <div className="h-4 rounded bg-gray-200" style={{ width: `${80 + (i % 4) * 25}px` }} />
+            </div>
+          ))}
+        </div>
+      ) : (
       <DataWidget
         phase={hierarchyQs.phase}
         error={hierarchyQs.error}
@@ -145,6 +156,7 @@ export function DrilldownPage() {
           </div>
         </div>
       </DataWidget>
+      )}
 
       {/* Concentrators */}
       {concentrators.length > 0 && (
@@ -161,6 +173,23 @@ export function DrilldownPage() {
       )}
 
       {/* Meters table */}
+      {metersQuery.isPending ? (
+        <div className="animate-pulse rounded-lg border border-gray-200 bg-white">
+          <div className="border-b border-gray-200 px-4 py-3">
+            <div className="h-4 w-28 rounded bg-gray-200" />
+          </div>
+          <div className="h-8 bg-gray-100" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex gap-4 border-t border-gray-200 px-4 py-3">
+              <div className="h-4 w-32 rounded bg-gray-200" />
+              <div className="h-4 w-20 rounded bg-gray-200" />
+              <div className="h-4 w-16 rounded bg-gray-200" />
+              <div className="h-4 w-16 rounded bg-gray-200" />
+              <div className="h-5 w-14 rounded-full bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      ) : (
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
         <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
           Medidores ({meters.length})
@@ -218,6 +247,7 @@ export function DrilldownPage() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

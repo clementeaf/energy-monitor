@@ -1,5 +1,6 @@
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { ALERT_TYPE_LABELS } from '../../types/alert-engine';
 
@@ -31,6 +32,8 @@ export function EscalationPage() {
   const openAlerts = [...(query.data ?? []), ...(ackQuery.data ?? [])].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
+
+  const { visible: visibleAlerts, hasMore, sentinelRef, total } = useInfiniteScroll(openAlerts, [query.data, ackQuery.data]);
 
   return (
     <div className="space-y-4">
@@ -70,7 +73,7 @@ export function EscalationPage() {
             emptyMessage="Sin alertas abiertas"
             skeletonWidths={['w-24', 'w-40', 'w-16', 'w-16', 'w-20', 'w-20']}
           >
-            {openAlerts.map((alert) => {
+            {visibleAlerts.map((alert) => {
               const mins = minutesAgo(alert.createdAt);
               return (
                 <tr key={alert.id}>
@@ -95,7 +98,9 @@ export function EscalationPage() {
             })}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
 
     </div>
   );

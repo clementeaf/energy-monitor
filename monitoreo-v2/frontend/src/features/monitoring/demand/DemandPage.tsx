@@ -135,16 +135,33 @@ export function DemandPage() {
 
       <h1 className="text-2xl font-semibold text-gray-900">Demanda — {building?.name ?? 'Sitio'}</h1>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card title="Peak demand" value={`${peakDemand.value.toFixed(1)} kW`} sub={peakDemand.time ? new Date(peakDemand.time).toLocaleString('es-CL') : '—'} />
-        <Card
-          title="Contratada"
-          value={maxContracted > 0 ? `${maxContracted} kW` : 'No definida'}
-          sub={peakPct ? `${peakPct}% utilizado` : '—'}
-        />
-        <Card title="Medidores" value={String(meters.length)} sub={`${building?.code ?? ''}`} />
-      </div>
+      {metersQuery.isPending ? (
+        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+              <div className="h-3 w-20 rounded bg-gray-200" />
+              <div className="mt-2 h-6 w-24 rounded bg-gray-200" />
+              <div className="mt-1 h-3 w-16 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card title="Peak demand" value={`${peakDemand.value.toFixed(1)} kW`} sub={peakDemand.time ? new Date(peakDemand.time).toLocaleString('es-CL') : '—'} />
+          <Card
+            title="Contratada"
+            value={maxContracted > 0 ? `${maxContracted} kW` : 'No definida'}
+            sub={peakPct ? `${peakPct}% utilizado` : '—'}
+          />
+          <Card title="Medidores" value={String(meters.length)} sub={`${building?.code ?? ''}`} />
+        </div>
+      )}
 
+      {aggQs.phase === 'loading' ? (
+        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
+          <div className="h-64 w-full rounded bg-gray-200" />
+        </div>
+      ) : (
       <DataWidget
         phase={aggQs.phase}
         error={aggQs.error}
@@ -158,6 +175,7 @@ export function DemandPage() {
           onRangeChange={handleRangeChange}
         />
       </DataWidget>
+      )}
 
       {topPeaks.length > 0 && (
         <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">

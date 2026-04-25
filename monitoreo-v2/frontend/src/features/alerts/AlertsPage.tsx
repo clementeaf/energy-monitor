@@ -4,6 +4,7 @@ import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { Drawer } from '../../components/ui/Drawer';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
@@ -105,6 +106,7 @@ export function AlertsPage() {
 
   // Client-side status filter
   const displayAlerts = statusTab ? allAlerts.filter((a) => a.status === statusTab) : allAlerts;
+  const { visible: visibleAlerts, hasMore, sentinelRef, total } = useInfiniteScroll(displayAlerts, [statusTab, filters]);
 
   if (needsSelection) {
     return (
@@ -183,7 +185,7 @@ export function AlertsPage() {
             emptyMessage="No hay alertas registradas."
             skeletonWidths={['w-20', 'w-24', 'w-32', 'w-20', 'w-28', 'w-24']}
           >
-            {displayAlerts.slice(0, 50).map((a) => (
+            {visibleAlerts.map((a) => (
               <tr
                 key={a.id}
                 ref={a.id === highlightId ? highlightRef : undefined}
@@ -233,7 +235,9 @@ export function AlertsPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
 
       {/* Resolve drawer */}
       <Drawer

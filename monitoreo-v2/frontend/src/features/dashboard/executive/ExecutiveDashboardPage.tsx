@@ -203,6 +203,16 @@ export function ExecutiveDashboardPage(): ReactElement {
         {/* Column 1: KPIs + Chart */}
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           {/* KPI row */}
+          {buildingsQuery.isPending || latestQuery.isPending ? (
+            <div className="animate-pulse flex flex-wrap gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-1 basis-32 rounded-lg border border-pa-border bg-white px-3 py-2.5">
+                  <div className="h-3 w-20 rounded bg-gray-200" />
+                  <div className="mt-1.5 h-5 w-24 rounded bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="flex flex-wrap gap-3">
             <KpiCard title="Edificios" value={String(buildings.length)} />
             <KpiCard title="Medidores" value={String(latestReadings.length)} />
@@ -214,9 +224,19 @@ export function ExecutiveDashboardPage(): ReactElement {
               value={estimatedCost != null ? `$${estimatedCost.toLocaleString('es-CL', { maximumFractionDigits: 0 })}` : '—'}
             />
           </div>
+          )}
 
           {/* Chart */}
-          {portfolioSeries.length > 0 && (
+          {aggQuery.isPending && (
+            <div className="animate-pulse rounded-lg border border-pa-border bg-white p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="h-4 w-40 rounded bg-gray-200" />
+                <div className="h-6 w-32 rounded bg-gray-200" />
+              </div>
+              <div className="h-64 w-full rounded bg-gray-200" />
+            </div>
+          )}
+          {!aggQuery.isPending && portfolioSeries.length > 0 && (
             <div className="rounded-lg border border-pa-border bg-white p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="text-[13px] font-medium text-pa-text">{chartOptions.title.text}</h2>
@@ -247,8 +267,21 @@ export function ExecutiveDashboardPage(): ReactElement {
           {/* Ranking */}
           <div className="flex flex-col gap-2">
             <h2 className="text-[13px] font-medium text-pa-text">Ranking intensidad</h2>
+            {(buildingsQs.phase === 'loading' || aggQuery.isPending) ? (
+              <div className="animate-pulse rounded-lg border border-pa-border bg-white">
+                <div className="h-8 rounded-t bg-gray-200" />
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex gap-3 border-t border-pa-border px-3 py-2">
+                    <div className="h-4 w-4 rounded bg-gray-200" />
+                    <div className="h-4 w-24 rounded bg-gray-200" />
+                    <div className="ml-auto h-4 w-16 rounded bg-gray-200" />
+                    <div className="h-4 w-10 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            ) : (
             <DataWidget
-              phase={buildingsQs.phase === 'loading' || aggQuery.isPending ? 'loading' : buildingsQs.phase}
+              phase={aggQuery.isPending ? 'loading' : buildingsQs.phase}
               error={buildingsQs.error ?? aggQuery.error}
               onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
               emptyTitle="Sin datos"
@@ -291,6 +324,7 @@ export function ExecutiveDashboardPage(): ReactElement {
                 Menor = menos consumo relativo (por m² o por medidor).
               </p>
             </DataWidget>
+            )}
           </div>
 
           {/* Critical alerts */}

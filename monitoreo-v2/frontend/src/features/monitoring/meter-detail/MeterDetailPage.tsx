@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router';
 import { Card } from '../../../components/ui/Card';
 import { MonthlyChart } from '../../../components/charts/MonthlyChart';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { DataWidget } from '../../../components/ui/DataWidget';
+import { useQueryState } from '../../../hooks/useQueryState';
 import { useMeterQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -60,6 +62,8 @@ export function MeterDetailPage() {
   const alertCount = alertsQuery.data?.length ?? 0;
   const meta = METRICS[selectedMetric];
   const isLoading = meterQuery.isPending || aggQuery.isPending;
+
+  const aggQs = useQueryState(aggQuery, { isEmpty: (d) => !d || d.length === 0 });
 
   // Chart data
   const chartData = useMemo(() =>
@@ -151,6 +155,13 @@ export function MeterDetailPage() {
         <div className="px-6 pt-4 pb-2">
           <h2 className="text-sm font-semibold text-gray-900">Detalle mensual</h2>
         </div>
+        <DataWidget
+          phase={aggQs.phase === 'loading' ? 'ready' : aggQs.phase}
+          error={aggQs.error}
+          onRetry={() => { void aggQuery.refetch(); }}
+          emptyTitle="Sin datos"
+          emptyDescription="No hay lecturas mensuales para este medidor."
+        >
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="sticky top-0 z-10 bg-white">
@@ -221,6 +232,7 @@ export function MeterDetailPage() {
             </TableStateBody>
           </table>
         </div>
+        </DataWidget>
       </Card>
     </div>
   );

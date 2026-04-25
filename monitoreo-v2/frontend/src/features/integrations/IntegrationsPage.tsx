@@ -5,6 +5,7 @@ import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../hooks/usePermissions';
 import {
   useIntegrationsQuery,
@@ -100,6 +101,9 @@ export function IntegrationsPage() {
   const updateMutation = useUpdateIntegration();
   const deleteMutation = useDeleteIntegration();
   const syncMutation = useTriggerIntegrationSync();
+
+  const allIntegrations = listQuery.data ?? [];
+  const { visible: visibleIntegrations, hasMore, sentinelRef, total } = useInfiniteScroll(allIntegrations, [filters.integrationType, filters.status]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Integration | null>(null);
@@ -274,7 +278,7 @@ export function IntegrationsPage() {
                   emptyMessage="No hay integraciones configuradas"
                   skeletonWidths={['w-24', 'w-20', 'w-16', 'w-24', 'w-24', 'w-28']}
                 >
-                  {listQuery.data?.map((row) => (
+                  {visibleIntegrations.map((row) => (
                     <tr key={row.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
                       <td className="px-4 py-3 text-gray-700">{row.integrationType}</td>
@@ -338,7 +342,9 @@ export function IntegrationsPage() {
                   ))}
                 </TableStateBody>
               </table>
+              {hasMore && <div ref={sentinelRef} className="h-4" />}
             </div>
+            {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleIntegrations.length} de {total}</p>}
           </section>
 
           <Modal

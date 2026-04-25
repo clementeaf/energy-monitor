@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Toggle } from '../../../components/ui/Toggle';
 import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../../hooks/usePermissions';
 import {
   useRolesQuery,
@@ -25,6 +26,9 @@ export function RolesPage() {
   });
   const { has } = usePermissions();
   const canWrite = has('admin_roles', 'create');
+
+  const allRoles = query.data ?? [];
+  const { visible: visibleRoles, hasMore, sentinelRef, total } = useInfiniteScroll(allRoles);
 
   const createMutation = useCreateRole();
   const updateMutation = useUpdateRole();
@@ -212,7 +216,7 @@ export function RolesPage() {
             emptyMessage="No hay roles configurados."
             skeletonWidths={['w-28', 'w-32', 'w-16', 'w-16', 'w-20']}
           >
-            {(query.data ?? []).map((role) => (
+            {visibleRoles.map((role) => (
               <tr key={role.id} className="hover:bg-gray-50">
                 <Td className="font-medium text-gray-900">{role.name}</Td>
                 <Td className="max-w-[250px] truncate" title={role.description ?? undefined}>
@@ -245,7 +249,9 @@ export function RolesPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleRoles.length} de {total}</p>}
 
       {/* Create/Edit Drawer */}
       <Drawer

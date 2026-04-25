@@ -183,6 +183,32 @@ export function GenerationSitePage() {
         Configure el tipo de medidor (p. ej. solar o generation) en la ficha de cada medidor.
       </p>
 
+      {metersQuery.isLoading || aggQuery.isLoading ? (
+        <div className="space-y-3 animate-pulse">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="h-3 w-24 rounded bg-gray-200" />
+                <div className="mt-2 h-6 w-20 rounded bg-gray-300" />
+                <div className="mt-1 h-3 w-32 rounded bg-gray-100" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="h-3 w-24 rounded bg-gray-200" />
+                <div className="mt-2 h-6 w-28 rounded bg-gray-300" />
+                <div className="mt-1 h-3 w-36 rounded bg-gray-100" />
+              </div>
+            ))}
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="h-64 rounded bg-gray-100" />
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi title="Medidores generacion" value={String(genIds.size)} sub="Tipos solar / PV / generation" />
         <Kpi title="Medidores carga" value={String(loadIds.size)} sub="Resto electricos en el sitio" />
@@ -231,6 +257,8 @@ export function GenerationSitePage() {
           onRangeChange={handleRangeChange}
         />
       </DataWidget>
+        </>
+      )}
     </div>
   );
 }

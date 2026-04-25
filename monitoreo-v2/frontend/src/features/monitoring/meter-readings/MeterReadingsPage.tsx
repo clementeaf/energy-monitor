@@ -5,6 +5,8 @@ import HighchartsStock from 'highcharts/highstock';
 import { HighchartsReact } from 'highcharts-react-official';
 import { Card } from '../../../components/ui/Card';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { DataWidget } from '../../../components/ui/DataWidget';
+import { useQueryState } from '../../../hooks/useQueryState';
 import { useMeterQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -182,6 +184,8 @@ export function MeterReadingsPage() {
   const alertTimestamps = alerts.map((a) => a.createdAt);
   const isLoading = readingsQuery.isPending;
 
+  const readingsQs = useQueryState(readingsQuery, { isEmpty: (d) => !d || d.length === 0 });
+
   const singleField: ReadingField | null = isComposite(metric) ? null : metric;
 
   // Hourly data for daily chart
@@ -308,6 +312,31 @@ export function MeterReadingsPage() {
         <div className="h-6 w-64 animate-pulse rounded bg-gray-200" />
         <div className="h-[340px] animate-pulse rounded-lg bg-gray-100" />
         <div className="h-48 animate-pulse rounded-lg bg-gray-100" />
+      </div>
+    );
+  }
+
+  if (readingsQs.phase === 'error') {
+    return (
+      <div className="flex h-full flex-col gap-4 overflow-hidden">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 px-1">
+          <button
+            type="button"
+            onClick={() => navigate(`/monitoring/meter/${meterId}`)}
+            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+          >
+            &larr; Volver
+          </button>
+        </div>
+        <DataWidget
+          phase="error"
+          error={readingsQs.error}
+          onRetry={() => { void readingsQuery.refetch(); }}
+          emptyTitle="Sin lecturas"
+          emptyDescription="No hay lecturas para este periodo."
+        >
+          {null}
+        </DataWidget>
       </div>
     );
   }

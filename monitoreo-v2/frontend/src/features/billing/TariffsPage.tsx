@@ -4,6 +4,7 @@ import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import {
@@ -33,6 +34,9 @@ export function TariffsPage() {
   const createMutation = useCreateTariff();
   const updateMutation = useUpdateTariff();
   const deleteMutation = useDeleteTariff();
+
+  const allTariffs = tariffsQuery.data ?? [];
+  const { visible: visibleTariffs, hasMore, sentinelRef, total } = useInfiniteScroll(allTariffs, [buildingFilter]);
 
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (t: Tariff) => { setEditing(t); setFormOpen(true); };
@@ -111,7 +115,7 @@ export function TariffsPage() {
             emptyMessage="No hay tarifas configuradas."
             skeletonWidths={['w-32', 'w-28', 'w-20', 'w-24', ...(canWrite ? ['w-20'] : [])]}
           >
-            {qs.data?.map((tariff) => (
+            {visibleTariffs.map((tariff) => (
               <TariffRow
                 key={tariff.id}
                 tariff={tariff}
@@ -124,7 +128,9 @@ export function TariffsPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTariffs.length} de {total}</p>}
 
       <Modal open={formOpen} onClose={closeForm} title={editing ? 'Editar Tarifa' : 'Nueva Tarifa'}>
         <form onSubmit={handleSubmit} className="space-y-4">

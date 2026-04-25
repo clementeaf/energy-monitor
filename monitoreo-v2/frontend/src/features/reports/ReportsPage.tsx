@@ -4,6 +4,7 @@ import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Drawer } from '../../components/ui/Drawer';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import {
@@ -65,6 +66,12 @@ export function ReportsPage() {
   const scheduledQs = useQueryState(scheduledQuery, {
     isEmpty: (d) => !d || d.length === 0,
   });
+
+  const allReports = reportsQuery.data ?? [];
+  const { visible: visibleReports, hasMore: hasMoreReports, sentinelRef: reportsSentinelRef, total: totalReports } = useInfiniteScroll(allReports, [reportFilters.buildingId, reportFilters.reportType]);
+
+  const allScheduled = scheduledQuery.data ?? [];
+  const { visible: visibleScheduled, hasMore: hasMoreScheduled, sentinelRef: scheduledSentinelRef, total: totalScheduled } = useInfiniteScroll(allScheduled, []);
 
   const [generateOpen, setGenerateOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -152,7 +159,7 @@ export function ReportsPage() {
               emptyMessage="No hay reportes generados"
               skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
             >
-              {reportsQs.data?.map((row) => (
+              {visibleReports.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-800">{labelForReportType(row.reportType)}</td>
                   <td className="px-4 py-3 text-gray-600">
@@ -185,7 +192,9 @@ export function ReportsPage() {
               ))}
             </TableStateBody>
           </table>
+          {hasMoreReports && <div ref={reportsSentinelRef} className="h-4" />}
         </div>
+        {totalReports > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleReports.length} de {totalReports}</p>}
       </section>
 
       <section>
@@ -209,7 +218,7 @@ export function ReportsPage() {
               emptyMessage="No hay reportes programados"
               skeletonWidths={['w-20', 'w-24', 'w-12', 'w-28', 'w-20']}
             >
-              {scheduledQs.data?.map((row) => (
+              {visibleScheduled.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
                   <td className="px-4 py-3 font-mono text-xs text-gray-700">{row.cronExpression}</td>
@@ -251,7 +260,9 @@ export function ReportsPage() {
               ))}
             </TableStateBody>
           </table>
+          {hasMoreScheduled && <div ref={scheduledSentinelRef} className="h-4" />}
         </div>
+        {totalScheduled > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleScheduled.length} de {totalScheduled}</p>}
       </section>
 
       <GenerateDrawer

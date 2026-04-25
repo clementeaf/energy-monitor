@@ -4,6 +4,7 @@ import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useMetersQuery, useCreateMeter, useUpdateMeter, useDeleteMeter } from '../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -26,6 +27,9 @@ export function MetersPage() {
   const createMutation = useCreateMeter();
   const updateMutation = useUpdateMeter();
   const deleteMutation = useDeleteMeter();
+
+  const allMeters = metersQuery.data ?? [];
+  const { visible: meters, hasMore, sentinelRef, total } = useInfiniteScroll(allMeters, [buildingId]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meter | null>(null);
@@ -105,7 +109,7 @@ export function MetersPage() {
             emptyMessage="No hay medidores registrados."
             skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
-            {(metersQuery.data ?? []).map((m) => (
+            {meters.map((m) => (
               <tr
                 key={m.id}
                 className="cursor-pointer hover:bg-gray-50"
@@ -129,6 +133,12 @@ export function MetersPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
+        {total > 0 && (
+          <p className="px-4 py-2 text-xs text-pa-text-muted">
+            Mostrando {meters.length} de {total}
+          </p>
+        )}
       </div>
 
       <MeterForm

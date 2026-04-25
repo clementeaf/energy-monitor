@@ -4,6 +4,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { Th, Td, StatusBadge, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import {
   useTenantUnitsQuery, useCreateTenantUnit, useUpdateTenantUnit, useDeleteTenantUnit,
 } from '../../../hooks/queries/useTenantUnitsQuery';
@@ -24,6 +25,9 @@ export function TenantsPage() {
   });
   const { has } = usePermissions();
   const canWrite = has('admin_tenants_units', 'create');
+
+  const allTenants = query.data ?? [];
+  const { visible: visibleTenants, hasMore, sentinelRef, total } = useInfiniteScroll(allTenants, [buildingFilter]);
 
   const createMutation = useCreateTenantUnit();
   const updateMutation = useUpdateTenantUnit();
@@ -100,7 +104,7 @@ export function TenantsPage() {
             emptyMessage="No hay locatarios registrados."
             skeletonWidths={SKELETON_WIDTHS}
           >
-            {(query.data ?? []).map((t) => (
+            {visibleTenants.map((t) => (
               <tr key={t.id} className="hover:bg-gray-50">
                 <Td className="font-medium text-gray-900">{t.name}</Td>
                 <Td>{t.unitCode}</Td>
@@ -120,7 +124,9 @@ export function TenantsPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       <TenantUnitForm
         open={formOpen}

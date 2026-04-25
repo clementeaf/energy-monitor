@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { Toggle } from '../../../components/ui/Toggle';
 import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../../hooks/usePermissions';
 import {
   useApiKeysQuery,
@@ -37,6 +38,9 @@ export function ApiKeysPage() {
   const updateMutation = useUpdateApiKey();
   const rotateMutation = useRotateApiKey();
   const deleteMutation = useDeleteApiKey();
+
+  const allKeys = query.data ?? [];
+  const { visible: visibleKeys, hasMore, sentinelRef, total } = useInfiniteScroll(allKeys, []);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [deleting, setDeleting] = useState<ApiKey | null>(null);
@@ -145,7 +149,7 @@ export function ApiKeysPage() {
             emptyMessage="No hay API keys configuradas."
             skeletonWidths={['w-28', 'w-20', 'w-32', 'w-16', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
-            {(query.data ?? []).map((key) => (
+            {visibleKeys.map((key) => (
               <tr key={key.id} className="hover:bg-gray-50">
                 <Td className="font-medium text-gray-900">{key.name}</Td>
                 <Td>
@@ -188,7 +192,9 @@ export function ApiKeysPage() {
             ))}
           </TableStateBody>
         </table>
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
+      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleKeys.length} de {total}</p>}
 
       {/* Create Modal */}
       <Modal open={createOpen} onClose={closeCreate} title="Nueva API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40">

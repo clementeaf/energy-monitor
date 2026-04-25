@@ -22,6 +22,8 @@ interface SubItem {
   superAdminOnly?: boolean;
   /** Hide when super_admin has no tenant selected */
   requiresTenant?: boolean;
+  /** Hide when a tenant IS selected (e.g. Platform dashboard) */
+  hideWithTenant?: boolean;
 }
 
 interface NavEntry {
@@ -41,7 +43,7 @@ const NAV_ENTRIES: NavEntry[] = [
     requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
     children: [
       { to: '/', label: 'General', end: true, requiresTenant: true },
-      { to: APP_ROUTES.platform, label: 'Plataforma', superAdminOnly: true },
+      { to: APP_ROUTES.platform, label: 'Plataforma', superAdminOnly: true, hideWithTenant: true },
       { to: APP_ROUTES.executive, label: 'Ejecutivo', requiresTenant: true },
       { to: APP_ROUTES.compare, label: 'Comparativo', requiresTenant: true },
     ],
@@ -260,6 +262,7 @@ export function Sidebar() {
                   {entry.children!.filter((sub) => {
                     if (sub.superAdminOnly && !isSuperAdmin) return false;
                     if (sub.requiresTenant && isSuperAdmin && !selectedTenantId) return false;
+                    if (sub.hideWithTenant && selectedTenantId) return false;
                     return true;
                   }).map((sub) => (
                     <NavLink

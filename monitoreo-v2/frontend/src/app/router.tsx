@@ -1,9 +1,19 @@
-import { createBrowserRouter, Outlet } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import { SessionGate } from '../components/auth/SessionGate';
 import { LayoutShell } from '../components/layout/LayoutShell';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { RequirePerms } from '../components/auth/RequirePerms';
 import { RequireTenantLayout } from '../components/ui/RequireTenant';
+import { usePermissions } from '../hooks/usePermissions';
+import { useAppStore } from '../store/useAppStore';
+
+/** Redirects super_admin without tenant to Platform; others to General (inside RequireTenantLayout). */
+function DashboardIndex() {
+  const { isSuperAdmin } = usePermissions();
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
+  if (isSuperAdmin && !selectedTenantId) return <Navigate to="/dashboard/platform" replace />;
+  return <LazyDashboardPage />;
+}
 import { LoginRouteShell } from '../components/routing/LoginRouteShell';
 import {
   LazyBuildingsPage,
@@ -107,14 +117,12 @@ export const router = createBrowserRouter([
           {
             element: <LayoutShell />,
             children: [
-              /* Dashboard */
-              { index: true, element: <P any={DASH_ANY}><LazyDashboardPage /></P> },
+              /* Dashboard — index redirects to Platform or General based on tenant */
+              { index: true, element: <P any={DASH_ANY}><DashboardIndex /></P> },
+              /* Dashboard — Platform (cross-tenant, no tenant needed) */
               { path: APP_ROUTES.platform, element: <P any={DASH_EXEC}><LazyPlatformDashboardPage /></P> },
-              { path: APP_ROUTES.executive, element: <P any={DASH_EXEC}><LazyExecutiveDashboardPage /></P> },
-              { path: APP_ROUTES.executiveSite, element: <P any={DASH_EXEC}><LazyExecutiveSitePage /></P> },
-              { path: APP_ROUTES.compare, element: <P any={DASH_ANY}><LazyCompareDashboardPage /></P> },
 
-              /* Alertas */
+              /* Alertas (cross-tenant) */
               { path: APP_ROUTES.alerts, element: <P any={ALERTS}><LazyAlertsPage /></P> },
               { path: APP_ROUTES.alertRules, element: <P any={['alerts:create', 'alerts:update']}><LazyAlertRulesPage /></P> },
               { path: APP_ROUTES.escalation, element: <P any={ALERTS}><LazyEscalationPage /></P> },
@@ -125,6 +133,11 @@ export const router = createBrowserRouter([
               {
                 element: <RequireTenantLayout />,
                 children: [
+                  /* Dashboard (tenant-scoped) */
+                  { path: APP_ROUTES.executive, element: <P any={DASH_EXEC}><LazyExecutiveDashboardPage /></P> },
+                  { path: APP_ROUTES.executiveSite, element: <P any={DASH_EXEC}><LazyExecutiveSitePage /></P> },
+                  { path: APP_ROUTES.compare, element: <P any={DASH_ANY}><LazyCompareDashboardPage /></P> },
+
                   /* Monitoreo */
                   { path: APP_ROUTES.monitoring.realtime, element: <P any={MONITORING}><LazyRealtimePage /></P> },
                   { path: APP_ROUTES.monitoring.drilldown, element: <P any={MONITORING}><LazyDrilldownPage /></P> },

@@ -65,14 +65,14 @@ describe('MetersController', () => {
   it('findAll delegates to service with tenant, buildingIds, and optional filter', async () => {
     service.findAll.mockResolvedValue([meter]);
     const result = await controller.findAll(user);
-    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined);
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined, undefined);
     expect(result).toEqual([meter]);
   });
 
   it('findAll passes buildingId filter', async () => {
     service.findAll.mockResolvedValue([meter]);
     await controller.findAll(user, 'bld-1');
-    expect(service.findAll).toHaveBeenCalledWith('t-1', [], 'bld-1');
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], 'bld-1', undefined);
   });
 
   it('findOne returns meter', async () => {

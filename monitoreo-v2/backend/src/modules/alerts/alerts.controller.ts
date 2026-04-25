@@ -30,7 +30,7 @@ export class AlertsController {
     @CurrentUser() user: JwtPayload,
     @Query() query: AlertQueryDto,
   ) {
-    return this.alertsService.findAll(user.tenantId, user.buildingIds, query);
+    return this.alertsService.findAll(user.tenantId, user.buildingIds, query, user.crossTenant);
   }
 
   @Get(':id')

@@ -28,6 +28,7 @@ export interface LatestRow {
   meter_id: string;
   meter_name: string;
   building_id: string;
+  tenant_id: string;
   timestamp: string;
   power_kw: string;
   energy_kwh_total: string;
@@ -170,16 +171,23 @@ export class ReadingsService {
     tenantId: string,
     buildingIds: string[],
     query: LatestQueryDto,
+    crossTenant = false,
   ): Promise<LatestRow[]> {
-    const params: unknown[] = [tenantId];
-    const conditions: string[] = ['m.tenant_id = $1'];
-    let paramIdx = 2;
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
 
-    if (buildingIds.length > 0) {
-      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
-      conditions.push(`m.building_id IN (${placeholders.join(', ')})`);
-      params.push(...buildingIds);
-      paramIdx += buildingIds.length;
+    if (!crossTenant) {
+      conditions.push(`m.tenant_id = $${paramIdx}`);
+      params.push(tenantId);
+      paramIdx++;
+
+      if (buildingIds.length > 0) {
+        const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+        conditions.push(`m.building_id IN (${placeholders.join(', ')})`);
+        params.push(...buildingIds);
+        paramIdx += buildingIds.length;
+      }
     }
 
     if (query.buildingId) {
@@ -194,13 +202,14 @@ export class ReadingsService {
       paramIdx++;
     }
 
-    const where = conditions.join(' AND ');
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     return this.dataSource.query(
       `SELECT
          m.id AS meter_id,
          m.name AS meter_name,
          m.building_id,
+         m.tenant_id,
          lr.timestamp,
          lr.power_kw,
          lr.energy_kwh_total,
@@ -217,7 +226,7 @@ export class ReadingsService {
          ORDER BY r.timestamp DESC
          LIMIT 1
        ) lr ON true
-       WHERE ${where}
+       ${whereClause}
        ORDER BY m.name`,
       params,
     );

@@ -40,6 +40,7 @@ describe('UsersController', () => {
       create: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+      enforceDeleteHierarchy: jest.fn().mockResolvedValue(undefined),
       getBuildingIds: jest.fn(),
       assignBuildings: jest.fn(),
     };
@@ -74,7 +75,7 @@ describe('UsersController', () => {
     service.create.mockResolvedValue(user);
     const dto = { email: 'user@test.com', authProvider: 'google' as const, authProviderId: 'g-123', roleId: 'r-2' };
     const result = await controller.create(dto, admin);
-    expect(service.create).toHaveBeenCalledWith('t-1', dto);
+    expect(service.create).toHaveBeenCalledWith('t-1', dto, 'r-1', 'super_admin');
     expect(result).toEqual(user);
   });
 

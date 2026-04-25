@@ -63,6 +63,7 @@ describe('MetersService', () => {
     it('returns meters for tenant without scoping when buildingIds is empty', async () => {
       const meters = [mockMeter()];
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -79,6 +80,7 @@ describe('MetersService', () => {
 
     it('scopes by buildingIds when provided', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -95,6 +97,7 @@ describe('MetersService', () => {
 
     it('filters by specific buildingId when provided', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -111,6 +114,7 @@ describe('MetersService', () => {
 
     it('applies both buildingIds scope and filter', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),

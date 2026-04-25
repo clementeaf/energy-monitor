@@ -109,8 +109,11 @@ export const buildingsEndpoints = {
 };
 
 export const metersEndpoints = {
-  list: (buildingId?: string) =>
-    api.get<Meter[]>(API_ROUTES.meters, { params: buildingId ? { buildingId } : undefined }),
+  list: (buildingId?: string) => {
+    const params: Record<string, string> = {};
+    if (buildingId) params.buildingId = buildingId;
+    return api.get<Meter[]>(API_ROUTES.meters, Object.keys(params).length > 0 ? { params } : undefined);
+  },
 
   get: (id: string) =>
     api.get<Meter>(`${API_ROUTES.meters}/${id}`),
@@ -425,4 +428,8 @@ export const rolesEndpoints = {
 
 export const integrationTypesEndpoints = {
   list: () => api.get<{ type: string; label: string }[]>(API_ROUTES.supportedTypes),
+};
+
+export const platformDashboardEndpoints = {
+  kpis: () => api.get<import('../types/platform-dashboard').PlatformKpis>(`${API_ROUTES.platformDashboard}/kpis`),
 };

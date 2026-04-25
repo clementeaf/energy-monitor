@@ -6,6 +6,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { TenantOverrideInterceptor } from './common/interceptors/tenant-override.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -29,6 +30,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { ExternalApiModule } from './modules/external-api/external-api.module';
 import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
+import { PlatformDashboardModule } from './modules/platform-dashboard/platform-dashboard.module';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
 
@@ -91,6 +93,7 @@ import { HealthController } from './health.controller';
     ApiKeysModule,
     ExternalApiModule,
     IotReadingsModule,
+    PlatformDashboardModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -113,6 +116,11 @@ import { HealthController } from './health.controller';
     {
       provide: APP_GUARD,
       useClass: PermissionsGuard,
+    },
+    // super_admin tenant override via ?tenantId= query param
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantOverrideInterceptor,
     },
     // Global audit log (ISO 27001: immutable audit trail)
     {

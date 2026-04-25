@@ -18,17 +18,17 @@ export function Footer() {
     <footer className="bg-white">
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 py-[52px]">
         {/* Row 1: Logo + LinkedIn icon — pb-40 */}
-        <div className="flex items-center justify-between pb-10">
-          <img src={logo} alt="Grupo Globe" className="h-[58px] w-[276px] object-contain shrink-0" />
+        <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between pb-10">
+          <img src={logo} alt="Grupo Globe" className="h-[110px] sm:h-[88px] w-auto max-w-full sm:max-w-[400px] object-contain object-left shrink-0" />
 
           <a
             href="https://www.linkedin.com/company/grupo-globe"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-14 h-14 rounded-full text-grey-800 hover:bg-grey-100 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full text-grey-800 hover:bg-grey-100 transition-colors ml-2 sm:ml-0"
             aria-label="LinkedIn"
           >
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
             </svg>
           </a>
@@ -45,7 +45,7 @@ export function Footer() {
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                   </svg>
-                  566000061666
+                  +56 22 215 8820
                 </li>
                 <li className="flex items-center gap-2 font-body text-[14px] leading-[18px] text-grey-700">
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">

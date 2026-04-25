@@ -6,6 +6,7 @@ import { MainContentErrorFallback, PageLoadFallback } from '../errors/fallbacks'
 /**
  * Suspense + ErrorBoundary alrededor del Outlet en el main (nivel más particular:
  * fallos de vista no tumbar sidebar/header; reset al cambiar de ruta).
+ * Each page handles its own cross-tenant vs tenant-required logic.
  */
 export function MainContentOutlet() {
   const location = useLocation();

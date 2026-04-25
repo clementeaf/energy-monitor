@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.5.0-alpha.0] - 2026-04-25 — MULTI-TENANT SCOPING, ROLE HIERARCHY, PLATFORM DASHBOARD
+
+### Added (monitoreo-v2/backend)
+- **`crossTenant` flag** — `JwtPayload.crossTenant` set by `TenantOverrideInterceptor`. super_admin without `?tenantId=` gets cross-tenant mode; with override scopes to single tenant.
+- **Cross-tenant queries** — `BuildingsService`, `MetersService`, `AlertsService`, `ReadingsService.findLatest` skip tenant filter when `crossTenant=true`, JOIN tenant for context.
+- **Platform Dashboard module** — `GET /platform-dashboard/kpis` returns global KPIs: tenant/building/meter/reading counts, online/offline meters, per-tenant summary. Requires `crossTenant` mode.
+- **Role hierarchy** — `hierarchy_level` column on `roles` table (0=super_admin, 10=corp_admin, 20=site_admin, 30=operator, 40=analyst/auditor, 50=tenant_user). `UsersService.enforceHierarchy` blocks creating/updating users with equal or higher role. `enforceDeleteHierarchy` blocks deleting users with higher role. super_admin bypasses all checks.
+- **PASA roles** — Cloned 7 roles + 126 permissions from Globe Power to PASA tenant in prod.
+
+### Changed (monitoreo-v2/backend)
+- **`TenantOverrideInterceptor`** — Restructured: super_admin + override → single tenant; super_admin + no override → `crossTenant=true`; non-super_admin → `crossTenant=false`.
+- **`TenantsService.cloneRoles`** — Now copies `hierarchy_level` when onboarding new tenants.
+- **`UsersController`** — `create` and `update` pass `roleId` + `roleSlug` for hierarchy enforcement. `delete` calls `enforceDeleteHierarchy` before removal.
+
+### Added (monitoreo-v2/frontend)
+- **`PlatformDashboardPage`** — `/dashboard/platform` (superAdminOnly). Shows global KPIs and per-tenant summary table.
+- **`RequireTenantLayout`** — Route-level wrapper that shows "Selecciona una empresa" for super_admin without tenant selected. Applied to Monitoring, Billing, Reports, Analytics, Integrations, and Admin (except Empresas).
+- **Sidebar "Plataforma"** — Dashboard sub-item visible only for super_admin.
+- **API layer** — `platformDashboardEndpoints.kpis()`, `usePlatformKpisQuery` hook, `PlatformKpis` type.
+
+### Changed (monitoreo-v2/frontend)
+- **`api.ts` interceptor** — `?tenantId=` now sent on all HTTP methods (was GET-only). Fixes super_admin mutations scoping to wrong tenant.
+- **`queryClient.clear()`** — Called on tenant switch in Sidebar. All modules re-fetch with correct tenant.
+- **Sidebar "Empresas"** — Marked `superAdminOnly`, hidden for non-super_admin users.
+- **`MainContentOutlet`** — Removed blanket tenant-required block. Each route group handles its own requirement via `RequireTenantLayout`.
+- **`usePermissions`** — Fixed: real users now use actual DB permissions instead of role-based override map. Role map only used during super_admin impersonation.
+- **Router** — Restructured: tenant-required routes nested under `RequireTenantLayout`; cross-tenant routes (Dashboard, Buildings list, Meters list, Alerts) at top level.
+- **Removed redundant `tenantId` param** from `buildingsEndpoints.list()`, `metersEndpoints.list()`, `useBuildingsQuery`, `useMetersQuery` — interceptor handles it.
+
+### Fixed (globe-landing)
+- **Footer phone number** — Updated from `566000061666` to `+56 22 215 8820`.
+
+---
+
 ## [2.4.1-alpha.0] - 2026-04-24 — GLOBE LANDING: HERO MOBILE FIXES
 
 ### Fixed (globe-landing)

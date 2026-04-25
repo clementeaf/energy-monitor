@@ -59,7 +59,7 @@ describe('AlertsController', () => {
     service.findAll.mockResolvedValue([alert]);
     const query = { status: 'active' };
     const result = await controller.findAll(user, query);
-    expect(service.findAll).toHaveBeenCalledWith('t-1', [], query);
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], query, undefined);
     expect(result).toEqual([alert]);
   });
 

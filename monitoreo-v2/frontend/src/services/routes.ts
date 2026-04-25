@@ -32,4 +32,5 @@ export const API_ROUTES = {
   apiKeys: '/api-keys',
   roles: '/roles',
   permissions: '/roles/permissions',
+  platformDashboard: '/platform-dashboard',
 } as const;

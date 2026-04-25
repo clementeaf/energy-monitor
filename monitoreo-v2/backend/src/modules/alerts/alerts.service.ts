@@ -15,14 +15,18 @@ export class AlertsService {
     tenantId: string,
     buildingIds: string[],
     filters: AlertQueryDto,
+    crossTenant = false,
   ): Promise<PlatformAlert[]> {
     const qb = this.repo
       .createQueryBuilder('a')
-      .where('a.tenant_id = :tenantId', { tenantId })
+      .leftJoinAndSelect('a.tenant', 'tenant')
       .orderBy('a.created_at', 'DESC');
 
-    if (buildingIds.length > 0) {
-      qb.andWhere('a.building_id IN (:...buildingIds)', { buildingIds });
+    if (!crossTenant) {
+      qb.where('a.tenant_id = :tenantId', { tenantId });
+      if (buildingIds.length > 0) {
+        qb.andWhere('a.building_id IN (:...buildingIds)', { buildingIds });
+      }
     }
 
     if (filters.status) {

@@ -50,7 +50,7 @@ describe('BuildingsController', () => {
   it('findAll delegates to service with tenant and buildingIds', async () => {
     service.findAll.mockResolvedValue([building]);
     const result = await controller.findAll(user);
-    expect(service.findAll).toHaveBeenCalledWith('t-1', []);
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined);
     expect(result).toEqual([building]);
   });
 

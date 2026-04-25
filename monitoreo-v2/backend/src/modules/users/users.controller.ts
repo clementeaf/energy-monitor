@@ -56,7 +56,7 @@ export class UsersController {
     @Body() dto: CreateUserDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.usersService.create(user.tenantId, dto);
+    return this.usersService.create(user.tenantId, dto, user.roleId, user.roleSlug);
   }
 
   @Patch(':id')
@@ -69,7 +69,7 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const updated = await this.usersService.update(id, user.tenantId, dto);
+    const updated = await this.usersService.update(id, user.tenantId, dto, user.roleId, user.roleSlug);
     if (!updated) throw new NotFoundException('User not found');
     return updated;
   }
@@ -84,6 +84,7 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
   ) {
+    await this.usersService.enforceDeleteHierarchy(user.roleId, user.roleSlug, id, user.tenantId);
     const deleted = await this.usersService.remove(id, user.tenantId);
     if (!deleted) throw new NotFoundException('User not found');
   }

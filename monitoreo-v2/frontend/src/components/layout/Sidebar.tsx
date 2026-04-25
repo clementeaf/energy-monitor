@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { APP_ROUTES } from '../../app/routes';
 import { useAppStore, VIEW_AS_LABELS } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -17,6 +18,8 @@ interface SubItem {
   to: string;
   label: string;
   end?: boolean;
+  /** Only show for super_admin (real, not impersonating) */
+  superAdminOnly?: boolean;
 }
 
 interface NavEntry {
@@ -36,6 +39,7 @@ const NAV_ENTRIES: NavEntry[] = [
     requiredPerms: ['dashboard_executive:read', 'dashboard_technical:read'],
     children: [
       { to: '/', label: 'General', end: true },
+      { to: APP_ROUTES.platform, label: 'Plataforma', superAdminOnly: true },
       { to: APP_ROUTES.executive, label: 'Ejecutivo' },
       { to: APP_ROUTES.compare, label: 'Comparativo' },
     ],
@@ -110,7 +114,7 @@ const NAV_ENTRIES: NavEntry[] = [
     basePath: '/admin',
     requiredPerms: ['admin_users:read'],
     children: [
-      { to: '/admin/companies', label: 'Empresas' },
+      { to: '/admin/companies', label: 'Empresas', superAdminOnly: true },
       { to: '/admin/users', label: 'Usuarios' },
       { to: '/admin/tenants', label: 'Locatarios' },
       { to: '/admin/hierarchy', label: 'Jerarquía' },
@@ -131,6 +135,7 @@ export function Sidebar() {
   const { hasAny, isSuperAdmin, isImpersonating } = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [contactOpen, setContactOpen] = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
@@ -169,6 +174,7 @@ export function Sidebar() {
             selectedId={selectedTenantId}
             onChange={(id, tenantTheme, slug) => {
               setSelectedTenantId(id);
+              queryClient.clear();
               if (tenantTheme) {
                 applyTenantTheme(tenantTheme, slug);
               } else if (tenant) {
@@ -248,7 +254,7 @@ export function Sidebar() {
               {/* Sub-items */}
               {hasChildren && isExpanded && (
                 <div className="ml-5 mt-1 space-y-0.5 border-l border-pa-border pl-4">
-                  {entry.children!.map((sub) => (
+                  {entry.children!.filter((sub) => !sub.superAdminOnly || isSuperAdmin).map((sub) => (
                     <NavLink
                       key={sub.to}
                       to={sub.to}

@@ -188,8 +188,8 @@ export class TenantsService {
     if (!template) {
       // First tenant ever — no template, just create super_admin
       await manager.query(
-        `INSERT INTO roles (tenant_id, name, slug, description, max_session_minutes, is_default)
-         VALUES ($1, 'Super Admin', 'super_admin', 'Platform administrator', 30, false)`,
+        `INSERT INTO roles (tenant_id, name, slug, description, max_session_minutes, is_default, hierarchy_level)
+         VALUES ($1, 'Super Admin', 'super_admin', 'Platform administrator', 30, false, 0)`,
         [newTenantId],
       );
       return 1;
@@ -197,8 +197,8 @@ export class TenantsService {
 
     // Clone roles
     const result = await manager.query(
-      `INSERT INTO roles (tenant_id, name, slug, description, max_session_minutes, is_default)
-       SELECT $1, name, slug, description, max_session_minutes, is_default
+      `INSERT INTO roles (tenant_id, name, slug, description, max_session_minutes, is_default, hierarchy_level)
+       SELECT $1, name, slug, description, max_session_minutes, is_default, hierarchy_level
        FROM roles WHERE tenant_id = $2 AND is_active = true
        RETURNING id, slug`,
       [newTenantId, template.id],

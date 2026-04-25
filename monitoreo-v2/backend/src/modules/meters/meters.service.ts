@@ -16,18 +16,18 @@ export class MetersService {
     tenantId: string,
     buildingIds: string[],
     filterBuildingId?: string,
-    isSuperAdmin = false,
+    crossTenant = false,
   ): Promise<Meter[]> {
     const qb = this.repo
       .createQueryBuilder('m')
+      .leftJoinAndSelect('m.tenant', 'tenant')
       .orderBy('m.name', 'ASC');
 
-    if (!isSuperAdmin) {
+    if (!crossTenant) {
       qb.where('m.tenant_id = :tenantId', { tenantId });
-    }
-
-    if (buildingIds.length > 0) {
-      qb.andWhere('m.building_id IN (:...buildingIds)', { buildingIds });
+      if (buildingIds.length > 0) {
+        qb.andWhere('m.building_id IN (:...buildingIds)', { buildingIds });
+      }
     }
 
     if (filterBuildingId) {

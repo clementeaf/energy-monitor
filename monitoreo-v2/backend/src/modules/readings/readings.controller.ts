@@ -49,7 +49,7 @@ export class ReadingsController {
     @CurrentUser() user: JwtPayload,
     @Query() query: LatestQueryDto,
   ) {
-    return this.readingsService.findLatest(user.tenantId, user.buildingIds, query);
+    return this.readingsService.findLatest(user.tenantId, user.buildingIds, query, user.crossTenant);
   }
 
   @Get('aggregated')

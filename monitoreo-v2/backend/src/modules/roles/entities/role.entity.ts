@@ -39,6 +39,9 @@ export class Role {
   @Column({ name: 'max_session_minutes', type: 'integer', default: 30 })
   maxSessionMinutes!: number;
 
+  @Column({ name: 'hierarchy_level', type: 'smallint', default: 99 })
+  hierarchyLevel!: number;
+
   @Column({ name: 'is_default', default: false })
   isDefault!: boolean;
 

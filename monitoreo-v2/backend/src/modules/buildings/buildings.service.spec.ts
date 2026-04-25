@@ -46,6 +46,7 @@ describe('BuildingsService', () => {
     it('returns buildings for tenant without scoping when buildingIds is empty', async () => {
       const buildings = [mockBuilding()];
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -62,6 +63,7 @@ describe('BuildingsService', () => {
 
     it('scopes by buildingIds when provided', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),

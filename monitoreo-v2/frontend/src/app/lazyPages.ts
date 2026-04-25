@@ -10,6 +10,11 @@ export const LazyDashboardPage = lazy(async () => {
   return { default: m.DashboardPage };
 });
 
+export const LazyPlatformDashboardPage = lazy(async () => {
+  const m = await import('../features/dashboard/platform/PlatformDashboardPage');
+  return { default: m.PlatformDashboardPage };
+});
+
 export const LazyExecutiveDashboardPage = lazy(async () => {
   const m = await import('../features/dashboard/executive/ExecutiveDashboardPage');
   return { default: m.ExecutiveDashboardPage };

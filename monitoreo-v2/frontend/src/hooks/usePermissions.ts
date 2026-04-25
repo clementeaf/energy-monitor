@@ -53,11 +53,11 @@ export function usePermissions() {
 
   const permSet = useMemo(() => {
     if (!activeRole) return new Set<string>();
-    // If viewing as super_admin (or no impersonation), use real permissions
-    if (activeRole === 'super_admin') return new Set(user?.permissions ?? []);
-    // Use role-based permission set for impersonation
-    return ROLE_PERMISSIONS[activeRole] ?? new Set<string>();
-  }, [activeRole, user?.permissions]);
+    // Impersonating: use role-based permission set
+    if (isImpersonating) return ROLE_PERMISSIONS[activeRole] ?? new Set<string>();
+    // Real user: use actual permissions from DB
+    return new Set(user?.permissions ?? []);
+  }, [activeRole, isImpersonating, user?.permissions]);
 
   const isAdmin = activeRole === 'super_admin' || activeRole === 'corp_admin' || activeRole === 'site_admin';
 

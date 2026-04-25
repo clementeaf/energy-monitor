@@ -6,7 +6,10 @@ import type { JwtPayload } from '../../common/decorators/current-user.decorator'
 
 const mockUser: JwtPayload = {
   sub: 'user-1',
+  email: 'test@test.com',
   tenantId: 'tenant-1',
+  roleId: 'role-1',
+  roleSlug: 'operator',
   buildingIds: ['bld-1'],
   permissions: ['monitoring_realtime:read'],
 };
@@ -68,6 +71,7 @@ describe('ReadingsController', () => {
         'tenant-1',
         ['bld-1'],
         query,
+        undefined,
       );
     });
 
@@ -78,6 +82,7 @@ describe('ReadingsController', () => {
         'tenant-1',
         ['bld-1'],
         {},
+        undefined,
       );
     });
   });

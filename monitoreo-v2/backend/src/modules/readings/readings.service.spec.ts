@@ -141,7 +141,7 @@ describe('ReadingsService', () => {
 
       expect(result).toEqual(rows);
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('DISTINCT ON (r.meter_id)');
+      expect(sql).toContain('LEFT JOIN LATERAL');
       expect(sql).toContain('m.tenant_id = $1');
     });
 
@@ -162,7 +162,7 @@ describe('ReadingsService', () => {
       await service.findLatest(TENANT_ID, [], { buildingId: 'bld-x' });
 
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('m.building_id = $2');
+      expect(sql).toContain('m.building_id');
       const params = ds.query.mock.calls[0][1];
       expect(params).toContain('bld-x');
     });
@@ -173,7 +173,7 @@ describe('ReadingsService', () => {
       await service.findLatest(TENANT_ID, [], { meterId: 'm-x' });
 
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('m.id = $2');
+      expect(sql).toContain('m.id');
       const params = ds.query.mock.calls[0][1];
       expect(params).toContain('m-x');
     });
@@ -188,6 +188,17 @@ describe('ReadingsService', () => {
 
       const params = ds.query.mock.calls[0][1];
       expect(params).toEqual([TENANT_ID, 'bld-1', 'bld-1', 'm-1']);
+    });
+
+    it('skips tenant filter in crossTenant mode', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findLatest(TENANT_ID, [], {}, true);
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).not.toContain('m.tenant_id = $');
+      const params = ds.query.mock.calls[0][1];
+      expect(params).toEqual([]);
     });
   });
 

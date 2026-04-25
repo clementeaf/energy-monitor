@@ -38,7 +38,7 @@ export class MetersController {
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
   ) {
-    return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId, user.roleSlug === 'super_admin');
+    return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId, user.crossTenant);
   }
 
   @Get(':id')

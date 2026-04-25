@@ -1,6 +1,7 @@
 export const APP_ROUTES = {
   login: '/login',
   dashboard: '/',
+  platform: '/dashboard/platform',
   executive: '/dashboard/executive',
   executiveSite: '/dashboard/executive/:siteId',
   compare: '/dashboard/compare',

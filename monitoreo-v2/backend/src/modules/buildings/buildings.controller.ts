@@ -33,7 +33,7 @@ export class BuildingsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequireAnyPermission('admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read')
   async findAll(@CurrentUser() user: JwtPayload) {
-    return this.buildingsService.findAll(user.tenantId, user.buildingIds, user.roleSlug === 'super_admin');
+    return this.buildingsService.findAll(user.tenantId, user.buildingIds, user.crossTenant);
   }
 
   @Get(':id')

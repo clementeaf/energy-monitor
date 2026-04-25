@@ -1,11 +1,14 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { NotificationService } from '../alerts/notification.service';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Role } from '../roles/entities/role.entity';
 
 const TENANT_ID = 'tenant-1';
+const CREATOR_ROLE_ID = 'r-creator';
 
 const mockUser = (overrides: Partial<User> = {}): User => ({
   id: 'u-1',
@@ -30,8 +33,12 @@ const mockUser = (overrides: Partial<User> = {}): User => ({
 describe('UsersService', () => {
   let service: UsersService;
   let repo: Record<string, jest.Mock>;
+  let roleRepo: Record<string, jest.Mock>;
   let ds: Record<string, jest.Mock>;
   let notifyUserCreated: jest.Mock;
+
+  const mockCreatorRole = { id: CREATOR_ROLE_ID, tenantId: TENANT_ID, hierarchyLevel: 0, name: 'Super Admin' };
+  const mockTargetRole = { id: 'r-1', tenantId: TENANT_ID, hierarchyLevel: 10, name: 'Corp Admin' };
 
   beforeEach(async () => {
     notifyUserCreated = jest.fn().mockResolvedValue(undefined);
@@ -43,12 +50,20 @@ describe('UsersService', () => {
       save: jest.fn(),
       delete: jest.fn(),
     };
+    roleRepo = {
+      findOneBy: jest.fn().mockImplementation(({ id }: { id: string }) => {
+        if (id === CREATOR_ROLE_ID) return Promise.resolve(mockCreatorRole);
+        if (id === 'r-1') return Promise.resolve(mockTargetRole);
+        return Promise.resolve(null);
+      }),
+    };
     ds = { query: jest.fn() };
 
     const module = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: getRepositoryToken(User), useValue: repo },
+        { provide: getRepositoryToken(Role), useValue: roleRepo },
         { provide: DataSource, useValue: ds },
         {
           provide: NotificationService,
@@ -105,7 +120,7 @@ describe('UsersService', () => {
         authProvider: 'google',
         authProviderId: 'google-123',
         roleId: 'r-1',
-      });
+      }, CREATOR_ROLE_ID, 'super_admin');
 
       expect(repo.create).toHaveBeenCalledWith({
         tenantId: TENANT_ID,
@@ -138,9 +153,59 @@ describe('UsersService', () => {
         authProviderId: 'google-123',
         roleId: 'r-1',
         buildingIds: ['b-1', 'b-2'],
-      });
+      }, CREATOR_ROLE_ID, 'super_admin');
 
       expect(ds.query).toHaveBeenCalledTimes(2); // DELETE + INSERT
+    });
+
+    it('rejects when creator tries to assign equal or higher role', async () => {
+      roleRepo.findOneBy.mockImplementation(({ id }: { id: string }) => {
+        if (id === CREATOR_ROLE_ID) return Promise.resolve({ ...mockCreatorRole, hierarchyLevel: 10 });
+        if (id === 'r-1') return Promise.resolve({ ...mockTargetRole, hierarchyLevel: 10 });
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        service.create(TENANT_ID, {
+          email: 'hack@example.com',
+          authProvider: 'google',
+          authProviderId: 'google-hack',
+          roleId: 'r-1',
+        }, CREATOR_ROLE_ID, 'corp_admin'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects when target role not found', async () => {
+      roleRepo.findOneBy.mockImplementation(({ id }: { id: string }) => {
+        if (id === CREATOR_ROLE_ID) return Promise.resolve(mockCreatorRole);
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        service.create(TENANT_ID, {
+          email: 'test@example.com',
+          authProvider: 'google',
+          authProviderId: 'google-123',
+          roleId: 'r-nonexistent',
+        }, CREATOR_ROLE_ID, 'corp_admin'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('super_admin skips hierarchy check entirely', async () => {
+      const user = mockUser();
+      repo.create.mockReturnValue(user);
+      repo.save.mockResolvedValue(user);
+      repo.findOne.mockResolvedValue(user);
+
+      // super_admin creating another super_admin — should be allowed
+      await expect(
+        service.create(TENANT_ID, {
+          email: 'admin2@example.com',
+          authProvider: 'google',
+          authProviderId: 'google-admin2',
+          roleId: CREATOR_ROLE_ID,
+        }, CREATOR_ROLE_ID, 'super_admin'),
+      ).resolves.toEqual(user);
     });
   });
 

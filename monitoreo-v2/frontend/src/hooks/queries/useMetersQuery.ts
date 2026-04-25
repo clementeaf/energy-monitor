@@ -1,15 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { metersEndpoints } from '../../services/endpoints';
+import { useAppStore } from '../../store/useAppStore';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../../types/meter';
 
 const KEYS = {
-  all: (buildingId?: string) => buildingId ? ['meters', { buildingId }] as const : ['meters'] as const,
+  all: (buildingId?: string, tenantId?: string | null) =>
+    ['meters', { buildingId, tenantId: tenantId ?? 'default' }] as const,
   detail: (id: string) => ['meters', id] as const,
 };
 
 export function useMetersQuery(buildingId?: string) {
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
   return useQuery({
-    queryKey: KEYS.all(buildingId),
+    queryKey: KEYS.all(buildingId, selectedTenantId),
     queryFn: async (): Promise<Meter[]> => {
       const { data } = await metersEndpoints.list(buildingId);
       return data;

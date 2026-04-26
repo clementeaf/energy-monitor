@@ -6,12 +6,12 @@ import type { TenantSummary } from '../../../types/platform-dashboard';
 
 function KpiCard({ title, value, loading }: { title: string; value: string | number; loading: boolean }) {
   return (
-    <div className="rounded-lg border border-pa-border bg-white px-3 py-2.5">
-      <p className="text-[11px] font-medium uppercase text-pa-text-muted">{title}</p>
+    <div className="rounded-lg border border-pa-border bg-white px-2.5 py-1.5">
+      <p className="text-[10px] font-medium uppercase text-pa-text-muted">{title}</p>
       {loading ? (
-        <div className="mt-0.5 h-5 w-16 animate-pulse rounded bg-gray-200" />
+        <div className="mt-0.5 h-4 w-12 animate-pulse rounded bg-gray-200" />
       ) : (
-        <p className="mt-0.5 text-lg font-bold text-pa-text">{value}</p>
+        <p className="text-sm font-bold text-pa-text">{value}</p>
       )}
     </div>
   );
@@ -36,7 +36,7 @@ export function PlatformDashboardPage(): ReactElement {
         <KpiCard title="Offline" value={kpis?.offlineMeters ?? '—'} loading={isPending} />
       </div>
 
-      <div className="rounded-xl border border-pa-border bg-white">
+      <div className="rounded-lg border border-pa-border bg-white">
         <div className="border-b border-pa-border px-4 py-3">
           <h2 className="text-sm font-semibold text-pa-text">Resumen por empresa</h2>
         </div>

@@ -5,7 +5,7 @@ interface ChartSkeletonProps {
 
 export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
   return (
-    <div className="relative overflow-hidden rounded bg-[#fafbfc]" style={{ height }}>
+    <div className="relative overflow-hidden rounded-lg bg-[#fafbfc]" style={{ height }}>
       {/* Shimmer sweep */}
       <div
         className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite]"

@@ -43,16 +43,16 @@ export class Tenant {
   @Column({ name: 'accent_color', length: 7, default: '#10B981' })
   accentColor!: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   address!: string | null;
 
-  @Column({ name: 'address_detail', length: 255, nullable: true })
+  @Column({ name: 'address_detail', type: 'varchar', length: 255, nullable: true })
   addressDetail!: string | null;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   phone!: string | null;
 
-  @Column({ name: 'tax_id', length: 50, nullable: true })
+  @Column({ name: 'tax_id', type: 'varchar', length: 50, nullable: true })
   taxId!: string | null;
 
   @Column({ type: 'jsonb', default: () => "'{}'" })

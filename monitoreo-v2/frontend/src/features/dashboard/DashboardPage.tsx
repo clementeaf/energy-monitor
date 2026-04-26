@@ -232,10 +232,14 @@ export function DashboardPage() {
                 ))}
               </div>
             </div>
-            {meters.length > 0 ? (
+            {metersQuery.isLoading ? (
+              <ChartSkeleton />
+            ) : meters.length > 0 ? (
               <StockChart options={chartOptions} loading={readingsQuery.isFetching} />
             ) : (
-              <ChartSkeleton />
+              <div className="flex h-[380px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80">
+                <p className="text-sm text-gray-500">Sin medidores para esta empresa.</p>
+              </div>
             )}
           </div>
         </div>

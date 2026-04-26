@@ -1,6 +1,6 @@
-import ind1 from '../assets/industry/image.png';
-import ind2 from '../assets/industry/image2.png';
-import ind3 from '../assets/industry/image3.png';
+import ind1 from '../assets/industry/image1.jpg';
+import ind2 from '../assets/industry/image2.jpg';
+import ind3 from '../assets/industry/image3.jpg';
 
 const INDUSTRIES = [
   {
@@ -23,7 +23,11 @@ const INDUSTRIES = [
   },
 ];
 
-/* Figma hover: rojizo gradient */
+/* Overlay gradient: dual layer */
+const CARD_OVERLAY =
+  'linear-gradient(0deg, #1C1C1CE5 0%, #3C3C3C00 100%), linear-gradient(0deg, #3C3C3CE5 0%, #951F2200 100%)';
+
+/* Hover: rojizo gradient */
 const HOVER_GRADIENT =
   'linear-gradient(-0.07deg, rgba(91, 25, 27, 0.6) 38.1%, rgba(91, 25, 27, 0) 110.7%), linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%)';
 
@@ -53,28 +57,37 @@ export function SiemensBanner() {
       </div>
 
       {/* Cards — Figma: full-width, 3 cards, gap-1, h-380 */}
-      {/* Cards — images already contain title + subtitle + gradient baked in */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-1 px-5 sm:px-0">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-5 sm:px-0">
         {INDUSTRIES.map((item) => (
-          <div key={item.title} className="group relative h-[300px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-[4px]">
+          <div key={item.title} className="group relative aspect-[795/760] overflow-hidden rounded-[4px]">
             <img
               src={item.src}
               alt={item.title}
               className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            {/* Hover: rojizo gradient overlay (desktop only) */}
+            {/* Overlay gradient */}
+            <div className="absolute inset-0 rounded-[4px]" style={{ backgroundImage: CARD_OVERLAY }} />
+            {/* Hover: rojizo gradient */}
             <div className="absolute inset-0 rounded-[4px] opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
 
-            {/* CTA pill — centered at bottom */}
-            <a
-              href="#contacto"
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
-            >
-              {item.cta}
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-              </svg>
-            </a>
+            {/* Content — z-10 above overlay, centered like baked originals */}
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center">
+              <h3 className="font-heading text-[28px] leading-[36px] font-extrabold text-white">
+                {item.title}
+              </h3>
+              <p className="font-body text-[16px] leading-[24px] text-white/90 mt-2">
+                {item.subtitle}
+              </p>
+              <a
+                href="#contacto"
+                className="mt-6 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+              >
+                {item.cta}
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+                </svg>
+              </a>
+            </div>
           </div>
         ))}
       </div>

@@ -23,11 +23,11 @@ const PILLARS = [
   },
 ];
 
-/* Figma: dual gradient overlay on innovation cards */
-const CARD_GRADIENT =
-  'linear-gradient(0deg, rgba(60, 60, 60, 0.72) 0%, rgba(149, 31, 34, 0) 100%), linear-gradient(0deg, rgba(28, 28, 28, 0.72) 0%, rgba(60, 60, 60, 0) 100%)';
+/* Overlay gradient: dual layer */
+const CARD_OVERLAY =
+  'linear-gradient(0deg, #1C1C1CE5 0%, #3C3C3C00 100%), linear-gradient(0deg, #3C3C3CE5 0%, #951F2200 100%)';
 
-/* Figma hover: rojizo gradient */
+/* Hover: rojizo gradient */
 const HOVER_GRADIENT =
   'linear-gradient(-0.07deg, rgba(91, 25, 27, 0.6) 38.1%, rgba(91, 25, 27, 0) 110.7%), linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%)';
 
@@ -51,25 +51,25 @@ export function Innovation() {
         </div>
 
         {/* Cards — Figma: 3 cards, gap-12, h-380, rounded-8 */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-4">
           {PILLARS.map((item) => (
-            <div key={item.tag} className="group relative flex-1 h-[300px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-lg">
+            <div key={item.tag} className="group relative flex-1 aspect-[1.17/1] lg:min-h-[380px] overflow-hidden rounded-lg">
               {/* Background image */}
               <img
                 src={item.src}
                 alt={item.tag}
                 className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              {/* Default gradient overlay */}
-              <div className="absolute inset-0 rounded-lg transition-opacity duration-300 group-hover:opacity-0" style={{ backgroundImage: CARD_GRADIENT }} />
-              {/* Hover: rojizo gradient overlay */}
-              <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 rounded-lg" style={{ backgroundImage: CARD_OVERLAY }} />
+              {/* Hover: rojizo gradient */}
+              <div className="absolute inset-0 rounded-lg opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundImage: HOVER_GRADIENT }} />
 
-              {/* Content — justify-end, p-24 */}
-              <div className="relative flex flex-col justify-between h-full p-6">
+              {/* Content — justify-end, p-24, z-10 above overlay */}
+              <div className="relative z-10 flex flex-col justify-between h-full p-6">
                 {/* Tag badge — top-left */}
                 <div>
-                  <span className="inline-block rounded-[100px] bg-white/20 border border-white/30 px-3 py-1.5 font-body text-[16px] leading-[22px] font-medium text-white">
+                  <span className="inline-block rounded-[100px] bg-black/40 border border-white/30 px-3 py-1.5 font-body text-[16px] leading-[22px] font-medium text-white">
                     {item.tag}
                   </span>
                 </div>

@@ -15,13 +15,13 @@ export function Stats() {
         </h2>
 
         {/* Stats row — Figma: flex, gap-32, text-left */}
-        <div className="flex flex-col sm:flex-row gap-8 sm:gap-8">
+        <div className="flex flex-col sm:flex-row gap-8 sm:gap-6 lg:gap-10">
           {stats.map((s) => (
-            <div key={s.label} className="flex-1 flex flex-col gap-2.5 text-left">
-              <p className="font-heading text-[48px] leading-[56px] font-extrabold text-white">
+            <div key={s.label} className="flex-1 flex flex-col gap-2.5 text-center">
+              <p className="font-heading text-[40px] lg:text-[48px] leading-[48px] lg:leading-[56px] font-extrabold text-white sm:whitespace-nowrap">
                 {s.value}
               </p>
-              <p className="font-heading text-[22px] leading-[30px] font-medium text-grey-200">
+              <p className="font-heading text-[16px] lg:text-[18px] leading-[22px] lg:leading-[26px] font-medium text-grey-200">
                 {s.label}
               </p>
             </div>

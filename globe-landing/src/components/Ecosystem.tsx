@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import val1 from '../assets/values/image1.png';
-import val2 from '../assets/values/image2.png';
-import val3 from '../assets/values/image3.png';
-import val4 from '../assets/values/image4.png';
+import val1 from '../assets/values/image1.jpg';
+import val2 from '../assets/values/image2.jpg';
+import val3 from '../assets/values/image3.jpg';
+import val4 from '../assets/values/image4.jpg';
 
 const VALUES = [
   { src: val1, label: 'Integridad', desc: 'Actuamos con transparencia y coherencia en cada decisión. Cumplimos lo que comprometemos, documentamos lo que hacemos y sostenemos estándares que generan confianza de largo plazo con clientes, equipos y partners.' },
@@ -11,7 +11,11 @@ const VALUES = [
   { src: val4, label: 'Impacto positivo', desc: 'Desarrollamos soluciones que generan valor tangible: eficiencia operacional, ahorro energético, menor huella y mejores condiciones para los usuarios finales de los espacios que operamos.' },
 ];
 
-/* Figma hover gradient: rojizo */
+/* Overlay gradient: dual layer */
+const CARD_OVERLAY =
+  'linear-gradient(0deg, #1C1C1CE5 0%, #3C3C3C00 100%), linear-gradient(0deg, #3C3C3CE5 0%, #951F2200 100%)';
+
+/* Hover: rojizo gradient */
 const HOVER_GRADIENT =
   'linear-gradient(-0.07deg, rgba(91, 25, 27, 0.6) 38.1%, rgba(91, 25, 27, 0) 110.7%), linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%)';
 
@@ -43,17 +47,17 @@ export function Ecosystem() {
       </div>
 
       {/* Cards — Figma: full-width, 4 cards, gap-1, h-380, 3 states */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px sm:gap-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {VALUES.map((v, i) => (
-          <div key={v.label} className="group relative h-[280px] sm:h-[340px] lg:h-[380px] overflow-hidden rounded-[4px] cursor-pointer">
+          <div key={v.label} className="group relative aspect-[714/760] overflow-hidden rounded-[4px] cursor-pointer" onClick={() => setPressed(pressed === i ? null : i)}>
             {/* Pressed state: white bg, text content, close button */}
             {pressed === i ? (
-              <div className="bg-white flex flex-col gap-5 h-full p-6 rounded-[4px]">
-                <div className="flex-1 flex flex-col gap-7">
-                  <h3 className="font-heading text-[28px] leading-[36px] font-extrabold text-grey-900">
+              <div className="bg-white flex flex-col gap-5 h-full p-6 rounded-[4px] overflow-y-auto">
+                <div className="flex-1 flex flex-col gap-5">
+                  <h3 className="font-heading text-[28px] lg:text-[24px] leading-[36px] lg:leading-[32px] font-extrabold text-grey-900">
                     {v.label}
                   </h3>
-                  <p className="font-body text-[18px] leading-[28px] font-normal text-grey-700">
+                  <p className="font-body text-[18px] lg:text-[16px] leading-[28px] lg:leading-[24px] font-normal text-grey-700">
                     {v.desc}
                   </p>
                 </div>
@@ -70,41 +74,53 @@ export function Ecosystem() {
               </div>
             ) : (
               <>
-                {/* Background image (baked title+gradient) */}
+                {/* Background image (clean, no baked text) */}
                 <img
                   src={v.src}
                   alt={v.label}
                   className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {/* Hover: rojizo gradient overlay */}
+                {/* Overlay gradient */}
+                <div
+                  className="absolute inset-0 rounded-[4px]"
+                  style={{ backgroundImage: CARD_OVERLAY }}
+                />
+                {/* Hover: rojizo gradient */}
                 <div
                   className="absolute inset-0 rounded-[4px] opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
                   style={{ backgroundImage: HOVER_GRADIENT }}
                 />
 
-                {/* Mobile: arrow icon always visible, tap opens pressed */}
-                <button
-                  type="button"
-                  onClick={() => setPressed(i)}
-                  className="absolute bottom-6 right-6 z-10 flex lg:hidden items-center justify-center w-12 h-12 rounded-full border border-white text-white"
-                  aria-label={`Ver ${v.label}`}
-                >
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-                  </svg>
-                </button>
+                {/* Content — z-10 above overlay */}
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
+                  <h3 className="font-heading text-[28px] leading-[36px] font-extrabold text-white text-center">
+                    {v.label}
+                  </h3>
+                  <div className="absolute bottom-6 right-6 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setPressed(i)}
+                      className="flex lg:hidden items-center justify-center w-12 h-12 rounded-full border border-white text-white"
+                      aria-label={`Ver ${v.label}`}
+                    >
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+                      </svg>
+                    </button>
 
-                {/* Desktop: "Ver más" pill appears on hover */}
-                <button
-                  type="button"
-                  onClick={() => setPressed(i)}
-                  className="absolute bottom-6 right-6 z-10 hidden lg:inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-200 hover:bg-white/10"
-                >
-                  Ver más
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-                  </svg>
-                </button>
+                    {/* Desktop: "Ver más" pill appears on hover */}
+                    <button
+                      type="button"
+                      onClick={() => setPressed(i)}
+                      className="hidden lg:inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-200 hover:bg-white/10"
+                    >
+                      Ver más
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </>
             )}
           </div>

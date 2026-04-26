@@ -12,7 +12,7 @@ import { Footer } from './components/Footer';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Navbar />
       {/* Spacer for fixed navbar */}
       <div className="h-[88px] lg:h-[116px]" />

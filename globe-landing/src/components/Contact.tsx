@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-const SERVICES = ['Globe Power', 'Globe Services', 'Globe Modular'];
+const SERVICES = ['Todos', 'Globe Power', 'Globe Services', 'Globe Modular'];
 
 const INPUT_CLS =
   'w-full min-h-[44px] rounded-lg border border-grey-200 bg-white p-3 font-body text-[16px] leading-[20px] text-grey-700 placeholder-grey-400 outline-none focus:border-grey-400 transition-colors';

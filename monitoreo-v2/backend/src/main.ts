@@ -65,6 +65,15 @@ async function bootstrap() {
   // ISO 27001: Secure cookie parsing
   app.use(cookieParser(process.env.COOKIE_SECRET));
 
+  // Tenant override: extract ?tenantId from query before ValidationPipe sees it
+  app.use((req: { query?: Record<string, unknown>; _tenantOverride?: string }, _res: unknown, next: () => void) => {
+    if (req.query?.tenantId) {
+      req._tenantOverride = req.query.tenantId as string;
+      delete req.query.tenantId;
+    }
+    next();
+  });
+
   // ISO 27001: Strict CORS
   app.enableCors({
     origin: isProduction
@@ -84,7 +93,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
     }),
   );

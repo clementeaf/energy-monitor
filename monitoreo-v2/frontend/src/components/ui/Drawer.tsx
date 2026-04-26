@@ -64,7 +64,7 @@ export function Drawer({
       ref={dialogRef}
       onClose={handleClose}
       onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClose(); } }}
+      onKeyDown={(e) => { if (e.key === 'Escape') handleClose(); }}
       className={
         dialogClassName ??
         `fixed inset-y-0 z-[9999] m-0 flex h-full max-h-full flex-col border-none bg-white p-0 shadow-2xl ` +

@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { NotificationService } from '../alerts/notification.service';
 import { UsersService } from './users.service';
@@ -145,7 +145,10 @@ describe('UsersService', () => {
       repo.save.mockResolvedValue(user);
       repo.findOne.mockResolvedValue(user);
       repo.findOneBy.mockResolvedValue(user);
-      ds.query.mockResolvedValue([]);
+      ds.query
+        .mockResolvedValueOnce([{ count: 2 }])  // building ownership check
+        .mockResolvedValueOnce([])               // DELETE
+        .mockResolvedValueOnce([]);              // INSERT
 
       await service.create(TENANT_ID, {
         email: 'test@example.com',
@@ -155,7 +158,7 @@ describe('UsersService', () => {
         buildingIds: ['b-1', 'b-2'],
       }, CREATOR_ROLE_ID, 'super_admin');
 
-      expect(ds.query).toHaveBeenCalledTimes(2); // DELETE + INSERT
+      expect(ds.query).toHaveBeenCalledTimes(3); // COUNT + DELETE + INSERT
     });
 
     it('rejects when creator tries to assign equal or higher role', async () => {
@@ -252,20 +255,32 @@ describe('UsersService', () => {
   });
 
   describe('assignBuildings', () => {
-    it('replaces building assignments', async () => {
+    it('replaces building assignments when all belong to tenant', async () => {
       repo.findOneBy.mockResolvedValue(mockUser());
-      ds.query.mockResolvedValue([]);
+      ds.query
+        .mockResolvedValueOnce([{ count: 2 }])  // ownership check
+        .mockResolvedValueOnce([])               // DELETE
+        .mockResolvedValueOnce([]);              // INSERT
 
       await service.assignBuildings('u-1', TENANT_ID, ['b-1', 'b-3']);
 
       expect(ds.query).toHaveBeenCalledWith(
+        expect.stringContaining('SELECT COUNT'),
+        [TENANT_ID, 'b-1', 'b-3'],
+      );
+      expect(ds.query).toHaveBeenCalledWith(
         `DELETE FROM user_building_access WHERE user_id = $1`,
         ['u-1'],
       );
-      expect(ds.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO user_building_access'),
-        ['u-1', 'b-1', 'b-3'],
-      );
+    });
+
+    it('rejects when buildings do not belong to tenant', async () => {
+      repo.findOneBy.mockResolvedValue(mockUser());
+      ds.query.mockResolvedValueOnce([{ count: 1 }]); // only 1 of 2 found
+
+      await expect(
+        service.assignBuildings('u-1', TENANT_ID, ['b-1', 'b-foreign']),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('skips when user not found', async () => {
@@ -274,6 +289,78 @@ describe('UsersService', () => {
       await service.assignBuildings('missing', TENANT_ID, ['b-1']);
 
       expect(ds.query).not.toHaveBeenCalled();
+    });
+  });
+
+  /* ------ Tenant isolation ------ */
+
+  describe('tenant isolation', () => {
+    const TENANT_A = 'tenant-a';
+    const TENANT_B = 'tenant-b';
+
+    it('findAll scopes to tenant — tenant B cannot see tenant A users', async () => {
+      repo.find.mockResolvedValue([]);
+
+      await service.findAll(TENANT_B);
+
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { tenantId: TENANT_B } }),
+      );
+    });
+
+    it('findOne enforces tenant — tenant B cannot access tenant A user', async () => {
+      repo.findOne.mockResolvedValue(null);
+
+      const result = await service.findOne('u-a', TENANT_B);
+
+      expect(repo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'u-a', tenantId: TENANT_B } }),
+      );
+      expect(result).toBeNull();
+    });
+
+    it('update enforces tenant — tenant B cannot update tenant A user', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.update('u-a', TENANT_B, { displayName: 'Hacked' });
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'u-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('remove enforces tenant — tenant B cannot delete tenant A user', async () => {
+      repo.delete.mockResolvedValue({ affected: 0 });
+
+      const result = await service.remove('u-a', TENANT_B);
+
+      expect(repo.delete).toHaveBeenCalledWith({ id: 'u-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+
+    it('assignBuildings rejects foreign buildings', async () => {
+      repo.findOneBy.mockResolvedValue(mockUser({ tenantId: TENANT_A }));
+      ds.query.mockResolvedValueOnce([{ count: 0 }]); // no buildings match tenant
+
+      await expect(
+        service.assignBuildings('u-a', TENANT_A, ['building-of-b']),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('enforceHierarchy rejects role from another tenant', async () => {
+      roleRepo.findOneBy.mockImplementation(({ id, tenantId }: { id: string; tenantId?: string }) => {
+        if (id === CREATOR_ROLE_ID) return Promise.resolve({ ...mockCreatorRole, hierarchyLevel: 10 });
+        if (tenantId === TENANT_A) return Promise.resolve(null); // role not found in tenant A
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        service.create(TENANT_A, {
+          email: 'hack@example.com',
+          authProvider: 'google',
+          authProviderId: 'g-hack',
+          roleId: 'role-from-tenant-b',
+        }, CREATOR_ROLE_ID, 'corp_admin'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

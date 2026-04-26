@@ -288,4 +288,87 @@ describe('MetersService', () => {
       expect(await service.remove('missing', TENANT_ID)).toBe(false);
     });
   });
+
+  /* ------ Tenant isolation ------ */
+
+  describe('tenant isolation', () => {
+    const TENANT_A = 'tenant-a';
+    const TENANT_B = 'tenant-b';
+
+    it('create assigns meter to the given tenant', async () => {
+      const meter = mockMeter({ tenantId: TENANT_A });
+      repo.create.mockReturnValue(meter);
+      repo.save.mockResolvedValue(meter);
+
+      const result = await service.create(TENANT_A, { buildingId: 'b-1', name: 'Meter A', code: 'MA' });
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ tenantId: TENANT_A }),
+      );
+      expect(result.tenantId).toBe(TENANT_A);
+    });
+
+    it('findAll scopes to tenant — tenant B cannot see tenant A meters', async () => {
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findAll(TENANT_B, []);
+
+      expect(qb.where).toHaveBeenCalledWith('m.tenant_id = :tenantId', { tenantId: TENANT_B });
+    });
+
+    it('findAll cross-tenant mode skips tenant filter', async () => {
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockMeter({ tenantId: TENANT_A }), mockMeter({ tenantId: TENANT_B })]),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll(TENANT_A, [], undefined, true);
+
+      expect(qb.where).not.toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+    });
+
+    it('findOne enforces tenant — tenant B cannot access tenant A meter', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findOne('m-a', TENANT_B, []);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('m.tenant_id = :tenantId', { tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('update enforces tenant — tenant B cannot update tenant A meter', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.update('m-a', TENANT_B, { name: 'Hacked' });
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'm-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('remove enforces tenant — tenant B cannot delete tenant A meter', async () => {
+      repo.delete.mockResolvedValue({ affected: 0 });
+
+      const result = await service.remove('m-a', TENANT_B);
+
+      expect(repo.delete).toHaveBeenCalledWith({ id: 'm-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+  });
 });

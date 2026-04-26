@@ -1,6 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { BadRequestException } from '@nestjs/common';
 import { HierarchyService } from './hierarchy.service';
+import { Building } from '../platform/entities/building.entity';
 import { BuildingHierarchy } from '../platform/entities/building-hierarchy.entity';
 import { MeterHierarchy } from '../platform/entities/meter-hierarchy.entity';
 
@@ -29,6 +31,7 @@ describe('HierarchyService', () => {
   let service: HierarchyService;
   let repo: Record<string, jest.Mock>;
   let mhRepo: Record<string, jest.Mock>;
+  let buildingRepo: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     repo = {
@@ -43,9 +46,14 @@ describe('HierarchyService', () => {
       createQueryBuilder: jest.fn(),
     };
 
+    buildingRepo = {
+      findOneBy: jest.fn(),
+    };
+
     const module = await Test.createTestingModule({
       providers: [
         HierarchyService,
+        { provide: getRepositoryToken(Building), useValue: buildingRepo },
         { provide: getRepositoryToken(BuildingHierarchy), useValue: repo },
         { provide: getRepositoryToken(MeterHierarchy), useValue: mhRepo },
       ],
@@ -135,7 +143,8 @@ describe('HierarchyService', () => {
   });
 
   describe('create', () => {
-    it('creates a hierarchy node with tenant scoping', async () => {
+    it('creates a hierarchy node when building belongs to tenant', async () => {
+      buildingRepo.findOneBy.mockResolvedValue({ id: BUILDING_ID, tenantId: TENANT_ID });
       const node = mockNode();
       repo.create.mockReturnValue(node);
       repo.save.mockResolvedValue(node);
@@ -146,6 +155,7 @@ describe('HierarchyService', () => {
         levelType: 'floor',
       });
 
+      expect(buildingRepo.findOneBy).toHaveBeenCalledWith({ id: BUILDING_ID, tenantId: TENANT_ID });
       expect(repo.create).toHaveBeenCalledWith({
         tenantId: TENANT_ID,
         buildingId: BUILDING_ID,
@@ -156,6 +166,14 @@ describe('HierarchyService', () => {
         metadata: {},
       });
       expect(result).toEqual(node);
+    });
+
+    it('throws BadRequestException when building does not belong to tenant', async () => {
+      buildingRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.create(TENANT_ID, { buildingId: 'foreign-building', name: 'Hack', levelType: 'floor' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -187,6 +205,84 @@ describe('HierarchyService', () => {
     it('returns false when not found', async () => {
       repo.delete.mockResolvedValue({ affected: 0 });
       expect(await service.remove('missing', TENANT_ID)).toBe(false);
+    });
+  });
+
+  /* ------ Tenant isolation ------ */
+
+  describe('tenant isolation', () => {
+    const TENANT_A = 'tenant-a';
+    const TENANT_B = 'tenant-b';
+
+    it('findByBuilding scopes to tenant — tenant B cannot see tenant A hierarchy', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findByBuilding(TENANT_B, 'b-a', []);
+
+      expect(qb.where).toHaveBeenCalledWith('h.tenant_id = :tenantId', { tenantId: TENANT_B });
+    });
+
+    it('findOne enforces tenant — tenant B cannot access tenant A node', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findOne('node-a', TENANT_B, []);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('h.tenant_id = :tenantId', { tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('create rejects building from another tenant', async () => {
+      buildingRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.create(TENANT_B, { buildingId: 'building-of-a', name: 'Hacked', levelType: 'floor' }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(buildingRepo.findOneBy).toHaveBeenCalledWith({ id: 'building-of-a', tenantId: TENANT_B });
+    });
+
+    it('update enforces tenant — tenant B cannot update tenant A node', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.update('node-a', TENANT_B, { name: 'Hacked' });
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'node-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('remove enforces tenant — tenant B cannot delete tenant A node', async () => {
+      repo.delete.mockResolvedValue({ affected: 0 });
+
+      const result = await service.remove('node-a', TENANT_B);
+
+      expect(repo.delete).toHaveBeenCalledWith({ id: 'node-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+
+    it('findMetersByNode enforces tenant — tenant B cannot see tenant A node meters', async () => {
+      const qb = {
+        innerJoinAndSelect: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      mhRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findMetersByNode('node-a', TENANT_B);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('node.tenant_id = :tenantId', { tenantId: TENANT_B });
     });
   });
 });

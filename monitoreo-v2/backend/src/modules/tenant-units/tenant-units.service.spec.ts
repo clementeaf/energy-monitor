@@ -257,4 +257,90 @@ describe('TenantUnitsService', () => {
       expect(await service.removeMeter('tu-1', 'missing', TENANT_ID)).toBe(false);
     });
   });
+
+  /* ------ Tenant isolation ------ */
+
+  describe('tenant isolation', () => {
+    const TENANT_A = 'tenant-a';
+    const TENANT_B = 'tenant-b';
+    const BUILDING_A = 'building-a';
+
+    it('create assigns tenant unit to the given tenant and building', async () => {
+      const unit = mockUnit({ tenantId: TENANT_A, buildingId: BUILDING_A });
+      repo.create.mockReturnValue(unit);
+      repo.save.mockResolvedValue(unit);
+
+      const result = await service.create(TENANT_A, { buildingId: BUILDING_A, name: 'Tienda X', unitCode: 'TX' });
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ tenantId: TENANT_A, buildingId: BUILDING_A }),
+      );
+      expect(result.tenantId).toBe(TENANT_A);
+      expect(result.buildingId).toBe(BUILDING_A);
+    });
+
+    it('findAll scopes to tenant — tenant B cannot see tenant A units', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findAll(TENANT_B, []);
+
+      expect(qb.where).toHaveBeenCalledWith('tu.tenant_id = :tenantId', { tenantId: TENANT_B });
+    });
+
+    it('findOne enforces tenant scoping — tenant B cannot access tenant A unit', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findOne('tu-a', TENANT_B, []);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('tu.tenant_id = :tenantId', { tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('update enforces tenant scoping — tenant B cannot update tenant A unit', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.update('tu-a', TENANT_B, { name: 'Hacked' });
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'tu-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('remove enforces tenant scoping — tenant B cannot delete tenant A unit', async () => {
+      repo.delete.mockResolvedValue({ affected: 0 });
+
+      const result = await service.remove('tu-a', TENANT_B);
+
+      expect(repo.delete).toHaveBeenCalledWith({ id: 'tu-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+
+    it('addMeter enforces tenant scoping — tenant B cannot add meter to tenant A unit', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.addMeter('tu-a', 'm-1', TENANT_B);
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'tu-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('removeMeter enforces tenant scoping — tenant B cannot remove meter from tenant A unit', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.removeMeter('tu-a', 'm-1', TENANT_B);
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'tu-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+  });
 });

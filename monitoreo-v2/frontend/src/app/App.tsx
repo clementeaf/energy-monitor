@@ -4,6 +4,7 @@ import { MsalProvider } from '@azure/msal-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { msalInstance } from '../auth/msalInstance';
 import { AppRootBoundary } from '../components/errors/AppRootBoundary';
+import { SessionExpiredModal } from '../components/ui/SessionExpiredModal';
 import { router } from './router';
 
 const queryClient = new QueryClient({
@@ -23,6 +24,7 @@ export function App() {
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />
+            <SessionExpiredModal />
           </QueryClientProvider>
         </GoogleOAuthProvider>
       </MsalProvider>

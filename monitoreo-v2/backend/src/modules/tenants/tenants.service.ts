@@ -239,6 +239,17 @@ export class TenantsService {
       );
     }
 
+    // Enforce: operator role must never have billing permissions
+    const operatorRoleId = slugToNewId.get('operator');
+    if (operatorRoleId) {
+      await manager.query(
+        `DELETE FROM role_permissions
+         WHERE role_id = $1
+           AND permission_id IN (SELECT id FROM permissions WHERE module = 'billing')`,
+        [operatorRoleId],
+      );
+    }
+
     return result.length;
   }
 }

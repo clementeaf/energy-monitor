@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { useAppStore } from '../store/useAppStore';
 
+/** Callback set by SessionExpiredModal to show the modal from non-React context. */
+let onSessionExpired: (() => void) | null = null;
+export function setSessionExpiredHandler(handler: () => void) { onSessionExpired = handler; }
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   withCredentials: true,
@@ -58,6 +62,8 @@ api.interceptors.response.use(
       return api(original);
     } catch (refreshError) {
       processQueue(refreshError);
+      // Session expired — show modal instead of hard redirect
+      if (onSessionExpired) onSessionExpired();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

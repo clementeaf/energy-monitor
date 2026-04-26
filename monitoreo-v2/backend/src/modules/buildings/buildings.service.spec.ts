@@ -153,4 +153,92 @@ describe('BuildingsService', () => {
       expect(await service.remove('missing', TENANT_ID)).toBe(false);
     });
   });
+
+  /* ------ Tenant isolation ------ */
+
+  describe('tenant isolation', () => {
+    const TENANT_A = 'tenant-a';
+    const TENANT_B = 'tenant-b';
+
+    it('create assigns building to the given tenant', async () => {
+      const building = mockBuilding({ tenantId: TENANT_A });
+      repo.create.mockReturnValue(building);
+      repo.save.mockResolvedValue(building);
+
+      const result = await service.create(TENANT_A, { name: 'Mall A', code: 'MA' });
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ tenantId: TENANT_A }),
+      );
+      expect(result.tenantId).toBe(TENANT_A);
+    });
+
+    it('findAll scopes to tenant — tenant B cannot see tenant A buildings', async () => {
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findAll(TENANT_B, []);
+
+      expect(qb.where).toHaveBeenCalledWith('b.tenant_id = :tenantId', { tenantId: TENANT_B });
+    });
+
+    it('findAll cross-tenant mode skips tenant filter', async () => {
+      const allBuildings = [
+        mockBuilding({ id: 'b-a', tenantId: TENANT_A }),
+        mockBuilding({ id: 'b-b', tenantId: TENANT_B }),
+      ];
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(allBuildings),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findAll(TENANT_A, [], true);
+
+      expect(qb.where).not.toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+    });
+
+    it('findOne enforces tenant scoping — tenant B cannot access tenant A building', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findOne('b-a', TENANT_B, []);
+
+      expect(qb.where).toHaveBeenCalledWith('b.id = :id', { id: 'b-a' });
+      expect(qb.andWhere).toHaveBeenCalledWith('b.tenant_id = :tenantId', { tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('update enforces tenant scoping — tenant B cannot update tenant A building', async () => {
+      repo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.update('b-a', TENANT_B, { name: 'Hacked' });
+
+      expect(repo.findOneBy).toHaveBeenCalledWith({ id: 'b-a', tenantId: TENANT_B });
+      expect(result).toBeNull();
+    });
+
+    it('remove enforces tenant scoping — tenant B cannot delete tenant A building', async () => {
+      repo.delete.mockResolvedValue({ affected: 0 });
+
+      const result = await service.remove('b-a', TENANT_B);
+
+      expect(repo.delete).toHaveBeenCalledWith({ id: 'b-a', tenantId: TENANT_B });
+      expect(result).toBe(false);
+    });
+  });
 });

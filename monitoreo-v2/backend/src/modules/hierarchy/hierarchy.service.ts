@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Building } from '../platform/entities/building.entity';
 import { BuildingHierarchy } from '../platform/entities/building-hierarchy.entity';
 import { MeterHierarchy } from '../platform/entities/meter-hierarchy.entity';
 import { CreateHierarchyNodeDto } from './dto/create-hierarchy-node.dto';
@@ -9,6 +10,8 @@ import { UpdateHierarchyNodeDto } from './dto/update-hierarchy-node.dto';
 @Injectable()
 export class HierarchyService {
   constructor(
+    @InjectRepository(Building)
+    private readonly buildingRepo: Repository<Building>,
     @InjectRepository(BuildingHierarchy)
     private readonly repo: Repository<BuildingHierarchy>,
     @InjectRepository(MeterHierarchy)
@@ -67,6 +70,10 @@ export class HierarchyService {
     tenantId: string,
     dto: CreateHierarchyNodeDto,
   ): Promise<BuildingHierarchy> {
+    // Verify building belongs to this tenant
+    const building = await this.buildingRepo.findOneBy({ id: dto.buildingId, tenantId });
+    if (!building) throw new BadRequestException('Building does not belong to this tenant');
+
     const node = this.repo.create({
       tenantId,
       buildingId: dto.buildingId,

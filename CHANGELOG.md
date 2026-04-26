@@ -56,6 +56,15 @@
 - **Build config** — `tsconfig.build.json` excludes test files from production type-check. `package.json` build uses it.
 - **Frontend deployed** to S3 + CloudFront `power-monitor.cloud`.
 
+### Security (monitoreo-v2/backend — tenant isolation)
+- **Operator role: billing removed** — `billing:read` stripped from `operator` role in all tenants (RDS prod). `cloneRoles()` auto-strips `billing:*` from operator on new tenant onboarding.
+- **Hierarchy: building ownership** — `create()` validates `buildingId` belongs to tenant before creating node. Prevents cross-tenant hierarchy injection.
+- **Users: building ownership** — `assignBuildings()` validates all `buildingIds` belong to tenant. Prevents assigning operator to foreign building.
+- **SessionExpiredModal** — Frontend shows modal with "Iniciar sesión" / "Cerrar sesión" when refresh token fails, instead of silent 401.
+
+### Added (monitoreo-v2/backend — tenant isolation tests)
+- **33 tenant isolation tests** across 6 services: Buildings (6), Meters (6), Tenant Units (7), Hierarchy (6), Users (6), Tenants (2). All verify cross-tenant access is blocked.
+
 ## [2.5.0-alpha.0] - 2026-04-25 — MULTI-TENANT SCOPING, ROLE HIERARCHY, PLATFORM DASHBOARD
 
 ### Added (monitoreo-v2/backend)

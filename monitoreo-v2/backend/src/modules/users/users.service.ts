@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { NotificationService } from '../alerts/notification.service';
@@ -92,6 +92,18 @@ export class UsersService {
   async assignBuildings(userId: string, tenantId: string, buildingIds: string[]): Promise<void> {
     const user = await this.repo.findOneBy({ id: userId, tenantId });
     if (!user) return;
+
+    // Verify all buildings belong to the same tenant
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${i + 2}`).join(', ');
+      const [{ count }] = await this.dataSource.query(
+        `SELECT COUNT(*)::int AS count FROM buildings WHERE id IN (${placeholders}) AND tenant_id = $1`,
+        [tenantId, ...buildingIds],
+      );
+      if (count !== buildingIds.length) {
+        throw new BadRequestException('One or more buildings do not belong to this tenant');
+      }
+    }
 
     await this.dataSource.query(`DELETE FROM user_building_access WHERE user_id = $1`, [userId]);
 

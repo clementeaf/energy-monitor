@@ -15,6 +15,7 @@ export interface CreateBuildingPayload {
   code: string;
   address?: string;
   areaSqm?: number;
+  tenantId?: string;
 }
 
 export interface UpdateBuildingPayload {

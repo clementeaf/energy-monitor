@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, MaxLength, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateBuildingDto {
   @IsString()
@@ -17,4 +17,9 @@ export class CreateBuildingDto {
   @IsNumber()
   @Min(0)
   areaSqm?: number;
+
+  /** Only used by super_admin in cross-tenant mode. */
+  @IsOptional()
+  @IsUUID()
+  tenantId?: string;
 }

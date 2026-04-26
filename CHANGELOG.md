@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.6.0-alpha.0] - 2026-04-25 — CHART SKELETONS, PLATFORM DASHBOARD UX, BUILDINGS CROSS-TENANT
+
+### Added (monitoreo-v2/frontend)
+- **`ChartSkeleton` shared component** — `components/ui/ChartSkeleton.tsx` with configurable height. SVG shimmer TradingView-style skeleton used across all chart loading states.
+- **`Chart` loading prop** — `Chart` component now accepts `loading` boolean; renders `ChartSkeleton` instead of empty space during data fetch.
+- **Buildings "Empresa" column** — Cross-tenant mode (super_admin, no tenant selected) shows tenant name column in buildings table.
+- **Buildings form tenant selector** — `DropdownSelect` for choosing target tenant when creating a building in cross-tenant mode. Globe Power excluded from selector.
+
+### Changed (monitoreo-v2/frontend)
+- **Chart skeleton consistency** — InvoicesPage, MyInvoicePage, AlertsHistoryPage, BenchmarkPage, QualityPage now show `ChartSkeleton` during loading instead of hiding chart area.
+- **DashboardPage** — Replaced local `ChartSkeleton` with shared component.
+- **PlatformDashboardPage** — Compact KPI cards (smaller padding/font), 7 cards in single row instead of 4+3 split.
+- **BuildingForm** — Migrated from `Modal` to `Drawer`. Address field now required.
+- **Vite proxy** — Dev proxy target changed to `https://power-monitor.cloud` (uses AWS backend locally, avoids CORS).
+
+### Changed (monitoreo-v2/backend)
+- **Platform Dashboard** — Globe Power tenant excluded from KPI counts and tenant summary table.
+- **Buildings create** — `CreateBuildingDto` accepts optional `tenantId`. Controller uses it when `user.crossTenant=true`, allowing super_admin to assign buildings to any tenant.
+
 ## [2.5.0-alpha.0] - 2026-04-25 — MULTI-TENANT SCOPING, ROLE HIERARCHY, PLATFORM DASHBOARD
 
 ### Added (monitoreo-v2/backend)

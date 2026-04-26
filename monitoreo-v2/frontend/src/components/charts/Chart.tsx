@@ -3,6 +3,7 @@ import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
+import { ChartSkeleton } from '../ui/ChartSkeleton';
 
 /** Extracted outside component — avoids SonarQube "this in functional component" */
 function makePointEvents(onPointHover?: (index: number | null) => void) {
@@ -15,13 +16,15 @@ function makePointEvents(onPointHover?: (index: number | null) => void) {
 interface ChartProps {
   options: Highcharts.Options;
   className?: string;
+  /** Show loading skeleton instead of chart. */
+  loading?: boolean;
   /** Index of the point to programmatically highlight (hover sync). */
   highlightIndex?: number | null;
   /** Called when user hovers a point; null on mouse out. */
   onPointHover?: (index: number | null) => void;
 }
 
-function ChartInner({ options, className, highlightIndex, onPointHover }: Readonly<ChartProps>) {
+function ChartInner({ options, className, loading, highlightIndex, onPointHover }: Readonly<ChartProps>) {
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   const merged = useMemo<Highcharts.Options>(() => {
@@ -62,6 +65,11 @@ function ChartInner({ options, className, highlightIndex, onPointHover }: Readon
       chart.tooltip.refresh(point);
     }
   }, [highlightIndex]);
+
+  if (loading) {
+    const h = (merged.chart as { height?: number })?.height ?? 280;
+    return <ChartSkeleton height={h} />;
+  }
 
   return (
     <div className={`overflow-hidden ${className ?? ''}`}>

@@ -3,6 +3,7 @@ import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { Chart } from '../../components/charts/Chart';
+import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { Alert, AlertSeverity } from '../../types/alert';
@@ -163,37 +164,41 @@ export function AlertsHistoryPage(): ReactElement {
       </div>
 
       {/* Chart with toggle */}
-      {(trendChartOptions || slaChartOptions) && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-700">
-              {chartTab === 'trend' ? 'Tendencia mensual' : 'Cumplimiento SLA mensual'}
-            </h2>
-            <div className="flex rounded-full border border-gray-200">
-              <button
-                type="button"
-                onClick={() => setChartTab('trend')}
-                className={`px-2.5 py-0.5 text-[11px] rounded-l-full transition-colors ${
-                  chartTab === 'trend' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Tendencia
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartTab('sla')}
-                className={`px-2.5 py-0.5 text-[11px] rounded-r-full transition-colors ${
-                  chartTab === 'sla' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                SLA
-              </button>
-            </div>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-gray-700">
+            {chartTab === 'trend' ? 'Tendencia mensual' : 'Cumplimiento SLA mensual'}
+          </h2>
+          <div className="flex rounded-full border border-gray-200">
+            <button
+              type="button"
+              onClick={() => setChartTab('trend')}
+              className={`px-2.5 py-0.5 text-[11px] rounded-l-full transition-colors ${
+                chartTab === 'trend' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Tendencia
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartTab('sla')}
+              className={`px-2.5 py-0.5 text-[11px] rounded-r-full transition-colors ${
+                chartTab === 'sla' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              SLA
+            </button>
           </div>
-          {chartTab === 'trend' && trendChartOptions && <Chart options={trendChartOptions} />}
-          {chartTab === 'sla' && slaChartOptions && <Chart options={slaChartOptions} />}
         </div>
-      )}
+        {alertsQuery.isLoading ? (
+          <ChartSkeleton height={280} />
+        ) : (
+          <>
+            {chartTab === 'trend' && trendChartOptions && <Chart options={trendChartOptions} />}
+            {chartTab === 'sla' && slaChartOptions && <Chart options={slaChartOptions} />}
+          </>
+        )}
+      </div>
 
       {/* Monthly table */}
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">

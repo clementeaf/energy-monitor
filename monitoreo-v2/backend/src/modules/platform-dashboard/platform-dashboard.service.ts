@@ -28,7 +28,7 @@ export class PlatformDashboardService {
   async getKpis(): Promise<PlatformKpis> {
     const [counts] = await this.dataSource.query(`
       SELECT
-        (SELECT COUNT(*) FROM tenants WHERE is_active = true)::int AS tenants,
+        (SELECT COUNT(*) FROM tenants WHERE is_active = true AND slug != 'globe-power')::int AS tenants,
         (SELECT COUNT(*) FROM buildings WHERE is_active = true)::int AS buildings,
         (SELECT COUNT(*) FROM meters WHERE is_active = true)::int AS meters,
         (SELECT COUNT(*) FROM readings)::int AS readings,
@@ -58,7 +58,7 @@ export class PlatformDashboardService {
         (SELECT COUNT(*) FROM meters m WHERE m.tenant_id = t.id AND m.is_active = true)::int AS meters,
         (SELECT COUNT(*) FROM alerts a WHERE a.tenant_id = t.id AND a.status = 'active')::int AS "activeAlerts"
       FROM tenants t
-      WHERE t.is_active = true
+      WHERE t.is_active = true AND t.slug != 'globe-power'
       ORDER BY t.name
     `);
 

@@ -5,8 +5,10 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useBuildingsQuery, useCreateBuilding, useUpdateBuilding, useDeleteBuilding } from '../../hooks/queries/useBuildingsQuery';
+import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
+import { useAppStore } from '../../store/useAppStore';
 import { BuildingForm } from './BuildingForm';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../../types/building';
 
@@ -16,8 +18,16 @@ export function BuildingsPage() {
     isEmpty: (data) => data === undefined || data.length === 0,
   });
   const navigate = useNavigate();
-  const { has } = usePermissions();
+  const { has, isSuperAdmin } = usePermissions();
   const { isHolding, isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
+  const isCrossTenant = isSuperAdmin && !selectedTenantId;
+  const tenantsQuery = useTenantsAdminQuery();
+  const tenantMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of tenantsQuery.data ?? []) m.set(t.id, t.name);
+    return m;
+  }, [tenantsQuery.data]);
   const canWrite = isHolding && has('admin_buildings', 'create');
 
   // Filter buildings by operator
@@ -81,6 +91,7 @@ export function BuildingsPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr>
+              {isCrossTenant && <Th>Empresa</Th>}
               <Th>Nombre</Th>
               <Th>Codigo</Th>
               <Th>Direccion</Th>
@@ -91,7 +102,7 @@ export function BuildingsPage() {
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={canWrite ? 6 : 5}
+            colSpan={(canWrite ? 6 : 5) + (isCrossTenant ? 1 : 0)}
             error={qs.error}
             onRetry={() => { query.refetch(); }}
             emptyMessage="No hay edificios registrados."
@@ -103,6 +114,7 @@ export function BuildingsPage() {
                 className="cursor-pointer hover:bg-gray-50"
                 onClick={() => { navigate(`/buildings/${b.id}`); }}
               >
+                {isCrossTenant && <Td>{tenantMap.get(b.tenantId) ?? '—'}</Td>}
                 <Td className="font-medium text-gray-900">{b.name}</Td>
                 <Td>{b.code}</Td>
                 <Td>{b.address ?? '—'}</Td>

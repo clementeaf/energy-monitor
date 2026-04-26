@@ -3,6 +3,7 @@ import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useMyInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { invoicesEndpoints } from '../../services/endpoints';
 import { Chart } from '../../components/charts/Chart';
+import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { Invoice, InvoiceStatus } from '../../types/invoice';
@@ -101,12 +102,14 @@ export function MyInvoicePage(): ReactElement {
       </div>
 
       {/* Chart */}
-      {chartOptions && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Mi consumo mensual (últimos 6 meses)</h2>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="mb-2 text-sm font-medium text-gray-700">Mi consumo mensual (últimos 6 meses)</h2>
+        {invoicesQuery.isLoading ? (
+          <ChartSkeleton height={240} />
+        ) : chartOptions ? (
           <Chart options={chartOptions} />
-        </div>
-      )}
+        ) : null}
+      </div>
 
       {/* Table */}
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">

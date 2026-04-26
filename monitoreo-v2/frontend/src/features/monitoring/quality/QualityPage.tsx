@@ -5,6 +5,7 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { Chart } from '../../../components/charts/Chart';
+import { ChartSkeleton } from '../../../components/ui/ChartSkeleton';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
@@ -148,11 +149,11 @@ export function QualityPage() {
       )}
 
       {readingsQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 animate-pulse">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-gray-200 bg-white p-4">
-              <div className="mb-2 h-4 w-40 rounded bg-gray-200" />
-              <div className="h-48 rounded bg-gray-100" />
+              <div className="mb-2 h-4 w-40 animate-pulse rounded bg-gray-200" />
+              <ChartSkeleton height={192} />
             </div>
           ))}
         </div>

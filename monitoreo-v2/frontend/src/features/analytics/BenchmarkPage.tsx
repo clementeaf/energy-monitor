@@ -5,6 +5,7 @@ import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { Chart } from '../../components/charts/Chart';
+import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import {
@@ -189,18 +190,14 @@ export function BenchmarkPage(): ReactElement {
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {barChartOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Ranking por {METRIC_LABELS[metric]}</h2>
-            <Chart options={barChartOptions} />
-          </div>
-        )}
-        {radarChartOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Comparativo multi-KPI (top 5)</h2>
-            <Chart options={radarChartOptions} />
-          </div>
-        )}
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <h2 className="mb-2 text-sm font-medium text-gray-700">Ranking por {METRIC_LABELS[metric]}</h2>
+          {aggQuery.isLoading ? <ChartSkeleton height={280} /> : barChartOptions ? <Chart options={barChartOptions} /> : null}
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <h2 className="mb-2 text-sm font-medium text-gray-700">Comparativo multi-KPI (top 5)</h2>
+          {aggQuery.isLoading ? <ChartSkeleton height={280} /> : radarChartOptions ? <Chart options={radarChartOptions} /> : null}
+        </div>
       </div>
 
       {/* Ranking table */}

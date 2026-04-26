@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { Modal } from '../../components/ui/Modal';
+import { Drawer } from '../../components/ui/Drawer';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
+import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useAppStore } from '../../store/useAppStore';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../../types/building';
 
 interface BuildingFormProps {
@@ -12,6 +16,12 @@ interface BuildingFormProps {
 
 export function BuildingForm({ open, onClose, onSubmit, isPending, building }: Readonly<BuildingFormProps>) {
   const isEdit = !!building;
+  const { isSuperAdmin } = usePermissions();
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
+  const needsTenantSelect = !isEdit && isSuperAdmin && !selectedTenantId;
+  const tenantsQuery = useTenantsAdminQuery();
+
+  const [tenantId, setTenantId] = useState('');
   const [name, setName] = useState(building?.name ?? '');
   const [code, setCode] = useState(building?.code ?? '');
   const [address, setAddress] = useState(building?.address ?? '');
@@ -33,13 +43,28 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
         code,
         ...(address ? { address } : {}),
         ...(areaSqm ? { areaSqm: Number(areaSqm) } : {}),
+        ...(needsTenantSelect && tenantId ? { tenantId } : {}),
       });
     }
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Edificio' : 'Nuevo Edificio'}>
+    <Drawer open={open} onClose={onClose} title={isEdit ? 'Editar Edificio' : 'Nuevo Edificio'}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {needsTenantSelect && (
+          <Field label="Empresa" required>
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Seleccionar empresa...' },
+                ...(tenantsQuery.data?.filter((t) => t.slug !== 'globe-power').map((t) => ({ value: t.id, label: t.name })) ?? []),
+              ]}
+              value={tenantId}
+              onChange={setTenantId}
+              className="w-full"
+            />
+          </Field>
+        )}
+
         <Field label="Nombre" required>
           <input
             value={name}
@@ -62,10 +87,11 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
           </Field>
         )}
 
-        <Field label="Direccion">
+        <Field label="Direccion" required>
           <input
             value={address}
             onChange={(e) => { setAddress(e.target.value); }}
+            required
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
           />
         </Field>
@@ -91,14 +117,14 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
           </button>
           <button
             type="submit"
-            disabled={isPending || !name || (!isEdit && !code)}
+            disabled={isPending || !name || (!isEdit && !code) || (needsTenantSelect && !tenantId)}
             className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>
         </div>
       </form>
-    </Modal>
+    </Drawer>
   );
 }
 

@@ -9,8 +9,9 @@ import { cspMetaPlugin } from './vite/csp-meta-plugin.ts';
  */
 const apiProxy: Record<string, string | ProxyOptions> = {
   '/api': {
-    target: 'http://localhost:4000',
+    target: 'https://power-monitor.cloud',
     changeOrigin: true,
+    secure: true,
   },
 };
 

@@ -4,12 +4,12 @@ import type { TenantSummary } from '../../../types/platform-dashboard';
 
 function KpiCard({ title, value, loading }: { title: string; value: string | number; loading: boolean }) {
   return (
-    <div className="rounded-xl border border-pa-border bg-white px-4 py-4">
-      <p className="text-xs font-medium uppercase text-pa-text-muted">{title}</p>
+    <div className="rounded-lg border border-pa-border bg-white px-3 py-2.5">
+      <p className="text-[11px] font-medium uppercase text-pa-text-muted">{title}</p>
       {loading ? (
-        <div className="mt-1 h-7 w-20 animate-pulse rounded bg-gray-200" />
+        <div className="mt-0.5 h-5 w-16 animate-pulse rounded bg-gray-200" />
       ) : (
-        <p className="mt-1 text-2xl font-bold text-pa-text">{value}</p>
+        <p className="mt-0.5 text-lg font-bold text-pa-text">{value}</p>
       )}
     </div>
   );
@@ -27,20 +27,17 @@ export function PlatformDashboardPage(): ReactElement {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h1 className="text-xl font-bold text-pa-text">Dashboard Plataforma</h1>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         <KpiCard title="Empresas" value={kpis?.tenants ?? '—'} loading={isPending} />
         <KpiCard title="Edificios" value={kpis?.buildings ?? '—'} loading={isPending} />
         <KpiCard title="Medidores" value={kpis?.meters ?? '—'} loading={isPending} />
         <KpiCard title="Lecturas totales" value={kpis?.readings?.toLocaleString('es-CL') ?? '—'} loading={isPending} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <KpiCard title="Alertas activas" value={kpis?.activeAlerts ?? '—'} loading={isPending} />
-        <KpiCard title="Medidores online" value={kpis?.onlineMeters ?? '—'} loading={isPending} />
-        <KpiCard title="Medidores offline" value={kpis?.offlineMeters ?? '—'} loading={isPending} />
+        <KpiCard title="Online" value={kpis?.onlineMeters ?? '—'} loading={isPending} />
+        <KpiCard title="Offline" value={kpis?.offlineMeters ?? '—'} loading={isPending} />
       </div>
 
       <div className="rounded-xl border border-pa-border bg-white">

@@ -5,6 +5,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Drawer } from '../../components/ui/Drawer';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Chart } from '../../components/charts/Chart';
+import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { useQueryState } from '../../hooks/useQueryState';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
@@ -193,12 +194,14 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         ))}
       </div>
 
-      {monthlyChartOptions && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Evolución mensual</h2>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="mb-2 text-sm font-medium text-gray-700">Evolución mensual</h2>
+        {invoicesQuery.isLoading ? (
+          <ChartSkeleton height={260} />
+        ) : monthlyChartOptions ? (
           <Chart options={monthlyChartOptions} />
-        </div>
-      )}
+        ) : null}
+      </div>
 
       <div className="overflow-auto rounded-lg border border-gray-200">
         <table className="w-full text-sm">

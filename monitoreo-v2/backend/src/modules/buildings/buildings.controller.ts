@@ -61,7 +61,8 @@ export class BuildingsController {
     @Body() dto: CreateBuildingDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.buildingsService.create(user.tenantId, dto);
+    const tenantId = user.crossTenant && dto.tenantId ? dto.tenantId : user.tenantId;
+    return this.buildingsService.create(tenantId, dto);
   }
 
   @Patch(':id')

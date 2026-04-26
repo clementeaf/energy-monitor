@@ -30,7 +30,6 @@ export function DropdownSelect<T extends string = string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-
   const selectedLabel = options.find((o) => o.value === value)?.label ?? placeholder;
   const showSearch = options.length > searchThreshold;
 

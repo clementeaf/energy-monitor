@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
@@ -30,6 +30,13 @@ export function MetersPage() {
 
   const allMeters = metersQuery.data ?? [];
   const { visible: meters, hasMore, sentinelRef, total } = useInfiniteScroll(allMeters, [buildingId]);
+
+  const buildingMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const b of buildingsQuery.data ?? []) m.set(b.id, b.name);
+    return m;
+  }, [buildingsQuery.data]);
+  const showBuildingCol = !buildingId;
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meter | null>(null);
@@ -92,6 +99,7 @@ export function MetersPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr>
+              {showBuildingCol && <Th>Edificio</Th>}
               <Th>Nombre</Th>
               <Th>Codigo</Th>
               <Th>Tipo</Th>
@@ -103,7 +111,7 @@ export function MetersPage() {
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={canWrite ? 7 : 6}
+            colSpan={(canWrite ? 7 : 6) + (showBuildingCol ? 1 : 0)}
             error={qs.error}
             onRetry={() => { metersQuery.refetch(); }}
             emptyMessage="No hay medidores registrados."
@@ -115,6 +123,7 @@ export function MetersPage() {
                 className="cursor-pointer hover:bg-gray-50"
                 onClick={() => navigate(`/monitoring/meter/${m.id}`)}
               >
+                {showBuildingCol && <Td>{buildingMap.get(m.buildingId) ?? '—'}</Td>}
                 <Td className="font-medium text-gray-900">{m.name}</Td>
                 <Td>{m.code}</Td>
                 <Td>{m.meterType}</Td>

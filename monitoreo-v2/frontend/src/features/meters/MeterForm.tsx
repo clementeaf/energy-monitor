@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal } from '../../components/ui/Modal';
+import { Drawer } from '../../components/ui/Drawer';
+import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload, MeterPhaseType } from '../../types/meter';
 
@@ -45,21 +46,19 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Editar Medidor' : 'Nuevo Medidor'}>
+    <Drawer open={open} onClose={onClose} title={isEdit ? 'Editar Medidor' : 'Nuevo Medidor'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isEdit && (
           <Field label="Edificio" required>
-            <select
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Seleccionar...' },
+                ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+              ]}
               value={buildingId}
-              onChange={(e) => { setBuildingId(e.target.value); }}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            >
-              <option value="">Seleccionar...</option>
-              {(buildingsQuery.data ?? []).map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              onChange={setBuildingId}
+              className="w-full"
+            />
           </Field>
         )}
 
@@ -133,17 +132,17 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
           </button>
         </div>
       </form>
-    </Modal>
+    </Drawer>
   );
 }
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="text-sm font-medium text-gray-700">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

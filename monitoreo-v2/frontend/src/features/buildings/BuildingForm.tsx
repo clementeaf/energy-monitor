@@ -130,11 +130,11 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="text-sm font-medium text-gray-700">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

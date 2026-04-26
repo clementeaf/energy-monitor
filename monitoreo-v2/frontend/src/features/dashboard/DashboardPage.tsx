@@ -171,11 +171,14 @@ export function DashboardPage() {
             <button
               key={r.key}
               type="button"
+              disabled={meters.length === 0}
               onClick={() => setPreset(r.key)}
               className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                preset === r.key
-                  ? 'bg-pa-blue text-white'
-                  : 'text-pa-text-muted hover:text-pa-text'
+                meters.length === 0
+                  ? 'cursor-not-allowed opacity-40'
+                  : preset === r.key
+                    ? 'bg-pa-blue text-white'
+                    : 'text-pa-text-muted hover:text-pa-text'
               }`}
             >
               {r.label}
@@ -220,11 +223,14 @@ export function DashboardPage() {
                   <button
                     key={v.key}
                     type="button"
+                    disabled={meters.length === 0}
                     onClick={() => setChartView(v.key)}
                     className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                      chartView === v.key
-                        ? 'bg-white text-pa-blue'
-                        : 'text-pa-text-muted hover:text-pa-text'
+                      meters.length === 0
+                        ? 'cursor-not-allowed opacity-40'
+                        : chartView === v.key
+                          ? 'bg-white text-pa-blue'
+                          : 'text-pa-text-muted hover:text-pa-text'
                     }`}
                   >
                     {v.label}

@@ -5,9 +5,6 @@ import { MemoryRouter } from 'react-router';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BuildingsPage } from '../features/buildings/BuildingsPage';
 
-// jsdom does not implement HTMLDialogElement methods — polyfill them
-HTMLDialogElement.prototype.showModal = HTMLDialogElement.prototype.showModal ?? function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-HTMLDialogElement.prototype.close = HTMLDialogElement.prototype.close ?? function (this: HTMLDialogElement) { this.removeAttribute('open'); };
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -202,11 +199,11 @@ describe('BuildingsPage integration', () => {
     await user.click(screen.getByText('Nuevo Edificio'));
 
     await waitFor(() => {
-      // Drawer renders a <dialog> with a heading and form fields
-      const dialog = document.querySelector('dialog[open]');
-      expect(dialog).not.toBeNull();
-      expect(dialog!.querySelector('h2')!.textContent).toBe('Nuevo Edificio');
-      expect(dialog!.querySelector('form')).not.toBeNull();
+      // Drawer renders a portal with role="dialog"
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+      expect(dialog.querySelector('h2')!.textContent).toBe('Nuevo Edificio');
+      expect(dialog.querySelector('form')).not.toBeNull();
     });
   });
 

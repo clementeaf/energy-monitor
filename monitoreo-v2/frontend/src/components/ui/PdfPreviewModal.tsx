@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 import { createPortal } from 'react-dom';
 import api from '../../services/api';
 
@@ -13,7 +14,7 @@ interface PdfPreviewModalProps {
  * Fetches a PDF from the API and renders it in a full-screen iframe overlay.
  * Revokes the blob URL on close.
  */
-export function PdfPreviewModal({ pdfPath, title, onClose }: Readonly<PdfPreviewModalProps>) {
+function PdfPreviewModalInner({ pdfPath, title, onClose }: Readonly<PdfPreviewModalProps>) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,5 +90,13 @@ export function PdfPreviewModal({ pdfPath, title, onClose }: Readonly<PdfPreview
       </div>
     </div>,
     document.body,
+  );
+}
+
+export function PdfPreviewModal(props: Readonly<PdfPreviewModalProps>) {
+  return (
+    <WidgetErrorBoundary>
+      <PdfPreviewModalInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

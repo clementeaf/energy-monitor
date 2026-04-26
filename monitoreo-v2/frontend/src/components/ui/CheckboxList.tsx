@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 
 export interface CheckboxListOption {
   value: string;
@@ -13,7 +14,7 @@ interface CheckboxListProps {
   className?: string;
 }
 
-export function CheckboxList({ options, selected, onChange, maxHeight = '10rem', className = '' }: Readonly<CheckboxListProps>) {
+function CheckboxListInner({ options, selected, onChange, maxHeight = '10rem', className = '' }: Readonly<CheckboxListProps>) {
   const toggle = useCallback((value: string) => {
     onChange(
       selected.includes(value)
@@ -59,5 +60,13 @@ export function CheckboxList({ options, selected, onChange, maxHeight = '10rem',
         );
       })}
     </div>
+  );
+}
+
+export function CheckboxList(props: Readonly<CheckboxListProps>) {
+  return (
+    <WidgetErrorBoundary>
+      <CheckboxListInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

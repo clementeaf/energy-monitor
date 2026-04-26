@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -37,7 +38,7 @@ type SortDir = 'asc' | 'desc';
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function DataTable<T>({
+function DataTableInner<T>({
   columns,
   data,
   rowKey,
@@ -166,6 +167,14 @@ export function DataTable<T>({
         </div>
       )}
     </div>
+  );
+}
+
+export function DataTable<T>(props: Readonly<DataTableProps<T>>) {
+  return (
+    <WidgetErrorBoundary>
+      <DataTableInner {...props} />
+    </WidgetErrorBoundary>
   );
 }
 

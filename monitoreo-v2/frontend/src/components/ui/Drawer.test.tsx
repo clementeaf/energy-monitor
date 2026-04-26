@@ -1,15 +1,9 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Drawer } from './Drawer';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
-
-/** In jsdom, <dialog> is not truly "open" so its role is hidden. */
-const getDialog = () => screen.getByRole('dialog', { hidden: true });
+const getDialog = () => screen.getByRole('dialog');
 
 describe('Drawer', () => {
   const defaultProps = {
@@ -22,6 +16,11 @@ describe('Drawer', () => {
   it('renders dialog element when open', () => {
     render(<Drawer {...defaultProps} />);
     expect(getDialog()).toBeInTheDocument();
+  });
+
+  it('does not render when closed', () => {
+    render(<Drawer {...defaultProps} open={false} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows title', () => {
@@ -48,38 +47,31 @@ describe('Drawer', () => {
   });
 
   it('does not render footer section when footer is not provided', () => {
-    const { container } = render(<Drawer {...defaultProps} />);
-    // Footer has border-t class — only header has border-b
-    const borderTDivs = container.querySelectorAll('.border-t');
+    render(<Drawer {...defaultProps} />);
+    const dialog = getDialog();
+    const borderTDivs = dialog.querySelectorAll('.border-t');
     expect(borderTDivs.length).toBe(0);
   });
 
   it('calls onClose when close button is clicked', async () => {
     const onClose = vi.fn();
     render(<Drawer {...defaultProps} onClose={onClose} />);
-    const closeBtn = screen.getByRole('button', { hidden: true });
+    const closeBtn = screen.getByRole('button');
     await userEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls showModal when open transitions to true', () => {
-    vi.mocked(HTMLDialogElement.prototype.showModal).mockClear();
-    const { rerender } = render(<Drawer {...defaultProps} open={false} />);
-    rerender(<Drawer {...defaultProps} open={true} />);
-    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
   });
 
   it('applies right side classes by default', () => {
     render(<Drawer {...defaultProps} />);
     const dialog = getDialog();
-    expect(dialog.className).toContain('ml-auto');
+    expect(dialog.className).toContain('right-0');
     expect(dialog.className).toContain('rounded-l-xl');
   });
 
   it('applies left side classes when side="left"', () => {
     render(<Drawer {...defaultProps} side="left" />);
     const dialog = getDialog();
-    expect(dialog.className).toContain('mr-auto');
+    expect(dialog.className).toContain('left-0');
     expect(dialog.className).toContain('rounded-r-xl');
   });
 
@@ -107,18 +99,8 @@ describe('Drawer', () => {
     expect(dialog.className).toContain('w-[40rem]');
   });
 
-  it('applies custom dialogClassName when provided', () => {
-    render(<Drawer {...defaultProps} dialogClassName="my-custom-class" />);
-    const dialog = getDialog();
-    expect(dialog.className).toBe('my-custom-class');
-    expect(dialog.className).not.toContain('w-96');
-  });
-
-  it('calls onClose on native dialog close event', () => {
-    const onClose = vi.fn();
-    render(<Drawer {...defaultProps} onClose={onClose} />);
-    const dialog = getDialog();
-    dialog.dispatchEvent(new Event('close', { bubbles: false }));
-    expect(onClose).toHaveBeenCalled();
+  it('has aria-modal attribute', () => {
+    render(<Drawer {...defaultProps} />);
+    expect(getDialog()).toHaveAttribute('aria-modal', 'true');
   });
 });

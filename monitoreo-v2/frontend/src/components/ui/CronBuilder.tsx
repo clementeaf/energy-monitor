@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 
 interface CronBuilderProps {
   value: string;
@@ -19,7 +20,7 @@ const PRESETS: Preset[] = [
   { label: 'Mensual dia 1', cron: '0 8 1 * *' },
 ];
 
-export function CronBuilder({ value, onChange, disabled = false, className = '' }: Readonly<CronBuilderProps>) {
+function CronBuilderInner({ value, onChange, disabled = false, className = '' }: Readonly<CronBuilderProps>) {
   const description = useMemo(() => describeCron(value), [value]);
   const activePreset = PRESETS.find((p) => p.cron === value);
 
@@ -72,6 +73,14 @@ export function CronBuilder({ value, onChange, disabled = false, className = '' 
         </p>
       )}
     </div>
+  );
+}
+
+export function CronBuilder(props: Readonly<CronBuilderProps>) {
+  return (
+    <WidgetErrorBoundary>
+      <CronBuilderInner {...props} />
+    </WidgetErrorBoundary>
   );
 }
 

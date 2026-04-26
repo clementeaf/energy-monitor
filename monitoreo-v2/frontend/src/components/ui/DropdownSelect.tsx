@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 
 export interface DropdownOption<T extends string = string> {
   value: T;
@@ -15,7 +16,7 @@ interface DropdownSelectProps<T extends string = string> {
   searchThreshold?: number;
 }
 
-export function DropdownSelect<T extends string = string>({
+function DropdownSelectInner<T extends string = string>({
   options,
   value,
   onChange,
@@ -155,5 +156,13 @@ export function DropdownSelect<T extends string = string>({
         </div>
       )}
     </div>
+  );
+}
+
+export function DropdownSelect<T extends string = string>(props: Readonly<DropdownSelectProps<T>>) {
+  return (
+    <WidgetErrorBoundary>
+      <DropdownSelectInner {...props} />
+    </WidgetErrorBoundary>
   );
 }

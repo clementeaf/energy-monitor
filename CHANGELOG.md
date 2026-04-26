@@ -10,8 +10,15 @@
 - **Meters "Edificio" column** — Visible when no building filter is active. Resolves building name from `buildingId`.
 
 ### Added (monitoreo-v2/frontend — tests)
-- **8 UI component tests** — ChartSkeleton, ConfirmDialog, DataWidget, PdfPreviewModal, QueryStateView, RequireTenant, TableStateBody, WidgetErrorBoundary.
-- **3 integration test suites** — login-flow (4 tests: auth gate, protected route, session resolver), buildings-crud (5 tests: table, skeleton, empty, drawer, error+retry), cross-tenant (5 tests: RequireTenant, Empresa column toggle). 238 total tests, 29 suites.
+- **11 UI component tests** — ChartSkeleton, ConfirmDialog, DataWidget, PdfPreviewModal, QueryStateView, RequireTenant, TableStateBody, WidgetErrorBoundary, widgetErrors, CheckboxList + 3 chart tests (Chart, StockChart, MonthlyChart).
+- **3 integration test suites** — login-flow (4), buildings-crud (5), cross-tenant (5). 260 total tests, 34 suites.
+
+### Changed (monitoreo-v2/frontend — resilience)
+- **WidgetErrorBoundary on 5 components** — DataTable, DropdownSelect, CheckboxList, CronBuilder, PdfPreviewModal. Render errors isolated to component area.
+- **Drawer** — Rewritten: slide-in/out animation (250ms), no dark backdrop, portal-based. Click outside or Escape closes.
+- **Dashboard empty state** — Shows "Sin medidores" message instead of eternal skeleton. Range/chart toggles disabled when no data.
+- **Border radius standardized** — `rounded-lg` for all containers, `rounded-xl` for modals/drawers only.
+- **Platform KPI cards** — More compact (smaller padding/font).
 
 ### Changed (monitoreo-v2/frontend)
 - **Chart skeleton on 6 pages** — InvoicesPage, MyInvoicePage, AlertsHistoryPage, BenchmarkPage, QualityPage, DashboardPage.

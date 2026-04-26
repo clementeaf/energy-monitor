@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Completado (2026-04-25)
 - **Multi-tenant scoping + role hierarchy + platform dashboard:** Backend `crossTenant` flag para Globe Power sin empresa seleccionada. Buildings/meters/alerts/readings cross-tenant. `PlatformDashboardPage` con KPIs globales. Role hierarchy enforcement (`hierarchy_level`): cada nivel solo crea inferiores. `RequireTenantLayout` en router — módulos que requieren empresa bloqueados hasta seleccionar. `usePermissions` fix: usuarios reales usan permisos DB, no map estático. PASA roles clonados en prod. Footer phone fix. [CHANGELOG — 2.5.0-alpha.0](CHANGELOG.md)
+- **Globe Landing SEO & share preview:** Título → "Grupo Globe", meta OG/Twitter con imagen 1200x630, favicon logo, lang `es`. Route 53 zona redundante eliminada. [CHANGELOG — 2.5.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-04-24)
 - **Operator filter system + data migration:** `useOperatorFilter` hook mapea `viewAsRole` a modos v1 (Holding/Multi Operador/Operador/Técnico/Locatario). Dashboard, Realtime, Alerts, Buildings filtran por operador. Técnico bloqueado de dashboard financiero. 2.6M readings migradas a RDS (v1→v2 con UUID mapping). [CHANGELOG — 2.4.0-alpha.0](CHANGELOG.md)

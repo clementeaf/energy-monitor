@@ -31,6 +31,10 @@
 
 ### Fixed (globe-landing)
 - **Footer phone number** — Updated from `566000061666` to `+56 22 215 8820`.
+- **SEO & share preview** — Title "Globepower" → "Grupo Globe". Added Open Graph and Twitter Card meta tags with 1200x630 OG image. Favicon set to logo. Lang `en` → `es`.
+
+### Infra
+- **Route 53 cleanup** — Deleted redundant hosted zone `Z090060...` for `globepower.cl` (duplicate, only NS/SOA + stale ACM CNAME).
 
 ---
 

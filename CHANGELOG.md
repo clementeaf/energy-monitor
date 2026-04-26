@@ -9,9 +9,14 @@
 - **Buildings form tenant selector** — `DropdownSelect` for choosing target tenant in cross-tenant creation. Globe Power excluded.
 - **Meters "Edificio" column** — Visible when no building filter is active. Resolves building name from `buildingId`.
 
+### Added (monitoreo-v2/frontend — tests)
+- **8 new UI component tests** — ChartSkeleton, ConfirmDialog, DataWidget, PdfPreviewModal, QueryStateView, RequireTenant, TableStateBody, WidgetErrorBoundary. All 17 UI components now have tests (158 total).
+
 ### Changed (monitoreo-v2/frontend)
 - **Chart skeleton on 6 pages** — InvoicesPage, MyInvoicePage, AlertsHistoryPage, BenchmarkPage, QualityPage, DashboardPage.
-- **PlatformDashboardPage** — Compact KPI cards, 7 in single row.
+- **PlatformDashboardPage** — Compact KPI cards, 7 in single row. Table migrated to `TableStateBody`.
+- **DrilldownPage** — Custom skeleton replaced with `TableStateBody`.
+- **18 native selects → DropdownSelect** — CompaniesPage, ReportsPage (6), IntegrationsPage, HierarchyPage (2), UserForm (2), TenantUnitForm, AlertRulesPage, MeterForm, InvoicesPage (2), TariffsPage. Zero native `<select>` remaining.
 - **BuildingForm** — Modal → Drawer, address required, `<label>` → `<div>` (fixes DropdownSelect re-open bug).
 - **MeterForm** — Modal → Drawer, building select → `DropdownSelect`, `<label>` → `<div>`.
 - **Vite proxy** — Dev target → `https://power-monitor.cloud` (AWS backend, avoids CORS).

@@ -6,6 +6,7 @@ import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQu
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { HierarchyNode } from '../../../types/hierarchy';
 import type { Concentrator } from '../../../types/concentrator';
@@ -26,6 +27,7 @@ export function DrilldownPage() {
     isEmpty: (d) => !d || d.length === 0,
   });
 
+  const metersQs = useQueryState(metersQuery, { isEmpty: (d) => !d || d.length === 0 });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const hierarchy = hierarchyQuery.data ?? [];
@@ -173,23 +175,6 @@ export function DrilldownPage() {
       )}
 
       {/* Meters table */}
-      {metersQuery.isPending ? (
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-white">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <div className="h-4 w-28 rounded bg-gray-200" />
-          </div>
-          <div className="h-8 bg-gray-100" />
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex gap-4 border-t border-gray-200 px-4 py-3">
-              <div className="h-4 w-32 rounded bg-gray-200" />
-              <div className="h-4 w-20 rounded bg-gray-200" />
-              <div className="h-4 w-16 rounded bg-gray-200" />
-              <div className="h-4 w-16 rounded bg-gray-200" />
-              <div className="h-5 w-14 rounded-full bg-gray-200" />
-            </div>
-          ))}
-        </div>
-      ) : (
       <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
         <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
           Medidores ({meters.length})
@@ -205,7 +190,14 @@ export function DrilldownPage() {
               <Th>Acciones</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <TableStateBody
+            phase={metersQs.phase}
+            colSpan={6}
+            error={metersQs.error}
+            onRetry={() => { metersQuery.refetch(); }}
+            emptyMessage="No hay medidores registrados en este edificio."
+            skeletonWidths={['w-32', 'w-20', 'w-16', 'w-16', 'w-14', 'w-28']}
+          >
             {meters.map((m) => {
               const reading = readingByMeter.get(m.id);
               return (
@@ -244,10 +236,9 @@ export function DrilldownPage() {
                 </tr>
               );
             })}
-          </tbody>
+          </TableStateBody>
         </table>
       </div>
-      )}
     </div>
   );
 }

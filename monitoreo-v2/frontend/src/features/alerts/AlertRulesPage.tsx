@@ -196,16 +196,18 @@ export function AlertRulesPage() {
               Editar: {ALERT_TYPE_LABELS[editingRule.alertTypeCode] ?? editingRule.alertTypeCode}
             </h2>
             <div>
-              <label className="block text-xs font-medium text-gray-500">Severidad</label>
-              <select
+              <div className="block text-xs font-medium text-gray-500">Severidad</div>
+              <DropdownSelect
+                options={[
+                  { value: 'low', label: 'low' },
+                  { value: 'medium', label: 'medium' },
+                  { value: 'high', label: 'high' },
+                  { value: 'critical', label: 'critical' },
+                ]}
                 value={editingRule.severity}
-                onChange={(e) => { setEditingRule({ ...editingRule, severity: e.target.value as AlertRule['severity'] }); }}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              >
-                {['low', 'medium', 'high', 'critical'].map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+                onChange={(val) => { setEditingRule({ ...editingRule, severity: val as AlertRule['severity'] }); }}
+                className="mt-1 w-full"
+              />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>

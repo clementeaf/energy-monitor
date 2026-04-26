@@ -375,22 +375,17 @@ export function IntegrationsPage() {
                   placeholder="p. ej. api_rest, datalake"
                 />
               </label>
-              <label className="block text-sm font-medium text-gray-700">
+              <div className="block text-sm font-medium text-gray-700">
                 Estado
-                <select
+                <DropdownSelect
+                  options={STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
                   value={status}
-                  onChange={(e) => {
-                    setStatus(e.target.value as IntegrationStatus);
+                  onChange={(val) => {
+                    setStatus(val as IntegrationStatus);
                   }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  className="mt-1 w-full"
+                />
+              </div>
               <label className="block text-sm font-medium text-gray-700">
                 Configuracion (JSON)
                 <textarea

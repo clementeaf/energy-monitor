@@ -366,31 +366,27 @@ function GenerateDrawer({
       </div>
     }>
       <div className="flex flex-col gap-4 text-sm">
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Tipo</span>
-          <select
+          <DropdownSelect
+            options={REPORT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
             value={reportType}
-            onChange={(e) => setReportType(e.target.value as PlatformReportType)}
-            className="input-field"
-          >
-            {REPORT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
+            onChange={(val) => setReportType(val as PlatformReportType)}
+            className="w-full"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Edificio (opcional)</span>
-          <select
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos (según permisos)' },
+              ...buildings.map((b) => ({ value: b.id, label: b.name })),
+            ]}
             value={buildingId}
-            onChange={(e) => setBuildingId(e.target.value)}
-            className="input-field"
-          >
-            <option value="">Todos (según permisos)</option>
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-        </label>
+            onChange={(val) => setBuildingId(val)}
+            className="w-full"
+          />
+        </div>
         <div className="flex gap-3">
           <label className="flex flex-1 flex-col gap-1">
             <span className="text-gray-600">Inicio</span>
@@ -401,18 +397,15 @@ function GenerateDrawer({
             <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} className="input-field" />
           </label>
         </div>
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Formato de exportación</span>
-          <select
+          <DropdownSelect
+            options={(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))}
             value={format}
-            onChange={(e) => setFormat(e.target.value as ReportFormat)}
-            className="input-field"
-          >
-            {(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => (
-              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
-            ))}
-          </select>
-        </label>
+            onChange={(val) => setFormat(val as ReportFormat)}
+            className="w-full"
+          />
+        </div>
       </div>
     </Drawer>
   );
@@ -478,31 +471,36 @@ function ScheduleDrawer({
         <p className="text-xs text-gray-500">
           Use una expresión cron (5 campos: minuto hora día mes día-semana). Ejemplo: 0 8 * * 1 = lunes 08:00.
         </p>
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Tipo</span>
-          <select value={reportType} onChange={(e) => setReportType(e.target.value as PlatformReportType)} className="input-field">
-            {REPORT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
+          <DropdownSelect
+            options={REPORT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+            value={reportType}
+            onChange={(val) => setReportType(val as PlatformReportType)}
+            className="w-full"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Edificio (opcional)</span>
-          <select value={buildingId} onChange={(e) => setBuildingId(e.target.value)} className="input-field">
-            <option value="">Todos (según permisos)</option>
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos (según permisos)' },
+              ...buildings.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+            value={buildingId}
+            onChange={(val) => setBuildingId(val)}
+            className="w-full"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="text-gray-600">Formato</span>
-          <select value={format} onChange={(e) => setFormat(e.target.value as ReportFormat)} className="input-field">
-            {(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => (
-              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
-            ))}
-          </select>
-        </label>
+          <DropdownSelect
+            options={(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))}
+            value={format}
+            onChange={(val) => setFormat(val as ReportFormat)}
+            className="w-full"
+          />
+        </div>
         <label className="flex flex-col gap-1">
           <span className="text-gray-600">Cron</span>
           <input value={cronExpression} onChange={(e) => setCronExpression(e.target.value)} className="input-field font-mono text-xs" />

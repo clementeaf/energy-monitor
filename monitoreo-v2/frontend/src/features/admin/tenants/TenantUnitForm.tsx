@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import type { TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload } from '../../../types/tenant-unit';
 import type { Building } from '../../../types/building';
 
@@ -45,15 +46,12 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isEdit && (
           <Field label="Edificio" required>
-            <select
+            <DropdownSelect
+              options={buildings.map((b) => ({ value: b.id, label: b.name }))}
               value={buildingId}
-              onChange={(e) => { setBuildingId(e.target.value); }}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            >
-              {buildings.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              onChange={setBuildingId}
+              className="w-full"
+            />
           </Field>
         )}
 
@@ -118,11 +116,11 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="text-sm font-medium text-gray-700">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

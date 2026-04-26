@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { Button } from '../../../components/ui/Button';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useRolesQuery } from '../../../hooks/queries/useRolesQuery';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
@@ -100,14 +101,15 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
         {!isEdit && (
           <>
             <Field label="Proveedor Auth" required>
-              <select
+              <DropdownSelect
+                options={[
+                  { value: 'google', label: 'Google' },
+                  { value: 'microsoft', label: 'Microsoft' },
+                ]}
                 value={authProvider}
-                onChange={(e) => { setAuthProvider(e.target.value as 'microsoft' | 'google'); }}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              >
-                <option value="google">Google</option>
-                <option value="microsoft">Microsoft</option>
-              </select>
+                onChange={(val) => { setAuthProvider(val as 'microsoft' | 'google'); }}
+                className="w-full"
+              />
             </Field>
 
             <Field label="ID Proveedor" required>
@@ -123,15 +125,12 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
         )}
 
         <Field label="Rol" required>
-          <select
+          <DropdownSelect
+            options={roles.map((r) => ({ value: r.id, label: r.name }))}
             value={roleId}
-            onChange={(e) => { setRoleId(e.target.value); }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
+            onChange={setRoleId}
+            className="w-full"
+          />
         </Field>
 
         {!isEdit && buildings.length > 0 && (
@@ -157,11 +156,11 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="text-sm font-medium text-gray-700">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

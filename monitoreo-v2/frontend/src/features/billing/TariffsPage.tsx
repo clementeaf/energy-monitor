@@ -38,9 +38,11 @@ export function TariffsPage() {
   const allTariffs = tariffsQuery.data ?? [];
   const { visible: visibleTariffs, hasMore, sentinelRef, total } = useInfiniteScroll(allTariffs, [buildingFilter]);
 
-  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openCreate = () => { setEditing(null); setFormBuildingId(''); setFormOpen(true); };
   const openEdit = (t: Tariff) => { setEditing(t); setFormOpen(true); };
-  const closeForm = () => { setFormOpen(false); setEditing(null); };
+  const closeForm = () => { setFormOpen(false); setEditing(null); setFormBuildingId(''); };
+
+  const [formBuildingId, setFormBuildingId] = useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,7 +57,7 @@ export function TariffsPage() {
       updateMutation.mutate({ id: editing.id, payload }, { onSuccess: closeForm });
     } else {
       const payload: CreateTariffPayload = {
-        buildingId: fd.get('buildingId') as string,
+        buildingId: formBuildingId,
         name: fd.get('name') as string,
         effectiveFrom: fd.get('effectiveFrom') as string,
         effectiveTo: (fd.get('effectiveTo') as string) || undefined,
@@ -136,13 +138,16 @@ export function TariffsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!editing && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Edificio</label>
-              <select name="buildingId" required className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-                <option value="">Seleccionar...</option>
-                {buildingsQuery.data?.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+              <div className="mb-1 block text-sm font-medium text-gray-700">Edificio</div>
+              <DropdownSelect
+                options={[
+                  { value: '', label: 'Seleccionar...' },
+                  ...(buildingsQuery.data?.map((b) => ({ value: b.id, label: b.name })) ?? []),
+                ]}
+                value={formBuildingId}
+                onChange={(val) => setFormBuildingId(val)}
+                className="w-full"
+              />
             </div>
           )}
           <div>

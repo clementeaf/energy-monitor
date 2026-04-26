@@ -95,14 +95,15 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
           </Field>
 
           <Field label="Fase">
-            <select
+            <DropdownSelect
+              options={[
+                { value: 'three_phase', label: 'Trifasico' },
+                { value: 'single_phase', label: 'Monofasico' },
+              ]}
               value={phaseType}
-              onChange={(e) => { setPhaseType(e.target.value as MeterPhaseType); }}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            >
-              <option value="three_phase">Trifasico</option>
-              <option value="single_phase">Monofasico</option>
-            </select>
+              onChange={(val) => { setPhaseType(val as MeterPhaseType); }}
+              className="w-full"
+            />
           </Field>
         </div>
 

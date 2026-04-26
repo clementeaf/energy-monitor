@@ -4,6 +4,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { Drawer } from '../../../components/ui/Drawer';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import type { CreateTenantPayload } from '../../../types/tenant';
 
 const EMPTY_FORM: CreateTenantPayload = {
@@ -174,14 +175,15 @@ export function CompaniesPage() {
                 </Field>
 
                 <Field label="Proveedor de autenticación *">
-                  <select
+                  <DropdownSelect
+                    options={[
+                      { value: 'microsoft', label: 'Microsoft' },
+                      { value: 'google', label: 'Google' },
+                    ]}
                     value={form.adminAuthProvider}
-                    onChange={(e) => update('adminAuthProvider', e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="microsoft">Microsoft</option>
-                    <option value="google">Google</option>
-                  </select>
+                    onChange={(val) => update('adminAuthProvider', val)}
+                    className="w-full"
+                  />
                 </Field>
               </div>
             </div>
@@ -234,7 +236,7 @@ export function CompaniesPage() {
 function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <label className="mb-1 block text-[12px] font-medium text-pa-text-muted">{label}</label>
+      <div className="mb-1 block text-[12px] font-medium text-pa-text-muted">{label}</div>
       {children}
     </div>
   );

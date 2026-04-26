@@ -365,14 +365,15 @@ function GenerateModal({
 }) {
   const buildingsQuery = useBuildingsQuery();
   const [buildingId, setBuildingId] = useState('');
+  const [tariffId, setTariffId] = useState('');
   const tariffsQuery = useTariffsQuery(buildingId || undefined);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const payload: GenerateInvoicePayload = {
-      buildingId: fd.get('buildingId') as string,
-      tariffId: fd.get('tariffId') as string,
+      buildingId,
+      tariffId,
       periodStart: fd.get('periodStart') as string,
       periodEnd: fd.get('periodEnd') as string,
     };
@@ -383,28 +384,28 @@ function GenerateModal({
     <Modal open onClose={onClose} title="Generar Factura">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Edificio</label>
-          <select
-            name="buildingId"
-            required
+          <div className="mb-1 block text-sm font-medium text-gray-700">Edificio</div>
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Seleccionar...' },
+              ...(buildingsQuery.data?.map((b) => ({ value: b.id, label: b.name })) ?? []),
+            ]}
             value={buildingId}
-            onChange={(e) => setBuildingId(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Seleccionar...</option>
-            {buildingsQuery.data?.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => { setBuildingId(val); setTariffId(''); }}
+            className="w-full"
+          />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Tarifa</label>
-          <select name="tariffId" required className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
-            <option value="">Seleccionar...</option>
-            {tariffsQuery.data?.filter((t) => t.isActive).map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+          <div className="mb-1 block text-sm font-medium text-gray-700">Tarifa</div>
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Seleccionar...' },
+              ...(tariffsQuery.data?.filter((t) => t.isActive).map((t) => ({ value: t.id, label: t.name })) ?? []),
+            ]}
+            value={tariffId}
+            onChange={(val) => setTariffId(val)}
+            className="w-full"
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>

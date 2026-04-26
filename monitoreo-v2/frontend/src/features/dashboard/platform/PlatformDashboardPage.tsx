@@ -1,4 +1,6 @@
 import { type ReactElement } from 'react';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { useQueryState } from '../../../hooks/useQueryState';
 import { usePlatformKpisQuery } from '../../../hooks/queries/usePlatformDashboardQuery';
 import type { TenantSummary } from '../../../types/platform-dashboard';
 
@@ -16,15 +18,9 @@ function KpiCard({ title, value, loading }: { title: string; value: string | num
 }
 
 export function PlatformDashboardPage(): ReactElement {
-  const { data: kpis, isPending, isError, error } = usePlatformKpisQuery();
-
-  if (isError) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-red-600">Error: {error instanceof Error ? error.message : 'Error desconocido'}</p>
-      </div>
-    );
-  }
+  const query = usePlatformKpisQuery();
+  const { data: kpis, isPending } = query;
+  const qs = useQueryState(query, { isEmpty: (d) => !d || d.tenantSummaries.length === 0 });
 
   return (
     <div className="space-y-4">
@@ -54,11 +50,15 @@ export function PlatformDashboardPage(): ReactElement {
                 <th className="px-4 py-2 text-right">Alertas activas</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pa-border">
-              {isPending && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-pa-text-muted">Cargando...</td></tr>
-              )}
-              {kpis?.tenantSummaries.map((t: TenantSummary) => (
+            <TableStateBody
+              phase={qs.phase}
+              colSpan={4}
+              error={qs.error}
+              onRetry={() => { query.refetch(); }}
+              emptyMessage="Sin empresas registradas."
+              skeletonWidths={['w-32', 'w-16', 'w-16', 'w-20']}
+            >
+              {(kpis?.tenantSummaries ?? []).map((t: TenantSummary) => (
                 <tr key={t.tenantId} className="hover:bg-gray-50">
                   <td className="px-4 py-2.5 font-medium text-pa-text">{t.tenantName}</td>
                   <td className="px-4 py-2.5 text-right">{t.buildings}</td>
@@ -74,10 +74,7 @@ export function PlatformDashboardPage(): ReactElement {
                   </td>
                 </tr>
               ))}
-              {kpis && kpis.tenantSummaries.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-pa-text-muted">Sin empresas registradas</td></tr>
-              )}
-            </tbody>
+            </TableStateBody>
           </table>
         </div>
       </div>

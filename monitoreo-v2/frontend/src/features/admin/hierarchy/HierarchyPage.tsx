@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Modal } from '../../../components/ui/Modal';
@@ -80,15 +81,12 @@ export function HierarchyPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Jerarquia Electrica</h1>
         <div className="flex items-center gap-3">
-          <select
+          <DropdownSelect
+            options={buildings.map((b) => ({ value: b.id, label: b.name }))}
             value={selectedBuilding}
-            onChange={(e) => { setSelectedBuilding(e.target.value); }}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            onChange={(val) => { setSelectedBuilding(val); }}
+            className="w-48"
+          />
           {canWrite && (
             <button
               type="button"
@@ -274,15 +272,12 @@ function NodeFormModal({
         </Field>
 
         <Field label="Tipo" required>
-          <select
+          <DropdownSelect
+            options={(Object.keys(LEVEL_LABELS) as HierarchyLevelType[]).map((lt) => ({ value: lt, label: LEVEL_LABELS[lt] }))}
             value={levelType}
-            onChange={(e) => { setLevelType(e.target.value as HierarchyLevelType); }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            {(Object.keys(LEVEL_LABELS) as HierarchyLevelType[]).map((lt) => (
-              <option key={lt} value={lt}>{LEVEL_LABELS[lt]}</option>
-            ))}
-          </select>
+            onChange={(val) => { setLevelType(val as HierarchyLevelType); }}
+            className="w-full"
+          />
         </Field>
 
         <div className="flex justify-end gap-2 pt-2">
@@ -308,11 +303,11 @@ function NodeFormModal({
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="text-sm font-medium text-gray-700">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

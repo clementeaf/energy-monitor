@@ -7,6 +7,10 @@ export interface Tenant {
   secondaryColor: string;
   sidebarColor: string;
   accentColor: string;
+  address: string | null;
+  addressDetail: string | null;
+  phone: string | null;
+  taxId: string | null;
   appTitle: string;
   logoUrl: string | null;
   faviconUrl: string | null;
@@ -27,6 +31,10 @@ export interface CreateTenantPayload {
   logoUrl?: string;
   faviconUrl?: string;
   timezone?: string;
+  address?: string;
+  addressDetail?: string;
+  phone?: string;
+  taxId?: string;
   settings?: Record<string, unknown>;
   adminEmail: string;
   adminDisplayName?: string;
@@ -50,4 +58,9 @@ export interface UpdateTenantPayload {
   faviconUrl?: string | null;
   timezone?: string;
   settings?: Record<string, unknown>;
+  address?: string | null;
+  addressDetail?: string | null;
+  phone?: string | null;
+  taxId?: string | null;
+  isActive?: boolean;
 }

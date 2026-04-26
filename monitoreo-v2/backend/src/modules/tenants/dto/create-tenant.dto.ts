@@ -56,6 +56,26 @@ export class CreateTenantDto {
   timezone?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  addressDetail?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  taxId?: string;
+
+  @IsOptional()
   @IsObject()
   settings?: Record<string, unknown>;
 

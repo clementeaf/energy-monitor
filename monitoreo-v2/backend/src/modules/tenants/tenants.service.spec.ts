@@ -17,6 +17,10 @@ const mockTenant: Tenant = {
   appTitle: 'Energy Monitor',
   logoUrl: null,
   faviconUrl: null,
+  address: null,
+  addressDetail: null,
+  phone: null,
+  taxId: null,
   settings: {},
   timezone: 'America/Santiago',
   createdAt: new Date(),
@@ -57,12 +61,11 @@ describe('TenantsService', () => {
   /* ------ Read ------ */
 
   describe('findAll', () => {
-    it('returns active tenants ordered by name', async () => {
+    it('returns all tenants ordered by name', async () => {
       repo.find.mockResolvedValue([mockTenant]);
       const result = await service.findAll();
       expect(result).toEqual([mockTenant]);
       expect(repo.find).toHaveBeenCalledWith({
-        where: { isActive: true },
         order: { name: 'ASC' },
       });
     });
@@ -152,6 +155,14 @@ describe('TenantsService', () => {
         expect.objectContaining({ settings: { locale: 'es-CL' } }),
       );
     });
+
+    it('can update address fields', async () => {
+      repo.findOneBy.mockResolvedValue({ ...mockTenant });
+      await service.update('t-1', { address: 'Apoquindo 320', addressDetail: 'Piso 12', phone: '+56912345678', taxId: '76.123.456-7' });
+      expect(repo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ address: 'Apoquindo 320', addressDetail: 'Piso 12', phone: '+56912345678', taxId: '76.123.456-7' }),
+      );
+    });
   });
 
   /* ------ Deactivate ------ */
@@ -174,7 +185,7 @@ describe('TenantsService', () => {
 
   describe('onboard', () => {
     it('throws ConflictException when slug exists', async () => {
-      repo.findOneBy.mockResolvedValue(mockTenant);
+      repo.findOneBy.mockResolvedValueOnce(mockTenant);
       await expect(
         service.onboard({
           name: 'Globe Power',
@@ -185,8 +196,22 @@ describe('TenantsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('throws ConflictException when name exists', async () => {
+      repo.findOneBy
+        .mockResolvedValueOnce(null)   // slug check passes
+        .mockResolvedValueOnce(mockTenant); // name check fails
+      await expect(
+        service.onboard({
+          name: 'Globe Power',
+          slug: 'new-slug',
+          adminEmail: 'admin@test.com',
+          adminAuthProvider: 'google',
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
     it('auto-generates slug from name', async () => {
-      repo.findOneBy.mockResolvedValue(null);
+      repo.findOneBy.mockResolvedValue(null); // slug + name both null
 
       const mockManager = {
         create: jest.fn().mockReturnValue({ id: 'new-t' }),

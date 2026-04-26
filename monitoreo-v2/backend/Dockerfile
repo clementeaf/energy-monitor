@@ -1,27 +1,20 @@
-FROM node:20-alpine AS base
+FROM --platform=linux/amd64 node:20-alpine AS builder
 WORKDIR /app
-
-# Dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# Build
-FROM base AS build
 RUN npm ci
-COPY . .
+COPY tsconfig.json tsconfig.build.json nest-cli.json ./
+COPY src/ src/
 RUN npm run build
 
-# Production
-FROM node:20-alpine AS production
+FROM --platform=linux/amd64 node:20-alpine
 WORKDIR /app
-RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
 
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY package.json ./
-COPY certs ./certs
+# RDS CA bundle
+RUN mkdir -p certs && \
+    wget -q -O certs/rds-global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
-USER appuser
 EXPOSE 4000
-
 CMD ["node", "dist/main"]

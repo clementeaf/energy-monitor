@@ -34,7 +34,7 @@ export class TenantsService {
   /* ------------------------------------------------------------------ */
 
   async findAll(): Promise<Tenant[]> {
-    return this.repo.find({ where: { isActive: true }, order: { name: 'ASC' } });
+    return this.repo.find({ order: { name: 'ASC' } });
   }
 
   async findById(id: string): Promise<Tenant> {
@@ -76,6 +76,9 @@ export class TenantsService {
     const existing = await this.repo.findOneBy({ slug });
     if (existing) throw new ConflictException(`Tenant slug '${slug}' already exists`);
 
+    const existingName = await this.repo.findOneBy({ name: dto.name });
+    if (existingName) throw new ConflictException(`Tenant name '${dto.name}' already exists`);
+
     return this.dataSource.transaction(async (manager) => {
       // 1. Create tenant
       const tenant = manager.create(Tenant, {
@@ -89,6 +92,10 @@ export class TenantsService {
         logoUrl: dto.logoUrl ?? null,
         faviconUrl: dto.faviconUrl ?? null,
         timezone: dto.timezone ?? 'America/Santiago',
+        address: dto.address ?? null,
+        addressDetail: dto.addressDetail ?? null,
+        phone: dto.phone ?? null,
+        taxId: dto.taxId ?? null,
         settings: dto.settings ?? {},
         isActive: true,
       });
@@ -143,6 +150,10 @@ export class TenantsService {
     if (dto.logoUrl !== undefined) row.logoUrl = dto.logoUrl;
     if (dto.faviconUrl !== undefined) row.faviconUrl = dto.faviconUrl;
     if (dto.timezone !== undefined) row.timezone = dto.timezone;
+    if (dto.address !== undefined) row.address = dto.address;
+    if (dto.addressDetail !== undefined) row.addressDetail = dto.addressDetail;
+    if (dto.phone !== undefined) row.phone = dto.phone;
+    if (dto.taxId !== undefined) row.taxId = dto.taxId;
     if (dto.settings !== undefined) row.settings = dto.settings;
     if (dto.isActive !== undefined) row.isActive = dto.isActive;
 

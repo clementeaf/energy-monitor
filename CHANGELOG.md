@@ -23,9 +23,20 @@
 - **MeterForm** — Modal → Drawer, building select → `DropdownSelect`, `<label>` → `<div>`.
 - **Vite proxy** — Dev target → `https://power-monitor.cloud` (AWS backend, avoids CORS).
 
+### Added (monitoreo-v2/backend)
+- **Tenant new columns** — `address`, `address_detail`, `phone`, `tax_id` (nullable). Migrated in RDS prod.
+- **Tenant name uniqueness** — `onboard()` validates name is not taken before creating.
+- **Dockerfile** — Multi-stage build for ECS Fargate (node:20-alpine, amd64, RDS CA bundle).
+
 ### Changed (monitoreo-v2/backend)
 - **Platform Dashboard** — Globe Power excluded from KPI counts and tenant summary table.
 - **Buildings create** — `CreateBuildingDto` accepts optional `tenantId` for super_admin cross-tenant assignment.
+- **Tenants findAll** — Returns all tenants (including inactive) for admin visibility.
+- **Tenants update** — Handles `address`, `addressDetail`, `phone`, `taxId` fields.
+
+### Changed (monitoreo-v2/frontend)
+- **CompaniesPage rewrite** — Full CRUD: create drawer (datos empresa, admin, tema, timezone), edit drawer (toggle activo/inactivo, all fields). Address collision detection with addressDetail required on conflict. Columns: Dirección, Teléfono, RUT, Estado, Acciones.
+- **`useUpdateTenant` hook** — New mutation for tenant updates.
 
 ## [2.5.0-alpha.0] - 2026-04-25 — MULTI-TENANT SCOPING, ROLE HIERARCHY, PLATFORM DASHBOARD
 

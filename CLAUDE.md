@@ -26,7 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-04-25)
-- **UX unificado + tenant CRUD + deploy prod:** `ChartSkeleton` en 6 páginas. 0 `<select>` nativos. 0 `<tbody>` raw. Forms Modal → Drawer. Tenant CRUD completo: 4 campos nuevos (address, addressDetail, phone, taxId), edit drawer, toggle activo/inactivo, colisión dirección, validación nombre único. Dockerfile backend. Deploy: migración SQL + ECS Fargate. 238 tests frontend / 29 suites. 18 tests tenant backend. [CHANGELOG — 2.6.0-alpha.0](CHANGELOG.md)
+- **UX unificado + tenant CRUD + deploy prod:** 0 `<select>` nativos, 0 `<tbody>` raw, 0 checkboxes nativos en forms. `CheckboxList` reutilizable. Meters cross-tenant create. Tenant CRUD completo (4 campos, edit, toggle). Frontend+backend deployed. 243 tests / 30 suites. [CHANGELOG — 2.6.0-alpha.0](CHANGELOG.md)
 - **Multi-tenant scoping + role hierarchy + platform dashboard:** Backend `crossTenant` flag para Globe Power sin empresa seleccionada. Buildings/meters/alerts/readings cross-tenant. `PlatformDashboardPage` con KPIs globales. Role hierarchy enforcement (`hierarchy_level`): cada nivel solo crea inferiores. `RequireTenantLayout` en router — módulos que requieren empresa bloqueados hasta seleccionar. `usePermissions` fix: usuarios reales usan permisos DB, no map estático. PASA roles clonados en prod. Footer phone fix. [CHANGELOG — 2.5.0-alpha.0](CHANGELOG.md)
 - **Globe Landing SEO & share preview:** Título → "Grupo Globe", meta OG/Twitter con imagen 1200x630, favicon logo, lang `es`. Route 53 zona redundante eliminada. [CHANGELOG — 2.5.0-alpha.0](CHANGELOG.md)
 

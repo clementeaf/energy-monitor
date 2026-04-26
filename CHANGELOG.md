@@ -34,9 +34,20 @@
 - **Tenants findAll** — Returns all tenants (including inactive) for admin visibility.
 - **Tenants update** — Handles `address`, `addressDetail`, `phone`, `taxId` fields.
 
+### Added (monitoreo-v2/backend — meters)
+- **Meters cross-tenant create** — `CreateMeterDto` accepts optional `tenantId`. Controller uses it when `user.crossTenant=true`.
+
+### Added (monitoreo-v2/frontend — components)
+- **`CheckboxList` component** — Reusable styled multi-select with themed checkmarks. Replaces native checkboxes in UserForm and ApiKeysPage. Test included.
+
 ### Changed (monitoreo-v2/frontend)
 - **CompaniesPage rewrite** — Full CRUD: create drawer (datos empresa, admin, tema, timezone), edit drawer (toggle activo/inactivo, all fields). Address collision detection with addressDetail required on conflict. Columns: Dirección, Teléfono, RUT, Estado, Acciones.
 - **`useUpdateTenant` hook** — New mutation for tenant updates.
+- **MeterForm** — Tenant selector (`DropdownSelect`) when super_admin in cross-tenant mode.
+- **UserForm** — Native checkboxes → `CheckboxList` for building selection.
+- **ApiKeysPage** — Native checkboxes → `CheckboxList` for permission selection.
+- **Build config** — `tsconfig.build.json` excludes test files from production type-check. `package.json` build uses it.
+- **Frontend deployed** to S3 + CloudFront `power-monitor.cloud`.
 
 ## [2.5.0-alpha.0] - 2026-04-25 — MULTI-TENANT SCOPING, ROLE HIERARCHY, PLATFORM DASHBOARD
 

@@ -4,6 +4,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { Button } from '../../../components/ui/Button';
 import { Toggle } from '../../../components/ui/Toggle';
+import { CheckboxList } from '../../../components/ui/CheckboxList';
 import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
@@ -83,11 +84,7 @@ export function ApiKeysPage() {
     });
   };
 
-  const togglePermission = (perm: string) => {
-    setFormPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm],
-    );
-  };
+  const permissionOptions = AVAILABLE_PERMISSIONS.map((p) => ({ value: p, label: p }));
 
   const handleToggleActive = (key: ApiKey) => {
     updateMutation.mutate({
@@ -210,18 +207,11 @@ export function ApiKeysPage() {
           </Field>
 
           <Field label="Permisos">
-            <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-gray-200 p-2">
-              {AVAILABLE_PERMISSIONS.map((perm) => (
-                <label key={perm} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={formPermissions.includes(perm)}
-                    onChange={() => { togglePermission(perm); }}
-                  />
-                  <code className="text-xs">{perm}</code>
-                </label>
-              ))}
-            </div>
+            <CheckboxList
+              options={permissionOptions}
+              selected={formPermissions}
+              onChange={setFormPermissions}
+            />
           </Field>
 
           <Field label="Rate Limit (por minuto)">

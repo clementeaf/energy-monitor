@@ -42,6 +42,7 @@ export interface CreateMeterPayload {
   nominalVoltage?: number;
   nominalCurrent?: number;
   contractedDemandKw?: number;
+  tenantId?: string;
 }
 
 export interface UpdateMeterPayload {

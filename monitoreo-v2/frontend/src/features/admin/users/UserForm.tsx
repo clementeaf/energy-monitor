@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { Button } from '../../../components/ui/Button';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
+import { CheckboxList } from '../../../components/ui/CheckboxList';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useRolesQuery } from '../../../hooks/queries/useRolesQuery';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
@@ -28,11 +29,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
   const buildingsQuery = useBuildingsQuery();
   const buildings = buildingsQuery.data ?? [];
 
-  const toggleBuilding = (id: string) => {
-    setSelectedBuildingIds((prev) =>
-      prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id],
-    );
-  };
+  const buildingOptions = buildings.map((b) => ({ value: b.id, label: b.name }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,18 +132,11 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
 
         {!isEdit && buildings.length > 0 && (
           <Field label="Edificios (opcional)">
-            <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-gray-200 p-2">
-              {buildings.map((b) => (
-                <label key={b.id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={selectedBuildingIds.includes(b.id)}
-                    onChange={() => { toggleBuilding(b.id); }}
-                  />
-                  {b.name}
-                </label>
-              ))}
-            </div>
+            <CheckboxList
+              options={buildingOptions}
+              selected={selectedBuildingIds}
+              onChange={setSelectedBuildingIds}
+            />
           </Field>
         )}
       </form>

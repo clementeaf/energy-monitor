@@ -66,7 +66,8 @@ export class MetersController {
     @Body() dto: CreateMeterDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.metersService.create(user.tenantId, dto);
+    const tenantId = user.crossTenant && dto.tenantId ? dto.tenantId : user.tenantId;
+    return this.metersService.create(tenantId, dto);
   }
 
   @Patch(':id')

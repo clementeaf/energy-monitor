@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Drawer } from '../../components/ui/Drawer';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useAppStore } from '../../store/useAppStore';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload, MeterPhaseType } from '../../types/meter';
 
 interface MeterFormProps {
@@ -15,8 +18,13 @@ interface MeterFormProps {
 
 export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBuildingId }: Readonly<MeterFormProps>) {
   const isEdit = !!meter;
+  const { isSuperAdmin } = usePermissions();
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
+  const needsTenantSelect = !isEdit && isSuperAdmin && !selectedTenantId;
+  const tenantsQuery = useTenantsAdminQuery();
   const buildingsQuery = useBuildingsQuery();
 
+  const [tenantId, setTenantId] = useState('');
   const [buildingId, setBuildingId] = useState(meter?.buildingId ?? defaultBuildingId ?? '');
   const [name, setName] = useState(meter?.name ?? '');
   const [code, setCode] = useState(meter?.code ?? '');
@@ -41,6 +49,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
         meterType,
         phaseType,
         ...(model ? { model } : {}),
+        ...(needsTenantSelect && tenantId ? { tenantId } : {}),
       });
     }
   };
@@ -48,6 +57,20 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
   return (
     <Drawer open={open} onClose={onClose} title={isEdit ? 'Editar Medidor' : 'Nuevo Medidor'}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {needsTenantSelect && (
+          <Field label="Empresa" required>
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Seleccionar empresa...' },
+                ...(tenantsQuery.data?.filter((t) => t.slug !== 'globe-power').map((t) => ({ value: t.id, label: t.name })) ?? []),
+              ]}
+              value={tenantId}
+              onChange={setTenantId}
+              className="w-full"
+            />
+          </Field>
+        )}
+
         {!isEdit && (
           <Field label="Edificio" required>
             <DropdownSelect
@@ -126,7 +149,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
           </button>
           <button
             type="submit"
-            disabled={isPending || !name || (!isEdit && (!code || !buildingId))}
+            disabled={isPending || !name || (!isEdit && (!code || !buildingId)) || (needsTenantSelect && !tenantId)}
             className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}

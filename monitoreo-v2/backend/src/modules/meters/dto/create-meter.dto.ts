@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsObject,
   IsIn,
+  IsUUID,
   MaxLength,
   Min,
   IsIP,
@@ -88,4 +89,9 @@ export class CreateMeterDto {
   @IsNumber()
   @Min(0)
   contractedDemandKw?: number;
+
+  /** Only used by super_admin in cross-tenant mode. */
+  @IsOptional()
+  @IsUUID()
+  tenantId?: string;
 }

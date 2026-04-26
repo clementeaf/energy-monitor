@@ -10,12 +10,14 @@
 - **Meters "Edificio" column** — Visible when no building filter is active. Resolves building name from `buildingId`.
 
 ### Added (monitoreo-v2/frontend — tests)
-- **8 new UI component tests** — ChartSkeleton, ConfirmDialog, DataWidget, PdfPreviewModal, QueryStateView, RequireTenant, TableStateBody, WidgetErrorBoundary. All 17 UI components now have tests (158 total).
+- **8 UI component tests** — ChartSkeleton, ConfirmDialog, DataWidget, PdfPreviewModal, QueryStateView, RequireTenant, TableStateBody, WidgetErrorBoundary.
+- **3 integration test suites** — login-flow (4 tests: auth gate, protected route, session resolver), buildings-crud (5 tests: table, skeleton, empty, drawer, error+retry), cross-tenant (5 tests: RequireTenant, Empresa column toggle). 238 total tests, 29 suites.
 
 ### Changed (monitoreo-v2/frontend)
 - **Chart skeleton on 6 pages** — InvoicesPage, MyInvoicePage, AlertsHistoryPage, BenchmarkPage, QualityPage, DashboardPage.
 - **PlatformDashboardPage** — Compact KPI cards, 7 in single row. Table migrated to `TableStateBody`.
 - **DrilldownPage** — Custom skeleton replaced with `TableStateBody`.
+- **TableStateBody on all tables** — ExecutiveDashboardPage, ExecutiveSitePage, CompareDashboardPage (2), RealtimePage, ModbusMapPage, DemandPage migrated. Zero raw `<tbody>` remaining.
 - **18 native selects → DropdownSelect** — CompaniesPage, ReportsPage (6), IntegrationsPage, HierarchyPage (2), UserForm (2), TenantUnitForm, AlertRulesPage, MeterForm, InvoicesPage (2), TariffsPage. Zero native `<select>` remaining.
 - **BuildingForm** — Modal → Drawer, address required, `<label>` → `<div>` (fixes DropdownSelect re-open bug).
 - **MeterForm** — Modal → Drawer, building select → `DropdownSelect`, `<label>` → `<div>`.

@@ -6,6 +6,7 @@ import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQu
 import { StockChart } from '../../../components/charts/StockChart';
 import { Chart } from '../../../components/charts/Chart';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import {
   compareMetricsByBuilding,
   dailyEnergySeriesByBuilding,
@@ -360,7 +361,7 @@ export function CompareDashboardPage(): ReactElement {
                         <th className="px-3 py-2 text-right">FP</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-pa-border">
+                    <TableStateBody phase="ready" colSpan={6} skeletonWidths={['w-28', 'w-20', 'w-20', 'w-16', 'w-16', 'w-16']}>
                       {tableRowsDual.map((r) => (
                         <tr key={r.buildingId}>
                           <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
@@ -382,7 +383,7 @@ export function CompareDashboardPage(): ReactElement {
                           <td className="px-3 py-1.5 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
                         </tr>
                       ))}
-                    </tbody>
+                    </TableStateBody>
                   </table>
                 ) : (
                   <table className="min-w-full text-[13px]">
@@ -395,7 +396,7 @@ export function CompareDashboardPage(): ReactElement {
                         <th className="px-3 py-2 text-right">Δ vs media</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-pa-border">
+                    <TableStateBody phase="ready" colSpan={5} skeletonWidths={['w-28', 'w-20', 'w-16', 'w-16', 'w-16']}>
                       {tableRowsSingle.map((r) => (
                         <tr key={r.buildingId}>
                           <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
@@ -413,7 +414,7 @@ export function CompareDashboardPage(): ReactElement {
                           </td>
                         </tr>
                       ))}
-                    </tbody>
+                    </TableStateBody>
                   </table>
                 )}
               </div>

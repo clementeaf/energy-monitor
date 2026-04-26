@@ -5,6 +5,7 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ReadingResolution } from '../../../types/reading';
 
@@ -191,7 +192,11 @@ export function DemandPage() {
                 {maxContracted > 0 && <Th>% Contratada</Th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <TableStateBody
+              phase="ready"
+              colSpan={maxContracted > 0 ? 4 : 3}
+              emptyMessage="Sin peaks registrados."
+            >
               {topPeaks.map((p, i) => (
                 <tr key={p.bucket} className="hover:bg-gray-50">
                   <Td>{i + 1}</Td>
@@ -206,7 +211,7 @@ export function DemandPage() {
                   )}
                 </tr>
               ))}
-            </tbody>
+            </TableStateBody>
           </table>
         </div>
       )}

@@ -9,6 +9,8 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useTariffsQuery, useTariffBlocksQuery } from '../../../hooks/queries/useTariffsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { useQueryState } from '../../../hooks/useQueryState';
 import { aggregatePortfolioByBucket, dateRangeFromPreset } from '../dashboardAggregations';
 import { APP_ROUTES } from '../../../app/routes';
 
@@ -40,6 +42,9 @@ export function ExecutiveSitePage(): ReactElement {
   const firstTariffId = tariffsQuery.data?.find((t) => t.isActive)?.id ?? tariffsQuery.data?.[0]?.id ?? null;
   const tariffBlocksQuery = useTariffBlocksQuery(firstTariffId);
 
+  const latestQs = useQueryState(latestQuery, {
+    isEmpty: (d) => !d || d.length === 0,
+  });
 
   const meters = metersQuery.data ?? [];
   const latestReadings = latestQuery.data ?? [];
@@ -278,7 +283,14 @@ export function ExecutiveSitePage(): ReactElement {
                   <th className="px-4 py-2">Última lectura</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <TableStateBody
+                phase={latestQs.phase}
+                colSpan={7}
+                error={latestQs.error}
+                onRetry={() => { latestQuery.refetch(); }}
+                emptyMessage="Sin lecturas recientes."
+                skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-16', 'w-24', 'w-28']}
+              >
                 {latestReadings.map((r) => (
                   <tr key={r.meter_id}>
                     <td className="px-4 py-2 font-medium text-gray-900">{r.meter_name}</td>
@@ -292,7 +304,7 @@ export function ExecutiveSitePage(): ReactElement {
                     </td>
                   </tr>
                 ))}
-              </tbody>
+              </TableStateBody>
             </table>
           </div>
         </DataWidget>

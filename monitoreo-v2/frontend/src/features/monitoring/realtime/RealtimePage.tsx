@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import { DataWidget } from '../../../components/ui/DataWidget';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { LatestReading } from '../../../types/reading';
@@ -177,66 +177,60 @@ export function RealtimePage() {
         <MiniKpi label="Potencia" value={`${totalPower.toFixed(1)} kW`} color="text-pa-text" />
       </div>
 
-      {qs.phase === 'loading' ? (
-        <TableSkeleton />
-      ) : (
-        <DataWidget
-          phase={qs.phase}
-          error={qs.error}
-          onRetry={() => { latestQuery.refetch(); }}
-          isFetching={latestQuery.isFetching && qs.phase === 'ready'}
-          emptyTitle="Sin lecturas"
-          emptyDescription="No hay lecturas recientes disponibles."
-        >
-          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="sticky top-0 z-10 bg-gray-50">
-                <tr>
-                  <Th>Estado</Th>
-                  <Th>Medidor</Th>
-                  <Th>Edificio</Th>
-                  <Th>Potencia (kW)</Th>
-                  <Th>Voltaje (V)</Th>
-                  <Th>FP</Th>
-                  <Th>Frecuencia</Th>
-                  <Th>Ultima lectura</Th>
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="sticky top-0 z-10 bg-gray-50">
+            <tr>
+              <Th>Estado</Th>
+              <Th>Medidor</Th>
+              <Th>Edificio</Th>
+              <Th>Potencia (kW)</Th>
+              <Th>Voltaje (V)</Th>
+              <Th>FP</Th>
+              <Th>Frecuencia</Th>
+              <Th>Ultima lectura</Th>
+            </tr>
+          </thead>
+          <TableStateBody
+            phase={qs.phase}
+            colSpan={8}
+            error={qs.error}
+            onRetry={() => latestQuery.refetch()}
+            emptyMessage="Sin lecturas recientes."
+            skeletonWidths={['w-16', 'w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-20', 'w-28']}
+          >
+            {visibleReadings.map((r) => {
+              const status = getMeterStatus(r, alertMeterIds);
+              const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.offline;
+              return (
+                <tr
+                  key={r.meter_id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => navigate(`/monitoring/meter/${r.meter_id}`)}
+                >
+                  <Td>
+                    <span className="flex items-center gap-2">
+                      <span className={`inline-block size-2 rounded-full ${cfg.dot}`} />
+                      <span className="text-xs">{cfg.label}</span>
+                    </span>
+                  </Td>
+                  <Td className="font-medium">{r.meter_name}</Td>
+                  <Td>{buildingMap.get(r.building_id) ?? '—'}</Td>
+                  <Td>{Number(r.power_kw || 0).toFixed(2)}</Td>
+                  <Td>{r.voltage_l1 ? Number(r.voltage_l1).toFixed(1) : '—'}</Td>
+                  <Td>{r.power_factor ? Number(r.power_factor).toFixed(3) : '—'}</Td>
+                  <Td>{r.frequency_hz ? `${Number(r.frequency_hz).toFixed(1)} Hz` : '—'}</Td>
+                  <Td className="text-xs text-gray-500">
+                    {new Date(r.timestamp).toLocaleString('es-CL')}
+                  </Td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {visibleReadings.map((r) => {
-                  const status = getMeterStatus(r, alertMeterIds);
-                  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.offline;
-                  return (
-                    <tr
-                      key={r.meter_id}
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => navigate(`/monitoring/meter/${r.meter_id}`)}
-                    >
-                      <Td>
-                        <span className="flex items-center gap-2">
-                          <span className={`inline-block size-2 rounded-full ${cfg.dot}`} />
-                          <span className="text-xs">{cfg.label}</span>
-                        </span>
-                      </Td>
-                      <Td className="font-medium">{r.meter_name}</Td>
-                      <Td>{buildingMap.get(r.building_id) ?? '—'}</Td>
-                      <Td>{Number(r.power_kw || 0).toFixed(2)}</Td>
-                      <Td>{r.voltage_l1 ? Number(r.voltage_l1).toFixed(1) : '—'}</Td>
-                      <Td>{r.power_factor ? Number(r.power_factor).toFixed(3) : '—'}</Td>
-                      <Td>{r.frequency_hz ? `${Number(r.frequency_hz).toFixed(1)} Hz` : '—'}</Td>
-                      <Td className="text-xs text-gray-500">
-                        {new Date(r.timestamp).toLocaleString('es-CL')}
-                      </Td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {/* Infinite scroll sentinel */}
-            {hasMore && <div ref={sentinelRef} className="h-4" />}
-          </div>
-        </DataWidget>
-      )}
+              );
+            })}
+          </TableStateBody>
+        </table>
+        {/* Infinite scroll sentinel */}
+        {hasMore && <div ref={sentinelRef} className="h-4" />}
+      </div>
     </div>
   );
 }
@@ -262,37 +256,3 @@ function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; 
   return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
 }
 
-const SKELETON_ROWS = 8;
-const SKELETON_COLS = ['w-16', 'w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-20', 'w-28'];
-
-function TableSkeleton() {
-  return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <Th>Estado</Th>
-            <Th>Medidor</Th>
-            <Th>Edificio</Th>
-            <Th>Potencia (kW)</Th>
-            <Th>Voltaje (V)</Th>
-            <Th>FP</Th>
-            <Th>Frecuencia</Th>
-            <Th>Ultima lectura</Th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {Array.from({ length: SKELETON_ROWS }, (_, i) => (
-            <tr key={i}>
-              {SKELETON_COLS.map((w, j) => (
-                <td key={j} className="whitespace-nowrap px-4 py-3">
-                  <div className={`h-4 ${w} animate-pulse rounded bg-gray-200`} />
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}

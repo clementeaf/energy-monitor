@@ -9,6 +9,7 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useTariffsQuery, useTariffBlocksQuery } from '../../../hooks/queries/useTariffsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import {
   aggregatePortfolioByBucket,
@@ -297,7 +298,14 @@ export function ExecutiveDashboardPage(): ReactElement {
                       <th className="px-3 py-2 text-right">Int.</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-pa-border">
+                  <TableStateBody
+                    phase={buildingsQs.phase}
+                    colSpan={4}
+                    error={buildingsQs.error}
+                    onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
+                    emptyMessage="Sin datos de edificios."
+                    skeletonWidths={['w-8', 'w-32', 'w-20', 'w-16']}
+                  >
                     {ranking.map((row, idx) => (
                       <tr key={row.buildingId}>
                         <td className="px-3 py-1.5 text-pa-text-muted">{idx + 1}</td>
@@ -317,7 +325,7 @@ export function ExecutiveDashboardPage(): ReactElement {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
+                  </TableStateBody>
                 </table>
               </div>
               <p className="text-[11px] text-pa-text-muted">

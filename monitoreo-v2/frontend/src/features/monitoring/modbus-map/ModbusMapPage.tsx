@@ -4,7 +4,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { DataWidget } from '../../../components/ui/DataWidget';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { Meter } from '../../../types/meter';
 import type { Concentrator } from '../../../types/concentrator';
@@ -113,42 +113,6 @@ export function ModbusMapPage() {
         Concentradores del sitio y medidores agrupados por identificador de bus, ordenados por direccion Modbus.
       </p>
 
-      {metersQuery.isLoading || concentratorsQuery.isLoading ? (
-        <div className="space-y-4 animate-pulse">
-          <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="mb-3 h-3 w-32 rounded bg-gray-200" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-md border border-gray-100 bg-gray-50/80 p-3">
-                  <div className="h-4 w-28 rounded bg-gray-300" />
-                  <div className="mt-1 h-3 w-20 rounded bg-gray-200" />
-                  <div className="mt-2 h-5 w-16 rounded-full bg-gray-200" />
-                </div>
-              ))}
-            </div>
-          </section>
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
-              <div className="h-4 w-24 rounded bg-gray-300" />
-              <div className="mt-1 h-3 w-16 rounded bg-gray-200" />
-            </div>
-            <table className="min-w-full text-sm">
-              <tbody className="divide-y divide-gray-200">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 7 }).map((__, j) => (
-                      <td key={j} className="px-4 py-2">
-                        <div className="h-3 rounded bg-gray-100" style={{ width: `${[32, 80, 56, 56, 48, 24, 64][j]}px` }} />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <>
       <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-600">Concentradores</h2>
         {concentrators.length === 0 ? (
@@ -162,70 +126,67 @@ export function ModbusMapPage() {
         )}
       </section>
 
-      <DataWidget
-        phase={qs.phase}
-        error={qs.error}
-        onRetry={() => { metersQuery.refetch(); }}
-        emptyTitle="Sin medidores"
-        emptyDescription="No hay medidores en este edificio."
-      >
-        <div className="space-y-6">
-          {busGroups.map((g) => (
-            <div key={g.busKey} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
-                <h3 className="text-sm font-semibold text-gray-800">Bus: {g.label}</h3>
-                <p className="text-xs text-gray-500">{g.meters.length} medidor(es)</p>
-              </div>
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="sticky top-0 z-10 bg-white">
-                  <tr className="text-left text-xs uppercase text-gray-500">
-                    <th className="px-4 py-2">Modbus</th>
-                    <th className="px-4 py-2">Medidor</th>
-                    <th className="px-4 py-2">Modelo</th>
-                    <th className="px-4 py-2">Tipo</th>
-                    <th className="px-4 py-2">Estado</th>
-                    <th className="px-4 py-2">CRC ult. sondeo</th>
-                    <th className="px-4 py-2">Ruta uplink</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {g.meters.map((m) => {
-                    const r = readingByMeterId.get(m.id);
-                    const st = meterCommStatus(r?.timestamp ?? null, m.isActive);
-                    const crc = m.crcErrorsLastPoll ?? 0;
-                    const uplink = m.uplinkRoute ?? '—';
-                    return (
-                      <tr key={m.id} className="hover:bg-gray-50">
-                        <td className="whitespace-nowrap px-4 py-2 font-mono text-gray-900">
-                          {m.modbusAddress != null ? m.modbusAddress : '—'}
-                        </td>
-                        <td className="px-4 py-2 font-medium text-gray-900">{m.name}</td>
-                        <td className="px-4 py-2 text-gray-700">{m.model ?? '—'}</td>
-                        <td className="px-4 py-2 text-gray-700">{m.meterType}</td>
-                        <td className="px-4 py-2">
-                          <StatusPill status={st} crcError={crc > 0} />
-                        </td>
-                        <td className="px-4 py-2 font-mono text-gray-700">{crc}</td>
-                        <td className="max-w-[12rem] truncate px-4 py-2 text-gray-600" title={uplink === '—' ? undefined : uplink}>
-                          {uplink}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+      <div className="space-y-6">
+        {busGroups.map((g) => (
+          <div key={g.busKey} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
+              <h3 className="text-sm font-semibold text-gray-800">Bus: {g.label}</h3>
+              <p className="text-xs text-gray-500">{g.meters.length} medidor(es)</p>
             </div>
-          ))}
-        </div>
-      </DataWidget>
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="sticky top-0 z-10 bg-white">
+                <tr className="text-left text-xs uppercase text-gray-500">
+                  <th className="px-4 py-2">Modbus</th>
+                  <th className="px-4 py-2">Medidor</th>
+                  <th className="px-4 py-2">Modelo</th>
+                  <th className="px-4 py-2">Tipo</th>
+                  <th className="px-4 py-2">Estado</th>
+                  <th className="px-4 py-2">CRC ult. sondeo</th>
+                  <th className="px-4 py-2">Ruta uplink</th>
+                </tr>
+              </thead>
+              <TableStateBody
+                phase={qs.phase}
+                colSpan={7}
+                error={qs.error}
+                onRetry={() => metersQuery.refetch()}
+                emptyMessage="Sin medidores."
+                skeletonWidths={['w-12', 'w-28', 'w-20', 'w-16', 'w-14', 'w-12', 'w-20']}
+              >
+                {g.meters.map((m) => {
+                  const r = readingByMeterId.get(m.id);
+                  const st = meterCommStatus(r?.timestamp ?? null, m.isActive);
+                  const crc = m.crcErrorsLastPoll ?? 0;
+                  const uplink = m.uplinkRoute ?? '—';
+                  return (
+                    <tr key={m.id} className="hover:bg-gray-50">
+                      <td className="whitespace-nowrap px-4 py-2 font-mono text-gray-900">
+                        {m.modbusAddress != null ? m.modbusAddress : '—'}
+                      </td>
+                      <td className="px-4 py-2 font-medium text-gray-900">{m.name}</td>
+                      <td className="px-4 py-2 text-gray-700">{m.model ?? '—'}</td>
+                      <td className="px-4 py-2 text-gray-700">{m.meterType}</td>
+                      <td className="px-4 py-2">
+                        <StatusPill status={st} crcError={crc > 0} />
+                      </td>
+                      <td className="px-4 py-2 font-mono text-gray-700">{crc}</td>
+                      <td className="max-w-[12rem] truncate px-4 py-2 text-gray-600" title={uplink === '—' ? undefined : uplink}>
+                        {uplink}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </TableStateBody>
+            </table>
+          </div>
+        ))}
+      </div>
 
       <p className="text-xs text-gray-400">
         <Link to={`/monitoring/drilldown/${siteId}`} className="text-[var(--color-primary,#3D3BF3)] hover:underline">
           Ver jerarquia electrica del sitio
         </Link>
       </p>
-        </>
-      )}
     </div>
   );
 }

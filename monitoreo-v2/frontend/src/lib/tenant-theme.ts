@@ -26,11 +26,11 @@ export function applyTenantTheme(theme: TenantTheme, slug?: string | null): void
     root.removeAttribute('data-theme');
   }
 
-  // Browser tab title
-  document.title = theme.appTitle;
+  // Browser tab title (limit length to prevent tab-napping)
+  document.title = (theme.appTitle ?? '').slice(0, 60);
 
-  // Favicon
-  if (theme.faviconUrl) {
+  // Favicon (validate scheme to prevent javascript: URIs)
+  if (theme.faviconUrl && /^(https?:\/\/|\/[^/])/.test(theme.faviconUrl)) {
     setFavicon(theme.faviconUrl);
   }
 }

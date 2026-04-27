@@ -9,6 +9,9 @@ const REQUIRED_IN_PRODUCTION = [
   'FRONTEND_URL',
   'DB_HOST',
   'DB_PASSWORD',
+  'MICROSOFT_TENANT_ID',
+  'MICROSOFT_CLIENT_ID',
+  'GOOGLE_CLIENT_ID',
 ];
 
 /**
@@ -26,9 +29,15 @@ export function validateEnv(): void {
     }
   }
 
+  // JWT_SECRET must be at least 32 characters (256-bit entropy)
+  const jwtSecret = process.env.JWT_SECRET;
+  if (jwtSecret && jwtSecret.length < 32) {
+    missing.push('JWT_SECRET (too short — minimum 32 characters)');
+  }
+
   if (missing.length === 0) return;
 
-  const message = `Missing environment variables: ${missing.join(', ')}`;
+  const message = `Environment validation failed: ${missing.join(', ')}`;
 
   if (isProduction) {
     logger.error(`[FATAL] ${message}. Cannot start in production without these.`);

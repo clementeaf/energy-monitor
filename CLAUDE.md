@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-04-27)
+- **Security hardening:** Auditoría completa backend+frontend. 8 fixes backend (ValidationPipe `forbidNonWhitelisted`, MFA bypass cerrado, Swagger prod disabled, logout `__Host-` cookies, DTO `@IsIn`, SSRF re-validation sync, env vars expandidas, JWT_SECRET min 32 chars). 6 fixes frontend (Google OAuth credential flow, `/components` dev-only, rutas duplicadas, open redirect, ErrorBoundary dev-only, faviconUrl scheme validation). Redis-backed throttler (`REDIS_URL` opcional). 737 tests backend / 260 tests frontend. Deploy programado 2026-04-28 03:00 CLT via GitHub Actions (`security-patch-v2.yml`): rota secrets, build+push Docker→ECR, update ECS, deploy frontend S3+CloudFront. [CHANGELOG — 2.7.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-25)
 - **Tenant isolation + operator billing strip + session modal:** 33 tests aislamiento multi-tenant (buildings, meters, tenant-units, hierarchy, users, tenants). `billing:*` removido de operator en prod + auto-strip en onboarding. Hierarchy valida building ownership. Users valida building ownership en assignBuildings. SessionExpiredModal en frontend. Drawer slide animation. 260 tests frontend / 34 suites. 117 tests backend isolation. [CHANGELOG — 2.6.0-alpha.0](CHANGELOG.md)
 - **Multi-tenant scoping + role hierarchy + platform dashboard:** Backend `crossTenant` flag para Globe Power sin empresa seleccionada. Buildings/meters/alerts/readings cross-tenant. `PlatformDashboardPage` con KPIs globales. Role hierarchy enforcement (`hierarchy_level`): cada nivel solo crea inferiores. `RequireTenantLayout` en router — módulos que requieren empresa bloqueados hasta seleccionar. `usePermissions` fix: usuarios reales usan permisos DB, no map estático. PASA roles clonados en prod. Footer phone fix. [CHANGELOG — 2.5.0-alpha.0](CHANGELOG.md)
@@ -158,8 +161,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: ECS Fargate (monitoreo-v2-backend) + RDS (monitoreo-v2-db) + CloudFront (power-monitor.cloud + plataforma.globepower.cl).
-Backend: 21 módulos, health endpoint, super_admin cross-tenant, refresh token __Host- cookie. 656 tests, 61 suites.
-Frontend: 19 páginas, operator/building switchers, tenant theming. 185 tests, 18 suites.
+Backend: 21 módulos, health endpoint, super_admin cross-tenant, refresh token __Host- cookie, Redis throttler opcional. 737 tests, 63 suites.
+Frontend: 19 páginas, Google credential flow, operator/building switchers, tenant theming. 260 tests, 34 suites.
 ```
 
 ## Prioridad Actual de Acceso
@@ -179,7 +182,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 656 tests / 61 suites). Frontend: Vitest + @testing-library/react (185 tests / 18 suites).
+- **Testing:** Jest 30 (backend, 737 tests / 63 suites). Frontend: Vitest + @testing-library/react (260 tests / 34 suites).
 
 ## Architecture
 ```
@@ -213,8 +216,8 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **NestJS module (4-file):** entity → service → controller → module. Registrar en app.module.ts.
 - **TypeORM:** autoLoadEntities, synchronize: false. Raw SQL con `this.dataSource.query()`. rawVal() para pg minúsculas.
 - **Auth:** Guard global JWT + `@RequirePermissions(module, action)` + `RolesGuard`
-- **Validation:** Global ValidationPipe({ whitelist, transform }). DTOs con class-validator.
-- **Swagger:** `/api/v1/docs` — OpenAPI para API externa (X-API-Key auth). Configurado via `@nestjs/swagger` en main.ts.
+- **Validation:** Global ValidationPipe({ whitelist, forbidNonWhitelisted, transform }). DTOs con class-validator.
+- **Swagger:** `/api/docs` — OpenAPI (dev only, disabled in production). Configurado via `@nestjs/swagger` en main.ts.
 - **Error handling:** service null → controller NotFoundException; auth null on failure
 - **IoT module:** `IotReadingsModule` — 9 endpoints read-only desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`, `alerts`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh). Alertas generadas on-the-fly desde anomalías (voltaje, PF, potencia, THD)
 
@@ -233,7 +236,7 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 **DB local:** docker `pg-arauco` → `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=arauco DB_USERNAME=postgres DB_PASSWORD=arauco`
 
 ## Environment Variables
-- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json`; opcional `RDS_CA_BUNDLE_PATH`; opcional `CONFIG_ENCRYPTION_KEY` (AES-256-GCM para secrets en integration config). En producción `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `DB_HOST`, `DB_PASSWORD` son requeridos (bootstrap falla sin ellos).
+- **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json`; opcional `RDS_CA_BUNDLE_PATH`; opcional `CONFIG_ENCRYPTION_KEY` (AES-256-GCM para secrets en integration config). En producción `JWT_SECRET` (min 32 chars), `COOKIE_SECRET`, `FRONTEND_URL`, `DB_HOST`, `DB_PASSWORD`, `MICROSOFT_TENANT_ID`, `MICROSOFT_CLIENT_ID`, `GOOGLE_CLIENT_ID` son requeridos (bootstrap falla sin ellos). Opcional `REDIS_URL` para rate limiting distribuido (multi-instancia ECS).
 - **Email (SES):** opcional `SES_FROM_EMAIL` (identidad verificada en SES), `SES_REGION` (default `AWS_REGION` / `us-east-1`), `ALERT_EMAIL_RECIPIENTS` (coma-separados) para alertas/escalamiento; `notifyUserCreated` envía al email del usuario cuando `SES_FROM_EMAIL` está definido. Ver [AWS Runbook — SES](docs/aws-runbook.md#amazon-ses-email-saliente).
 - **Frontend:** `VITE_AUTH_MODE`, `VITE_MICROSOFT_CLIENT_ID`, `VITE_MICROSOFT_TENANT_ID`, `VITE_GOOGLE_CLIENT_ID`
 
@@ -250,8 +253,8 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 ## Known Issues & Tech Debt
 - **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.
 - **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
-- **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation, config encryption AES-256-GCM. SSRF blocker en connectors. HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns.
-- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 73 tests / 10 suites. E2E pendiente (Playwright).
+- **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
+- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 260 tests / 34 suites. E2E pendiente (Playwright).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 
 ## Playbooks Opcionales

@@ -18,7 +18,7 @@ export function SessionExpiredModal() {
     localStorage.removeItem('has_session');
     clearSession();
     setOpen(false);
-    window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+    window.location.href = '/login';
   }, [clearSession]);
 
   const handleLogout = useCallback(() => {

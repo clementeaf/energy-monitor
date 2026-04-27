@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsHexColor,
+  IsIn,
   IsObject,
   IsOptional,
   IsString,
@@ -91,6 +92,6 @@ export class CreateTenantDto {
   adminDisplayName?: string;
 
   /** Auth provider for the first admin ('microsoft' | 'google'). */
-  @IsString()
-  adminAuthProvider!: string;
+  @IsIn(['microsoft', 'google'])
+  adminAuthProvider!: 'microsoft' | 'google';
 }

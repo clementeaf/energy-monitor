@@ -24,7 +24,7 @@ vi.mock('@azure/msal-browser', () => ({
 
 vi.mock('@react-oauth/google', () => ({
   GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => children,
-  useGoogleLogin: () => vi.fn(),
+  GoogleLogin: () => <div data-testid="google-login-btn">Google Login</div>,
 }));
 
 vi.mock('../hooks/auth/useSessionResolver', () => ({

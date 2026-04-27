@@ -198,18 +198,11 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },
               { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersPage /></P> },
 
-              /* Alertas (cross-tenant) */
-              { path: APP_ROUTES.alerts, element: <P any={ALERTS}><LazyAlertsPage /></P> },
-              { path: APP_ROUTES.alertRules, element: <P any={['alerts:create', 'alerts:update']}><LazyAlertRulesPage /></P> },
-              { path: APP_ROUTES.escalation, element: <P any={ALERTS}><LazyEscalationPage /></P> },
-              { path: APP_ROUTES.notifications, element: <P any={ALERTS}><LazyNotificationsPage /></P> },
-              { path: APP_ROUTES.alertsHistory, element: <P any={ALERTS}><LazyAlertsHistoryPage /></P> },
-
               /* Admin — Empresas (super_admin only, no tenant needed) */
               { path: APP_ROUTES.admin.companies, element: <P any={['admin_tenants:create']}><LazyCompaniesPage /></P> },
 
-              /* Components (dev) */
-              { path: APP_ROUTES.components, element: <LazyComponentsPage /> },
+              /* Components (dev only) */
+              ...(import.meta.env.DEV ? [{ path: APP_ROUTES.components, element: <LazyComponentsPage /> }] : []),
             ],
           },
         ],

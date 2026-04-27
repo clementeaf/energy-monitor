@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { Integration } from '../../platform/entities/integration.entity';
 import type { IntegrationConnector, SyncResult, RestApiConfig } from './connector.interface';
 import { withRetry } from './retry.util';
-import { validateExternalUrl } from '../../../common/security/url-validator';
+import { validateExternalUrl, validateResolvedUrl } from '../../../common/security/url-validator';
 
 /**
  * Connector for external REST APIs.
@@ -65,6 +65,13 @@ export class RestApiConnector implements IntegrationConnector {
     const config = integration.config as unknown as RestApiConfig;
     const method = config.method ?? 'GET';
     const timeoutMs = config.timeoutMs ?? 30_000;
+
+    // SSRF: re-validate URL at fetch time (DNS rebinding defense)
+    const ssrfError = await validateResolvedUrl(config.url);
+    if (ssrfError) {
+      this.logger.warn(`[${integration.name}] SSRF blocked at sync: ${ssrfError}`);
+      return { status: 'failed', recordsSynced: 0, errorMessage: ssrfError };
+    }
 
     const headers: Record<string, string> = { ...config.headers };
     this.applyAuth(headers, config);

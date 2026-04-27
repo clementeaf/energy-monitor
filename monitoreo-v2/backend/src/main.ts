@@ -93,6 +93,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
@@ -109,7 +110,9 @@ async function bootstrap() {
     .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  if (!isProduction) {
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen(port);
   Logger.log(`Server running on port ${port}`, 'Bootstrap');

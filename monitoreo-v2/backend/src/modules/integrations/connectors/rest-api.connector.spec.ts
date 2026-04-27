@@ -1,6 +1,15 @@
 import { RestApiConnector } from './rest-api.connector';
 import type { Integration } from '../../platform/entities/integration.entity';
 
+// Mock only validateResolvedUrl (async DNS) — keep validateExternalUrl real
+jest.mock('../../../common/security/url-validator', () => {
+  const actual = jest.requireActual('../../../common/security/url-validator');
+  return {
+    ...actual,
+    validateResolvedUrl: jest.fn(() => Promise.resolve(null)),
+  };
+});
+
 // Mock global fetch
 const mockFetch = jest.fn();
 global.fetch = mockFetch as unknown as typeof fetch;

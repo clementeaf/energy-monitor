@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.7.0-alpha.0] - 2026-04-27 — SECURITY HARDENING
+
+### Security (monitoreo-v2/backend)
+- **`forbidNonWhitelisted: true`** — ValidationPipe rejects unknown properties instead of silently stripping them.
+- **MFA validate endpoint hardened** — `POST /auth/mfa/validate` no longer issues tokens for users without MFA enabled. Prevents authentication bypass via known UUIDs.
+- **Swagger disabled in production** — `/api/docs` only available when `NODE_ENV !== 'production'`.
+- **Logout clears `__Host-` cookies** — `clearCookie` now uses correct prefixed names in production.
+- **`@IsIn` on `adminAuthProvider`** — `CreateTenantDto` only accepts `'microsoft'` or `'google'`.
+- **SSRF re-validation at sync** — `RestApiConnector.sync()` calls `validateResolvedUrl` before every fetch (DNS rebinding defense).
+- **Env validation expanded** — `MICROSOFT_TENANT_ID`, `MICROSOFT_CLIENT_ID`, `GOOGLE_CLIENT_ID` required in production. `JWT_SECRET` minimum 32 characters enforced.
+- **Redis-backed rate limiting** — `ThrottlerModule` uses `@nest-lab/throttler-storage-redis` when `REDIS_URL` is set. In-memory fallback for dev.
+
+### Security (monitoreo-v2/frontend)
+- **Google OAuth → credential flow** — Replaced `useGoogleLogin` (implicit, access_token) with `GoogleLogin` component (credential, id_token). Backend receives a JWKS-verifiable JWT.
+- **`/components` route dev-only** — Gated behind `import.meta.env.DEV`, excluded from production build.
+- **Duplicate alert routes removed** — Eliminated redundant cross-tenant route definitions in `router.tsx`.
+- **Open redirect vector removed** — `SessionExpiredModal` no longer appends `?redirect=` query parameter.
+- **ErrorBoundary logs dev-only** — `console.error` stack traces gated behind `import.meta.env.DEV`.
+- **`faviconUrl` scheme validation** — Rejects `javascript:` URIs. `appTitle` capped at 60 characters.
+- **`.env` added to `.gitignore`** — Prevents accidental commit of OAuth client IDs.
+
+### Dependencies
+- **Frontend:** 0 vulnerabilities (18 packages updated via `npm audit fix`).
+- **Backend:** `@nest-lab/throttler-storage-redis` + `ioredis` added.
+
+### Tests
+- **Backend:** 737 tests, 63 suites (1 new: JWT_SECRET length validation).
+- **Frontend:** 260 tests, 34 suites.
+
+### Infra
+- **GitHub Actions workflow** — `security-patch-v2.yml` scheduled for 2026-04-28 03:00 CLT. Rotates `JWT_SECRET` + `COOKIE_SECRET` (256-bit), builds/pushes Docker image to ECR, updates ECS Fargate, deploys frontend to S3 + CloudFront.
+
+---
+
 ## [2.6.0-alpha.0] - 2026-04-25 — CHART SKELETONS, PLATFORM DASHBOARD UX, BUILDINGS CROSS-TENANT
 
 ### Added (monitoreo-v2/frontend)

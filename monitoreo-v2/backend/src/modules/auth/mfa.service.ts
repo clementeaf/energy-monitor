@@ -78,7 +78,9 @@ export class MfaService {
     );
 
     if (rows.length === 0 || !rows[0].mfa_enabled || !rows[0].mfa_secret) {
-      return true; // MFA not enabled, skip
+      // MFA not enabled — reject. This endpoint should only be called
+      // for users who triggered mfaRequired during login.
+      return false;
     }
 
     // Try TOTP first

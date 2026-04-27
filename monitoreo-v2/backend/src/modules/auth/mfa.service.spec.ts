@@ -88,11 +88,11 @@ describe('MfaService', () => {
   });
 
   describe('validate', () => {
-    it('should return true when MFA not enabled', async () => {
+    it('should return false when MFA not enabled (endpoint only for MFA-enabled users)', async () => {
       ds.query.mockResolvedValueOnce([{ mfa_secret: null, mfa_enabled: false, mfa_recovery_codes: null }]);
 
       const result = await service.validate('user-1', '123456');
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('should return true when TOTP code is valid', async () => {

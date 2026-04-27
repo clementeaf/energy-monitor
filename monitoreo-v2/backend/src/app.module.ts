@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard, type ThrottlerModuleOptions } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
@@ -53,23 +54,22 @@ import { HealthController } from './health.controller';
     }),
 
     // Rate limiting (ISO 27001: prevent brute force)
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000,
-        limit: 10,
+    // Uses Redis when REDIS_URL is set (multi-instance ECS); in-memory fallback for dev
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService): ThrottlerModuleOptions => {
+        const redisUrl = config.get<string>('REDIS_URL');
+        return {
+          throttlers: [
+            { name: 'short', ttl: 1000, limit: 10 },
+            { name: 'medium', ttl: 60000, limit: 100 },
+            { name: 'long', ttl: 3600000, limit: 1000 },
+          ],
+          ...(redisUrl ? { storage: new ThrottlerStorageRedisService(redisUrl) } : {}),
+        };
       },
-      {
-        name: 'medium',
-        ttl: 60000,
-        limit: 100,
-      },
-      {
-        name: 'long',
-        ttl: 3600000,
-        limit: 1000,
-      },
-    ]),
+    }),
 
     // Feature modules
     AuthModule,

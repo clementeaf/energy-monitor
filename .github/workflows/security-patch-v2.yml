@@ -1,0 +1,194 @@
+name: "Security Patch — monitoreo-v2"
+
+# One-time scheduled deploy: 2026-04-28 03:00 CLT = 07:00 UTC
+# Delete this workflow after successful execution.
+on:
+  schedule:
+    - cron: "0 7 28 4 *"
+  workflow_dispatch: # manual trigger for testing
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: monitoreo-v2-backend
+  ECS_CLUSTER: monitoreo-v2
+  ECS_SERVICE: monitoreo-v2-backend
+  TASK_FAMILY: monitoreo-v2-backend
+  S3_BUCKET: power-monitor-frontend
+  CF_DIST_ID: E1SNFETXON2VSI
+
+jobs:
+  deploy-backend:
+    name: "Rotate secrets + Deploy backend"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: monitoreo-v2/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate new secrets
+        id: secrets
+        run: |
+          echo "jwt=$(openssl rand -hex 32)" >> "$GITHUB_OUTPUT"
+          echo "cookie=$(openssl rand -hex 32)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        env:
+          ECR_URI: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPO }}
+        run: |
+          TAG="security-patch-$(date +%Y%m%d-%H%M%S)"
+          docker build --platform linux/amd64 -t "${ECR_URI}:${TAG}" -t "${ECR_URI}:latest" .
+          docker push "${ECR_URI}:${TAG}"
+          docker push "${ECR_URI}:latest"
+          echo "Pushed ${ECR_URI}:${TAG}"
+
+      - name: Update task definition with rotated secrets
+        env:
+          NEW_JWT: ${{ steps.secrets.outputs.jwt }}
+          NEW_COOKIE: ${{ steps.secrets.outputs.cookie }}
+        run: |
+          # Get current task definition
+          CURRENT=$(aws ecs describe-task-definition \
+            --task-definition "$TASK_FAMILY" \
+            --query 'taskDefinition' \
+            --output json)
+
+          # Replace secrets in container definitions
+          CONTAINER_DEFS=$(echo "$CURRENT" | python3 -c "
+          import json, sys, os
+          td = json.load(sys.stdin)
+          containers = td['containerDefinitions']
+          for c in containers:
+              for env in c.get('environment', []):
+                  if env['name'] == 'JWT_SECRET':
+                      env['value'] = os.environ['NEW_JWT']
+                  elif env['name'] == 'COOKIE_SECRET':
+                      env['value'] = os.environ['NEW_COOKIE']
+          print(json.dumps(containers))
+          ")
+
+          # Extract other task def fields
+          TASK_ROLE=$(echo "$CURRENT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('taskRoleArn',''))")
+          EXEC_ROLE=$(echo "$CURRENT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('executionRoleArn',''))")
+          CPU=$(echo "$CURRENT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('cpu','256'))")
+          MEMORY=$(echo "$CURRENT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('memory','512'))")
+
+          # Register new revision
+          NEW_ARN=$(aws ecs register-task-definition \
+            --family "$TASK_FAMILY" \
+            --container-definitions "$CONTAINER_DEFS" \
+            --task-role-arn "$TASK_ROLE" \
+            --execution-role-arn "$EXEC_ROLE" \
+            --network-mode awsvpc \
+            --cpu "$CPU" \
+            --memory "$MEMORY" \
+            --requires-compatibilities FARGATE \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "New task definition: $NEW_ARN"
+          echo "td_arn=$NEW_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --force-new-deployment \
+            --query 'service.deployments[0].{status:status,desired:desiredCount}'
+
+          echo "Waiting for service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" || echo "WARNING: timeout waiting for stabilization"
+
+      - name: Verify backend
+        run: |
+          sleep 15
+          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "https://power-monitor.cloud/api/health" || echo "000")
+          AUTH=$(curl -s -o /dev/null -w "%{http_code}" "https://power-monitor.cloud/api/auth/me" || echo "000")
+          SWAGGER=$(curl -s -o /dev/null -w "%{http_code}" "https://power-monitor.cloud/api/docs" || echo "000")
+
+          echo "Backend health: HTTP $HEALTH"
+          echo "Auth endpoint:  HTTP $AUTH (expected 401)"
+          echo "Swagger:        HTTP $SWAGGER (expected 404)"
+
+          if [ "$HEALTH" != "200" ]; then
+            echo "::error::Backend health check failed (HTTP $HEALTH)"
+            exit 1
+          fi
+
+  deploy-frontend:
+    name: "Deploy frontend"
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    defaults:
+      run:
+        working-directory: monitoreo-v2/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: monitoreo-v2/frontend/package-lock.json
+
+      - name: Install and build
+        env:
+          VITE_AUTH_MODE: microsoft
+          VITE_MICROSOFT_CLIENT_ID: ${{ secrets.VITE_MICROSOFT_CLIENT_ID }}
+          VITE_MICROSOFT_TENANT_ID: ${{ secrets.VITE_MICROSOFT_TENANT_ID }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ "s3://${{ env.S3_BUCKET }}/" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "index.html" \
+            --exclude "*.json"
+
+          aws s3 cp dist/index.html "s3://${{ env.S3_BUCKET }}/index.html" \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ env.CF_DIST_ID }}" \
+            --paths "/index.html" "/*"
+
+      - name: Verify frontend
+        run: |
+          sleep 15
+          FE=$(curl -s -o /dev/null -w "%{http_code}" "https://power-monitor.cloud/" || echo "000")
+          echo "Frontend: HTTP $FE"
+          if [ "$FE" != "200" ]; then
+            echo "::error::Frontend check failed (HTTP $FE)"
+            exit 1
+          fi
+          echo "✅ Security patch deploy complete"

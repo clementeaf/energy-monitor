@@ -114,8 +114,14 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.revokeAllTokens(user.sub);
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+    const accessName = isProduction ? '__Host-access_token' : 'access_token';
+    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
+    res.clearCookie(accessName, { path: '/' });
+    res.clearCookie(refreshName, {
+      path: isProduction ? '/api/auth/refresh' : '/',
+    });
     return { success: true };
   }
 

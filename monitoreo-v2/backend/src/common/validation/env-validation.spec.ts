@@ -20,11 +20,14 @@ describe('validateEnv', () => {
 
   it('does nothing when all vars are set', () => {
     process.env.NODE_ENV = 'production';
-    process.env.JWT_SECRET = 'secret';
+    process.env.JWT_SECRET = 'a]ecure-jwt-secret-with-32-chars!';
     process.env.COOKIE_SECRET = 'cookie';
     process.env.FRONTEND_URL = 'https://app.com';
     process.env.DB_HOST = 'localhost';
     process.env.DB_PASSWORD = 'pass';
+    process.env.MICROSOFT_TENANT_ID = 'tid';
+    process.env.MICROSOFT_CLIENT_ID = 'mcid';
+    process.env.GOOGLE_CLIENT_ID = 'gcid';
 
     const validateEnv = loadValidateEnv();
     validateEnv();
@@ -55,6 +58,23 @@ describe('validateEnv', () => {
     validateEnv();
 
     expect(mockExit).not.toHaveBeenCalled();
+  });
+
+  it('exits in production when JWT_SECRET is too short', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.JWT_SECRET = 'short';
+    process.env.COOKIE_SECRET = 'cookie';
+    process.env.FRONTEND_URL = 'https://app.com';
+    process.env.DB_HOST = 'localhost';
+    process.env.DB_PASSWORD = 'pass';
+    process.env.MICROSOFT_TENANT_ID = 'tid';
+    process.env.MICROSOFT_CLIENT_ID = 'mcid';
+    process.env.GOOGLE_CLIENT_ID = 'gcid';
+
+    const validateEnv = loadValidateEnv();
+    validateEnv();
+
+    expect(mockExit).toHaveBeenCalledWith(1);
   });
 
   it('exits when multiple vars missing in production', () => {

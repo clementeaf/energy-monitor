@@ -1,18 +1,38 @@
-import heroFrame122 from '../assets/hero/Frame 122.jpg';
+import { useState, useEffect, useCallback } from 'react';
+import banner1 from '../assets/services/banner1.jpg';
+import banner2 from '../assets/services/banner2.jpg';
+import banner3 from '../assets/services/banner3.jpg';
+
+const BANNERS = [banner1, banner2, banner3];
+const SLIDE_INTERVAL = 6000;
 
 const HERO_GRADIENT =
   'linear-gradient(0deg, rgba(60, 60, 60, 0.72) 0%, rgba(145, 52, 55, 0) 117.5%), linear-gradient(0deg, rgba(28, 28, 28, 0.72) 0%, rgba(60, 60, 60, 0) 100%)';
 
 export function ServicesHero() {
+  const [current, setCurrent] = useState(0);
+
+  const goTo = useCallback((idx: number) => {
+    setCurrent((idx + BANNERS.length) % BANNERS.length);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setCurrent((c) => (c + 1) % BANNERS.length), SLIDE_INTERVAL);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="relative overflow-hidden">
       <div className="relative min-h-[400px] sm:min-h-[500px] lg:h-[700px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] py-[60px] sm:py-[80px]">
-        <img
-          src={heroFrame122}
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          style={{ objectPosition: 'center 35%' }}
-        />
+        {BANNERS.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            className="absolute inset-0 size-full object-cover transition-opacity duration-1000 ease-in-out"
+            style={{ opacity: i === current ? 1 : 0, objectPosition: 'center 35%' }}
+          />
+        ))}
         <div className="absolute inset-0" style={{ backgroundImage: HERO_GRADIENT }} />
 
         <div className="relative z-10 flex flex-col gap-6 sm:gap-[40px] w-full max-w-[1200px]">
@@ -27,6 +47,46 @@ export function ServicesHero() {
           <p className="font-heading text-[15px] sm:text-[16px] lg:text-[18px] leading-[22px] sm:leading-[24px] lg:leading-[26px] font-medium text-white max-w-[700px]">
             Aseguramos la continuidad del movimiento en los edificios y espacios donde conviven las personas. Operamos y mantenemos sistemas críticos con foco en seguridad, disponibilidad y respuesta inmediata.
           </p>
+
+          {/* Dots + arrows */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {BANNERS.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === current ? 'w-6 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-center gap-4 sm:gap-9">
+              <button
+                type="button"
+                onClick={() => goTo(current - 1)}
+                className="flex items-center justify-center w-[42px] h-[42px] text-white hover:bg-white/10 transition-colors rounded-full"
+                aria-label="Anterior"
+              >
+                <svg className="w-[38px] h-5" fill="none" viewBox="0 0 38 20" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 1L1 10m0 0l9 9M1 10h36" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo(current + 1)}
+                className="flex items-center justify-center w-[42px] h-[42px] text-white hover:bg-white/10 transition-colors rounded-full"
+                aria-label="Siguiente"
+              >
+                <svg className="w-[38px] h-5" fill="none" viewBox="0 0 38 20" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M28 1l9 9m0 0l-9 9M37 10H1" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,8 +1,9 @@
+import bannerLab from '../assets/services/bannerlab.jpeg';
+
 export function ServicesLab() {
   return (
     <section className="relative w-full h-[670px] overflow-hidden">
-      {/* Background image placeholder */}
-      <div className="absolute inset-0 bg-grey-800" />
+      <img src={bannerLab} alt="" className="absolute inset-0 size-full object-cover" />
       {/* Gradient overlay for text readability */}
       <div
         className="absolute inset-0"

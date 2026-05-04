@@ -3,22 +3,22 @@
 ## [2.8.0-alpha.0] - 2026-05-04 — GLOBE SERVICES PAGE
 
 ### Added (globe-landing)
-- **React Router** — `react-router-dom` added. `BrowserRouter` in `main.tsx`, `Routes` in `App.tsx`.
-- **Page routing** — `/` renders `InicioPage` (existing content), `/globe-services` renders `GlobeServicesPage`.
-- **Breadcrumb** — `Breadcrumb.tsx`: "Inicio > Globe Services", Link back to `/`. Only on Globe Services.
-- **ServicesHero** — Static hero (no carousel, no logo bar), 700px, single slide (transporte vertical).
-- **ServicesSolutions** — "Soluciones Globe Services" section: 2 columns, left text + right pills (6 categories with radial gradient `#F6E7DE` + orange-200 dot).
-- **ServicesCards** — "Servicios" section: 4 alternating rows (394px/789px), orange color cards + image placeholders.
-- **ServicesIndustries** — "Industrial" section: bg grey-50, accordion left (10 industries) with arrow + active state (H4/ExtraBold, gradient underline), right panel (title + description + image placeholder).
-- **ServicesPresence** — "Presencia" section: 2 columns, text left + 3 stats right (400+, 24/7, ≤2h) aligned bottom.
-- **ServicesClients** — "Clientes" section: title + infinite logo carousel.
-- **ServicesLab** — Full-width 670px banner: "Globe Services Lab" with gradient overlay, vertically centered text.
-- **Contact color prop** — `bgColor` prop on Contact. Globe Services uses `#BA6347` (Orange-600). Inicio keeps brand red.
+- **React Router** — `react-router-dom`. `/` = InicioPage, `/globe-services` = GlobeServicesPage.
+- **Breadcrumb** — "Inicio > Globe Services" with Link back to `/`. Only on Globe Services.
+- **ServicesHero** — 3-banner carousel (banner1-3), 700px, dots + arrows, no logo bar.
+- **ServicesSolutions** — 2 columns: text left + 6 category pills (radial gradient `#F6E7DE`, orange-200 dot).
+- **ServicesCards** — 4 alternating rows (394/789px). Text cards (title + description + "Ver más" pill button) + image cards. Colors: orange-50, orange-500, orange-300, orange-200.
+- **ServicesIndustries** — bg grey-50, 10 industries. Desktop: vertical list with arrow + gradient underline. Mobile: horizontal scroll pills. Right panel: title + description + image per industry.
+- **ServicesPresence** — 2 columns: text left + 3 stats bottom-aligned (400+, 24/7, ≤2h).
+- **ServicesClients** — Title + infinite logo carousel.
+- **ServicesLab** — Full-width 670px banner with `bannerlab.jpeg`, gradient overlay, vertically centered text.
+- **Contact `bgColor` prop** — Globe Services uses `#BA6347` (Orange-600). Inicio keeps brand red.
+- **17 compressed images** — 170MB → 8.3MB (sips, max 1920px, 70% quality). 10 industry + 3 banner + 3 card + 1 lab.
 
 ### Changed (globe-landing)
-- **Hero CTA** — Buttons now use `Link` from react-router, pointing to `/globe-power`, `/globe-services`, `/globe-modular`.
-- **App.tsx** — Restructured: Navbar + Footer shared, pages via Routes.
-- **Tailwind config** — `orange` palette added (50–600, with 600 = `#BA6347` from Figma).
+- **Hero CTA** — `Link` from react-router to `/globe-power`, `/globe-services`, `/globe-modular`.
+- **App.tsx** — Navbar + Footer shared layout, page content via Routes.
+- **Tailwind config** — `orange` palette (50–600, 600 = `#BA6347` from Figma).
 
 ---
 

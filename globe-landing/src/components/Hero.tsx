@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import heroSantiago from '../assets/hero/vista-panoramica-de-la-ciudad-de-santiago-de-chile-2024-05-01.jpg';
 import heroFrame122 from '../assets/hero/Frame 122.jpg';
 import heroModular from '../assets/hero/modular.jpg';
@@ -16,6 +17,7 @@ const HERO_SLIDES = [
     title: 'Energía que impulsa nuestra vida',
     subtitle: 'Diseñamos, operamos y optimizamos infraestructura energética para activos de alta exigencia. Integramos ingeniería, tecnología propia y gestión en terreno para asegurar continuidad, eficiencia y control en tiempo real.',
     cta: 'Conocer Globe Power',
+    href: '/globe-power',
   },
   {
     src: heroFrame122,
@@ -24,6 +26,7 @@ const HERO_SLIDES = [
     title: 'Elevamos el estándar del transporte vertical',
     subtitle: 'Aseguramos la continuidad del movimiento en los edificios y espacios donde conviven las personas. Operamos y mantenemos sistemas críticos con foco en seguridad, disponibilidad y respuesta inmediata, bajo un estándar técnico que la industria aún no da por sentado.',
     cta: 'Conocer Globe Servicios',
+    href: '/globe-services',
   },
   {
     src: heroModular,
@@ -32,6 +35,7 @@ const HERO_SLIDES = [
     title: 'Hacemos posible el espacio que necesitas',
     subtitle: 'Diseñamos y construimos soluciones modulares adaptadas a cada operación: desde campamentos mineros y oficinas remotas hasta espacios permanentes. Proyectos eficientes, trazables y listos para operar donde otros no llegan.',
     cta: 'Conocer Globe Modular',
+    href: '/globe-modular',
   },
 ];
 const SLIDE_INTERVAL = 6000;
@@ -107,15 +111,15 @@ export function Hero() {
 
                 {/* CTA button — desktop only */}
                 <div className="hidden lg:flex flex-col items-end shrink-0 h-[48px]">
-                  <a
-                    href="#contacto"
+                  <Link
+                    to={s.href}
                     className="inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
                   >
                     {s.cta}
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
                     </svg>
-                  </a>
+                  </Link>
                 </div>
               </div>
             ))}

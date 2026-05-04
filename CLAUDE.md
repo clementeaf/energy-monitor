@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-04)
+- **Globe Services page:** React Router en globe-landing (`/` = Inicio, `/globe-services` = Globe Services). 8 componentes nuevos: Breadcrumb, ServicesHero (estático, sin carousel), ServicesSolutions (pills con radial gradient), ServicesCards (4 filas alternadas color/imagen), ServicesIndustries (accordion 10 industrias con arrow + panel detalle), ServicesPresence (stats 400+/24-7/≤2h), ServicesClients (carousel logos), ServicesLab (banner 670px). Contact con prop `bgColor` (orange-600 `#BA6347` en Services). Hero CTA usa `Link` de react-router. Orange palette en Tailwind. [CHANGELOG — 2.8.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-04-27)
 - **Security hardening:** Auditoría completa backend+frontend. 8 fixes backend (ValidationPipe `forbidNonWhitelisted`, MFA bypass cerrado, Swagger prod disabled, logout `__Host-` cookies, DTO `@IsIn`, SSRF re-validation sync, env vars expandidas, JWT_SECRET min 32 chars). 6 fixes frontend (Google OAuth credential flow, `/components` dev-only, rutas duplicadas, open redirect, ErrorBoundary dev-only, faviconUrl scheme validation). Redis-backed throttler (`REDIS_URL` opcional). 737 tests backend / 260 tests frontend. Deploy programado 2026-04-28 03:00 CLT via GitHub Actions (`security-patch-v2.yml`): rota secrets, build+push Docker→ECR, update ECS, deploy frontend S3+CloudFront. [CHANGELOG — 2.7.0-alpha.0](CHANGELOG.md)
 

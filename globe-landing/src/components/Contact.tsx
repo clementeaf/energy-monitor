@@ -57,9 +57,9 @@ function ServiceSelect() {
   );
 }
 
-export function Contact() {
+export function Contact({ bgColor = 'bg-[#9a2d29]' }: { bgColor?: string }) {
   return (
-    <section id="contacto" className="bg-[#9a2d29] py-[128px]">
+    <section id="contacto" className={`${bgColor} py-[128px]`}>
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-y-12 lg:gap-x-[80px]">
         {/* Left column: text */}
         <div>

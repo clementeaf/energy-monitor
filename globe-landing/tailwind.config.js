@@ -64,6 +64,15 @@ export default {
           100: '#fce5e4',
           200: '#fad0ce',
         },
+        orange: {
+          50:  '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#BA6347',
+        },
         brand: {
           DEFAULT: '#ab2f2a',  // Tertiary / accent (Figma buttons, footer titles)
           dark:    '#772825',  // Footer section headings

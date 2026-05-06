@@ -27,6 +27,7 @@ export interface AuthUser {
   privacyAccepted: boolean;
   requireMfaSetup: boolean;
   dataProcessingBlocked: boolean;
+  optOutAutomatedDecisions: boolean;
 }
 
 export interface TenantTheme {

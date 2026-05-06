@@ -115,6 +115,9 @@ export const authEndpoints = {
   rectificationRequest: (fieldName: string, requestedValue: string, reason?: string) =>
     api.post<{ requestId: string; responseDeadline: string }>(
       API_ROUTES.auth.rectificationRequest, { fieldName, requestedValue, reason }),
+
+  automatedDecisions: (optOut: boolean) =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.automatedDecisions, { optOut }),
 };
 
 export interface DeletionRequestItem {

@@ -24,6 +24,7 @@ import { MfaCodeDto, MfaValidateDto } from './dto/mfa.dto';
 import { DeletionRequestDto } from './dto/deletion-request.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { RectificationRequestDto } from './dto/rectification-request.dto';
+import { AutomatedDecisionsDto } from './dto/automated-decisions.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -287,6 +288,18 @@ export class AuthController {
     @Body() dto: RectificationRequestDto,
   ) {
     return this.authService.createRectificationRequest(user.sub, user.tenantId, dto);
+  }
+
+  @Post('me/automated-decisions')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Toggle opt-out of automated decisions (Ley 21.719 Art. 8 bis)' })
+  @ApiResponse({ status: 200, description: 'Preference updated' })
+  async toggleAutomatedDecisions(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: AutomatedDecisionsDto,
+  ) {
+    await this.authService.setAutomatedDecisionsOptOut(user.sub, dto.optOut);
+    return { success: true, optOutAutomatedDecisions: dto.optOut };
   }
 
   private setTokenCookies(

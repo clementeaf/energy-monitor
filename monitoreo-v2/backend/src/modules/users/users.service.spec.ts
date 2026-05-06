@@ -28,6 +28,8 @@ const mockUser = (overrides: Partial<User> = {}): User => ({
   dataProcessingBlocked: false,
   blockReason: null,
   blockedAt: null,
+  optOutAutomatedDecisions: false,
+  ageVerified: true,
   lastLoginAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -125,6 +127,7 @@ describe('UsersService', () => {
         authProvider: 'google',
         authProviderId: 'google-123',
         roleId: 'r-1',
+        ageVerified: true,
       }, CREATOR_ROLE_ID, 'super_admin');
 
       expect(repo.create).toHaveBeenCalledWith({
@@ -161,6 +164,7 @@ describe('UsersService', () => {
         authProviderId: 'google-123',
         roleId: 'r-1',
         buildingIds: ['b-1', 'b-2'],
+        ageVerified: true,
       }, CREATOR_ROLE_ID, 'super_admin');
 
       expect(ds.query).toHaveBeenCalledTimes(3); // COUNT + DELETE + INSERT
@@ -179,6 +183,7 @@ describe('UsersService', () => {
           authProvider: 'google',
           authProviderId: 'google-hack',
           roleId: 'r-1',
+          ageVerified: true,
         }, CREATOR_ROLE_ID, 'corp_admin'),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -195,6 +200,7 @@ describe('UsersService', () => {
           authProvider: 'google',
           authProviderId: 'google-123',
           roleId: 'r-nonexistent',
+          ageVerified: true,
         }, CREATOR_ROLE_ID, 'corp_admin'),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -212,6 +218,7 @@ describe('UsersService', () => {
           authProvider: 'google',
           authProviderId: 'google-admin2',
           roleId: CREATOR_ROLE_ID,
+          ageVerified: true,
         }, CREATOR_ROLE_ID, 'super_admin'),
       ).resolves.toEqual(user);
     });
@@ -364,6 +371,7 @@ describe('UsersService', () => {
           authProvider: 'google',
           authProviderId: 'g-hack',
           roleId: 'role-from-tenant-b',
+          ageVerified: true,
         }, CREATOR_ROLE_ID, 'corp_admin'),
       ).rejects.toThrow(ForbiddenException);
     });

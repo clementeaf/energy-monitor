@@ -27,6 +27,7 @@ function setUser(overrides: Partial<AuthUser> = {}) {
     privacyAccepted: true,
     requireMfaSetup: false,
     dataProcessingBlocked: false,
+    optOutAutomatedDecisions: false,
     ...overrides,
   };
   useAuthStore.getState().setSession(user, mockTenant, []);

@@ -50,6 +50,7 @@ const mockUser: AuthUser = {
   privacyAccepted: true,
   requireMfaSetup: false,
   dataProcessingBlocked: false,
+  optOutAutomatedDecisions: false,
 };
 
 const mockTenant: TenantTheme = {

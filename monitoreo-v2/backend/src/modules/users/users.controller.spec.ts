@@ -73,7 +73,7 @@ describe('UsersController', () => {
 
   it('create delegates to service', async () => {
     service.create.mockResolvedValue(user);
-    const dto = { email: 'user@test.com', authProvider: 'google' as const, authProviderId: 'g-123', roleId: 'r-2' };
+    const dto = { email: 'user@test.com', authProvider: 'google' as const, authProviderId: 'g-123', roleId: 'r-2', ageVerified: true };
     const result = await controller.create(dto, admin);
     expect(service.create).toHaveBeenCalledWith('t-1', dto, 'r-1', 'super_admin');
     expect(result).toEqual(user);

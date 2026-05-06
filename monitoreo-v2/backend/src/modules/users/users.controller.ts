@@ -119,4 +119,16 @@ export class UsersController {
     await this.usersService.assignBuildings(id, user.tenantId, dto.buildingIds);
     return { buildingIds: dto.buildingIds };
   }
+
+  @Patch(':id/unblock')
+  @RequirePermission('admin_users', 'update')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Unblock user data processing (Ley 21.719 Art. 8 ter)' })
+  @ApiResponse({ status: 200, description: 'Processing unblocked' })
+  async unblockProcessing(
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.usersService.unblockProcessing(id);
+    return { success: true };
+  }
 }

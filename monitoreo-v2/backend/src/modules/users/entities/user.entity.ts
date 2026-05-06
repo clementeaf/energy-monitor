@@ -70,6 +70,12 @@ export class User {
   @Column({ name: 'blocked_at', type: 'timestamptz', nullable: true, default: null })
   blockedAt!: Date | null;
 
+  @Column({ name: 'opt_out_automated_decisions', default: false })
+  optOutAutomatedDecisions!: boolean;
+
+  @Column({ name: 'age_verified', default: true })
+  ageVerified!: boolean;
+
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
   lastLoginAt!: Date | null;
 

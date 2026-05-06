@@ -34,6 +34,11 @@ export class UsersService {
   }
 
   async create(tenantId: string, dto: CreateUserDto, creatorRoleId: string, creatorRoleSlug: string): Promise<User> {
+    // Ley 21.719 Art. 16 quater: reject user creation if age not verified (must be 14+)
+    if (!dto.ageVerified) {
+      throw new BadRequestException('Ley 21.719: debe confirmar que el usuario es mayor de 14 años');
+    }
+
     await this.enforceHierarchy(creatorRoleId, creatorRoleSlug, dto.roleId, tenantId);
 
     const user = this.repo.create({
@@ -79,6 +84,13 @@ export class UsersService {
   async remove(id: string, tenantId: string): Promise<boolean> {
     const result = await this.repo.delete({ id, tenantId });
     return (result.affected ?? 0) > 0;
+  }
+
+  async unblockProcessing(userId: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET data_processing_blocked = false, block_reason = NULL, blocked_at = NULL, updated_at = NOW() WHERE id = $1`,
+      [userId],
+    );
   }
 
   async getBuildingIds(userId: string): Promise<string[]> {

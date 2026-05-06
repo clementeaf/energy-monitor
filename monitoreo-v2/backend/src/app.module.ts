@@ -33,6 +33,7 @@ import { ExternalApiModule } from './modules/external-api/external-api.module';
 import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
 import { PlatformDashboardModule } from './modules/platform-dashboard/platform-dashboard.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
+import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
 
@@ -118,6 +119,11 @@ import { HealthController } from './health.controller';
     {
       provide: APP_GUARD,
       useClass: PermissionsGuard,
+    },
+    // Ley 21.719 Art. 8 ter: block data access when user exercises opposition/blocking right
+    {
+      provide: APP_GUARD,
+      useClass: DataProcessingBlockGuard,
     },
     // super_admin tenant override via ?tenantId= query param
     {

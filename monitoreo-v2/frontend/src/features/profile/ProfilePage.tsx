@@ -224,6 +224,32 @@ export function ProfilePage() {
             </button>
           </div>
 
+          {/* Automated decisions opt-out */}
+          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Decisiones automatizadas</p>
+              <p className="text-xs text-gray-500">Excluirte de notificaciones y escalamientos automatizados de alertas</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newVal = !user.optOutAutomatedDecisions;
+                authEndpoints.automatedDecisions(newVal).then(() => {
+                  if (tenant) {
+                    setSession({ ...user, optOutAutomatedDecisions: newVal }, tenant, buildings);
+                  }
+                });
+              }}
+              className={`rounded-md border px-4 py-2 text-sm font-medium ${
+                user.optOutAutomatedDecisions
+                  ? 'border-green-300 text-green-700 hover:bg-green-50'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {user.optOutAutomatedDecisions ? 'Reactivar' : 'Excluirme'}
+            </button>
+          </div>
+
           {/* Cancellation — request deletion */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>

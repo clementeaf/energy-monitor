@@ -43,7 +43,7 @@ export class AuthService {
     const rows = await this.dataSource.query(
       `SELECT u.id, u.email, u.display_name, u.role_id, u.auth_provider, u.last_login_at,
               u.privacy_accepted_at, u.privacy_policy_version, u.mfa_enabled,
-              u.data_processing_blocked,
+              u.data_processing_blocked, u.opt_out_automated_decisions,
               r.slug AS role_slug, r.name AS role_name, r.require_mfa
        FROM users u
        JOIN roles r ON r.id = u.role_id
@@ -84,6 +84,7 @@ export class AuthService {
       privacyAccepted,
       requireMfaSetup,
       dataProcessingBlocked: row.data_processing_blocked,
+      optOutAutomatedDecisions: row.opt_out_automated_decisions,
     };
   }
 
@@ -507,6 +508,14 @@ export class AuthService {
     );
     await this.auditArcoAction(userId, 'PROCESSING_BLOCKED', { reason });
     this.logger.log(`Data processing blocked for user ${userId}: ${reason}`);
+  }
+
+  async setAutomatedDecisionsOptOut(userId: string, optOut: boolean): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET opt_out_automated_decisions = $1, updated_at = NOW() WHERE id = $2`,
+      [optOut, userId],
+    );
+    await this.auditArcoAction(userId, optOut ? 'AUTOMATED_DECISIONS_OPT_OUT' : 'AUTOMATED_DECISIONS_OPT_IN');
   }
 
   async unblockProcessing(userId: string): Promise<void> {

@@ -17,6 +17,7 @@ export const API_ROUTES = {
     block: '/auth/me/block',
     revokePrivacy: '/auth/revoke-privacy',
     rectificationRequest: '/auth/me/rectification-request',
+    automatedDecisions: '/auth/me/automated-decisions',
   },
   deletionRequests: '/deletion-requests',
   buildings: '/buildings',

@@ -7,6 +7,7 @@ import {
 import { DataSource } from 'typeorm';
 import { createHash } from 'crypto';
 import type { ResolveDeletionDto } from './dto/resolve-deletion.dto';
+import { decryptPii, isPiiEncrypted } from '../../common/crypto/pii-encryption';
 
 @Injectable()
 export class DeletionRequestsService {
@@ -31,8 +32,8 @@ export class DeletionRequestsService {
     return rows.map((r: Record<string, unknown>) => ({
       id: r.id,
       userId: r.user_id,
-      userEmail: r.email,
-      userDisplayName: r.display_name,
+      userEmail: isPiiEncrypted(r.email as string) ? decryptPii(r.email as string) : r.email,
+      userDisplayName: r.display_name ? (isPiiEncrypted(r.display_name as string) ? decryptPii(r.display_name as string) : r.display_name) : null,
       reason: r.reason,
       status: r.status,
       requestedAt: r.requested_at,

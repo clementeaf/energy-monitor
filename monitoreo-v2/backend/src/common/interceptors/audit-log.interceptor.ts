@@ -9,6 +9,15 @@ import { Observable, tap } from 'rxjs';
 import { DataSource } from 'typeorm';
 import type { JwtPayload } from '../decorators/current-user.decorator';
 
+/** GET paths that access personal data — must be audited for Ley 21.719 traceability. */
+const SENSITIVE_GET_PATHS = [
+  '/auth/me/export',
+  '/audit-logs',
+  '/deletion-requests',
+  '/admin/breach-reports',
+  '/privacy/processing-registry',
+];
+
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditLogInterceptor.name);
@@ -19,8 +28,15 @@ export class AuditLogInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const method = request.method;
 
-    if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    if (['HEAD', 'OPTIONS'].includes(method)) {
       return next.handle();
+    }
+
+    // Skip non-sensitive GETs
+    if (method === 'GET') {
+      const path = (request.route?.path ?? request.url) as string;
+      const isSensitive = SENSITIVE_GET_PATHS.some((p) => path.includes(p));
+      if (!isSensitive) return next.handle();
     }
 
     const user = request.user as JwtPayload | undefined;

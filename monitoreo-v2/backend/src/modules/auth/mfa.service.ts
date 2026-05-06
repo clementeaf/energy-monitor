@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import * as QRCode from 'qrcode';
 import { randomBytes, createHash } from 'crypto';
+import { encryptPii, decryptPii } from '../../common/crypto/pii-encryption';
 
 const ISSUER = 'EnergyMonitor';
 const RECOVERY_CODE_COUNT = 8;
@@ -27,7 +28,7 @@ export class MfaService {
 
     await this.dataSource.query(
       `UPDATE users SET mfa_secret = $1, mfa_enabled = false, mfa_recovery_codes = NULL WHERE id = $2`,
-      [secret, userId],
+      [encryptPii(secret), userId],
     );
 
     return { secret, qrDataUrl, otpauthUrl };
@@ -49,7 +50,8 @@ export class MfaService {
       throw new BadRequestException('MFA setup not initiated. Call /auth/mfa/setup first.');
     }
 
-    const result = verifySync({ token: code, secret: rows[0].mfa_secret });
+    const secret = decryptPii(rows[0].mfa_secret);
+    const result = verifySync({ token: code, secret });
 
     if (!result.valid) {
       throw new BadRequestException('Invalid verification code.');
@@ -84,7 +86,8 @@ export class MfaService {
     }
 
     // Try TOTP first
-    const totpValid = verifySync({ token: code, secret: rows[0].mfa_secret }).valid;
+    const decryptedSecret = decryptPii(rows[0].mfa_secret);
+    const totpValid = verifySync({ token: code, secret: decryptedSecret }).valid;
     if (totpValid) {
       return true;
     }

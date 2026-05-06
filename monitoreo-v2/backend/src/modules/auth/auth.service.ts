@@ -11,6 +11,7 @@ import { createHash, randomBytes } from 'crypto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RolesService } from '../roles/roles.service';
 import { maskEmail, maskProviderId } from '../../common/logging/pii-redaction';
+import { encryptPii, decryptPii, hmacPii, isPiiEncrypted } from '../../common/crypto/pii-encryption';
 
 export interface OAuthProfile {
   provider: 'microsoft' | 'google';
@@ -68,8 +69,8 @@ export class AuthService {
 
     return {
       id: row.id,
-      email: row.email,
-      displayName: row.display_name,
+      email: isPiiEncrypted(row.email) ? decryptPii(row.email) : row.email,
+      displayName: row.display_name ? (isPiiEncrypted(row.display_name) ? decryptPii(row.display_name) : row.display_name) : null,
       role: {
         id: row.role_id,
         slug: row.role_slug,
@@ -101,24 +102,35 @@ export class AuthService {
       [profile.provider, profile.providerId],
     );
 
-    // 2. Fallback: match by email (allows login with either provider)
+    // 2. Fallback: match by email or HMAC (allows login with either provider)
     if (rows.length === 0) {
+      const emailHmac = hmacPii(profile.email);
       rows = await this.dataSource.query(
         `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
                 r.slug AS role_slug, r.require_mfa
          FROM users u
          JOIN roles r ON r.id = u.role_id
-         WHERE u.email = $1`,
-        [profile.email],
+         WHERE u.email = $1 OR u.email_hmac = $2`,
+        [profile.email, emailHmac],
       );
 
       if (rows.length > 0 && rows[0].is_active) {
+        // Encrypt PII on provider link (progressive encryption)
         await this.dataSource.query(
-          `UPDATE users SET auth_provider = $1, auth_provider_id = $2 WHERE id = $3`,
-          [profile.provider, profile.providerId, rows[0].id],
+          `UPDATE users SET auth_provider = $1, auth_provider_id = $2,
+           email = $3, email_hmac = $4, display_name = $5
+           WHERE id = $6`,
+          [
+            profile.provider,
+            profile.providerId,
+            encryptPii(profile.email),
+            emailHmac,
+            profile.displayName ? encryptPii(profile.displayName) : null,
+            rows[0].id,
+          ],
         );
         this.logger.log(
-          `Linked ${profile.provider} to existing user ${maskEmail(profile.email)}`,
+          `Linked ${profile.provider} to existing user ${maskEmail(profile.email)} (PII encrypted)`,
         );
       }
     }
@@ -136,11 +148,20 @@ export class AuthService {
       throw new UnauthorizedException('Authentication failed.');
     }
 
-    // Update last login
-    await this.dataSource.query(
-      `UPDATE users SET last_login_at = NOW() WHERE id = $1`,
-      [user.id],
-    );
+    // Update last login + progressive PII encryption (encrypt plaintext emails on next login)
+    if (!isPiiEncrypted(user.email)) {
+      await this.dataSource.query(
+        `UPDATE users SET last_login_at = NOW(), email = $1, email_hmac = $2,
+         display_name = CASE WHEN display_name IS NOT NULL AND display_name NOT LIKE 'pii:%' THEN $3 ELSE display_name END
+         WHERE id = $4`,
+        [encryptPii(profile.email), hmacPii(profile.email), profile.displayName ? encryptPii(profile.displayName) : null, user.id],
+      );
+    } else {
+      await this.dataSource.query(
+        `UPDATE users SET last_login_at = NOW() WHERE id = $1`,
+        [user.id],
+      );
+    }
 
     // Check if MFA is enabled — if so, defer token issuance
     const mfaRows = await this.dataSource.query(
@@ -327,8 +348,9 @@ export class AuthService {
     if (dto.displayName !== undefined) {
       await this.dataSource.query(
         `UPDATE users SET display_name = $1, updated_at = NOW() WHERE id = $2`,
-        [dto.displayName, userId],
+        [encryptPii(dto.displayName), userId],
       );
+      await this.auditArcoAction(userId, 'RECTIFICATION_SELF_SERVICE', { field: 'displayName' });
     }
   }
 
@@ -341,11 +363,27 @@ export class AuthService {
 
   /* ── Ley 21.719: Privacy & Data Rights ── */
 
+  /** Audit trail for ARCO+ right exercises — required by Ley 21.719 for traceability. */
+  private async auditArcoAction(userId: string, action: string, details?: Record<string, unknown>): Promise<void> {
+    try {
+      const rows = await this.dataSource.query(`SELECT tenant_id FROM users WHERE id = $1`, [userId]);
+      const tenantId = rows[0]?.tenant_id ?? null;
+      await this.dataSource.query(
+        `INSERT INTO audit_logs (tenant_id, user_id, action, resource_type, resource_id, details)
+         VALUES ($1, $2, $3, 'ARCO+', $4, $5)`,
+        [tenantId, userId, action, userId, JSON.stringify(details ?? { event: action })],
+      );
+    } catch {
+      this.logger.warn(`ARCO+ audit write failed for ${action}`);
+    }
+  }
+
   async acceptPrivacyPolicy(userId: string): Promise<void> {
     await this.dataSource.query(
       `UPDATE users SET privacy_accepted_at = NOW(), privacy_policy_version = $1 WHERE id = $2`,
       [PRIVACY_POLICY_VERSION, userId],
     );
+    await this.auditArcoAction(userId, 'PRIVACY_CONSENT_ACCEPTED', { version: PRIVACY_POLICY_VERSION });
     this.logger.log(`Privacy policy v${PRIVACY_POLICY_VERSION} accepted by user ${userId}`);
   }
 
@@ -353,6 +391,7 @@ export class AuthService {
    * Export all personal data for a user (ARCO+ access + portability).
    */
   async exportUserData(userId: string) {
+    await this.auditArcoAction(userId, 'DATA_EXPORT', { right: 'access+portability' });
     const userRows = await this.dataSource.query(
       `SELECT u.id, u.email, u.display_name, u.auth_provider, u.is_active,
               u.mfa_enabled, u.privacy_accepted_at, u.privacy_policy_version,
@@ -396,8 +435,8 @@ export class AuthService {
       privacyPolicyVersion: PRIVACY_POLICY_VERSION,
       personalData: {
         id: user.id,
-        email: user.email,
-        displayName: user.display_name,
+        email: isPiiEncrypted(user.email) ? decryptPii(user.email) : user.email,
+        displayName: user.display_name ? (isPiiEncrypted(user.display_name) ? decryptPii(user.display_name) : user.display_name) : null,
         authProvider: user.auth_provider,
         role: user.role_name,
         tenant: user.tenant_name,
@@ -449,6 +488,7 @@ export class AuthService {
       [userId, tenantId, reason ?? null],
     );
 
+    await this.auditArcoAction(userId, 'DELETION_REQUESTED', { requestId: rows[0].id });
     this.logger.log(`Deletion request created for user ${userId}`);
     return {
       requestId: rows[0].id,
@@ -465,6 +505,7 @@ export class AuthService {
        WHERE id = $2`,
       [reason, userId],
     );
+    await this.auditArcoAction(userId, 'PROCESSING_BLOCKED', { reason });
     this.logger.log(`Data processing blocked for user ${userId}: ${reason}`);
   }
 
@@ -484,6 +525,7 @@ export class AuthService {
        WHERE id = $1`,
       [userId],
     );
+    await this.auditArcoAction(userId, 'CONSENT_REVOKED');
     this.logger.log(`Privacy consent revoked by user ${userId}`);
   }
 
@@ -510,6 +552,7 @@ export class AuthService {
       [userId, tenantId, dto.fieldName, currentValue, dto.requestedValue, dto.reason ?? null],
     );
 
+    await this.auditArcoAction(userId, 'RECTIFICATION_REQUESTED', { field: dto.fieldName, requestedValue: dto.requestedValue });
     this.logger.log(`Rectification request created for user ${userId}: ${dto.fieldName}`);
     return {
       requestId: rows[0].id,

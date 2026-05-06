@@ -14,7 +14,7 @@ const CLIENT_LOGOS = [
 
 export function ServicesClients() {
   return (
-    <section className="py-[128px] px-5 sm:px-10 lg:px-[60px]">
+    <section className="py-16 lg:py-[128px] px-5 sm:px-10 lg:px-[60px]">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-[60px]">
         {/* Header */}
         <div className="flex flex-col gap-[8px] text-center">

@@ -1,5 +1,6 @@
 import imgMantenimiento from '../assets/services/mantenimiento.jpg';
 import imgEmergencia from '../assets/services/emergencia.jpg';
+import imgModernizacion from '../assets/services/modernizacion.png';
 import imgNormalizacion from '../assets/services/normalizacion.jpg';
 
 function TextCard({ title, description, bg, textColor = 'text-grey-900' }: { title: string; description: string; bg: string; textColor?: string }) {
@@ -33,8 +34,8 @@ function ImageCard({ src, alt }: { src: string; alt: string }) {
 
 export function ServicesCards() {
   return (
-    <section className="py-[128px] px-5 sm:px-10 lg:px-[60px]">
-      <div className="max-w-[1200px] mx-auto flex flex-col gap-[128px]">
+    <section className="py-16 lg:py-[128px] px-5 sm:px-10 lg:px-[60px]">
+      <div className="max-w-[1200px] mx-auto flex flex-col gap-10 lg:gap-[128px]">
         {/* Header */}
         <div className="flex flex-col gap-[8px] text-center">
           <span className="font-body text-[14px] leading-[20px] font-medium text-grey-500 uppercase tracking-wide">
@@ -50,42 +51,50 @@ export function ServicesCards() {
           {/* Row 1: text card | image */}
           <div className="flex flex-col lg:flex-row gap-4">
             <TextCard
-              bg="bg-orange-50"
+              bg="bg-[#FBF6F1]"
               title="Mantenimiento"
               description="Garantizamos el funcionamiento óptimo y seguro de sus equipos, minimizando fallas con un enfoque multimarca (reparaciones planificadas)."
             />
             <ImageCard src={imgMantenimiento} alt="Mantenimiento" />
           </div>
 
-          {/* Row 2: image | text card */}
+          {/* Row 2: image | text card (mobile: text first) */}
           <div className="flex flex-col lg:flex-row gap-4">
-            <ImageCard src={imgEmergencia} alt="Emergencia" />
-            <TextCard
-              bg="bg-orange-500"
-              textColor="text-white"
-              title="Atención a emergencias y averías 24/7"
-              description="Un equipo de respuesta rápido, listo para actuar en cualquier momento asegurando la continuidad operacional."
-            />
+            <div className="order-2 lg:order-1 w-full lg:flex-1">
+              <ImageCard src={imgEmergencia} alt="Emergencia" />
+            </div>
+            <div className="order-1 lg:order-2">
+              <TextCard
+                bg="bg-[#BA6347]"
+                textColor="text-white"
+                title="Atención a emergencias y averías 24/7"
+                description="Un equipo de respuesta rápido, listo para actuar en cualquier momento asegurando la continuidad operacional."
+              />
+            </div>
           </div>
 
           {/* Row 3: text card | image */}
           <div className="flex flex-col lg:flex-row gap-4">
             <TextCard
-              bg="bg-orange-300"
+              bg="bg-[#DBB296]"
               title="Modernización y Remodelación"
               description="Estamos preparados para actuar en cualquier momento y lugar. Contamos con un Servicio de Emergencia 24/7."
             />
-            <ImageCard src={imgNormalizacion} alt="Normalización" />
+            <ImageCard src={imgModernizacion} alt="Modernización" />
           </div>
 
-          {/* Row 4: image | text card */}
+          {/* Row 4: image | text card (mobile: text first) */}
           <div className="flex flex-col lg:flex-row gap-4">
-            <ImageCard src={imgNormalizacion} alt="Normalización" />
-            <TextCard
-              bg="bg-orange-200"
-              title="Normalización"
-              description="Aseguramos que sus equipos obtengan la certificación requerida. Evitando multas y garantizando el cumplimiento normativo."
-            />
+            <div className="order-2 lg:order-1 w-full lg:flex-1">
+              <ImageCard src={imgNormalizacion} alt="Normalización" />
+            </div>
+            <div className="order-1 lg:order-2">
+              <TextCard
+                bg="bg-[#E9D2BF]"
+                title="Normalización"
+                description="Aseguramos que sus equipos obtengan la certificación requerida. Evitando multas y garantizando el cumplimiento normativo."
+              />
+            </div>
           </div>
         </div>
       </div>

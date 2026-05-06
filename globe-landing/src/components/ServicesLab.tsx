@@ -2,7 +2,7 @@ import bannerLab from '../assets/services/bannerlab.jpeg';
 
 export function ServicesLab() {
   return (
-    <section className="relative w-full h-[670px] overflow-hidden">
+    <section className="relative w-full h-[506px] lg:h-[670px] overflow-hidden">
       <img src={bannerLab} alt="" className="absolute inset-0 size-full object-cover" />
       {/* Gradient overlay for text readability */}
       <div
@@ -13,7 +13,7 @@ export function ServicesLab() {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 lg:px-[60px]">
         <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-4">
-          <span className="font-body text-[14px] leading-[20px] font-medium text-white/70 uppercase tracking-wide">
+          <span className="inline-flex self-start rounded-full px-5 py-2 font-body text-[14px] leading-[20px] font-medium text-white uppercase tracking-wide bg-[#3C3C3C66] border border-[#9D9D9D4D]">
             Globe Services Lab
           </span>
           <h2 className="font-heading text-h3 lg:text-h2 text-white max-w-[700px]">

@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.8.1-alpha.0] - 2026-05-06 — GLOBE SERVICES POLISH & MOBILE
+
+### Changed (globe-landing)
+- **ServicesHero** — Logo replaced (`logobanner.png`). Slide content rendered with opacity crossfade (no layout shift). Two-column text aligned top. CTA centered on mobile.
+- **ServicesSolutions** — Title updated ("Soluciones Globe Services" + new heading). Pills: solid `#F6E7DE` bg, `#D4A98A` dot. Mobile: horizontal scroll. Desktop: 2-col × 3 rows.
+- **ServicesCards** — Figma-exact card colors (`#FBF6F1`, `#BA6347`, `#DBB296`, `#E9D2BF`). Row 3 image replaced (`services.png`). Mobile: text card always first (order swap on even rows).
+- **ServicesIndustries** — Progress bar auto-advances (6s per industry, runway.com style). Click selects manually and resets timer. All 10 industries now have descriptions. Mobile: accordion layout. Header centered on mobile.
+- **ServicesPresence** — Icons replaced with `build.png`, `alarm.png`, `clock.png`. Mobile: stats stacked vertically, all content centered.
+- **ServicesLab** — "Globe Services Lab" pill with glassmorphism (`#3C3C3C66` bg, `#9D9D9D4D` border). Mobile height 506px, desktop 670px.
+- **ServicesClients** — Mobile padding reduced.
+- **Breadcrumb** — Home icon added before "Inicio".
+- **Contact** — `services` prop: Globe Services page shows service-specific options (Mantenimiento, Emergencias, Modernización, Normalización).
+- **deploy.sh** — Updated S3 bucket (`globe-landing-grupoglobe`) and CloudFront ID (`E1BXDUUMOYADWG`).
+- **Mobile spacing** — All Globe Services sections: `py-16` mobile, `py-[128px]` desktop. Internal gaps reduced.
+
+---
+
 ## [2.8.0-alpha.0] - 2026-05-04 — GLOBE SERVICES PAGE
 
 ### Added (globe-landing)

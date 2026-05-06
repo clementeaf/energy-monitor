@@ -14,8 +14,8 @@ set -euo pipefail
 TARGET="${1:-globepower}"
 
 # ── Config ──
-GLOBEPOWER_BUCKET="globe-landing-hoktus"
-GLOBEPOWER_CF="EHRW4X3FSU1YQ"
+GLOBEPOWER_BUCKET="globe-landing-grupoglobe"
+GLOBEPOWER_CF="E1BXDUUMOYADWG"
 GLOBEPOWER_PREFIX=""
 GLOBEPOWER_PATH="/*"
 GLOBEPOWER_URL="https://globepower.cl"

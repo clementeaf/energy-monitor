@@ -1,11 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 
-const SERVICES = ['Todos', 'Globe Power', 'Globe Services', 'Globe Modular'];
+const SERVICES_DEFAULT = ['Todos', 'Globe Power', 'Globe Services', 'Globe Modular'];
+export const SERVICES_GLOBE_SERVICES = [
+  'Mantenimiento',
+  'Atención a emergencias y averías',
+  'Modernización y Remodelación',
+  'Normalización y asesoría',
+];
 
 const INPUT_CLS =
   'w-full min-h-[44px] rounded-lg border border-grey-200 bg-white p-3 font-body text-[16px] leading-[20px] text-grey-700 placeholder-grey-400 outline-none focus:border-grey-400 transition-colors';
 
-function ServiceSelect() {
+function ServiceSelect({ services }: { services: string[] }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -37,7 +43,7 @@ function ServiceSelect() {
       </button>
       {open && (
         <ul className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-grey-200 bg-white shadow-lg">
-          {SERVICES.map((s) => (
+          {services.map((s) => (
             <li key={s}>
               <button
                 type="button"
@@ -57,7 +63,7 @@ function ServiceSelect() {
   );
 }
 
-export function Contact({ bgColor = 'bg-[#9a2d29]' }: { bgColor?: string }) {
+export function Contact({ bgColor = 'bg-[#9a2d29]', services = SERVICES_DEFAULT }: { bgColor?: string; services?: string[] }) {
   return (
     <section id="contacto" className={`${bgColor} py-[128px]`}>
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-y-12 lg:gap-x-[80px]">
@@ -106,7 +112,7 @@ export function Contact({ bgColor = 'bg-[#9a2d29]' }: { bgColor?: string }) {
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-body text-[14px] leading-[18px] font-normal text-grey-100">Servicio de interés</label>
-              <ServiceSelect />
+              <ServiceSelect services={services} />
             </div>
           </div>
 

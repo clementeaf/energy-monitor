@@ -6,7 +6,7 @@ import { ServicesIndustries } from '../components/ServicesIndustries';
 import { ServicesPresence } from '../components/ServicesPresence';
 import { ServicesClients } from '../components/ServicesClients';
 import { ServicesLab } from '../components/ServicesLab';
-import { Contact } from '../components/Contact';
+import { Contact, SERVICES_GLOBE_SERVICES } from '../components/Contact';
 
 export function GlobeServicesPage() {
   return (
@@ -19,7 +19,7 @@ export function GlobeServicesPage() {
       <ServicesPresence />
       <ServicesClients />
       <ServicesLab />
-      <Contact bgColor="bg-[#BA6347]" />
+      <Contact bgColor="bg-[#BA6347]" services={SERVICES_GLOBE_SERVICES} />
     </>
   );
 }

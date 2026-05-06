@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-06)
+- **Globe Services polish & mobile:** Hero crossfade sin layout shift, logo actualizado, columnas top-aligned. Soluciones: pills `#F6E7DE` con scroll horizontal mobile. Cards: colores Figma exactos, imagen modernización. Industrias: progress bar auto-advance (6s, estilo runway.com), acordeón mobile, 10 descripciones. Presencia: íconos PNG, stats verticales centrados mobile. Lab: pill glassmorphism, 506/670px. Contact: opciones por página. Deploy script actualizado (bucket + CF ID). Spacing mobile reducido. [CHANGELOG — 2.8.1-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-05-04)
 - **Globe Services page:** React Router (`/` = Inicio, `/globe-services` = Globe Services). 8 secciones: Breadcrumb, ServicesHero (3 banners), ServicesSolutions (6 pills), ServicesCards (4 filas alternadas con imágenes), ServicesIndustries (10 industrias, accordion desktop / pills mobile), ServicesPresence (stats), ServicesClients (carousel), ServicesLab (banner 670px). Contact `bgColor` prop (`#BA6347`). 17 imágenes comprimidas (170MB→8.3MB). [CHANGELOG — 2.8.0-alpha.0](CHANGELOG.md)
 

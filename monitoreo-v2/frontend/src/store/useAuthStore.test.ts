@@ -11,6 +11,9 @@ const mockUser: AuthUser = {
   buildingIds: ['b-1'],
   authProvider: 'google',
   lastLoginAt: null,
+  privacyAccepted: true,
+  requireMfaSetup: false,
+  dataProcessingBlocked: false,
 };
 
 const mockTenant: TenantTheme = {

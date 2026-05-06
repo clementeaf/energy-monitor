@@ -1,5 +1,56 @@
 # Changelog
 
+## [2.9.0-alpha.0] - 2026-05-06 — LEY 21.719 COMPLIANCE
+
+### Added (monitoreo-v2/backend — Ley 21.719)
+- **MFA enforcement per role** — `require_mfa` column on roles. Privileged roles (super_admin, corp_admin, site_admin) require MFA. Login issues tokens + `mfaSetupRequired` flag if not configured.
+- **Privacy policy acceptance** — `privacy_accepted_at` + `privacy_policy_version` on users. `POST /auth/accept-privacy` records consent with version. `GET /auth/me` returns `privacyAccepted` flag.
+- **ARCO+ Access** — `GET /auth/me/export` returns all personal data + activity + sessions as JSON.
+- **ARCO+ Rectification** — `PATCH /auth/me` (displayName). `POST /auth/me/rectification-request` for email changes requiring admin approval.
+- **ARCO+ Cancellation** — `POST /auth/me/deletion-request` with 15-business-day deadline. Admin endpoints: `GET /deletion-requests`, `PATCH /:id/resolve`, `PATCH /:id/execute` (irreversible PII anonymization).
+- **ARCO+ Opposition** — `POST /auth/me/oppose` blocks data processing with reason.
+- **ARCO+ Blocking** — `POST /auth/me/block` temporary processing freeze during disputes.
+- **ARCO+ Portability** — `GET /auth/me/export` structured JSON download.
+- **Consent revocation** — `POST /auth/revoke-privacy` clears consent, revokes tokens, terminates session.
+- **Privacy policy (public)** — `GET /privacy/policy` returns structured JSON. No auth required.
+- **Processing registry (public)** — `GET /privacy/processing-registry` documents all processing activities per Art. 14.
+- **Breach notification** — `POST /admin/breach-reports` creates report with 72h deadline. `GET` / `PATCH` for management.
+- **Data retention cron** — Daily 04:00 Chile: purges expired refresh tokens (>30d), anonymizes inactive users (>2yr).
+- **DeletionRequestsModule** — Full CRUD for admin management of deletion requests.
+- **Rectification requests table** — `rectification_requests` with `response_deadline`.
+
+### Added (monitoreo-v2/frontend — Ley 21.719)
+- **PrivacyPolicyModal** — Blocking modal post-login. Scroll-to-bottom required. Links to public `/privacy-policy`.
+- **MfaSetupGate** — Blocking modal when role requires MFA. Redirects to `/profile`.
+- **ProfilePage** (`/profile`) — Personal data view, inline name edit, MFA setup, data export (JSON download), email rectification request, opposition, blocking, consent revocation, account deletion request.
+- **PrivacyPolicyPage** (`/privacy-policy`) — Public route, no auth. Fetches policy from API.
+- **DeletionRequestsPage** (`/admin/deletion-requests`) — Admin: pending requests with approve/reject, history table, execute anonymization with confirmation.
+- **ProtectedRoute** — Privacy modal → MFA gate → content cascade.
+
+### Added (monitoreo-v2/database — migrations)
+- `10-privacy-mfa-enforcement.sql` — `require_mfa` on roles, privacy columns on users, `deletion_requests` table, audit_logs user_id index.
+- `11-breach-reports.sql` — `breach_reports` table with 72h deadline tracking.
+- `12-arco-opposition-blocking.sql` — `data_processing_blocked` on users, `response_deadline` on deletion_requests, `rectification_requests` table.
+
+### Added (monitoreo-v2/docs/privacy)
+- `README.md` — Compliance index, endpoint catalog, timeline.
+- `01-dpa-aws.md` — AWS DPA formalization checklist.
+- `02-eipd.md` — Data Protection Impact Assessment (audit logs + alert engine).
+- `03-transferencia-internacional.md` — International transfer analysis + sa-east-1 evaluation.
+- `04-dpo-designacion.md` — DPO designation template with act template.
+
+### Changed (monitoreo-v2)
+- **AuthUser type** — Added `privacyAccepted`, `requireMfaSetup`, `dataProcessingBlocked` fields.
+- **MfaSection** — Refreshes session after MFA verify (lifts MfaSetupGate).
+- **SessionExpiredModal** — Removed unused `currentPath` variable.
+- **Test mocks** — Updated 4 test files with new AuthUser/User fields.
+
+### Tests
+- **Backend:** 737 tests, 63 suites.
+- **Frontend:** 260 tests, 34 suites.
+
+---
+
 ## [2.8.1-alpha.0] - 2026-05-06 — GLOBE SERVICES POLISH & MOBILE
 
 ### Changed (globe-landing)

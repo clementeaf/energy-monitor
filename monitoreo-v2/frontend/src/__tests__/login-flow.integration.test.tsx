@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuthStore';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { SessionGate } from '../components/auth/SessionGate';
@@ -46,6 +47,9 @@ const mockUser: AuthUser = {
   buildingIds: [],
   authProvider: 'google' as const,
   lastLoginAt: null,
+  privacyAccepted: true,
+  requireMfaSetup: false,
+  dataProcessingBlocked: false,
 };
 
 const mockTenant: TenantTheme = {
@@ -102,18 +106,22 @@ describe('Login → Dashboard integration flow', () => {
       buildings: [],
     });
 
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/login" element={<div>Login Page</div>} />
-          <Route
-            path="*"
-            element={<ProtectedRoute />}
-          >
-            <Route index element={<div>Dashboard</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/login" element={<div>Login Page</div>} />
+            <Route
+              path="*"
+              element={<ProtectedRoute />}
+            >
+              <Route index element={<div>Dashboard</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText('Dashboard')).toBeVisible();

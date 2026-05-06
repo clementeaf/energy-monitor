@@ -55,6 +55,21 @@ export class User {
   @Column({ name: 'mfa_recovery_codes', type: 'text', nullable: true, default: null })
   mfaRecoveryCodes!: string | null;
 
+  @Column({ name: 'privacy_accepted_at', type: 'timestamptz', nullable: true, default: null })
+  privacyAcceptedAt!: Date | null;
+
+  @Column({ name: 'privacy_policy_version', type: 'varchar', length: 20, nullable: true, default: null })
+  privacyPolicyVersion!: string | null;
+
+  @Column({ name: 'data_processing_blocked', default: false })
+  dataProcessingBlocked!: boolean;
+
+  @Column({ name: 'block_reason', type: 'text', nullable: true, default: null })
+  blockReason!: string | null;
+
+  @Column({ name: 'blocked_at', type: 'timestamptz', nullable: true, default: null })
+  blockedAt!: Date | null;
+
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true, default: null })
   lastLoginAt!: Date | null;
 

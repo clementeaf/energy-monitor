@@ -1,5 +1,6 @@
 export const APP_ROUTES = {
   login: '/login',
+  privacyPolicy: '/privacy-policy',
   dashboard: '/',
   platform: '/dashboard/platform',
   executive: '/dashboard/executive',
@@ -48,6 +49,7 @@ export const APP_ROUTES = {
     patterns: '/analytics/patterns',
   },
   components: '/components',
+  profile: '/profile',
   admin: {
     users: '/admin/users',
     tenants: '/admin/tenants',
@@ -59,5 +61,6 @@ export const APP_ROUTES = {
     apiKeys: '/admin/api-keys',
     roles: '/admin/roles',
     companies: '/admin/companies',
+    deletionRequests: '/admin/deletion-requests',
   },
 } as const;

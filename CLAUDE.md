@@ -26,6 +26,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-05-06)
+- **Ley 21.719 compliance completo:** MFA enforcement por rol (`require_mfa`), modal política privacidad post-login con versionado, página `/profile` (datos, export JSON, rectificación, oposición, bloqueo, eliminación, revocación consentimiento). Admin: `/admin/deletion-requests` (aprobar/rechazar/ejecutar anonimización PII). Endpoints públicos: `GET /privacy/policy` + `GET /privacy/processing-registry`. Breach notification con timer 72h. Cron retención diario (purga tokens 30d, anonimiza inactivos 2yr). Rectificación email via solicitud admin. 3 migraciones SQL. 4 docs legales (`docs/privacy/`). 737 tests backend / 260 tests frontend. 4 deploys a prod (ECS+S3+CF). [CHANGELOG — 2.9.0-alpha.0](CHANGELOG.md)
 - **Globe Services polish & mobile:** Hero crossfade sin layout shift, logo actualizado, columnas top-aligned. Soluciones: pills `#F6E7DE` con scroll horizontal mobile. Cards: colores Figma exactos, imagen modernización. Industrias: progress bar auto-advance (6s, estilo runway.com), acordeón mobile, 10 descripciones. Presencia: íconos PNG, stats verticales centrados mobile. Lab: pill glassmorphism, 506/670px. Contact: opciones por página. Deploy script actualizado (bucket + CF ID). Spacing mobile reducido. [CHANGELOG — 2.8.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-05-04)
@@ -167,8 +168,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: ECS Fargate (monitoreo-v2-backend) + RDS (monitoreo-v2-db) + CloudFront (power-monitor.cloud + plataforma.globepower.cl).
-Backend: 21 módulos, health endpoint, super_admin cross-tenant, refresh token __Host- cookie, Redis throttler opcional. 737 tests, 63 suites.
-Frontend: 19 páginas, Google credential flow, operator/building switchers, tenant theming. 260 tests, 34 suites.
+Backend: 22 módulos, Ley 21.719 ARCO+ completo, MFA enforcement, privacy endpoints, breach 72h, data retention cron, health endpoint, super_admin cross-tenant, refresh token __Host- cookie, Redis throttler opcional. 737 tests, 63 suites.
+Frontend: 21 páginas, /profile (ARCO+), /privacy-policy (público), /admin/deletion-requests, privacy modal, MFA gate, Google credential flow, operator/building switchers, tenant theming. 260 tests, 34 suites.
 ```
 
 ## Prioridad Actual de Acceso
@@ -262,6 +263,7 @@ cd monitoreo-v2/backend && npm ci && npm run start:dev
 - **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
 - **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 260 tests / 34 suites. E2E pendiente (Playwright).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
+- **Ley 21.719 compliance:** ARCO+ completo (acceso, rectificación, cancelación, oposición, bloqueo, portabilidad). Consentimiento con revocación. MFA enforcement por rol. Retención automática (cron diario). Breach notification 72h. Endpoints públicos: `/privacy/policy`, `/privacy/processing-registry`. Docs legales en `monitoreo-v2/docs/privacy/` (DPA AWS, EIPD, transferencia internacional, DPO). Pendiente solo: firma EIPD, verificar DPA AWS, designar DPO, monitorear lista países adecuados de la Agencia.
 
 ## Playbooks Opcionales
 - Componente nuevo: `patterns/playbooks/new-component.md`

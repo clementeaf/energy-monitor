@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Delete,
   Body,
   Req,
@@ -16,9 +17,13 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { OAuthProfile } from './auth.service';
+import { PRIVACY_POLICY_VERSION } from './auth.service';
 import { MfaService } from './mfa.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
 import { MfaCodeDto, MfaValidateDto } from './dto/mfa.dto';
+import { DeletionRequestDto } from './dto/deletion-request.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { RectificationRequestDto } from './dto/rectification-request.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -64,6 +69,14 @@ export class AuthController {
       return { mfaRequired: true, userId: result.userId };
     }
 
+    // If role requires MFA but user hasn't set it up — issue tokens but flag it
+    // (user needs access to settings page to configure MFA)
+    if ('mfaSetupRequired' in result) {
+      const tokens = await this.authService.issueTokensForUser(result.userId);
+      this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+      return { success: true, mfaSetupRequired: true };
+    }
+
     this.setTokenCookies(res, result.accessToken, result.refreshToken);
     return { success: true };
   }
@@ -79,6 +92,18 @@ export class AuthController {
       user: profile,
       tenant: theme,
     };
+  }
+
+  @Patch('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update own profile (ARCO+ rectification)' })
+  @ApiResponse({ status: 200, description: 'Profile updated' })
+  async updateMe(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    await this.authService.updateProfile(user.sub, dto);
+    return { success: true };
   }
 
   @Public()
@@ -180,6 +205,88 @@ export class AuthController {
   async mfaStatus(@CurrentUser() user: JwtPayload) {
     const enabled = await this.mfaService.isMfaEnabled(user.sub);
     return { mfaEnabled: enabled };
+  }
+
+  /* ── Ley 21.719: Privacy & Data Rights ── */
+
+  @Post('accept-privacy')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Accept privacy policy (Ley 21.719 consent)' })
+  @ApiResponse({ status: 200, description: 'Privacy policy accepted' })
+  async acceptPrivacy(@CurrentUser() user: JwtPayload) {
+    await this.authService.acceptPrivacyPolicy(user.sub);
+    return { success: true, version: PRIVACY_POLICY_VERSION };
+  }
+
+  @Get('me/export')
+  @ApiOperation({ summary: 'Export personal data (ARCO+ portability right)' })
+  @ApiResponse({ status: 200, description: 'Personal data export' })
+  async exportMyData(@CurrentUser() user: JwtPayload) {
+    return this.authService.exportUserData(user.sub);
+  }
+
+  @Post('me/deletion-request')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Request account deletion (ARCO+ cancellation right)' })
+  @ApiResponse({ status: 201, description: 'Deletion request created' })
+  async requestDeletion(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: DeletionRequestDto,
+  ) {
+    return this.authService.createDeletionRequest(user.sub, user.tenantId, dto.reason);
+  }
+
+  @Post('me/oppose')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Oppose data processing (ARCO+ opposition right)' })
+  @ApiResponse({ status: 200, description: 'Opposition registered, processing blocked' })
+  async opposeProcessing(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: DeletionRequestDto,
+  ) {
+    await this.authService.blockProcessing(user.sub, dto.reason ?? 'Derecho de oposición ejercido por el titular');
+    return { success: true, blocked: true };
+  }
+
+  @Post('me/block')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Block data processing temporarily (ARCO+ blocking right)' })
+  @ApiResponse({ status: 200, description: 'Processing blocked temporarily' })
+  async blockProcessing(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: DeletionRequestDto,
+  ) {
+    await this.authService.blockProcessing(user.sub, dto.reason ?? 'Bloqueo solicitado por el titular');
+    return { success: true, blocked: true };
+  }
+
+  @Post('revoke-privacy')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Revoke privacy policy consent (Ley 21.719)' })
+  @ApiResponse({ status: 200, description: 'Consent revoked, session terminated' })
+  async revokePrivacy(
+    @CurrentUser() user: JwtPayload,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.revokePrivacyConsent(user.sub);
+    await this.authService.revokeAllTokens(user.sub);
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const accessName = isProduction ? '__Host-access_token' : 'access_token';
+    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
+    res.clearCookie(accessName, { path: '/' });
+    res.clearCookie(refreshName, { path: isProduction ? '/api/auth/refresh' : '/' });
+    return { success: true, message: 'Consentimiento revocado. Sesión terminada.' };
+  }
+
+  @Post('me/rectification-request')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Request data rectification (ARCO+ — fields requiring admin approval)' })
+  @ApiResponse({ status: 201, description: 'Rectification request created' })
+  async requestRectification(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: RectificationRequestDto,
+  ) {
+    return this.authService.createRectificationRequest(user.sub, user.tenantId, dto);
   }
 
   private setTokenCookies(

@@ -45,6 +45,9 @@ export class Role {
   @Column({ name: 'is_default', default: false })
   isDefault!: boolean;
 
+  @Column({ name: 'require_mfa', default: false })
+  requireMfa!: boolean;
+
   @Column({ name: 'is_active', default: true })
   isActive!: boolean;
 

@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authEndpoints } from '../../../services/endpoints';
 import type { MfaSetupResponse } from '../../../services/endpoints';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { applyTenantTheme } from '../../../lib/tenant-theme';
 
 /**
  * MFA setup/disable section for user settings.
@@ -25,6 +27,16 @@ export function MfaSection(): ReactElement {
     onSuccess: (data) => setSetupData(data),
   });
 
+  const refreshSession = async () => {
+    try {
+      const { data } = await authEndpoints.me();
+      const { buildings, ...usr } = data.user;
+      const { setSession } = useAuthStore.getState();
+      setSession(usr, data.tenant, buildings ?? []);
+      applyTenantTheme(data.tenant);
+    } catch { /* ignore — next page load will refresh */ }
+  };
+
   const verifyMutation = useMutation({
     mutationFn: (code: string) => authEndpoints.mfaVerify(code).then((r) => r.data),
     onSuccess: () => {
@@ -32,6 +44,8 @@ export function MfaSection(): ReactElement {
       setVerifyCode('');
       setVerifyError(null);
       queryClient.invalidateQueries({ queryKey: ['mfa', 'status'] });
+      // Refresh session so requireMfaSetup flag updates (lifts MfaSetupGate)
+      refreshSession();
     },
     onError: () => setVerifyError('Código inválido. Intente de nuevo.'),
   });

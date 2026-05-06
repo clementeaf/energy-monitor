@@ -13,8 +13,6 @@ export function SessionExpiredModal() {
   }, []);
 
   const handleContinue = useCallback(() => {
-    // Preserve current path so user returns after re-login
-    const currentPath = window.location.pathname;
     localStorage.removeItem('has_session');
     clearSession();
     setOpen(false);

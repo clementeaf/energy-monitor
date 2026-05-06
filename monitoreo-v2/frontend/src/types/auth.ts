@@ -24,6 +24,9 @@ export interface AuthUser {
   buildingIds: string[]; // UUIDs from user_building_access (empty = all buildings)
   authProvider: AuthProvider;
   lastLoginAt: string | null;
+  privacyAccepted: boolean;
+  requireMfaSetup: boolean;
+  dataProcessingBlocked: boolean;
 }
 
 export interface TenantTheme {

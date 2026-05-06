@@ -239,3 +239,18 @@ export const LazyMeterReadingsPage = lazy(async () => {
   const m = await import('../features/monitoring/meter-readings/MeterReadingsPage');
   return { default: m.MeterReadingsPage };
 });
+
+export const LazyPrivacyPolicyPage = lazy(async () => {
+  const m = await import('../features/privacy/PrivacyPolicyPage');
+  return { default: m.PrivacyPolicyPage };
+});
+
+export const LazyDeletionRequestsPage = lazy(async () => {
+  const m = await import('../features/admin/deletion-requests/DeletionRequestsPage');
+  return { default: m.DeletionRequestsPage };
+});
+
+export const LazyProfilePage = lazy(async () => {
+  const m = await import('../features/profile/ProfilePage');
+  return { default: m.ProfilePage };
+});

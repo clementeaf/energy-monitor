@@ -24,6 +24,9 @@ function setUser(overrides: Partial<AuthUser> = {}) {
     buildingIds: [],
     authProvider: 'google',
     lastLoginAt: null,
+    privacyAccepted: true,
+    requireMfaSetup: false,
+    dataProcessingBlocked: false,
     ...overrides,
   };
   useAuthStore.getState().setSession(user, mockTenant, []);

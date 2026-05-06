@@ -62,6 +62,9 @@ import {
   LazyBuildingDetailPage,
   LazyMeterDetailPage,
   LazyMeterReadingsPage,
+  LazyProfilePage,
+  LazyDeletionRequestsPage,
+  LazyPrivacyPolicyPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -110,6 +113,10 @@ export const router = createBrowserRouter([
       {
         path: APP_ROUTES.login,
         element: <LoginRouteShell />,
+      },
+      {
+        path: APP_ROUTES.privacyPolicy,
+        element: <LazyPrivacyPolicyPage />,
       },
       {
         element: <ProtectedRoute />,
@@ -189,6 +196,7 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.settings, element: <P any={ADMIN_SETTINGS}><LazyTenantSettingsPage /></P> },
                   { path: APP_ROUTES.admin.apiKeys, element: <P any={ADMIN_API_KEYS}><LazyApiKeysPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
+                  { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
                 ],
               },
 
@@ -200,6 +208,9 @@ export const router = createBrowserRouter([
 
               /* Admin — Empresas (super_admin only, no tenant needed) */
               { path: APP_ROUTES.admin.companies, element: <P any={['admin_tenants:create']}><LazyCompaniesPage /></P> },
+
+              /* Profile — ARCO+ rights (accessible to all authenticated users) */
+              { path: APP_ROUTES.profile, element: <LazyProfilePage /> },
 
               /* Components (dev only) */
               ...(import.meta.env.DEV ? [{ path: APP_ROUTES.components, element: <LazyComponentsPage /> }] : []),

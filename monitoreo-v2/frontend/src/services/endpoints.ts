@@ -64,7 +64,7 @@ export interface MfaSetupResponse {
 
 export const authEndpoints = {
   login: (provider: AuthProvider, idToken: string) =>
-    api.post<{ success?: boolean; mfaRequired?: boolean; userId?: string }>(API_ROUTES.auth.login, { provider, idToken }),
+    api.post<{ success?: boolean; mfaRequired?: boolean; mfaSetupRequired?: boolean; userId?: string }>(API_ROUTES.auth.login, { provider, idToken }),
 
   me: () =>
     api.get<MeResponse>(API_ROUTES.auth.me),
@@ -89,6 +89,56 @@ export const authEndpoints = {
 
   mfaDisable: () =>
     api.delete<{ success: boolean; mfaEnabled: boolean }>(API_ROUTES.auth.mfaDisable),
+
+  acceptPrivacy: () =>
+    api.post<{ success: boolean; version: string }>(API_ROUTES.auth.acceptPrivacy),
+
+  meExport: () =>
+    api.get<Record<string, unknown>>(API_ROUTES.auth.meExport),
+
+  meDeletionRequest: (reason?: string) =>
+    api.post<{ requestId: string; requestedAt: string } | { alreadyRequested: boolean; requestId: string }>(
+      API_ROUTES.auth.meDeletionRequest, { reason }),
+
+  updateMe: (data: { displayName?: string }) =>
+    api.patch<{ success: boolean }>(API_ROUTES.auth.updateMe, data),
+
+  oppose: (reason?: string) =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.oppose, { reason }),
+
+  block: (reason?: string) =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.block, { reason }),
+
+  revokePrivacy: () =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.revokePrivacy),
+
+  rectificationRequest: (fieldName: string, requestedValue: string, reason?: string) =>
+    api.post<{ requestId: string; responseDeadline: string }>(
+      API_ROUTES.auth.rectificationRequest, { fieldName, requestedValue, reason }),
+};
+
+export interface DeletionRequestItem {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userDisplayName: string | null;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'executed';
+  requestedAt: string;
+  resolvedAt: string | null;
+  resolvedByEmail: string | null;
+  notes: string | null;
+}
+
+export const deletionRequestsEndpoints = {
+  list: () =>
+    api.get<DeletionRequestItem[]>(API_ROUTES.deletionRequests),
+
+  resolve: (id: string, status: 'approved' | 'rejected', notes?: string) =>
+    api.patch<{ success: boolean }>(`${API_ROUTES.deletionRequests}/${id}/resolve`, { status, notes }),
+
+  execute: (id: string) =>
+    api.patch<{ success: boolean; anonymizedEmail: string }>(`${API_ROUTES.deletionRequests}/${id}/execute`),
 };
 
 export const buildingsEndpoints = {

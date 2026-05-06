@@ -4,7 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
+import { DataRetentionService } from './data-retention.service';
 import { AuthController } from './auth.controller';
+import { PrivacyController } from './privacy.controller';
+import { BreachReportsController } from './breach-reports.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TenantsModule } from '../tenants/tenants.module';
 import { RolesModule } from '../roles/roles.module';
@@ -22,8 +25,8 @@ import { RolesModule } from '../roles/roles.module';
       }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, MfaService, JwtStrategy],
+  controllers: [AuthController, PrivacyController, BreachReportsController],
+  providers: [AuthService, MfaService, DataRetentionService, JwtStrategy],
   exports: [AuthService, MfaService],
 })
 export class AuthModule {}

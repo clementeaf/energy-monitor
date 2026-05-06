@@ -24,6 +24,9 @@ export interface TokenPair {
   refreshToken: string;
 }
 
+/** Current privacy policy version — bump when policy text changes */
+export const PRIVACY_POLICY_VERSION = '1.0';
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -38,7 +41,9 @@ export class AuthService {
   async getUserProfile(userId: string) {
     const rows = await this.dataSource.query(
       `SELECT u.id, u.email, u.display_name, u.role_id, u.auth_provider, u.last_login_at,
-              r.slug AS role_slug, r.name AS role_name
+              u.privacy_accepted_at, u.privacy_policy_version, u.mfa_enabled,
+              u.data_processing_blocked,
+              r.slug AS role_slug, r.name AS role_name, r.require_mfa
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.id = $1 AND u.is_active = true`,
@@ -52,6 +57,14 @@ export class AuthService {
     const row = rows[0];
     const permissions = await this.rolesService.getPermissionsByRoleId(row.role_id);
     const buildings = await this.getUserBuildings(userId);
+
+    // Privacy: accepted if version matches current
+    const privacyAccepted =
+      row.privacy_accepted_at != null &&
+      row.privacy_policy_version === PRIVACY_POLICY_VERSION;
+
+    // MFA: role requires it but user hasn't set it up
+    const requireMfaSetup = row.require_mfa && !row.mfa_enabled;
 
     return {
       id: row.id,
@@ -67,14 +80,21 @@ export class AuthService {
       buildings,
       authProvider: row.auth_provider,
       lastLoginAt: row.last_login_at,
+      privacyAccepted,
+      requireMfaSetup,
+      dataProcessingBlocked: row.data_processing_blocked,
     };
   }
 
-  async validateOAuthLogin(profile: OAuthProfile): Promise<TokenPair | { mfaRequired: true; userId: string }> {
+  async validateOAuthLogin(profile: OAuthProfile): Promise<
+    TokenPair
+    | { mfaRequired: true; userId: string }
+    | { mfaSetupRequired: true; userId: string }
+  > {
     // 1. Try exact match: provider + providerId
     let rows = await this.dataSource.query(
       `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
-              r.slug AS role_slug
+              r.slug AS role_slug, r.require_mfa
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.auth_provider = $1 AND u.auth_provider_id = $2`,
@@ -85,7 +105,7 @@ export class AuthService {
     if (rows.length === 0) {
       rows = await this.dataSource.query(
         `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
-                r.slug AS role_slug
+                r.slug AS role_slug, r.require_mfa
          FROM users u
          JOIN roles r ON r.id = u.role_id
          WHERE u.email = $1`,
@@ -129,6 +149,12 @@ export class AuthService {
     );
     if (mfaRows.length > 0 && mfaRows[0].mfa_enabled) {
       return { mfaRequired: true, userId: user.id };
+    }
+
+    // Check if role requires MFA but user hasn't set it up yet
+    if (user.require_mfa && !mfaRows[0]?.mfa_enabled) {
+      this.logger.log(`MFA setup required for role — user ${maskEmail(user.email)}`);
+      return { mfaSetupRequired: true, userId: user.id };
     }
 
     // Load permissions from DB → flatten to "module:action" strings for JWT
@@ -297,10 +323,198 @@ export class AuthService {
     );
   }
 
+  async updateProfile(userId: string, dto: { displayName?: string }): Promise<void> {
+    if (dto.displayName !== undefined) {
+      await this.dataSource.query(
+        `UPDATE users SET display_name = $1, updated_at = NOW() WHERE id = $2`,
+        [dto.displayName, userId],
+      );
+    }
+  }
+
   async revokeAllTokens(userId: string): Promise<void> {
     await this.dataSource.query(
       `UPDATE refresh_tokens SET revoked_at = NOW(), revoked_reason = 'logout_all' WHERE user_id = $1 AND revoked_at IS NULL`,
       [userId],
     );
+  }
+
+  /* ── Ley 21.719: Privacy & Data Rights ── */
+
+  async acceptPrivacyPolicy(userId: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET privacy_accepted_at = NOW(), privacy_policy_version = $1 WHERE id = $2`,
+      [PRIVACY_POLICY_VERSION, userId],
+    );
+    this.logger.log(`Privacy policy v${PRIVACY_POLICY_VERSION} accepted by user ${userId}`);
+  }
+
+  /**
+   * Export all personal data for a user (ARCO+ access + portability).
+   */
+  async exportUserData(userId: string) {
+    const userRows = await this.dataSource.query(
+      `SELECT u.id, u.email, u.display_name, u.auth_provider, u.is_active,
+              u.mfa_enabled, u.privacy_accepted_at, u.privacy_policy_version,
+              u.last_login_at, u.created_at, u.updated_at,
+              r.name AS role_name, r.slug AS role_slug,
+              t.name AS tenant_name
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+       JOIN tenants t ON t.id = u.tenant_id
+       WHERE u.id = $1`,
+      [userId],
+    );
+
+    if (userRows.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+
+    const user = userRows[0];
+    const buildings = await this.getUserBuildings(userId);
+
+    const auditRows = await this.dataSource.query(
+      `SELECT action, resource_type, resource_id, ip_address, created_at
+       FROM audit_logs
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 100`,
+      [userId],
+    );
+
+    const sessionRows = await this.dataSource.query(
+      `SELECT created_at, expires_at, revoked_at, revoked_reason, ip_address, user_agent
+       FROM refresh_tokens
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [userId],
+    );
+
+    return {
+      exportedAt: new Date().toISOString(),
+      privacyPolicyVersion: PRIVACY_POLICY_VERSION,
+      personalData: {
+        id: user.id,
+        email: user.email,
+        displayName: user.display_name,
+        authProvider: user.auth_provider,
+        role: user.role_name,
+        tenant: user.tenant_name,
+        isActive: user.is_active,
+        mfaEnabled: user.mfa_enabled,
+        privacyAcceptedAt: user.privacy_accepted_at,
+        lastLoginAt: user.last_login_at,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      },
+      buildingAccess: buildings,
+      recentActivity: auditRows.map((r: Record<string, unknown>) => ({
+        action: r.action,
+        resourceType: r.resource_type,
+        resourceId: r.resource_id,
+        ipAddress: r.ip_address,
+        date: r.created_at,
+      })),
+      sessions: sessionRows.map((r: Record<string, unknown>) => ({
+        createdAt: r.created_at,
+        expiresAt: r.expires_at,
+        revokedAt: r.revoked_at,
+        revokedReason: r.revoked_reason,
+        ipAddress: r.ip_address,
+        userAgent: r.user_agent,
+      })),
+    };
+  }
+
+  /**
+   * Create account deletion request (ARCO+ cancellation right).
+   * Admin must review and execute. PII anonymized on execution.
+   */
+  async createDeletionRequest(userId: string, tenantId: string, reason?: string) {
+    // Check no pending request exists
+    const existing = await this.dataSource.query(
+      `SELECT id FROM deletion_requests WHERE user_id = $1 AND status = 'pending'`,
+      [userId],
+    );
+    if (existing.length > 0) {
+      return { alreadyRequested: true, requestId: existing[0].id };
+    }
+
+    // 15 business days ≈ 21 calendar days
+    const rows = await this.dataSource.query(
+      `INSERT INTO deletion_requests (user_id, tenant_id, reason, response_deadline)
+       VALUES ($1, $2, $3, NOW() + INTERVAL '21 days')
+       RETURNING id, requested_at, response_deadline`,
+      [userId, tenantId, reason ?? null],
+    );
+
+    this.logger.log(`Deletion request created for user ${userId}`);
+    return {
+      requestId: rows[0].id,
+      requestedAt: rows[0].requested_at,
+      responseDeadline: rows[0].response_deadline,
+    };
+  }
+
+  /* ── Opposition & Blocking (ARCO+) ── */
+
+  async blockProcessing(userId: string, reason: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET data_processing_blocked = true, block_reason = $1, blocked_at = NOW(), updated_at = NOW()
+       WHERE id = $2`,
+      [reason, userId],
+    );
+    this.logger.log(`Data processing blocked for user ${userId}: ${reason}`);
+  }
+
+  async unblockProcessing(userId: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET data_processing_blocked = false, block_reason = NULL, blocked_at = NULL, updated_at = NOW()
+       WHERE id = $1`,
+      [userId],
+    );
+  }
+
+  /* ── Consent Revocation ── */
+
+  async revokePrivacyConsent(userId: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE users SET privacy_accepted_at = NULL, privacy_policy_version = NULL, updated_at = NOW()
+       WHERE id = $1`,
+      [userId],
+    );
+    this.logger.log(`Privacy consent revoked by user ${userId}`);
+  }
+
+  /* ── Rectification Request ── */
+
+  async createRectificationRequest(
+    userId: string,
+    tenantId: string,
+    dto: { fieldName: string; requestedValue: string; reason?: string },
+  ) {
+    // Get current value
+    const userRows = await this.dataSource.query(
+      `SELECT email, display_name FROM users WHERE id = $1`,
+      [userId],
+    );
+    const currentValue = dto.fieldName === 'email'
+      ? userRows[0]?.email
+      : userRows[0]?.display_name;
+
+    const rows = await this.dataSource.query(
+      `INSERT INTO rectification_requests (user_id, tenant_id, field_name, current_value, requested_value, reason, response_deadline)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW() + INTERVAL '21 days')
+       RETURNING id, requested_at, response_deadline`,
+      [userId, tenantId, dto.fieldName, currentValue, dto.requestedValue, dto.reason ?? null],
+    );
+
+    this.logger.log(`Rectification request created for user ${userId}: ${dto.fieldName}`);
+    return {
+      requestId: rows[0].id,
+      requestedAt: rows[0].requested_at,
+      responseDeadline: rows[0].response_deadline,
+    };
   }
 }

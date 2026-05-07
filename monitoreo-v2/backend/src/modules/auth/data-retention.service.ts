@@ -22,9 +22,10 @@ export class DataRetentionService {
 
     const purged = await this.purgeExpiredTokens();
     const anonymized = await this.anonymizeInactiveUsers();
+    const auditPurged = await this.purgeOldAuditLogs();
 
     this.logger.log(
-      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized`,
+      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${auditPurged} audit logs purged`,
     );
   }
 
@@ -96,5 +97,20 @@ export class DataRetentionService {
     }
 
     return rows.length;
+  }
+
+  /**
+   * Delete audit logs older than 2 years (ISO 27001 retention policy).
+   */
+  private async purgeOldAuditLogs(): Promise<number> {
+    const result = await this.dataSource.query(
+      `DELETE FROM audit_logs
+       WHERE created_at < NOW() - INTERVAL '2 years'`,
+    );
+    const count = result[1] ?? 0;
+    if (count > 0) {
+      this.logger.log(`Purged ${count} audit logs older than 2 years`);
+    }
+    return count;
   }
 }

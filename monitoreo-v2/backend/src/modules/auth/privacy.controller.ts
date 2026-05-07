@@ -53,6 +53,7 @@ export class PrivacyController {
         },
         {
           title: 'Derechos ARCO+',
+          gratuity: 'El ejercicio de los derechos ARCO+ es completamente gratuito. No se cobra por acceder, rectificar, cancelar, exportar ni ejercer cualquier derecho sobre tus datos personales.',
           items: [
             'Acceso: conocer qué datos personales tratamos',
             'Rectificación: corregir datos inexactos o incompletos',

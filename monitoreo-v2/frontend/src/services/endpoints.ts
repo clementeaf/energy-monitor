@@ -144,6 +144,34 @@ export const deletionRequestsEndpoints = {
     api.patch<{ success: boolean; anonymizedEmail: string }>(`${API_ROUTES.deletionRequests}/${id}/execute`),
 };
 
+export interface RectificationRequestItem {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userDisplayName: string | null;
+  fieldName: string;
+  currentValue: string | null;
+  requestedValue: string;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'executed';
+  requestedAt: string;
+  responseDeadline: string;
+  resolvedAt: string | null;
+  resolvedByEmail: string | null;
+  notes: string | null;
+}
+
+export const rectificationRequestsEndpoints = {
+  list: () =>
+    api.get<RectificationRequestItem[]>(API_ROUTES.rectificationRequests),
+
+  resolve: (id: string, status: 'approved' | 'rejected', notes?: string) =>
+    api.patch<{ success: boolean }>(`${API_ROUTES.rectificationRequests}/${id}/resolve`, { status, notes }),
+
+  execute: (id: string) =>
+    api.patch<{ success: boolean }>(`${API_ROUTES.rectificationRequests}/${id}/execute`),
+};
+
 export const buildingsEndpoints = {
   list: () =>
     api.get<Building[]>(API_ROUTES.buildings),

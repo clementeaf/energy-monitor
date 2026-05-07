@@ -417,8 +417,7 @@ export class AuthService {
       `SELECT action, resource_type, resource_id, ip_address, created_at
        FROM audit_logs
        WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 100`,
+       ORDER BY created_at DESC`,
       [userId],
     );
 

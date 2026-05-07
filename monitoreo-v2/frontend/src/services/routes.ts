@@ -20,6 +20,7 @@ export const API_ROUTES = {
     automatedDecisions: '/auth/me/automated-decisions',
   },
   deletionRequests: '/deletion-requests',
+  rectificationRequests: '/rectification-requests',
   buildings: '/buildings',
   meters: '/meters',
   alerts: '/alerts',

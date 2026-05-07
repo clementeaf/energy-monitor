@@ -250,6 +250,11 @@ export const LazyDeletionRequestsPage = lazy(async () => {
   return { default: m.DeletionRequestsPage };
 });
 
+export const LazyRectificationRequestsPage = lazy(async () => {
+  const m = await import('../features/admin/rectification-requests/RectificationRequestsPage');
+  return { default: m.RectificationRequestsPage };
+});
+
 export const LazyProfilePage = lazy(async () => {
   const m = await import('../features/profile/ProfilePage');
   return { default: m.ProfilePage };

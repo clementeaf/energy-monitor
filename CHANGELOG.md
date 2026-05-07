@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.9.1-alpha.0] - 2026-05-07 — LEY 21.719 COMPLIANCE GAPS
+
+### Added (monitoreo-v2/backend)
+- **RectificationRequestsModule** — `GET /rectification-requests` (list), `PATCH /:id/resolve` (approve/reject), `PATCH /:id/execute` (apply field change). Supports email (re-encrypted + HMAC) and displayName rectification.
+- **Audit log purge cron** — `DataRetentionService` now deletes audit logs older than 2 years (ISO 27001 retention policy).
+- **Gratuity statement** — Privacy policy endpoint (`GET /privacy/policy`) includes explicit `gratuity` field in ARCO+ section.
+
+### Changed (monitoreo-v2/backend)
+- **Full audit log export** — `exportUserData()` no longer limits audit logs to 100 entries. Exports complete history for ARCO+ portability.
+
+### Added (monitoreo-v2/frontend)
+- **RectificationRequestsPage** (`/admin/rectification-requests`) — Admin panel: pending requests with field/value details, approve/reject modal, execute confirmation. Route gated by `admin_users:read`.
+- **Pre-collection privacy notice** — Login page shows Art. 10 compliance banner before OAuth buttons: data collected, AWS storage, encryption, retention, link to privacy policy.
+
+---
+
 ## [2.9.0-alpha.0] - 2026-05-06 — LEY 21.719 COMPLIANCE
 
 ### Added (monitoreo-v2/backend — Ley 21.719)

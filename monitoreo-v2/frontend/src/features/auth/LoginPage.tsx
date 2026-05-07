@@ -64,6 +64,16 @@ export function LoginPage() {
         ) : (
           /* OAuth provider buttons */
           <div className="space-y-3">
+            <p className="rounded-md bg-gray-50 p-3 text-xs leading-relaxed text-gray-500">
+              Al iniciar sesión, autorizas la recopilación de tu nombre y correo electrónico
+              desde tu proveedor OAuth (Microsoft/Google). Tus datos se almacenan en AWS
+              con cifrado AES-256-GCM, se registra tu dirección IP para auditoría de
+              seguridad (retención 2 años) y puedes ejercer tus derechos ARCO+ en cualquier
+              momento desde tu perfil.{' '}
+              <a href="/privacy-policy" className="underline hover:text-gray-700">
+                Política de privacidad
+              </a>
+            </p>
             <button
               type="button"
               onClick={loginMicrosoft}

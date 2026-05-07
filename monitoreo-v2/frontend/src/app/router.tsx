@@ -64,6 +64,7 @@ import {
   LazyMeterReadingsPage,
   LazyProfilePage,
   LazyDeletionRequestsPage,
+  LazyRectificationRequestsPage,
   LazyPrivacyPolicyPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
@@ -197,6 +198,7 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.apiKeys, element: <P any={ADMIN_API_KEYS}><LazyApiKeysPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
+              { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },
                 ],
               },
 

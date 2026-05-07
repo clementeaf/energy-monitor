@@ -62,5 +62,6 @@ export const APP_ROUTES = {
     roles: '/admin/roles',
     companies: '/admin/companies',
     deletionRequests: '/admin/deletion-requests',
+    rectificationRequests: '/admin/rectification-requests',
   },
 } as const;

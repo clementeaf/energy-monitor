@@ -33,6 +33,7 @@ import { ExternalApiModule } from './modules/external-api/external-api.module';
 import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
 import { PlatformDashboardModule } from './modules/platform-dashboard/platform-dashboard.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
+import { RectificationRequestsModule } from './modules/rectification-requests/rectification-requests.module';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
@@ -97,6 +98,7 @@ import { HealthController } from './health.controller';
     IotReadingsModule,
     PlatformDashboardModule,
     DeletionRequestsModule,
+    RectificationRequestsModule,
   ],
   controllers: [HealthController],
   providers: [

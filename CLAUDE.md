@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-07)
+- **Ley 21.719 compliance gaps cerrados:** Admin panel rectificación (`/admin/rectification-requests`) con approve/reject/execute. Aviso privacidad pre-OAuth en LoginPage (Art. 10). Export audit logs sin límite en portabilidad. Purge audit logs 2yr en cron diario. Gratuidad explícita en privacy policy. [CHANGELOG — 2.9.1-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-05-06)
 - **Ley 21.719 compliance completo:** MFA enforcement por rol (`require_mfa`), modal política privacidad post-login con versionado, página `/profile` (datos, export JSON, rectificación, oposición, bloqueo, eliminación, revocación consentimiento). Admin: `/admin/deletion-requests` (aprobar/rechazar/ejecutar anonimización PII). Endpoints públicos: `GET /privacy/policy` + `GET /privacy/processing-registry`. Breach notification con timer 72h. Cron retención diario (purga tokens 30d, anonimiza inactivos 2yr). Rectificación email via solicitud admin. 3 migraciones SQL. 4 docs legales (`docs/privacy/`). 737 tests backend / 260 tests frontend. 4 deploys a prod (ECS+S3+CF). [CHANGELOG — 2.9.0-alpha.0](CHANGELOG.md)
 - **Globe Services polish & mobile:** Hero crossfade sin layout shift, logo actualizado, columnas top-aligned. Soluciones: pills `#F6E7DE` con scroll horizontal mobile. Cards: colores Figma exactos, imagen modernización. Industrias: progress bar auto-advance (6s, estilo runway.com), acordeón mobile, 10 descripciones. Presencia: íconos PNG, stats verticales centrados mobile. Lab: pill glassmorphism, 506/670px. Contact: opciones por página. Deploy script actualizado (bucket + CF ID). Spacing mobile reducido. [CHANGELOG — 2.8.1-alpha.0](CHANGELOG.md)

@@ -7,7 +7,7 @@ const REGIONES = [
   'La Araucanía', 'Los Ríos', 'Los Lagos', 'Aysén', 'Magallanes',
 ];
 
-const PROJECT_TYPES = ['Minería', 'Educación'];
+const PROJECT_TYPES = ['Minería', 'Educación', 'Edificación'];
 
 function RegionSelect() {
   const [open, setOpen] = useState(false);
@@ -115,7 +115,7 @@ function ProjectTypeSelect() {
 
 export function ModularContact() {
   return (
-    <section className="min-h-[600px] lg:h-[1129px] bg-[#F9F9F9] flex flex-col lg:flex-row">
+    <section id="contacto" className="min-h-[600px] lg:h-[1129px] bg-[#F9F9F9] flex flex-col lg:flex-row">
       {/* Left — text */}
       <div className="flex flex-col justify-center items-center px-5 sm:px-10 lg:px-[72px] w-full lg:flex-1 py-16 lg:py-0">
         <div className="flex flex-col gap-6 w-full max-w-[760px]">

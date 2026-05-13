@@ -103,7 +103,8 @@ export function Navbar() {
                     </svg>
                   </button>
                   {dropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-grey-200 py-2 min-w-[180px]">
+                    <div className="absolute top-full left-0 pt-2">
+                    <div className="bg-white rounded-lg shadow-lg border border-grey-200 py-2 min-w-[180px]">
                       {l.dropdown.map((item) =>
                         item.disabled ? (
                           <span
@@ -123,6 +124,7 @@ export function Navbar() {
                           </Link>
                         )
                       )}
+                    </div>
                     </div>
                   )}
                 </div>

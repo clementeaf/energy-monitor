@@ -7,12 +7,13 @@
 - **ModularHero** — 3 slides with category, title, description, CTA. Texts from Figma: Minería y Faenas, Una Solución Muchas Industrias.
 - **ModularSolutions** — Minería, Educación, Edificación cards with alternating image/text rows. Responsive title (nowrap desktop, wrap mobile).
 - **ModularProjects** — Cards with category pill, subtitle, title, description over gradient. Desktop grid, mobile carousel with arrows.
-- **ModularProcess** — Expandable description on active step (BIM: 3D modeling detail).
-- **ModularContact** — Custom selectors for Región (16 regiones) and Tipo de proyecto (Minería, Educación). Realistic placeholders. Terms checkbox. Mobile: single-column fields, centered submit.
-- **13 compressed images** — `assets/modular/` (hero×3, sol×3, val×3, destacado×3, contact).
+- **ModularProcess** — 5 steps with expandable descriptions (BIM, fabricación, transporte, obras civiles, permisos).
+- **ModularContact** — Custom selectors for Región (16 regiones) and Tipo de proyecto (Minería, Educación, Edificación). Realistic placeholders. Terms checkbox. Mobile: single-column fields, centered submit.
+- **ModularProjects video popup** — Minería card "Conoce más" opens YouTube video in modal (autoplay, ESC/backdrop to close).
+- **13 compressed images** — `assets/modular/` (hero×3, sol×3, val×3, destacado×3, contact). Destacado images replaced with final project photos.
 
 ### Changed (globe-landing)
-- **Navbar** — Globe Modular enabled in Industrias dropdown (`/globe-modular`). Globe Power hidden.
+- **Navbar** — Globe Modular enabled in Industrias dropdown (`/globe-modular`). Globe Power hidden. Dropdown hover gap fix.
 - **Mobile responsive** — All Modular sections optimized for mobile per Figma mocks (mob1-5).
 
 ---

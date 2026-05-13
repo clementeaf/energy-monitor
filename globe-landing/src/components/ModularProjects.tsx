@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import destacado1 from '../assets/modular/destacado1.jpg';
 import destacado2 from '../assets/modular/destacado2.jpg';
 import destacado3 from '../assets/modular/destacado3.jpg';
@@ -11,6 +11,8 @@ const PROJECTS = [
     subtitle: 'Viña del Mar',
     title: 'Alianza Francesa',
     description: 'Proyecto de Sala de Motricidad de Prebásica para la Corporación Educacional Francesa de Valparaíso, desarrollado bajo modalidad EPC y sistema "llave en mano" de infraestructura modular educacional.',
+    videoId: undefined as string | undefined,
+    cta: undefined as string | undefined,
   },
   {
     image: destacado2,
@@ -19,6 +21,8 @@ const PROJECTS = [
     subtitle: 'Sistema Modular de Seguridad Plaza Caracas',
     title: 'Municipalidad de Las Condes',
     description: 'Proyecto modular de seguridad para la Municipalidad de Las Condes, incorporando monitoreo urbano, CCTV, telecomunicaciones y tecnología especializada para gestión municipal.',
+    videoId: undefined as string | undefined,
+    cta: undefined as string | undefined,
   },
   {
     image: destacado3,
@@ -27,11 +31,56 @@ const PROJECTS = [
     subtitle: 'Construcción y Operación de Campamento',
     title: 'EDF Laberintos',
     description: 'Proyecto de campamento modular para EDF Laberintos, contemplando infraestructura para alojamiento, oficinas y áreas operativas, además de la habilitación y gestión integral del campamento para faenas en terreno.',
+    videoId: 's-cjIj1QZLg',
+    cta: 'Conoce más',
   },
 ];
 
+function VideoModal({ videoId, onClose }: { videoId: string; onClose: () => void }) {
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
+      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+    >
+      <div className="relative w-[90vw] max-w-[900px] aspect-video">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white hover:text-grey-300 transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+        <iframe
+          className="w-full h-full rounded-lg"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&start=9`}
+          title="Video proyecto"
+          allow="autoplay; encrypted-media"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ModularProjects() {
   const [current, setCurrent] = useState(0);
+  const [videoId, setVideoId] = useState<string | null>(null);
   const goTo = useCallback((idx: number) => {
     setCurrent((idx + PROJECTS.length) % PROJECTS.length);
   }, []);
@@ -54,6 +103,18 @@ export function ModularProjects() {
           <p className="font-body text-[13px] sm:text-[14px] leading-[20px] text-white/80">
             {p.description}
           </p>
+          {p.cta && p.videoId && (
+            <button
+              type="button"
+              onClick={() => setVideoId(p.videoId!)}
+              className="inline-flex items-center gap-3 self-end mt-2 rounded-full border border-white px-5 py-2.5 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors"
+            >
+              {p.cta}
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -104,6 +165,7 @@ export function ModularProjects() {
           </button>
         </div>
       </div>
+      {videoId && <VideoModal videoId={videoId} onClose={() => setVideoId(null)} />}
     </section>
   );
 }

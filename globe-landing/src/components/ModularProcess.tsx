@@ -7,19 +7,19 @@ const STEPS = [
   },
   {
     title: 'Fabricación modular industrializada',
-    description: '',
+    description: 'Producimos en planta bajo control de calidad, con procesos estandarizados que aseguran consistencia y reducen plazos respecto a la obra tradicional.',
   },
   {
     title: 'Transporte y montaje en terreno',
-    description: '',
+    description: 'Coordinamos la logística y el montaje incluso en faenas remotas, con cuadrilla propias y procedimientos seguros de izaje e instalación.',
   },
   {
     title: 'Obras civiles y urbanización',
-    description: '',
+    description: 'Ejecutamos fundaciones, accesos, redes y obras complementarias necesarios para integrar el módulo a su entorno operativo.',
   },
   {
     title: 'Gestión de permisos',
-    description: '',
+    description: 'Acompañamos los trámites técnicos y regulatorios (DOM, SEC, SISS, MINSAL según corresponda) para que la recepción no retrase la puesta en marcha.',
   },
 ];
 

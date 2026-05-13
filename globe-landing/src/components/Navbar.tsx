@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/globe-logo.png';
 
 const links = [
   { label: 'Quiénes somos', href: '#nosotros' },
   { label: 'Valores', href: '#valores' },
-  { label: 'Industrias', href: '#industrias' },
+  { label: 'Industrias', href: '#industrias', dropdown: [
+    { label: 'Globe Services', to: '/globe-services' },
+    // { label: 'Globe Power', to: '', disabled: true },
+    { label: 'Globe Modular', to: '/globe-modular', disabled: false },
+  ]},
   { label: 'Ecosistema Globe', href: '#ecosistema' },
   { label: 'Cultura e Innovación', href: '#innovacion' },
 ];
@@ -13,6 +18,8 @@ const SWIPE_THRESHOLD = 80;
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [dragY, setDragY] = useState(0);
   const touchStartY = useRef(0);
   const isDragging = useRef(false);
@@ -64,28 +71,71 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-[5px]">
+      <nav className="sticky top-0 z-50 bg-white backdrop-blur-[5px]">
         <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-[60px] flex items-center justify-between py-4 lg:py-3">
           {/* Logo — Figma: 245×52, shadow */}
-          <a href="#" className="shrink-0">
+          <Link to="/" className="shrink-0">
             <img
               src={logo}
               alt="Grupo Globe"
-              className="h-auto w-[160px] sm:w-[200px] lg:w-[290px] lg:h-auto object-contain object-left drop-shadow-[4px_-8px_26px_rgba(255,255,255,0.2)]"
+              className="h-auto w-[140px] sm:w-[170px] lg:w-[200px] object-contain object-left"
             />
-          </a>
+          </Link>
 
           {/* Desktop links + CTA */}
           <div className="hidden lg:flex items-center gap-8">
-            {links.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                className="font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:text-grey-600 transition-colors duration-200 whitespace-nowrap"
-              >
-                {l.label}
-              </a>
-            ))}
+            {links.map((l) =>
+              l.dropdown ? (
+                <div
+                  key={l.label}
+                  ref={dropdownRef}
+                  className="relative"
+                  onMouseEnter={() => setDropdownOpen(true)}
+                  onMouseLeave={() => setDropdownOpen(false)}
+                >
+                  <button
+                    type="button"
+                    className="font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:text-grey-600 transition-colors duration-200 whitespace-nowrap inline-flex items-center gap-1"
+                  >
+                    {l.label}
+                    <svg className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7 10l5 5 5-5z" />
+                    </svg>
+                  </button>
+                  {dropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-grey-200 py-2 min-w-[180px]">
+                      {l.dropdown.map((item) =>
+                        item.disabled ? (
+                          <span
+                            key={item.label}
+                            className="block px-4 py-2.5 font-body text-[14px] leading-[18px] text-grey-400 cursor-not-allowed"
+                          >
+                            {item.label}
+                          </span>
+                        ) : (
+                          <Link
+                            key={item.label}
+                            to={item.to}
+                            className="block px-4 py-2.5 font-body text-[14px] leading-[18px] text-grey-900 hover:bg-grey-100 transition-colors"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            {item.label}
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className="font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:text-grey-600 transition-colors duration-200 whitespace-nowrap"
+                >
+                  {l.label}
+                </a>
+              )
+            )}
 
             {/* CTA — Figma: solid #3c3c3c pill, white text, arrow icon */}
             <a
@@ -144,16 +194,54 @@ export function Navbar() {
               <div className="w-10 h-1 rounded-full bg-grey-300" />
             </div>
             <div className="flex flex-col gap-1">
-              {links.map((l) => (
-                <a
-                  key={l.label}
-                  href={l.href}
-                  className="block font-body text-[16px] leading-[20px] font-medium text-grey-900 hover:bg-grey-100 transition-colors rounded-lg py-4 px-3"
-                  onClick={() => setOpen(false)}
-                >
-                  {l.label}
-                </a>
-              ))}
+              {links.map((l) =>
+                l.dropdown ? (
+                  <div key={l.label}>
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen((v) => !v)}
+                      className="w-full flex items-center justify-between font-body text-[16px] leading-[20px] font-medium text-grey-900 hover:bg-grey-100 transition-colors rounded-lg py-4 px-3"
+                    >
+                      {l.label}
+                      <svg className={`w-5 h-5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 10l5 5 5-5z" />
+                      </svg>
+                    </button>
+                    {dropdownOpen && (
+                      <div className="flex flex-col pl-4">
+                        {l.dropdown.map((item) =>
+                          item.disabled ? (
+                            <span
+                              key={item.label}
+                              className="block font-body text-[15px] leading-[20px] text-grey-400 cursor-not-allowed rounded-lg py-3 px-3"
+                            >
+                              {item.label}
+                            </span>
+                          ) : (
+                            <Link
+                              key={item.label}
+                              to={item.to}
+                              className="block font-body text-[15px] leading-[20px] text-grey-700 hover:bg-grey-100 transition-colors rounded-lg py-3 px-3"
+                              onClick={() => { setDropdownOpen(false); setOpen(false); }}
+                            >
+                              {item.label}
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <a
+                    key={l.label}
+                    href={l.href}
+                    className="block font-body text-[16px] leading-[20px] font-medium text-grey-900 hover:bg-grey-100 transition-colors rounded-lg py-4 px-3"
+                    onClick={() => setOpen(false)}
+                  >
+                    {l.label}
+                  </a>
+                )
+              )}
             </div>
             <a
               href="#contacto"

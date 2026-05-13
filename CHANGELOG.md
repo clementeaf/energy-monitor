@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.10.0-alpha.0] - 2026-05-13 — GLOBE MODULAR PAGE
+
+### Added (globe-landing)
+- **Globe Modular page** (`/globe-modular`) — 7 sections: ModularHero (3-slide carousel), ModularSolutions (3 alternating card rows), ModularValueProp (3 value cards), ModularProcess (5-step progress bar with descriptions), ModularProjects (3 featured project cards), ModularClients (logo carousel), ModularContact (form with custom selectors).
+- **ModularHero** — 3 slides with category, title, description, CTA. Texts from Figma: Minería y Faenas, Una Solución Muchas Industrias.
+- **ModularSolutions** — Minería, Educación, Edificación cards with alternating image/text rows. Responsive title (nowrap desktop, wrap mobile).
+- **ModularProjects** — Cards with category pill, subtitle, title, description over gradient. Desktop grid, mobile carousel with arrows.
+- **ModularProcess** — Expandable description on active step (BIM: 3D modeling detail).
+- **ModularContact** — Custom selectors for Región (16 regiones) and Tipo de proyecto (Minería, Educación). Realistic placeholders. Terms checkbox. Mobile: single-column fields, centered submit.
+- **13 compressed images** — `assets/modular/` (hero×3, sol×3, val×3, destacado×3, contact).
+
+### Changed (globe-landing)
+- **Navbar** — Globe Modular enabled in Industrias dropdown (`/globe-modular`). Globe Power hidden.
+- **Mobile responsive** — All Modular sections optimized for mobile per Figma mocks (mob1-5).
+
+---
+
 ## [2.9.1-alpha.0] - 2026-05-07 — LEY 21.719 COMPLIANCE GAPS
 
 ### Added (monitoreo-v2/backend)

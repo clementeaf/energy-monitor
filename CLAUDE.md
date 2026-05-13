@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-13)
+- **Globe Modular page:** `/globe-modular` con 7 secciones. Hero 3 slides (textos Figma). Soluciones 3 filas alternadas (Minería/Educación/Edificación). Propuesta de valor 3 cards. Proceso 5 pasos con descripción expandible. Proyectos destacados (Alianza Francesa, Municipalidad Las Condes, EDF Laberintos) con carousel mobile. Clientes logo carousel. Contacto con custom selectors (Región 16 opciones, Tipo proyecto), placeholders reales, checkbox términos. Navbar: Globe Modular habilitado, Globe Power oculto. Mobile responsive (mob1-5 Figma). 13 imágenes comprimidas. [CHANGELOG — 2.10.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-05-07)
 - **Ley 21.719 compliance gaps cerrados:** Admin panel rectificación (`/admin/rectification-requests`) con approve/reject/execute. Aviso privacidad pre-OAuth en LoginPage (Art. 10). Export audit logs sin límite en portabilidad. Purge audit logs 2yr en cron diario. Gratuidad explícita en privacy policy. [CHANGELOG — 2.9.1-alpha.0](CHANGELOG.md)
 

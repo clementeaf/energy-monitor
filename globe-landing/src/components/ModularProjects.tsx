@@ -88,7 +88,7 @@ export function ModularProjects() {
   const card = (p: typeof PROJECTS[number]) => (
     <div className="relative w-full h-[420px] sm:h-[480px] rounded overflow-hidden">
       <img src={p.image} alt={p.alt} className="size-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(0deg, #1C1C1CE5 0%, #3C3C3C00 100%), linear-gradient(0deg, #3C3C3CE5 0%, #951F2200 100%)' }} />
       <div className="absolute inset-0 flex flex-col justify-between p-6">
         <span className="self-start font-body text-[13px] leading-[20px] font-medium text-white bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
           {p.category}
@@ -138,21 +138,39 @@ export function ModularProjects() {
         ))}
       </div>
 
-      {/* Mobile: carousel */}
+      {/* Mobile: swipeable carousel with peek */}
       <div className="sm:hidden mt-10">
-        <div className="overflow-hidden">
+        <div
+          className="overflow-hidden"
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            (e.currentTarget as HTMLElement).dataset.startX = String(touch.clientX);
+            (e.currentTarget as HTMLElement).dataset.startY = String(touch.clientY);
+          }}
+          onTouchEnd={(e) => {
+            const startX = Number((e.currentTarget as HTMLElement).dataset.startX);
+            const startY = Number((e.currentTarget as HTMLElement).dataset.startY);
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const dx = startX - endX;
+            const dy = Math.abs(startY - endY);
+            if (Math.abs(dx) > 50 && Math.abs(dx) > dy) {
+              goTo(dx > 0 ? current + 1 : current - 1);
+            }
+          }}
+        >
           <div
             className="flex transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${current * 100}%)` }}
+            style={{ transform: `translateX(calc(-${current * 85}% - ${current * 12}px))` }}
           >
             {PROJECTS.map((p, i) => (
-              <div key={i} className="w-full shrink-0 px-1">
+              <div key={i} className="w-[85%] shrink-0 pr-3">
                 {card(p)}
               </div>
             ))}
           </div>
         </div>
-        <div className="flex items-center justify-center gap-6 mt-6">
+        <div className="flex items-center justify-end gap-6 mt-6 pr-1">
           <button type="button" onClick={() => goTo(current - 1)} aria-label="Anterior" className="text-grey-900">
             <svg className="w-[38px] h-5" fill="none" viewBox="0 0 38 20" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 1L1 10m0 0l9 9M1 10h36" />

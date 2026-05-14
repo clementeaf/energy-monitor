@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.11.0-alpha.0] - 2026-05-14 — GLOBE POWER PAGE & FIXES
+
+### Added (globe-landing)
+- **Globe Power page** (`/globe-power`) — 7 sections: PowerHero (3-slide carousel), PowerPresence (stats), PowerValueProp, PowerPainPoints (2×2 grid), PowerArchitecture (accordion), PowerSiemens (banner), PowerProcess (4-step numbered flow with pills).
+- **PowerHero** — 3 slides with Globe Power logo, lorem ipsum placeholders, CTA "Solicitar contacto".
+- **PowerPresence** — "Operamos a lo largo de todo Chile" with real copy, 3 stats (placeholder values).
+- **PowerPainPoints** — Cobros Ineficientes, Falta de Control, Oportunidades Perdidas, Mantenimientos Correctivos (real copy).
+- **PowerArchitecture** — "Un ecosistema integral bajo un solo responsable" with accordion: Mantenimiento eléctrico, Subdistribución, Software de gestión energética, Eficiencia energética.
+- **PowerSiemens** — Full-width banner "Alianza con Siemens" with `alianza.png`.
+- **PowerProcess** — 4 steps (Consumo real, Medición SENTRON, Procesamiento, Facturación exacta) with olive-green gradient circles, 3 check pills.
+- **Globe Modular logo** — Replaced Globe Services logo in ModularHero with correct Globe Modular logo.
+- **Client logos** — Apumanque, Carabineros, Admicomu, EFE, Happyland added to assets.
+
+### Changed (globe-landing)
+- **Navbar** — Globe Power enabled in Industrias dropdown (`/globe-power`).
+- **SiemensBanner** — "Ir a Globe Modular" card now links to `/globe-modular` (was `#contacto`).
+- **ServicesCards** — Emergency image replaced with `emergencia.png`.
+- **ModularProjects** — Card gradient updated to dual-layer overlay (`#1C1C1CE5→#3C3C3C00` + `#3C3C3CE5→#951F2200`). Mobile carousel: 85% width cards with peek + touch swipe.
+
+---
+
 ## [2.10.0-alpha.0] - 2026-05-13 — GLOBE MODULAR PAGE
 
 ### Added (globe-landing)

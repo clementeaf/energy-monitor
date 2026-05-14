@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import ind1 from '../assets/industry/image1.jpg';
 import ind2 from '../assets/industry/image2.jpg';
 import ind3 from '../assets/industry/image3.jpg';
@@ -8,18 +9,21 @@ const INDUSTRIES = [
     title: 'Energía',
     subtitle: 'Gestión energética y activos eléctricos',
     cta: 'Ir a Globe Power',
+    href: '#contacto',
   },
   {
     src: ind2,
     title: 'Transporte Vertical',
     subtitle: 'Mantención y operación de ascensores y escaleras',
     cta: 'Ir a Globe Services',
+    href: '/globe-services',
   },
   {
     src: ind3,
     title: 'Infraestructura Modular',
     subtitle: 'Diseño y construcción de espacios modulares',
     cta: 'Ir a Globe Modular',
+    href: '/globe-modular',
   },
 ];
 
@@ -78,15 +82,27 @@ export function SiemensBanner() {
               <p className="font-body text-[16px] leading-[24px] text-white/90 mt-2">
                 {item.subtitle}
               </p>
-              <a
-                href="#contacto"
-                className="mt-6 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
-              >
-                {item.cta}
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-                </svg>
-              </a>
+              {item.href.startsWith('/') ? (
+                <Link
+                  to={item.href}
+                  className="mt-6 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+                >
+                  {item.cta}
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+                  </svg>
+                </Link>
+              ) : (
+                <a
+                  href={item.href}
+                  className="mt-6 inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+                >
+                  {item.cta}
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
         ))}

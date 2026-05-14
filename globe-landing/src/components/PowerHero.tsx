@@ -1,30 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
-import hero1 from '../assets/modular/hero1.jpg';
-import hero2 from '../assets/modular/hero2.jpg';
-import hero3 from '../assets/modular/hero3.jpg';
-import logoModular from '../assets/modular/logo-modular.png';
+import hero1 from '../assets/power/hero1.jpg';
+import logoPower from '../assets/power/logo-power.png';
 
 const SLIDES = [
   {
     image: hero1,
-    category: 'MINERÍA Y FAENAS',
-    title: 'Calidad para lo más importante de la faena: tu equipo',
-    description: 'Campamentos, oficinas en faena, comedores y servicios modulares diseñados para resistir altura, frío, viento y aislamiento.',
-    cta: 'Cotizar proyecto',
+    category: 'NOSOTROS',
+    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    cta: 'Solicitar contacto',
   },
   {
-    image: hero2,
-    category: 'UNA SOLUCIÓN, MUCHAS INDUSTRIAS',
-    title: 'Nuestro estándar de minería, al servicio de todas las industrias',
-    description: 'Llevamos la robustez y velocidad que exige una faena minera a otras industrias que también necesitan crecer rápido: salud, educación, energía, agro, salmonera, retail e industria. Misma calidad, distintos usos.',
-    cta: 'Cotizar proyecto',
+    image: hero1,
+    category: 'SERVICIOS',
+    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    cta: 'Solicitar contacto',
   },
   {
-    image: hero3,
-    category: 'MINERÍA Y FAENAS',
-    title: 'Diseñamos, fabricamos e instalamos',
-    description: 'Fabricamos en planta, transportamos a terreno y montamos sobre la marcha. Un proceso industrializado bajo modalidad EPC que acorta tiempos entre la decisión y la puesta en operación.',
-    cta: 'Cotizar proyecto',
+    image: hero1,
+    category: 'SOLUCIONES',
+    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    cta: 'Solicitar contacto',
   },
 ];
 
@@ -33,7 +31,7 @@ const SLIDE_INTERVAL = 6000;
 const HERO_GRADIENT =
   'linear-gradient(0deg, rgba(60, 60, 60, 0.72) 0%, rgba(145, 52, 55, 0) 117.5%), linear-gradient(0deg, rgba(28, 28, 28, 0.72) 0%, rgba(60, 60, 60, 0) 100%)';
 
-export function ModularHero() {
+export function PowerHero() {
   const [current, setCurrent] = useState(0);
 
   const goTo = useCallback((idx: number) => {
@@ -50,7 +48,7 @@ export function ModularHero() {
       <div className="relative min-h-[400px] sm:min-h-[500px] lg:h-[700px] flex items-center justify-center overflow-hidden px-5 sm:px-10 lg:px-[60px] py-[60px] sm:py-[80px]">
         {SLIDES.map((s, i) => (
           <img
-            key={s.image}
+            key={i}
             src={s.image}
             alt=""
             className="absolute inset-0 size-full object-cover transition-opacity duration-1000 ease-in-out"
@@ -62,12 +60,12 @@ export function ModularHero() {
         <div className="relative z-10 flex flex-col w-full max-w-[1200px] lg:pl-[72px]">
           {/* Logo */}
           <img
-            src={logoModular}
-            alt="Globe Modular"
+            src={logoPower}
+            alt="Globe Power"
             className="w-[220px] sm:w-[300px] lg:w-[400px] h-auto mb-8"
           />
 
-          {/* Two-column content — fixed height to prevent layout shift between slides */}
+          {/* Two-column content */}
           <div className="relative lg:h-[180px] mb-12">
             {SLIDES.map((s, i) => (
               <div

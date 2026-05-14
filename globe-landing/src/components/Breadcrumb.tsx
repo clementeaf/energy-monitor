@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export function Breadcrumb() {
+export function Breadcrumb({ label = 'Globe Services' }: { label?: string }) {
   return (
     <div className="w-full border-b border-grey-200">
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-[72px] flex items-center h-[50px]">
@@ -25,7 +25,7 @@ export function Breadcrumb() {
           <path d="M9 18l6-6-6-6" />
         </svg>
         <span className="font-body text-[14px] leading-[18px] text-grey-900 font-medium">
-          Globe Services
+          {label}
         </span>
       </div>
     </div>

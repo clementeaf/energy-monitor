@@ -1,19 +1,41 @@
+import { useLocation } from 'react-router-dom';
 import logo from '../assets/globe-logo.png';
 import clcLogo from '../assets/CLC.png';
 import googleLogo from '../assets/google.png';
 import bboschLogo from '../assets/bbosch.png';
 import angloLogo from '../assets/angloAmerican.png';
 import roseLogo from '../assets/rose.png';
+import apumanqueLogo from '../assets/Apumanque.png';
+import carabinerosLogo from '../assets/Carabineros_de_Chile.png';
+import admicomuLogo from '../assets/admicomu.png';
+import efeLogo from '../assets/efe.png';
+import happylandLogo from '../assets/happyland.png';
 
-const FOOTER_LOGOS = [
+const HOME_LOGOS = [
   { src: clcLogo, alt: 'CLC' },
   { src: googleLogo, alt: 'Google' },
   { src: bboschLogo, alt: 'Bosch' },
   { src: angloLogo, alt: 'Anglo American' },
   { src: roseLogo, alt: 'Rose' },
+  { src: apumanqueLogo, alt: 'Apumanque' },
+  { src: carabinerosLogo, alt: 'Carabineros de Chile' },
+  { src: admicomuLogo, alt: 'Admicomu' },
+  { src: efeLogo, alt: 'EFE' },
+  { src: happylandLogo, alt: 'Happyland' },
+];
+
+const SERVICES_LOGOS = [
+  { src: apumanqueLogo, alt: 'Apumanque' },
+  { src: carabinerosLogo, alt: 'Carabineros de Chile' },
+  { src: admicomuLogo, alt: 'Admicomu' },
+  { src: efeLogo, alt: 'EFE' },
+  { src: happylandLogo, alt: 'Happyland' },
 ];
 
 export function Footer() {
+  const { pathname } = useLocation();
+  const logos = pathname === '/globe-services' ? SERVICES_LOGOS : HOME_LOGOS;
+
   return (
     <footer className="bg-white">
       <div className="max-w-[1200px] mx-auto px-5 sm:px-10 lg:px-0 py-[52px]">
@@ -94,12 +116,12 @@ export function Footer() {
         {/* Row 3: Client logos carousel — py-40, gap-60 */}
         <div className="py-10 overflow-hidden">
           <div className="flex items-center gap-[60px] w-max animate-scroll-left">
-            {[...FOOTER_LOGOS, ...FOOTER_LOGOS].map((l, i) => (
+            {[...logos, ...logos].map((l, i) => (
               <img
                 key={`${l.alt}-${i}`}
                 src={l.src}
                 alt={l.alt}
-                className="h-10 w-auto object-contain shrink-0 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all"
+                className="h-10 w-auto object-contain shrink-0 grayscale opacity-60"
               />
             ))}
           </div>

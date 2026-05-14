@@ -30,16 +30,18 @@ export function ServicesSolutions() {
 
         {/* Pills — mobile: horizontal scroll, desktop: 2-col rows */}
         {/* Mobile */}
-        <div className="flex lg:hidden gap-3 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
-          {CATEGORIES_FLAT.map((cat) => (
-            <span
-              key={cat}
-              className="inline-flex items-center gap-2.5 rounded-full px-5 py-3 font-body text-[14px] leading-[26px] text-grey-900 bg-[#F6E7DE] whitespace-nowrap shrink-0"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-[#D4A98A] shrink-0" />
-              {cat}
-            </span>
-          ))}
+        <div className="lg:hidden overflow-hidden -mx-5 px-5">
+          <div className="flex gap-3 w-max animate-scroll-left">
+            {[...CATEGORIES_FLAT, ...CATEGORIES_FLAT].map((cat, i) => (
+              <span
+                key={`${cat}-${i}`}
+                className="inline-flex items-center gap-2.5 rounded-full px-5 py-3 font-body text-[14px] leading-[26px] text-grey-900 bg-[#F6E7DE] whitespace-nowrap shrink-0"
+              >
+                <span className="w-2.5 h-2.5 rounded-full bg-[#D4A98A] shrink-0" />
+                {cat}
+              </span>
+            ))}
+          </div>
         </div>
         {/* Desktop */}
         <div className="hidden lg:flex flex-wrap gap-3">

@@ -1,5 +1,5 @@
 import imgMantenimiento from '../assets/services/mantenimiento.jpg';
-import imgEmergencia from '../assets/services/emergencia.jpg';
+import imgEmergencia from '../assets/services/emergencia.png';
 import imgModernizacion from '../assets/services/modernizacion.png';
 import imgNormalizacion from '../assets/services/normalizacion.jpg';
 
@@ -13,12 +13,12 @@ function TextCard({ title, description, bg, textColor = 'text-grey-900' }: { tit
         </p>
       </div>
       <div className="flex justify-end">
-        <button className={`inline-flex items-center gap-3.5 rounded-full border ${textColor === 'text-white' ? 'border-white' : 'border-grey-800'} px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium ${textColor} hover:opacity-70 transition-opacity`}>
+        <a href="#contacto" className={`inline-flex items-center gap-3.5 rounded-full border ${textColor === 'text-white' ? 'border-white' : 'border-grey-800'} px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium ${textColor} hover:opacity-70 transition-opacity`}>
           Ver más
           <svg className="w-5 h-3" fill="none" viewBox="0 0 20 12" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M14 1l5 5m0 0l-5 5M19 6H1" />
           </svg>
-        </button>
+        </a>
       </div>
     </div>
   );

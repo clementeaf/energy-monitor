@@ -60,7 +60,7 @@ export function ModularProcess() {
 
   return (
     <section className="py-16 lg:py-[128px] px-5 sm:px-10 lg:px-[60px]">
-      <div className="max-w-[1200px] mx-auto flex flex-col gap-10 lg:gap-0">
+      <div className="max-w-[1200px] mx-auto flex flex-col gap-4 lg:gap-0">
         {/* Label */}
         <span className="font-body text-[14px] leading-[20px] font-medium text-grey-500 uppercase tracking-wide">
           Proceso

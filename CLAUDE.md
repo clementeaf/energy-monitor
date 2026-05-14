@@ -25,6 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-14)
+- **Globe Power page:** `/globe-power` con 7 secciones (rama `feat/globe-landing-globe-power`). Hero 3 slides (logo Globe Power, lorem ipsum). Presencia ("Operamos a lo largo de todo Chile", 3 stats placeholder). Propuesta de valor (lorem ipsum). Pain points 2×2 (Cobros Ineficientes, Falta de Control, Oportunidades Perdidas, Mantenimientos Correctivos — textos reales). Arquitectura completa (acordeón 4 items). Banner Alianza con Siemens (imagen `alianza.png`). Proceso 4 pasos (Consumo real, Medición SENTRON, Procesamiento, Facturación exacta) con pills. Navbar Globe Power habilitado. [CHANGELOG — 2.11.0-alpha.0](CHANGELOG.md)
+- **Globe Landing fixes (prod):** Card "Ir a Globe Modular" conectada a `/globe-modular`. Logo Globe Modular reemplaza logo Globe Services en ModularHero. Imagen emergencia reemplazada. ModularProjects: gradiente dual-layer Figma (`#1C1C1CE5`/`#3C3C3CE5`), carousel mobile con peek 85% + swipe touch. Deploy a distribución correcta (`E28IBIJXQLJUQ7` / `cuenta-1016`).
+- **Teatria deploy:** Build y deploy a CloudFront `E2AUHDZIWKSAHF`. DNS `www.teatria.cl` → CNAME OK. Certificado ACM solicitado (pendiente validación CNAME en GoDaddy). Apex `teatria.cl` sin DNS (requiere forwarding en GoDaddy).
+
 ### Completado (2026-05-13)
 - **Globe Modular page:** `/globe-modular` con 7 secciones. Hero 3 slides (textos Figma). Soluciones 3 filas alternadas (Minería/Educación/Edificación). Propuesta de valor 3 cards. Proceso 5 pasos con descripciones expandibles. Proyectos destacados (Alianza Francesa, Municipalidad Las Condes, EDF Laberintos) con carousel mobile y video popup YouTube en Minería. Clientes logo carousel. Contacto con custom selectors (Región 16 opciones, Tipo proyecto 3 opciones), placeholders reales, checkbox términos. Navbar: Globe Modular habilitado, Globe Power oculto, fix hover dropdown. Mobile responsive (mob1-5 Figma). Imágenes destacados reemplazadas con fotos finales. [CHANGELOG — 2.10.0-alpha.0](CHANGELOG.md)
 

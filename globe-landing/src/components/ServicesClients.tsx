@@ -1,15 +1,15 @@
-import logoCLC from '../assets/CLC.png';
-import logoGoogle from '../assets/google.png';
-import logoBbosch from '../assets/bbosch.png';
-import logoAnglo from '../assets/angloAmerican.png';
-import logoRosen from '../assets/rose.png';
+import logoApumanque from '../assets/Apumanque.png';
+import logoCarabineros from '../assets/Carabineros_de_Chile.png';
+import logoAdmicomu from '../assets/admicomu.png';
+import logoEfe from '../assets/efe.png';
+import logoHappyland from '../assets/happyland.png';
 
 const CLIENT_LOGOS = [
-  { src: logoCLC, alt: 'Clínica Las Condes' },
-  { src: logoGoogle, alt: 'Google' },
-  { src: logoBbosch, alt: 'bbosch' },
-  { src: logoAnglo, alt: 'AngloAmerican' },
-  { src: logoRosen, alt: 'Rosen' },
+  { src: logoApumanque, alt: 'Apumanque' },
+  { src: logoCarabineros, alt: 'Carabineros de Chile' },
+  { src: logoAdmicomu, alt: 'Admicomu' },
+  { src: logoEfe, alt: 'EFE' },
+  { src: logoHappyland, alt: 'Happyland' },
 ];
 
 export function ServicesClients() {
@@ -35,7 +35,7 @@ export function ServicesClients() {
                 src={logo.src}
                 alt={logo.alt}
                 className="h-6 sm:h-11 w-auto shrink-0"
-                style={{ filter: 'brightness(0) saturate(100%) invert(22%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(89%)' }}
+                style={{ filter: 'grayscale(100%)' }}
               />
             ))}
           </div>

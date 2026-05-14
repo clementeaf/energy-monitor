@@ -7,7 +7,7 @@ const links = [
   { label: 'Valores', href: '#valores' },
   { label: 'Industrias', href: '#industrias', dropdown: [
     { label: 'Globe Services', to: '/globe-services' },
-    // { label: 'Globe Power', to: '', disabled: true },
+    { label: 'Globe Power', to: '/globe-power', disabled: false },
     { label: 'Globe Modular', to: '/globe-modular', disabled: false },
   ]},
   { label: 'Ecosistema Globe', href: '#ecosistema' },

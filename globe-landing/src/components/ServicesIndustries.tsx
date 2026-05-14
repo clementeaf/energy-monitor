@@ -129,7 +129,7 @@ export function ServicesIndustries() {
                 <button
                   key={item.label}
                   type="button"
-                  onClick={() => setActive(i)}
+                  onClick={() => selectIndustry(i)}
                   className="flex items-center gap-3 w-full text-left py-4 relative"
                 >
                   <div className={`w-6 shrink-0 transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-0'}`}>
@@ -146,11 +146,9 @@ export function ServicesIndustries() {
                   >
                     {item.label}
                   </span>
-                  <div className="absolute bottom-0 left-0 right-0 h-px">
-                    {isActive ? (
-                      <div className="w-full h-full" style={{ background: 'linear-gradient(to right, #1C1C1C 30%, #E4E4E4 30%)' }} />
-                    ) : (
-                      <div className="w-full h-full bg-grey-200" />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-grey-200">
+                    {isActive && (
+                      <div className="h-full bg-[#1C1C1C]" style={{ width: `${progress * 100}%` }} />
                     )}
                   </div>
                 </button>

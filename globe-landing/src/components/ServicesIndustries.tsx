@@ -62,7 +62,7 @@ export function ServicesIndustries() {
     <section className="bg-grey-50 py-16 lg:py-[128px] px-5 sm:px-10 lg:px-[60px]">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-10 lg:gap-[128px]">
         {/* Header */}
-        <div className="flex flex-col gap-[8px] text-center lg:text-left">
+        <div className="flex flex-col gap-[8px] text-center">
           <span className="font-body text-[14px] leading-[20px] font-medium text-grey-500 uppercase tracking-wide">
             Industrias
           </span>

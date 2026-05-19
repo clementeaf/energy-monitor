@@ -26,9 +26,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-05-19)
-- **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth. Flujo: OAuth → QR → verificar código → recovery codes → entra. Elimina deadlock donde no podían configurar MFA sin estar autenticados.
+- **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth. Flujo: OAuth → QR → verificar → recovery codes → entra.
 - **CSP fix:** `script-src` + `'unsafe-inline'`, `style-src` + `https://accounts.google.com` para Google Sign-In SDK.
-- **Tenant header:** `tenantId` enviado como header `x-tenant-id` en vez de query param. Resuelve 400 por `forbidNonWhitelisted`. Backend lee header con fallback a query. [CHANGELOG — 2.12.0-alpha.0](CHANGELOG.md)
+- **Tenant header:** `tenantId` como header `x-tenant-id` en vez de query param. Resuelve 400 por `forbidNonWhitelisted`.
+- **Session 24h:** `maxSessionMinutes` default 30 → 1440. Roles existentes auto-actualizados al arrancar backend.
+- **Dashboard Ejecutivo perf:** Agregados server-side con `groupBy=portfolio` (~30 filas vs ~26K). Ranking usa `latestReadings` en vez de query pesada. Skip JOIN meters sin filtro building. [CHANGELOG — 2.12.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-05-14)
 - **Globe Power page:** `/globe-power` con 7 secciones (rama `feat/globe-landing-globe-power`). Hero 3 slides (logo Globe Power, lorem ipsum). Presencia ("Operamos a lo largo de todo Chile", 3 stats placeholder). Propuesta de valor (lorem ipsum). Pain points 2×2 (Cobros Ineficientes, Falta de Control, Oportunidades Perdidas, Mantenimientos Correctivos — textos reales). Arquitectura completa (acordeón 4 items). Banner Alianza con Siemens (imagen `alianza.png`). Proceso 4 pasos (Consumo real, Medición SENTRON, Procesamiento, Facturación exacta) con pills. Navbar Globe Power habilitado. [CHANGELOG — 2.11.0-alpha.0](CHANGELOG.md)

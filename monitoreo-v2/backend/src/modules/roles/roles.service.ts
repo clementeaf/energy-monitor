@@ -1,10 +1,12 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+
+const DEFAULT_SESSION_MINUTES = 1440; // 24 hours
 
 export interface UserPermission {
   module: string;
@@ -16,7 +18,7 @@ export interface RoleWithPermissions extends Role {
 }
 
 @Injectable()
-export class RolesService {
+export class RolesService implements OnModuleInit {
   private readonly logger = new Logger(RolesService.name);
 
   constructor(
@@ -26,6 +28,17 @@ export class RolesService {
     private readonly permissionRepo: Repository<Permission>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async onModuleInit() {
+    const result = await this.dataSource.query(
+      `UPDATE roles SET max_session_minutes = $1 WHERE max_session_minutes < $1`,
+      [DEFAULT_SESSION_MINUTES],
+    );
+    const updated = result?.[1] ?? 0;
+    if (updated > 0) {
+      this.logger.log(`Updated ${updated} roles to ${DEFAULT_SESSION_MINUTES}min session`);
+    }
+  }
 
   /* ------------------------------------------------------------------ */
   /*  Auth helpers (existing)                                            */
@@ -94,7 +107,7 @@ export class RolesService {
       name: dto.name,
       slug: dto.slug,
       description: dto.description ?? null,
-      maxSessionMinutes: dto.maxSessionMinutes ?? 30,
+      maxSessionMinutes: dto.maxSessionMinutes ?? DEFAULT_SESSION_MINUTES,
       isDefault: dto.isDefault ?? false,
       isActive: true,
     });

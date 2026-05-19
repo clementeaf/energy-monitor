@@ -279,6 +279,10 @@ export class ReadingsService {
     ];
     let paramIdx = 4;
 
+    // Only JOIN meters when filtering by building — avoids expensive join on large datasets
+    const needsMeterJoin = buildingIds.length > 0 || !!query.buildingId;
+    const meterJoin = needsMeterJoin ? 'INNER JOIN meters m ON m.id = a.meter_id' : '';
+
     if (buildingIds.length > 0) {
       const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
       conditions.push(`m.building_id IN (${placeholders.join(', ')})`);
@@ -299,30 +303,57 @@ export class ReadingsService {
     }
 
     const where = conditions.join(' AND ');
+    const isPortfolio = query.groupBy === 'portfolio';
 
     if (agg.reBucket) {
-      // Monthly: re-aggregate daily view rows
+      const groupCols = isPortfolio
+        ? `time_bucket('${agg.reBucket}', a.bucket)`
+        : `time_bucket('${agg.reBucket}', a.bucket), a.meter_id`;
+      const meterCol = isPortfolio ? "'_portfolio'" : 'a.meter_id';
+
       return this.dataSource.query(
         `SELECT
            time_bucket('${agg.reBucket}', a.bucket) AS bucket,
-           a.meter_id,
+           ${meterCol} AS meter_id,
            (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
            MAX(a.max_power_kw)::text AS max_power_kw,
            MIN(a.min_power_kw)::text AS min_power_kw,
            (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
            (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
-           (MAX(a.max_energy_kwh_total) - MIN(a.min_energy_kwh_total))::text AS energy_delta_kwh,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
            SUM(a.reading_count)::text AS reading_count
          FROM ${agg.view} a
-         INNER JOIN meters m ON m.id = a.meter_id
+         ${meterJoin}
          WHERE ${where}
-         GROUP BY time_bucket('${agg.reBucket}', a.bucket), a.meter_id
-         ORDER BY bucket ASC, a.meter_id ASC`,
+         GROUP BY ${groupCols}
+         ORDER BY bucket ASC`,
         params,
       );
     }
 
-    // Direct read from hourly or daily aggregate
+    if (isPortfolio) {
+      // Portfolio mode: aggregate all meters into one row per bucket (~30 rows vs ~26K)
+      return this.dataSource.query(
+        `SELECT
+           a.bucket,
+           '_portfolio' AS meter_id,
+           SUM(a.avg_power_kw)::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM ${agg.view} a
+         ${meterJoin}
+         WHERE ${where}
+         GROUP BY a.bucket
+         ORDER BY a.bucket ASC`,
+        params,
+      );
+    }
+
+    // Direct read from hourly or daily aggregate (per-meter)
     return this.dataSource.query(
       `SELECT
          a.bucket,
@@ -335,7 +366,7 @@ export class ReadingsService {
          (a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
          a.reading_count::text AS reading_count
        FROM ${agg.view} a
-       INNER JOIN meters m ON m.id = a.meter_id
+       ${meterJoin}
        WHERE ${where}
        ORDER BY a.bucket ASC, a.meter_id ASC`,
       params,

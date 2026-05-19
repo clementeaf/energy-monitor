@@ -117,7 +117,7 @@ describe('RolesService', () => {
       roleRepo.findOneBy.mockResolvedValue(null);
       await service.create(TENANT, { name: 'New', slug: 'new_role' });
       expect(roleRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ tenantId: TENANT, slug: 'new_role', maxSessionMinutes: 30 }),
+        expect.objectContaining({ tenantId: TENANT, slug: 'new_role', maxSessionMinutes: 1440 }),
       );
     });
 

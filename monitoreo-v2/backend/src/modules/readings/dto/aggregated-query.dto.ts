@@ -17,4 +17,8 @@ export class AggregatedQueryDto {
   @IsOptional()
   @IsUUID()
   meterId?: string;
+
+  @IsOptional()
+  @IsIn(['portfolio'])
+  groupBy?: string;
 }

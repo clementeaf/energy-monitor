@@ -1,14 +1,19 @@
 # Changelog
 
-## [2.12.0-alpha.0] - 2026-05-19 — MFA QR SETUP ON LOGIN, CSP FIX, TENANT HEADER
+## [2.12.0-alpha.0] - 2026-05-19 — MFA QR ON LOGIN, SESSION 24H, EXECUTIVE DASHBOARD PERF
 
 ### Fixed (monitoreo-v2/frontend)
-- **MFA setup on login** — New users with `require_mfa` role now see the QR code directly on the login page after OAuth. Flow: OAuth → QR scan → verify code → recovery codes → enter app. No more deadlock.
-- **CSP policy** — Added `'unsafe-inline'` to `script-src` and `https://accounts.google.com` to `style-src` for Google Sign-In SDK compatibility.
-- **Tenant scoping** — `tenantId` sent as `x-tenant-id` header instead of query param. Fixes 400 Bad Request caused by `forbidNonWhitelisted` rejecting unknown query params.
+- **MFA setup on login** — New users with `require_mfa` role see QR code directly on login page after OAuth. Flow: OAuth → QR scan → verify → recovery codes → enter app.
+- **CSP policy** — Added `'unsafe-inline'` to `script-src` and `https://accounts.google.com` to `style-src` for Google Sign-In SDK.
+- **Tenant scoping** — `tenantId` sent as `x-tenant-id` header instead of query param. Fixes 400 from `forbidNonWhitelisted`.
 
 ### Changed (monitoreo-v2/backend)
 - **Tenant override middleware** — Reads `x-tenant-id` header (preferred) with query param fallback. Permissions guard also checks header.
+- **Session duration** — Default `maxSessionMinutes` raised from 30 to 1440 (24h). Existing roles auto-updated on startup via `onModuleInit`.
+- **Aggregated readings perf** — Skip `meters` JOIN when no building filter. New `groupBy=portfolio` param aggregates all meters into one row per bucket (~30 rows vs ~26K).
+
+### Changed (monitoreo-v2/frontend)
+- **Executive Dashboard** — Chart uses `groupBy=portfolio` server-side aggregation. Ranking uses `latestReadings` (already loaded) instead of full per-meter aggregated query.
 
 ---
 

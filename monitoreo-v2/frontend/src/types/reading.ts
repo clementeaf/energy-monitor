@@ -55,6 +55,7 @@ export interface AggregatedQueryParams {
   interval: AggregationInterval;
   buildingId?: string;
   meterId?: string;
+  groupBy?: 'portfolio';
 }
 
 /** Mirrors backend AggregatedRow (raw SQL — snake_case) */

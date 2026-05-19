@@ -197,11 +197,11 @@ export class AuthService {
         permissions: permissionStrings,
         buildingIds,
       },
-      role?.maxSessionMinutes ?? 30,
+      role?.maxSessionMinutes ?? 1440,
     );
   }
 
-  async generateTokenPair(payload: JwtPayload, sessionMinutes = 30): Promise<TokenPair> {
+  async generateTokenPair(payload: JwtPayload, sessionMinutes = 1440): Promise<TokenPair> {
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: `${sessionMinutes}m`,
     });
@@ -290,7 +290,7 @@ export class AuthService {
           permissions: permissionStrings,
           buildingIds,
         },
-        role?.maxSessionMinutes ?? 30,
+        role?.maxSessionMinutes ?? 1440,
       );
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -341,7 +341,7 @@ export class AuthService {
         permissions: permissionStrings,
         buildingIds,
       },
-      role?.maxSessionMinutes ?? 30,
+      role?.maxSessionMinutes ?? 1440,
     );
   }
 

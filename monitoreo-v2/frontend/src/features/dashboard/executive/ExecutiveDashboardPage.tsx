@@ -13,9 +13,6 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import {
   aggregatePortfolioByBucket,
-  meterToBuildingMap,
-  rankBuildingsByIntensity,
-  sumEnergyByBuilding,
   countMetersByBuilding,
 } from '../dashboardAggregations';
 
@@ -55,7 +52,7 @@ export function ExecutiveDashboardPage(): ReactElement {
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: rangeConfig.interval },
+    { from, to, interval: rangeConfig.interval, groupBy: 'portfolio' },
     true,
   );
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
@@ -73,18 +70,26 @@ export function ExecutiveDashboardPage(): ReactElement {
   const aggRows = aggQuery.data ?? [];
   const activeAlerts = activeAlertsQuery.data ?? [];
 
-  const meterById = useMemo(() => meterToBuildingMap(meters), [meters]);
   const metersByBuilding = useMemo(() => countMetersByBuilding(meters), [meters]);
 
-  const energyByBuilding = useMemo(
-    () => sumEnergyByBuilding(aggRows, meterById),
-    [aggRows, meterById],
-  );
-
-  const ranking = useMemo(
-    () => rankBuildingsByIntensity(energyByBuilding, buildings, metersByBuilding),
-    [energyByBuilding, buildings, metersByBuilding],
-  );
+  // Ranking by current power per building (from latestReadings — already loaded, no extra query)
+  const ranking = useMemo(() => {
+    const powerByBuilding = new Map<string, number>();
+    for (const r of latestReadings) {
+      const bid = r.building_id;
+      if (!bid) continue;
+      powerByBuilding.set(bid, (powerByBuilding.get(bid) ?? 0) + Number(r.power_kw ?? 0));
+    }
+    return buildings
+      .map((b) => ({
+        buildingId: b.id,
+        buildingName: b.name,
+        totalEnergyKwh: powerByBuilding.get(b.id) ?? 0,
+        intensity: (powerByBuilding.get(b.id) ?? 0) / (metersByBuilding.get(b.id) || 1),
+        meterCount: metersByBuilding.get(b.id) ?? 0,
+      }))
+      .sort((a, b) => b.totalEnergyKwh - a.totalEnergyKwh);
+  }, [latestReadings, buildings, metersByBuilding]);
 
   const portfolioSeries = useMemo(() => aggregatePortfolioByBucket(aggRows), [aggRows]);
 
@@ -268,7 +273,7 @@ export function ExecutiveDashboardPage(): ReactElement {
           {/* Ranking */}
           <div className="flex flex-col gap-2">
             <h2 className="text-[13px] font-medium text-pa-text">Ranking intensidad</h2>
-            {(buildingsQs.phase === 'loading' || aggQuery.isPending) ? (
+            {(buildingsQs.phase === 'loading' || latestQuery.isPending) ? (
               <div className="animate-pulse rounded-lg border border-pa-border bg-white">
                 <div className="h-8 rounded-t bg-gray-200" />
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -282,9 +287,9 @@ export function ExecutiveDashboardPage(): ReactElement {
               </div>
             ) : (
             <DataWidget
-              phase={aggQuery.isPending ? 'loading' : buildingsQs.phase}
-              error={buildingsQs.error ?? aggQuery.error}
-              onRetry={() => { buildingsQuery.refetch(); aggQuery.refetch(); }}
+              phase={latestQuery.isPending ? 'loading' : buildingsQs.phase}
+              error={buildingsQs.error ?? latestQuery.error}
+              onRetry={() => { buildingsQuery.refetch(); latestQuery.refetch(); }}
               emptyTitle="Sin datos"
               emptyDescription="No hay edificios o lecturas agregadas."
             >
@@ -294,8 +299,8 @@ export function ExecutiveDashboardPage(): ReactElement {
                     <tr>
                       <th className="px-3 py-2">#</th>
                       <th className="px-3 py-2">Edificio</th>
-                      <th className="px-3 py-2 text-right">kWh</th>
-                      <th className="px-3 py-2 text-right">Int.</th>
+                      <th className="px-3 py-2 text-right">kW</th>
+                      <th className="px-3 py-2 text-right">kW/med</th>
                     </tr>
                   </thead>
                   <TableStateBody

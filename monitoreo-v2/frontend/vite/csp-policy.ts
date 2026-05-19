@@ -88,8 +88,8 @@ export function buildContentSecurityPolicy(env: CspBuildEnv): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' ${SCRIPT_SRC_REMOTE.join(' ')}`,
-    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline' ${SCRIPT_SRC_REMOTE.join(' ')}`,
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,

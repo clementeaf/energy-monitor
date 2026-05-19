@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.12.0-alpha.0] - 2026-05-19 — MFA QR SETUP ON LOGIN, CSP FIX, TENANT HEADER
+
+### Fixed (monitoreo-v2/frontend)
+- **MFA setup on login** — New users with `require_mfa` role now see the QR code directly on the login page after OAuth. Flow: OAuth → QR scan → verify code → recovery codes → enter app. No more deadlock.
+- **CSP policy** — Added `'unsafe-inline'` to `script-src` and `https://accounts.google.com` to `style-src` for Google Sign-In SDK compatibility.
+- **Tenant scoping** — `tenantId` sent as `x-tenant-id` header instead of query param. Fixes 400 Bad Request caused by `forbidNonWhitelisted` rejecting unknown query params.
+
+### Changed (monitoreo-v2/backend)
+- **Tenant override middleware** — Reads `x-tenant-id` header (preferred) with query param fallback. Permissions guard also checks header.
+
+---
+
 ## [2.11.0-alpha.0] - 2026-05-14 — GLOBE POWER PAGE & FIXES
 
 ### Added (globe-landing)

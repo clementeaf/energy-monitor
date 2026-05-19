@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
+import type { MfaSetupResponse } from '../../services/endpoints';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { setSessionFlag, clearSessionFlag } from './useSessionResolver';
 import type { AuthProvider } from '../../types/auth';
@@ -15,6 +16,8 @@ export function useAuth() {
   const microsoft = useMicrosoftAuth();
   const msResolved = useRef(false);
   const [mfaPending, setMfaPending] = useState<{ userId: string } | null>(null);
+  const [mfaSetupData, setMfaSetupData] = useState<MfaSetupResponse | null>(null);
+  const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState<string[] | null>(null);
 
   const completeLogin = useCallback(async () => {
     const { data } = await authEndpoints.me();
@@ -31,12 +34,22 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       setMfaPending(null);
+      setMfaSetupData(null);
+      setMfaRecoveryCodes(null);
 
       try {
         const { data } = await authEndpoints.login(provider, idToken);
 
         if (data.mfaRequired && data.userId) {
           setMfaPending({ userId: data.userId });
+          setLoading(false);
+          return;
+        }
+
+        if (data.mfaSetupRequired) {
+          // User authenticated but needs to configure MFA — fetch QR immediately
+          const { data: setup } = await authEndpoints.mfaSetup();
+          setMfaSetupData(setup);
           setLoading(false);
           return;
         }
@@ -68,6 +81,27 @@ export function useAuth() {
       }
     },
     [mfaPending, completeLogin, setLoading, setError],
+  );
+
+  const verifyMfaSetup = useCallback(
+    async (code: string) => {
+      if (!mfaSetupData) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data } = await authEndpoints.mfaVerify(code);
+        if (data.recoveryCodes) {
+          setMfaRecoveryCodes(data.recoveryCodes);
+        }
+        setMfaSetupData(null);
+        await completeLogin();
+      } catch {
+        setError('Código inválido. Verifica que escaneaste el QR correctamente.');
+        setLoading(false);
+      }
+    },
+    [mfaSetupData, completeLogin, setLoading, setError],
   );
 
   // Detect Microsoft redirect completing — MSAL sets isAuthenticated after redirect
@@ -119,6 +153,10 @@ export function useAuth() {
     logout,
     mfaPending,
     validateMfa,
+    mfaSetupData,
+    verifyMfaSetup,
+    mfaRecoveryCodes,
+    setMfaRecoveryCodes,
   };
 }
 

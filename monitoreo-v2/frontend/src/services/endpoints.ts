@@ -79,7 +79,7 @@ export const authEndpoints = {
     api.post<MfaSetupResponse>(API_ROUTES.auth.mfaSetup),
 
   mfaVerify: (code: string) =>
-    api.post<{ success: boolean; mfaEnabled: boolean }>(API_ROUTES.auth.mfaVerify, { code }),
+    api.post<{ success: boolean; mfaEnabled: boolean; recoveryCodes?: string[] }>(API_ROUTES.auth.mfaVerify, { code }),
 
   mfaValidate: (userId: string, code: string) =>
     api.post<{ success: boolean }>(API_ROUTES.auth.mfaValidate, { userId, code }),

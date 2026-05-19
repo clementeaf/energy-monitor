@@ -65,11 +65,14 @@ async function bootstrap() {
   // ISO 27001: Secure cookie parsing
   app.use(cookieParser(process.env.COOKIE_SECRET));
 
-  // Tenant override: extract ?tenantId from query before ValidationPipe sees it
-  app.use((req: { query?: Record<string, unknown>; _tenantOverride?: string }, _res: unknown, next: () => void) => {
-    if (req.query?.tenantId) {
-      req._tenantOverride = req.query.tenantId as string;
-      delete req.query.tenantId;
+  // Tenant override: read x-tenant-id header (preferred) or ?tenantId query param (fallback)
+  app.use((req: { headers?: Record<string, unknown>; query?: Record<string, unknown>; _tenantOverride?: string }, _res: unknown, next: () => void) => {
+    const headerTenantId = req.headers?.['x-tenant-id'] as string | undefined;
+    const queryTenantId = req.query?.tenantId as string | undefined;
+    const tenantId = headerTenantId || queryTenantId;
+    if (tenantId) {
+      req._tenantOverride = tenantId;
+      delete req.query?.tenantId;
     }
     next();
   });

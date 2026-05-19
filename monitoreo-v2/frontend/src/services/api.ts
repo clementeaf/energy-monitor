@@ -13,11 +13,11 @@ const api = axios.create({
 
 const AUTH_PATHS = ['/auth/login', '/auth/me', '/auth/refresh', '/auth/logout'];
 
-// Inject selectedTenantId into all GET requests for super_admin tenant scoping
+// Inject selectedTenantId as header for super_admin tenant scoping
 api.interceptors.request.use((config) => {
   const tenantId = useAppStore.getState().selectedTenantId;
   if (tenantId) {
-    config.params = { ...config.params, tenantId };
+    config.headers['x-tenant-id'] = tenantId;
   }
   return config;
 });

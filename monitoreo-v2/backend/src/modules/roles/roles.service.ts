@@ -30,13 +30,18 @@ export class RolesService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const result = await this.dataSource.query(
+    await this.dataSource.query(
       `UPDATE roles SET max_session_minutes = $1 WHERE max_session_minutes < $1`,
       [DEFAULT_SESSION_MINUTES],
     );
-    const updated = result?.[1] ?? 0;
-    if (updated > 0) {
-      this.logger.log(`Updated ${updated} roles to ${DEFAULT_SESSION_MINUTES}min session`);
+    const check = await this.dataSource.query(
+      `SELECT id, slug, max_session_minutes FROM roles WHERE max_session_minutes < $1`,
+      [DEFAULT_SESSION_MINUTES],
+    );
+    if (check.length > 0) {
+      this.logger.warn(`Roles still below ${DEFAULT_SESSION_MINUTES}min: ${JSON.stringify(check)}`);
+    } else {
+      this.logger.log(`All roles have max_session_minutes >= ${DEFAULT_SESSION_MINUTES}`);
     }
   }
 

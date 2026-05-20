@@ -37,23 +37,32 @@ const CHART_VIEWS: { key: ChartView; label: string }[] = [
  */
 export function ExecutiveDashboardPage(): ReactElement {
   const navigate = useNavigate();
-  const [preset, setPreset] = useState<RangePreset>('month');
+  const [preset, setPreset] = useState<RangePreset>('week');
   const [chartView, setChartView] = useState<ChartView>('energy');
 
   const rangeConfig = RANGE_PRESETS.find((r) => r.key === preset)!;
-  const { from, to } = useMemo(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - rangeConfig.days);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }, [rangeConfig.days]);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+
+  // Determine actual data range from latest readings — data may be historical
+  const { from, to } = useMemo(() => {
+    const latestTimestamps = (latestQuery.data ?? [])
+      .map((r) => r.timestamp ? new Date(r.timestamp).getTime() : 0)
+      .filter((t) => t > 0);
+
+    const end = latestTimestamps.length > 0
+      ? new Date(Math.max(...latestTimestamps))
+      : new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - rangeConfig.days);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }, [latestQuery.data, rangeConfig.days]);
+
   const aggQuery = useAggregatedReadingsQuery(
     { from, to, interval: rangeConfig.interval, groupBy: 'portfolio' },
-    true,
+    latestQuery.isSuccess,
   );
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
   const tariffsQuery = useTariffsQuery();

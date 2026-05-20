@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.12.0-alpha.0] - 2026-05-19 — MFA QR ON LOGIN, SESSION 24H, EXECUTIVE DASHBOARD PERF
+## [2.12.0-alpha.0] - 2026-05-20 — MFA QR ON LOGIN, SESSION 24H, EXECUTIVE DASHBOARD PERF
 
 ### Fixed (monitoreo-v2/frontend)
 - **MFA setup on login** — New users with `require_mfa` role see QR code directly on login page after OAuth. Flow: OAuth → QR scan → verify → recovery codes → enter app.
@@ -9,11 +9,11 @@
 
 ### Changed (monitoreo-v2/backend)
 - **Tenant override middleware** — Reads `x-tenant-id` header (preferred) with query param fallback. Permissions guard also checks header.
-- **Session duration** — Default `maxSessionMinutes` raised from 30 to 1440 (24h). Existing roles auto-updated on startup via `onModuleInit`.
-- **Aggregated readings perf** — Skip `meters` JOIN when no building filter. New `groupBy=portfolio` param aggregates all meters into one row per bucket (~30 rows vs ~26K).
+- **Session duration** — Default `maxSessionMinutes` 30 → 1440 (24h). Access token cookie aligned to 24h. Roles auto-updated on startup.
+- **Portfolio aggregation** — New `groupBy=portfolio` param on `/readings/aggregated`. Queries hypertable directly via `INNER JOIN meters` for tenant scoping (bypasses slow continuous aggregate on `db.t3.micro`). In-memory cache (5min, skips empty results).
 
 ### Changed (monitoreo-v2/frontend)
-- **Executive Dashboard** — Chart uses `groupBy=portfolio` server-side aggregation. Ranking uses `latestReadings` (already loaded) instead of full per-meter aggregated query.
+- **Executive Dashboard** — Chart uses `groupBy=portfolio` server-side aggregation. Date range derived from actual `latestReadings` timestamps (handles historical data). Ranking uses `latestReadings` (kW actual) instead of full per-meter aggregated query. Default preset "Semana". `staleTime` 5min on aggregated queries.
 
 ---
 

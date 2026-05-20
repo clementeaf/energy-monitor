@@ -326,7 +326,7 @@ export class AuthController {
 
     res.cookie(accessName, accessToken, {
       ...cookieOptions,
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours — matches JWT expiry
     });
 
     res.cookie(refreshName, refreshToken, {

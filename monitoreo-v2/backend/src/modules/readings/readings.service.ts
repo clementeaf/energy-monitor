@@ -96,9 +96,31 @@ const AGGREGATE_VIEW_MAP: Record<string, AggregateSource> = {
   monthly: { view: 'readings_daily', reBucket: '1 month' },
 };
 
+interface CacheEntry {
+  data: AggregatedRow[];
+  expiry: number;
+}
+
+const PORTFOLIO_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 @Injectable()
 export class ReadingsService {
+  private portfolioCache = new Map<string, CacheEntry>();
+
   constructor(private readonly dataSource: DataSource) {}
+
+  private getCached(key: string): AggregatedRow[] | null {
+    const entry = this.portfolioCache.get(key);
+    if (entry && entry.expiry > Date.now()) return entry.data;
+    this.portfolioCache.delete(key);
+    return null;
+  }
+
+  private setCache(key: string, data: AggregatedRow[]): void {
+    // Don't cache empty results — may be a transient issue
+    if (data.length === 0) return;
+    this.portfolioCache.set(key, { data, expiry: Date.now() + PORTFOLIO_CACHE_TTL });
+  }
 
   async findByMeter(
     tenantId: string,
@@ -247,6 +269,20 @@ export class ReadingsService {
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
 
+    // Portfolio cache — avoids slow sequential scans on continuous aggregates
+    if (query.groupBy === 'portfolio') {
+      const cacheKey = `${tenantId}:${query.interval}:${query.from}:${query.to}`;
+      const cached = this.getCached(cacheKey);
+      if (cached) return cached;
+
+      const useAggregate = AGGREGATE_VIEW_MAP[query.interval];
+      const result = useAggregate
+        ? await this.findFromAggregate(tenantId, buildingIds, query, useAggregate)
+        : await this.findFromRawBucket(tenantId, buildingIds, query, pgInterval);
+      this.setCache(cacheKey, result);
+      return result;
+    }
+
     // Use continuous aggregates for hourly/daily/monthly
     const useAggregate = AGGREGATE_VIEW_MAP[query.interval];
     if (useAggregate) {
@@ -270,6 +306,8 @@ export class ReadingsService {
     // Security: assert interpolated values are in whitelist (defense-in-depth)
     assertSafeView(agg.view);
     if (agg.reBucket) assertSafeInterval(agg.reBucket);
+    const pgInterval = INTERVAL_MAP[query.interval] ?? '1 day';
+    assertSafeInterval(pgInterval);
 
     const params: unknown[] = [tenantId, query.from, query.to];
     const conditions: string[] = [
@@ -306,15 +344,31 @@ export class ReadingsService {
     const isPortfolio = query.groupBy === 'portfolio';
 
     if (agg.reBucket) {
-      const groupCols = isPortfolio
-        ? `time_bucket('${agg.reBucket}', a.bucket)`
-        : `time_bucket('${agg.reBucket}', a.bucket), a.meter_id`;
-      const meterCol = isPortfolio ? "'_portfolio'" : 'a.meter_id';
+      if (isPortfolio) {
+        return this.dataSource.query(
+          `SELECT
+             time_bucket('${agg.reBucket}', a.bucket) AS bucket,
+             '_portfolio' AS meter_id,
+             (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
+             MAX(a.max_power_kw)::text AS max_power_kw,
+             MIN(a.min_power_kw)::text AS min_power_kw,
+             (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+             (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+             SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+             SUM(a.reading_count)::text AS reading_count
+           FROM ${agg.view} a
+           WHERE a.meter_id IN (SELECT id FROM meters WHERE tenant_id = $1)
+             AND a.bucket >= $2 AND a.bucket <= $3
+           GROUP BY time_bucket('${agg.reBucket}', a.bucket)
+           ORDER BY bucket ASC`,
+          params,
+        );
+      }
 
       return this.dataSource.query(
         `SELECT
            time_bucket('${agg.reBucket}', a.bucket) AS bucket,
-           ${meterCol} AS meter_id,
+           a.meter_id,
            (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
            MAX(a.max_power_kw)::text AS max_power_kw,
            MIN(a.min_power_kw)::text AS min_power_kw,
@@ -325,31 +379,33 @@ export class ReadingsService {
          FROM ${agg.view} a
          ${meterJoin}
          WHERE ${where}
-         GROUP BY ${groupCols}
-         ORDER BY bucket ASC`,
+         GROUP BY time_bucket('${agg.reBucket}', a.bucket), a.meter_id
+         ORDER BY bucket ASC, a.meter_id ASC`,
         params,
       );
     }
 
     if (isPortfolio) {
-      // Portfolio mode: aggregate all meters into one row per bucket (~30 rows vs ~26K)
+      // Portfolio mode: JOIN meters for tenant scoping (readings.tenant_id may
+      // differ after reassignment). Same pattern as findLatest.
       return this.dataSource.query(
         `SELECT
-           a.bucket,
+           time_bucket('${pgInterval}', r.timestamp) AS bucket,
            '_portfolio' AS meter_id,
-           SUM(a.avg_power_kw)::text AS avg_power_kw,
-           MAX(a.max_power_kw)::text AS max_power_kw,
-           MIN(a.min_power_kw)::text AS min_power_kw,
-           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
-           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
-           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
-           SUM(a.reading_count)::text AS reading_count
-         FROM ${agg.view} a
-         ${meterJoin}
-         WHERE ${where}
-         GROUP BY a.bucket
-         ORDER BY a.bucket ASC`,
-        params,
+           SUM(r.power_kw::double precision)::text AS avg_power_kw,
+           MAX(r.power_kw::double precision)::text AS max_power_kw,
+           MIN(r.power_kw::double precision)::text AS min_power_kw,
+           AVG(r.power_factor::double precision)::text AS avg_power_factor,
+           AVG(r.voltage_l1::double precision)::text AS avg_voltage_l1,
+           '0' AS energy_delta_kwh,
+           COUNT(*)::text AS reading_count
+         FROM readings r
+         INNER JOIN meters m ON m.id = r.meter_id
+         WHERE m.tenant_id = $1
+           AND r.timestamp >= $2 AND r.timestamp <= $3
+         GROUP BY time_bucket('${pgInterval}', r.timestamp)
+         ORDER BY bucket ASC`,
+        [tenantId, query.from, query.to],
       );
     }
 

@@ -40,5 +40,6 @@ export function useAggregatedReadingsQuery(params: AggregatedQueryParams, enable
       return data;
     },
     enabled,
+    staleTime: 5 * 60 * 1000, // 5 min — aggregated data doesn't change fast
   });
 }

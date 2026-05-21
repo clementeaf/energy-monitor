@@ -345,6 +345,13 @@ export class ReadingsService {
 
     if (agg.reBucket) {
       if (isPortfolio) {
+        const meterRows: { id: string }[] = await this.dataSource.query(
+          `SELECT id FROM meters WHERE tenant_id = $1`,
+          [tenantId],
+        );
+        if (meterRows.length === 0) return [];
+        const meterIds = meterRows.map((r) => r.id);
+
         return this.dataSource.query(
           `SELECT
              time_bucket('${agg.reBucket}', a.bucket) AS bucket,
@@ -357,11 +364,11 @@ export class ReadingsService {
              SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
              SUM(a.reading_count)::text AS reading_count
            FROM ${agg.view} a
-           WHERE a.meter_id IN (SELECT id FROM meters WHERE tenant_id = $1)
+           WHERE a.meter_id = ANY($1)
              AND a.bucket >= $2 AND a.bucket <= $3
            GROUP BY time_bucket('${agg.reBucket}', a.bucket)
            ORDER BY bucket ASC`,
-          params,
+          [meterIds, query.from, query.to],
         );
       }
 
@@ -386,26 +393,33 @@ export class ReadingsService {
     }
 
     if (isPortfolio) {
-      // Portfolio mode: JOIN meters for tenant scoping (readings.tenant_id may
-      // differ after reassignment). Same pattern as findLatest.
+      // Portfolio mode: two-step, no JOIN.
+      // 1) Fast indexed query on meters to get IDs for this tenant
+      // 2) Query continuous aggregate with ANY(ids) + bucket range (chunk pruning)
+      const meterRows: { id: string }[] = await this.dataSource.query(
+        `SELECT id FROM meters WHERE tenant_id = $1`,
+        [tenantId],
+      );
+      if (meterRows.length === 0) return [];
+      const meterIds = meterRows.map((r) => r.id);
+
       return this.dataSource.query(
         `SELECT
-           time_bucket('${pgInterval}', r.timestamp) AS bucket,
+           a.bucket,
            '_portfolio' AS meter_id,
-           SUM(r.power_kw::double precision)::text AS avg_power_kw,
-           MAX(r.power_kw::double precision)::text AS max_power_kw,
-           MIN(r.power_kw::double precision)::text AS min_power_kw,
-           AVG(r.power_factor::double precision)::text AS avg_power_factor,
-           AVG(r.voltage_l1::double precision)::text AS avg_voltage_l1,
-           '0' AS energy_delta_kwh,
-           COUNT(*)::text AS reading_count
-         FROM readings r
-         INNER JOIN meters m ON m.id = r.meter_id
-         WHERE m.tenant_id = $1
-           AND r.timestamp >= $2 AND r.timestamp <= $3
-         GROUP BY time_bucket('${pgInterval}', r.timestamp)
-         ORDER BY bucket ASC`,
-        [tenantId, query.from, query.to],
+           SUM(a.avg_power_kw)::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM ${agg.view} a
+         WHERE a.meter_id = ANY($1)
+           AND a.bucket >= $2 AND a.bucket <= $3
+         GROUP BY a.bucket
+         ORDER BY a.bucket ASC`,
+        [meterIds, query.from, query.to],
       );
     }
 

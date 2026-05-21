@@ -10,7 +10,7 @@
 ### Changed (monitoreo-v2/backend)
 - **Tenant override middleware** — Reads `x-tenant-id` header (preferred) with query param fallback. Permissions guard also checks header.
 - **Session duration** — Default `maxSessionMinutes` 30 → 1440 (24h). Access token cookie aligned to 24h. Roles auto-updated on startup.
-- **Portfolio aggregation** — New `groupBy=portfolio` param on `/readings/aggregated`. Queries hypertable directly via `INNER JOIN meters` for tenant scoping (bypasses slow continuous aggregate on `db.t3.micro`). In-memory cache (5min, skips empty results).
+- **Portfolio aggregation** — New `groupBy=portfolio` param on `/readings/aggregated`. Two-step query: fetch meter IDs, then `ANY(ids)` on continuous aggregate with bucket range (no JOIN). 11–18s → **<1s** on `db.t3.micro`. In-memory cache 5min.
 
 ### Changed (monitoreo-v2/frontend)
 - **Executive Dashboard** — Chart uses `groupBy=portfolio` server-side aggregation. Date range derived from actual `latestReadings` timestamps (handles historical data). Ranking uses `latestReadings` (kW actual) instead of full per-meter aggregated query. Default preset "Semana". `staleTime` 5min on aggregated queries.

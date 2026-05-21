@@ -30,7 +30,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **CSP fix:** Google Sign-In SDK — `script-src` + `'unsafe-inline'`, `style-src` + `accounts.google.com`.
 - **Tenant header:** `tenantId` como header `x-tenant-id` en vez de query param. Resuelve 400 `forbidNonWhitelisted`.
 - **Session 24h:** `maxSessionMinutes` 30 → 1440. Cookie access token 15min → 24h. Roles auto-actualizados al startup.
-- **Dashboard Ejecutivo:** Portfolio query directo al hypertable `readings` vía `JOIN meters` (bypass vista materializada lenta en `db.t3.micro`). Rango del chart derivado de timestamps reales de `latestReadings` (maneja data histórica). Ranking usa potencia actual. Cache 5min (no cachea vacíos). [CHANGELOG — 2.12.0-alpha.0](CHANGELOG.md)
+- **Dashboard Ejecutivo perf:** Portfolio query sin JOIN — two-step (meter IDs + `ANY(ids)` en continuous aggregate). 11–18s → <1s. Rango chart derivado de timestamps reales. Ranking usa potencia actual. Cache 5min. [CHANGELOG — 2.12.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-05-14)
 - **Globe Power page:** `/globe-power` con 7 secciones (rama `feat/globe-landing-globe-power`). Hero 3 slides (logo Globe Power, lorem ipsum). Presencia ("Operamos a lo largo de todo Chile", 3 stats placeholder). Propuesta de valor (lorem ipsum). Pain points 2×2 (Cobros Ineficientes, Falta de Control, Oportunidades Perdidas, Mantenimientos Correctivos — textos reales). Arquitectura completa (acordeón 4 items). Banner Alianza con Siemens (imagen `alianza.png`). Proceso 4 pasos (Consumo real, Medición SENTRON, Procesamiento, Facturación exacta) con pills. Navbar Globe Power habilitado. [CHANGELOG — 2.11.0-alpha.0](CHANGELOG.md)

@@ -10,6 +10,10 @@
 - **Login buttons** — Google Login replaced with custom button (same style as Microsoft). Both use `btnClass`, consistent height/width.
 - **Chile flag** — Blue square restricted to upper-left quadrant with 5-point star (was full-left like Texas).
 
+### Fixed (monitoreo-v2/backend)
+- **`/rectification-requests` 500** — Added missing `notes` column to `rectification_requests` table.
+- **`/invoices` pagination** — Default `limit: 100` when not specified. Was returning all 5,676 rows (2.8MB).
+
 ### Infra
 - **ECR lifecycle policy** — Keep last 5 images, auto-expire rest (92 → 5, saved 6.5 GB).
 - **CloudWatch retention** — `/ecs/monitoreo-v2-backend` set to 30 days (was infinite).

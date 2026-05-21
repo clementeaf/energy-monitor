@@ -131,6 +131,8 @@ describe('InvoicesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         addOrderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue(invoices),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);
@@ -147,6 +149,8 @@ describe('InvoicesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         addOrderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([]),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);
@@ -162,6 +166,8 @@ describe('InvoicesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         addOrderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([]),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);

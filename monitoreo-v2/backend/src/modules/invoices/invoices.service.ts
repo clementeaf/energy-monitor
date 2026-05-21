@@ -67,9 +67,7 @@ export class InvoicesService {
       qb.andWhere('i.period_end <= :periodEnd', { periodEnd: filters.periodEnd });
     }
 
-    if (filters?.limit) {
-      qb.take(filters.limit);
-    }
+    qb.take(filters?.limit ?? 100);
     if (filters?.offset) {
       qb.skip(filters.offset);
     }

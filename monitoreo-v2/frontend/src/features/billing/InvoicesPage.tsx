@@ -52,7 +52,7 @@ const PAGE_SIZE = 15;
 
 export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   const [statusTab, setStatusTab] = useState<string>(defaultStatus === 'pending' ? 'pending' : defaultStatus === 'history' ? 'approved' : '');
-  const [filters, setFilters] = useState<InvoiceQueryParams>({});
+  const [filters, setFilters] = useState<InvoiceQueryParams>({ limit: 100 });
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 

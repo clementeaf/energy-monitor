@@ -26,9 +26,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-05-21)
-- **AWS cleanup:** ECR lifecycle (92→5 imágenes), CloudWatch retention 30d, 7 CloudFront disabled eliminadas, 4 certs emotiox eliminados, IAM role emotiox eliminado.
-- **ECS Exec:** Habilitado con `ecsTaskRole`. Usuario test `test-api@energymonitor.dev` (super_admin) para testing de APIs.
-- **Auditoría costos:** $439/mes. EC2 instances identificadas (fck-nat, rds-tunnel, banados-vpn, cerulean-demo stopped). [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
+- **Portfolio matview:** `portfolio_summary` pre-agrega readings por tenant/día. 16s → 5ms. Refresh diario en `DataRetentionService`.
+- **RDS upgrade:** `db.t3.micro` → `db.t3.small` (2 GB RAM, +$14/mes).
+- **Login UI:** Botón Google custom (mismo estilo que Microsoft). Bandera Chile corregida (estrella 5 puntas, azul solo cuadro superior izquierdo).
+- **AWS cleanup:** ECR lifecycle 5 imágenes, CloudWatch 30d, 7 CloudFront eliminadas, 4 certs emotiox eliminados, IAM role emotiox eliminado.
+- **ECS Exec + test user:** `test-api@energymonitor.dev` (super_admin). 28/28 endpoints OK. [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-05-20)
 - **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth.

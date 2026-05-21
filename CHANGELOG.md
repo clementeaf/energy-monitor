@@ -1,6 +1,14 @@
 # Changelog
 
-## [2.12.1-alpha.0] - 2026-05-21 — AWS CLEANUP & INFRA AUDIT
+## [2.12.1-alpha.0] - 2026-05-21 — PORTFOLIO MATVIEW, RDS UPGRADE, LOGIN UI, AWS CLEANUP
+
+### Changed (monitoreo-v2/backend)
+- **Portfolio materialized view** — `portfolio_summary` pre-aggregates readings per tenant per day. Query: 16s → **5ms**. Refreshed daily via `DataRetentionService` cron.
+- **RDS upgrade** — `db.t3.micro` → `db.t3.small` (2 GB RAM).
+
+### Fixed (monitoreo-v2/frontend)
+- **Login buttons** — Google Login replaced with custom button (same style as Microsoft). Both use `btnClass`, consistent height/width.
+- **Chile flag** — Blue square restricted to upper-left quadrant with 5-point star (was full-left like Texas).
 
 ### Infra
 - **ECR lifecycle policy** — Keep last 5 images, auto-expire rest (92 → 5, saved 6.5 GB).

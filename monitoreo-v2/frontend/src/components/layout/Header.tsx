@@ -17,8 +17,8 @@ function FlagCircle({ code, size = 18 }: Readonly<{ code: string; size?: number 
       <>
         <rect width={size} height={r} fill="#fff" />
         <rect y={r} width={size} height={r} fill="#D52B1E" />
-        <rect width={r} height={size} fill="#0039A6" />
-        <circle cx={r / 2} cy={r} r={r * 0.22} fill="#fff" />
+        <rect width={r} height={r} fill="#0039A6" />
+        <polygon points={`${r / 2},${r * 0.28} ${r * 0.38},${r * 0.72} ${r * 0.12},${r * 0.45} ${r * 0.88},${r * 0.45} ${r * 0.62},${r * 0.72}`} fill="#fff" />
       </>
     ),
     CO: (

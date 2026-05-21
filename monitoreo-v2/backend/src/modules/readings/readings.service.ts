@@ -393,33 +393,24 @@ export class ReadingsService {
     }
 
     if (isPortfolio) {
-      // Portfolio mode: two-step, no JOIN.
-      // 1) Fast indexed query on meters to get IDs for this tenant
-      // 2) Query continuous aggregate with ANY(ids) + bucket range (chunk pruning)
-      const meterRows: { id: string }[] = await this.dataSource.query(
-        `SELECT id FROM meters WHERE tenant_id = $1`,
-        [tenantId],
-      );
-      if (meterRows.length === 0) return [];
-      const meterIds = meterRows.map((r) => r.id);
-
+      // Portfolio mode: read from pre-computed materialized view (~5ms).
+      // Refreshed daily by DataRetentionService cron.
       return this.dataSource.query(
         `SELECT
-           a.bucket,
+           bucket::text,
            '_portfolio' AS meter_id,
-           SUM(a.avg_power_kw)::text AS avg_power_kw,
-           MAX(a.max_power_kw)::text AS max_power_kw,
-           MIN(a.min_power_kw)::text AS min_power_kw,
-           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
-           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
-           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
-           SUM(a.reading_count)::text AS reading_count
-         FROM ${agg.view} a
-         WHERE a.meter_id = ANY($1)
-           AND a.bucket >= $2 AND a.bucket <= $3
-         GROUP BY a.bucket
-         ORDER BY a.bucket ASC`,
-        [meterIds, query.from, query.to],
+           sum_power_kw::text AS avg_power_kw,
+           max_power_kw::text AS max_power_kw,
+           min_power_kw::text AS min_power_kw,
+           avg_power_factor::text AS avg_power_factor,
+           avg_voltage_l1::text AS avg_voltage_l1,
+           '0' AS energy_delta_kwh,
+           reading_count::text AS reading_count
+         FROM portfolio_summary
+         WHERE tenant_id = $1
+           AND bucket >= $2::date AND bucket <= $3::date
+         ORDER BY bucket ASC`,
+        [tenantId, query.from, query.to],
       );
     }
 

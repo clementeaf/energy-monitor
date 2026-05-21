@@ -23,6 +23,7 @@ export class DataRetentionService {
     const purged = await this.purgeExpiredTokens();
     const anonymized = await this.anonymizeInactiveUsers();
     const auditPurged = await this.purgeOldAuditLogs();
+    await this.refreshPortfolioSummary();
 
     this.logger.log(
       `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${auditPurged} audit logs purged`,
@@ -97,6 +98,18 @@ export class DataRetentionService {
     }
 
     return rows.length;
+  }
+
+  /**
+   * Refresh portfolio_summary materialized view for Executive Dashboard.
+   */
+  private async refreshPortfolioSummary(): Promise<void> {
+    try {
+      await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary');
+      this.logger.log('Refreshed portfolio_summary');
+    } catch (err) {
+      this.logger.warn(`portfolio_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`);
+    }
   }
 
   /**

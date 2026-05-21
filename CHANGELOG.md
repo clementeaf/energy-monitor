@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.12.1-alpha.0] - 2026-05-21 — AWS CLEANUP & INFRA AUDIT
+
+### Infra
+- **ECR lifecycle policy** — Keep last 5 images, auto-expire rest (92 → 5, saved 6.5 GB).
+- **CloudWatch retention** — `/ecs/monitoreo-v2-backend` set to 30 days (was infinite).
+- **CloudFront cleanup** — Deleted 7 disabled distributions (old EmotioX/Banados).
+- **ACM cleanup** — Deleted 4 unused emotiox.org certificates.
+- **IAM cleanup** — Deleted orphan `emotioxv3-backend-production` Lambda role.
+- **ECS Exec** — Enabled on `monitoreo-v2-backend-restored` with `ecsTaskRole` (SSM permissions).
+- **Test user** — `test-api@energymonitor.dev` (super_admin) for API testing.
+
+---
+
 ## [2.12.0-alpha.0] - 2026-05-20 — MFA QR ON LOGIN, SESSION 24H, EXECUTIVE DASHBOARD PERF
 
 ### Fixed (monitoreo-v2/frontend)

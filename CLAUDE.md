@@ -25,6 +25,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-05-21)
+- **AWS cleanup:** ECR lifecycle (92→5 imágenes), CloudWatch retention 30d, 7 CloudFront disabled eliminadas, 4 certs emotiox eliminados, IAM role emotiox eliminado.
+- **ECS Exec:** Habilitado con `ecsTaskRole`. Usuario test `test-api@energymonitor.dev` (super_admin) para testing de APIs.
+- **Auditoría costos:** $439/mes. EC2 instances identificadas (fck-nat, rds-tunnel, banados-vpn, cerulean-demo stopped). [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-05-20)
 - **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth.
 - **CSP fix:** Google Sign-In SDK — `script-src` + `'unsafe-inline'`, `style-src` + `accounts.google.com`.

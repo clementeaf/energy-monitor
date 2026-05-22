@@ -12,7 +12,8 @@
 
 ### Fixed (monitoreo-v2/backend)
 - **`/rectification-requests` 500** — Added missing `notes` column to `rectification_requests` table.
-- **`/invoices` pagination** — Default `limit: 100` when not specified. Was returning all 5,676 rows (2.8MB).
+- **`/invoices` server pagination** — Returns `{ data, total, limit, offset }`. Default limit 100.
+- **`/meters` server pagination** — Returns `{ data, total, limit, offset }`. Default limit 200. Accepts `?limit=` and `?offset=`.
 
 ### Infra
 - **ECR lifecycle policy** — Keep last 5 images, auto-expire rest (92 → 5, saved 6.5 GB).

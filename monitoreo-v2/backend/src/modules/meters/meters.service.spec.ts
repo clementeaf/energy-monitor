@@ -67,7 +67,9 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(meters),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([meters, meters.length]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
@@ -75,7 +77,7 @@ describe('MetersService', () => {
 
       expect(qb.where).toHaveBeenCalledWith('m.tenant_id = :tenantId', { tenantId: TENANT_ID });
       expect(qb.andWhere).not.toHaveBeenCalled();
-      expect(result).toEqual(meters);
+      expect(result.data).toEqual(meters);
     });
 
     it('scopes by buildingIds when provided', async () => {
@@ -84,7 +86,9 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
@@ -101,7 +105,9 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
@@ -118,7 +124,9 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
@@ -314,7 +322,9 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
@@ -329,14 +339,16 @@ describe('MetersService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([mockMeter({ tenantId: TENANT_A }), mockMeter({ tenantId: TENANT_B })]),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockMeter({ tenantId: TENANT_A }), mockMeter({ tenantId: TENANT_B })], 2]),
       };
       repo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAll(TENANT_A, [], undefined, true);
 
       expect(qb.where).not.toHaveBeenCalled();
-      expect(result).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
     });
 
     it('findOne enforces tenant — tenant B cannot access tenant A meter', async () => {

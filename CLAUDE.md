@@ -31,7 +31,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **Login UI:** Botón Google custom (mismo estilo que Microsoft). Bandera Chile corregida (estrella 5 puntas, azul solo cuadro superior izquierdo).
 - **AWS cleanup:** ECR lifecycle 5 imágenes, CloudWatch 30d, 7 CloudFront eliminadas, 4 certs emotiox eliminados, IAM role emotiox eliminado.
 - **ECS Exec + test user:** `test-api@energymonitor.dev` (super_admin). 28/28 endpoints OK.
-- **Fixes:** `/rectification-requests` 500 (columna `notes` faltante). `/invoices` default limit 100 (era 5,676 sin paginación). [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
+- **Fixes:** `/rectification-requests` 500 (columna `notes`). `/invoices` y `/meters` paginación server-side (`{ data, total, limit, offset }`). CloudWatch 6 alarmas + SNS `clemente@hoktus.ai`. [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-05-20)
 - **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth.

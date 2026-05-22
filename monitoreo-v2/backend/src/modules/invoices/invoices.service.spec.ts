@@ -133,14 +133,15 @@ describe('InvoicesService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(invoices),
+        getManyAndCount: jest.fn().mockResolvedValue([invoices, invoices.length]),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAll(TENANT_ID, []);
 
       expect(qb.where).toHaveBeenCalledWith('i.tenant_id = :tenantId', { tenantId: TENANT_ID });
-      expect(result).toEqual(invoices);
+      expect(result.data).toEqual(invoices);
+      expect(result.total).toBe(invoices.length);
     });
 
     it('scopes by buildingIds when provided', async () => {
@@ -151,7 +152,7 @@ describe('InvoicesService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);
 
@@ -168,7 +169,7 @@ describe('InvoicesService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
       invoiceRepo.createQueryBuilder.mockReturnValue(qb);
 

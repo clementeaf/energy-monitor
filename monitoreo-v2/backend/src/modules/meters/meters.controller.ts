@@ -31,14 +31,21 @@ export class MetersController {
   @Get()
   @ApiOperation({ summary: 'List all meters, optionally filtered by building' })
   @ApiQuery({ name: 'buildingId', required: false, description: 'Filter by building UUID' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Max items (default 200)' })
+  @ApiQuery({ name: 'offset', required: false, description: 'Offset for pagination' })
   @ApiResponse({ status: 200, description: 'List of meters' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @RequireAnyPermission('admin_meters:read', 'dashboard_executive:read', 'dashboard_technical:read')
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId, user.crossTenant);
+    return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId, user.crossTenant, {
+      limit: limit ? parseInt(limit, 10) : undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
+    });
   }
 
   @Get(':id')

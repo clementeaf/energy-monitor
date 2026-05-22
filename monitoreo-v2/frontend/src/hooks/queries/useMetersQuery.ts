@@ -15,7 +15,7 @@ export function useMetersQuery(buildingId?: string) {
     queryKey: KEYS.all(buildingId, selectedTenantId),
     queryFn: async (): Promise<Meter[]> => {
       const { data } = await metersEndpoints.list(buildingId);
-      return data;
+      return Array.isArray(data) ? data : data.data;
     },
   });
 }

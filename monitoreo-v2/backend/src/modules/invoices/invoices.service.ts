@@ -40,7 +40,7 @@ export class InvoicesService {
       limit?: number;
       offset?: number;
     },
-  ): Promise<Invoice[]> {
+  ): Promise<{ data: Invoice[]; total: number; limit: number; offset: number }> {
     const qb = this.invoiceRepo
       .createQueryBuilder('i')
       .where('i.tenant_id = :tenantId', { tenantId })
@@ -67,12 +67,12 @@ export class InvoicesService {
       qb.andWhere('i.period_end <= :periodEnd', { periodEnd: filters.periodEnd });
     }
 
-    qb.take(filters?.limit ?? 100);
-    if (filters?.offset) {
-      qb.skip(filters.offset);
-    }
+    const limit = filters?.limit ?? 100;
+    const offset = filters?.offset ?? 0;
+    qb.take(limit).skip(offset);
 
-    return qb.getMany();
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, limit, offset };
   }
 
   async findOne(

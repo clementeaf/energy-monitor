@@ -17,7 +17,8 @@ export class MetersService {
     buildingIds: string[],
     filterBuildingId?: string,
     crossTenant = false,
-  ): Promise<Meter[]> {
+    pagination?: { limit?: number; offset?: number },
+  ): Promise<{ data: Meter[]; total: number; limit: number; offset: number }> {
     const qb = this.repo
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.tenant', 'tenant')
@@ -34,7 +35,12 @@ export class MetersService {
       qb.andWhere('m.building_id = :filterBuildingId', { filterBuildingId });
     }
 
-    return qb.getMany();
+    const limit = pagination?.limit ?? 200;
+    const offset = pagination?.offset ?? 0;
+    qb.take(limit).skip(offset);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, limit, offset };
   }
 
   async findOne(

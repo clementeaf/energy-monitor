@@ -12,14 +12,20 @@ const INVOICES_KEY = ['invoices'] as const;
 export function useInvoicesQuery(params?: InvoiceQueryParams) {
   return useQuery({
     queryKey: [...INVOICES_KEY, params ?? {}],
-    queryFn: () => invoicesEndpoints.list(params).then((r) => r.data),
+    queryFn: async () => {
+      const { data } = await invoicesEndpoints.list(params);
+      return Array.isArray(data) ? data : data.data;
+    },
   });
 }
 
 export function useMyInvoicesQuery(params?: { limit?: number; offset?: number }) {
   return useQuery({
     queryKey: [...INVOICES_KEY, 'my', params ?? {}],
-    queryFn: () => invoicesEndpoints.my(params).then((r) => r.data),
+    queryFn: async () => {
+      const { data } = await invoicesEndpoints.my(params);
+      return Array.isArray(data) ? data : data.data;
+    },
   });
 }
 

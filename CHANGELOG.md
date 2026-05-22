@@ -14,7 +14,8 @@
 - **`/rectification-requests` 500** — Added missing `notes` column to `rectification_requests` table.
 - **`/invoices` server pagination** — Returns `{ data, total, limit, offset }`. Default limit 100.
 - **`/meters` server pagination** — Returns `{ data, total, limit, offset }`. Default limit 200. Accepts `?limit=` and `?offset=`.
-- **E2E tests (Playwright)** — 23 tests against prod: 14 navigation (all pages), 3 API health, 3 data tables (buildings/meters/alerts), 3 admin (companies/audit/privacy). Auth via injected cookie + localStorage. Run: `E2E_TOKEN=<token> npx playwright test --workers=1`.
+- **E2E tests (Playwright)** — 23 tests against prod: 14 navigation, 3 API health, 3 data tables, 3 admin. Auth via injected cookie. Run: `E2E_TOKEN=<token> npx playwright test --workers=1`.
+- **Audit log interceptor** — All POST/PATCH/PUT/DELETE operations now log request body (sanitized), query params, status code, duration, IP, user-agent. Errors also captured. Secrets redacted, long strings truncated.
 
 ### Infra
 - **ECR lifecycle policy** — Keep last 5 images, auto-expire rest (92 → 5, saved 6.5 GB).

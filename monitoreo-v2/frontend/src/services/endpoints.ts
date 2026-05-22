@@ -193,7 +193,7 @@ export const metersEndpoints = {
   list: (buildingId?: string) => {
     const params: Record<string, string> = {};
     if (buildingId) params.buildingId = buildingId;
-    return api.get<Meter[]>(API_ROUTES.meters, Object.keys(params).length > 0 ? { params } : undefined);
+    return api.get<Meter[] | { data: Meter[]; total: number }>(API_ROUTES.meters, Object.keys(params).length > 0 ? { params } : undefined);
   },
 
   get: (id: string) =>
@@ -307,7 +307,7 @@ export const tariffsEndpoints = {
 
 export const invoicesEndpoints = {
   list: (params?: InvoiceQueryParams) =>
-    api.get<Invoice[]>(API_ROUTES.invoices, { params }),
+    api.get<Invoice[] | { data: Invoice[]; total: number }>(API_ROUTES.invoices, { params }),
 
   get: (id: string) =>
     api.get<Invoice>(`${API_ROUTES.invoices}/${id}`),
@@ -334,7 +334,7 @@ export const invoicesEndpoints = {
     api.post<Invoice>(`${API_ROUTES.invoices}/generate`, payload),
 
   my: (params?: { limit?: number; offset?: number }) =>
-    api.get<Invoice[]>(`${API_ROUTES.invoices}/my`, { params }),
+    api.get<Invoice[] | { data: Invoice[]; total: number }>(`${API_ROUTES.invoices}/my`, { params }),
 
   pdfUrl: (id: string) => {
     const b = import.meta.env.VITE_API_BASE_URL || '/api';

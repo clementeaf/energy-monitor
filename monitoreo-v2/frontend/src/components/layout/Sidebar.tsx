@@ -32,6 +32,8 @@ interface NavEntry {
   to?: string;
   /** Base path for active detection */
   basePath: string;
+  /** Additional paths that also highlight this entry */
+  extraPaths?: string[];
   requiredPerms: string[];
   children?: SubItem[];
 }
@@ -51,26 +53,12 @@ const NAV_ENTRIES: NavEntry[] = [
   {
     label: 'Monitoreo',
     basePath: '/monitoring',
+    extraPaths: ['/buildings', '/meters'],
     requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
     children: [
-      { to: '/monitoring/realtime', label: 'Tiempo Real' },
-      { to: '/monitoring/devices', label: 'Dispositivos' },
-      { to: '/monitoring/meters/type', label: 'Medidores por tipo' },
-      // { to: '/monitoring/generation', label: 'Generación' },
-      // { to: '/monitoring/modbus-map', label: 'Mapa Modbus' },
+      { to: '/meters', label: 'Medidores' },
+      { to: '/buildings', label: 'Edificios' },
     ],
-  },
-  {
-    label: 'Edificios',
-    to: '/buildings',
-    basePath: '/buildings',
-    requiredPerms: ['admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read'],
-  },
-  {
-    label: 'Medidores',
-    to: '/meters',
-    basePath: '/meters',
-    requiredPerms: ['admin_meters:read', 'dashboard_executive:read', 'dashboard_technical:read'],
   },
   {
     label: 'Alertas',
@@ -87,21 +75,16 @@ const NAV_ENTRIES: NavEntry[] = [
     requiredPerms: ['billing:read', 'billing:view_own'],
     children: [
       { to: '/billing', label: 'Facturas', end: true },
-      { to: '/billing/my-invoice', label: 'Mi Factura' },
       { to: '/billing/rates', label: 'Tarifas' },
     ],
   },
   {
-    label: 'Reportes',
+    label: 'Reportes y Analítica',
     basePath: '/reports',
-    requiredPerms: ['reports:read', 'reports:view_own'],
-    to: '/reports',
-  },
-  {
-    label: 'Analítica',
-    basePath: '/analytics',
-    requiredPerms: ['dashboard_executive:read'],
+    extraPaths: ['/analytics'],
+    requiredPerms: ['reports:read', 'reports:view_own', 'dashboard_executive:read'],
     children: [
+      { to: '/reports', label: 'Reportes', end: true },
       { to: '/analytics/benchmark', label: 'Benchmarking' },
       { to: '/analytics/trends', label: 'Tendencias' },
       { to: '/analytics/patterns', label: 'Patrones' },
@@ -146,11 +129,13 @@ export function Sidebar() {
   const visibleEntries = NAV_ENTRIES.filter((e) => hasAny(...e.requiredPerms));
 
   // Auto-expand active group
-  const activeIdx = visibleEntries.findIndex((e) =>
-    e.basePath === '/dashboard'
-      ? location.pathname === '/' || location.pathname.startsWith('/dashboard')
-      : location.pathname.startsWith(e.basePath),
-  );
+  const activeIdx = visibleEntries.findIndex((e) => {
+    if (e.basePath === '/dashboard') {
+      return location.pathname === '/' || location.pathname.startsWith('/dashboard');
+    }
+    if (location.pathname.startsWith(e.basePath)) return true;
+    return e.extraPaths?.some((p) => location.pathname.startsWith(p)) ?? false;
+  });
 
   return (
     <aside

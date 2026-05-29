@@ -109,8 +109,8 @@ export function Hero() {
                   </p>
                 </div>
 
-                {/* CTA button — desktop only */}
-                <div className="hidden lg:flex flex-col items-end shrink-0 h-[48px]">
+                {/* CTA button */}
+                <div className="flex flex-col items-end shrink-0">
                   <Link
                     to={s.href}
                     className="inline-flex items-center gap-3.5 rounded-[100px] border border-white px-[18px] py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"

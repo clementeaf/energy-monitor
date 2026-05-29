@@ -355,8 +355,8 @@ export const reportsEndpoints = {
   get: (id: string) =>
     api.get<Report>(`${API_ROUTES.reports}/${id}`),
 
-  generate: (payload: GenerateReportPayload) =>
-    api.post<Report>(`${API_ROUTES.reports}/generate`, payload),
+  generate: ({ buildingId, ...rest }: GenerateReportPayload) =>
+    api.post<Report>(`${API_ROUTES.reports}/generate`, { ...rest, ...(buildingId ? { buildingId } : {}) }),
 
   remove: (id: string) =>
     api.delete(`${API_ROUTES.reports}/${id}`),

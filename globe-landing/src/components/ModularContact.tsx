@@ -228,7 +228,7 @@ export function ModularContact() {
 
           <button
             type="button"
-            className="inline-flex items-center gap-3 rounded-[100px] border border-grey-800 px-5 py-2.5 font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:bg-grey-100 transition-colors self-center lg:self-end"
+            className="inline-flex items-center gap-3 rounded-[100px] border border-grey-800 px-5 py-2.5 font-body text-[14px] leading-[18px] font-medium text-grey-900 hover:bg-grey-100 transition-colors self-end"
           >
             Enviar
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

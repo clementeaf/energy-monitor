@@ -27,7 +27,7 @@ export function ModularSolutions() {
         <span className="font-body text-[14px] leading-[20px] font-medium text-grey-500 uppercase tracking-wide">
           Soluciones
         </span>
-        <h2 className="font-heading text-h3 lg:text-h2 text-grey-900 max-w-[900px] lg:whitespace-nowrap">
+        <h2 className="font-heading text-h3 lg:text-h2 text-grey-900 max-w-[900px]">
           Desarrolla tu proyecto con soluciones modulares eficientes
         </h2>
         <p className="font-body text-[16px] sm:text-[18px] leading-[26px] sm:leading-[30px] text-grey-700 max-w-[680px]">

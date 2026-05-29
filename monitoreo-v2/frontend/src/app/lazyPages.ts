@@ -40,6 +40,11 @@ export const LazyMetersPage = lazy(async () => {
   return { default: m.MetersPage };
 });
 
+export const LazyMetersUnifiedPage = lazy(async () => {
+  const m = await import('../features/meters/MetersUnifiedPage');
+  return { default: m.MetersUnifiedPage };
+});
+
 export const LazyAlertsPage = lazy(async () => {
   const m = await import('../features/alerts/AlertsPage');
   return { default: m.AlertsPage };

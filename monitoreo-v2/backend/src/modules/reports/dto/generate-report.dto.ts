@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsOptional, IsUUID } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsUUID, ValidateIf } from 'class-validator';
 import type { PlatformReportType, ReportFormat } from '../../platform/entities/report.entity';
 
 const REPORT_TYPES: PlatformReportType[] = [
@@ -21,6 +21,7 @@ export class GenerateReportDto {
   reportType!: PlatformReportType;
 
   @IsOptional()
+  @ValidateIf((_o, value) => value !== null)
   @IsUUID()
   buildingId?: string | null;
 

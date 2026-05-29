@@ -15,7 +15,8 @@ TARGET="${1:-globepower}"
 
 # ── Config ──
 GLOBEPOWER_BUCKET="globe-landing-grupoglobe"
-GLOBEPOWER_CF="E1BXDUUMOYADWG"
+GLOBEPOWER_CF="E28IBIJXQLJUQ7"
+GLOBEPOWER_PROFILE="cuenta-1016"
 GLOBEPOWER_PREFIX=""
 GLOBEPOWER_PATH="/*"
 GLOBEPOWER_URL="https://globepower.cl"
@@ -39,11 +40,16 @@ echo "→ Build complete ($(du -sh dist | awk '{print $1}'))"
 echo ""
 
 deploy_target() {
-  local name="$1" bucket="$2" cf_id="$3" prefix="$4" cf_path="$5" url="$6"
+  local name="$1" bucket="$2" cf_id="$3" prefix="$4" cf_path="$5" url="$6" cf_profile="${7:-}"
+
+  local cf_profile_flag=""
+  if [ -n "$cf_profile" ]; then
+    cf_profile_flag="--profile $cf_profile"
+  fi
 
   echo "═══ Deploying to $name ═══"
 
-  # Sync to S3
+  # Sync to S3 (default profile — bucket in default account)
   echo "  → Syncing to s3://$bucket/$prefix ..."
   aws s3 sync dist/ "s3://$bucket/$prefix" \
     --delete \
@@ -57,14 +63,14 @@ deploy_target() {
     --content-type "text/html" \
     --region us-east-1
 
-  # Invalidate CloudFront
+  # Invalidate CloudFront (may use different profile if CF is in another account)
   echo "  → Invalidating CloudFront $cf_id ($cf_path)..."
   INVALIDATION_ID=$(aws cloudfront create-invalidation \
     --distribution-id "$cf_id" \
     --paths "$cf_path" \
     --query 'Invalidation.Id' \
     --output text \
-    --region us-east-1)
+    --region us-east-1 $cf_profile_flag)
 
   echo "  → Invalidation: $INVALIDATION_ID"
 
@@ -82,13 +88,13 @@ deploy_target() {
 
 case "$TARGET" in
   globepower)
-    deploy_target "globepower.cl" "$GLOBEPOWER_BUCKET" "$GLOBEPOWER_CF" "$GLOBEPOWER_PREFIX" "$GLOBEPOWER_PATH" "$GLOBEPOWER_URL"
+    deploy_target "globepower.cl" "$GLOBEPOWER_BUCKET" "$GLOBEPOWER_CF" "$GLOBEPOWER_PREFIX" "$GLOBEPOWER_PATH" "$GLOBEPOWER_URL" "$GLOBEPOWER_PROFILE"
     ;;
   energymonitor)
     deploy_target "energymonitor.click" "$ENERGYMONITOR_BUCKET" "$ENERGYMONITOR_CF" "$ENERGYMONITOR_PREFIX" "$ENERGYMONITOR_PATH" "$ENERGYMONITOR_URL"
     ;;
   both)
-    deploy_target "globepower.cl" "$GLOBEPOWER_BUCKET" "$GLOBEPOWER_CF" "$GLOBEPOWER_PREFIX" "$GLOBEPOWER_PATH" "$GLOBEPOWER_URL"
+    deploy_target "globepower.cl" "$GLOBEPOWER_BUCKET" "$GLOBEPOWER_CF" "$GLOBEPOWER_PREFIX" "$GLOBEPOWER_PATH" "$GLOBEPOWER_URL" "$GLOBEPOWER_PROFILE"
     deploy_target "energymonitor.click" "$ENERGYMONITOR_BUCKET" "$ENERGYMONITOR_CF" "$ENERGYMONITOR_PREFIX" "$ENERGYMONITOR_PATH" "$ENERGYMONITOR_URL"
     ;;
   *)

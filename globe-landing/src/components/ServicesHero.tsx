@@ -96,7 +96,7 @@ export function ServicesHero() {
                   </p>
                   <a
                     href="#contacto"
-                    className="inline-flex items-center gap-3 self-center lg:self-start rounded-[100px] border border-white/60 px-6 py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+                    className="inline-flex items-center gap-3 self-end rounded-[100px] border border-white/60 px-6 py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
                   >
                     {s.cta}
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

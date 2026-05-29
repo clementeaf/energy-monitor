@@ -6,6 +6,7 @@ import { Role } from '../roles/entities/role.entity';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { decryptPii, isPiiEncrypted } from '../../common/crypto/pii-encryption';
 
 @Injectable()
 export class UsersService {
@@ -18,19 +19,61 @@ export class UsersService {
     private readonly notifications: NotificationService,
   ) {}
 
-  async findAll(tenantId: string): Promise<User[]> {
-    return this.repo.find({
+  private decryptUsers(users: User[]): User[] {
+    return users.map((u) => ({
+      ...u,
+      email: isPiiEncrypted(u.email) ? decryptPii(u.email) : u.email,
+      displayName: u.displayName && isPiiEncrypted(u.displayName) ? decryptPii(u.displayName) : u.displayName,
+    }));
+  }
+
+  async findAll(tenantId: string, buildingIds: string[], crossTenant = false): Promise<User[]> {
+    if (crossTenant) {
+      const users = await this.repo.find({
+        relations: ['role'],
+        order: { email: 'ASC' },
+      });
+      return this.decryptUsers(users);
+    }
+
+    if (buildingIds.length > 0) {
+      // Scoped users: only those with overlapping building access
+      const placeholders = buildingIds.map((_, i) => `$${i + 2}`).join(', ');
+      const rows: User[] = await this.dataSource.query(
+        `SELECT DISTINCT u.*, r.id AS "role_id", r.name AS "role_name", r.slug AS "role_slug",
+                r.hierarchy_level AS "role_hierarchy_level"
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         LEFT JOIN user_building_access uba ON uba.user_id = u.id
+         WHERE u.tenant_id = $1
+           AND (uba.building_id IN (${placeholders}) OR uba.building_id IS NULL)
+         ORDER BY u.email ASC`,
+        [tenantId, ...buildingIds],
+      );
+      // Map raw rows to User entities with role relation
+      const mapped = rows.map((row: any) => ({
+        ...row,
+        role: { id: row.role_id, name: row.role_name, slug: row.role_slug, hierarchyLevel: row.role_hierarchy_level },
+      })) as User[];
+      return this.decryptUsers(mapped);
+    }
+
+    // No building restriction → all users in tenant
+    const users = await this.repo.find({
       where: { tenantId },
       relations: ['role'],
       order: { email: 'ASC' },
     });
+    return this.decryptUsers(users);
   }
 
   async findOne(id: string, tenantId: string): Promise<User | null> {
-    return this.repo.findOne({
+    const user = await this.repo.findOne({
       where: { id, tenantId },
       relations: ['role'],
     });
+    if (!user) return null;
+    return this.decryptUsers([user])[0];
   }
 
   async create(tenantId: string, dto: CreateUserDto, creatorRoleId: string, creatorRoleSlug: string): Promise<User> {

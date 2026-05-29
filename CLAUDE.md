@@ -33,6 +33,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **ECS Exec + test user:** `test-api@energymonitor.dev` (super_admin). 28/28 endpoints OK.
 - **Fixes:** `/rectification-requests` 500 (columna `notes`). `/invoices` y `/meters` paginación server-side (`{ data, total, limit, offset }`). CloudWatch 6 alarmas + SNS `clemente@hoktus.ai`. [CHANGELOG — 2.12.1-alpha.0](CHANGELOG.md)
 
+### Completado (2026-05-29)
+- **Globe Power page redesign:** 10 secciones con contenido real de Figma (Hero 2 slides, Presencia pills, Propuesta de valor 2×2, Arquitectura acordeón, Siemens banner, EMS 4 pasos, Servicios menú 10 items, Clientes carousel, Contacto formulario dedicado). PainPoints eliminado. Navbar habilitado, ruta activa.
+- **Users cross-tenant:** `GET /users` soporta `crossTenant` + `buildingIds`. super_admin sin tenant ve todos. PII descifrado en `findAll`/`findOne`. Ruta `/admin/users` fuera de `RequireTenantLayout`.
+- **Deploy prod:** Backend ECS + Frontend S3/CF. ECS service `monitoreo-v2-backend-restored`. [CHANGELOG — 2.13.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-05-20)
 - **MFA QR on login:** Usuarios nuevos con `require_mfa` ven QR directo en `/login` después de OAuth.
 - **CSP fix:** Google Sign-In SDK — `script-src` + `'unsafe-inline'`, `style-src` + `accounts.google.com`.

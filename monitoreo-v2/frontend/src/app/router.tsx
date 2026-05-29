@@ -17,23 +17,20 @@ function DashboardIndex() {
 import { LoginRouteShell } from '../components/routing/LoginRouteShell';
 import {
   LazyBuildingsPage,
-  LazyMetersPage,
+  LazyMetersUnifiedPage,
   LazyAlertsPage,
   LazyComponentsPage,
   LazyDashboardPage,
   LazyExecutiveDashboardPage,
   LazyExecutiveSitePage,
   LazyCompareDashboardPage,
-  LazyRealtimePage,
   LazyDrilldownPage,
   LazyDemandPage,
   LazyQualityPage,
-  LazyDevicesPage,
   LazyFaultHistoryPage,
   LazyInvoicesPage,
   LazyBillingHistoryPage,
   LazyBillingApprovePage,
-  LazyMyInvoicePage,
   LazyTariffsPage,
   LazyReportsPage,
   LazyBenchmarkPage,
@@ -50,7 +47,6 @@ import {
   LazyAlertRulesPage,
   LazyEscalationPage,
   LazyNotificationsPage,
-  LazyMetersByTypePage,
   LazyGenerationSitePage,
   LazyModbusMapPage,
   LazyConcentratorPage,
@@ -79,7 +75,6 @@ const FAULTS = ['monitoring_faults:read'];
 const ALERTS = ['alerts:read'];
 const BILLING_READ = ['billing:read', 'billing:view_own'];
 const BILLING_APPROVE = ['billing:update'];
-const BILLING_OWN = ['billing:view_own'];
 const BILLING_RATES = ['billing:read'];
 const REPORTS = ['reports:read', 'reports:view_own'];
 const REPORTS_SCHED = ['reports:update'];
@@ -146,13 +141,13 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.executiveSite, element: <P any={DASH_EXEC}><LazyExecutiveSitePage /></P> },
                   { path: APP_ROUTES.compare, element: <P any={DASH_ANY}><LazyCompareDashboardPage /></P> },
 
-                  /* Monitoreo */
-                  { path: APP_ROUTES.monitoring.realtime, element: <P any={MONITORING}><LazyRealtimePage /></P> },
+                  /* Monitoreo — redirects to unified /meters */
+                  { path: APP_ROUTES.monitoring.realtime, element: <Navigate to="/meters" replace /> },
                   { path: APP_ROUTES.monitoring.drilldown, element: <P any={MONITORING}><LazyDrilldownPage /></P> },
                   { path: APP_ROUTES.monitoring.demand, element: <P any={MONITORING}><LazyDemandPage /></P> },
                   { path: APP_ROUTES.monitoring.quality, element: <P any={MONITORING}><LazyQualityPage /></P> },
-                  { path: APP_ROUTES.monitoring.devices, element: <P any={DEVICES}><LazyDevicesPage /></P> },
-                  { path: APP_ROUTES.monitoring.metersByType, element: <P any={MONITORING}><LazyMetersByTypePage /></P> },
+                  { path: APP_ROUTES.monitoring.devices, element: <Navigate to="/meters?tab=devices" replace /> },
+                  { path: APP_ROUTES.monitoring.metersByType, element: <Navigate to="/meters?tab=by-type" replace /> },
                   { path: APP_ROUTES.monitoring.generationIndex, element: <P any={MONITORING}><LazyGenerationSitePage /></P> },
                   { path: APP_ROUTES.monitoring.generationSite, element: <P any={MONITORING}><LazyGenerationSitePage /></P> },
                   { path: APP_ROUTES.monitoring.modbusMapIndex, element: <P any={DASH_TECH}><LazyModbusMapPage /></P> },
@@ -169,7 +164,7 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.billing.invoices, element: <P any={BILLING_READ}><LazyInvoicesPage /></P> },
                   { path: APP_ROUTES.billing.history, element: <P any={BILLING_READ}><LazyBillingHistoryPage /></P> },
                   { path: APP_ROUTES.billing.approve, element: <P any={BILLING_APPROVE}><LazyBillingApprovePage /></P> },
-                  { path: APP_ROUTES.billing.myInvoice, element: <P any={BILLING_OWN}><LazyMyInvoicePage /></P> },
+                  { path: APP_ROUTES.billing.myInvoice, element: <Navigate to="/billing" replace /> },
                   { path: APP_ROUTES.billing.rates, element: <P any={BILLING_RATES}><LazyTariffsPage /></P> },
 
                   /* Reportes */
@@ -188,7 +183,6 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.integrationsSyncLog, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
 
                   /* Admin (tenant-scoped) */
-                  { path: APP_ROUTES.admin.users, element: <P any={ADMIN_USERS}><LazyUsersPage /></P> },
                   { path: APP_ROUTES.admin.tenants, element: <P any={ADMIN_TENANTS}><LazyTenantsPage /></P> },
                   { path: APP_ROUTES.admin.hierarchy, element: <P any={ADMIN_HIERARCHY}><LazyHierarchyPage /></P> },
                   { path: APP_ROUTES.admin.audit, element: <P any={AUDIT}><LazyAuditPage /></P> },
@@ -206,9 +200,10 @@ export const router = createBrowserRouter([
 
               /* Edificios & Medidores (listas cross-tenant) */
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },
-              { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersPage /></P> },
+              { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersUnifiedPage /></P> },
 
-              /* Admin — Empresas (super_admin only, no tenant needed) */
+              /* Admin — cross-tenant routes */
+              { path: APP_ROUTES.admin.users, element: <P any={ADMIN_USERS}><LazyUsersPage /></P> },
               { path: APP_ROUTES.admin.companies, element: <P any={['admin_tenants:create']}><LazyCompaniesPage /></P> },
 
               /* Profile — ARCO+ rights (accessible to all authenticated users) */

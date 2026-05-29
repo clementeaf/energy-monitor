@@ -2,11 +2,12 @@ import { Breadcrumb } from '../components/Breadcrumb';
 import { PowerHero } from '../components/PowerHero';
 import { PowerPresence } from '../components/PowerPresence';
 import { PowerValueProp } from '../components/PowerValueProp';
-import { PowerPainPoints } from '../components/PowerPainPoints';
 import { PowerArchitecture } from '../components/PowerArchitecture';
 import { PowerSiemens } from '../components/PowerSiemens';
 import { PowerProcess } from '../components/PowerProcess';
-import { Contact } from '../components/Contact';
+import { PowerServices } from '../components/PowerServices';
+import { PowerClients } from '../components/PowerClients';
+import { PowerContact } from '../components/PowerContact';
 
 export function GlobePowerPage() {
   return (
@@ -15,11 +16,12 @@ export function GlobePowerPage() {
       <PowerHero />
       <PowerPresence />
       <PowerValueProp />
-      <PowerPainPoints />
       <PowerArchitecture />
       <PowerSiemens />
       <PowerProcess />
-      <Contact />
+      <PowerServices />
+      <PowerClients />
+      <PowerContact />
     </>
   );
 }

@@ -87,7 +87,7 @@ describe('UsersService', () => {
       const users = [mockUser()];
       repo.find.mockResolvedValue(users);
 
-      const result = await service.findAll(TENANT_ID);
+      const result = await service.findAll(TENANT_ID, []);
 
       expect(repo.find).toHaveBeenCalledWith({
         where: { tenantId: TENANT_ID },
@@ -313,7 +313,7 @@ describe('UsersService', () => {
     it('findAll scopes to tenant — tenant B cannot see tenant A users', async () => {
       repo.find.mockResolvedValue([]);
 
-      await service.findAll(TENANT_B);
+      await service.findAll(TENANT_B, []);
 
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({ where: { tenantId: TENANT_B } }),

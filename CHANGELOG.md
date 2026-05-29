@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.13.0-alpha.0] - 2026-05-29 — GLOBE POWER PAGE, USERS CROSS-TENANT
+
+### Added (globe-landing)
+- **Globe Power page** (`/globe-power`) — full redesign with real content from Figma:
+  - **PowerHero** — 2-slide carousel (city skyline + technician), real copy, fixed CTA button.
+  - **PowerPresence** — 4 pills with checkmarks, centered CTA.
+  - **PowerValueProp** — 2×2 card grid (socio técnico, Cliente Libre, cobro exacto, mantenimiento preventivo).
+  - **PowerArchitecture** — accordion with real service descriptions, active item indicator (arrow + black bar).
+  - **PowerSiemens** — updated copy, banner with `alianza.png`.
+  - **PowerProcess** — EMS section, 4-step numbered flow with connector line, real descriptions.
+  - **PowerServices** — 10-service vertical menu with image switcher (10 images).
+  - **PowerClients** — infinite logo carousel (Subway, Chilexpress, AIEP, Sportlife).
+  - **PowerContact** — dedicated contact form (8 fields, selects, legal text, terms checkbox), tower image.
+- **Navbar** — Globe Power re-enabled in Industrias dropdown.
+- **Route** — `/globe-power` renders `GlobePowerPage` (was redirecting to `/`).
+
+### Removed (globe-landing)
+- **PowerPainPoints** — section removed from Globe Power page.
+
+### Changed (monitoreo-v2/backend)
+- **Users cross-tenant** — `GET /users` supports `crossTenant` and `buildingIds` scoping. super_admin without tenant sees all users. Scoped roles see users with overlapping building access.
+- **Users PII decryption** — `findAll` and `findOne` decrypt encrypted email/displayName fields before returning.
+
+### Changed (monitoreo-v2/frontend)
+- **Users route** — moved outside `RequireTenantLayout` so super_admin can view users without selecting a tenant.
+
+---
+
 ## [2.12.1-alpha.0] - 2026-05-21 — PORTFOLIO MATVIEW, RDS UPGRADE, LOGIN UI, AWS CLEANUP
 
 ### Changed (monitoreo-v2/backend)

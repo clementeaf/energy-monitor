@@ -1,28 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
+import heroCity from '../assets/power/hero-city.png';
 import hero1 from '../assets/power/hero1.jpg';
 import logoPower from '../assets/power/logo-power.png';
 
 const SLIDES = [
   {
+    image: heroCity,
+    category: 'QUIÉNES SOMOS',
+    title: 'Gestión energética e infraestructura eléctrica crítica para empresas en Chile',
+    description: 'Infraestructura eléctrica crítica para empresas en Chile: generadores, climatización, monitoreo y Cliente Libre.',
+    cta: 'Habla con un especialista',
+  },
+  {
     image: hero1,
     category: 'NOSOTROS',
-    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    cta: 'Solicitar contacto',
-  },
-  {
-    image: hero1,
-    category: 'SERVICIOS',
-    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    cta: 'Solicitar contacto',
-  },
-  {
-    image: hero1,
-    category: 'SOLUCIONES',
-    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    cta: 'Solicitar contacto',
+    title: 'Ingeniería eléctrica operacional para activos críticos en Chile',
+    description: 'Operación y mantenimiento de infraestructura eléctrica industrial y comercial en todo Chile. Mantenimiento, monitoreo EMS, subdistribución y Cliente Libre, tecnología Siemens.',
+    cta: 'Hablar con un especialista',
   },
 ];
 
@@ -62,11 +56,11 @@ export function PowerHero() {
           <img
             src={logoPower}
             alt="Globe Power"
-            className="w-[220px] sm:w-[300px] lg:w-[400px] h-auto mb-8"
+            className="w-[180px] sm:w-[220px] lg:w-[260px] h-auto mb-6"
           />
 
           {/* Two-column content */}
-          <div className="relative lg:h-[180px] mb-12">
+          <div className="relative lg:h-[180px] mb-6">
             {SLIDES.map((s, i) => (
               <div
                 key={i}
@@ -75,7 +69,7 @@ export function PowerHero() {
                 }`}
               >
                 {/* Left: category + title */}
-                <div className="flex flex-col gap-2 lg:max-w-[50%]">
+                <div className="flex flex-col gap-2 lg:max-w-[75%]">
                   {s.category && (
                     <span className="font-body text-[13px] sm:text-[14px] leading-[20px] font-medium text-white/80 tracking-[2px]">
                       {s.category}
@@ -88,31 +82,33 @@ export function PowerHero() {
                   )}
                 </div>
 
-                {/* Right: description + CTA */}
-                <div className="flex flex-col items-start justify-start gap-6 lg:w-[374px] lg:shrink-0">
+                {/* Right: description */}
+                <div className="flex flex-col items-start gap-6 lg:w-[374px] lg:shrink-0">
                   {s.description && (
                     <p className="font-body text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] font-normal text-white/90">
                       {s.description}
                     </p>
-                  )}
-                  {s.cta && (
-                    <a
-                      href="#contacto"
-                      className="inline-flex items-center gap-3 self-center lg:self-start rounded-[100px] border border-white/60 px-6 py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
-                    >
-                      {s.cta}
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
-                      </svg>
-                    </a>
                   )}
                 </div>
               </div>
             ))}
           </div>
 
+          {/* CTA — fixed position, does not shift with text */}
+          <div className="flex justify-end lg:pr-0">
+            <a
+              href="#contacto"
+              className="inline-flex items-center gap-3 rounded-[100px] border border-white/60 px-6 py-3 font-body text-[14px] leading-[18px] font-medium text-white hover:bg-white/10 transition-colors whitespace-nowrap"
+            >
+              {SLIDES[current].cta}
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z" />
+              </svg>
+            </a>
+          </div>
+
           {/* Dots + arrows */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-[60px]">
             <div className="flex items-center gap-2">
               {SLIDES.map((_, i) => (
                 <button
@@ -120,8 +116,8 @@ export function PowerHero() {
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Slide ${i + 1}`}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === current ? 'w-6 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60'
+                  className={`shrink-0 rounded-full transition-all duration-300 ${
+                    i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/60'
                   }`}
                 />
               ))}

@@ -105,15 +105,7 @@ export function Navbar() {
                   {dropdownOpen && (
                     <div className="absolute top-full left-0 pt-2">
                     <div className="bg-white rounded-lg shadow-lg border border-grey-200 py-2 min-w-[180px]">
-                      {l.dropdown.map((item) =>
-                        item.disabled ? (
-                          <span
-                            key={item.label}
-                            className="block px-4 py-2.5 font-body text-[14px] leading-[18px] text-grey-400 cursor-not-allowed"
-                          >
-                            {item.label}
-                          </span>
-                        ) : (
+                      {l.dropdown.filter((item) => !item.disabled).map((item) => (
                           <Link
                             key={item.label}
                             to={item.to}
@@ -211,15 +203,7 @@ export function Navbar() {
                     </button>
                     {dropdownOpen && (
                       <div className="flex flex-col pl-4">
-                        {l.dropdown.map((item) =>
-                          item.disabled ? (
-                            <span
-                              key={item.label}
-                              className="block font-body text-[15px] leading-[20px] text-grey-400 cursor-not-allowed rounded-lg py-3 px-3"
-                            >
-                              {item.label}
-                            </span>
-                          ) : (
+                        {l.dropdown.filter((item) => !item.disabled).map((item) => (
                             <Link
                               key={item.label}
                               to={item.to}

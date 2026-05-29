@@ -30,7 +30,7 @@ export class UsersController {
   @ApiOperation({ summary: 'List all users for current tenant' })
   @ApiResponse({ status: 200, description: 'User list' })
   async findAll(@CurrentUser() user: JwtPayload) {
-    return this.usersService.findAll(user.tenantId);
+    return this.usersService.findAll(user.tenantId, user.buildingIds, user.crossTenant);
   }
 
   @Get(':id')

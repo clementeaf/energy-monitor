@@ -289,7 +289,6 @@ export class NotificationService {
       }
     }
 
-    // SMS notification
     if (params.phone) {
       const smsMessage = [
         `Globe Power: se creó tu cuenta en Energy Monitor.`,

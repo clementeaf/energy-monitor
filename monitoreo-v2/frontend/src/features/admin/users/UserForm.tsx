@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { Button } from '../../../components/ui/Button';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
@@ -20,10 +20,13 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
   const [email, setEmail] = useState(user?.email ?? '');
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [authProvider, setAuthProvider] = useState<'microsoft' | 'google'>(user?.authProvider ?? 'google');
-  const [authProviderId, setAuthProviderId] = useState('');
   const rolesQuery = useRolesQuery();
   const roles = rolesQuery.data ?? [];
   const [roleId, setRoleId] = useState(user?.roleId ?? '');
+
+  useEffect(() => {
+    if (!roleId && roles.length > 0) setRoleId(roles[0].id);
+  }, [roles, roleId]);
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
 
   const buildingsQuery = useBuildingsQuery();
@@ -33,25 +36,26 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const effectiveRoleId = roleId || (roles.length > 0 ? roles[0].id : '');
     if (isEdit) {
       const payload: UpdateUserPayload = {};
       if (displayName !== (user.displayName ?? '')) payload.displayName = displayName || undefined;
-      if (roleId !== user.roleId) payload.roleId = roleId;
+      if (effectiveRoleId !== user.roleId) payload.roleId = effectiveRoleId;
       onSubmit(payload);
     } else {
       onSubmit({
         email,
         displayName: displayName || undefined,
         authProvider,
-        authProviderId,
-        roleId,
+        roleId: effectiveRoleId,
         buildingIds: selectedBuildingIds.length > 0 ? selectedBuildingIds : undefined,
+        ageVerified: true,
       });
     }
   };
 
   const formId = 'user-form';
-  const canSubmit = isEdit || (!!email && !!authProviderId);
+  const canSubmit = isEdit || (!!email && !!roleId);
 
   return (
     <Drawer
@@ -109,15 +113,6 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
               />
             </Field>
 
-            <Field label="ID Proveedor" required>
-              <input
-                value={authProviderId}
-                onChange={(e) => { setAuthProviderId(e.target.value); }}
-                required
-                placeholder="ID externo del proveedor OAuth"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              />
-            </Field>
           </>
         )}
 

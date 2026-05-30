@@ -12,9 +12,10 @@ export class CreateUserDto {
   @IsIn(['microsoft', 'google'])
   authProvider!: 'microsoft' | 'google';
 
+  @IsOptional()
   @IsString()
   @MaxLength(255)
-  authProviderId!: string;
+  authProviderId?: string;
 
   @IsUUID()
   roleId!: string;

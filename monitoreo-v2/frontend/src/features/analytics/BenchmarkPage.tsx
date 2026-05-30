@@ -10,7 +10,6 @@ import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import {
   dateRangeFromPreset,
-  meterToBuildingMap,
   countMetersByBuilding,
   compareMetricsByBuilding,
 } from '../dashboard/dashboardAggregations';
@@ -49,7 +48,7 @@ export function BenchmarkPage(): ReactElement {
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'daily' },
+    { from, to, interval: 'daily', groupBy: 'building' },
     true,
   );
 
@@ -59,13 +58,18 @@ export function BenchmarkPage(): ReactElement {
   const meters = metersQuery.data ?? [];
   const aggRows = aggQuery.data ?? [];
 
-  const meterById = useMemo(() => meterToBuildingMap(meters), [meters]);
   const metersByBuilding = useMemo(() => countMetersByBuilding(meters), [meters]);
 
   const allBuildingIds = useMemo(() => buildings.map((b) => b.id), [buildings]);
+  // With groupBy=building, meter_id IS building_id — identity map
+  const buildingIdentityMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const id of allBuildingIds) m.set(id, id);
+    return m;
+  }, [allBuildingIds]);
   const metricsMap = useMemo(
-    () => compareMetricsByBuilding(aggRows, meterById, allBuildingIds),
-    [aggRows, meterById, allBuildingIds],
+    () => compareMetricsByBuilding(aggRows, buildingIdentityMap, allBuildingIds),
+    [aggRows, buildingIdentityMap, allBuildingIds],
   );
 
   const rows = useMemo((): BenchmarkRow[] => {

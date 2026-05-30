@@ -52,10 +52,17 @@ export function LoginPage() {
         {/* Recovery codes after MFA setup */}
         {mfaRecoveryCodes ? (
           <div className="space-y-4">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <p className="text-sm font-semibold text-green-800">MFA activado correctamente</p>
+              <p className="mt-1 text-xs text-green-700">
+                Tu cuenta ahora tiene verificación en dos pasos.
+              </p>
+            </div>
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-medium text-amber-800">Códigos de recuperación</p>
+              <p className="text-sm font-semibold text-amber-800">Códigos de recuperación</p>
               <p className="mt-1 text-xs text-amber-600">
-                Guarda estos códigos en un lugar seguro. Los necesitarás si pierdes acceso a tu app de autenticación.
+                Si pierdes tu celular o cambias de teléfono, usa uno de estos códigos para ingresar.
+                Cada código funciona una sola vez. Guárdalos en un lugar seguro (foto, nota, impresión).
               </p>
               <div className="mt-3 grid grid-cols-2 gap-1.5">
                 {mfaRecoveryCodes.map((code) => (
@@ -70,30 +77,67 @@ export function LoginPage() {
               onClick={() => setMfaRecoveryCodes(null)}
               className="w-full rounded-lg bg-[var(--color-primary,#3D3BF3)] px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
-              Ya los guardé, continuar
+              Ya los guardé, entrar a la plataforma
             </button>
           </div>
         ) : mfaSetupData ? (
-          /* MFA first-time setup — QR + verify */
+          /* MFA first-time setup — guided flow */
           <form onSubmit={handleSetupVerify} className="space-y-4">
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <p className="mb-3 text-sm font-medium text-gray-700">
-                1. Escanea este QR con tu app de autenticación
-              </p>
-              <p className="mb-2 text-xs text-gray-500">
-                Google Authenticator, Microsoft Authenticator, Authy, etc.
-              </p>
-              <div className="flex justify-center">
-                <img src={mfaSetupData.qrDataUrl} alt="MFA QR Code" className="h-48 w-48" />
-              </div>
-              <p className="mt-3 text-xs text-gray-400">
-                Código manual: <code className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-xs">{mfaSetupData.secret}</code>
+            {/* What is MFA */}
+            <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-900">¿Qué es la verificación en dos pasos?</p>
+              <p className="mt-1 text-xs text-blue-700">
+                Es una capa extra de seguridad. Cada vez que inicies sesión, además de tu cuenta Microsoft o Google,
+                necesitarás un código de 6 dígitos que genera una app en tu celular.
               </p>
             </div>
 
-            <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">
-                2. Ingresa el código de 6 dígitos que muestra la app
+            {/* Step 1: Download app */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-800">
+                Paso 1: Descarga una app de autenticación
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Si no tienes una, descarga cualquiera de estas (son gratuitas):
+              </p>
+              <div className="mt-2 flex flex-col gap-1.5">
+                <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline hover:text-blue-800">
+                  Google Authenticator (Android / iPhone)
+                </a>
+                <a href="https://www.microsoft.com/en-us/security/mobile-authenticator-app" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline hover:text-blue-800">
+                  Microsoft Authenticator (Android / iPhone)
+                </a>
+              </div>
+            </div>
+
+            {/* Step 2: Scan QR */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-800">
+                Paso 2: Escanea este código QR con la app
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Abre la app → toca el botón "+" o "Agregar cuenta" → elige "Escanear código QR" → apunta la cámara aquí:
+              </p>
+              <div className="mt-3 flex justify-center">
+                <img src={mfaSetupData.qrDataUrl} alt="Código QR para MFA" className="h-48 w-48" />
+              </div>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600">
+                  ¿No puedes escanear? Ingresa este código manualmente
+                </summary>
+                <code className="mt-1 block rounded bg-gray-200 px-2 py-1 font-mono text-xs text-gray-700 break-all">
+                  {mfaSetupData.secret}
+                </code>
+              </details>
+            </div>
+
+            {/* Step 3: Enter code */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-800">
+                Paso 3: Ingresa el código de 6 dígitos
+              </p>
+              <p className="mt-1 mb-3 text-xs text-gray-500">
+                La app mostrará un número que cambia cada 30 segundos. Escríbelo aquí:
               </p>
               <input
                 type="text"
@@ -112,7 +156,7 @@ export function LoginPage() {
               disabled={isLoading || setupCode.length !== 6}
               className="w-full rounded-lg bg-[var(--color-primary,#3D3BF3)] px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
-              {isLoading ? 'Verificando...' : 'Activar MFA y continuar'}
+              {isLoading ? 'Verificando...' : 'Activar y continuar'}
             </button>
           </form>
         ) : mfaPending ? (

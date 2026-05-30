@@ -88,6 +88,19 @@ export class RolesService implements OnModuleInit {
   /*  CRUD — Roles                                                       */
   /* ------------------------------------------------------------------ */
 
+  async findAll(): Promise<Role[]> {
+    const roles = await this.roleRepo.find({
+      order: { hierarchyLevel: 'ASC', name: 'ASC' },
+      relations: ['permissions'],
+    });
+    const seen = new Set<string>();
+    return roles.filter((r) => {
+      if (seen.has(r.slug)) return false;
+      seen.add(r.slug);
+      return true;
+    });
+  }
+
   async findAllForTenant(tenantId: string): Promise<Role[]> {
     return this.roleRepo.find({
       where: { tenantId },

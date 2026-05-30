@@ -19,6 +19,6 @@ export class AggregatedQueryDto {
   meterId?: string;
 
   @IsOptional()
-  @IsIn(['portfolio'])
+  @IsIn(['portfolio', 'building'])
   groupBy?: string;
 }

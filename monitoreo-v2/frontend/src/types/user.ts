@@ -21,9 +21,10 @@ export interface CreateUserPayload {
   email: string;
   displayName?: string;
   authProvider: AuthProvider;
-  authProviderId: string;
+  authProviderId?: string;
   roleId: string;
   buildingIds?: string[];
+  ageVerified?: boolean;
 }
 
 export interface UpdateUserPayload {

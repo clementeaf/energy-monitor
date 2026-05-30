@@ -414,6 +414,28 @@ export class ReadingsService {
       );
     }
 
+    // groupBy=building: aggregate per building instead of per meter
+    if (query.groupBy === 'building') {
+      return this.dataSource.query(
+        `SELECT
+           a.bucket,
+           m.building_id AS meter_id,
+           (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM ${agg.view} a
+         INNER JOIN meters m ON m.id = a.meter_id
+         WHERE ${where}
+         GROUP BY a.bucket, m.building_id
+         ORDER BY a.bucket ASC, m.building_id ASC`,
+        params,
+      );
+    }
+
     // Direct read from hourly or daily aggregate (per-meter)
     return this.dataSource.query(
       `SELECT

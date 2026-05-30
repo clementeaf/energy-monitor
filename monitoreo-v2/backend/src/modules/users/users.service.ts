@@ -89,7 +89,7 @@ export class UsersService {
       email: dto.email,
       displayName: dto.displayName ?? null,
       authProvider: dto.authProvider,
-      authProviderId: dto.authProviderId,
+      authProviderId: dto.authProviderId ?? undefined,
       roleId: dto.roleId,
     });
     const saved = await this.repo.save(user);

@@ -32,6 +32,9 @@ export class RolesController {
   @ApiOperation({ summary: 'List all roles for current tenant' })
   @ApiResponse({ status: 200, description: 'Role list' })
   async findAll(@CurrentUser() user: JwtPayload) {
+    if (user.crossTenant) {
+      return this.rolesService.findAll();
+    }
     return this.rolesService.findAllForTenant(user.tenantId);
   }
 

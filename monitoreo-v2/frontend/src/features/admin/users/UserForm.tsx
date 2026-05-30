@@ -20,6 +20,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
   const [email, setEmail] = useState(user?.email ?? '');
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [authProvider, setAuthProvider] = useState<'microsoft' | 'google'>(user?.authProvider ?? 'google');
+  const [phone, setPhone] = useState('');
   const rolesQuery = useRolesQuery();
   const roles = rolesQuery.data ?? [];
   const [roleId, setRoleId] = useState(user?.roleId ?? '');
@@ -48,6 +49,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
         displayName: displayName || undefined,
         authProvider,
         roleId: effectiveRoleId,
+        phone: phone || undefined,
         buildingIds: selectedBuildingIds.length > 0 ? selectedBuildingIds : undefined,
         ageVerified: true,
       });
@@ -85,6 +87,19 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
               value={email}
               onChange={(e) => { setEmail(e.target.value); }}
               required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            />
+          </Field>
+        )}
+
+        {!isEdit && (
+          <Field label="Teléfono (para enviar instrucciones por SMS)">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => { setPhone(e.target.value); }}
+              placeholder="+56 9 1234 5678"
+              maxLength={20}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
             />
           </Field>

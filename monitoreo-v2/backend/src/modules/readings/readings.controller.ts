@@ -68,6 +68,6 @@ export class ReadingsController {
     if (new Date(query.to) < new Date(query.from)) {
       throw new BadRequestException('"to" must be after "from"');
     }
-    return this.readingsService.findAggregated(user.tenantId, user.buildingIds, query);
+    return this.readingsService.findAggregated(user.tenantId, user.buildingIds, query, user.crossTenant);
   }
 }

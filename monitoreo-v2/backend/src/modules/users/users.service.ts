@@ -99,6 +99,7 @@ export class UsersService {
       email: saved.email,
       displayName: saved.displayName ?? null,
       authProvider: saved.authProvider,
+      phone: dto.phone ?? null,
     });
 
     if (dto.buildingIds && dto.buildingIds.length > 0) {

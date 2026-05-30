@@ -6,6 +6,7 @@ import { PlatformAlert, PlatformAlertSeverity } from '../platform/entities/platf
 import { AlertRule } from '../platform/entities/alert-rule.entity';
 import { NotificationLog } from './entities/notification-log.entity';
 import { SesEmailService } from '../../common/email/ses-email.service';
+import { SnsSmsService } from '../../common/sms/sns-sms.service';
 
 @Injectable()
 export class NotificationService {
@@ -16,6 +17,7 @@ export class NotificationService {
     private readonly logRepo: Repository<NotificationLog>,
     private readonly config: ConfigService,
     private readonly sesEmail: SesEmailService,
+    private readonly snsSms: SnsSmsService,
   ) {}
 
   /**
@@ -248,44 +250,54 @@ export class NotificationService {
     email: string;
     displayName: string | null;
     authProvider: 'microsoft' | 'google';
+    phone?: string | null;
   }): Promise<void> {
-    const subject = 'Alta de usuario en la plataforma de monitoreo';
+    const providerLabel = params.authProvider === 'microsoft' ? 'Microsoft' : 'Google';
+    const platformUrl = this.config.get<string>('FRONTEND_URL') ?? 'https://power-monitor.cloud';
+
+    // Email notification
+    const subject = 'Bienvenido a Energy Monitor — instrucciones de acceso';
     const body = [
-      `Se registró un usuario en el tenant.`,
-      `Email: ${params.email}`,
-      params.displayName ? `Nombre: ${params.displayName}` : null,
-      `Proveedor de acceso: ${params.authProvider}`,
-      'Inicie sesión con ese proveedor usando la cuenta indicada.',
-    ]
-      .filter(Boolean)
-      .join('\n');
+      params.displayName ? `Hola ${params.displayName},` : 'Hola,',
+      '',
+      'Se ha creado tu cuenta en la plataforma Energy Monitor de Globe Power.',
+      '',
+      'Para ingresar:',
+      `1. Abre ${platformUrl}`,
+      `2. Haz clic en "Continuar con ${providerLabel}"`,
+      `3. Usa tu cuenta: ${params.email}`,
+      `4. La primera vez te pediremos configurar verificación en dos pasos (MFA)`,
+      '   - Descarga Google Authenticator o Microsoft Authenticator en tu celular',
+      '   - Escanea el código QR que aparecerá en pantalla',
+      '   - Ingresa el código de 6 dígitos',
+      '',
+      'Ante cualquier duda, contacta a tu administrador.',
+    ].join('\n');
 
-    this.logger.log(`[USER_INVITE] tenant=${params.tenantId}\n${body}`);
+    this.logger.log(`[USER_INVITE] tenant=${params.tenantId} email=${params.email}`);
 
-    if (!this.sesEmail.getFromAddress()) {
-      return;
+    if (this.sesEmail.getFromAddress()) {
+      const result = await this.sesEmail.sendPlainText({
+        to: [params.email],
+        subject,
+        body,
+      });
+      if (result.ok) {
+        this.logger.log(`[USER_INVITE] SES sent MessageId=${result.messageId} to=${params.email}`);
+      } else if (result.errorMessage) {
+        this.logger.error(`[USER_INVITE] SES failed: ${result.errorMessage}`);
+      }
     }
 
-    const result = await this.sesEmail.sendPlainText({
-      to: [params.email],
-      subject,
-      body,
-    });
+    // SMS notification
+    if (params.phone) {
+      const smsMessage = [
+        `Globe Power: se creó tu cuenta en Energy Monitor.`,
+        `Ingresa en ${platformUrl} con tu cuenta ${providerLabel} (${params.email}).`,
+        `La primera vez configura MFA con Google Authenticator o Microsoft Authenticator.`,
+      ].join(' ');
 
-    if (result.ok) {
-      this.logger.log(
-        `[USER_INVITE] SES sent MessageId=${result.messageId} to=${params.email}`,
-      );
-      return;
-    }
-
-    if (result.skippedReason === 'no_recipients') {
-      this.logger.warn(`[USER_INVITE] SES skipped: no recipient for ${params.email}`);
-      return;
-    }
-
-    if (result.errorMessage) {
-      this.logger.error(`[USER_INVITE] SES failed: ${result.errorMessage}`);
+      await this.snsSms.sendSms(params.phone, smsMessage);
     }
   }
 

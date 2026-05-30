@@ -265,19 +265,20 @@ export class ReadingsService {
     tenantId: string,
     buildingIds: string[],
     query: AggregatedQueryDto,
+    crossTenant = false,
   ): Promise<AggregatedRow[]> {
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
 
     // Portfolio cache — avoids slow sequential scans on continuous aggregates
     if (query.groupBy === 'portfolio') {
-      const cacheKey = `${tenantId}:${query.interval}:${query.from}:${query.to}`;
+      const cacheKey = `${crossTenant ? '_all' : tenantId}:${query.interval}:${query.from}:${query.to}`;
       const cached = this.getCached(cacheKey);
       if (cached) return cached;
 
       const useAggregate = AGGREGATE_VIEW_MAP[query.interval];
       const result = useAggregate
-        ? await this.findFromAggregate(tenantId, buildingIds, query, useAggregate)
+        ? await this.findFromAggregate(tenantId, buildingIds, query, useAggregate, crossTenant)
         : await this.findFromRawBucket(tenantId, buildingIds, query, pgInterval);
       this.setCache(cacheKey, result);
       return result;
@@ -286,7 +287,7 @@ export class ReadingsService {
     // Use continuous aggregates for hourly/daily/monthly
     const useAggregate = AGGREGATE_VIEW_MAP[query.interval];
     if (useAggregate) {
-      return this.findFromAggregate(tenantId, buildingIds, query, useAggregate);
+      return this.findFromAggregate(tenantId, buildingIds, query, useAggregate, crossTenant);
     }
 
     // Fallback: raw time_bucket on readings table
@@ -302,6 +303,7 @@ export class ReadingsService {
     buildingIds: string[],
     query: AggregatedQueryDto,
     agg: AggregateSource,
+    crossTenant = false,
   ): Promise<AggregatedRow[]> {
     // Security: assert interpolated values are in whitelist (defense-in-depth)
     assertSafeView(agg.view);
@@ -309,13 +311,19 @@ export class ReadingsService {
     const pgInterval = INTERVAL_MAP[query.interval] ?? '1 day';
     assertSafeInterval(pgInterval);
 
-    const params: unknown[] = [tenantId, query.from, query.to];
-    const conditions: string[] = [
-      'a.tenant_id = $1',
-      'a.bucket >= $2',
-      'a.bucket <= $3',
-    ];
-    let paramIdx = 4;
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
+
+    if (!crossTenant) {
+      params.push(tenantId);
+      conditions.push(`a.tenant_id = $${paramIdx}`);
+      paramIdx++;
+    }
+
+    params.push(query.from, query.to);
+    conditions.push(`a.bucket >= $${paramIdx}`, `a.bucket <= $${paramIdx + 1}`);
+    paramIdx += 2;
 
     // Only JOIN meters when filtering by building — avoids expensive join on large datasets
     const needsMeterJoin = buildingIds.length > 0 || !!query.buildingId;
@@ -345,10 +353,9 @@ export class ReadingsService {
 
     if (agg.reBucket) {
       if (isPortfolio) {
-        const meterRows: { id: string }[] = await this.dataSource.query(
-          `SELECT id FROM meters WHERE tenant_id = $1`,
-          [tenantId],
-        );
+        const meterRows: { id: string }[] = crossTenant
+          ? await this.dataSource.query(`SELECT id FROM meters`)
+          : await this.dataSource.query(`SELECT id FROM meters WHERE tenant_id = $1`, [tenantId]);
         if (meterRows.length === 0) return [];
         const meterIds = meterRows.map((r) => r.id);
 
@@ -394,7 +401,25 @@ export class ReadingsService {
 
     if (isPortfolio) {
       // Portfolio mode: read from pre-computed materialized view (~5ms).
-      // Refreshed daily by DataRetentionService cron.
+      if (crossTenant) {
+        return this.dataSource.query(
+          `SELECT
+             bucket::text,
+             '_portfolio' AS meter_id,
+             SUM(sum_power_kw)::text AS avg_power_kw,
+             MAX(max_power_kw)::text AS max_power_kw,
+             MIN(min_power_kw)::text AS min_power_kw,
+             (SUM(avg_power_factor * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_power_factor,
+             (SUM(avg_voltage_l1 * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_voltage_l1,
+             '0' AS energy_delta_kwh,
+             SUM(reading_count)::text AS reading_count
+           FROM portfolio_summary
+           WHERE bucket >= $1::date AND bucket <= $2::date
+           GROUP BY bucket
+           ORDER BY bucket ASC`,
+          [query.from, query.to],
+        );
+      }
       return this.dataSource.query(
         `SELECT
            bucket::text,

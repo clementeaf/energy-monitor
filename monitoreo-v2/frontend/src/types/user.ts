@@ -23,6 +23,7 @@ export interface CreateUserPayload {
   authProvider: AuthProvider;
   authProviderId?: string;
   roleId: string;
+  phone?: string;
   buildingIds?: string[];
   ageVerified?: boolean;
 }

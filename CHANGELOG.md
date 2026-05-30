@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.14.0-alpha.0] - 2026-05-30 — SMS INVITES, MFA UX, BENCHMARK PERF, CROSS-TENANT READINGS
+
+### Added (monitoreo-v2/backend)
+- **SMS invitations via SNS** — `SnsSmsService` sends login instructions when creating a user with phone number. SenderID `GlobePower`, Chilean number normalization (+569XXXXXXXX).
+- **`groupBy=building`** — new aggregation mode for `/readings/aggregated`. Groups by building instead of meter (~450 rows vs ~78K).
+- **Roles cross-tenant** — `GET /roles` returns all roles (deduplicated by slug) for super_admin without tenant.
+- **Readings cross-tenant** — `/readings/aggregated` skips tenant filter when `crossTenant=true`.
+
+### Changed (monitoreo-v2/backend)
+- **User creation** — `authProviderId` optional (auto-filled on first OAuth login). `auth_provider_id` column made nullable. `phone` field added to `CreateUserDto`.
+- **Email invite** — rewritten with step-by-step login instructions (URL, OAuth provider, MFA setup guide).
+
+### Changed (monitoreo-v2/frontend)
+- **MFA setup UX** — guided 3-step flow: download authenticator app (with links), scan QR (with instructions), enter code. Recovery codes with clear explanation.
+- **MfaSetupGate** — numbered steps explaining MFA before redirecting to profile.
+- **User form** — removed `authProviderId` field, added optional phone field for SMS invite, `ageVerified` sent implicitly, roleId defaults to first available role.
+- **Benchmark** — uses `groupBy=building` server-side aggregation.
+
+---
+
 ## [2.13.0-alpha.0] - 2026-05-29 — GLOBE POWER PAGE, USERS CROSS-TENANT
 
 ### Added (globe-landing)

@@ -21,6 +21,11 @@ export class CreateUserDto {
   roleId!: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
+
+  @IsOptional()
   @IsUUID(undefined, { each: true })
   buildingIds?: string[];
 

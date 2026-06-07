@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.16.1-alpha.0] - 2026-06-07 — PROD RDS MIGRATIONS (ECS EXEC)
+
+### Added
+- **`npm run db:migrate:ecs`** — aplica migraciones SQL en RDS prod desde tarea Fargate (`apply-migration-ecs.mjs`).
+- **Runbook** — [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md): inventario AWS, local vs prod, verificación, troubleshooting.
+
+### Changed
+- **`docs/aws-runbook.md`** — sección RDS monitoreo-v2; legacy v1 marcado obsoleto.
+- **Prod RDS** — migraciones `15`, `17`, `41`, `42` aplicadas vía ECS Exec (`schema_migrations` + tablas import).
+
+---
+
 ## [2.16.0-alpha.0] - 2026-06-07 — BULK BUILDING & TENANT UNIT IMPORT
 
 ### Added (monitoreo-v2/backend)

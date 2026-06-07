@@ -212,22 +212,22 @@ Ejecutar **Ola IMP-0** (migración `41-user-import-prereq.sql`) en Docker local 
 
 ## Deploy AWS (ligero)
 
-Sin ECS redeploy: **solo SQL idempotente** contra RDS. Mismo script que local.
+**Prod:** ver [`docs/ops/rds-migrations-via-ecs-exec.md`](../../docs/ops/rds-migrations-via-ecs-exec.md) — RDS no es público; usar ECS Exec:
 
 ```bash
 cd monitoreo-v2/backend
-DB_HOST=<rds-endpoint> DB_PORT=5432 DB_NAME=monitoreo_v2 \
-DB_USERNAME=... DB_PASSWORD=... DB_SSL=true \
-npm run db:migrate -- 41-user-import-prereq
+node scripts/apply-migration-ecs.mjs 41-user-import-prereq
+node scripts/apply-migration-ecs.mjs 42-building-tenant-import
 ```
 
-Alternativa sin Node (útil en CI/ECS Exec):
+**Local (Docker):**
 
 ```bash
-psql "postgresql://USER:PASS@HOST:5432/monitoreo_v2?sslmode=require" \
-  -f monitoreo-v2/database/migrations/41-user-import-prereq.sql
+cd monitoreo-v2/backend
+source .env
+npm run db:migrate -- 42-building-tenant-import
 ```
 
-Verificar: `SELECT version FROM schema_migrations WHERE version = '41-user-import-prereq';`
+Verificar: `SELECT version FROM schema_migrations WHERE version LIKE '%import%';`
 
-Desplegar backend con código IMP-2+ **después** de aplicar la migración. El cron de retención tolera ausencia de tabla hasta IMP-0 esté aplicado.
+Desplegar backend con código IMP-2+ **después** de aplicar la migración en prod.

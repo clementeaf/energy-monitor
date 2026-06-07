@@ -84,6 +84,9 @@
 | `monitoreo-v2/backend/src/modules/user-import/` | Import masiva usuarios CSV/XLSX |
 | `monitoreo-v2/backend/src/modules/building-import/` | Import masiva edificios CSV/XLSX |
 | `monitoreo-v2/backend/src/modules/tenant-unit-import/` | Import masiva locatarios CSV/XLSX |
+| `monitoreo-v2/backend/scripts/apply-migration.mjs` | Migraciones SQL local (`npm run db:migrate`) |
+| `monitoreo-v2/backend/scripts/apply-migration-ecs.mjs` | Migraciones SQL prod vía ECS Exec (`npm run db:migrate:ecs`) |
+| `docs/ops/rds-migrations-via-ecs-exec.md` | Runbook conexión RDS prod + troubleshooting |
 | `monitoreo-v2/backend/src/modules/users/` | CRUD usuarios + invitaciones email/SMS |
 | `monitoreo-v2/backend/src/modules/fault-events/` | Read-only eventos de fallo con filtros |
 | `monitoreo-v2/backend/src/modules/platform/entities/` | Entidades dominio (incl. Report, ScheduledReport, Integration, IntegrationSyncLog) |

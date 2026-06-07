@@ -19,6 +19,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 | [`frontend-views.md`](docs/context/frontend-views.md) | Vistas, gráficos, hooks, cache, tipos TS, flujo |
 | [`auth-rbac.md`](docs/context/auth-rbac.md) | Auth flow, RBAC, scoping, onboarding |
 | [`ingest-pipeline.md`](docs/context/ingest-pipeline.md) | Drive pipeline, promotion, agregados, billing import |
+| [`../ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md) | Migraciones SQL prod vía ECS Exec (RDS privado) |
 | [`functional-spec.md`](docs/context/functional-spec.md) | XLSX spec, alertas objetivo, navegación objetivo |
 | [`key-files.md`](docs/context/key-files.md) | Archivos clave backend/frontend/infra |
 | [`CHANGELOG.md`](CHANGELOG.md) | Notas por release; la entrada más reciente está al inicio del archivo |
@@ -27,6 +28,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ### Completado (2026-06-07)
 - **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. Tabs Importar en Edificios y Locatarios. Migración `42-building-tenant-import`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
+- **Migraciones prod RDS:** script `db:migrate:ecs` + runbook [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md). Prod: `15`, `17`, `41`, `42` vía ECS Exec. [CHANGELOG — 2.16.1-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-06)
 - **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)

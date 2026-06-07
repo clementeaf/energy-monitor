@@ -202,21 +202,22 @@ UNIQUE (job_id, row_number)
 | `backend/src/database/migrations/09-mfa-columns.sql` | MFA fields on users |
 | `backend/src/database/migrations/10-add-missing-permissions.sql` | 8 new permissions |
 | `database/migrations/41-user-import-prereq.sql` | User import jobs/staging; nullable auth_provider_id |
+| `database/migrations/42-building-tenant-import.sql` | Building + tenant unit import jobs/staging |
 
-### Apply one migration (local or AWS RDS)
+### Apply migrations
+
+**Local** (Docker `127.0.0.1:5434`):
+
+```bash
+cd monitoreo-v2/backend && source .env
+npm run db:migrate -- 42-building-tenant-import
+```
+
+**Prod** (RDS privado — ECS Exec):
 
 ```bash
 cd monitoreo-v2/backend
-
-# Local Docker
-DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=monitoreo_v2 \
-DB_USERNAME=monitoreo_v2 DB_PASSWORD=monitoreo2026 \
-npm run db:migrate -- 41-user-import-prereq
-
-# AWS RDS
-DB_HOST=<rds-endpoint> DB_SSL=true DB_NAME=monitoreo_v2 \
-DB_USERNAME=... DB_PASSWORD=... \
-npm run db:migrate -- 41-user-import-prereq
+npm run db:migrate:ecs -- 42-building-tenant-import
 ```
 
-Or `psql -f database/migrations/41-user-import-prereq.sql`. Verify: `SELECT version FROM schema_migrations WHERE version = '41-user-import-prereq';`
+Ver [`docs/ops/rds-migrations-via-ecs-exec.md`](../../docs/ops/rds-migrations-via-ecs-exec.md). Verificar: `SELECT version FROM schema_migrations ORDER BY version DESC;`

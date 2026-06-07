@@ -93,3 +93,5 @@ Tablas `reports`, `scheduled_reports`, `integrations`, `integration_sync_logs` d
 **Import masiva usuarios:** `user_import_jobs`, `user_import_staging_rows` — migración `41-user-import-prereq.sql`.
 **Import masiva edificios:** `building_import_jobs`, `building_import_staging_rows` — migración `42-building-tenant-import.sql`.
 **Import masiva locatarios:** `tenant_unit_import_jobs`, `tenant_unit_import_staging_rows` — migración `42-building-tenant-import.sql`. Reutilizan enums `user_import_job_status` / `user_import_row_status`. Detalle en `monitoreo-v2/docs/db-schema.md`.
+
+**Migraciones monitoreo-v2:** runner en `monitoreo-v2/backend/scripts/apply-migration.mjs` (local) y `apply-migration-ecs.mjs` (prod vía ECS Exec). Runbook: [`docs/ops/rds-migrations-via-ecs-exec.md`](../ops/rds-migrations-via-ecs-exec.md).

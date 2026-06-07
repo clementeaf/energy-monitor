@@ -288,7 +288,32 @@ aws cloudfront create-invalidation \
   --paths "/landing/*"
 ```
 
-### Conectar a RDS (desde instancia en VPC)
+### Conectar a RDS (monitoreo-v2 prod)
+
+RDS **`monitoreo-v2-db`** no es público. No uses `psql` ni `npm run db:migrate` directo desde tu laptop contra prod.
+
+**Procedimiento documentado:** [`docs/ops/rds-migrations-via-ecs-exec.md`](ops/rds-migrations-via-ecs-exec.md)
+
+Resumen:
+
+```bash
+cd monitoreo-v2/backend
+node scripts/apply-migration-ecs.mjs 42-building-tenant-import
+```
+
+Requiere AWS CLI + Session Manager plugin. La tarea ECS `monitoreo-v2-backend-restored` tiene credenciales `DB_*` y acceso VPC.
+
+| Campo | Valor prod |
+|---|---|
+| Host | `monitoreo-v2-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com` |
+| Port | `5432` |
+| Database | `monitoreo_v2` |
+| Username | `emadmin` |
+| Password | Secrets Manager `monitoreo-v2/secrets` → `DB_PASSWORD` |
+
+> Legacy v1 (`energy-monitor-db` / `energy_monitor`) ya no existe en la cuenta; inventario actual es solo `monitoreo-v2-db`.
+
+### Conectar a RDS (legacy v1 — obsoleto)
 ```bash
 psql -h energy-monitor-db.ci1q4okokkkd.us-east-1.rds.amazonaws.com \
   -U emadmin -d energy_monitor

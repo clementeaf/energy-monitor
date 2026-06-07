@@ -81,7 +81,9 @@
 | `monitoreo-v2/backend/src/modules/invoices/` | CRUD facturas + line items + approve/void |
 | `monitoreo-v2/backend/src/modules/reports/` | CRUD reportes + generate + export + scheduled + `ReportsSchedulerService` (cron 5 min) |
 | `monitoreo-v2/backend/src/modules/integrations/` | CRUD integraciones + sync-logs + BACnet/SNMP + health |
-| `monitoreo-v2/backend/src/modules/user-import/` | Import masiva usuarios CSV/XLSX (validate, staging, commit) |
+| `monitoreo-v2/backend/src/modules/user-import/` | Import masiva usuarios CSV/XLSX |
+| `monitoreo-v2/backend/src/modules/building-import/` | Import masiva edificios CSV/XLSX |
+| `monitoreo-v2/backend/src/modules/tenant-unit-import/` | Import masiva locatarios CSV/XLSX |
 | `monitoreo-v2/backend/src/modules/users/` | CRUD usuarios + invitaciones email/SMS |
 | `monitoreo-v2/backend/src/modules/fault-events/` | Read-only eventos de fallo con filtros |
 | `monitoreo-v2/backend/src/modules/platform/entities/` | Entidades dominio (incl. Report, ScheduledReport, Integration, IntegrationSyncLog) |
@@ -125,8 +127,14 @@
 | `monitoreo-v2/frontend/src/features/monitoring/fault-history/FaultHistoryPage.tsx` | Timeline eventos de fallo por medidor |
 | `monitoreo-v2/frontend/src/features/reports/ReportsPage.tsx` | Reportes generados + programados (`/reports`) |
 | `monitoreo-v2/frontend/src/features/integrations/IntegrationsPage.tsx` | Integraciones: tabs conectores, webhooks, gaps, backfill, salud |
-| `monitoreo-v2/frontend/src/features/admin/users/UsersPage.tsx` | Usuarios: lista CRUD + tab Importar (`UserImportTab`) |
-| `monitoreo-v2/frontend/src/hooks/queries/useUserImportQuery.ts` | Import masiva: validate, preview, commit, plantilla CSV |
+| `monitoreo-v2/frontend/src/features/buildings/BuildingsPage.tsx` | Edificios: lista CRUD + tab Importar |
+| `monitoreo-v2/frontend/src/features/buildings/BuildingImportTab.tsx` | Wizard import edificios |
+| `monitoreo-v2/frontend/src/features/admin/tenants/TenantsPage.tsx` | Locatarios: lista CRUD + tab Importar |
+| `monitoreo-v2/frontend/src/features/admin/tenants/TenantUnitImportTab.tsx` | Wizard import locatarios |
+| `monitoreo-v2/frontend/src/features/admin/users/UsersPage.tsx` | Usuarios: lista CRUD + tab Importar |
+| `monitoreo-v2/frontend/src/hooks/queries/useUserImportQuery.ts` | Hooks import usuarios |
+| `monitoreo-v2/frontend/src/hooks/queries/useBuildingImportQuery.ts` | Hooks import edificios |
+| `monitoreo-v2/frontend/src/hooks/queries/useTenantUnitImportQuery.ts` | Hooks import locatarios |
 | `monitoreo-v2/frontend/src/app/router.tsx` | Router: login, `/`, dashboards, buildings, meters, alerts, monitoring/*, billing, reports, integrations, admin, components |
 | `monitoreo-v2/frontend/src/components/layout/Sidebar.tsx` | Nav con permisos RBAC + badge alertas; entradas monitoreo ampliadas (`end` en `/`) |
 

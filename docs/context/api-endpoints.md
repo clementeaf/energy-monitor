@@ -28,6 +28,34 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 
 Notas: `super_admin` cross-tenant requiere header `x-tenant-id`. Commit exige `ageVerified: true` (Ley 21.719). Filas `duplicate` se omiten en commit.
 
+## Buildings — Import (`/buildings/import`) — requiere Bearer + `admin_buildings`
+
+| Method | Path | Permiso | Request | Response |
+|---|---|---|---|---|
+| GET | `/buildings/import/template` | `admin_buildings:read` | — | CSV attachment `edificios-import-v1.csv` |
+| GET | `/buildings/import` | `admin_buildings:read` | `?limit&offset` | `{ data: BuildingImportJob[], total }` |
+| POST | `/buildings/import/validate` | `admin_buildings:create` | multipart `file` (CSV/XLSX ≤1MB) | `{ jobId, summary }` |
+| GET | `/buildings/import/:jobId` | `admin_buildings:read` | — | `{ job, summary }` |
+| GET | `/buildings/import/:jobId/rows` | `admin_buildings:read` | `?limit&offset&status` | `{ data, total, limit, offset }` |
+| POST | `/buildings/import/:jobId/commit` | `admin_buildings:create` | — | `{ jobId, created, skipped, failed }` |
+| DELETE | `/buildings/import/:jobId` | `admin_buildings:create` | — | 204 (cancel draft) |
+
+Columnas requeridas: `name`, `code`. Opcionales: `address`, `area_sqm`, `region_code`, `country_code`, `timezone`, `external_site_id`, `site_kind`.
+
+## Tenant Units — Import (`/tenant-units/import`) — requiere Bearer + `admin_tenants_units`
+
+| Method | Path | Permiso | Request | Response |
+|---|---|---|---|---|
+| GET | `/tenant-units/import/template` | `admin_tenants_units:read` | — | CSV attachment `locatarios-import-v1.csv` |
+| GET | `/tenant-units/import` | `admin_tenants_units:read` | `?limit&offset` | `{ data: TenantUnitImportJob[], total }` |
+| POST | `/tenant-units/import/validate` | `admin_tenants_units:create` | multipart `file` (CSV/XLSX ≤1MB) | `{ jobId, summary }` |
+| GET | `/tenant-units/import/:jobId` | `admin_tenants_units:read` | — | `{ job, summary }` |
+| GET | `/tenant-units/import/:jobId/rows` | `admin_tenants_units:read` | `?limit&offset&status` | `{ data, total, limit, offset }` |
+| POST | `/tenant-units/import/:jobId/commit` | `admin_tenants_units:create` | — | `{ jobId, created, skipped, failed }` |
+| DELETE | `/tenant-units/import/:jobId` | `admin_tenants_units:create` | — | 204 (cancel draft) |
+
+Columnas requeridas: `name`, `unit_code`, más `building_code` o `external_site_id`. Opcionales: `contact_name`, `contact_email`, `external_unit_id`.
+
 ## Roles (`/roles`) — requiere Bearer
 | GET | `/roles` | `RoleOption[]` |
 

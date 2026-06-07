@@ -11,9 +11,18 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { useAppStore } from '../../store/useAppStore';
 import { BuildingForm } from './BuildingForm';
+import { BuildingImportTab } from './BuildingImportTab';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../../types/building';
 
+type BuildingsTab = 'list' | 'import';
+
+const TAB_CLASS = (active: boolean): string =>
+  `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+  }`;
+
 export function BuildingsPage() {
+  const [activeTab, setActiveTab] = useState<BuildingsTab>('list');
   const query = useBuildingsQuery();
   const qs = useQueryState(query, {
     isEmpty: (data) => data === undefined || data.length === 0,
@@ -78,7 +87,7 @@ export function BuildingsPage() {
       <PageHeader
         title="Edificios"
         eyebrow="Monitoreo"
-        actions={canWrite ? (
+        actions={canWrite && activeTab === 'list' ? (
           <button
             type="button"
             onClick={openCreate}
@@ -89,6 +98,20 @@ export function BuildingsPage() {
         ) : undefined}
       />
 
+      {canWrite ? (
+        <nav className="flex gap-2" aria-label="Edificios">
+          <button type="button" className={TAB_CLASS(activeTab === 'list')} onClick={() => { setActiveTab('list'); }}>
+            Lista
+          </button>
+          <button type="button" className={TAB_CLASS(activeTab === 'import')} onClick={() => { setActiveTab('import'); }}>
+            Importar
+          </button>
+        </nav>
+      ) : null}
+
+      {activeTab === 'import' && canWrite ? (
+        <BuildingImportTab onViewBuildings={() => { setActiveTab('list'); }} />
+      ) : (
       <div className="max-h-[70vh] overflow-y-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
@@ -140,7 +163,8 @@ export function BuildingsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleBuildings.length} de {total}</p>}
+      )}
+      {total > 0 && activeTab === 'list' && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleBuildings.length} de {total}</p>}
 
       <BuildingForm
         open={formOpen}

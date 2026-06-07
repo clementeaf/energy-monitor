@@ -90,4 +90,6 @@ Si en prod `external_id`/`provider` son NOT NULL, el backend usa centinela `prov
 ## monitoreo-v2 (Timescale / init)
 Tablas `reports`, `scheduled_reports`, `integrations`, `integration_sync_logs` definidas en `monitoreo-v2/database/init/05-modules.sql`. Valor `quality` en `reports.report_type`: patch `monitoreo-v2/database/patches/2026-04-02-reports-add-quality-type.sql` para BDs ya creadas.
 
-**Import masiva usuarios:** `user_import_jobs`, `user_import_staging_rows` — migración `41-user-import-prereq.sql`. Detalle en `monitoreo-v2/docs/db-schema.md`.
+**Import masiva usuarios:** `user_import_jobs`, `user_import_staging_rows` — migración `41-user-import-prereq.sql`.
+**Import masiva edificios:** `building_import_jobs`, `building_import_staging_rows` — migración `42-building-tenant-import.sql`.
+**Import masiva locatarios:** `tenant_unit_import_jobs`, `tenant_unit_import_staging_rows` — migración `42-building-tenant-import.sql`. Reutilizan enums `user_import_job_status` / `user_import_row_status`. Detalle en `monitoreo-v2/docs/db-schema.md`.

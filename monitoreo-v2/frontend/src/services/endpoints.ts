@@ -33,6 +33,22 @@ import type {
   UserImportRowsQueryParams,
 } from '../types/user-import';
 import type {
+  ValidateBuildingImportResponse,
+  BuildingImportJobDetailResponse,
+  BuildingImportRowsResponse,
+  BuildingImportJobsListResponse,
+  CommitBuildingImportResponse,
+  BuildingImportRowsQueryParams,
+} from '../types/building-import';
+import type {
+  ValidateTenantUnitImportResponse,
+  TenantUnitImportJobDetailResponse,
+  TenantUnitImportRowsResponse,
+  TenantUnitImportJobsListResponse,
+  CommitTenantUnitImportResponse,
+  TenantUnitImportRowsQueryParams,
+} from '../types/tenant-unit-import';
+import type {
   TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload,
   TenantUnitMeter,
 } from '../types/tenant-unit';
@@ -525,6 +541,62 @@ export const userImportEndpoints = {
 
   cancel: (jobId: string) =>
     api.delete(API_ROUTES.usersImport.job(jobId)),
+};
+
+export const buildingImportEndpoints = {
+  downloadTemplate: () =>
+    api.get<Blob>(API_ROUTES.buildingsImport.template, { responseType: 'blob' }),
+
+  validate: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<ValidateBuildingImportResponse>(API_ROUTES.buildingsImport.validate, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  listJobs: (params?: { limit?: number; offset?: number }) =>
+    api.get<BuildingImportJobsListResponse>(API_ROUTES.buildingsImport.base, { params }),
+
+  getJob: (jobId: string) =>
+    api.get<BuildingImportJobDetailResponse>(API_ROUTES.buildingsImport.job(jobId)),
+
+  getRows: (jobId: string, params?: BuildingImportRowsQueryParams) =>
+    api.get<BuildingImportRowsResponse>(API_ROUTES.buildingsImport.rows(jobId), { params }),
+
+  commit: (jobId: string) =>
+    api.post<CommitBuildingImportResponse>(API_ROUTES.buildingsImport.commit(jobId), {}),
+
+  cancel: (jobId: string) =>
+    api.delete(API_ROUTES.buildingsImport.job(jobId)),
+};
+
+export const tenantUnitImportEndpoints = {
+  downloadTemplate: () =>
+    api.get<Blob>(API_ROUTES.tenantUnitsImport.template, { responseType: 'blob' }),
+
+  validate: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<ValidateTenantUnitImportResponse>(API_ROUTES.tenantUnitsImport.validate, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  listJobs: (params?: { limit?: number; offset?: number }) =>
+    api.get<TenantUnitImportJobsListResponse>(API_ROUTES.tenantUnitsImport.base, { params }),
+
+  getJob: (jobId: string) =>
+    api.get<TenantUnitImportJobDetailResponse>(API_ROUTES.tenantUnitsImport.job(jobId)),
+
+  getRows: (jobId: string, params?: TenantUnitImportRowsQueryParams) =>
+    api.get<TenantUnitImportRowsResponse>(API_ROUTES.tenantUnitsImport.rows(jobId), { params }),
+
+  commit: (jobId: string) =>
+    api.post<CommitTenantUnitImportResponse>(API_ROUTES.tenantUnitsImport.commit(jobId), {}),
+
+  cancel: (jobId: string) =>
+    api.delete(API_ROUTES.tenantUnitsImport.job(jobId)),
 };
 
 export const tenantUnitsEndpoints = {

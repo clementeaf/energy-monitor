@@ -15,6 +15,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
 import { UserImportModule } from './modules/user-import/user-import.module';
+import { BuildingImportModule } from './modules/building-import/building-import.module';
+import { TenantUnitImportModule } from './modules/tenant-unit-import/tenant-unit-import.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { BuildingsModule } from './modules/buildings/buildings.module';
@@ -89,6 +91,7 @@ import { HealthController } from './health.controller';
     TenantsModule,
     UsersModule,
     UserImportModule,
+    BuildingImportModule,
     RolesModule,
     PlatformModule,
     BuildingsModule,
@@ -100,6 +103,7 @@ import { HealthController } from './health.controller';
     FaultEventsModule,
     ConcentratorsModule,
     TenantUnitsModule,
+    TenantUnitImportModule,
     TariffsModule,
     InvoicesModule,
     AuditLogsModule,

@@ -28,10 +28,12 @@ export class DataRetentionService {
     const purged = await this.purgeExpiredTokens();
     const anonymized = await this.anonymizeInactiveUsers();
     const importJobsPurged = await this.purgeOldUserImportJobs();
+    const buildingImportPurged = await this.purgeOldImportJobs('building_import_jobs');
+    const tenantUnitImportPurged = await this.purgeOldImportJobs('tenant_unit_import_jobs');
     await this.refreshPortfolioSummary();
 
     this.logger.log(
-      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} import jobs purged`,
+      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} user import jobs purged, ${buildingImportPurged} building import jobs purged, ${tenantUnitImportPurged} tenant unit import jobs purged`,
     );
   }
 
@@ -106,26 +108,34 @@ export class DataRetentionService {
   }
 
   /**
-   * Delete completed user import jobs older than 90 days (staging rows cascade).
+   * Delete completed import jobs older than 90 days (staging rows cascade).
+   * @param tableName - Import jobs table name
    */
-  private async purgeOldUserImportJobs(): Promise<number> {
+  private async purgeOldImportJobs(tableName: string): Promise<number> {
     try {
       const result = await this.dataSource.query(
-        `DELETE FROM user_import_jobs
+        `DELETE FROM ${tableName}
          WHERE status IN ('committed', 'failed', 'cancelled')
            AND COALESCE(committed_at, updated_at) < NOW() - INTERVAL '90 days'`,
       );
       const count = result[1] ?? 0;
       if (count > 0) {
-        this.logger.log(`Purged ${count} old user_import_jobs`);
+        this.logger.log(`Purged ${count} old ${tableName}`);
       }
       return count;
     } catch (err) {
       this.logger.warn(
-        `user_import_jobs purge skipped: ${err instanceof Error ? err.message : 'unknown'}`,
+        `${tableName} purge skipped: ${err instanceof Error ? err.message : 'unknown'}`,
       );
       return 0;
     }
+  }
+
+  /**
+   * Delete completed user import jobs older than 90 days (staging rows cascade).
+   */
+  private async purgeOldUserImportJobs(): Promise<number> {
+    return this.purgeOldImportJobs('user_import_jobs');
   }
 
   /**

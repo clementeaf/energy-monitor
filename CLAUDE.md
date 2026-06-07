@@ -25,6 +25,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-07)
+- **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. Tabs Importar en Edificios y Locatarios. Migración `42-building-tenant-import`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-06)
 - **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)
 - **Plataforma self-admin:** ingest gaps, backfill, webhooks, data governance, regions, SSO tenant, OAuth clients, integraciones BACnet/SNMP + tabs salud.
@@ -211,8 +214,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: ECS Fargate (monitoreo-v2-backend) + RDS (monitoreo-v2-db) + CloudFront (power-monitor.cloud + plataforma.globepower.cl).
-Backend: 22 módulos, Ley 21.719 ARCO+ completo, MFA enforcement, privacy endpoints, breach 72h, data retention cron, health endpoint, super_admin cross-tenant, refresh token __Host- cookie, Redis throttler opcional. 737 tests, 63 suites.
-Frontend: 21 páginas, /profile (ARCO+), /privacy-policy (público), /admin/deletion-requests, privacy modal, MFA gate, Google credential flow, operator/building switchers, tenant theming. 260 tests, 34 suites.
+Backend: import masiva usuarios/edificios/locatarios (jobs/staging). Ley 21.719, MFA, super_admin cross-tenant, Redis throttler opcional.
+Frontend: tabs Importar en Usuarios, Edificios, Locatarios. Integraciones (webhooks, gaps, salud), data governance, regions.
+Migraciones: 41 (user import), 42 (building + tenant unit import). Deploy: aplicar 42 en RDS antes de usar import edificios/locatarios.
 ```
 
 ## Prioridad Actual de Acceso
@@ -328,4 +332,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 1.0.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.16.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

@@ -262,7 +262,7 @@ MeterReading {
 | `/` | Dashboard | si | KPIs, StockChart dual-axis, alertas activas, resumen edificios |
 | `/dashboard/executive` | Ejecutivo | si | KPIs portfolio, tendencias diarias (consumo/demanda/costo ref.), ranking intensidad, críticas |
 | `/dashboard/compare` | Comparativo | si | 7/30/90 días; ≥2 edificios: curvas y Δ vs media. Opcional: actual vs periodo anterior (barras + tabla) |
-| `/buildings` | Edificios | si | Tabla CRUD con datos reales |
+| `/buildings` | Edificios | si | Tab **Lista** (CRUD) + tab **Importar** (`admin_buildings:create`): CSV/XLSX edificios |
 | `/meters` | Medidores | si | Tabla con filtro por edificio, CRUD |
 | `/alerts` | Alertas | si | Tabla con filtros status/severity/building, acciones acknowledge/resolve |
 | `/monitoring/realtime` | Tiempo Real | si | Lecturas en vivo (auto-refresh 30s), status online/offline/alarma |
@@ -292,6 +292,14 @@ Flujo en `UsersPage` tab **Importar** (`features/admin/users/UserImportTab.tsx`)
 
 Hooks: `useUserImportJobsQuery`, `useUserImportPreviewQuery`, `useValidateUserImport`, `useCommitUserImport`. Tipos: `types/user-import.ts`.
 
+## Importación masiva de edificios (IMP-070)
+
+Flujo en `BuildingsPage` tab **Importar** (`features/buildings/BuildingImportTab.tsx`): plantilla → validate → preview → commit (sin checkbox Ley 21.719). Hooks: `useBuildingImportQuery.ts`. Tipos: `types/building-import.ts`.
+
+## Importación masiva de locatarios (IMP-071)
+
+Flujo en `TenantsPage` tab **Importar** (`features/admin/tenants/TenantUnitImportTab.tsx`): resuelve edificio por `building_code` o `external_site_id`. Hooks: `useTenantUnitImportQuery.ts`. Tipos: `types/tenant-unit-import.ts`.
+
 ## API layer (v2)
 
 Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/queries/use*.ts`
@@ -309,7 +317,9 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
 | Reports | `/reports`, `/reports/scheduled`, `/reports/generate`, `/reports/:id/export` | `useReportsQuery`, `useScheduledReportsQuery`, `useGenerateReport`, mutaciones scheduled/delete |
 | Integrations | `/integrations`, `/integrations/:id/sync`, `/integrations/:id/sync-logs` | `useIntegrationsQuery`, `useIntegrationSyncLogsQuery`, mutaciones CRUD + `useTriggerIntegrationSync` |
-| User import | `/users/import`, `/users/import/template`, `/users/import/validate`, `/users/import/:jobId`, `/users/import/:jobId/rows`, `/users/import/:jobId/commit` | `useUserImportJobsQuery`, `useUserImportPreviewQuery`, `useValidateUserImport`, `useCommitUserImport`, `downloadUserImportTemplate` |
+| User import | `/users/import`, ... | `useUserImportJobsQuery`, `useValidateUserImport`, `useCommitUserImport`, `downloadUserImportTemplate` |
+| Building import | `/buildings/import`, ... | `useBuildingImportJobsQuery`, `useValidateBuildingImport`, `useCommitBuildingImport`, `downloadBuildingImportTemplate` |
+| Tenant unit import | `/tenant-units/import`, ... | `useTenantUnitImportJobsQuery`, `useValidateTenantUnitImport`, `useCommitTenantUnitImport`, `downloadTenantUnitImportTemplate` |
 
 ## CSP (v2)
 

@@ -153,10 +153,12 @@ Ola IMP-0 (DB)
 
 ## Ola IMP-4 — Backlog (post v1)
 
+**Hecho (2026-06-07):** IMP-070 (edificios), IMP-071 (locatarios). Ver CHANGELOG 2.16.0-alpha.0.
+
 | ID | Tarea | Notas |
 |----|-------|-------|
-| IMP-070 | Import edificios CSV (`buildings` + geo fields) | Misma maquinaria jobs/staging |
-| IMP-071 | Import locatarios (`tenant_units` + `external_unit_id`) | Resolver building |
+| ~~IMP-070~~ | ~~Import edificios CSV~~ | ✅ `BuildingImportModule`, migración 42 |
+| ~~IMP-071~~ | ~~Import locatarios~~ | ✅ `TenantUnitImportModule`, resolver building |
 | IMP-072 | Import medidores | Jerarquía + parent_meter |
 | IMP-073 | Mapeo columnas UI (column mapper) si cliente trae headers distintos no cubiertos por alias | Fase 2 |
 | IMP-074 | Persistir `phone` en `users.phone` cifrado | Migración + perfil |

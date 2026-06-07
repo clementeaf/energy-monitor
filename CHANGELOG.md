@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.16.0-alpha.0] - 2026-06-07 — BULK BUILDING & TENANT UNIT IMPORT
+
+### Added (monitoreo-v2/backend)
+- **Bulk building import** — `BuildingImportModule`, `/buildings/import/*`, migración `42-building-tenant-import`.
+- **Bulk tenant unit import** — `TenantUnitImportModule`, `/tenant-units/import/*` (misma tabla de jobs/staging).
+- Validación CSV/XLSX: preview → commit. Duplicados por `code` / `external_site_id` (edificios) y `unit_code` por edificio (locatarios).
+
+### Added (monitoreo-v2/frontend)
+- Tab **Importar** en Edificios y Locatarios (mismo flujo que Usuarios, sin checkbox Ley 21.719).
+
+### Changed
+- Retención diaria: purga jobs import edificios/locatarios >90 días.
+
+### Tests
+- Backend: +8 tests (`building-import`, `tenant-unit-import`).
+- Frontend: 273 tests (sin regresiones).
+
+---
+
 ## [2.15.0-alpha.0] - 2026-06-06 — BULK USER IMPORT, INGEST GOVERNANCE, INTEGRATIONS PLATFORM
 
 ### Added (monitoreo-v2/backend)

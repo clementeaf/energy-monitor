@@ -11,13 +11,22 @@ import {
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { TenantUnitForm } from './TenantUnitForm';
+import { TenantUnitImportTab } from './TenantUnitImportTab';
 import type { TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload } from '../../../types/tenant-unit';
 import { PageHeader } from '../../../components/ui/PageHeader';
+
+type TenantsTab = 'list' | 'import';
+
+const TAB_CLASS = (active: boolean): string =>
+  `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+  }`;
 
 const COL_COUNT = 8;
 const SKELETON_WIDTHS = ['w-28', 'w-16', 'w-20', 'w-24', 'w-24', 'w-32', 'w-16', 'w-20'];
 
 export function TenantsPage() {
+  const [activeTab, setActiveTab] = useState<TenantsTab>('list');
   const [buildingFilter, setBuildingFilter] = useState<string>('');
   const query = useTenantUnitsQuery(buildingFilter || undefined);
   const buildingsQuery = useBuildingsQuery();
@@ -63,16 +72,18 @@ export function TenantsPage() {
       <div className="flex items-center justify-between">
         <PageHeader title="Locatarios" eyebrow="Administración" />
         <div className="flex items-center gap-3">
-          <DropdownSelect
-            options={[
-              { value: '', label: 'Todos los edificios' },
-              ...buildings.map((b) => ({ value: b.id, label: b.name })),
-            ]}
-            value={buildingFilter}
-            onChange={(val) => { setBuildingFilter(val); }}
-            className="w-48"
-          />
-          {canWrite && (
+          {activeTab === 'list' ? (
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Todos los edificios' },
+                ...buildings.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              value={buildingFilter}
+              onChange={(val) => { setBuildingFilter(val); }}
+              className="w-48"
+            />
+          ) : null}
+          {canWrite && activeTab === 'list' && (
             <button
               type="button"
               onClick={openCreate}
@@ -84,6 +95,20 @@ export function TenantsPage() {
         </div>
       </div>
 
+      {canWrite ? (
+        <nav className="flex gap-2" aria-label="Locatarios">
+          <button type="button" className={TAB_CLASS(activeTab === 'list')} onClick={() => { setActiveTab('list'); }}>
+            Lista
+          </button>
+          <button type="button" className={TAB_CLASS(activeTab === 'import')} onClick={() => { setActiveTab('import'); }}>
+            Importar
+          </button>
+        </nav>
+      ) : null}
+
+      {activeTab === 'import' && canWrite ? (
+        <TenantUnitImportTab onViewTenants={() => { setActiveTab('list'); }} />
+      ) : (
       <div className="max-h-[70vh] overflow-y-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
@@ -129,7 +154,8 @@ export function TenantsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
+      )}
+      {total > 0 && activeTab === 'list' && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       <TenantUnitForm
         open={formOpen}

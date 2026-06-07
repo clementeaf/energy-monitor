@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { TableStateBody } from '../../components/ui/TableStateBody';
-import { Th, Td, ActionBtn } from '../../components/ui/TablePrimitives';
-import { PageHeader } from '../../components/ui/PageHeader';
-import { usePermissions } from '../../hooks/usePermissions';
+import { Button } from '../../../components/ui/Button';
+import { Modal } from '../../../components/ui/Modal';
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { usePermissions } from '../../../hooks/usePermissions';
 import {
   useRegionsQuery,
   useCreateRegion,
   useUpdateRegion,
   useDeleteRegion,
-} from '../../hooks/queries/useRegionsQuery';
-import type { Region } from '../../types/region';
+} from '../../../hooks/queries/useRegionsQuery';
+import type { Region } from '../../../types/region';
 
 /**
  * CRUD admin page for tenant geographic regions.
@@ -91,7 +91,7 @@ export function RegionsPage() {
             colSpan={canWrite ? 4 : 3}
             emptyMessage="No hay regiones registradas."
           >
-            {(query.data ?? []).map((row) => (
+            {(query.data ?? []).map((row: Region) => (
               <tr key={row.id} className="hover:bg-surface">
                 <Td className="font-medium">{row.code}</Td>
                 <Td>{row.name}</Td>

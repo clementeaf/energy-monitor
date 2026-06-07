@@ -80,15 +80,35 @@ Variables opcionales:
 | `ECS_SERVICE` | `monitoreo-v2-backend-restored` |
 | `ECS_CONTAINER` | `backend` |
 
-### Cadena típica para import masivo (2026-06)
+### Estado prod (2026-06-07)
 
-Si prod no tenía `schema_migrations` ni tablas geo/import:
+| Aplicadas | Pendiente |
+|-----------|-----------|
+| `10`–`21`, `24`–`42` | `22-retention-5y`, `23-cagg-15min` (API TimescaleDB en RDS) |
+
+`GET /api/health` → `schemaVersion: 40-oauth-clients`.
+
+### Cadena mínima (import masivo)
 
 ```bash
 node scripts/apply-migration-ecs.mjs 15-schema-migrations
 node scripts/apply-migration-ecs.mjs 17-tenant-geography
 node scripts/apply-migration-ecs.mjs 41-user-import-prereq
 node scripts/apply-migration-ecs.mjs 42-building-tenant-import
+```
+
+### Cadena completa (2.15.0+ en prod verde)
+
+```bash
+for m in 16-portfolio-summary 18-tenant-units-external 19-meter-metadata \
+  20-views-enriched 21-reading-quality 24-meter-reading-status \
+  25-fn-upsert-meter-status 26-ingest-gaps 27-backfill-jobs 28-views-stale-meters \
+  29-readings-ingress-unique 30-etl-watermarks 31-export-jobs 32-protocol-mapping \
+  33-seed-pac1670-modbus 34-seed-siemens-poc3000-mqtt 35-bacnet-devices \
+  36-snmp-devices 37-webhook-subscriptions 38-data-governance \
+  39-tenant-sso-config 40-oauth-clients; do
+  node scripts/apply-migration-ecs.mjs "$m"
+done
 ```
 
 Todas son **idempotentes** (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`).

@@ -1,4 +1,7 @@
-import type { RegisterMappingInput } from '../lib/normalization.service';
+import type {
+  NormalizedReadingFields,
+  RegisterMappingInput,
+} from '../lib/normalization.service';
 
 /**
  * Global siemens-poc3000 MQTT / IoT EAV variable → readings field mappings.
@@ -32,9 +35,9 @@ export function normalizeIotVariableRow(
   apply: (
     mappings: RegisterMappingInput[],
     raw: Record<string, unknown>,
-  ) => Record<string, number>,
+  ) => NormalizedReadingFields,
   raw: Record<string, unknown>,
   mappings: RegisterMappingInput[] = SIEMENS_POC3000_IOT_MAPPINGS,
-): Record<string, number> {
+): NormalizedReadingFields {
   return apply(mappings, raw);
 }

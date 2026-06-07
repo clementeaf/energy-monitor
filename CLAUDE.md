@@ -27,8 +27,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-07)
-- **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. Tabs Importar en Edificios y Locatarios. Migración `42-building-tenant-import`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
-- **Migraciones prod RDS:** script `db:migrate:ecs` + runbook [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md). Prod: `15`, `17`, `41`, `42` vía ECS Exec. [CHANGELOG — 2.16.1-alpha.0](CHANGELOG.md)
+- **Deploy prod IMP-4:** ECS `monitoreo-v2-backend-restored` + frontend S3/CF con código 2.16.x. Import edificios/locatarios/usuarios operativo. [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
+- **Migraciones prod RDS:** `16`, `18–40`, `41`, `42` vía ECS Exec. Pendiente Timescale: `22`, `23`. Runbook [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md). [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
+- **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-06)
 - **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)
@@ -215,10 +216,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: ECS Fargate (monitoreo-v2-backend) + RDS (monitoreo-v2-db) + CloudFront (power-monitor.cloud + plataforma.globepower.cl).
-Backend: import masiva usuarios/edificios/locatarios (jobs/staging). Ley 21.719, MFA, super_admin cross-tenant, Redis throttler opcional.
-Frontend: tabs Importar en Usuarios, Edificios, Locatarios. Integraciones (webhooks, gaps, salud), data governance, regions.
-Migraciones: 41 (user import), 42 (building + tenant unit import). Deploy: aplicar 42 en RDS antes de usar import edificios/locatarios.
+Prod: ECS monitoreo-v2-backend-restored + RDS monitoreo-v2-db + CF power-monitor.cloud (2.16.x desplegado).
+Import: usuarios, edificios, locatarios en prod. Siguiente: IMP-072 import medidores.
+RDS: migraciones 16–42 aplicadas salvo 22/23 (Timescale). Runbook: docs/ops/rds-migrations-via-ecs-exec.md.
 ```
 
 ## Prioridad Actual de Acceso
@@ -334,4 +334,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.16.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.16.2-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

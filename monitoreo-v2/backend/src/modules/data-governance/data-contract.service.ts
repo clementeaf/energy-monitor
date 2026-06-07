@@ -62,7 +62,7 @@ export class DataContractService {
       .andWhere('c.version = :version', { version })
       .andWhere('c.effective_from <= NOW()')
       .andWhere('(c.tenant_id = :tenantId OR c.tenant_id IS NULL)', { tenantId })
-      .orderBy('c.tenant_id', 'NULLS LAST')
+      .orderBy('c.tenant_id', 'DESC', 'NULLS LAST')
       .getOne();
   }
 

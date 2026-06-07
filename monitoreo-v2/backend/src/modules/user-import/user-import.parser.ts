@@ -81,7 +81,8 @@ export function parseCsvToRows(buffer: Buffer): { headers: string[]; rows: strin
  */
 export async function parseXlsxToRows(buffer: Buffer): Promise<{ headers: string[]; rows: string[][] }> {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
+  // ExcelJS typings expect legacy Buffer; Node 20 Buffer is Uint8Array-backed.
+  await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
 
   const sheetsWithData = workbook.worksheets.filter((sheet) => sheetHasData(sheet));
   if (sheetsWithData.length === 0) {

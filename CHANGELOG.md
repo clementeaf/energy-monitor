@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.16.2-alpha.0] - 2026-06-07 — PROD DEPLOY IMP-4 + MIGRATIONS 18–40
+
+### Deploy (prod)
+- **Backend ECS** — `monitoreo-v2-backend-restored`, imagen `imp4-20260607-093320` (2.16.x).
+- **Frontend** — S3 `power-monitor-frontend`, CF `E1SNFETXON2VSI`.
+- **Health** — `db: ok`, `schemaVersion: 40-oauth-clients`. Endpoints `/buildings/import/*` y `/users/import/*` activos.
+
+### Prod RDS (ECS Exec)
+- Migraciones **16**, **18–40** aplicadas (gap post-2.15.0 cerrado).
+- **Pendiente:** `22-retention-5y`, `23-cagg-15min` — API TimescaleDB en RDS no soporta `remove_retention_policy` ni CAGG `timescaledb.continuous`.
+
+### Fixed (build prod)
+- Backend: import `BuildingImportRegionRef`, `NormalizedReadingFields` en IoT mappings, `orderBy` data contracts, ExcelJS Buffer (Node 20).
+- Frontend: paths `RegionsPage`, `tenant-unit-import-labels`, `Td.title` en `BuildingsPage`, imports no usados.
+- **`deploy-security-patch.sh`** — ECS service `monitoreo-v2-backend-restored` (servicio activo en cluster).
+
+### Next
+- **IMP-072** — import medidores (`parent_meter`, `load_category` ya en prod).
+
+---
+
 ## [2.16.1-alpha.0] - 2026-06-07 — PROD RDS MIGRATIONS (ECS EXEC)
 
 ### Added

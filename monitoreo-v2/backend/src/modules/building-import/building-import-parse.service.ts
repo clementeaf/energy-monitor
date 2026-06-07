@@ -21,6 +21,7 @@ import {
 } from './building-import.resolver';
 import type {
   BuildingImportParseResult,
+  BuildingImportRegionRef,
   BuildingImportRowStatus,
   BuildingImportSummary,
   BuildingImportTenantContext,

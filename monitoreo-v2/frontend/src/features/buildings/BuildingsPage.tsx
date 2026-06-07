@@ -194,8 +194,8 @@ function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; 
   );
 }
 
-function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
+function Td({ children, className = '', title }: Readonly<{ children: React.ReactNode; className?: string; title?: string }>) {
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`} title={title}>{children}</td>;
 }
 
 function StatusBadge({ active }: Readonly<{ active: boolean }>) {

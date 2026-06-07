@@ -86,6 +86,7 @@
 | `monitoreo-v2/backend/src/modules/tenant-unit-import/` | Import masiva locatarios CSV/XLSX |
 | `monitoreo-v2/backend/scripts/apply-migration.mjs` | Migraciones SQL local (`npm run db:migrate`) |
 | `monitoreo-v2/backend/scripts/apply-migration-ecs.mjs` | Migraciones SQL prod vía ECS Exec (`npm run db:migrate:ecs`) |
+| `monitoreo-v2/deploy-security-patch.sh` | Deploy manual backend ECR + frontend S3/CF (servicio `monitoreo-v2-backend-restored`) |
 | `docs/ops/rds-migrations-via-ecs-exec.md` | Runbook conexión RDS prod + troubleshooting |
 | `monitoreo-v2/backend/src/modules/users/` | CRUD usuarios + invitaciones email/SMS |
 | `monitoreo-v2/backend/src/modules/fault-events/` | Read-only eventos de fallo con filtros |

@@ -24,4 +24,4 @@ export function formatTenantUnitImportErrorCodes(codes: string[]): string {
 export {
   USER_IMPORT_STATUS_LABELS as TENANT_UNIT_IMPORT_STATUS_LABELS,
   USER_IMPORT_JOB_STATUS_LABELS as TENANT_UNIT_IMPORT_JOB_STATUS_LABELS,
-} from '../admin/users/user-import-labels';
+} from '../users/user-import-labels';

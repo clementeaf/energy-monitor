@@ -10,8 +10,6 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import { useMyTenantQuery } from '../../../hooks/queries/useTenantSettingsQuery';
 import { resolveStaleThresholdHours, getMeterCommStatus, METER_STATUS_CONFIG } from '../../../lib/meter-status';
-import type { LatestReading } from '../../../types/reading';
-
 const PAGE_SIZE = 15;
 
 export function RealtimePage() {

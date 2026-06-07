@@ -7,11 +7,29 @@
 | **Google Drive** | **Activo** — 5 CSV en carpeta [`1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V`](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V) (~6 GB total). Secret: `energy-monitor/drive-ingest/google-service-account`. |
 | **S3** `energy-monitor-ingest-058310292956` | **Eliminado** en cuenta `058310292956` (jun-2026). |
 | **ECS** `energy-monitor-drive-ingest` | **Eliminado** — solo cluster `monitoreo-v2`. |
-| **Docker local** `monitoreo_v2` | Catálogo PASA (5 edificios); **0 medidores / 0 lecturas** sin import. |
+| **Docker local** `monitoreo_v2` | 875 medidores, ~2.6M lecturas (ene 2026) — `import-one-month.sh` |
+| **RDS prod** tenant PASA | 875 medidores, ~2.6M lecturas — migr. `43–46` aplicadas |
 
-**Dev local rápido:** seed sintético (medidores + 7 días lecturas) o script futuro: CSV local/Drive con `FROM_DATE`/`TO_DATE` (1 mes).
+**Import local:** `monitoreo-v2/scripts/pasa-readings/` (ver comandos abajo).  
+**Prod:** runbook [`docs/ops/pasa-prod-readings-import.md`](../ops/pasa-prod-readings-import.md). Tenant prod `c3b8d5e6-2222-4000-a000-000000000002` (slug `pasa`).
 
-**Prod:** lecturas históricas pueden estar bajo tenant Globe Power; migración `45` movió solo `buildings` a PASA.
+```bash
+cd monitoreo-v2 && docker compose up -d timescaledb
+cd monitoreo-v2/scripts/pasa-readings && npm ci
+
+# Opción A — seed sintético (~minutos)
+npm run seed
+
+# Opción B — 1 mes por CSV (descargar desde Drive a CSV_DIR)
+CSV_DIR=../../../docs ./import-one-month.sh
+# Un solo archivo:
+LIMIT_ROWS=5000 npm run import -- --file ../../../docs/MALL_GRANDE_446_completo.csv
+
+# Desde backend/
+cd monitoreo-v2/backend && npm run pasa:seed
+```
+
+CSVs Drive: [`1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V`](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V). Encoding default `latin1`. Post-import: `REFRESH` CAGGs + `portfolio_summary`.
 
 ## Bulk CSV Ingest — Sistema Incremental
 

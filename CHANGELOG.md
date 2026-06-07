@@ -1,28 +1,36 @@
 # Changelog
 
-## [2.17.0-alpha.0] - 2026-06-07 — AUTH, METER IMPORT, PASA TENANT, SMOKE TESTS
+## [2.17.0-alpha.0] - 2026-06-07 — PASA READINGS, PROD DEPLOY, AUTH & DASHBOARD
+
+### Deploy (prod)
+- **Backend ECS** — imagen `2.17.0-20260607-151444`; `schemaVersion: 46-portfolio-summary-refresh`.
+- **Frontend** — S3 `power-monitor-frontend`, CF `power-monitor.cloud` (`E1SNFETXON2VSI`).
+- **Migraciones RDS** — `43–46` vía ECS Exec (`apply-prod-migrations-2.17.sh`).
+- **PASA prod** — tenant `pasa` (`c3b8d5e6-…`), 875 medidores, ~2.6M lecturas (ene 2026), login OAuth+MFA verificado.
 
 ### Fixed
-- **Auth post-MFA 401** — JWT extrae Bearer antes que cookie; `POST /auth/clear-session`; frontend unifica sesión vía `finalizeAuthSession` + Bearer en `api.ts`.
-- **Executive dashboard 500** — `portfolio_summary` vacía: migración `46`, fallback a `readings_daily`, populate on startup en `DataRetentionService`.
-- **Filtros por edificio/medidor 400** — DTOs `aggregated` / `alerts` / `readings` usan `@IsString()` (IDs seed no RFC 4122).
+- **Auth post-MFA** — JWT Bearer antes que cookie; `POST /auth/clear-session`; `finalizeAuthSession` usa perfil MFA del servidor en prod.
+- **Dashboard Potencia vacío** — rango anclado al último dato (`dateRangeFromLatestReadings`); aplica a Dashboard y Ejecutivo.
+- **Executive dashboard 500** — migración `46` + fallback `readings_daily`.
+- **Smoke tests** — tenant PASA default, platform KPIs sin header tenant, `/fault-events` sin param inválido.
 
 ### Added
-- **Meter import (IMP-072)** — `MeterImportModule` + tab Importar en Medidores; migración `43-meter-import`.
-- **PASA tenant** — migración `45`: tenant cliente `pasa`, edificios movidos desde Globe Power; seed `04-seed.sql` alineado.
-- **Smoke tests HTTP** — `monitoreo-v2/scripts/dashboard-monitoring-smoke.mjs`, `auth-session-violence.mjs`; `npm run test:smoke-dashboard` (backend).
-- **Auth regression tests** — `jwt-extractors.violence`, `auth.controller.session-violence`, `finalizeAuthSession.violence`, `api.auth-session.violence`.
+- **PASA CSV ingest** — `monitoreo-v2/scripts/pasa-readings/` (`import-one-month.sh`, seed sintético); npm `pasa:seed`, `pasa:import-csv`.
+- **Meter import (IMP-072)** — `MeterImportModule`; migración `43-meter-import`.
+- **Runbooks ops** — `docs/ops/pasa-prod-readings-import.md`; scripts `diag-mfa-prod.cjs`, `reset-mfa-prod.cjs`.
+- **Smoke tests HTTP** — `dashboard-monitoring-smoke.mjs`; `npm run test:smoke-dashboard`.
 
 ### Changed
-- **Sidebar** — mensajes cuando no hay empresas cliente; tenant PASA seleccionable.
-- **Migraciones** — `44-tenant-contact-fields`; init hierarchy seed `05b-seed-hierarchy.sql`.
+- **PASA tenant** — migración `45`; migración `44` contact fields; seed `04-seed.sql` alineado.
+- **Sidebar** — tenant PASA seleccionable; mensajes sin empresas cliente.
 
-### Docs / contexto
-- **`ingest-pipeline.md`** — CSV en Google Drive (activo); bucket S3 ingest eliminado; sin script local CSV → `monitoreo_v2` aún.
+### Docs
+- `ingest-pipeline.md`, `rds-migrations-via-ecs-exec.md`, `CLAUDE.md` — estado PASA local/prod actualizado.
 
 ### Pendiente
-- Carga local/prod lecturas PASA desde Drive (1 mes/CSV o seed sintético).
-- Prod: migración `45`/`46` + alinear `meters`/`readings` al tenant PASA si quedaron en Globe Power.
+- SSO Azure AD PASA (credenciales cliente).
+- Migr. Timescale prod `22`, `23`.
+- UAT formal Anexo 07.
 
 ---
 

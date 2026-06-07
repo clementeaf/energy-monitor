@@ -136,6 +136,7 @@ async function runPlatformDashboard(token) {
     '/platform-dashboard/kpis',
     token,
     isObject,
+    { skipTenant: true },
   );
 }
 
@@ -234,7 +235,7 @@ async function runMonitoring(token, ctx) {
 
     await smokeGet(
       'GET /fault-events',
-      `/fault-events?${qs({ meterId, limit: 20 })}`,
+      `/fault-events?${qs({ meterId })}`,
       token,
       isArray,
     );

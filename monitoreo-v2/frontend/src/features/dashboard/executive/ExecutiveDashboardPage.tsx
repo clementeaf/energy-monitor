@@ -16,6 +16,7 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import {
   aggregatePortfolioByBucket,
   countMetersByBuilding,
+  dateRangeFromLatestReadings,
 } from '../dashboardAggregations';
 
 type RangePreset = 'day' | 'week' | 'month';
@@ -48,19 +49,10 @@ export function ExecutiveDashboardPage(): ReactElement {
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
 
-  // Determine actual data range from latest readings — data may be historical
-  const { from, to } = useMemo(() => {
-    const latestTimestamps = (latestQuery.data ?? [])
-      .map((r) => r.timestamp ? new Date(r.timestamp).getTime() : 0)
-      .filter((t) => t > 0);
-
-    const end = latestTimestamps.length > 0
-      ? new Date(Math.max(...latestTimestamps))
-      : new Date();
-    const start = new Date(end);
-    start.setDate(start.getDate() - rangeConfig.days);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }, [latestQuery.data, rangeConfig.days]);
+  const { from, to } = useMemo(
+    () => dateRangeFromLatestReadings(rangeConfig.days, latestQuery.data ?? []),
+    [latestQuery.data, rangeConfig.days],
+  );
 
   const aggQuery = useAggregatedReadingsQuery(
     { from, to, interval: rangeConfig.interval, groupBy: 'portfolio' },

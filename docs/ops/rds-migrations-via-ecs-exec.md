@@ -84,9 +84,19 @@ Variables opcionales:
 
 | Aplicadas | Pendiente |
 |-----------|-----------|
-| `10`–`21`, `24`–`42` | `22-retention-5y`, `23-cagg-15min` (API TimescaleDB en RDS) |
+| `10`–`21`, `24`–`46` (incl. PASA tenant + portfolio refresh) | `22-retention-5y`, `23-cagg-15min` (TimescaleDB RDS) |
 
-`GET /api/health` → `schemaVersion: 40-oauth-clients`.
+`GET /api/health` → `schemaVersion: 46-portfolio-summary-refresh` (verificado 2026-06-07 vía CloudFront `d1mdipl5yydjqm.cloudfront.net`).
+
+**Cadena 2.17 (PASA):**
+
+```bash
+cd monitoreo-v2/backend
+./scripts/apply-prod-migrations-2.17.sh
+# o individual: node scripts/apply-migration-ecs.mjs 45-pasa-client-tenant
+```
+
+Lecturas PASA prod: [`pasa-prod-readings-import.md`](pasa-prod-readings-import.md).
 
 ### Cadena mínima (import masivo)
 

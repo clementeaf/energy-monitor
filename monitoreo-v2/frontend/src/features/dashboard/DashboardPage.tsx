@@ -14,6 +14,7 @@ import { StockChart } from '../../components/charts/StockChart';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { fmtClp } from '../../lib/formatters';
+import { dateRangeFromLatestReadings } from './dashboardAggregations';
 import type { ReadingResolution } from '../../types/reading';
 import type { Invoice } from '../../types/invoice';
 
@@ -39,12 +40,6 @@ export function DashboardPage() {
   const [selectedMeterId, setSelectedMeterId] = useState<string | null>(null);
 
   const rangeConfig = RANGE_PRESETS.find((r) => r.key === preset)!;
-  const { from, to } = useMemo(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - rangeConfig.days);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }, [rangeConfig.days]);
 
   const buildingsQuery = useBuildingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
@@ -56,7 +51,6 @@ export function DashboardPage() {
   }, [allBuildings, isFilteredMode, operatorBuildingIds]);
   const firstBuildingId = buildings[0]?.id ?? '';
 
-  // Fast path: meters list from `meters` table (no DISTINCT ON readings)
   const metersQuery = useMetersQuery(firstBuildingId || undefined);
   const allMeters = metersQuery.data ?? [];
   const meters = useMemo(() => {
@@ -64,8 +58,12 @@ export function DashboardPage() {
     return allMeters.filter((m) => operatorMeterIds.has(m.id));
   }, [allMeters, isFilteredMode, operatorMeterIds]);
 
-  // KPIs: latest readings (heavier, runs in parallel — doesn't block chart)
   const allLatestQuery = useLatestReadingsQuery();
+
+  const { from, to } = useMemo(
+    () => dateRangeFromLatestReadings(rangeConfig.days, allLatestQuery.data ?? []),
+    [allLatestQuery.data, rangeConfig.days],
+  );
 
   // Billing KPIs
   const invoicesQuery = useInvoicesQuery();

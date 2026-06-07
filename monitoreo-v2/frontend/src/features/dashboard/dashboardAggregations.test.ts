@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   dateRangeFromPreset,
+  dateRangeFromLatestReadings,
+  maxReadingTimestamp,
   previousPeriodRange,
   aggregatePortfolioByBucket,
   sumEnergyByBuilding,
@@ -47,6 +49,32 @@ describe('dateRangeFromPreset', () => {
     const diffDays = (new Date(to).getTime() - new Date(from).getTime()) / 86400000;
     expect(diffDays).toBeGreaterThanOrEqual(89.9);
     expect(diffDays).toBeLessThanOrEqual(90.1);
+  });
+});
+
+describe('dateRangeFromLatestReadings', () => {
+  const now = new Date('2026-06-07T12:00:00Z');
+
+  it('anchors to latest reading when data is historical', () => {
+    const readings = [{ timestamp: '2026-01-31T23:45:00Z' }];
+    const { from, to } = dateRangeFromLatestReadings(7, readings, now);
+    expect(to).toBe('2026-01-31T23:45:00.000Z');
+    expect(from).toBe('2026-01-24T23:45:00.000Z');
+  });
+
+  it('falls back to now when no readings', () => {
+    const { to } = dateRangeFromLatestReadings(7, [], now);
+    expect(to).toBe(now.toISOString());
+  });
+});
+
+describe('maxReadingTimestamp', () => {
+  it('returns max timestamp from rows', () => {
+    const ts = maxReadingTimestamp([
+      { timestamp: '2026-01-01T00:00:00Z' },
+      { timestamp: '2026-01-15T12:00:00Z' },
+    ]);
+    expect(ts?.toISOString()).toBe('2026-01-15T12:00:00.000Z');
   });
 });
 

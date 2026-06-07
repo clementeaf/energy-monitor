@@ -2,7 +2,20 @@ import { authEndpoints } from '../../services/endpoints';
 import { clearDevBearerToken, setDevBearerToken } from '../../services/api';
 import type { MeResponse } from '../../types/auth';
 
-export type AuthSessionPayload = Partial<MeResponse> & { accessToken?: string };
+export type AuthSessionPayload = Partial<MeResponse> & {
+  accessToken?: string;
+  success?: boolean;
+};
+
+/**
+ * Returns true when the auth endpoint already returned a full session profile.
+ */
+function isTrustedMeResponse(data: AuthSessionPayload): data is MeResponse {
+  return (
+    typeof data.user?.id === 'string' &&
+    typeof data.tenant?.appTitle === 'string'
+  );
+}
 
 /**
  * Persists dev-only Bearer token returned by auth endpoints in local development.
@@ -29,13 +42,18 @@ export interface FinalizeAuthSessionOptions {
 }
 
 /**
- * Completes login after OAuth/MFA: probes /auth/me with retries, then refresh as fallback.
+ * Completes login after OAuth/MFA: uses trusted server profile when present, else probes /auth/me.
  */
 export async function finalizeAuthSession(options: FinalizeAuthSessionOptions): Promise<void> {
   const { authData, applyMeResponse, onFailure } = options;
 
   if (authData) {
     captureDevAccessToken(authData);
+  }
+
+  if (authData && isTrustedMeResponse(authData)) {
+    applyMeResponse({ user: authData.user, tenant: authData.tenant });
+    return;
   }
 
   const retryDelaysMs = [0, 50, 150, 300];

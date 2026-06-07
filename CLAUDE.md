@@ -27,10 +27,12 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-07)
-- **2.17.0:** Auth MFA/cookie fix, meter import IMP-072, tenant PASA (`45`), portfolio_summary fallback (`46`), smoke tests dashboard/monitoring. CSV PASA vivos en [Google Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V); S3 ingest eliminado. [CHANGELOG — 2.17.0-alpha.0](CHANGELOG.md)
-- **Deploy prod IMP-4:** ECS `monitoreo-v2-backend-restored` + frontend S3/CF con código 2.16.x. Import edificios/locatarios/usuarios operativo. [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
-- **Migraciones prod RDS:** `16`, `18–40`, `41`, `42` vía ECS Exec. Pendiente Timescale: `22`, `23`. Runbook [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md). [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
-- **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
+- **2.17.0 prod:** Backend ECS + frontend `power-monitor.cloud`; migr. RDS `43–46`; login OAuth+MFA OK. [CHANGELOG — 2.17.0-alpha.0](CHANGELOG.md)
+- **PASA lecturas:** Script `scripts/pasa-readings/` — local y prod con 875 medidores / ~2.6M readings (ene 2026). CSV fuente en [Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V).
+- **Dashboard:** Gráfico Potencia anclado al último dato disponible (fix prod con datos históricos).
+- **Auth MFA:** `clear-session`, `finalizeAuthSession`; smoke 30/30. Runbook [`docs/ops/pasa-prod-readings-import.md`](docs/ops/pasa-prod-readings-import.md).
+- **Import masiva IMP-070/071/072:** edificios, locatarios, medidores. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
+- **Migraciones prod previas:** `16`, `18–42` vía ECS Exec. Pendiente Timescale: `22`, `23`.
 
 ### Completado (2026-06-06)
 - **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)
@@ -208,20 +210,18 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
-- **Lecturas PASA:** CSV en [Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V); script local 1 mes/CSV o seed sintético; prod migraciones `43–46` + tenant align meters/readings
-- DNS plataforma.globepower.cl: agregar CNAME `plataforma` → `d1mdipl5yydjqm.cloudfront.net` en GoDaddy (CloudFront ya configurado)
-- Salida de sandbox SES: solicitar via AWS Console (request previo DENIED, API bloqueada por ConflictException)
-- Cuenta AWS `058310292956`: configurar método de pago via AWS Console → Billing ($172.56/mes actual)
-- Costo por Centro (pendiente definición con cliente)
-- Logo Siemens: reemplazar placeholder SVG en v1 con logo oficial (pendiente archivo del cliente)
+- **SSO Azure AD PASA** — credenciales App Registration del cliente.
+- **UAT Anexo 07** — checklist formal post-SSO.
+- **Timescale prod** — migr. `22`, `23` (requiere extensión en RDS).
+- Salida sandbox SES, billing AWS, DNS opcional `plataforma.globepower.cl` (prod usa `power-monitor.cloud`).
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: ECS monitoreo-v2-backend-restored + RDS monitoreo-v2-db + CF power-monitor.cloud (2.17.x local).
-Import: usuarios, edificios, locatarios, medidores (IMP-072 código listo). Lecturas PASA: CSV en Drive; cargar 1 mes o seed local.
-RDS: migraciones 16–46 local; prod aplicar 43–46. Runbook: docs/ops/rds-migrations-via-ecs-exec.md.
-Smoke: `npm run test:smoke-dashboard` en monitoreo-v2/backend.
+Prod: power-monitor.cloud — backend 2.17 + migr. 43–46 + PASA 875 medidores.
+Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
+Local PASA: monitoreo-v2/scripts/pasa-readings/import-one-month.sh
+Smoke: npm run test:smoke-dashboard (monitoreo-v2/backend)
 ```
 
 ## Prioridad Actual de Acceso

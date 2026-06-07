@@ -18,6 +18,55 @@ export interface BuildingEfficiencyRow {
 }
 
 /**
+ * Último timestamp disponible en filas de lecturas (p. ej. `/readings/latest`).
+ * @param readings - Filas con campo `timestamp`
+ * @returns Fecha del dato más reciente, o null si no hay timestamps válidos
+ */
+export function maxReadingTimestamp(
+  readings: Array<{ timestamp?: string | null }>,
+): Date | null {
+  let maxMs = 0;
+  for (const row of readings) {
+    if (!row.timestamp) continue;
+    const ms = new Date(row.timestamp).getTime();
+    if (ms > maxMs) maxMs = ms;
+  }
+  return maxMs > 0 ? new Date(maxMs) : null;
+}
+
+/**
+ * Rango ISO [from, to] de N días terminando en `anchor`.
+ * @param days - Días hacia atrás desde anchor
+ * @param anchor - Fin del rango
+ * @returns Fechas from/to en ISO 8601
+ */
+export function dateRangeFromDays(
+  days: number,
+  anchor: Date,
+): { from: string; to: string } {
+  const end = new Date(anchor);
+  const start = new Date(anchor);
+  start.setDate(start.getDate() - days);
+  return { from: start.toISOString(), to: end.toISOString() };
+}
+
+/**
+ * Rango relativo anclado al último dato disponible (histórico PASA) o `now` si no hay lecturas.
+ * @param days - Ventana en días
+ * @param readings - Lecturas recientes para inferir anchor
+ * @param now - Fallback cuando no hay datos
+ * @returns Fechas from/to en ISO 8601
+ */
+export function dateRangeFromLatestReadings(
+  days: number,
+  readings: Array<{ timestamp?: string | null }>,
+  now: Date = new Date(),
+): { from: string; to: string } {
+  const anchor = maxReadingTimestamp(readings) ?? now;
+  return dateRangeFromDays(days, anchor);
+}
+
+/**
  * Construye el rango ISO [from, to] a partir de un preset relativo a "ahora".
  * @param preset - Ventana: 7, 30 o 90 días hacia atrás
  * @param now - Referencia temporal (inyectable para tests)
@@ -27,11 +76,8 @@ export function dateRangeFromPreset(
   preset: '7d' | '30d' | '90d',
   now: Date = new Date(),
 ): { from: string; to: string } {
-  const end = new Date(now);
-  const start = new Date(now);
   const days = preset === '7d' ? 7 : preset === '30d' ? 30 : 90;
-  start.setDate(start.getDate() - days);
-  return { from: start.toISOString(), to: end.toISOString() };
+  return dateRangeFromDays(days, now);
 }
 
 /**

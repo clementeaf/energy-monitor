@@ -67,7 +67,7 @@ describe('finalizeAuthSession — violent scenarios', () => {
     const onFailure = vi.fn();
 
     const promise = finalizeAuthSession({
-      authData: { accessToken: 'tok-1', ...mePayload },
+      authData: { accessToken: 'tok-1' },
       applyMeResponse,
       onFailure,
     });
@@ -103,7 +103,22 @@ describe('finalizeAuthSession — violent scenarios', () => {
     expect(applyMeResponse).toHaveBeenCalledWith(mePayload);
   });
 
-  it('fails closed: clears bearer and does NOT authenticate without /me', async () => {
+  it('uses trusted MFA session payload without waiting for /me', async () => {
+    const applyMeResponse = vi.fn();
+    const onFailure = vi.fn();
+
+    await finalizeAuthSession({
+      authData: { success: true, ...mePayload },
+      applyMeResponse,
+      onFailure,
+    });
+
+    expect(applyMeResponse).toHaveBeenCalledWith(mePayload);
+    expect(meMock).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when authData lacks a trusted profile and /me fails', async () => {
     meMock.mockRejectedValue(new Error('401'));
     refreshMock.mockRejectedValue(new Error('401'));
 
@@ -111,7 +126,7 @@ describe('finalizeAuthSession — violent scenarios', () => {
     const onFailure = vi.fn();
 
     const run = finalizeAuthSession({
-      authData: { accessToken: 'tok-dead', user: mePayload.user, tenant: mePayload.tenant },
+      authData: { accessToken: 'tok-dead' },
       applyMeResponse,
       onFailure,
     });

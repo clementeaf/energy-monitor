@@ -8,7 +8,9 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 export const API_BASE = process.env.API_BASE ?? 'http://localhost:5173/api';
 export const USER_ID = process.env.USER_ID ?? 'd141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f';
 export const MFA_SECRET = process.env.MFA_SECRET ?? 'XDBX7HTXVENGAFU5EU3XLMVTJ5TBNPKG';
-export const TENANT_ID = process.env.TENANT_ID ?? '';
+/** PASA tenant — required for meter drill-down when super_admin lists cross-tenant. */
+export const TENANT_ID =
+  process.env.TENANT_ID ?? 'b0000002-0000-0000-0000-000000000001';
 export const BACKEND_DIR = join(scriptDir, '..', '..', 'backend');
 
 let passed = 0;
@@ -41,12 +43,12 @@ export function tally() {
 /**
  * Performs fetch against API_BASE with JSON defaults.
  * @param path - API path (with leading slash)
- * @param options - Fetch options
+ * @param options - Fetch options; skipTenant omits x-tenant-id (platform-wide routes)
  * @returns Status, parsed JSON, and headers
  */
 export async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers ?? {}) };
-  if (TENANT_ID) {
+  if (TENANT_ID && !options.skipTenant) {
     headers['x-tenant-id'] = TENANT_ID;
   }
   const res = await fetch(`${API_BASE}${path}`, {
@@ -129,11 +131,13 @@ export async function obtainAccessToken() {
  * @param path - API path
  * @param token - Bearer token
  * @param validate - Optional response validator
+ * @param options - Optional fetch flags (e.g. skipTenant)
  * @returns Fetch result
  */
-export async function smokeGet(name, path, token, validate) {
+export async function smokeGet(name, path, token, validate, options = {}) {
   const res = await apiFetch(path, {
     headers: { Authorization: `Bearer ${token}` },
+    ...options,
   });
   const okStatus = res.status >= 200 && res.status < 300;
   const okBody = validate ? validate(res.json) : true;

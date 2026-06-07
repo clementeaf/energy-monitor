@@ -1,6 +1,7 @@
 export const API_ROUTES = {
   auth: {
     login: '/auth/login',
+    clearSession: '/auth/clear-session',
     ssoConfig: (tenantSlug: string) => `/auth/sso/${tenantSlug}/config`,
     ssoStart: (tenantSlug: string) => `/auth/sso/${tenantSlug}/start`,
     refresh: '/auth/refresh',
@@ -8,6 +9,7 @@ export const API_ROUTES = {
     me: '/auth/me',
     mfaSetup: '/auth/mfa/setup',
     mfaVerify: '/auth/mfa/verify',
+    mfaVerifySetup: '/auth/mfa/verify-setup',
     mfaValidate: '/auth/mfa/validate',
     mfaStatus: '/auth/mfa/status',
     mfaDisable: '/auth/mfa',
@@ -57,6 +59,14 @@ export const API_ROUTES = {
     job: (id: string) => `/tenant-units/import/${id}`,
     rows: (id: string) => `/tenant-units/import/${id}/rows`,
     commit: (id: string) => `/tenant-units/import/${id}/commit`,
+  },
+  metersImport: {
+    base: '/meters/import',
+    template: '/meters/import/template',
+    validate: '/meters/import/validate',
+    job: (id: string) => `/meters/import/${id}`,
+    rows: (id: string) => `/meters/import/${id}/rows`,
+    commit: (id: string) => `/meters/import/${id}/commit`,
   },
   tenantUnits: '/tenant-units',
   auditLogs: '/audit-logs',

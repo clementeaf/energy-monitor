@@ -5,19 +5,21 @@ import tailwindcss from '@tailwindcss/vite';
 import { cspMetaPlugin } from './vite/csp-meta-plugin.ts';
 
 /**
- * Reenvía /api al backend Nest (puerto 4000). Mismo mapa en dev y preview para evitar 404 en /api/*.
+ * Reenvía /api al backend Nest local (puerto 4000). Mismo mapa en dev y preview para evitar 404 en /api/*.
+ * Prod: usar VITE_API_BASE_URL=https://power-monitor.cloud/api o proxy staging en deploy.
  */
 const apiProxy: Record<string, string | ProxyOptions> = {
   '/api': {
-    target: 'https://power-monitor.cloud',
+    target: 'http://localhost:4000',
     changeOrigin: true,
-    secure: true,
+    // Auth cookies are host-scoped: use http://localhost:5173 in dev (not 127.0.0.1).
   },
 };
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), cspMetaPlugin()],
   server: {
+    host: 'localhost',
     port: 5173,
     // Sin COOP en el dev server: evita avisos de window.closed (HMR + OAuth popup de Google).
     // El API (Nest) envía same-origin-allow-popups vía Helmet para las respuestas /api.

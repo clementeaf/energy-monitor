@@ -20,7 +20,7 @@ import type { OAuthProfile } from './auth.service';
 import { PRIVACY_POLICY_VERSION } from './auth.service';
 import { MfaService } from './mfa.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
-import { MfaCodeDto, MfaValidateDto } from './dto/mfa.dto';
+import { MfaCodeDto, MfaSetupDto, MfaValidateDto } from './dto/mfa.dto';
 import { DeletionRequestDto } from './dto/deletion-request.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { RectificationRequestDto } from './dto/rectification-request.dto';
@@ -53,6 +53,16 @@ export class AuthController {
   }
 
   @Public()
+  @Post('clear-session')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Clear auth cookies before login (stale session cleanup)' })
+  @ApiResponse({ status: 200, description: 'Auth cookies cleared' })
+  clearSessionCookies(@Res({ passthrough: true }) res: Response) {
+    this.clearTokenCookies(res);
+    return { success: true };
+  }
+
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'OAuth login (Microsoft/Google)' })
@@ -75,11 +85,20 @@ export class AuthController {
     if ('mfaSetupRequired' in result) {
       const tokens = await this.authService.issueTokensForUser(result.userId);
       this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
-      return { success: true, mfaSetupRequired: true };
+      const mfaSetup = await this.mfaService.setupMfa(result.userId, profile.email);
+      return {
+        success: true,
+        mfaSetupRequired: true,
+        userId: result.userId,
+        secret: mfaSetup.secret,
+        qrDataUrl: mfaSetup.qrDataUrl,
+        otpauthUrl: mfaSetup.otpauthUrl,
+        ...this.devTokenFields(tokens.accessToken),
+      };
     }
 
     this.setTokenCookies(res, result.accessToken, result.refreshToken);
-    return { success: true };
+    return { success: true, ...this.devTokenFields(result.accessToken) };
   }
 
   @Get('me')
@@ -87,12 +106,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User profile with tenant info' })
   @ApiResponse({ status: 401, description: 'Not authenticated' })
   async me(@CurrentUser() user: JwtPayload) {
-    const profile = await this.authService.getUserProfile(user.sub);
-    const theme = await this.tenantsService.getTheme(user.tenantId);
-    return {
-      user: profile,
-      tenant: theme,
-    };
+    return this.authService.getMeResponse(user.sub);
   }
 
   @Patch('me')
@@ -128,7 +142,7 @@ export class AuthController {
     }
     const tokens = await this.authService.refreshTokens(refreshToken);
     this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
-    return { success: true };
+    return { success: true, ...this.devTokenFields(tokens.accessToken) };
   }
 
   @Post('logout')
@@ -140,22 +154,20 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.revokeAllTokens(user.sub);
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
-    const accessName = isProduction ? '__Host-access_token' : 'access_token';
-    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
-    res.clearCookie(accessName, { path: '/' });
-    res.clearCookie(refreshName, {
-      path: isProduction ? '/api/auth/refresh' : '/',
-    });
+    this.clearTokenCookies(res);
     return { success: true };
   }
 
   @Post('mfa/setup')
   @ApiOperation({ summary: 'Generate TOTP secret and QR code for MFA setup' })
   @ApiResponse({ status: 201, description: 'TOTP secret and QR URI' })
-  async mfaSetup(@CurrentUser() user: JwtPayload) {
-    return this.mfaService.setupMfa(user.sub, user.email);
+  async mfaSetup(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: MfaSetupDto,
+  ) {
+    return this.mfaService.setupMfa(user.sub, user.email, {
+      forceRegenerate: body.forceRegenerate === true,
+    });
   }
 
   @Post('mfa/verify')
@@ -169,6 +181,33 @@ export class AuthController {
   ) {
     const { recoveryCodes } = await this.mfaService.verifyAndEnable(user.sub, body.code);
     return { success: true, mfaEnabled: true, recoveryCodes };
+  }
+
+  @Public()
+  @Post('mfa/verify-setup')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify TOTP and enable MFA during login setup (no JWT — OAuth just completed)' })
+  @ApiResponse({ status: 200, description: 'MFA enabled with recovery codes' })
+  @ApiResponse({ status: 400, description: 'Invalid code or setup not pending' })
+  async mfaVerifySetup(
+    @Body() body: MfaValidateDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { recoveryCodes } = await this.mfaService.verifyAndEnableDuringLogin(
+      body.userId,
+      body.code,
+    );
+    const tokens = await this.authService.issueTokensForUser(body.userId);
+    this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+    const session = await this.authService.getMeResponse(body.userId);
+    return {
+      success: true,
+      mfaEnabled: true,
+      recoveryCodes,
+      ...session,
+      ...this.devTokenFields(tokens.accessToken),
+    };
   }
 
   @Public()
@@ -188,7 +227,8 @@ export class AuthController {
     }
     const tokens = await this.authService.issueTokensForUser(body.userId);
     this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
-    return { success: true };
+    const session = await this.authService.getMeResponse(body.userId);
+    return { success: true, ...session, ...this.devTokenFields(tokens.accessToken) };
   }
 
   @Delete('mfa')
@@ -271,11 +311,7 @@ export class AuthController {
   ) {
     await this.authService.revokePrivacyConsent(user.sub);
     await this.authService.revokeAllTokens(user.sub);
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    const accessName = isProduction ? '__Host-access_token' : 'access_token';
-    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
-    res.clearCookie(accessName, { path: '/' });
-    res.clearCookie(refreshName, { path: isProduction ? '/api/auth/refresh' : '/' });
+    this.clearTokenCookies(res);
     return { success: true, message: 'Consentimiento revocado. Sesión terminada.' };
   }
 
@@ -302,6 +338,27 @@ export class AuthController {
     return { success: true, optOutAutomatedDecisions: dto.optOut };
   }
 
+  /**
+   * Exposes JWT in JSON body for local dev when browsers drop large httpOnly cookies.
+   */
+  private devTokenFields(accessToken: string): { accessToken?: string } {
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+    return isProduction ? {} : { accessToken };
+  }
+
+  private clearTokenCookies(res: Response): void {
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+    const accessName = isProduction ? '__Host-access_token' : 'access_token';
+    const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
+
+    res.clearCookie(accessName, { path: '/' });
+    res.clearCookie(refreshName, {
+      path: isProduction ? '/api/auth/refresh' : '/',
+    });
+  }
+
   private setTokenCookies(
     res: Response,
     accessToken: string,
@@ -316,6 +373,8 @@ export class AuthController {
     // __Host- prefix enforces Secure + no Domain + path=/ (prevents cookie tossing attacks)
     const accessName = isProduction ? '__Host-access_token' : 'access_token';
     const refreshName = isProduction ? '__Host-refresh_token' : 'refresh_token';
+
+    this.clearTokenCookies(res);
 
     const cookieOptions = {
       httpOnly: true,

@@ -7,6 +7,7 @@ import { encryptPii, decryptPii } from '../../common/crypto/pii-encryption';
 
 const ISSUER = 'EnergyMonitor';
 const RECOVERY_CODE_COUNT = 8;
+const TOTP_EPOCH_TOLERANCE = 1;
 
 @Injectable()
 export class MfaService {
@@ -21,17 +22,59 @@ export class MfaService {
   async setupMfa(
     userId: string,
     userEmail: string,
+    options?: { forceRegenerate?: boolean },
   ): Promise<{ secret: string; qrDataUrl: string; otpauthUrl: string }> {
-    const secret = generateSecret();
-    const otpauthUrl = generateURI({ issuer: ISSUER, label: userEmail, secret });
+    const rows = await this.dataSource.query<{ mfa_secret: string | null; mfa_enabled: boolean }[]>(
+      `SELECT mfa_secret, mfa_enabled FROM users WHERE id = $1`,
+      [userId],
+    );
+    const row = rows[0];
+    let secret: string;
+
+    if (!options?.forceRegenerate && row?.mfa_secret && row.mfa_enabled === false) {
+      secret = decryptPii(row.mfa_secret);
+      this.logger.log(`Reusing pending MFA secret for user ${userId}`);
+    } else {
+      secret = generateSecret();
+      await this.dataSource.query(
+        `UPDATE users SET mfa_secret = $1, mfa_enabled = false, mfa_recovery_codes = NULL WHERE id = $2`,
+        [encryptPii(secret), userId],
+      );
+    }
+
+    const otpauthUrl = generateURI({
+      issuer: ISSUER,
+      label: userEmail,
+      secret,
+      algorithm: 'sha1',
+      digits: 6,
+      period: 30,
+    });
     const qrDataUrl = await QRCode.toDataURL(otpauthUrl);
 
-    await this.dataSource.query(
-      `UPDATE users SET mfa_secret = $1, mfa_enabled = false, mfa_recovery_codes = NULL WHERE id = $2`,
-      [encryptPii(secret), userId],
+    return { secret, qrDataUrl, otpauthUrl };
+  }
+
+  /**
+   * Verifies first-time MFA setup during login (public endpoint, pending secret only).
+   * @param userId - User completing OAuth login MFA enrollment
+   * @param code - 6-digit TOTP from authenticator app
+   * @returns Recovery codes when enrollment succeeds
+   */
+  async verifyAndEnableDuringLogin(
+    userId: string,
+    code: string,
+  ): Promise<{ recoveryCodes: string[] }> {
+    const rows = await this.dataSource.query<{ mfa_secret: string | null; mfa_enabled: boolean }[]>(
+      `SELECT mfa_secret, mfa_enabled FROM users WHERE id = $1`,
+      [userId],
     );
 
-    return { secret, qrDataUrl, otpauthUrl };
+    if (rows.length === 0 || rows[0].mfa_enabled || !rows[0].mfa_secret) {
+      throw new BadRequestException('MFA setup not available for this user.');
+    }
+
+    return this.verifyAndEnable(userId, code);
   }
 
   /**
@@ -51,10 +94,16 @@ export class MfaService {
     }
 
     const secret = decryptPii(rows[0].mfa_secret);
-    const result = verifySync({ token: code, secret });
+    const result = verifySync({
+      token: code.trim(),
+      secret,
+      epochTolerance: TOTP_EPOCH_TOLERANCE,
+    });
 
     if (!result.valid) {
-      throw new BadRequestException('Invalid verification code.');
+      throw new BadRequestException(
+        'Invalid verification code. Use the code from the QR shown on this screen (delete old EnergyMonitor entries in your app).',
+      );
     }
 
     const recoveryCodes = this.generateRecoveryCodes();
@@ -87,7 +136,11 @@ export class MfaService {
 
     // Try TOTP first
     const decryptedSecret = decryptPii(rows[0].mfa_secret);
-    const totpValid = verifySync({ token: code, secret: decryptedSecret }).valid;
+    const totpValid = verifySync({
+      token: code.trim(),
+      secret: decryptedSecret,
+      epochTolerance: TOTP_EPOCH_TOLERANCE,
+    }).valid;
     if (totpValid) {
       return true;
     }

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tenantsEndpoints } from '../../services/endpoints';
+import { useAuthStore } from '../../store/useAuthStore';
 import type { Tenant, CreateTenantPayload, UpdateTenantPayload, OnboardingResult } from '../../types/tenant';
 
 const KEYS = {
@@ -7,12 +8,15 @@ const KEYS = {
 };
 
 export function useTenantsAdminQuery() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return useQuery({
     queryKey: KEYS.all,
     queryFn: async (): Promise<Tenant[]> => {
       const { data } = await tenantsEndpoints.list();
       return data;
     },
+    enabled: isAuthenticated,
   });
 }
 

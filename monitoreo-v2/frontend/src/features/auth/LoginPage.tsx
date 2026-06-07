@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect, type ReactElement } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { clearSessionFlag } from '../../hooks/auth/useSessionResolver';
+import { authEndpoints } from '../../services/endpoints';
+import { clearDevBearerToken } from '../../services/api';
 import { useSsoPublicConfigQuery } from '../../hooks/queries/useSsoQuery';
 import { ssoProviderLabel } from '../../lib/tenant-security-settings';
 import globeLogo from '../../assets/globe-logo.png';
@@ -19,8 +22,8 @@ export function LoginPage() {
   const {
     loginMicrosoft, loginGoogle, loginWithSso, error, isLoading,
     mfaPending, validateMfa,
-    mfaSetupData, verifyMfaSetup,
-    mfaRecoveryCodes, setMfaRecoveryCodes,
+    mfaSetupData, regenerateMfaSetup, verifyMfaSetup, finishMfaSetupAfterRecovery,
+    mfaRecoveryCodes,
     handleSsoCallbackParams,
   } = useAuth();
 
@@ -29,6 +32,12 @@ export function LoginPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [setupCode, setSetupCode] = useState('');
   const [ssoCallbackHandled, setSsoCallbackHandled] = useState(false);
+
+  useEffect(() => {
+    clearSessionFlag();
+    clearDevBearerToken();
+    void authEndpoints.clearSessionCookies();
+  }, []);
 
   const ssoConfigQuery = useSsoPublicConfigQuery(activeTenantSlug || null);
   const ssoConfig = ssoConfigQuery.data;
@@ -123,9 +132,7 @@ export function LoginPage() {
             Medición, alertas y facturación para edificios y operadores — con la precisión que tu operación exige.
           </p>
         </div>
-        <p className="relative text-xs text-sidebar-muted">
-          Globe Power · Plataforma multi-tenant
-        </p>
+        <div className="relative h-4 shrink-0" aria-hidden="true" />
       </div>
 
       <div className="flex flex-1 items-center justify-center bg-surface px-6 py-10">
@@ -145,7 +152,7 @@ export function LoginPage() {
           {mfaRecoveryCodes ? (
             <RecoveryCodesPanel
               codes={mfaRecoveryCodes}
-              onContinue={() => setMfaRecoveryCodes(null)}
+              onContinue={() => void finishMfaSetupAfterRecovery()}
               primaryBtnClass={primaryBtnClass}
             />
           ) : mfaSetupData ? (
@@ -154,6 +161,10 @@ export function LoginPage() {
               secret={mfaSetupData.secret}
               setupCode={setupCode}
               onSetupCodeChange={setSetupCode}
+              onRegenerate={() => {
+                setSetupCode('');
+                void regenerateMfaSetup();
+              }}
               onSubmit={handleSetupVerify}
               isLoading={isLoading}
               primaryBtnClass={primaryBtnClass}
@@ -345,6 +356,7 @@ interface MfaSetupFormProps {
   secret: string;
   setupCode: string;
   onSetupCodeChange: (code: string) => void;
+  onRegenerate: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
   primaryBtnClass: string;
@@ -358,6 +370,7 @@ function MfaSetupForm({
   secret,
   setupCode,
   onSetupCodeChange,
+  onRegenerate,
   onSubmit,
   isLoading,
   primaryBtnClass,
@@ -367,19 +380,31 @@ function MfaSetupForm({
       <div className="panel-muted space-y-3 p-4">
         <p className="text-sm font-semibold text-foreground">Escanea el código QR</p>
         <p className="text-xs text-muted">
-          Usa Google Authenticator o Microsoft Authenticator, luego ingresa el código de 6 dígitos.
+          Funciona igual en local y en producción: la app solo usa el código de 6 dígitos, no la URL del sitio.
+          Borra entradas viejas de &quot;EnergyMonitor&quot; antes de escanear.
         </p>
         <div className="flex justify-center rounded-lg bg-background p-3">
-          <img src={qrDataUrl} alt="Código QR para MFA" className="h-44 w-44" />
+          <img
+            key={secret}
+            src={qrDataUrl}
+            alt="Código QR para MFA"
+            className="h-44 w-44"
+          />
         </div>
-        <details>
-          <summary className="cursor-pointer text-xs text-subtle hover:text-muted">
-            Ingresar clave manualmente
-          </summary>
-          <code className="mt-2 block break-all rounded-lg bg-raised px-2 py-1 font-mono text-xs text-foreground">
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-subtle">Clave manual (si el QR falla)</p>
+          <code className="block break-all rounded-lg bg-raised px-2 py-1 font-mono text-xs text-foreground">
             {secret}
           </code>
-        </details>
+        </div>
+        <button
+          type="button"
+          onClick={onRegenerate}
+          disabled={isLoading}
+          className="text-xs text-brand hover:underline disabled:opacity-50"
+        >
+          Generar nuevo QR
+        </button>
       </div>
       <input
         type="text"

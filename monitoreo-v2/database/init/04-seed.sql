@@ -2,26 +2,41 @@
 -- Seed: Globe Power tenant + admin user + PASA roles
 -- ============================================================
 
--- Tenant
-INSERT INTO tenants (id, name, slug, primary_color, secondary_color, timezone)
+-- Platform owner tenant (not selectable in TenantSwitcher — super_admin cross-tenant home)
+INSERT INTO tenants (id, name, slug, primary_color, secondary_color, timezone, app_title)
 VALUES (
     '84adf8d4-830d-46e1-bef5-e2eac6a19014',
     'Globe Power',
     'globe-power',
     '#3D3BF3',
     '#1E1E2F',
-    'America/Santiago'
+    'America/Santiago',
+    'Energy Monitor'
+);
+
+-- Client tenant (selectable in sidebar — PASA malls live here)
+INSERT INTO tenants (id, name, slug, primary_color, secondary_color, sidebar_color, accent_color, timezone, app_title)
+VALUES (
+    'b0000002-0000-0000-0000-000000000001',
+    'PASA',
+    'pasa',
+    '#1E40AF',
+    '#1E1E2F',
+    '#1E1E2F',
+    '#10B981',
+    'America/Santiago',
+    'PASA Energy Monitor'
 );
 
 -- PASA roles (7 roles from platform spec)
-INSERT INTO roles (id, tenant_id, name, slug, description, max_session_minutes, is_default) VALUES
-    ('a0000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Super Admin', 'super_admin', 'Administrador global de la plataforma. Acceso total a todos los tenants y configuraciones.', 30, false),
-    ('a0000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Admin Corporativo', 'corp_admin', 'Gerente o director corporativo. Ve todos los edificios, dashboards ejecutivos, benchmarking.', 15, false),
-    ('a0000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Admin de Edificio', 'site_admin', 'Administrador de edificio especifico. Gestiona usuarios, configura tarifas, aprueba facturas.', 15, false),
-    ('a0000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Operador Tecnico', 'operator', 'Tecnico de mantenimiento. Monitorea en tiempo real, gestiona alertas, dashboards tecnicos.', 30, false),
-    ('a0000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Analista', 'analyst', 'Consulta avanzada. Genera reportes, exporta datos, ve tendencias y benchmarking.', 30, false),
-    ('a0000001-0000-0000-0000-000000000006', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Locatario', 'tenant_user', 'Locatario (tienda). Ve su consumo, facturas y alertas propias.', 60, true),
-    ('a0000001-0000-0000-0000-000000000007', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Auditor', 'auditor', 'Solo lectura con acceso amplio para auditorias. Ve logs, reportes, configuraciones.', 15, false);
+INSERT INTO roles (id, tenant_id, name, slug, description, max_session_minutes, hierarchy_level, is_default) VALUES
+    ('a0000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Super Admin', 'super_admin', 'Administrador global de la plataforma. Acceso total a todos los tenants y configuraciones.', 30, 0, false),
+    ('a0000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Admin Corporativo', 'corp_admin', 'Gerente o director corporativo. Ve todos los edificios, dashboards ejecutivos, benchmarking.', 15, 10, false),
+    ('a0000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Admin de Edificio', 'site_admin', 'Administrador de edificio especifico. Gestiona usuarios, configura tarifas, aprueba facturas.', 15, 20, false),
+    ('a0000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Operador Tecnico', 'operator', 'Tecnico de mantenimiento. Monitorea en tiempo real, gestiona alertas, dashboards tecnicos.', 30, 30, false),
+    ('a0000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Analista', 'analyst', 'Consulta avanzada. Genera reportes, exporta datos, ve tendencias y benchmarking.', 30, 40, false),
+    ('a0000001-0000-0000-0000-000000000006', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Locatario', 'tenant_user', 'Locatario (tienda). Ve su consumo, facturas y alertas propias.', 60, 50, true),
+    ('a0000001-0000-0000-0000-000000000007', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Auditor', 'auditor', 'Solo lectura con acceso amplio para auditorias. Ve logs, reportes, configuraciones.', 15, 40, false);
 
 -- Admin user (linked to super_admin role)
 INSERT INTO users (id, tenant_id, email, display_name, auth_provider, auth_provider_id, role_id, is_active)
@@ -155,11 +170,11 @@ DROP TABLE _role_perm_map;
 -- Seed: Buildings (PASA)
 -- ============================================================
 INSERT INTO buildings (id, tenant_id, name, code, address, area_sqm) VALUES
-    ('b0000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Mallplaza Gestión',  'MG',   'Av. Kennedy 9001, Las Condes', 120000),
-    ('b0000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Mall del Mar',       'MM',   'Av. Borgoño 12000, Viña del Mar', 68000),
-    ('b0000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Open Temuco',        'OT',   'Av. Alemania 0720, Temuco', 50000),
-    ('b0000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'SC52',               'SC52', 'Santiago Centro', 5302),
-    ('b0000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'SC53',               'SC53', 'Santiago Centro', 5650);
+    ('b0000001-0000-0000-0000-000000000001', 'b0000002-0000-0000-0000-000000000001', 'Mallplaza Gestión',  'MG',   'Av. Kennedy 9001, Las Condes', 120000),
+    ('b0000001-0000-0000-0000-000000000002', 'b0000002-0000-0000-0000-000000000001', 'Mall del Mar',       'MM',   'Av. Borgoño 12000, Viña del Mar', 68000),
+    ('b0000001-0000-0000-0000-000000000003', 'b0000002-0000-0000-0000-000000000001', 'Open Temuco',        'OT',   'Av. Alemania 0720, Temuco', 50000),
+    ('b0000001-0000-0000-0000-000000000004', 'b0000002-0000-0000-0000-000000000001', 'SC52',               'SC52', 'Santiago Centro', 5302),
+    ('b0000001-0000-0000-0000-000000000005', 'b0000002-0000-0000-0000-000000000001', 'SC53',               'SC53', 'Santiago Centro', 5650);
 
 -- Super Admin gets access to all buildings
 INSERT INTO user_building_access (user_id, building_id) VALUES
@@ -169,15 +184,7 @@ INSERT INTO user_building_access (user_id, building_id) VALUES
     ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000004'),
     ('d141ad74-9d5d-4a5c-81ea-2bfa7d97ce6f', 'b0000001-0000-0000-0000-000000000005');
 
--- ============================================================
--- Seed: Sample hierarchy for Mallplaza Gestión
--- ============================================================
-INSERT INTO building_hierarchy (id, tenant_id, building_id, parent_id, name, level_type, sort_order) VALUES
-    ('a1000001-0000-0000-0000-000000000001', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', NULL, 'Piso 1', 'floor', 1),
-    ('a1000001-0000-0000-0000-000000000002', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', NULL, 'Piso 2', 'floor', 2),
-    ('a1000001-0000-0000-0000-000000000003', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000001', 'Zona Norte', 'zone', 1),
-    ('a1000001-0000-0000-0000-000000000004', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000001', 'Zona Sur', 'zone', 2),
-    ('a1000001-0000-0000-0000-000000000005', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'b0000001-0000-0000-0000-000000000001', 'a1000001-0000-0000-0000-000000000003', 'Tablero TN-01', 'panel', 1);
+-- building_hierarchy seed lives in 05b-seed-hierarchy.sql (after 05-modules.sql)
 
 -- Now that seed data exists, enforce NOT NULL on users.role_id
 ALTER TABLE users ALTER COLUMN role_id SET NOT NULL;

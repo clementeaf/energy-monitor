@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { createHash } from 'crypto';
@@ -16,10 +16,14 @@ import { createHash } from 'crypto';
  * (readings: 5 years @ 15min — see migration 22-retention-5y.sql; audit_logs: 5 years).
  */
 @Injectable()
-export class DataRetentionService {
+export class DataRetentionService implements OnModuleInit {
   private readonly logger = new Logger(DataRetentionService.name);
 
   constructor(private readonly dataSource: DataSource) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.ensurePortfolioSummaryPopulated();
+  }
 
   @Cron('0 8 * * *', { name: 'data-retention' })
   async run(): Promise<void> {
@@ -30,10 +34,11 @@ export class DataRetentionService {
     const importJobsPurged = await this.purgeOldUserImportJobs();
     const buildingImportPurged = await this.purgeOldImportJobs('building_import_jobs');
     const tenantUnitImportPurged = await this.purgeOldImportJobs('tenant_unit_import_jobs');
+    const meterImportPurged = await this.purgeOldImportJobs('meter_import_jobs');
     await this.refreshPortfolioSummary();
 
     this.logger.log(
-      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} user import jobs purged, ${buildingImportPurged} building import jobs purged, ${tenantUnitImportPurged} tenant unit import jobs purged`,
+      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} user import jobs purged, ${buildingImportPurged} building import jobs purged, ${tenantUnitImportPurged} tenant unit import jobs purged, ${meterImportPurged} meter import jobs purged`,
     );
   }
 
@@ -139,14 +144,39 @@ export class DataRetentionService {
   }
 
   /**
+   * Populates portfolio_summary on startup when the matview exists but has no data.
+   */
+  private async ensurePortfolioSummaryPopulated(): Promise<void> {
+    try {
+      const rows: { relispopulated: boolean }[] = await this.dataSource.query(
+        `SELECT relispopulated FROM pg_class WHERE relname = 'portfolio_summary'`,
+      );
+      if (rows.length === 0 || rows[0].relispopulated) return;
+      await this.dataSource.query('REFRESH MATERIALIZED VIEW portfolio_summary');
+      this.logger.log('portfolio_summary populated on startup');
+    } catch (err) {
+      this.logger.warn(
+        `portfolio_summary startup populate failed: ${err instanceof Error ? err.message : 'unknown'}`,
+      );
+    }
+  }
+
+  /**
    * Refresh portfolio_summary materialized view for Executive Dashboard.
    */
   private async refreshPortfolioSummary(): Promise<void> {
     try {
       await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary');
-      this.logger.log('Refreshed portfolio_summary');
-    } catch (err) {
-      this.logger.warn(`portfolio_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`);
+      this.logger.log('Refreshed portfolio_summary (concurrent)');
+    } catch {
+      try {
+        await this.dataSource.query('REFRESH MATERIALIZED VIEW portfolio_summary');
+        this.logger.log('Refreshed portfolio_summary');
+      } catch (err) {
+        this.logger.warn(
+          `portfolio_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        );
+      }
     }
   }
 }

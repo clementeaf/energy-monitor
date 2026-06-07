@@ -73,6 +73,16 @@ function isRangeLongerThan7Days(from: string, to: string): boolean {
   return new Date(to).getTime() - new Date(from).getTime() > CAGG_15MIN_RANGE_THRESHOLD_MS;
 }
 
+/**
+ * Returns true when PostgreSQL reports an unpopulated materialized view (SQLSTATE 55000).
+ */
+function isUnpopulatedMatviewError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const driverErr = (err as unknown as { driverError?: { code?: string } }).driverError;
+  if (driverErr?.code === '55000') return true;
+  return err.message.toLowerCase().includes('has not been populated');
+}
+
 interface CacheEntry {
   data: AggregatedRow[];
   expiry: number;
@@ -403,44 +413,8 @@ export class ReadingsService {
       );
     }
 
-    if (isPortfolio) {
-      // Portfolio mode: read from pre-computed materialized view (~5ms).
-      if (crossTenant) {
-        return this.dataSource.query(
-          `SELECT
-             bucket::text,
-             '_portfolio' AS meter_id,
-             SUM(sum_power_kw)::text AS avg_power_kw,
-             MAX(max_power_kw)::text AS max_power_kw,
-             MIN(min_power_kw)::text AS min_power_kw,
-             (SUM(avg_power_factor * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_power_factor,
-             (SUM(avg_voltage_l1 * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_voltage_l1,
-             '0' AS energy_delta_kwh,
-             SUM(reading_count)::text AS reading_count
-           FROM portfolio_summary
-           WHERE bucket >= $1::date AND bucket <= $2::date
-           GROUP BY bucket
-           ORDER BY bucket ASC`,
-          [query.from, query.to],
-        );
-      }
-      return this.dataSource.query(
-        `SELECT
-           bucket::text,
-           '_portfolio' AS meter_id,
-           sum_power_kw::text AS avg_power_kw,
-           max_power_kw::text AS max_power_kw,
-           min_power_kw::text AS min_power_kw,
-           avg_power_factor::text AS avg_power_factor,
-           avg_voltage_l1::text AS avg_voltage_l1,
-           '0' AS energy_delta_kwh,
-           reading_count::text AS reading_count
-         FROM portfolio_summary
-         WHERE tenant_id = $1
-           AND bucket >= $2::date AND bucket <= $3::date
-         ORDER BY bucket ASC`,
-        [tenantId, query.from, query.to],
-      );
+    if (isPortfolio && !agg.reBucket) {
+      return this.findPortfolioDaily(tenantId, query, crossTenant);
     }
 
     // groupBy=building: aggregate per building instead of per meter
@@ -482,6 +456,115 @@ export class ReadingsService {
        WHERE ${where}
        ORDER BY a.bucket ASC, a.meter_id ASC`,
       params,
+    );
+  }
+
+  /**
+   * Portfolio daily aggregate — prefers portfolio_summary matview, falls back to readings_daily.
+   */
+  private async findPortfolioDaily(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    try {
+      return await this.queryPortfolioSummary(tenantId, query, crossTenant);
+    } catch (err) {
+      if (!isUnpopulatedMatviewError(err)) throw err;
+      return this.queryPortfolioFromDaily(tenantId, query, crossTenant);
+    }
+  }
+
+  /**
+   * Reads pre-computed portfolio_summary materialized view (~5ms when populated).
+   */
+  private async queryPortfolioSummary(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    if (crossTenant) {
+      return this.dataSource.query(
+        `SELECT
+           bucket::text,
+           '_portfolio' AS meter_id,
+           SUM(sum_power_kw)::text AS avg_power_kw,
+           MAX(max_power_kw)::text AS max_power_kw,
+           MIN(min_power_kw)::text AS min_power_kw,
+           (SUM(avg_power_factor * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_power_factor,
+           (SUM(avg_voltage_l1 * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_voltage_l1,
+           '0' AS energy_delta_kwh,
+           SUM(reading_count)::text AS reading_count
+         FROM portfolio_summary
+         WHERE bucket >= $1::date AND bucket <= $2::date
+         GROUP BY bucket
+         ORDER BY bucket ASC`,
+        [query.from, query.to],
+      );
+    }
+    return this.dataSource.query(
+      `SELECT
+         bucket::text,
+         '_portfolio' AS meter_id,
+         sum_power_kw::text AS avg_power_kw,
+         max_power_kw::text AS max_power_kw,
+         min_power_kw::text AS min_power_kw,
+         avg_power_factor::text AS avg_power_factor,
+         avg_voltage_l1::text AS avg_voltage_l1,
+         '0' AS energy_delta_kwh,
+         reading_count::text AS reading_count
+       FROM portfolio_summary
+       WHERE tenant_id = $1
+         AND bucket >= $2::date AND bucket <= $3::date
+       ORDER BY bucket ASC`,
+      [tenantId, query.from, query.to],
+    );
+  }
+
+  /**
+   * Live portfolio aggregate from readings_daily when portfolio_summary is empty.
+   */
+  private async queryPortfolioFromDaily(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    if (crossTenant) {
+      return this.dataSource.query(
+        `SELECT
+           a.bucket::text,
+           '_portfolio' AS meter_id,
+           SUM(a.avg_power_kw * a.reading_count)::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           '0' AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM readings_daily a
+         WHERE a.bucket >= $1::date AND a.bucket <= $2::date
+         GROUP BY a.bucket
+         ORDER BY a.bucket ASC`,
+        [query.from, query.to],
+      );
+    }
+    return this.dataSource.query(
+      `SELECT
+         a.bucket::text,
+         '_portfolio' AS meter_id,
+         SUM(a.avg_power_kw * a.reading_count)::text AS avg_power_kw,
+         MAX(a.max_power_kw)::text AS max_power_kw,
+         MIN(a.min_power_kw)::text AS min_power_kw,
+         (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+         (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+         '0' AS energy_delta_kwh,
+         SUM(a.reading_count)::text AS reading_count
+       FROM readings_daily a
+       WHERE a.tenant_id = $1
+         AND a.bucket >= $2::date AND a.bucket <= $3::date
+       GROUP BY a.bucket
+       ORDER BY a.bucket ASC`,
+      [tenantId, query.from, query.to],
     );
   }
 

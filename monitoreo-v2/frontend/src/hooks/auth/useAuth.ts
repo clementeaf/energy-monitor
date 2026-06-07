@@ -5,9 +5,22 @@ import { authEndpoints } from '../../services/endpoints';
 import type { MfaSetupResponse } from '../../services/endpoints';
 import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { setSessionFlag, clearSessionFlag } from './useSessionResolver';
-import type { AuthProvider } from '../../types/auth';
+import type { AuthProvider, MeResponse } from '../../types/auth';
 import { applyTenantTheme } from '../../lib/tenant-theme';
 import { startSsoLogin } from '../../hooks/queries/useSsoQuery';
+import { clearDevBearerToken } from '../../services/api';
+import {
+  captureDevAccessToken,
+  finalizeAuthSession,
+  type AuthSessionPayload,
+} from './finalizeAuthSession';
+
+/**
+ * Reads HTTP status from an Axios-like error.
+ */
+function axiosStatus(err: unknown): number | undefined {
+  return (err as { response?: { status?: number } })?.response?.status;
+}
 
 export function useAuth() {
   const { user, tenant, isAuthenticated, isLoading, error, setSession, clearSession, setLoading, setError } =
@@ -18,17 +31,42 @@ export function useAuth() {
   const msResolved = useRef(false);
   const [mfaPending, setMfaPending] = useState<{ userId: string } | null>(null);
   const [mfaSetupData, setMfaSetupData] = useState<MfaSetupResponse | null>(null);
+  const [mfaSetupUserId, setMfaSetupUserId] = useState<string | null>(null);
   const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState<string[] | null>(null);
 
-  const completeLogin = useCallback(async () => {
-    const { data } = await authEndpoints.me();
-    const { buildings, ...usr } = data.user;
-    setSessionFlag();
-    setSession(usr, data.tenant, buildings ?? []);
-    applyTenantTheme(data.tenant);
-    const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
-    navigate(returnTo, { replace: true });
-  }, [navigate, location.state, setSession]);
+  const applyMeResponse = useCallback(
+    (data: MeResponse) => {
+      const { buildings, ...usr } = data.user;
+      setSessionFlag();
+      setSession(usr, data.tenant, buildings ?? []);
+      applyTenantTheme(data.tenant);
+      const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
+      navigate(returnTo, { replace: true });
+    },
+    [navigate, location.state, setSession],
+  );
+
+  const reportSessionFailure = useCallback(
+    (message: string) => {
+      setError(message);
+      setLoading(false);
+      clearSessionFlag();
+      clearDevBearerToken();
+      clearSession();
+    },
+    [setError, setLoading, clearSession],
+  );
+
+  const completeAuthSession = useCallback(
+    async (authData?: AuthSessionPayload): Promise<void> => {
+      await finalizeAuthSession({
+        authData,
+        applyMeResponse,
+        onFailure: reportSessionFailure,
+      });
+    },
+    [applyMeResponse, reportSessionFailure],
+  );
 
   const loginWithProvider = useCallback(
     async (provider: AuthProvider, idToken: string) => {
@@ -36,10 +74,12 @@ export function useAuth() {
       setError(null);
       setMfaPending(null);
       setMfaSetupData(null);
+      setMfaSetupUserId(null);
       setMfaRecoveryCodes(null);
 
       try {
         const { data } = await authEndpoints.login(provider, idToken);
+        captureDevAccessToken(data);
 
         if (data.mfaRequired && data.userId) {
           setMfaPending({ userId: data.userId });
@@ -48,22 +88,33 @@ export function useAuth() {
         }
 
         if (data.mfaSetupRequired) {
-          // User authenticated but needs to configure MFA — fetch QR immediately
-          const { data: setup } = await authEndpoints.mfaSetup();
-          setMfaSetupData(setup);
+          if (data.userId) {
+            setMfaSetupUserId(data.userId);
+          }
+          if (data.qrDataUrl && data.secret) {
+            setMfaSetupData({
+              secret: data.secret,
+              qrDataUrl: data.qrDataUrl,
+              otpauthUrl: data.otpauthUrl ?? '',
+            });
+          } else {
+            const { data: setup } = await authEndpoints.mfaSetup();
+            setMfaSetupData(setup);
+          }
           setLoading(false);
           return;
         }
 
-        await completeLogin();
+        await completeAuthSession(data);
       } catch (err: unknown) {
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
           'Error al iniciar sesion';
         setError(message);
+        setLoading(false);
       }
     },
-    [completeLogin, setLoading, setError],
+    [completeAuthSession, setLoading, setError],
   );
 
   const validateMfa = useCallback(
@@ -73,36 +124,87 @@ export function useAuth() {
       setError(null);
 
       try {
-        await authEndpoints.mfaValidate(mfaPending.userId, code);
+        const { data } = await authEndpoints.mfaValidate(mfaPending.userId, code);
+        await completeAuthSession(data);
         setMfaPending(null);
-        await completeLogin();
-      } catch {
-        setError('Código MFA inválido.');
+      } catch (err: unknown) {
+        if ((err as Error).message === 'auth_session_failed') {
+          return;
+        }
+        setError(
+          axiosStatus(err) === 401
+            ? 'Código MFA inválido.'
+            : 'No se pudo validar MFA. Recarga la página e intenta de nuevo.',
+        );
         setLoading(false);
       }
     },
-    [mfaPending, completeLogin, setLoading, setError],
+    [mfaPending, completeAuthSession, setLoading, setError],
   );
+
+  const regenerateMfaSetup = useCallback(async () => {
+    if (!mfaSetupUserId) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data: setup } = await authEndpoints.mfaSetup(true);
+      setMfaSetupData(setup);
+    } catch {
+      setError('No se pudo generar un nuevo QR. Recarga la página.');
+    } finally {
+      setLoading(false);
+    }
+  }, [mfaSetupUserId, setLoading, setError]);
+
+  const finishMfaSetupAfterRecovery = useCallback(async () => {
+    setMfaRecoveryCodes(null);
+    setLoading(true);
+    setError(null);
+
+    try {
+      await completeAuthSession();
+    } catch (err: unknown) {
+      if ((err as Error).message !== 'auth_session_failed') {
+        setError('No se pudo completar la sesión. Recarga e intenta de nuevo.');
+        setLoading(false);
+      }
+    }
+  }, [completeAuthSession, setLoading, setError]);
 
   const verifyMfaSetup = useCallback(
     async (code: string) => {
-      if (!mfaSetupData) return;
+      if (!mfaSetupData || !mfaSetupUserId) return;
       setLoading(true);
       setError(null);
 
       try {
-        const { data } = await authEndpoints.mfaVerify(code);
-        if (data.recoveryCodes) {
+        const { data } = await authEndpoints.mfaVerifySetup(mfaSetupUserId, code);
+        captureDevAccessToken(data);
+
+        if (data.recoveryCodes && data.recoveryCodes.length > 0) {
           setMfaRecoveryCodes(data.recoveryCodes);
+          setLoading(false);
+          return;
         }
+
+        await completeAuthSession(data);
         setMfaSetupData(null);
-        await completeLogin();
-      } catch {
-        setError('Código inválido. Verifica que escaneaste el QR correctamente.');
+        setMfaSetupUserId(null);
+      } catch (err: unknown) {
+        if ((err as Error).message === 'auth_session_failed') {
+          return;
+        }
+        const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        setError(
+          axiosStatus(err) === 400
+            ? (message ?? 'Código inválido. Escanea el QR actual o ingresa la clave manual.')
+            : 'No se pudo verificar MFA. Recarga la página e intenta de nuevo.',
+        );
         setLoading(false);
       }
     },
-    [mfaSetupData, completeLogin, setLoading, setError],
+    [mfaSetupData, mfaSetupUserId, completeAuthSession, setLoading, setError],
   );
 
   // Detect Microsoft redirect completing — MSAL sets isAuthenticated after redirect
@@ -171,7 +273,6 @@ export function useAuth() {
         }
 
         if (mfaSetupRequired) {
-          setSessionFlag();
           const { data: setup } = await authEndpoints.mfaSetup();
           setMfaSetupData(setup);
           setLoading(false);
@@ -194,6 +295,7 @@ export function useAuth() {
       // Ignore
     }
     clearSessionFlag();
+    clearDevBearerToken();
     clearSession();
     if (microsoft.isAuthenticated) {
       microsoft.logout();
@@ -216,9 +318,10 @@ export function useAuth() {
     mfaPending,
     validateMfa,
     mfaSetupData,
+    regenerateMfaSetup,
     verifyMfaSetup,
+    finishMfaSetupAfterRecovery,
     mfaRecoveryCodes,
     setMfaRecoveryCodes,
   };
 }
-

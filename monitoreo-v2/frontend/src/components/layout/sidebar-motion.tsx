@@ -24,7 +24,7 @@ export function SidebarCollapsible({
       className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none ${className}`}
       style={{ gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0 }}
     >
-      <div className="min-h-0 overflow-hidden">{children}</div>
+      <div className={`min-h-0 ${open ? 'overflow-visible' : 'overflow-hidden'}`}>{children}</div>
     </div>
   );
 }

@@ -49,6 +49,14 @@ import type {
   TenantUnitImportRowsQueryParams,
 } from '../types/tenant-unit-import';
 import type {
+  ValidateMeterImportResponse,
+  MeterImportJobDetailResponse,
+  MeterImportRowsResponse,
+  MeterImportJobsListResponse,
+  CommitMeterImportResponse,
+  MeterImportRowsQueryParams,
+} from '../types/meter-import';
+import type {
   TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload,
   TenantUnitMeter,
 } from '../types/tenant-unit';
@@ -133,8 +141,20 @@ export interface MfaSetupResponse {
 }
 
 export const authEndpoints = {
+  clearSessionCookies: () =>
+    api.post<{ success: boolean }>(API_ROUTES.auth.clearSession),
+
   login: (provider: AuthProvider, idToken: string) =>
-    api.post<{ success?: boolean; mfaRequired?: boolean; mfaSetupRequired?: boolean; userId?: string }>(API_ROUTES.auth.login, { provider, idToken }),
+    api.post<{
+      success?: boolean;
+      mfaRequired?: boolean;
+      mfaSetupRequired?: boolean;
+      userId?: string;
+      secret?: string;
+      qrDataUrl?: string;
+      otpauthUrl?: string;
+      accessToken?: string;
+    }>(API_ROUTES.auth.login, { provider, idToken }),
 
   me: () =>
     api.get<MeResponse>(API_ROUTES.auth.me),
@@ -143,16 +163,24 @@ export const authEndpoints = {
     api.post<{ success: boolean }>(API_ROUTES.auth.logout),
 
   refresh: () =>
-    api.post<{ success: boolean }>(API_ROUTES.auth.refresh),
+    api.post<{ success: boolean; accessToken?: string }>(API_ROUTES.auth.refresh),
 
-  mfaSetup: () =>
-    api.post<MfaSetupResponse>(API_ROUTES.auth.mfaSetup),
+  mfaSetup: (forceRegenerate = false) =>
+    api.post<MfaSetupResponse>(API_ROUTES.auth.mfaSetup, { forceRegenerate }),
 
   mfaVerify: (code: string) =>
     api.post<{ success: boolean; mfaEnabled: boolean; recoveryCodes?: string[] }>(API_ROUTES.auth.mfaVerify, { code }),
 
+  mfaVerifySetup: (userId: string, code: string) =>
+    api.post<
+      { success: boolean; mfaEnabled: boolean; recoveryCodes?: string[]; accessToken?: string } & Partial<MeResponse>
+    >(API_ROUTES.auth.mfaVerifySetup, { userId, code }),
+
   mfaValidate: (userId: string, code: string) =>
-    api.post<{ success: boolean }>(API_ROUTES.auth.mfaValidate, { userId, code }),
+    api.post<{ success: boolean; accessToken?: string } & Partial<MeResponse>>(
+      API_ROUTES.auth.mfaValidate,
+      { userId, code },
+    ),
 
   mfaStatus: () =>
     api.get<{ mfaEnabled: boolean }>(API_ROUTES.auth.mfaStatus),
@@ -597,6 +625,34 @@ export const tenantUnitImportEndpoints = {
 
   cancel: (jobId: string) =>
     api.delete(API_ROUTES.tenantUnitsImport.job(jobId)),
+};
+
+export const meterImportEndpoints = {
+  downloadTemplate: () =>
+    api.get<Blob>(API_ROUTES.metersImport.template, { responseType: 'blob' }),
+
+  validate: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<ValidateMeterImportResponse>(API_ROUTES.metersImport.validate, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  listJobs: (params?: { limit?: number; offset?: number }) =>
+    api.get<MeterImportJobsListResponse>(API_ROUTES.metersImport.base, { params }),
+
+  getJob: (jobId: string) =>
+    api.get<MeterImportJobDetailResponse>(API_ROUTES.metersImport.job(jobId)),
+
+  getRows: (jobId: string, params?: MeterImportRowsQueryParams) =>
+    api.get<MeterImportRowsResponse>(API_ROUTES.metersImport.rows(jobId), { params }),
+
+  commit: (jobId: string) =>
+    api.post<CommitMeterImportResponse>(API_ROUTES.metersImport.commit(jobId), {}),
+
+  cancel: (jobId: string) =>
+    api.delete(API_ROUTES.metersImport.job(jobId)),
 };
 
 export const tenantUnitsEndpoints = {

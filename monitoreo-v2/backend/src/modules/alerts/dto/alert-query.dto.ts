@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsUUID } from 'class-validator';
+import { IsOptional, IsEnum, IsString } from 'class-validator';
 
 export class AlertQueryDto {
   @IsOptional()
@@ -10,10 +10,10 @@ export class AlertQueryDto {
   severity?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   buildingId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   meterId?: string;
 }

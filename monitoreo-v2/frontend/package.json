@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:auth-violence": "vitest run finalizeAuthSession.violence api.auth-session.violence"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.6.1",

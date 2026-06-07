@@ -3,6 +3,7 @@ import { useMsal } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
+import { clearDevBearerToken } from '../../services/api';
 import { applyTenantTheme } from '../../lib/tenant-theme';
 
 /**
@@ -65,6 +66,7 @@ export function useSessionResolver() {
       })
       .catch(() => {
         clearSessionFlag();
+        clearDevBearerToken();
         clearSession();
       });
   }, [inProgress, accounts, setSession, clearSession, setLoading]);

@@ -339,7 +339,7 @@ CREATE TABLE integrations (
 );
 
 CREATE TABLE integration_sync_logs (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL,
     integration_id UUID NOT NULL REFERENCES integrations(id) ON DELETE CASCADE,
     status VARCHAR(20) NOT NULL CHECK (status IN ('success', 'partial', 'failed')),
     records_synced INTEGER DEFAULT 0,

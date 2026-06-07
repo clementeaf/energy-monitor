@@ -2,7 +2,20 @@
 -- Ley 21.719 compliance + security hardening
 
 -- 1. MFA enforcement per role
+ALTER TABLE roles ADD COLUMN IF NOT EXISTS hierarchy_level SMALLINT NOT NULL DEFAULT 99;
 ALTER TABLE roles ADD COLUMN IF NOT EXISTS require_mfa BOOLEAN NOT NULL DEFAULT false;
+
+UPDATE roles SET hierarchy_level = CASE slug
+    WHEN 'super_admin' THEN 0
+    WHEN 'corp_admin' THEN 10
+    WHEN 'site_admin' THEN 20
+    WHEN 'operator' THEN 30
+    WHEN 'analyst' THEN 40
+    WHEN 'auditor' THEN 40
+    WHEN 'tenant_user' THEN 50
+    ELSE hierarchy_level
+END
+WHERE hierarchy_level = 99;
 
 -- Enforce MFA for privileged roles (hierarchy_level <= 20 = super_admin, corp_admin, site_admin)
 UPDATE roles SET require_mfa = true WHERE hierarchy_level <= 20;

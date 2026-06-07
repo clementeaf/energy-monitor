@@ -20,6 +20,7 @@ CREATE TABLE roles (
     slug VARCHAR(100) NOT NULL,
     description TEXT,
     max_session_minutes INTEGER NOT NULL DEFAULT 30,
+    hierarchy_level SMALLINT NOT NULL DEFAULT 99,
     is_default BOOLEAN NOT NULL DEFAULT false,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -57,6 +58,11 @@ CREATE INDEX idx_user_building_access_building ON user_building_access(building_
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users DROP COLUMN IF EXISTS role;
 ALTER TABLE users ADD COLUMN role_id UUID REFERENCES roles(id);
+
+-- MFA (TOTP + recovery codes)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_secret VARCHAR(255) DEFAULT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_recovery_codes TEXT DEFAULT NULL;
 
 -- ============================================================
 -- Seed: Platform permissions catalog

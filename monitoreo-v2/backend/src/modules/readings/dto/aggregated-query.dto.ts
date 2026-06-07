@@ -1,4 +1,4 @@
-import { IsUUID, IsOptional, IsISO8601, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsISO8601, IsIn } from 'class-validator';
 
 export class AggregatedQueryDto {
   @IsISO8601()
@@ -11,11 +11,11 @@ export class AggregatedQueryDto {
   interval!: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   buildingId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   meterId?: string;
 
   @IsOptional()

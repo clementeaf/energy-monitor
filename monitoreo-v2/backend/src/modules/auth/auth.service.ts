@@ -73,13 +73,53 @@ export class AuthService {
     const row = rows[0];
     const permissions = await this.rolesService.getPermissionsByRoleId(row.role_id);
     const buildings = await this.getUserBuildings(userId);
+    return this.buildUserProfile(row, permissions, buildings);
+  }
 
-    // Privacy: accepted if version matches current
+  /**
+   * Returns the same payload as GET /auth/me for post-MFA session bootstrap.
+   * @param userId - Authenticated user id
+   * @returns User profile and tenant theme
+   */
+  async getMeResponse(userId: string): Promise<{
+    user: Awaited<ReturnType<AuthService['buildUserProfile']>>;
+    tenant: Awaited<ReturnType<TenantsService['getTheme']>>;
+  }> {
+    const user = await this.getUserProfile(userId);
+    const rows = await this.dataSource.query<{ tenant_id: string }[]>(
+      `SELECT tenant_id FROM users WHERE id = $1 AND is_active = true`,
+      [userId],
+    );
+    if (rows.length === 0) {
+      throw new NotFoundException('User not found');
+    }
+    const tenant = await this.tenantsService.getTheme(rows[0].tenant_id);
+    return { user, tenant };
+  }
+
+  private buildUserProfile(
+    row: {
+      id: string;
+      email: string;
+      display_name: string | null;
+      role_id: string;
+      auth_provider: string;
+      last_login_at: Date | string | null;
+      privacy_accepted_at: Date | string | null;
+      privacy_policy_version: string | null;
+      mfa_enabled: boolean;
+      data_processing_blocked: boolean;
+      opt_out_automated_decisions: boolean;
+      role_slug: string;
+      role_name: string;
+      require_mfa: boolean;
+    },
+    permissions: { module: string; action: string }[],
+    buildings: { id: string; name: string }[],
+  ) {
     const privacyAccepted =
       row.privacy_accepted_at != null &&
       row.privacy_policy_version === PRIVACY_POLICY_VERSION;
-
-    // MFA: role requires it but user hasn't set it up
     const requireMfaSetup = row.require_mfa && !row.mfa_enabled;
 
     return {

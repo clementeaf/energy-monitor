@@ -9,12 +9,21 @@ import { useMetersQuery, useCreateMeter, useUpdateMeter, useDeleteMeter } from '
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
 import { MeterForm } from './MeterForm';
+import { MeterImportTab } from './MeterImportTab';
 import { LOAD_CATEGORY_LABELS } from '../../lib/site-metadata-labels';
 import type { LoadCategory } from '../../types/site-metadata';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../../types/meter';
 import { PageHeader } from '../../components/ui/PageHeader';
 
+type MetersTab = 'list' | 'import';
+
+const TAB_CLASS = (active: boolean): string =>
+  `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+  }`;
+
 export function MetersPage() {
+  const [activeTab, setActiveTab] = useState<MetersTab>('list');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const buildingId = searchParams.get('buildingId') ?? undefined;
@@ -76,17 +85,19 @@ export function MetersPage() {
         <PageHeader title="Medidores" eyebrow="Monitoreo" />
 
         <div className="flex gap-2">
-          <DropdownSelect
-            options={[
-              { value: '', label: 'Todos los edificios' },
-              ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
-            ]}
-            value={buildingId ?? ''}
-            onChange={handleBuildingChange}
-            className="w-48"
-          />
+          {activeTab === 'list' ? (
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Todos los edificios' },
+                ...(buildingsQuery.data ?? []).map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              value={buildingId ?? ''}
+              onChange={handleBuildingChange}
+              className="w-48"
+            />
+          ) : null}
 
-          {canWrite && (
+          {canWrite && activeTab === 'list' ? (
             <button
               type="button"
               onClick={openCreate}
@@ -94,10 +105,24 @@ export function MetersPage() {
             >
               Nuevo Medidor
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
+      {canWrite ? (
+        <nav className="flex gap-2" aria-label="Medidores">
+          <button type="button" className={TAB_CLASS(activeTab === 'list')} onClick={() => { setActiveTab('list'); }}>
+            Lista
+          </button>
+          <button type="button" className={TAB_CLASS(activeTab === 'import')} onClick={() => { setActiveTab('import'); }}>
+            Importar
+          </button>
+        </nav>
+      ) : null}
+
+      {activeTab === 'import' && canWrite ? (
+        <MeterImportTab onViewMeters={() => { setActiveTab('list'); }} />
+      ) : (
       <div className="max-h-[70vh] overflow-y-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
@@ -158,6 +183,7 @@ export function MetersPage() {
           </p>
         )}
       </div>
+      )}
 
       <MeterForm
         open={formOpen}

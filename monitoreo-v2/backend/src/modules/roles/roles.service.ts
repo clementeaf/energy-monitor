@@ -30,6 +30,21 @@ export class RolesService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    const hasColumn = await this.dataSource.query<{ exists: boolean }[]>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'roles'
+           AND column_name = 'max_session_minutes'
+       ) AS exists`,
+    );
+    if (!hasColumn[0]?.exists) {
+      this.logger.warn(
+        'roles.max_session_minutes missing — skip session bump. Reset local DB (docker compose down -v) or apply monitoreo-v2 migrations.',
+      );
+      return;
+    }
+
     await this.dataSource.query(
       `UPDATE roles SET max_session_minutes = $1 WHERE max_session_minutes < $1`,
       [DEFAULT_SESSION_MINUTES],

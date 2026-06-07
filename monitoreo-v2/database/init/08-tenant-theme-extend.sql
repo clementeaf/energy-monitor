@@ -3,6 +3,10 @@ ALTER TABLE tenants
   ADD COLUMN IF NOT EXISTS app_title       VARCHAR(100) DEFAULT 'Energy Monitor',
   ADD COLUMN IF NOT EXISTS sidebar_color   VARCHAR(7)   DEFAULT '#1E1E2F',
   ADD COLUMN IF NOT EXISTS accent_color    VARCHAR(7)   DEFAULT '#10B981',
+  ADD COLUMN IF NOT EXISTS address         VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS address_detail  VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS phone           VARCHAR(50),
+  ADD COLUMN IF NOT EXISTS tax_id          VARCHAR(50),
   ADD COLUMN IF NOT EXISTS settings        JSONB        NOT NULL DEFAULT '{}';
 
 COMMENT ON COLUMN tenants.app_title     IS 'Browser tab title and header text';

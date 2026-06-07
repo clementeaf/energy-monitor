@@ -272,7 +272,7 @@ export function Sidebar() {
 
       {/* Admin switchers — crossfade expanded inline vs collapsed flyout trigger */}
       {isSuperAdmin && (
-        <div className="shrink-0 border-b border-border">
+        <div className="relative z-30 shrink-0 overflow-visible border-b border-border">
           <SidebarCollapsible open={expanded}>
             <div className="space-y-2 px-3 py-3">{adminSwitchers}</div>
           </SidebarCollapsible>
@@ -697,7 +697,24 @@ function TenantSwitcher({
               </li>
             ))}
 
-            {filtered.length === 0 && (
+            {tenantsQuery.isLoading && (
+              <li className="px-3 py-2 text-[11px] text-subtle">Cargando empresas...</li>
+            )}
+
+            {tenantsQuery.isError && (
+              <li className="px-3 py-2 text-[11px] text-red-600">
+                No se pudieron cargar las empresas. Recarga la sesión.
+              </li>
+            )}
+
+            {!tenantsQuery.isLoading && !tenantsQuery.isError && allTenants.length === 0 && !search && (
+              <li className="px-3 py-2 text-[11px] leading-relaxed text-subtle">
+                No hay empresas cliente. Globe Power es el dueño de plataforma y no aparece aquí.
+                Crea una en Admin → Empresas.
+              </li>
+            )}
+
+            {!tenantsQuery.isLoading && !tenantsQuery.isError && filtered.length === 0 && (search || allTenants.length > 0) && (
               <li className="px-3 py-2 text-[11px] text-subtle">Sin resultados</li>
             )}
 

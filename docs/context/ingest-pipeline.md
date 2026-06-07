@@ -1,5 +1,18 @@
 # Ingest Pipeline & Aggregates
 
+## Estado datos PASA (2026-06-07)
+
+| Fuente | Estado |
+|--------|--------|
+| **Google Drive** | **Activo** — 5 CSV en carpeta [`1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V`](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V) (~6 GB total). Secret: `energy-monitor/drive-ingest/google-service-account`. |
+| **S3** `energy-monitor-ingest-058310292956` | **Eliminado** en cuenta `058310292956` (jun-2026). |
+| **ECS** `energy-monitor-drive-ingest` | **Eliminado** — solo cluster `monitoreo-v2`. |
+| **Docker local** `monitoreo_v2` | Catálogo PASA (5 edificios); **0 medidores / 0 lecturas** sin import. |
+
+**Dev local rápido:** seed sintético (medidores + 7 días lecturas) o script futuro: CSV local/Drive con `FROM_DATE`/`TO_DATE` (1 mes).
+
+**Prod:** lecturas históricas pueden estar bajo tenant Globe Power; migración `45` movió solo `buildings` a PASA.
+
 ## Bulk CSV Ingest — Sistema Incremental
 
 - **Alcance:** ingesta de datos puntual/ocasional desde Google Drive. No es puente operativo permanente.
@@ -20,8 +33,8 @@ aws ecs run-task --cluster energy-monitor-drive-ingest \
 ```
 Logs: `aws logs tail /ecs/energy-monitor-drive-pipeline --follow`
 
-### Infra IDs
-- Bucket: `energy-monitor-ingest-058310292956`
+### Infra IDs (histórico — bucket/cluster ingest ya no existen en AWS)
+- Bucket: `energy-monitor-ingest-058310292956` (eliminado)
 - Secrets: `energy-monitor/drive-ingest/db`, `energy-monitor/drive-ingest/google-service-account`
 - Cluster ECS: `energy-monitor-drive-ingest`. Task: `energy-monitor-drive-pipeline:1`
 - ECR: `energy-monitor-drive-pipeline`. Log group: `/ecs/energy-monitor-drive-pipeline`

@@ -18,6 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:auth-violence": "jest --testPathPatterns='jwt-extractors.violence|auth.controller.session-violence|auth-session-attack-matrix'",
+    "test:smoke-dashboard": "node ../scripts/dashboard-monitoring-smoke.mjs",
     "db:migrate": "node scripts/apply-migration.mjs",
     "db:migrate:ecs": "node scripts/apply-migration-ecs.mjs"
   },

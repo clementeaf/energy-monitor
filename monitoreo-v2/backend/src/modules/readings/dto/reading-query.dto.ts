@@ -1,8 +1,8 @@
-import { IsUUID, IsOptional, IsISO8601, IsIn, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsISO8601, IsIn, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ReadingQueryDto {
-  @IsUUID()
+  @IsString()
   meterId!: string;
 
   @IsISO8601()

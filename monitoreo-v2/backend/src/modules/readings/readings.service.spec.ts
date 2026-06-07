@@ -383,5 +383,37 @@ describe('ReadingsService', () => {
       expect(sql).not.toContain('readings_15min');
       expect(ds.query.mock.calls[0][1][0]).toBe('15 minutes');
     });
+
+    it('portfolio daily: queries portfolio_summary when populated', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        groupBy: 'portfolio',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('portfolio_summary');
+      expect(sql).not.toContain('readings_daily');
+    });
+
+    it('portfolio daily: falls back to readings_daily when portfolio_summary is unpopulated', async () => {
+      const unpopulatedErr = Object.assign(
+        new Error('materialized view "portfolio_summary" has not been populated'),
+        { driverError: { code: '55000' } },
+      );
+      const rows = [{ bucket: '2026-01-01', meter_id: '_portfolio', avg_power_kw: '100' }];
+      ds.query.mockRejectedValueOnce(unpopulatedErr).mockResolvedValueOnce(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        groupBy: 'portfolio',
+      });
+
+      expect(result).toEqual(rows);
+      expect(ds.query.mock.calls[0][0]).toContain('portfolio_summary');
+      expect(ds.query.mock.calls[1][0]).toContain('readings_daily');
+      expect(ds.query.mock.calls[1][0]).not.toContain('portfolio_summary');
+    });
   });
 });

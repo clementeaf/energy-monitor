@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-07)
+- **2.17.0:** Auth MFA/cookie fix, meter import IMP-072, tenant PASA (`45`), portfolio_summary fallback (`46`), smoke tests dashboard/monitoring. CSV PASA vivos en [Google Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V); S3 ingest eliminado. [CHANGELOG — 2.17.0-alpha.0](CHANGELOG.md)
 - **Deploy prod IMP-4:** ECS `monitoreo-v2-backend-restored` + frontend S3/CF con código 2.16.x. Import edificios/locatarios/usuarios operativo. [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
 - **Migraciones prod RDS:** `16`, `18–40`, `41`, `42` vía ECS Exec. Pendiente Timescale: `22`, `23`. Runbook [`docs/ops/rds-migrations-via-ecs-exec.md`](docs/ops/rds-migrations-via-ecs-exec.md). [CHANGELOG — 2.16.2-alpha.0](CHANGELOG.md)
 - **Import masiva edificios + locatarios (IMP-070/071):** `BuildingImportModule` + `TenantUnitImportModule`. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
@@ -207,6 +208,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
+- **Lecturas PASA:** CSV en [Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V); script local 1 mes/CSV o seed sintético; prod migraciones `43–46` + tenant align meters/readings
 - DNS plataforma.globepower.cl: agregar CNAME `plataforma` → `d1mdipl5yydjqm.cloudfront.net` en GoDaddy (CloudFront ya configurado)
 - Salida de sandbox SES: solicitar via AWS Console (request previo DENIED, API bloqueada por ConflictException)
 - Cuenta AWS `058310292956`: configurar método de pago via AWS Console → Billing ($172.56/mes actual)
@@ -216,9 +218,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: ECS monitoreo-v2-backend-restored + RDS monitoreo-v2-db + CF power-monitor.cloud (2.16.x desplegado).
-Import: usuarios, edificios, locatarios en prod. Siguiente: IMP-072 import medidores.
-RDS: migraciones 16–42 aplicadas salvo 22/23 (Timescale). Runbook: docs/ops/rds-migrations-via-ecs-exec.md.
+Prod: ECS monitoreo-v2-backend-restored + RDS monitoreo-v2-db + CF power-monitor.cloud (2.17.x local).
+Import: usuarios, edificios, locatarios, medidores (IMP-072 código listo). Lecturas PASA: CSV en Drive; cargar 1 mes o seed local.
+RDS: migraciones 16–46 local; prod aplicar 43–46. Runbook: docs/ops/rds-migrations-via-ecs-exec.md.
+Smoke: `npm run test:smoke-dashboard` en monitoreo-v2/backend.
 ```
 
 ## Prioridad Actual de Acceso
@@ -334,4 +337,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.16.2-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.17.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

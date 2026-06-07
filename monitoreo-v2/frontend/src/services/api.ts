@@ -1,9 +1,12 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { useAppStore } from '../store/useAppStore';
 
 /** Callback set by SessionExpiredModal to show the modal from non-React context. */
 let onSessionExpired: (() => void) | null = null;
 export function setSessionExpiredHandler(handler: () => void) { onSessionExpired = handler; }
+
+const DEV_BEARER_KEY = 'dev_bearer_token';
+let devBearerToken: string | null = null;
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -11,14 +14,98 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-const AUTH_PATHS = ['/auth/login', '/auth/me', '/auth/refresh', '/auth/logout'];
+/**
+ * Mirrors dev Bearer into axios defaults so every request carries Authorization.
+ */
+function syncDevBearerDefaults(): void {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  if (devBearerToken) {
+    api.defaults.headers.common.Authorization = `Bearer ${devBearerToken}`;
+    return;
+  }
+  delete api.defaults.headers.common.Authorization;
+}
+
+if (import.meta.env.DEV) {
+  const storedBearer = sessionStorage.getItem(DEV_BEARER_KEY);
+  if (storedBearer) {
+    devBearerToken = storedBearer;
+    syncDevBearerDefaults();
+  }
+}
+
+/**
+ * Stores in-memory Bearer token for local dev when httpOnly cookies are unavailable.
+ */
+export function setDevBearerToken(token: string | null): void {
+  devBearerToken = token;
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  if (token) {
+    sessionStorage.setItem(DEV_BEARER_KEY, token);
+  } else {
+    sessionStorage.removeItem(DEV_BEARER_KEY);
+  }
+  syncDevBearerDefaults();
+}
+
+/**
+ * Clears the dev-only in-memory Bearer token.
+ */
+export function clearDevBearerToken(): void {
+  setDevBearerToken(null);
+}
+
+const AUTH_PATHS = [
+  '/auth/login',
+  '/auth/me',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/clear-session',
+  '/auth/mfa/validate',
+  '/auth/mfa/verify-setup',
+];
+
+/**
+ * Attaches dev Bearer token to outgoing API requests (Axios v1-safe).
+ */
+function attachDevBearer(config: InternalAxiosRequestConfig): void {
+  if (!import.meta.env.DEV || !devBearerToken) {
+    return;
+  }
+
+  const headers = config.headers;
+  const existingAuth =
+    typeof headers.get === 'function'
+      ? headers.get('Authorization')
+      : headers.Authorization;
+
+  if (existingAuth) {
+    return;
+  }
+
+  if (typeof headers.set === 'function') {
+    headers.set('Authorization', `Bearer ${devBearerToken}`);
+    return;
+  }
+
+  headers.Authorization = `Bearer ${devBearerToken}`;
+}
 
 // Inject selectedTenantId as header for super_admin tenant scoping
 api.interceptors.request.use((config) => {
   const tenantId = useAppStore.getState().selectedTenantId;
   if (tenantId) {
-    config.headers['x-tenant-id'] = tenantId;
+    if (typeof config.headers.set === 'function') {
+      config.headers.set('x-tenant-id', tenantId);
+    } else {
+      config.headers['x-tenant-id'] = tenantId;
+    }
   }
+  attachDevBearer(config);
   return config;
 });
 
@@ -57,7 +144,10 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      await api.post('/auth/refresh');
+      const { data } = await api.post<{ success: boolean; accessToken?: string }>('/auth/refresh');
+      if (import.meta.env.DEV && typeof data.accessToken === 'string') {
+        setDevBearerToken(data.accessToken);
+      }
       processQueue(null);
       return api(original);
     } catch (refreshError) {

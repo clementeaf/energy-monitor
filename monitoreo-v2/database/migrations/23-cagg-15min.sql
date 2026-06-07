@@ -18,6 +18,8 @@ FROM readings
 GROUP BY bucket, tenant_id, meter_id
 WITH NO DATA;
 
+SELECT remove_continuous_aggregate_policy('readings_15min', if_exists => true);
+
 SELECT add_continuous_aggregate_policy('readings_15min',
     start_offset      => INTERVAL '3 days',
     end_offset        => INTERVAL '15 minutes',

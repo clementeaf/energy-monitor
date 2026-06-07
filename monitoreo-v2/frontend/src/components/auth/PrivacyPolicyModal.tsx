@@ -12,12 +12,18 @@ export function PrivacyPolicyModal() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user, setSession, tenant, buildings } = useAuthStore();
 
+  const [acceptError, setAcceptError] = useState<string | null>(null);
+
   const acceptMutation = useMutation({
     mutationFn: () => authEndpoints.acceptPrivacy().then((r) => r.data),
     onSuccess: () => {
+      setAcceptError(null);
       if (user && tenant) {
         setSession({ ...user, privacyAccepted: true }, tenant, buildings);
       }
+    },
+    onError: () => {
+      setAcceptError('No se pudo guardar la aceptación. Cierra sesión, vuelve a iniciar sesión e intenta de nuevo.');
     },
   });
 
@@ -128,6 +134,9 @@ export function PrivacyPolicyModal() {
 
         <div className="flex items-center justify-between border-t border-border px-6 py-4">
           <div>
+            {acceptError && (
+              <p className="mb-2 text-xs text-red-600">{acceptError}</p>
+            )}
             <p className="text-xs text-subtle">
               {scrolledToBottom ? 'Puedes aceptar la política' : 'Lee la política completa para continuar'}
             </p>

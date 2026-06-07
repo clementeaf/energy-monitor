@@ -36,8 +36,8 @@ describe('MfaService', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('setupMfa', () => {
-    it('should generate secret and QR code', async () => {
-      ds.query.mockResolvedValue([]);
+    it('should generate secret and QR code when no pending setup exists', async () => {
+      ds.query.mockResolvedValueOnce([{ mfa_secret: null, mfa_enabled: false }]);
 
       const result = await service.setupMfa('user-1', 'user@test.com');
 
@@ -48,6 +48,43 @@ describe('MfaService', () => {
         expect.stringContaining('UPDATE users SET mfa_secret'),
         ['JBSWY3DPEHPK3PXP', 'user-1'],
       );
+    });
+
+    it('should reuse pending secret without overwriting it', async () => {
+      ds.query.mockResolvedValueOnce([{ mfa_secret: 'JBSWY3DPEHPK3PXP', mfa_enabled: false }]);
+
+      const result = await service.setupMfa('user-1', 'user@test.com');
+
+      expect(result.secret).toBe('JBSWY3DPEHPK3PXP');
+      expect(ds.query).toHaveBeenCalledTimes(1);
+      expect(ds.query).not.toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE users SET mfa_secret'),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('verifyAndEnableDuringLogin', () => {
+    it('should enable MFA when setup is pending', async () => {
+      ds.query
+        .mockResolvedValueOnce([{ mfa_secret: 'JBSWY3DPEHPK3PXP', mfa_enabled: false }])
+        .mockResolvedValueOnce([{ mfa_secret: 'JBSWY3DPEHPK3PXP' }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ tenant_id: 'tenant-1' }])
+        .mockResolvedValueOnce([]);
+
+      (verifySync as jest.Mock).mockReturnValue({ valid: true });
+
+      const result = await service.verifyAndEnableDuringLogin('user-1', '123456');
+
+      expect(result.recoveryCodes).toHaveLength(8);
+    });
+
+    it('should reject when MFA is already enabled', async () => {
+      ds.query.mockResolvedValueOnce([{ mfa_secret: 'JBSWY3DPEHPK3PXP', mfa_enabled: true }]);
+
+      await expect(service.verifyAndEnableDuringLogin('user-1', '123456'))
+        .rejects.toThrow(BadRequestException);
     });
   });
 

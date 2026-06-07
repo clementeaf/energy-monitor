@@ -8,9 +8,17 @@ BEGIN
 END $$;
 
 ALTER TABLE readings
-    ADD COLUMN IF NOT EXISTS quality reading_quality NOT NULL DEFAULT 'unknown',
-    ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS quality reading_quality,
+    ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ,
     ADD COLUMN IF NOT EXISTS source VARCHAR(30);
+
+UPDATE readings SET quality = 'unknown' WHERE quality IS NULL;
+UPDATE readings SET ingested_at = "timestamp" WHERE ingested_at IS NULL;
+
+ALTER TABLE readings
+    ALTER COLUMN quality SET DEFAULT 'unknown',
+    ALTER COLUMN quality SET NOT NULL,
+    ALTER COLUMN ingested_at SET NOT NULL;
 
 COMMENT ON COLUMN readings.quality IS 'Data quality: measured=good, estimated=interpolated, invalid=bad, unknown=legacy/unset';
 COMMENT ON COLUMN readings.ingested_at IS 'Wall-clock time when row was inserted into readings (distinct from event timestamp)';

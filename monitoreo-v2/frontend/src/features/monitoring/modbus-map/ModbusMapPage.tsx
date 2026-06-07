@@ -8,6 +8,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { Meter } from '../../../types/meter';
 import type { Concentrator } from '../../../types/concentrator';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const UNKNOWN_BUS = '__sin_bus__';
 
@@ -76,9 +77,9 @@ export function ModbusMapPage() {
 
   if (!siteId) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Mapa Modbus por sitio</h1>
-        <p className="text-sm text-gray-500">
+      <div className="space-y-6">
+        <PageHeader title="Mapa Modbus por sitio" eyebrow="Monitoreo" />
+        <p className="text-sm text-muted">
           Seleccione un edificio para ver buses, direcciones Modbus y estado de comunicacion.
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -87,10 +88,10 @@ export function ModbusMapPage() {
               key={b.id}
               type="button"
               onClick={() => { navigate(`/monitoring/modbus-map/${b.id}`); }}
-              className="rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-gray-200 transition-colors hover:ring-[var(--color-primary,#3D3BF3)]"
+              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
             >
-              <p className="font-medium text-gray-900">{b.name}</p>
-              <p className="text-xs text-gray-500">{b.code}</p>
+              <p className="font-medium text-foreground">{b.name}</p>
+              <p className="text-xs text-muted">{b.code}</p>
             </button>
           ))}
         </div>
@@ -100,23 +101,24 @@ export function ModbusMapPage() {
 
   return (
     <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
-        <Link to="/monitoring/modbus-map" className="hover:text-gray-700">Mapa Modbus</Link>
+        <Link to="/monitoring/modbus-map" className="hover:text-foreground">Mapa Modbus</Link>
         <span>/</span>
-        <span className="text-gray-900">{building?.name ?? 'Sitio'}</span>
+        <span className="text-foreground">{building?.name ?? 'Sitio'}</span>
       </nav>
 
-      <h1 className="text-2xl font-semibold text-gray-900">Mapa Modbus — {building?.name ?? 'Sitio'}</h1>
-      <p className="text-sm text-gray-500">
-        Concentradores del sitio y medidores agrupados por identificador de bus, ordenados por direccion Modbus.
-      </p>
+      <PageHeader
+        title={`Mapa Modbus — ${building?.name ?? 'Sitio'}`}
+        eyebrow="Monitoreo"
+        description="Concentradores del sitio y medidores agrupados por identificador de bus, ordenados por dirección Modbus."
+      />
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-600">Concentradores</h2>
+      <section className="panel p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Concentradores</h2>
         {concentrators.length === 0 ? (
-          <p className="text-sm text-gray-500">No hay concentradores registrados para este edificio.</p>
+          <p className="text-sm text-muted">No hay concentradores registrados para este edificio.</p>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {concentrators.map((c) => (
@@ -128,14 +130,14 @@ export function ModbusMapPage() {
 
       <div className="space-y-6">
         {busGroups.map((g) => (
-          <div key={g.busKey} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
-              <h3 className="text-sm font-semibold text-gray-800">Bus: {g.label}</h3>
-              <p className="text-xs text-gray-500">{g.meters.length} medidor(es)</p>
+          <div key={g.busKey} className="overflow-hidden panel">
+            <div className="border-b border-border bg-surface px-4 py-2">
+              <h3 className="text-sm font-semibold text-foreground">Bus: {g.label}</h3>
+              <p className="text-xs text-muted">{g.meters.length} medidor(es)</p>
             </div>
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="sticky top-0 z-10 bg-white">
-                <tr className="text-left text-xs uppercase text-gray-500">
+            <table className="min-w-full divide-y divide-border text-sm">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="text-left text-xs uppercase text-muted">
                   <th className="px-4 py-2">Modbus</th>
                   <th className="px-4 py-2">Medidor</th>
                   <th className="px-4 py-2">Modelo</th>
@@ -159,18 +161,18 @@ export function ModbusMapPage() {
                   const crc = m.crcErrorsLastPoll ?? 0;
                   const uplink = m.uplinkRoute ?? '—';
                   return (
-                    <tr key={m.id} className="hover:bg-gray-50">
-                      <td className="whitespace-nowrap px-4 py-2 font-mono text-gray-900">
+                    <tr key={m.id} className="hover:bg-surface">
+                      <td className="whitespace-nowrap px-4 py-2 font-mono text-foreground">
                         {m.modbusAddress != null ? m.modbusAddress : '—'}
                       </td>
-                      <td className="px-4 py-2 font-medium text-gray-900">{m.name}</td>
-                      <td className="px-4 py-2 text-gray-700">{m.model ?? '—'}</td>
-                      <td className="px-4 py-2 text-gray-700">{m.meterType}</td>
+                      <td className="px-4 py-2 font-medium text-foreground">{m.name}</td>
+                      <td className="px-4 py-2 text-foreground">{m.model ?? '—'}</td>
+                      <td className="px-4 py-2 text-foreground">{m.meterType}</td>
                       <td className="px-4 py-2">
                         <StatusPill status={st} crcError={crc > 0} />
                       </td>
-                      <td className="px-4 py-2 font-mono text-gray-700">{crc}</td>
-                      <td className="max-w-[12rem] truncate px-4 py-2 text-gray-600" title={uplink === '—' ? undefined : uplink}>
+                      <td className="px-4 py-2 font-mono text-foreground">{crc}</td>
+                      <td className="max-w-[12rem] truncate px-4 py-2 text-muted" title={uplink === '—' ? undefined : uplink}>
                         {uplink}
                       </td>
                     </tr>
@@ -182,8 +184,8 @@ export function ModbusMapPage() {
         ))}
       </div>
 
-      <p className="text-xs text-gray-400">
-        <Link to={`/monitoring/drilldown/${siteId}`} className="text-[var(--color-primary,#3D3BF3)] hover:underline">
+      <p className="text-xs text-subtle">
+        <Link to={`/monitoring/drilldown/${siteId}`} className="text-brand hover:underline">
           Ver jerarquia electrica del sitio
         </Link>
       </p>
@@ -207,7 +209,7 @@ function StatusPill({ status, crcError }: Readonly<{ status: 'online' | 'offline
     );
   }
   return (
-    <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+    <span className="inline-flex rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-foreground">
       Offline
     </span>
   );
@@ -221,9 +223,9 @@ function ConcentratorCard({ c }: Readonly<{ c: Concentrator }>) {
         ? 'error'
         : 'offline';
   return (
-    <div className="rounded-md border border-gray-100 bg-gray-50/80 p-3">
-      <p className="font-medium text-gray-900">{c.name}</p>
-      <p className="text-xs text-gray-500">{c.model}</p>
+    <div className="rounded-md border border-gray-100 bg-surface/80 p-3">
+      <p className="font-medium text-foreground">{c.name}</p>
+      <p className="text-xs text-muted">{c.model}</p>
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
         <span
           className={`rounded-full px-2 py-0.5 font-medium ${
@@ -231,13 +233,13 @@ function ConcentratorCard({ c }: Readonly<{ c: Concentrator }>) {
               ? 'bg-green-100 text-green-800'
               : st === 'error'
                 ? 'bg-red-100 text-red-800'
-                : 'bg-gray-100 text-gray-700'
+                : 'bg-raised text-foreground'
           }`}
         >
           {st === 'online' ? 'Online' : st === 'error' ? 'Error' : 'Offline'}
         </span>
-        {c.ipAddress && <span className="text-gray-600">{c.ipAddress}</span>}
-        {c.mqttConnected && <span className="text-gray-600">MQTT</span>}
+        {c.ipAddress && <span className="text-muted">{c.ipAddress}</span>}
+        {c.mqttConnected && <span className="text-muted">MQTT</span>}
       </div>
     </div>
   );

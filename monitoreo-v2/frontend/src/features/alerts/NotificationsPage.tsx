@@ -4,6 +4,7 @@ import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useNotificationLogsQuery } from '../../hooks/queries/useNotificationLogsQuery';
 import type { NotificationLogQueryParams } from '../../types/notification-log';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 const PAGE_SIZE = 50;
 
@@ -18,7 +19,7 @@ const CHANNEL_COLORS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   sent: 'bg-green-100 text-green-800',
   failed: 'bg-red-100 text-red-800',
-  pending: 'bg-gray-100 text-gray-800',
+  pending: 'bg-raised text-foreground',
 };
 
 export function NotificationsPage() {
@@ -49,12 +50,12 @@ export function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Historial de Notificaciones</h1>
+    <div className="space-y-6">
+      <PageHeader title="Historial de Notificaciones" eyebrow="Alertas" />
 
       <div className="flex items-end gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500">Canal</label>
+          <label className="block text-xs font-medium text-muted">Canal</label>
           <DropdownSelect
             options={[
               { value: '', label: 'Todos' },
@@ -68,7 +69,7 @@ export function NotificationsPage() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500">Estado</label>
+          <label className="block text-xs font-medium text-muted">Estado</label>
           <DropdownSelect
             options={[
               { value: '', label: 'Todos' },
@@ -84,22 +85,22 @@ export function NotificationsPage() {
         <button
           type="button"
           onClick={applyFilters}
-          className="rounded-md bg-pa-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
         >
           Filtrar
         </button>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-border">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Fecha</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Canal</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Asunto</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Destinatario</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Error</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Fecha</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Canal</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Estado</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Asunto</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Destinatario</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Error</th>
             </tr>
           </thead>
           <TableStateBody
@@ -112,7 +113,7 @@ export function NotificationsPage() {
           >
             {(query.data?.data ?? []).map((log) => (
               <tr key={log.id}>
-                <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                <td className="px-4 py-3 text-xs text-muted whitespace-nowrap">
                   {new Date(log.createdAt).toLocaleString('es-CL')}
                 </td>
                 <td className="px-4 py-3">
@@ -126,7 +127,7 @@ export function NotificationsPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3 max-w-xs truncate" title={log.subject}>{log.subject}</td>
-                <td className="px-4 py-3 text-xs text-gray-500">{log.recipient ?? '—'}</td>
+                <td className="px-4 py-3 text-xs text-muted">{log.recipient ?? '—'}</td>
                 <td className="px-4 py-3 text-xs text-red-600 max-w-xs truncate" title={log.errorMessage ?? ''}>
                   {log.errorMessage ?? '—'}
                 </td>
@@ -137,7 +138,7 @@ export function NotificationsPage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-muted">
           <span>{total} registros</span>
           <div className="flex gap-2">
             <button type="button" disabled={currentPage === 1} onClick={() => { goToPage(currentPage - 1); }} className="rounded border px-3 py-1 disabled:opacity-50">Anterior</button>

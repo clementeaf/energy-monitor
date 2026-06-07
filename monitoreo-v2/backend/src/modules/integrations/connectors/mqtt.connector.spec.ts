@@ -143,6 +143,33 @@ describe('MqttConnector', () => {
       expect(result.recordsSynced).toBe(0);
     });
 
+    it('delegates messages to ingress service when wired', async () => {
+      const ingress = {
+        ingestFromMqttMessage: jest.fn().mockResolvedValue(true),
+      };
+      connector = new MqttConnector(100, ingress as never);
+
+      const integration = makeIntegration({
+        brokerUrl: 'mqtt://broker.io:1883',
+        topic: 'energy/readings',
+      });
+
+      const promise = connector.sync(integration);
+
+      await new Promise((r) => setImmediate(r));
+      mockClient.emit('connect');
+      await new Promise((r) => setImmediate(r));
+      mockClient.emit(
+        'message',
+        'energy/readings',
+        Buffer.from(JSON.stringify({ meterId: 'm-1', timestamp: '2026-01-01T00:00:00Z' })),
+      );
+
+      const result = await promise;
+      expect(ingress.ingestFromMqttMessage).toHaveBeenCalledTimes(1);
+      expect(result.recordsSynced).toBe(1);
+    });
+
     it('returns failed on connection error', async () => {
       const promise = connector.sync(
         makeIntegration({

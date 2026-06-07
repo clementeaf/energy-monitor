@@ -25,6 +25,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-06)
+- **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)
+- **Plataforma self-admin:** ingest gaps, backfill, webhooks, data governance, regions, SSO tenant, OAuth clients, integraciones BACnet/SNMP + tabs salud.
+
 ### Completado (2026-05-21)
 - **Portfolio matview:** `portfolio_summary` pre-agrega readings por tenant/día. 16s → 5ms. Refresh diario en `DataRetentionService`.
 - **RDS upgrade:** `db.t3.micro` → `db.t3.small` (2 GB RAM, +$14/mes).
@@ -274,12 +278,21 @@ routes.ts → endpoints.ts → useX.ts → Axios Bearer → CloudFront → API G
 ```
 
 ## Development
+
+Detalle completo: [`monitoreo-v2/docs/deploy.md`](monitoreo-v2/docs/deploy.md).
+
+**Flujo recomendado (hot reload):** solo DB en Docker; backend y frontend en el host.
+
 ```bash
+cd monitoreo-v2 && docker compose up -d timescaledb
+cd monitoreo-v2/backend && cp .env.example .env && npm ci && npm run start:dev
 cd monitoreo-v2/frontend && npm ci && npm run dev
 cd monitoreo-v2/frontend && npm run test
-cd monitoreo-v2/backend && npm ci && npm run start:dev
 ```
-**DB local:** docker `pg-arauco` → `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=arauco DB_USERNAME=postgres DB_PASSWORD=arauco`
+
+**Flujo opcional:** `docker compose up --build` levanta DB + API en contenedores (imagen prod, sin watch).
+
+**DB local (compose):** `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=monitoreo_v2 DB_PASSWORD=monitoreo2026` — contenedor `monitoreo-v2-db`. Legacy `pg-arauco`: `DB_NAME=arauco DB_PASSWORD=arauco`.
 
 ## Environment Variables
 - **Backend Lambda:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `MICROSOFT_CLIENT_ID`, `NODE_ENV`; opcional `LOG_FORMAT=json`; opcional `RDS_CA_BUNDLE_PATH`; opcional `CONFIG_ENCRYPTION_KEY` (AES-256-GCM para secrets en integration config). En producción `JWT_SECRET` (min 32 chars), `COOKIE_SECRET`, `FRONTEND_URL`, `DB_HOST`, `DB_PASSWORD`, `MICROSOFT_TENANT_ID`, `MICROSOFT_CLIENT_ID`, `GOOGLE_CLIENT_ID` son requeridos (bootstrap falla sin ellos). Opcional `REDIS_URL` para rate limiting distribuido (multi-instancia ECS).

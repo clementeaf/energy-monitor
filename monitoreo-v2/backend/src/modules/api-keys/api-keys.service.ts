@@ -19,6 +19,8 @@ export interface ValidatedApiKeyPayload extends JwtPayload {
   _apiKeyId: string;
   /** Rate limit for this key (requests per minute). */
   _rateLimitPerMinute: number;
+  /** Optional higher limit for measurement ingress (requests per minute). */
+  _ingressRateLimitPerMinute: number | null;
 }
 
 @Injectable()
@@ -56,6 +58,7 @@ export class ApiKeysService {
       permissions: dto.permissions,
       buildingIds: dto.buildingIds ?? [],
       rateLimitPerMinute: dto.rateLimitPerMinute ?? 60,
+      ingressRateLimitPerMinute: dto.ingressRateLimitPerMinute ?? null,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
       isActive: true,
       lastUsedAt: null,
@@ -74,6 +77,9 @@ export class ApiKeysService {
     if (dto.permissions !== undefined) row.permissions = dto.permissions;
     if (dto.buildingIds !== undefined) row.buildingIds = dto.buildingIds;
     if (dto.rateLimitPerMinute !== undefined) row.rateLimitPerMinute = dto.rateLimitPerMinute;
+    if (dto.ingressRateLimitPerMinute !== undefined) {
+      row.ingressRateLimitPerMinute = dto.ingressRateLimitPerMinute;
+    }
     if (dto.expiresAt !== undefined) row.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
     if (dto.isActive !== undefined) row.isActive = dto.isActive;
 
@@ -146,6 +152,7 @@ export class ApiKeysService {
       buildingIds: matched.buildingIds,
       _apiKeyId: matched.id,
       _rateLimitPerMinute: matched.rateLimitPerMinute,
+      _ingressRateLimitPerMinute: matched.ingressRateLimitPerMinute,
     };
   }
 

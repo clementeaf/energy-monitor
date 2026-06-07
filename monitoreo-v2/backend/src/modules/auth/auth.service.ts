@@ -12,12 +12,26 @@ import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RolesService } from '../roles/roles.service';
 import { maskEmail, maskProviderId } from '../../common/logging/pii-redaction';
 import { encryptPii, decryptPii, hmacPii, isPiiEncrypted } from '../../common/crypto/pii-encryption';
+import {
+  getBlockConcurrentSessions,
+  getSsoDefaultRoleSlug,
+  resolveSessionMinutes,
+} from '../../lib/tenant-settings';
+import { TenantsService } from '../tenants/tenants.service';
 
 export interface OAuthProfile {
   provider: 'microsoft' | 'google';
   providerId: string;
   email: string;
   displayName: string;
+}
+
+export interface SsoProfile {
+  provider: 'oidc';
+  providerId: string;
+  email: string;
+  displayName: string;
+  tenantId: string;
 }
 
 export interface TokenPair {
@@ -37,6 +51,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly dataSource: DataSource,
     private readonly rolesService: RolesService,
+    private readonly tenantsService: TenantsService,
   ) {}
 
   async getUserProfile(userId: string) {
@@ -143,19 +158,137 @@ export class AuthService {
       throw new UnauthorizedException('Authentication failed.');
     }
 
-    const user = rows[0];
-    if (!user.is_active) {
-      this.logger.warn(`OAuth login blocked: deactivated account ${maskEmail(user.email)}`);
+    return this.completeLoginForUserRow(rows[0], profile.email, profile.displayName);
+  }
+
+  /**
+   * Validates enterprise SSO login with optional JIT user provisioning.
+   */
+  async validateSsoLogin(profile: SsoProfile): Promise<
+    TokenPair
+    | { mfaRequired: true; userId: string }
+    | { mfaSetupRequired: true; userId: string }
+  > {
+    let rows = await this.dataSource.query(
+      `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
+              r.slug AS role_slug, r.require_mfa
+       FROM users u
+       JOIN roles r ON r.id = u.role_id
+       WHERE u.tenant_id = $1 AND u.auth_provider = $2 AND u.auth_provider_id = $3`,
+      [profile.tenantId, profile.provider, profile.providerId],
+    );
+
+    if (rows.length === 0) {
+      const emailHmac = hmacPii(profile.email);
+      rows = await this.dataSource.query(
+        `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
+                r.slug AS role_slug, r.require_mfa
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         WHERE u.tenant_id = $1 AND (u.email = $2 OR u.email_hmac = $3)`,
+        [profile.tenantId, profile.email, emailHmac],
+      );
+
+      if (rows.length > 0 && rows[0].is_active) {
+        await this.dataSource.query(
+          `UPDATE users SET auth_provider = $1, auth_provider_id = $2,
+           email = $3, email_hmac = $4, display_name = $5
+           WHERE id = $6`,
+          [
+            profile.provider,
+            profile.providerId,
+            encryptPii(profile.email),
+            emailHmac,
+            profile.displayName ? encryptPii(profile.displayName) : null,
+            rows[0].id,
+          ],
+        );
+      }
+    }
+
+    if (rows.length === 0) {
+      const userId = await this.provisionJitUser(profile);
+      rows = await this.dataSource.query(
+        `SELECT u.id, u.tenant_id, u.email, u.role_id, u.is_active,
+                r.slug AS role_slug, r.require_mfa
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         WHERE u.id = $1`,
+        [userId],
+      );
+      this.logger.log(`JIT SSO user provisioned: ${maskEmail(profile.email)} tenant=${profile.tenantId}`);
+    }
+
+    if (rows.length === 0) {
       throw new UnauthorizedException('Authentication failed.');
     }
 
-    // Update last login + progressive PII encryption (encrypt plaintext emails on next login)
+    return this.completeLoginForUserRow(rows[0], profile.email, profile.displayName);
+  }
+
+  /**
+   * Creates a user on first SSO login (JIT provisioning).
+   */
+  async provisionJitUser(profile: SsoProfile): Promise<string> {
+    const tenant = await this.tenantsService.findById(profile.tenantId);
+    const roleSlug = getSsoDefaultRoleSlug(tenant.settings);
+    const roleRows = await this.dataSource.query(
+      `SELECT id FROM roles WHERE tenant_id = $1 AND slug = $2 AND is_active = true LIMIT 1`,
+      [profile.tenantId, roleSlug],
+    );
+    if (roleRows.length === 0) {
+      throw new UnauthorizedException('SSO default role not configured.');
+    }
+    const emailHmac = hmacPii(profile.email);
+    const inserted = await this.dataSource.query(
+      `INSERT INTO users (tenant_id, email, email_hmac, display_name, auth_provider, auth_provider_id, role_id, is_active, last_login_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW())
+       RETURNING id`,
+      [
+        profile.tenantId,
+        encryptPii(profile.email),
+        emailHmac,
+        profile.displayName ? encryptPii(profile.displayName) : null,
+        profile.provider,
+        profile.providerId,
+        roleRows[0].id,
+      ],
+    );
+    return inserted[0].id as string;
+  }
+
+  private async completeLoginForUserRow(
+    user: {
+      id: string;
+      tenant_id: string;
+      email: string;
+      role_id: string;
+      is_active: boolean;
+      role_slug: string;
+      require_mfa: boolean;
+    },
+    profileEmail: string,
+    profileDisplayName: string,
+  ): Promise<
+    TokenPair
+    | { mfaRequired: true; userId: string }
+    | { mfaSetupRequired: true; userId: string }
+  > {
+    if (!user.is_active) {
+      throw new UnauthorizedException('Authentication failed.');
+    }
+
     if (!isPiiEncrypted(user.email)) {
       await this.dataSource.query(
         `UPDATE users SET last_login_at = NOW(), email = $1, email_hmac = $2,
          display_name = CASE WHEN display_name IS NOT NULL AND display_name NOT LIKE 'pii:%' THEN $3 ELSE display_name END
          WHERE id = $4`,
-        [encryptPii(profile.email), hmacPii(profile.email), profile.displayName ? encryptPii(profile.displayName) : null, user.id],
+        [
+          encryptPii(profileEmail),
+          hmacPii(profileEmail),
+          profileDisplayName ? encryptPii(profileDisplayName) : null,
+          user.id,
+        ],
       );
     } else {
       await this.dataSource.query(
@@ -164,7 +297,6 @@ export class AuthService {
       );
     }
 
-    // Check if MFA is enabled — if so, defer token issuance
     const mfaRows = await this.dataSource.query(
       `SELECT mfa_enabled FROM users WHERE id = $1`,
       [user.id],
@@ -172,20 +304,14 @@ export class AuthService {
     if (mfaRows.length > 0 && mfaRows[0].mfa_enabled) {
       return { mfaRequired: true, userId: user.id };
     }
-
-    // Check if role requires MFA but user hasn't set it up yet
     if (user.require_mfa && !mfaRows[0]?.mfa_enabled) {
-      this.logger.log(`MFA setup required for role — user ${maskEmail(user.email)}`);
       return { mfaSetupRequired: true, userId: user.id };
     }
 
-    // Load permissions from DB → flatten to "module:action" strings for JWT
     const permissions = await this.rolesService.getPermissionsByRoleId(user.role_id);
     const permissionStrings = permissions.map((p) => `${p.module}:${p.action}`);
-
-    // Load building scoping + session duration
     const buildingIds = await this.rolesService.getUserBuildingIds(user.id);
-    const role = await this.rolesService.getRoleByUserId(user.id);
+    const sessionMinutes = await this.resolveSessionMinutesForUser(user.tenant_id, user.id);
 
     return this.generateTokenPair(
       {
@@ -197,11 +323,25 @@ export class AuthService {
         permissions: permissionStrings,
         buildingIds,
       },
-      role?.maxSessionMinutes ?? 1440,
+      sessionMinutes,
+      user.tenant_id,
     );
   }
 
-  async generateTokenPair(payload: JwtPayload, sessionMinutes = 1440): Promise<TokenPair> {
+  private async resolveSessionMinutesForUser(tenantId: string, userId: string): Promise<number> {
+    const tenant = await this.tenantsService.findById(tenantId);
+    const role = await this.rolesService.getRoleByUserId(userId);
+    return resolveSessionMinutes(tenant.settings, role?.maxSessionMinutes ?? 1440);
+  }
+
+  async generateTokenPair(payload: JwtPayload, sessionMinutes = 1440, tenantId?: string): Promise<TokenPair> {
+    if (tenantId) {
+      const tenant = await this.tenantsService.findById(tenantId);
+      if (getBlockConcurrentSessions(tenant.settings)) {
+        await this.revokeAllTokens(payload.sub);
+      }
+    }
+
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: `${sessionMinutes}m`,
     });
@@ -278,7 +418,7 @@ export class AuthService {
       const permissions = await this.rolesService.getPermissionsByRoleId(row.role_id);
       const permissionStrings = permissions.map((p: { module: string; action: string }) => `${p.module}:${p.action}`);
       const buildingIds = await this.rolesService.getUserBuildingIds(row.user_id);
-      const role = await this.rolesService.getRoleByUserId(row.user_id);
+      const sessionMinutes = await this.resolveSessionMinutesForUser(row.tenant_id, row.user_id);
 
       return this.generateTokenPair(
         {
@@ -290,7 +430,8 @@ export class AuthService {
           permissions: permissionStrings,
           buildingIds,
         },
-        role?.maxSessionMinutes ?? 1440,
+        sessionMinutes,
+        row.tenant_id,
       );
     } catch (err) {
       await queryRunner.rollbackTransaction();
@@ -329,7 +470,7 @@ export class AuthService {
     const permissions = await this.rolesService.getPermissionsByRoleId(user.role_id);
     const permissionStrings = permissions.map((p) => `${p.module}:${p.action}`);
     const buildingIds = await this.rolesService.getUserBuildingIds(userId);
-    const role = await this.rolesService.getRoleByUserId(userId);
+    const sessionMinutes = await this.resolveSessionMinutesForUser(user.tenant_id, userId);
 
     return this.generateTokenPair(
       {
@@ -341,7 +482,8 @@ export class AuthService {
         permissions: permissionStrings,
         buildingIds,
       },
-      role?.maxSessionMinutes ?? 1440,
+      sessionMinutes,
+      user.tenant_id,
     );
   }
 

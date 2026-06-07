@@ -29,6 +29,7 @@ const mockMeter = (overrides: Partial<Meter> = {}): Meter => ({
   nominalVoltage: null,
   nominalCurrent: null,
   contractedDemandKw: null,
+  loadCategory: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   tenant: {} as any,
@@ -209,6 +210,7 @@ describe('MetersService', () => {
         nominalVoltage: null,
         nominalCurrent: null,
         contractedDemandKw: null,
+        loadCategory: null,
       });
       expect(result).toEqual(meter);
     });

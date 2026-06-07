@@ -5,6 +5,9 @@ import { RestApiConnector } from './rest-api.connector';
 import { WebhookConnector } from './webhook.connector';
 import { MqttConnector } from './mqtt.connector';
 import { FtpConnector } from './ftp.connector';
+import { BacnetConnector } from './bacnet.connector';
+import { SnmpConnector } from './snmp.connector';
+import { MqttReadingsIngressService } from '../../readings/mqtt-readings-ingress.service';
 
 /**
  * Registry that maps integrationType strings to connector instances.
@@ -14,12 +17,14 @@ import { FtpConnector } from './ftp.connector';
 export class ConnectorRegistry {
   private readonly connectors: ReadonlyMap<string, IntegrationConnector>;
 
-  constructor() {
+  constructor(mqttIngress: MqttReadingsIngressService) {
     const list: IntegrationConnector[] = [
       new RestApiConnector(),
       new WebhookConnector(),
-      new MqttConnector(),
+      new MqttConnector(5_000, mqttIngress),
       new FtpConnector(),
+      new BacnetConnector(),
+      new SnmpConnector(),
     ];
 
     this.connectors = new Map(list.map((c) => [c.type, c]));

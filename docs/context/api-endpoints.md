@@ -14,6 +14,20 @@ Estado actual: backend purgado, solo módulos activos sobre pg-arauco local. Tod
 | GET | `/users` | `AdminUserSummary[]` |
 | POST | `/users` | `AdminUserSummary & { invitationToken }` |
 
+## Users — Import (`/users/import`) — requiere Bearer + `admin_users`
+
+| Method | Path | Permiso | Request | Response |
+|---|---|---|---|---|
+| GET | `/users/import/template` | `admin_users:read` | — | CSV attachment `usuarios-import-v1.csv` |
+| GET | `/users/import` | `admin_users:read` | `?limit&offset` | `{ data: UserImportJob[], total }` |
+| POST | `/users/import/validate` | `admin_users:create` | multipart `file` (CSV/XLSX ≤1MB) | `{ jobId, summary }` |
+| GET | `/users/import/:jobId` | `admin_users:read` | — | `{ job, summary }` |
+| GET | `/users/import/:jobId/rows` | `admin_users:read` | `?limit&offset&status` | `{ data, total, limit, offset }` |
+| POST | `/users/import/:jobId/commit` | `admin_users:create` | `{ ageVerified: boolean }` | `{ jobId, created, skipped, failed }` |
+| DELETE | `/users/import/:jobId` | `admin_users:create` | — | 204 (cancel draft) |
+
+Notas: `super_admin` cross-tenant requiere header `x-tenant-id`. Commit exige `ageVerified: true` (Ley 21.719). Filas `duplicate` se omiten en commit.
+
 ## Roles (`/roles`) — requiere Bearer
 | GET | `/roles` | `RoleOption[]` |
 

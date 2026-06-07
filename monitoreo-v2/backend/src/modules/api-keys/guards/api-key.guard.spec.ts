@@ -4,8 +4,12 @@ import { ApiKeyGuard } from './api-key.guard';
 import { API_KEY_AUTH_FLAG } from '../../../common/guards/jwt-auth.guard';
 import type { ApiKeysService, ValidatedApiKeyPayload } from '../api-keys.service';
 
-function createMockContext(headers: Record<string, string> = {}) {
-  const request: Record<string, unknown> = { headers, user: undefined };
+function createMockContext(
+  headers: Record<string, string> = {},
+  method = 'GET',
+  url = '/v1/buildings',
+) {
+  const request: Record<string, unknown> = { headers, user: undefined, method, url };
   const context = {
     switchToHttp: () => ({ getRequest: () => request }),
     getHandler: () => ({}),
@@ -24,6 +28,7 @@ const validPayload: ValidatedApiKeyPayload = {
   buildingIds: [],
   _apiKeyId: 'ak-1',
   _rateLimitPerMinute: 60,
+  _ingressRateLimitPerMinute: null,
 };
 
 describe('ApiKeyGuard', () => {
@@ -99,6 +104,24 @@ describe('ApiKeyGuard', () => {
       expect(e).toBeInstanceOf(HttpException);
       expect((e as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
     }
+  });
+
+  it('uses higher ingress limit for POST /v1/measurements', async () => {
+    service.validate.mockResolvedValue({
+      ...validPayload,
+      _rateLimitPerMinute: 10,
+      _ingressRateLimitPerMinute: 100,
+    });
+
+    for (let i = 0; i < 100; i++) {
+      const { context } = createMockContext({ 'x-api-key': 'emk_key' }, 'POST', '/v1/measurements');
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    }
+
+    const { context } = createMockContext({ 'x-api-key': 'emk_key' }, 'POST', '/v1/measurements');
+    await expect(guard.canActivate(context)).rejects.toMatchObject({
+      status: HttpStatus.TOO_MANY_REQUESTS,
+    });
   });
 
   it('different API keys have independent rate counters', async () => {

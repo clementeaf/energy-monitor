@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "Energy Monitor — Measurement Ingress",
+    "description": "Fragment for POST /v1/measurements (External API v1). Requires API key with readings:create.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://plataforma.globepower.cl/api"
+    },
+    {
+      "key": "apiKey",
+      "value": "emk_REPLACE_ME"
+    },
+    {
+      "key": "meterId",
+      "value": "00000000-0000-0000-0000-000000000001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create measurement",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"meterId\": \"{{meterId}}\",\n  \"timestamp\": \"2026-06-06T12:00:00.000Z\",\n  \"quality\": \"measured\",\n  \"externalRef\": \"batch-demo-001\",\n  \"metrics\": {\n    \"powerKw\": 12.5,\n    \"energyKwhTotal\": 10450.25,\n    \"voltageL1\": 220.1,\n    \"powerFactor\": 0.95\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/v1/measurements",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "measurements"]
+        },
+        "description": "Ingest one reading. Duplicate (same meterId + timestamp + source api_ingress) returns 409."
+      },
+      "response": []
+    }
+  ]
+}

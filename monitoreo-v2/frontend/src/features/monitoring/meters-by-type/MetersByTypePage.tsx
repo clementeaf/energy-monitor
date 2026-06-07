@@ -4,6 +4,7 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { formatMeterTypeLabel } from '../lib/meterClassification';
 import type { Meter } from '../../../types/meter';
@@ -122,19 +123,20 @@ export function MetersByTypePage() {
 
   return (
     <div className="space-y-3">
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar tipo o medidor..."
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-52"
-        />
-        <span className="ml-auto text-[11px] text-pa-text-muted">
-          {filteredGroups.length} tipos · {meters.length} medidores
-        </span>
-      </div>
+      <PageHeader
+        title="Medidores por tipo"
+        eyebrow="Monitoreo"
+        description={`${filteredGroups.length} tipos · ${meters.length} medidores`}
+        actions={
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar tipo o medidor..."
+            className="w-52 rounded-md border border-border px-2.5 py-1.5 text-[12px]"
+          />
+        }
+      />
 
       {/* Compact KPIs */}
       <div className="flex flex-wrap gap-2">
@@ -143,9 +145,9 @@ export function MetersByTypePage() {
         <MiniKpi label="Potencia total" value={`${totalKw.toFixed(1)} kW`} />
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Tipo</Th>
               <Th>Cantidad</Th>
@@ -163,27 +165,27 @@ export function MetersByTypePage() {
           >
             {visibleGroups.map((g) => (
               <Fragment key={g.typeKey}>
-                <tr className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{formatMeterTypeLabel(g.typeKey)}</Td>
+                <tr className="hover:bg-surface">
+                  <Td className="font-medium text-foreground">{formatMeterTypeLabel(g.typeKey)}</Td>
                   <Td>{g.meters.length}</Td>
                   <Td>{g.totalKw.toFixed(1)}</Td>
                   <Td>
                     <button
                       type="button"
                       onClick={() => { toggle(g.typeKey); }}
-                      className="text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                      className="text-sm font-medium text-brand hover:underline"
                     >
                       {expanded.has(g.typeKey) ? 'Ocultar' : 'Ver medidores'}
                     </button>
                   </Td>
                 </tr>
                 {expanded.has(g.typeKey) && (
-                  <tr key={`${g.typeKey}-detail`} className="bg-gray-50">
+                  <tr key={`${g.typeKey}-detail`} className="bg-surface">
                     <td colSpan={4} className="p-0">
                       <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
                         <table className="min-w-full text-sm">
-                          <thead className="sticky top-0 z-10 bg-white">
-                            <tr className="text-left text-xs uppercase text-gray-500">
+                          <thead className="sticky top-0 z-10 bg-background">
+                            <tr className="text-left text-xs uppercase text-muted">
                               <th className="pb-2 pr-4">Nombre</th>
                               <th className="pb-2 pr-4">Codigo</th>
                               <th className="pb-2 pr-4">Edificio</th>
@@ -191,28 +193,28 @@ export function MetersByTypePage() {
                               <th className="pb-2">Enlace</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody className="divide-y divide-border">
                             {g.meters.map((m) => {
                               const p = powerByMeterId.get(m.id);
                               const ts = (latestQuery.data ?? []).find((r) => r.meter_id === m.id)?.timestamp ?? null;
                               const st = commStatus(ts, m.isActive);
                               return (
                                 <tr key={m.id}>
-                                  <td className="py-2 pr-4 font-medium text-gray-800">{m.name}</td>
+                                  <td className="py-2 pr-4 font-medium text-foreground">{m.name}</td>
                                   <td className="py-2 pr-4">{m.code}</td>
                                   <td className="py-2 pr-4">{buildingNameById.get(m.buildingId) ?? m.buildingId}</td>
                                   <td className="py-2 pr-4">{(p ?? 0).toFixed(1)}</td>
                                   <td className="py-2">
                                     <span
                                       className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-xs ${
-                                        st === 'online' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                        st === 'online' ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
                                       }`}
                                     >
                                       {st === 'online' ? 'Online' : 'Offline'}
                                     </span>
                                     <Link
                                       to={`/meters?buildingId=${m.buildingId}`}
-                                      className="text-[var(--color-primary,#3D3BF3)] hover:underline"
+                                      className="text-brand hover:underline"
                                     >
                                       Listado edificio
                                     </Link>
@@ -238,21 +240,21 @@ export function MetersByTypePage() {
 
 function MiniKpi({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
-      <span className="text-[11px] text-gray-500">{label}</span>
-      <span className="text-[13px] font-semibold text-pa-text">{value}</span>
+    <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
+      <span className="text-[11px] text-muted">{label}</span>
+      <span className="text-[13px] font-semibold text-foreground">{value}</span>
     </div>
   );
 }
 
 function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
+    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted ${className}`}>
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

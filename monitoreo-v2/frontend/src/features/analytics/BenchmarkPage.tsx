@@ -14,6 +14,7 @@ import {
   compareMetricsByBuilding,
 } from '../dashboard/dashboardAggregations';
 import type { Building } from '../../types/building';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 type RangePreset = '30d' | '90d' | '365d';
 type Metric = 'kwhPerSqm' | 'peakDemand' | 'avgPf';
@@ -128,7 +129,7 @@ export function BenchmarkPage(): ReactElement {
         type: 'bar' as const,
         name: METRIC_LABELS[metric],
         data,
-        color: 'var(--color-primary, #3D3BF3)',
+        color: 'var(--color-chart-1, #3a5b1e)',
       }] satisfies SeriesOptionsType[],
     };
   }, [rows, metric]);
@@ -167,7 +168,7 @@ export function BenchmarkPage(): ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Benchmarking entre Edificios</h1>
+        <PageHeader title="Benchmarking entre Edificios" eyebrow="Analítica" />
         <div className="flex gap-2">
           <DropdownSelect
             options={[
@@ -194,20 +195,20 @@ export function BenchmarkPage(): ReactElement {
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Ranking por {METRIC_LABELS[metric]}</h2>
+        <div className="panel p-4">
+          <h2 className="mb-2 text-sm font-medium text-foreground">Ranking por {METRIC_LABELS[metric]}</h2>
           {aggQuery.isLoading ? <ChartSkeleton height={280} /> : barChartOptions ? <Chart options={barChartOptions} /> : null}
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-gray-700">Comparativo multi-KPI (top 5)</h2>
+        <div className="panel p-4">
+          <h2 className="mb-2 text-sm font-medium text-foreground">Comparativo multi-KPI (top 5)</h2>
           {aggQuery.isLoading ? <ChartSkeleton height={280} /> : radarChartOptions ? <Chart options={radarChartOptions} /> : null}
         </div>
       </div>
 
       {/* Ranking table */}
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+      <div className="max-h-[70vh] overflow-y-auto panel">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+          <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
             <tr>
               <th className="px-4 py-2">#</th>
               <th className="px-4 py-2">Edificio</th>
@@ -228,9 +229,9 @@ export function BenchmarkPage(): ReactElement {
             skeletonWidths={['w-8', 'w-28', 'w-16', 'w-12', 'w-20', 'w-16', 'w-20', 'w-16']}
           >
             {rows.map((r) => (
-              <tr key={r.buildingId} className="hover:bg-gray-50">
-                <td className="px-4 py-2 text-gray-500">{r.rank}</td>
-                <td className="px-4 py-2 font-medium text-gray-900">{r.buildingName}</td>
+              <tr key={r.buildingId} className="hover:bg-surface">
+                <td className="px-4 py-2 text-muted">{r.rank}</td>
+                <td className="px-4 py-2 font-medium text-foreground">{r.buildingName}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{r.areaSqm > 0 ? r.areaSqm.toLocaleString('es-CL') : '—'}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{r.meterCount}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{r.energyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>

@@ -31,6 +31,11 @@ export class UpdateApiKeyDto {
   @Min(1)
   rateLimitPerMinute?: number;
 
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  ingressRateLimitPerMinute?: number | null;
+
   /** ISO 8601 date string, or null to remove expiration. */
   @IsOptional()
   @IsDateString()

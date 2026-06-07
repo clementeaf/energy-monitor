@@ -3,52 +3,17 @@ import { DataSource } from 'typeorm';
 import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
+import { resolveMeterTimezone } from '../../lib/timezone';
+import {
+  type ReadingRow,
+  type ReadingResponse,
+  type LatestRow,
+  type AggregatedRow,
+  enrichReadingRow,
+  enrichLatestRow,
+} from '../../lib/reading-response';
 
-export interface ReadingRow {
-  id: string;
-  meter_id: string;
-  timestamp: string;
-  voltage_l1: string | null;
-  voltage_l2: string | null;
-  voltage_l3: string | null;
-  current_l1: string | null;
-  current_l2: string | null;
-  current_l3: string | null;
-  power_kw: string;
-  reactive_power_kvar: string | null;
-  power_factor: string | null;
-  frequency_hz: string | null;
-  energy_kwh_total: string;
-  thd_voltage_pct: string | null;
-  thd_current_pct: string | null;
-  phase_imbalance_pct: string | null;
-}
-
-export interface LatestRow {
-  meter_id: string;
-  meter_name: string;
-  building_id: string;
-  tenant_id: string;
-  timestamp: string;
-  power_kw: string;
-  energy_kwh_total: string;
-  voltage_l1: string | null;
-  current_l1: string | null;
-  power_factor: string | null;
-  frequency_hz: string | null;
-}
-
-export interface AggregatedRow {
-  bucket: string;
-  meter_id: string;
-  avg_power_kw: string;
-  max_power_kw: string;
-  min_power_kw: string;
-  avg_power_factor: string | null;
-  avg_voltage_l1: string | null;
-  energy_delta_kwh: string;
-  reading_count: string;
-}
+export type { ReadingRow, ReadingResponse, LatestRow, AggregatedRow };
 
 const RESOLUTION_MAP: Record<string, string> = {
   '5min': '5 minutes',
@@ -58,6 +23,7 @@ const RESOLUTION_MAP: Record<string, string> = {
 };
 
 const INTERVAL_MAP: Record<string, string> = {
+  '15min': '15 minutes',
   hourly: '1 hour',
   daily: '1 day',
   monthly: '1 month',
@@ -74,8 +40,8 @@ interface AggregateSource {
  * Whitelist of allowed view names and intervals to prevent SQL injection.
  * These are the ONLY values that can be interpolated into SQL templates.
  */
-const SAFE_VIEW_NAMES = new Set(['readings_hourly', 'readings_daily']);
-const SAFE_INTERVALS = new Set(['1 hour', '1 day', '1 month']);
+const SAFE_VIEW_NAMES = new Set(['readings_15min', 'readings_hourly', 'readings_daily']);
+const SAFE_INTERVALS = new Set(['15 minutes', '1 hour', '1 day', '1 month']);
 
 function assertSafeView(view: string): void {
   if (!SAFE_VIEW_NAMES.has(view)) {
@@ -91,10 +57,21 @@ function assertSafeInterval(interval: string): void {
 
 /** Maps interval to the continuous aggregate view to query. */
 const AGGREGATE_VIEW_MAP: Record<string, AggregateSource> = {
+  '15min': { view: 'readings_15min' },
   hourly: { view: 'readings_hourly' },
   daily: { view: 'readings_daily' },
   monthly: { view: 'readings_daily', reBucket: '1 month' },
 };
+
+/** Use readings_15min CAGG for aggregated 15min queries beyond this range (ms). */
+const CAGG_15MIN_RANGE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Returns true when the query range exceeds 7 days (15min CAGG path).
+ */
+function isRangeLongerThan7Days(from: string, to: string): boolean {
+  return new Date(to).getTime() - new Date(from).getTime() > CAGG_15MIN_RANGE_THRESHOLD_MS;
+}
 
 interface CacheEntry {
   data: AggregatedRow[];
@@ -126,11 +103,10 @@ export class ReadingsService {
     tenantId: string,
     buildingIds: string[],
     query: ReadingQueryDto,
-  ): Promise<ReadingRow[]> {
+  ): Promise<ReadingResponse[]> {
     const resolution = query.resolution ?? 'raw';
     const limit = query.limit ?? 1000;
 
-    // Verify meter belongs to tenant + buildingIds scope
     const meterCheck = await this.buildMeterScopeCheck(
       tenantId,
       buildingIds,
@@ -138,14 +114,19 @@ export class ReadingsService {
     );
     if (!meterCheck) return [];
 
+    const timezone = await resolveMeterTimezone(this.dataSource, query.meterId);
+
+    let rows: ReadingRow[];
+
     if (resolution === 'raw') {
-      return this.dataSource.query(
+      rows = await this.dataSource.query(
         `SELECT id, meter_id, timestamp,
                 voltage_l1, voltage_l2, voltage_l3,
                 current_l1, current_l2, current_l3,
                 power_kw, reactive_power_kvar, power_factor,
                 frequency_hz, energy_kwh_total,
-                thd_voltage_pct, thd_current_pct, phase_imbalance_pct
+                thd_voltage_pct, thd_current_pct, phase_imbalance_pct,
+                quality::text AS quality, source, ingested_at
          FROM readings
          WHERE meter_id = $1
            AND timestamp >= $2
@@ -154,39 +135,44 @@ export class ReadingsService {
          LIMIT $4`,
         [query.meterId, query.from, query.to, limit],
       );
+    } else {
+      const pgInterval = RESOLUTION_MAP[resolution];
+      if (!pgInterval) return [];
+
+      rows = await this.dataSource.query(
+        `SELECT
+           time_bucket($1::interval, timestamp) AS timestamp,
+           meter_id,
+           '' AS id,
+           AVG(voltage_l1::numeric)::text AS voltage_l1,
+           AVG(voltage_l2::numeric)::text AS voltage_l2,
+           AVG(voltage_l3::numeric)::text AS voltage_l3,
+           AVG(current_l1::numeric)::text AS current_l1,
+           AVG(current_l2::numeric)::text AS current_l2,
+           AVG(current_l3::numeric)::text AS current_l3,
+           AVG(power_kw::numeric)::text AS power_kw,
+           AVG(reactive_power_kvar::numeric)::text AS reactive_power_kvar,
+           AVG(power_factor::numeric)::text AS power_factor,
+           AVG(frequency_hz::numeric)::text AS frequency_hz,
+           MAX(energy_kwh_total::numeric)::text AS energy_kwh_total,
+           AVG(thd_voltage_pct::numeric)::text AS thd_voltage_pct,
+           AVG(thd_current_pct::numeric)::text AS thd_current_pct,
+           AVG(phase_imbalance_pct::numeric)::text AS phase_imbalance_pct,
+           'unknown' AS quality,
+           NULL AS source,
+           NULL AS ingested_at
+         FROM readings
+         WHERE meter_id = $2
+           AND timestamp >= $3
+           AND timestamp <= $4
+         GROUP BY time_bucket($1::interval, timestamp), meter_id
+         ORDER BY timestamp ASC
+         LIMIT $5`,
+        [pgInterval, query.meterId, query.from, query.to, limit],
+      );
     }
 
-    const pgInterval = RESOLUTION_MAP[resolution];
-    if (!pgInterval) return [];
-
-    return this.dataSource.query(
-      `SELECT
-         time_bucket($1::interval, timestamp) AS timestamp,
-         meter_id,
-         '' AS id,
-         AVG(voltage_l1::numeric)::text AS voltage_l1,
-         AVG(voltage_l2::numeric)::text AS voltage_l2,
-         AVG(voltage_l3::numeric)::text AS voltage_l3,
-         AVG(current_l1::numeric)::text AS current_l1,
-         AVG(current_l2::numeric)::text AS current_l2,
-         AVG(current_l3::numeric)::text AS current_l3,
-         AVG(power_kw::numeric)::text AS power_kw,
-         AVG(reactive_power_kvar::numeric)::text AS reactive_power_kvar,
-         AVG(power_factor::numeric)::text AS power_factor,
-         AVG(frequency_hz::numeric)::text AS frequency_hz,
-         MAX(energy_kwh_total::numeric)::text AS energy_kwh_total,
-         AVG(thd_voltage_pct::numeric)::text AS thd_voltage_pct,
-         AVG(thd_current_pct::numeric)::text AS thd_current_pct,
-         AVG(phase_imbalance_pct::numeric)::text AS phase_imbalance_pct
-       FROM readings
-       WHERE meter_id = $2
-         AND timestamp >= $3
-         AND timestamp <= $4
-       GROUP BY time_bucket($1::interval, timestamp), meter_id
-       ORDER BY timestamp ASC
-       LIMIT $5`,
-      [pgInterval, query.meterId, query.from, query.to, limit],
-    );
+    return rows.map((row) => enrichReadingRow(row, timezone));
   }
 
   async findLatest(
@@ -226,7 +212,7 @@ export class ReadingsService {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    return this.dataSource.query(
+    const rows: LatestRow[] = await this.dataSource.query(
       `SELECT
          m.id AS meter_id,
          m.name AS meter_name,
@@ -238,8 +224,11 @@ export class ReadingsService {
          lr.voltage_l1,
          lr.current_l1,
          lr.power_factor,
-         lr.frequency_hz
+         lr.frequency_hz,
+         COALESCE(b.timezone, t.timezone, 'UTC') AS timezone
        FROM meters m
+       JOIN buildings b ON b.id = m.building_id
+       JOIN tenants t ON t.id = m.tenant_id
        LEFT JOIN LATERAL (
          SELECT r.timestamp, r.power_kw, r.energy_kwh_total,
                 r.voltage_l1, r.current_l1, r.power_factor, r.frequency_hz
@@ -252,6 +241,8 @@ export class ReadingsService {
        ORDER BY m.name`,
       params,
     );
+
+    return rows.map((row) => enrichLatestRow(row));
   }
 
   /**
@@ -267,6 +258,19 @@ export class ReadingsService {
     query: AggregatedQueryDto,
     crossTenant = false,
   ): Promise<AggregatedRow[]> {
+    if (query.interval === '15min') {
+      if (isRangeLongerThan7Days(query.from, query.to)) {
+        return this.findFromAggregate(
+          tenantId,
+          buildingIds,
+          query,
+          { view: 'readings_15min' },
+          crossTenant,
+        );
+      }
+      return this.findFromRawBucket(tenantId, buildingIds, query, '15 minutes');
+    }
+
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
 

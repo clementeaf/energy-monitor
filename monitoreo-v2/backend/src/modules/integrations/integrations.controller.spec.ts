@@ -50,6 +50,8 @@ describe('IntegrationsController', () => {
         { type: 'webhook', label: 'Webhook' },
         { type: 'mqtt', label: 'MQTT' },
         { type: 'ftp', label: 'FTP' },
+        { type: 'bacnet', label: 'BACnet/IP' },
+        { type: 'snmp', label: 'SNMP' },
       ]),
     };
 
@@ -135,7 +137,7 @@ describe('IntegrationsController', () => {
 
   it('getSupportedTypes returns types from registry', () => {
     const types = controller.getSupportedTypes();
-    expect(types).toHaveLength(4);
+    expect(types).toHaveLength(6);
     expect(types[0]).toEqual({ type: 'rest_api', label: 'REST API' });
   });
 });

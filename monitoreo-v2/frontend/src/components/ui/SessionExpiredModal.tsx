@@ -34,7 +34,7 @@ export function SessionExpiredModal() {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" aria-hidden="true" />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl">
+      <div className="relative z-10 w-full max-w-sm rounded-lg bg-background p-6 shadow-2xl">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-amber-100">
             <svg className="size-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -42,8 +42,8 @@ export function SessionExpiredModal() {
             </svg>
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Sesión expirada</h2>
-            <p className="text-sm text-gray-500">Tu sesión ha caducado por inactividad.</p>
+            <h2 className="text-base font-semibold text-foreground">Sesión expirada</h2>
+            <p className="text-sm text-muted">Tu sesión ha caducado por inactividad.</p>
           </div>
         </div>
 
@@ -51,14 +51,14 @@ export function SessionExpiredModal() {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface"
           >
             Cerrar sesión
           </button>
           <button
             type="button"
             onClick={handleContinue}
-            className="flex-1 rounded-lg bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+            className="flex-1 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:opacity-90"
           >
             Iniciar sesión
           </button>

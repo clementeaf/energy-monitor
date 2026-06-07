@@ -278,6 +278,19 @@ MeterReading {
 | `/billing/rates` | Tarifas | si | Tabla tarifas CRUD con bloques horarios expandibles, filtro edificio |
 | `/reports` | Reportes | si | Lista generados + filtros; generar (modal); descarga; programados (cron, destinatarios, activo) |
 | `/integrations` | Integraciones | si | Tabla + filtros; CRUD con config JSON; sync (stub); historial paginado (`integrations:read` mín.) |
+| `/admin/users` | Usuarios | si | Tab **Lista** (CRUD) + tab **Importar** (`admin_users:create`): dropzone CSV/XLSX → preview filas → checkbox Ley 21.719 → commit masivo |
+
+## Importación masiva de usuarios (v2)
+
+Flujo en `UsersPage` tab **Importar** (`features/admin/users/UserImportTab.tsx`):
+
+1. Descargar plantilla `GET /users/import/template`
+2. Subir CSV/XLSX `POST /users/import/validate` (multipart, ≤1 MB)
+3. Preview paginado `GET /users/import/:jobId/rows` con filtros valid/error/duplicate
+4. Checkbox 14+ (Ley 21.719) + `POST /users/import/:jobId/commit`
+5. Historial colapsable `GET /users/import`
+
+Hooks: `useUserImportJobsQuery`, `useUserImportPreviewQuery`, `useValidateUserImport`, `useCommitUserImport`. Tipos: `types/user-import.ts`.
 
 ## API layer (v2)
 
@@ -296,6 +309,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Invoices | `/invoices` | `useInvoicesQuery(params?)`, `useInvoiceLineItemsQuery(invoiceId)`, `useGenerateInvoice` |
 | Reports | `/reports`, `/reports/scheduled`, `/reports/generate`, `/reports/:id/export` | `useReportsQuery`, `useScheduledReportsQuery`, `useGenerateReport`, mutaciones scheduled/delete |
 | Integrations | `/integrations`, `/integrations/:id/sync`, `/integrations/:id/sync-logs` | `useIntegrationsQuery`, `useIntegrationSyncLogsQuery`, mutaciones CRUD + `useTriggerIntegrationSync` |
+| User import | `/users/import`, `/users/import/template`, `/users/import/validate`, `/users/import/:jobId`, `/users/import/:jobId/rows`, `/users/import/:jobId/commit` | `useUserImportJobsQuery`, `useUserImportPreviewQuery`, `useValidateUserImport`, `useCommitUserImport`, `downloadUserImportTemplate` |
 
 ## CSP (v2)
 
@@ -320,6 +334,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | `types/invoice.ts` | `Invoice`, `InvoiceLineItem`, `InvoiceStatus`, `InvoiceQueryParams`, `GenerateInvoicePayload` |
 | `types/report.ts` | `Report`, `ScheduledReport`, `PlatformReportType`, `GenerateReportPayload`, payloads programados |
 | `types/integration.ts` | `Integration`, `IntegrationSyncLog`, payloads y params de listado/logs |
+| `types/user-import.ts` | `UserImportJob`, `UserImportStagingRow`, `UserImportSummary`, commit/validate payloads |
 
 ## Componentes compartidos (v2)
 

@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "Energy Monitor — Readings Export",
+    "description": "ETL export endpoints (External API v1). Requires readings:read on API key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://plataforma.globepower.cl/api" },
+    { "key": "apiKey", "value": "emk_REPLACE_ME" },
+    { "key": "consumerId", "value": "etl-consumer-001" }
+  ],
+  "item": [
+    {
+      "name": "Stream CSV export",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-API-Key", "value": "{{apiKey}}" },
+          { "key": "X-Consumer-Id", "value": "{{consumerId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/readings/export?format=csv&from=2026-01-01T00:00:00.000Z&to=2026-01-31T23:59:59.999Z",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "readings", "export"],
+          "query": [
+            { "key": "format", "value": "csv" },
+            { "key": "from", "value": "2026-01-01T00:00:00.000Z" },
+            { "key": "to", "value": "2026-01-31T23:59:59.999Z" },
+            { "key": "cursor", "value": "", "disabled": true }
+          ]
+        },
+        "description": "Chunked CSV. Use X-Next-Cursor response header for pagination."
+      }
+    },
+    {
+      "name": "Create Parquet export job",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "X-API-Key", "value": "{{apiKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"format\": \"parquet\",\n  \"from\": \"2026-01-01T00:00:00.000Z\",\n  \"to\": \"2026-01-31T23:59:59.999Z\"\n}"
+        },
+        "url": "{{baseUrl}}/v1/exports"
+      }
+    },
+    {
+      "name": "Get export job status",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{apiKey}}" }],
+        "url": "{{baseUrl}}/v1/exports/{{exportJobId}}"
+      }
+    }
+  ]
+}

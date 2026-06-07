@@ -7,6 +7,7 @@ import { AlertRule } from '../platform/entities/alert-rule.entity';
 import { NotificationLog } from './entities/notification-log.entity';
 import { SesEmailService } from '../../common/email/ses-email.service';
 import { SnsSmsService } from '../../common/sms/sns-sms.service';
+import { WebhookDispatcherService } from '../webhooks/webhook-dispatcher.service';
 
 @Injectable()
 export class NotificationService {
@@ -18,6 +19,7 @@ export class NotificationService {
     private readonly config: ConfigService,
     private readonly sesEmail: SesEmailService,
     private readonly snsSms: SnsSmsService,
+    private readonly webhookDispatcher: WebhookDispatcherService,
   ) {}
 
   /**
@@ -28,6 +30,17 @@ export class NotificationService {
       await this.sendEmail(alert, rule);
     }
     await this.sendWebhook(alert, 'new_alert');
+    await this.webhookDispatcher.dispatch(alert.tenantId, 'alert.created', {
+      event: 'alert.created',
+      tenantId: alert.tenantId,
+      alertId: alert.id,
+      alertTypeCode: alert.alertTypeCode,
+      severity: alert.severity,
+      message: alert.message,
+      buildingId: alert.buildingId,
+      meterId: alert.meterId,
+      occurredAt: alert.createdAt.toISOString(),
+    });
   }
 
   /**

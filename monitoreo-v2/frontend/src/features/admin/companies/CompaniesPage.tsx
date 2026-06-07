@@ -6,6 +6,7 @@ import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { Drawer } from '../../../components/ui/Drawer';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import type { Tenant, CreateTenantPayload, UpdateTenantPayload } from '../../../types/tenant';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const EMPTY_FORM: CreateTenantPayload = {
   name: '',
@@ -101,21 +102,24 @@ export function CompaniesPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-pa-text">Empresas</h1>
-        <button
-          type="button"
-          onClick={() => { setResult(null); setForm({ ...EMPTY_FORM }); setCreateOpen(true); }}
-          className="rounded-lg bg-pa-blue px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-pa-blue-light"
-        >
-          Nueva empresa
-        </button>
-      </div>
+    <div className="flex h-full flex-col gap-4">
+      <PageHeader
+        title="Empresas"
+        eyebrow="Administración"
+        actions={
+          <button
+            type="button"
+            onClick={() => { setResult(null); setForm({ ...EMPTY_FORM }); setCreateOpen(true); }}
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover"
+          >
+            Nueva empresa
+          </button>
+        }
+      />
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Nombre</Th>
               <Th>Slug</Th>
@@ -138,7 +142,7 @@ export function CompaniesPage() {
             {visibleTenants.map((t) => (
               <tr
                 key={t.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-surface"
                 onClick={() => handleEditOpen(t)}
               >
                 <Td className="font-medium">{t.name}</Td>
@@ -148,7 +152,7 @@ export function CompaniesPage() {
                 <Td className="font-mono text-[12px]">{t.taxId || '—'}</Td>
                 <Td>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    t.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    t.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
                   }`}>
                     {t.isActive ? 'Activa' : 'Inactiva'}
                   </span>
@@ -158,7 +162,7 @@ export function CompaniesPage() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleEditOpen(t); }}
-                    className="text-[13px] font-medium text-pa-blue hover:underline"
+                    className="text-[13px] font-medium text-brand hover:underline"
                   >
                     Editar
                   </button>
@@ -169,7 +173,7 @@ export function CompaniesPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTenants.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       {/* Create drawer */}
       <Drawer open={createOpen} onClose={handleCreateClose} title="Nueva empresa" side="right" size="lg">
@@ -185,7 +189,7 @@ export function CompaniesPage() {
             <button
               type="button"
               onClick={handleCreateClose}
-              className="w-full rounded-lg bg-pa-blue px-4 py-2 text-[13px] font-medium text-white hover:bg-pa-blue-light"
+              className="w-full rounded-lg bg-brand px-4 py-2 text-[13px] font-medium text-brand-fg hover:bg-brand-hover"
             >
               Cerrar
             </button>
@@ -315,7 +319,7 @@ export function CompaniesPage() {
                   type="color"
                   value={form.primaryColor ?? '#3a5b1e'}
                   onChange={(e) => updateCreate('primaryColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color secundario">
@@ -323,7 +327,7 @@ export function CompaniesPage() {
                   type="color"
                   value={form.secondaryColor ?? '#f5f5f5'}
                   onChange={(e) => updateCreate('secondaryColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color sidebar">
@@ -331,7 +335,7 @@ export function CompaniesPage() {
                   type="color"
                   value={form.sidebarColor ?? '#1e293b'}
                   onChange={(e) => updateCreate('sidebarColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color acento">
@@ -339,7 +343,7 @@ export function CompaniesPage() {
                   type="color"
                   value={form.accentColor ?? '#ab2f2a'}
                   onChange={(e) => updateCreate('accentColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
             </div>
@@ -384,7 +388,7 @@ export function CompaniesPage() {
             <button
               type="submit"
               disabled={createMutation.isPending || !form.name.trim() || !form.adminEmail.trim() || (createAddressCollision && !form.addressDetail?.trim())}
-              className="mt-2 w-full rounded-lg bg-pa-blue px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-pa-blue-light disabled:opacity-50"
+              className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-[13px] font-medium text-brand-fg transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
               {createMutation.isPending ? 'Creando...' : 'Crear empresa'}
             </button>
@@ -402,8 +406,8 @@ export function CompaniesPage() {
       <Drawer open={editing !== null} onClose={handleEditClose} title="Editar empresa" side="right" size="lg">
         {editing && (
           <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-              <span className="text-[13px] font-medium text-pa-text">Estado</span>
+            <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+              <span className="text-[13px] font-medium text-foreground">Estado</span>
               <button
                 type="button"
                 onClick={() => updateEdit('isActive', !editForm.isActive)}
@@ -411,11 +415,11 @@ export function CompaniesPage() {
                   editForm.isActive ? 'bg-green-500' : 'bg-gray-300'
                 }`}
               >
-                <span className={`inline-block size-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                <span className={`inline-block size-4 transform rounded-full bg-background shadow transition-transform duration-200 ${
                   editForm.isActive ? 'translate-x-6' : 'translate-x-1'
                 }`} />
               </button>
-              <span className={`text-[12px] font-medium ${editForm.isActive ? 'text-green-700' : 'text-gray-500'}`}>
+              <span className={`text-[12px] font-medium ${editForm.isActive ? 'text-green-700' : 'text-muted'}`}>
                 {editForm.isActive ? 'Activa' : 'Inactiva'}
               </span>
             </div>
@@ -507,7 +511,7 @@ export function CompaniesPage() {
                   type="color"
                   value={editForm.primaryColor ?? '#3a5b1e'}
                   onChange={(e) => updateEdit('primaryColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color secundario">
@@ -515,7 +519,7 @@ export function CompaniesPage() {
                   type="color"
                   value={editForm.secondaryColor ?? '#f5f5f5'}
                   onChange={(e) => updateEdit('secondaryColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color sidebar">
@@ -523,7 +527,7 @@ export function CompaniesPage() {
                   type="color"
                   value={editForm.sidebarColor ?? '#1e293b'}
                   onChange={(e) => updateEdit('sidebarColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
               <Field label="Color acento">
@@ -531,7 +535,7 @@ export function CompaniesPage() {
                   type="color"
                   value={editForm.accentColor ?? '#ab2f2a'}
                   onChange={(e) => updateEdit('accentColor', e.target.value)}
-                  className="h-9 w-full cursor-pointer rounded-lg border border-gray-200"
+                  className="h-9 w-full cursor-pointer rounded-lg border border-border"
                 />
               </Field>
             </div>
@@ -576,7 +580,7 @@ export function CompaniesPage() {
             <button
               type="submit"
               disabled={updateMutation.isPending || !editForm.name?.trim() || (editAddressCollision && !editForm.addressDetail?.trim())}
-              className="mt-2 w-full rounded-lg bg-pa-blue px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-pa-blue-light disabled:opacity-50"
+              className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-[13px] font-medium text-brand-fg transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
               {updateMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
             </button>
@@ -595,8 +599,8 @@ export function CompaniesPage() {
 
 function SectionHeader({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="border-t border-gray-200 pt-4">
-      <p className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-pa-text-muted">
+    <div className="border-t border-border pt-4">
+      <p className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
         {children}
       </p>
     </div>
@@ -606,7 +610,7 @@ function SectionHeader({ children }: Readonly<{ children: React.ReactNode }>) {
 function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <div className="mb-1 block text-[12px] font-medium text-pa-text-muted">{label}</div>
+      <div className="mb-1 block text-[12px] font-medium text-muted">{label}</div>
       {children}
     </div>
   );
@@ -614,12 +618,12 @@ function Field({ label, children }: Readonly<{ label: string; children: React.Re
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

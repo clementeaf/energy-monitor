@@ -1,4 +1,5 @@
 export type MeterPhaseType = 'single_phase' | 'three_phase';
+export type LoadCategory = 'hvac' | 'lighting' | 'tenant' | 'main' | 'other';
 
 export interface Meter {
   id: string;
@@ -20,6 +21,8 @@ export interface Meter {
   nominalVoltage: string | null;
   nominalCurrent: string | null;
   contractedDemandKw: string | null;
+  loadCategory: LoadCategory | null;
+  parentMeterId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +45,8 @@ export interface CreateMeterPayload {
   nominalVoltage?: number;
   nominalCurrent?: number;
   contractedDemandKw?: number;
+  loadCategory?: LoadCategory;
+  parentMeterId?: string;
   tenantId?: string;
 }
 
@@ -61,4 +66,6 @@ export interface UpdateMeterPayload {
   nominalVoltage?: number;
   nominalCurrent?: number;
   contractedDemandKw?: number;
+  loadCategory?: LoadCategory | null;
+  parentMeterId?: string | null;
 }

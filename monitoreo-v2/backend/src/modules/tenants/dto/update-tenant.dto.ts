@@ -1,6 +1,8 @@
 import {
   IsBoolean,
   IsHexColor,
+  IsISO31661Alpha2,
+  IsISO4217CurrencyCode,
   IsObject,
   IsOptional,
   IsString,
@@ -47,6 +49,14 @@ export class UpdateTenantDto {
   @IsString()
   @MaxLength(50)
   timezone?: string;
+
+  @IsOptional()
+  @IsISO31661Alpha2()
+  defaultCountryCode?: string | null;
+
+  @IsOptional()
+  @IsISO4217CurrencyCode()
+  defaultCurrency?: string | null;
 
   @IsOptional()
   @IsString()

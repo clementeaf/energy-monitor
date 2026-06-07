@@ -17,14 +17,40 @@ ALTER TABLE readings SET (
 SELECT add_compression_policy('readings', INTERVAL '7 days');
 
 -- ============================================================
--- 2. READINGS — Retention (drop raw data older than 3 years)
+-- 2. READINGS — Retention (drop raw data older than 5 years — PASA DAT-08)
+-- Compression after 7 days remains compatible with 5y retention (GAP-068).
+-- Application cron must NOT DELETE from readings (GAP-069).
+
+SELECT add_retention_policy('readings', INTERVAL '5 years');
+
+-- ============================================================
+-- 3. READINGS — Continuous Aggregates (15min + hourly + daily)
 -- ============================================================
 
-SELECT add_retention_policy('readings', INTERVAL '3 years');
+-- 15-minute pre-computed aggregate (long-range aggregated API)
+CREATE MATERIALIZED VIEW IF NOT EXISTS readings_15min
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('15 minutes', timestamp) AS bucket,
+    tenant_id,
+    meter_id,
+    AVG(power_kw::double precision)          AS avg_power_kw,
+    MAX(power_kw::double precision)          AS max_power_kw,
+    MIN(power_kw::double precision)          AS min_power_kw,
+    AVG(power_factor::double precision)      AS avg_power_factor,
+    AVG(voltage_l1::double precision)        AS avg_voltage_l1,
+    MAX(energy_kwh_total::double precision)  AS max_energy_kwh_total,
+    MIN(energy_kwh_total::double precision)  AS min_energy_kwh_total,
+    COUNT(*)                                 AS reading_count
+FROM readings
+GROUP BY bucket, tenant_id, meter_id
+WITH NO DATA;
 
--- ============================================================
--- 3. READINGS — Continuous Aggregates (hourly + daily)
--- ============================================================
+SELECT add_continuous_aggregate_policy('readings_15min',
+    start_offset      => INTERVAL '3 days',
+    end_offset        => INTERVAL '15 minutes',
+    schedule_interval => INTERVAL '15 minutes'
+);
 
 -- Hourly pre-computed aggregate
 CREATE MATERIALIZED VIEW IF NOT EXISTS readings_hourly
@@ -91,7 +117,8 @@ ALTER TABLE audit_logs SET (
 -- Compress chunks older than 30 days
 SELECT add_compression_policy('audit_logs', INTERVAL '30 days');
 
--- Keep 5 years (ISO 27001 compliance)
+-- Keep 5 years (ISO 27001 / CYB-10). Application cron must NOT DELETE from audit_logs;
+-- see DataRetentionService (tokens/users only).
 SELECT add_retention_policy('audit_logs', INTERVAL '5 years');
 
 -- ============================================================

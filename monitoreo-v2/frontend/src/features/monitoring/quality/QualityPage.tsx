@@ -10,6 +10,7 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ReadingResolution } from '../../../types/reading';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 // Normative thresholds (Chilean NCh / IEEE 519)
 const THRESHOLDS = {
@@ -85,19 +86,17 @@ export function QualityPage() {
   const meterName = meters.find((m) => m.id === meterId)?.name ?? 'Medidor';
 
   return (
-    <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+    <div className="space-y-6">
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
-        <Link to={`/monitoring/drilldown/${siteId}`} className="hover:text-gray-700">{building?.name ?? 'Sitio'}</Link>
+        <Link to={`/monitoring/drilldown/${siteId}`} className="hover:text-foreground">{building?.name ?? 'Sitio'}</Link>
         <span>/</span>
-        <span className="text-gray-900">Calidad Electrica</span>
+        <span className="text-foreground">Calidad Electrica</span>
       </nav>
 
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Calidad Electrica — {building?.name ?? 'Sitio'}
-        </h1>
+        <PageHeader title={`Calidad eléctrica — ${building?.name ?? 'Sitio'}`} eyebrow="Monitoreo" />
         {meters.length > 0 && (
           <DropdownSelect
             options={meters.map((m) => ({ value: m.id, label: m.name }))}
@@ -112,10 +111,10 @@ export function QualityPage() {
       {readingsQuery.isLoading ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="h-3 w-24 rounded bg-gray-200" />
+            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+              <div className="h-3 w-24 rounded bg-raised" />
               <div className="mt-2 h-6 w-16 rounded bg-gray-300" />
-              <div className="mt-1 h-3 w-20 rounded bg-gray-100" />
+              <div className="mt-1 h-3 w-20 rounded bg-raised" />
             </div>
           ))}
         </div>
@@ -151,8 +150,8 @@ export function QualityPage() {
       {readingsQuery.isLoading ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg border border-gray-200 bg-white p-4">
-              <div className="mb-2 h-4 w-40 animate-pulse rounded bg-gray-200" />
+            <div key={i} className="panel p-4">
+              <div className="mb-2 h-4 w-40 animate-pulse rounded bg-raised" />
               <ChartSkeleton height={192} />
             </div>
           ))}
@@ -246,18 +245,18 @@ export function QualityPage() {
 
       {/* Active quality alerts */}
       {qualityAlerts.length > 0 && (
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+        <div className="max-h-[70vh] overflow-y-auto panel">
+          <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
             Alertas de Calidad Activas
           </h2>
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-border">
             {qualityAlerts.map((a) => (
               <li key={a.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <div className="flex items-center gap-2">
                   <SeverityDot severity={a.severity} />
                   <span>{a.message}</span>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-subtle">
                   {new Date(a.createdAt).toLocaleString('es-CL')}
                 </span>
               </li>
@@ -273,18 +272,18 @@ function ThresholdCard({ label, value, threshold, ok }: {
   label: string; value: string; threshold: string; ok: boolean;
 }) {
   return (
-    <div className={`rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-white ring-gray-200' : 'bg-red-50 ring-red-200'}`}>
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${ok ? 'text-gray-900' : 'text-red-600'}`}>{value}</p>
-      <p className="text-xs text-gray-400">Umbral: {threshold}</p>
+    <div className={`rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-background ring-border' : 'bg-red-50 ring-red-200'}`}>
+      <p className="text-xs font-medium text-muted">{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${ok ? 'text-foreground' : 'text-red-600'}`}>{value}</p>
+      <p className="text-xs text-subtle">Umbral: {threshold}</p>
     </div>
   );
 }
 
 function ChartCard({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="mb-2 text-sm font-medium text-gray-700">{title}</h3>
+    <div className="panel p-4">
+      <h3 className="mb-2 text-sm font-medium text-foreground">{title}</h3>
       {children}
     </div>
   );

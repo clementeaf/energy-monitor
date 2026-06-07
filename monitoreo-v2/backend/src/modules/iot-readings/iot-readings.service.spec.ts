@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { IotReadingsService } from './iot-readings.service';
+import { NormalizationService } from '../../lib/normalization.service';
 
 const TENANT = 't-1';
 const METER = 'm-1';
@@ -16,6 +17,7 @@ describe('IotReadingsService', () => {
     const module = await Test.createTestingModule({
       providers: [
         IotReadingsService,
+        NormalizationService,
         { provide: DataSource, useValue: ds },
       ],
     }).compile();
@@ -96,6 +98,28 @@ describe('IotReadingsService', () => {
       // Verify FILTER syntax used for pivot
       const readingsSql = ds.query.mock.calls[1]?.[0] as string ?? ds.query.mock.calls[0]?.[0] as string;
       expect(readingsSql).toContain('FILTER');
+      expect(readingsSql).not.toContain('/ 1000');
+    });
+
+    it('normalizes W to kW in pivoted rows', async () => {
+      ds.query
+        .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([
+          {
+            time: '2026-01-01',
+            active_power_w: 12500,
+            energy_import_wh: 1000,
+          },
+        ])
+        .mockResolvedValueOnce([{ total: 1 }]);
+
+      const result = await service.getReadings(TENANT, [], METER, '2026-01-01', '2026-01-02', 100);
+
+      expect(result.rows[0]).toMatchObject({
+        time: '2026-01-01',
+        power_kw: 12.5,
+        energy_kwh_total: 1,
+      });
     });
 
     it('returns empty when meter not in scope', async () => {
@@ -139,7 +163,8 @@ describe('IotReadingsService', () => {
       ds.query.mockResolvedValueOnce([{ reading_count: 100, avg_voltage: 230 }]);
 
       const result = await service.getStats(TENANT, [], METER, '2026-01-01', '2026-01-02');
-      expect(result).toEqual({ reading_count: 100, avg_voltage: 230 });
+      expect(result).toMatchObject({ reading_count: 100, avg_voltage: 230 });
+      expect(result).toHaveProperty('avg_power_kw');
     });
   });
 });

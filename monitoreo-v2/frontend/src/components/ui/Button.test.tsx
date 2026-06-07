@@ -38,22 +38,22 @@ describe('Button', () => {
 
   it('applies primary variant by default', () => {
     render(<Button>Primary</Button>);
-    expect(screen.getByRole('button').className).toContain('bg-[var(--color-primary');
+    expect(screen.getByRole('button').className).toContain('bg-brand');
   });
 
   it('applies danger variant', () => {
     render(<Button variant="danger">Delete</Button>);
-    expect(screen.getByRole('button').className).toContain('bg-red-600');
+    expect(screen.getByRole('button').className).toContain('bg-danger');
   });
 
   it('applies secondary variant', () => {
     render(<Button variant="secondary">Cancel</Button>);
-    expect(screen.getByRole('button').className).toContain('border-gray-300');
+    expect(screen.getByRole('button').className).toContain('border-border');
   });
 
   it('applies ghost variant', () => {
     render(<Button variant="ghost">Ghost</Button>);
-    expect(screen.getByRole('button').className).toContain('hover:bg-gray-100');
+    expect(screen.getByRole('button').className).toContain('hover:bg-surface');
   });
 
   it('applies sm size', () => {

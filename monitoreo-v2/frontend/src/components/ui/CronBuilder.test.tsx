@@ -87,6 +87,6 @@ describe('CronBuilder', () => {
   it('highlights active preset button', () => {
     render(<CronBuilder value="0 * * * *" onChange={() => {}} />);
     const btn = screen.getByText('Cada hora');
-    expect(btn.className).toContain('bg-[var(--color-primary');
+    expect(btn.className).toContain('bg-brand');
   });
 });

@@ -24,4 +24,9 @@ export class CreateTenantUnitDto {
   @IsOptional()
   @IsUUID()
   userId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  externalUnitId?: string;
 }

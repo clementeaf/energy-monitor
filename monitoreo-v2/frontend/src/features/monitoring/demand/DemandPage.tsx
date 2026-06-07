@@ -8,6 +8,7 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ReadingResolution } from '../../../types/reading';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const pickResolution = (rangeMs: number): ReadingResolution => {
   if (rangeMs <= 86_400_000) return 'raw';
@@ -125,24 +126,24 @@ export function DemandPage() {
   const peakPct = maxContracted > 0 ? ((peakDemand.value / maxContracted) * 100).toFixed(1) : null;
 
   return (
-    <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+    <div className="space-y-6">
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
-        <Link to={`/monitoring/drilldown/${siteId}`} className="hover:text-gray-700">{building?.name ?? 'Sitio'}</Link>
+        <Link to={`/monitoring/drilldown/${siteId}`} className="hover:text-foreground">{building?.name ?? 'Sitio'}</Link>
         <span>/</span>
-        <span className="text-gray-900">Demanda</span>
+        <span className="text-foreground">Demanda</span>
       </nav>
 
-      <h1 className="text-2xl font-semibold text-gray-900">Demanda — {building?.name ?? 'Sitio'}</h1>
+      <PageHeader title={`Demanda — ${building?.name ?? 'Sitio'}`} eyebrow="Monitoreo" />
 
       {metersQuery.isPending ? (
         <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="h-3 w-20 rounded bg-gray-200" />
-              <div className="mt-2 h-6 w-24 rounded bg-gray-200" />
-              <div className="mt-1 h-3 w-16 rounded bg-gray-200" />
+            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+              <div className="h-3 w-20 rounded bg-raised" />
+              <div className="mt-2 h-6 w-24 rounded bg-raised" />
+              <div className="mt-1 h-3 w-16 rounded bg-raised" />
             </div>
           ))}
         </div>
@@ -159,8 +160,8 @@ export function DemandPage() {
       )}
 
       {aggQs.phase === 'loading' ? (
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
-          <div className="h-64 w-full rounded bg-gray-200" />
+        <div className="animate-pulse panel p-4">
+          <div className="h-64 w-full rounded bg-raised" />
         </div>
       ) : (
       <DataWidget
@@ -179,12 +180,12 @@ export function DemandPage() {
       )}
 
       {topPeaks.length > 0 && (
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-          <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+        <div className="max-h-[70vh] overflow-y-auto panel">
+          <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
             Top 10 Peaks
           </h2>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-gray-50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="sticky top-0 z-10 bg-surface">
               <tr>
                 <Th>#</Th>
                 <Th>Potencia Max (kW)</Th>
@@ -198,7 +199,7 @@ export function DemandPage() {
               emptyMessage="Sin peaks registrados."
             >
               {topPeaks.map((p, i) => (
-                <tr key={p.bucket} className="hover:bg-gray-50">
+                <tr key={p.bucket} className="hover:bg-surface">
                   <Td>{i + 1}</Td>
                   <Td className="font-medium">{p.maxPower.toFixed(1)}</Td>
                   <Td>{new Date(p.bucket).toLocaleString('es-CL')}</Td>
@@ -221,22 +222,22 @@ export function DemandPage() {
 
 function Card({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{title}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-400">{sub}</p>
+    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+      <p className="text-xs font-medium text-muted">{title}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+      <p className="text-xs text-subtle">{sub}</p>
     </div>
   );
 }
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

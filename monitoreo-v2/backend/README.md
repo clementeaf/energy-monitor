@@ -4,16 +4,34 @@ NestJS 11 + TypeORM + TimescaleDB (PostgreSQL 16). Multi-tenant, ISO 27001.
 
 ## Quick Start
 
-```bash
-# Docker DB
-docker run -d --name pg-arauco -p 5434:5432 -e POSTGRES_PASSWORD=arauco -e POSTGRES_DB=arauco timescale/timescaledb:latest-pg16
+**Recommended:** DB in Docker, NestJS on the host with hot reload. See [docs/deploy.md](../docs/deploy.md) for both local workflows.
 
-# Install & run
+```bash
+# 1 — Database (docker compose)
+cd monitoreo-v2
+docker compose up -d timescaledb
+
+# 2 — Backend (host)
+cd backend
+cp .env.example .env
 npm ci
 npm run start:dev   # http://localhost:4000
+
+# 3 — Tests
 npm run test        # 656+ tests, 61 suites
 npm run test:cov    # coverage (80% threshold)
 ```
+
+**Optional:** `docker compose up --build` runs DB + API in containers (production image, no watch). Frontend still runs with `npm run dev` on the host.
+
+### Local DB credentials
+
+| Setup | `DB_NAME` | `DB_PASSWORD` | Container |
+|-------|-----------|---------------|-----------|
+| docker compose (default) | `monitoreo_v2` | `monitoreo2026` | `monitoreo-v2-db` |
+| legacy `docker run pg-arauco` | `arauco` | `arauco` | `pg-arauco` |
+
+Both expose port **5434** on the host. Init SQL in `../database/init/` runs automatically with compose; run manually for a fresh legacy container (see deploy.md).
 
 ## Environment Variables
 
@@ -21,9 +39,9 @@ npm run test:cov    # coverage (80% threshold)
 |---|---|---|---|
 | `DB_HOST` | yes (prod) | `127.0.0.1` | Database host |
 | `DB_PORT` | no | `5434` | Database port |
-| `DB_NAME` | no | `arauco` | Database name |
+| `DB_NAME` | no | `monitoreo_v2` | Database name (`arauco` if using legacy `pg-arauco` container) |
 | `DB_USERNAME` | no | `postgres` | Database user |
-| `DB_PASSWORD` | yes (prod) | `arauco` | Database password |
+| `DB_PASSWORD` | yes (prod) | `monitoreo2026` | Database password (`arauco` with legacy container) |
 | `JWT_SECRET` | yes (prod) | — | Secret for JWT signing |
 | `COOKIE_SECRET` | yes (prod) | — | Secret for cookie signing |
 | `FRONTEND_URL` | yes (prod) | — | CORS origin |

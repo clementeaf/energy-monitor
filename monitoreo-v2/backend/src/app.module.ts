@@ -6,6 +6,7 @@ import { ThrottlerModule, ThrottlerGuard, type ThrottlerModuleOptions } from '@n
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
+import { DatabaseModule } from './database/database.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { TenantOverrideInterceptor } from './common/interceptors/tenant-override.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -13,9 +14,11 @@ import { PermissionsGuard } from './common/guards/permissions.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
+import { UserImportModule } from './modules/user-import/user-import.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { BuildingsModule } from './modules/buildings/buildings.module';
+import { RegionsModule } from './modules/regions/regions.module';
 import { MetersModule } from './modules/meters/meters.module';
 import { AlertsModule } from './modules/alerts/alerts.module';
 import { ReadingsModule } from './modules/readings/readings.module';
@@ -30,10 +33,16 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { ExternalApiModule } from './modules/external-api/external-api.module';
+import { IngestModule } from './modules/ingest/ingest.module';
 import { IotReadingsModule } from './modules/iot-readings/iot-readings.module';
 import { PlatformDashboardModule } from './modules/platform-dashboard/platform-dashboard.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
 import { RectificationRequestsModule } from './modules/rectification-requests/rectification-requests.module';
+import { EtlExportModule } from './modules/etl-export/etl-export.module';
+import { RegisterMappingsModule } from './modules/register-mappings/register-mappings.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { DataGovernanceModule } from './modules/data-governance/data-governance.module';
+import { OAuthClientsModule } from './modules/oauth-clients/oauth-clients.module';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
@@ -50,6 +59,7 @@ import { HealthController } from './health.controller';
     ScheduleModule.forRoot(),
 
     // Database
+    DatabaseModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -78,9 +88,11 @@ import { HealthController } from './health.controller';
     AuthModule,
     TenantsModule,
     UsersModule,
+    UserImportModule,
     RolesModule,
     PlatformModule,
     BuildingsModule,
+    RegionsModule,
     MetersModule,
     AlertsModule,
     ReadingsModule,
@@ -95,10 +107,16 @@ import { HealthController } from './health.controller';
     IntegrationsModule,
     ApiKeysModule,
     ExternalApiModule,
+    IngestModule,
     IotReadingsModule,
     PlatformDashboardModule,
     DeletionRequestsModule,
     RectificationRequestsModule,
+    EtlExportModule,
+    RegisterMappingsModule,
+    WebhooksModule,
+    DataGovernanceModule,
+    OAuthClientsModule,
   ],
   controllers: [HealthController],
   providers: [

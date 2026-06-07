@@ -68,9 +68,9 @@ Routes define paths, endpoints define Axios calls, hooks wrap in TanStack Query.
 - No tokens in localStorage/sessionStorage
 
 ### Multi-Tenant Theming
-- CSS variables: `--color-primary`, `--color-secondary`, `--color-sidebar`, `--color-accent`
-- `applyTenantTheme()` sets vars + document.title + favicon from tenant config
-- `[data-theme]` attribute on `<html>` for theme-specific overrides
+- Semantic tokens in `@theme` (`--color-brand`, `--color-sidebar`, etc.) with defaults for Globe Power
+- `applyTenantTheme()` injects brand + chrome vars from tenant API at runtime (`deriveBrandTokens`)
+- Tailwind utilities: `bg-brand`, `text-foreground`, `border-border`, `bg-sidebar`, etc.
 
 ### Routing
 - `app/routes.ts` defines all paths

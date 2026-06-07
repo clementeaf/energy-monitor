@@ -3,6 +3,7 @@ import { useQueryState } from '../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { ALERT_TYPE_LABELS } from '../../types/alert-engine';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-red-100 text-red-800',
@@ -36,15 +37,15 @@ export function EscalationPage() {
   const { visible: visibleAlerts, hasMore, sentinelRef, total } = useInfiniteScroll(openAlerts, [query.data, ackQuery.data]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Escalamiento y SLA</h1>
+    <div className="space-y-6">
+      <PageHeader title="Escalamiento y SLA" eyebrow="Alertas" />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {['critical', 'high', 'medium', 'low'].map((sev) => {
           const count = openAlerts.filter((a) => a.severity === sev).length;
           return (
-            <div key={sev} className="rounded-lg border border-gray-200 bg-white p-4 text-center">
-              <div className="text-3xl font-bold text-gray-900">{count}</div>
+            <div key={sev} className="panel p-4 text-center">
+              <div className="text-3xl font-bold text-foreground">{count}</div>
               <span className={`inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[sev]}`}>
                 {sev}
               </span>
@@ -53,16 +54,16 @@ export function EscalationPage() {
         })}
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-border">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Mensaje</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Estado</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Tiempo Abierta</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Valor / Umbral</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Tipo</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Mensaje</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Severidad</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Estado</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Tiempo Abierta</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Valor / Umbral</th>
             </tr>
           </thead>
           <TableStateBody
@@ -84,13 +85,13 @@ export function EscalationPage() {
                       {alert.severity}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{alert.status}</td>
+                  <td className="px-4 py-3 text-xs text-muted">{alert.status}</td>
                   <td className="px-4 py-3 font-mono text-xs">
-                    <span className={mins > 1440 ? 'text-red-600 font-bold' : mins > 120 ? 'text-orange-600' : 'text-gray-600'}>
+                    <span className={mins > 1440 ? 'text-red-600 font-bold' : mins > 120 ? 'text-orange-600' : 'text-muted'}>
                       {formatDuration(mins)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
+                  <td className="px-4 py-3 text-xs text-muted">
                     {alert.triggeredValue !== null ? alert.triggeredValue : '—'} / {alert.thresholdValue !== null ? alert.thresholdValue : '—'}
                   </td>
                 </tr>
@@ -100,7 +101,7 @@ export function EscalationPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
 
     </div>
   );

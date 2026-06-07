@@ -17,6 +17,7 @@ import {
   useDeleteTariffBlock,
 } from '../../hooks/queries/useTariffsQuery';
 import type { Tariff, CreateTariffPayload, UpdateTariffPayload, CreateTariffBlockPayload } from '../../types/tariff';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 export function TariffsPage() {
   const [buildingFilter, setBuildingFilter] = useState<string>('');
@@ -75,7 +76,7 @@ export function TariffsPage() {
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Tarifas</h1>
+        <PageHeader title="Tarifas" eyebrow="Facturación" />
         <div className="flex items-center gap-3">
           <DropdownSelect
             options={[
@@ -90,7 +91,7 @@ export function TariffsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
             >
               + Nueva Tarifa
             </button>
@@ -98,10 +99,10 @@ export function TariffsPage() {
         </div>
       </div>
 
-      <div className="overflow-auto rounded-lg border border-gray-200">
+      <div className="overflow-auto rounded-lg border border-border">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Vigencia</th>
               <th className="px-4 py-3">Estado</th>
@@ -132,13 +133,13 @@ export function TariffsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTariffs.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTariffs.length} de {total}</p>}
 
       <Modal open={formOpen} onClose={closeForm} title={editing ? 'Editar Tarifa' : 'Nueva Tarifa'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {!editing && (
             <div>
-              <div className="mb-1 block text-sm font-medium text-gray-700">Edificio</div>
+              <div className="mb-1 block text-sm font-medium text-foreground">Edificio</div>
               <DropdownSelect
                 options={[
                   { value: '', label: 'Seleccionar...' },
@@ -151,17 +152,17 @@ export function TariffsPage() {
             </div>
           )}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Nombre</label>
-            <input name="name" required defaultValue={editing?.name ?? ''} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            <label className="mb-1 block text-sm font-medium text-foreground">Nombre</label>
+            <input name="name" required defaultValue={editing?.name ?? ''} className="w-full rounded-md border border-border px-3 py-2 text-sm" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Desde</label>
-              <input name="effectiveFrom" type="date" required defaultValue={editing?.effectiveFrom ?? ''} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+              <label className="mb-1 block text-sm font-medium text-foreground">Desde</label>
+              <input name="effectiveFrom" type="date" required defaultValue={editing?.effectiveFrom ?? ''} className="w-full rounded-md border border-border px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Hasta</label>
-              <input name="effectiveTo" type="date" defaultValue={editing?.effectiveTo ?? ''} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+              <label className="mb-1 block text-sm font-medium text-foreground">Hasta</label>
+              <input name="effectiveTo" type="date" defaultValue={editing?.effectiveTo ?? ''} className="w-full rounded-md border border-border px-3 py-2 text-sm" />
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -169,10 +170,10 @@ export function TariffsPage() {
             Activa
           </label>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={closeForm} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <button type="button" onClick={closeForm} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface">
               Cancelar
             </button>
-            <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+            <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50">
               {editing ? 'Guardar' : 'Crear'}
             </button>
           </div>
@@ -208,31 +209,31 @@ function TariffRow({
 }) {
   return (
     <>
-      <tr className="hover:bg-gray-50">
-        <td className="px-4 py-3 font-medium text-gray-900">{tariff.name}</td>
-        <td className="px-4 py-3 text-gray-600">
+      <tr className="hover:bg-surface">
+        <td className="px-4 py-3 font-medium text-foreground">{tariff.name}</td>
+        <td className="px-4 py-3 text-muted">
           {tariff.effectiveFrom}{tariff.effectiveTo ? ` — ${tariff.effectiveTo}` : ' — vigente'}
         </td>
         <td className="px-4 py-3">
-          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tariff.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tariff.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'}`}>
             {tariff.isActive ? 'Activa' : 'Inactiva'}
           </span>
         </td>
         <td className="px-4 py-3">
-          <button type="button" onClick={onToggle} className="text-sm text-[var(--color-primary,#3D3BF3)] hover:underline">
+          <button type="button" onClick={onToggle} className="text-sm text-brand hover:underline">
             {expanded ? 'Ocultar' : 'Ver bloques'}
           </button>
         </td>
         {canWrite && (
           <td className="px-4 py-3 text-right">
-            <button type="button" onClick={onEdit} className="mr-2 text-sm text-gray-500 hover:text-gray-700">Editar</button>
+            <button type="button" onClick={onEdit} className="mr-2 text-sm text-muted hover:text-foreground">Editar</button>
             <button type="button" onClick={onDelete} className="text-sm text-red-500 hover:text-red-700">Eliminar</button>
           </td>
         )}
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={canWrite ? 5 : 4} className="bg-gray-50 px-4 py-3">
+          <td colSpan={canWrite ? 5 : 4} className="bg-surface px-4 py-3">
             <TariffBlocksPanel tariffId={tariff.id} canWrite={canWrite} />
           </td>
         </tr>
@@ -262,7 +263,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
     createBlock.mutate({ tariffId, payload }, { onSuccess: () => setAddOpen(false) });
   };
 
-  if (blocksQuery.isPending) return <p className="text-sm text-gray-400">Cargando bloques...</p>;
+  if (blocksQuery.isPending) return <p className="text-sm text-subtle">Cargando bloques...</p>;
   if (blocksQuery.isError) return <p className="text-sm text-red-500">Error cargando bloques</p>;
 
   const blocks = blocksQuery.data ?? [];
@@ -270,34 +271,34 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase text-gray-500">Bloques Horarios</span>
+        <span className="text-xs font-medium uppercase text-muted">Bloques Horarios</span>
         {canWrite && (
-          <button type="button" onClick={() => setAddOpen(!addOpen)} className="text-xs text-[var(--color-primary,#3D3BF3)] hover:underline">
+          <button type="button" onClick={() => setAddOpen(!addOpen)} className="text-xs text-brand hover:underline">
             {addOpen ? 'Cancelar' : '+ Agregar bloque'}
           </button>
         )}
       </div>
 
       {addOpen && (
-        <form onSubmit={handleAddBlock} className="grid grid-cols-2 gap-2 rounded border border-gray-200 bg-white p-3 lg:grid-cols-7">
-          <input name="blockName" placeholder="Nombre (ej: punta)" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <input name="hourStart" type="number" min={0} max={23} placeholder="H inicio" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <input name="hourEnd" type="number" min={0} max={23} placeholder="H fin" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <input name="energyRate" type="number" step="0.0001" placeholder="$/kWh" required className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <input name="demandRate" type="number" step="0.0001" placeholder="$/kW" className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <input name="reactiveRate" type="number" step="0.0001" placeholder="$/kVArh" className="rounded border border-gray-300 px-2 py-1 text-xs" />
-          <button type="submit" disabled={createBlock.isPending} className="rounded bg-[var(--color-primary,#3D3BF3)] px-2 py-1 text-xs text-white hover:opacity-90 disabled:opacity-50">
+        <form onSubmit={handleAddBlock} className="grid grid-cols-2 gap-2 rounded border border-border bg-background p-3 lg:grid-cols-7">
+          <input name="blockName" placeholder="Nombre (ej: punta)" required className="rounded border border-border px-2 py-1 text-xs" />
+          <input name="hourStart" type="number" min={0} max={23} placeholder="H inicio" required className="rounded border border-border px-2 py-1 text-xs" />
+          <input name="hourEnd" type="number" min={0} max={23} placeholder="H fin" required className="rounded border border-border px-2 py-1 text-xs" />
+          <input name="energyRate" type="number" step="0.0001" placeholder="$/kWh" required className="rounded border border-border px-2 py-1 text-xs" />
+          <input name="demandRate" type="number" step="0.0001" placeholder="$/kW" className="rounded border border-border px-2 py-1 text-xs" />
+          <input name="reactiveRate" type="number" step="0.0001" placeholder="$/kVArh" className="rounded border border-border px-2 py-1 text-xs" />
+          <button type="submit" disabled={createBlock.isPending} className="rounded-full bg-brand px-2 py-1 text-xs text-brand-fg hover:opacity-90 disabled:opacity-50">
             Crear
           </button>
         </form>
       )}
 
       {blocks.length === 0 ? (
-        <p className="text-sm text-gray-400">Sin bloques configurados</p>
+        <p className="text-sm text-subtle">Sin bloques configurados</p>
       ) : (
         <table className="w-full text-xs">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="text-left text-gray-500">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr className="text-left text-muted">
               <th className="pb-1">Bloque</th>
               <th className="pb-1">Horario</th>
               <th className="pb-1 text-right">$/kWh</th>
@@ -307,7 +308,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
               {canWrite && <th className="pb-1 text-right">Acciones</th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {blocks.map((b) => (
               <tr key={b.id}>
                 <td className="py-1 font-medium">{b.blockName}</td>

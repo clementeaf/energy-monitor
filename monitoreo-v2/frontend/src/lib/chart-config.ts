@@ -8,21 +8,30 @@ const cssVar = (name: string, fallback: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
 export const getColors = () => ({
-  primary: cssVar('--color-primary', '#3D3BF3'),
-  secondary: cssVar('--color-secondary', '#1E1E2F'),
-  text: cssVar('--color-chart-text', '#1F2937'),
-  textMuted: cssVar('--color-chart-text-muted', '#6B7280'),
-  border: cssVar('--color-chart-border', '#E5E7EB'),
-  grid: cssVar('--color-chart-grid', '#F3F4F6'),
+  primary: cssVar('--color-chart-1', cssVar('--color-brand', '#3a5b1e')),
+  secondary: cssVar('--color-chart-2', cssVar('--color-brand-hover', '#272628')),
+  text: cssVar('--color-chart-text', '#0a0a0a'),
+  textMuted: cssVar('--color-chart-text-muted', '#6b6b6b'),
+  border: cssVar('--color-chart-border', '#e5e5e5'),
+  grid: cssVar('--color-chart-grid', '#fafafa'),
   bg: cssVar('--color-chart-bg', '#ffffff'),
 });
 
 export const getSeriesColors = (): string[] => {
   const c = getColors();
   return [
-    c.primary, '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1',
-    '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#10B981',
-    '#A855F7', '#EF4444',
+    c.primary,
+    cssVar('--color-chart-3', '#6366f1'),
+    cssVar('--color-chart-4', '#8b5cf6'),
+    cssVar('--color-danger', '#ef4444'),
+    cssVar('--color-success', '#10b981'),
+    cssVar('--color-warning', '#f59e0b'),
+    '#ec4899',
+    '#14b8a6',
+    '#f97316',
+    c.secondary,
+    '#a855f7',
+    cssVar('--color-info', '#3b82f6'),
   ];
 };
 

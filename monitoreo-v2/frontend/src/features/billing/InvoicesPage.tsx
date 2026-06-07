@@ -19,6 +19,7 @@ import {
 } from '../../hooks/queries/useInvoicesQuery';
 import { invoicesEndpoints } from '../../services/endpoints';
 import type { Invoice, InvoiceStatus, InvoiceQueryParams, GenerateInvoicePayload } from '../../types/invoice';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 export interface InvoicesPageProps {
   /** Pre-filter by status when mounted from /billing/approve or /billing/history */
@@ -26,7 +27,7 @@ export interface InvoicesPageProps {
 }
 
 const STATUS_BADGE: Record<InvoiceStatus, string> = {
-  draft: 'bg-gray-100 text-gray-600',
+  draft: 'bg-raised text-muted',
   pending: 'bg-yellow-100 text-yellow-700',
   approved: 'bg-green-100 text-green-700',
   sent: 'bg-blue-100 text-blue-700',
@@ -103,7 +104,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
       yAxis: { title: { text: 'CLP' } },
       tooltip: { shared: true, valuePrefix: '$', valueDecimals: 0 },
       series: [
-        { type: 'column' as const, name: 'Neto', data: sorted.map(([, v]) => v.net), color: 'var(--color-primary, #3D3BF3)' },
+        { type: 'column' as const, name: 'Neto', data: sorted.map(([, v]) => v.net), color: 'var(--color-chart-1, #3a5b1e)' },
         { type: 'line' as const, name: 'Total (c/IVA)', data: sorted.map(([, v]) => v.total), color: '#f59e0b' },
       ],
     };
@@ -144,7 +145,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Facturas</h1>
+        <PageHeader title="Facturas" eyebrow="Facturación" />
         <div className="flex items-center gap-3">
           <DropdownSelect
             options={[
@@ -159,7 +160,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             <button
               type="button"
               onClick={() => setGenerateOpen(true)}
-              className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
             >
               Generar Factura
             </button>
@@ -182,8 +183,8 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             onClick={() => setStatusTab(tab.value)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               statusTab === tab.value
-                ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
-                : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+                ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                : 'border border-border text-muted hover:bg-surface'
             }`}
           >
             {tab.label}
@@ -194,8 +195,8 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         ))}
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="mb-2 text-sm font-medium text-gray-700">Evolución mensual</h2>
+      <div className="panel p-4">
+        <h2 className="mb-2 text-sm font-medium text-foreground">Evolución mensual</h2>
         {invoicesQuery.isLoading ? (
           <ChartSkeleton height={260} />
         ) : monthlyChartOptions ? (
@@ -203,10 +204,10 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         ) : null}
       </div>
 
-      <div className="overflow-auto rounded-lg border border-gray-200">
+      <div className="overflow-auto rounded-lg border border-border">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-4 py-3">N° Factura</th>
               <th className="px-4 py-3">Periodo</th>
               <th className="px-4 py-3">Estado</th>
@@ -296,9 +297,9 @@ function InvoiceRow({
   onDelete: () => void;
 }) {
   return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-4 py-3 font-medium text-gray-900">{invoice.invoiceNumber}</td>
-      <td className="px-4 py-3 text-gray-600">
+    <tr className="hover:bg-surface">
+      <td className="px-4 py-3 font-medium text-foreground">{invoice.invoiceNumber}</td>
+      <td className="px-4 py-3 text-muted">
         {invoice.periodStart} — {invoice.periodEnd}
       </td>
       <td className="px-4 py-3">
@@ -306,16 +307,16 @@ function InvoiceRow({
           {STATUS_LABEL[invoice.status]}
         </span>
       </td>
-      <td className="px-4 py-3 text-right font-mono text-gray-700">{fmtCurrency(invoice.totalNet)}</td>
-      <td className="px-4 py-3 text-right font-mono text-gray-700">{fmtCurrency(invoice.taxAmount)}</td>
-      <td className="px-4 py-3 text-right font-mono font-semibold text-gray-900">{fmtCurrency(invoice.total)}</td>
+      <td className="px-4 py-3 text-right font-mono text-foreground">{fmtCurrency(invoice.totalNet)}</td>
+      <td className="px-4 py-3 text-right font-mono text-foreground">{fmtCurrency(invoice.taxAmount)}</td>
+      <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">{fmtCurrency(invoice.total)}</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
           <a
             href={invoicesEndpoints.pdfUrl(invoice.id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted hover:text-foreground"
             title="Descargar PDF"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -325,7 +326,7 @@ function InvoiceRow({
           <button
             type="button"
             onClick={onPreview}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted hover:text-foreground"
             title="Previsualizar PDF"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -384,7 +385,7 @@ function GenerateModal({
     <Modal open onClose={onClose} title="Generar Factura">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <div className="mb-1 block text-sm font-medium text-gray-700">Edificio</div>
+          <div className="mb-1 block text-sm font-medium text-foreground">Edificio</div>
           <DropdownSelect
             options={[
               { value: '', label: 'Seleccionar...' },
@@ -396,7 +397,7 @@ function GenerateModal({
           />
         </div>
         <div>
-          <div className="mb-1 block text-sm font-medium text-gray-700">Tarifa</div>
+          <div className="mb-1 block text-sm font-medium text-foreground">Tarifa</div>
           <DropdownSelect
             options={[
               { value: '', label: 'Seleccionar...' },
@@ -409,22 +410,22 @@ function GenerateModal({
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Desde</label>
-            <input name="periodStart" type="date" required className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            <label className="mb-1 block text-sm font-medium text-foreground">Desde</label>
+            <input name="periodStart" type="date" required className="w-full rounded-md border border-border px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Hasta</label>
-            <input name="periodEnd" type="date" required className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            <label className="mb-1 block text-sm font-medium text-foreground">Hasta</label>
+            <input name="periodEnd" type="date" required className="w-full rounded-md border border-border px-3 py-2 text-sm" />
           </div>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-subtle">
           Se generará una factura con un line item por cada medidor activo del edificio, calculando consumo, demanda y cargos según los bloques de la tarifa seleccionada.
         </p>
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <button type="button" onClick={onClose} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface">
             Cancelar
           </button>
-          <button type="submit" disabled={isPending} className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+          <button type="submit" disabled={isPending} className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50">
             {isPending ? 'Generando...' : 'Generar'}
           </button>
         </div>

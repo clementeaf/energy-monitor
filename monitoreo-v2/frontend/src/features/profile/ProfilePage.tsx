@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { authEndpoints } from '../../services/endpoints';
 import { MfaSection } from '../admin/settings/MfaSection';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 /**
  * User profile page — Ley 21.719 ARCO+ rights:
@@ -73,29 +74,28 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Mi Perfil</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Información personal almacenada en la plataforma. Conforme a la Ley 21.719, puedes ejercer tus derechos ARCO+ desde esta página.
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        title="Mi perfil"
+        eyebrow="Cuenta"
+        description="Información personal y derechos ARCO+ conforme a la Ley 21.719."
+      />
 
       {/* Personal data */}
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="font-medium text-gray-900">Datos Personales</h2>
+      <div className="panel">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="font-medium text-foreground">Datos Personales</h2>
         </div>
-        <dl className="divide-y divide-gray-100">
+        <dl className="divide-y divide-border">
           {info.map(({ label, value }) => (
             <div key={label} className="flex items-center justify-between px-6 py-3">
-              <dt className="text-sm font-medium text-gray-500">{label}</dt>
-              <dd className="text-sm text-gray-900">{value}</dd>
+              <dt className="text-sm font-medium text-muted">{label}</dt>
+              <dd className="text-sm text-foreground">{value}</dd>
             </div>
           ))}
           {/* Inline edit for name (ARCO+ rectification) */}
           <div className="flex items-center justify-between px-6 py-3">
-            <dt className="text-sm font-medium text-gray-500">Rectificación</dt>
+            <dt className="text-sm font-medium text-muted">Rectificación</dt>
             <dd>
               {editingName ? (
                 <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export function ProfilePage() {
                     type="text"
                     value={nameValue}
                     onChange={(e) => setNameValue(e.target.value)}
-                    className="w-48 rounded-md border border-gray-300 px-2 py-1 text-sm"
+                    className="w-48 rounded-md border border-border px-2 py-1 text-sm"
                     placeholder="Nuevo nombre"
                     autoFocus
                   />
@@ -111,14 +111,14 @@ export function ProfilePage() {
                     type="button"
                     onClick={() => updateNameMutation.mutate(nameValue)}
                     disabled={updateNameMutation.isPending || nameValue.length < 2}
-                    className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                    className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
                   >
                     Guardar
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingName(false)}
-                    className="text-xs text-gray-500 hover:text-gray-700"
+                    className="text-xs text-muted hover:text-foreground"
                   >
                     Cancelar
                   </button>
@@ -127,7 +127,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => { setNameValue(user.displayName ?? ''); setEditingName(true); }}
-                  className="text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:opacity-80"
+                  className="text-sm font-medium text-brand hover:opacity-80"
                 >
                   Editar nombre
                 </button>
@@ -141,20 +141,20 @@ export function ProfilePage() {
       <MfaSection />
 
       {/* ARCO+ actions */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 font-medium text-gray-900">Derechos ARCO+</h2>
+      <div className="panel p-6">
+        <h2 className="mb-4 font-medium text-foreground">Derechos ARCO+</h2>
         <div className="space-y-3">
           {/* Portability — download data */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-700">Portabilidad de datos</p>
-              <p className="text-xs text-gray-500">Descarga todos tus datos personales en formato JSON</p>
+              <p className="text-sm font-medium text-foreground">Portabilidad de datos</p>
+              <p className="text-xs text-muted">Descarga todos tus datos personales en formato JSON</p>
             </div>
             <button
               type="button"
               onClick={() => exportMutation.mutate()}
               disabled={exportMutation.isPending}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface disabled:opacity-50"
             >
               {exportMutation.isPending ? 'Descargando...' : 'Descargar mis datos'}
             </button>
@@ -163,8 +163,8 @@ export function ProfilePage() {
           {/* Rectification — email change request */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Rectificación de email</p>
-              <p className="text-xs text-gray-500">Solicita el cambio de tu correo electrónico (requiere aprobación admin)</p>
+              <p className="text-sm font-medium text-foreground">Rectificación de email</p>
+              <p className="text-xs text-muted">Solicita el cambio de tu correo electrónico (requiere aprobación admin)</p>
             </div>
             <button
               type="button"
@@ -175,7 +175,7 @@ export function ProfilePage() {
                   alert('Solicitud enviada. Un administrador la revisará en 15 días hábiles.');
                 }
               }}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
             >
               Solicitar cambio
             </button>
@@ -184,8 +184,8 @@ export function ProfilePage() {
           {/* Opposition */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Oposición al tratamiento</p>
-              <p className="text-xs text-gray-500">Oponerte al procesamiento de tus datos. Esto bloqueará tu acceso a la plataforma.</p>
+              <p className="text-sm font-medium text-foreground">Oposición al tratamiento</p>
+              <p className="text-xs text-muted">Oponerte al procesamiento de tus datos. Esto bloqueará tu acceso a la plataforma.</p>
             </div>
             <button
               type="button"
@@ -206,8 +206,8 @@ export function ProfilePage() {
           {/* Blocking */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Bloqueo temporal</p>
-              <p className="text-xs text-gray-500">Suspender temporalmente el procesamiento de tus datos mientras se resuelve una disputa</p>
+              <p className="text-sm font-medium text-foreground">Bloqueo temporal</p>
+              <p className="text-xs text-muted">Suspender temporalmente el procesamiento de tus datos mientras se resuelve una disputa</p>
             </div>
             <button
               type="button"
@@ -227,8 +227,8 @@ export function ProfilePage() {
           {/* Automated decisions opt-out */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Decisiones automatizadas</p>
-              <p className="text-xs text-gray-500">Excluirte de notificaciones y escalamientos automatizados de alertas</p>
+              <p className="text-sm font-medium text-foreground">Decisiones automatizadas</p>
+              <p className="text-xs text-muted">Excluirte de notificaciones y escalamientos automatizados de alertas</p>
             </div>
             <button
               type="button"
@@ -243,7 +243,7 @@ export function ProfilePage() {
               className={`rounded-md border px-4 py-2 text-sm font-medium ${
                 user.optOutAutomatedDecisions
                   ? 'border-green-300 text-green-700 hover:bg-green-50'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : 'border-border text-foreground hover:bg-surface'
               }`}
             >
               {user.optOutAutomatedDecisions ? 'Reactivar' : 'Excluirme'}
@@ -253,8 +253,8 @@ export function ProfilePage() {
           {/* Cancellation — request deletion */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Cancelación de cuenta</p>
-              <p className="text-xs text-gray-500">Solicita la eliminación de tu cuenta y datos personales</p>
+              <p className="text-sm font-medium text-foreground">Cancelación de cuenta</p>
+              <p className="text-xs text-muted">Solicita la eliminación de tu cuenta y datos personales</p>
             </div>
             <button
               type="button"
@@ -274,24 +274,24 @@ export function ProfilePage() {
       </div>
 
       {/* Privacy info + consent revocation */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-2 font-medium text-gray-900">Política de Privacidad</h2>
-        <p className="text-sm text-gray-500">
+      <div className="panel p-6">
+        <h2 className="mb-2 font-medium text-foreground">Política de Privacidad</h2>
+        <p className="text-sm text-muted">
           Tu aceptación de la política de privacidad fue registrada. Para consultas sobre el tratamiento de datos
           personales, contacta a <strong>privacidad@globepower.cl</strong>.
         </p>
-        <p className="mt-2 text-sm text-gray-500">
-          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-medium text-[var(--color-primary,#3D3BF3)] hover:opacity-80">
+        <p className="mt-2 text-sm text-muted">
+          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:opacity-80">
             Ver política de privacidad completa
           </a>
         </p>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-subtle">
           Plazo de respuesta: 15 días hábiles conforme a la Ley 21.719.
         </p>
         <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
           <div>
-            <p className="text-sm font-medium text-gray-700">Revocar consentimiento</p>
-            <p className="text-xs text-gray-500">Retira tu consentimiento al tratamiento de datos. Tu sesión será terminada.</p>
+            <p className="text-sm font-medium text-foreground">Revocar consentimiento</p>
+            <p className="text-xs text-muted">Retira tu consentimiento al tratamiento de datos. Tu sesión será terminada.</p>
           </div>
           <button
             type="button"
@@ -313,24 +313,24 @@ export function ProfilePage() {
       {/* Deletion confirmation dialog */}
       {deleteOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-900">Solicitar Eliminación de Cuenta</h3>
-            <p className="mt-2 text-sm text-gray-600">
+          <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+            <h3 className="text-2xl font-semibold tracking-tight text-foreground">Solicitar Eliminación de Cuenta</h3>
+            <p className="mt-2 text-sm text-muted">
               Esta acción enviará una solicitud de eliminación a tu administrador.
               Una vez aprobada, tus datos personales serán anonimizados de forma irreversible.
             </p>
-            <p className="mt-2 text-xs text-gray-400">
+            <p className="mt-2 text-xs text-subtle">
               Los registros de auditoría se conservarán de forma anonimizada por requisitos de seguridad (ISO 27001).
             </p>
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-foreground">
                 Motivo (opcional)
               </label>
               <textarea
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
                 rows={2}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
                 placeholder="Indica por qué deseas eliminar tu cuenta..."
               />
             </div>
@@ -338,7 +338,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => { setDeleteOpen(false); setDeleteReason(''); }}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
               >
                 Cancelar
               </button>

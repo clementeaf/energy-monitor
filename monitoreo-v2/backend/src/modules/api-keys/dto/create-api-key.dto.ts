@@ -31,6 +31,12 @@ export class CreateApiKeyDto {
   @Min(1)
   rateLimitPerMinute?: number;
 
+  /** Optional higher limit for POST /v1/measurements. Default: rateLimit × 5 (min 300). */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  ingressRateLimitPerMinute?: number;
+
   /** ISO 8601 date. Null/omitted = never expires. */
   @IsOptional()
   @IsDateString()

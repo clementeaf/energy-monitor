@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { Drawer } from '../../components/ui/Drawer';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { PillToggle } from '../../components/ui/PillToggle';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../hooks/queries/useAlertsQuery';
@@ -111,33 +113,24 @@ export function AlertsPage() {
   if (needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-pa-text-muted">Selecciona un operador en la barra lateral para ver alertas.</p>
+        <p className="text-sm text-muted">Selecciona un operador en la barra lateral para ver alertas.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      {/* Status tabs */}
-      <div className="flex gap-1">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setStatusTab(tab.value)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              statusTab === tab.value
-                ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
-                : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            {tab.label}
-            {statusCounts[tab.value] > 0 && (
-              <span className="ml-1 opacity-70">({statusCounts[tab.value]})</span>
-            )}
-          </button>
-        ))}
-      </div>
+    <div className="flex h-full flex-col gap-4">
+      <PageHeader title="Alertas" eyebrow="Alertas" />
+
+      <PillToggle
+        options={statusTabs.map((tab) => ({
+          key: tab.value,
+          label: statusCounts[tab.value] > 0 ? `${tab.label} (${statusCounts[tab.value]})` : tab.label,
+        }))}
+        value={statusTab}
+        onChange={setStatusTab}
+        size="sm"
+      />
 
       {/* Other filters */}
       <div className="flex flex-wrap gap-2">
@@ -165,9 +158,9 @@ export function AlertsPage() {
         />
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Severidad</Th>
               <Th>Tipo</Th>
@@ -191,8 +184,8 @@ export function AlertsPage() {
                 ref={a.id === highlightId ? highlightRef : undefined}
                 className={`transition-colors duration-500 ${
                   a.id === highlightId
-                    ? 'bg-pa-blue/10 ring-1 ring-inset ring-pa-blue/30'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-brand-muted ring-1 ring-inset ring-brand/30'
+                    : 'hover:bg-surface'
                 }`}
               >
                 <Td>
@@ -237,7 +230,7 @@ export function AlertsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleAlerts.length} de {total}</p>}
 
       {/* Resolve drawer */}
       <Drawer
@@ -249,7 +242,7 @@ export function AlertsPage() {
             <button
               type="button"
               onClick={() => { setResolvingAlert(null); setResolutionNotes(''); }}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-surface"
             >
               Cancelar
             </button>
@@ -267,7 +260,7 @@ export function AlertsPage() {
         {resolvingAlert && (
           <div className="flex flex-col gap-4 text-sm">
             {/* Alert summary */}
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+            <div className="rounded-md border border-border bg-surface p-3">
               <div className="mb-2 flex items-center gap-2">
                 <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[resolvingAlert.severity]}`}>
                   {resolvingAlert.severity}
@@ -276,13 +269,13 @@ export function AlertsPage() {
                   {STATUS_LABELS[resolvingAlert.status]}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">Tipo: {resolvingAlert.alertTypeCode}</p>
-              <p className="mt-1 text-sm text-gray-900">{resolvingAlert.message}</p>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="text-xs text-muted">Tipo: {resolvingAlert.alertTypeCode}</p>
+              <p className="mt-1 text-sm text-foreground">{resolvingAlert.message}</p>
+              <p className="mt-2 text-xs text-muted">
                 Creada: {new Date(resolvingAlert.createdAt).toLocaleString('es-CL')}
               </p>
               {resolvingAlert.triggeredValue != null && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted">
                   Valor: {resolvingAlert.triggeredValue} (umbral: {resolvingAlert.thresholdValue ?? '—'})
                 </p>
               )}
@@ -290,7 +283,7 @@ export function AlertsPage() {
 
             {/* Resolution notes */}
             <label className="flex flex-col gap-1">
-              <span className="text-gray-600">Notas de resolucion</span>
+              <span className="text-muted">Notas de resolucion</span>
               <textarea
                 value={resolutionNotes}
                 onChange={(e) => setResolutionNotes(e.target.value)}
@@ -308,12 +301,12 @@ export function AlertsPage() {
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

@@ -220,6 +220,11 @@ export const LazyApiKeysPage = lazy(async () => {
   return { default: m.ApiKeysPage };
 });
 
+export const LazyOAuthClientsPage = lazy(async () => {
+  const m = await import('../features/admin/oauth-clients/OAuthClientsPage');
+  return { default: m.OAuthClientsPage };
+});
+
 export const LazyRolesPage = lazy(async () => {
   const m = await import('../features/admin/roles/RolesPage');
   return { default: m.RolesPage };
@@ -258,6 +263,26 @@ export const LazyDeletionRequestsPage = lazy(async () => {
 export const LazyRectificationRequestsPage = lazy(async () => {
   const m = await import('../features/admin/rectification-requests/RectificationRequestsPage');
   return { default: m.RectificationRequestsPage };
+});
+
+export const LazyDataQualityPage = lazy(async () => {
+  const m = await import('../features/admin/data-quality/DataQualityPage');
+  return { default: m.DataQualityPage };
+});
+
+export const LazyRegisterMappingsPage = lazy(async () => {
+  const m = await import('../features/admin/register-mappings/RegisterMappingsPage');
+  return { default: m.RegisterMappingsPage };
+});
+
+export const LazyRegionsPage = lazy(async () => {
+  const m = await import('../features/admin/regions/RegionsPage');
+  return { default: m.RegionsPage };
+});
+
+export const LazyBreachReportsPage = lazy(async () => {
+  const m = await import('../features/admin/breach-reports/BreachReportsPage');
+  return { default: m.BreachReportsPage };
 });
 
 export const LazyProfilePage = lazy(async () => {

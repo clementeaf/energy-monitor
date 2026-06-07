@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
   permissions   TEXT[] NOT NULL DEFAULT '{}',     -- e.g. {'buildings:read','meters:read'}
   building_ids  UUID[] NOT NULL DEFAULT '{}',    -- empty = all buildings
   rate_limit_per_minute INT NOT NULL DEFAULT 60,
+  ingress_rate_limit_per_minute INT,
   expires_at    TIMESTAMPTZ,                     -- null = never expires
   is_active     BOOLEAN NOT NULL DEFAULT TRUE,
   last_used_at  TIMESTAMPTZ,

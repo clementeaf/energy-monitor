@@ -14,15 +14,18 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useClickOutside } from '../../../hooks/useClickOutside';
 import { baseChartOptions } from '../../../lib/chart-config';
 import { fmtNum, MONTH_NAMES_FULL } from '../../../lib/formatters';
-import type { Reading } from '../../../types/reading';
+import { ReadingQualityBadge } from '../../../components/ui/ReadingQualityBadge';
+import type { Reading, ReadingQuality } from '../../../types/reading';
 
-/* ── Metric definitions ── */
-
-type ReadingField = keyof Omit<Reading, 'id' | 'meter_id' | 'timestamp'>;
+type ReadingMetricField =
+  | 'voltage_l1' | 'voltage_l2' | 'voltage_l3'
+  | 'current_l1' | 'current_l2' | 'current_l3'
+  | 'power_kw' | 'reactive_power_kvar' | 'power_factor' | 'frequency_hz'
+  | 'energy_kwh_total' | 'thd_voltage_pct' | 'thd_current_pct' | 'phase_imbalance_pct';
 
 interface MetricMeta { label: string; unit: string }
 
-const READING_METRICS: Record<ReadingField, MetricMeta> = {
+const READING_METRICS: Record<ReadingMetricField, MetricMeta> = {
   voltage_l1:          { label: 'Voltaje L1', unit: 'V' },
   voltage_l2:          { label: 'Voltaje L2', unit: 'V' },
   voltage_l3:          { label: 'Voltaje L3', unit: 'V' },
@@ -40,9 +43,9 @@ const READING_METRICS: Record<ReadingField, MetricMeta> = {
 };
 
 type CompositeKey = 'voltage' | 'current';
-type SelectorKey = ReadingField | CompositeKey;
+type SelectorKey = ReadingMetricField | CompositeKey;
 
-const COMPOSITES: Record<CompositeKey, { label: string; unit: string; keys: [ReadingField, ReadingField, ReadingField] }> = {
+const COMPOSITES: Record<CompositeKey, { label: string; unit: string; keys: [ReadingMetricField, ReadingMetricField, ReadingMetricField] }> = {
   voltage: { label: 'Voltaje', unit: 'V', keys: ['voltage_l1', 'voltage_l2', 'voltage_l3'] },
   current: { label: 'Corriente', unit: 'A', keys: ['current_l1', 'current_l2', 'current_l3'] },
 };
@@ -84,7 +87,7 @@ function maxNonNull(vals: (number | null)[]): number | null {
   return nums.length > 0 ? Math.max(...nums) : null;
 }
 
-function groupByHour(readings: Reading[], field: ReadingField): [number, number | null][] {
+function groupByHour(readings: Reading[], field: ReadingMetricField): [number, number | null][] {
   const groups = new Map<number, (number | null)[]>();
   for (const r of readings) {
     const d = new Date(r.timestamp);
@@ -114,6 +117,28 @@ interface DaySummary {
   avgCurrentL3: number | null;
   avgReactivePowerKvar: number | null;
   avgFrequencyHz: number | null;
+  dominantQuality: ReadingQuality;
+  primarySource: string | null;
+}
+
+/**
+ * Returns the most frequent quality value in a readings batch.
+ */
+function dominantQualityForRows(rows: Reading[]): ReadingQuality {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const q = (row.quality ?? 'unknown') as string;
+    counts.set(q, (counts.get(q) ?? 0) + 1);
+  }
+  let best: ReadingQuality = 'unknown';
+  let bestCount = 0;
+  for (const [q, count] of counts) {
+    if (count > bestCount) {
+      bestCount = count;
+      best = q as ReadingQuality;
+    }
+  }
+  return best;
 }
 
 function groupByDay(readings: Reading[], alertTimestamps: string[]): DaySummary[] {
@@ -146,6 +171,8 @@ function groupByDay(readings: Reading[], alertTimestamps: string[]): DaySummary[
       avgCurrentL3: avgNonNull(rows.map((r) => parseVal(r.current_l3))),
       avgReactivePowerKvar: avgNonNull(rows.map((r) => parseVal(r.reactive_power_kvar))),
       avgFrequencyHz: avgNonNull(rows.map((r) => parseVal(r.frequency_hz))),
+      dominantQuality: dominantQualityForRows(rows),
+      primarySource: rows.find((r) => r.source)?.source ?? null,
     }));
 }
 
@@ -186,7 +213,7 @@ export function MeterReadingsPage() {
 
   const readingsQs = useQueryState(readingsQuery, { isEmpty: (d) => !d || d.length === 0 });
 
-  const singleField: ReadingField | null = isComposite(metric) ? null : metric;
+  const singleField: ReadingMetricField | null = isComposite(metric) ? null : metric;
 
   // Hourly data for daily chart
   const hourlyData = useMemo(
@@ -225,7 +252,9 @@ export function MeterReadingsPage() {
   );
 
   const composite = isComposite(metric) ? COMPOSITES[metric] : null;
-  const meta: MetricMeta = composite ?? READING_METRICS[metric as ReadingField];
+  const meta: MetricMeta = composite ?? READING_METRICS[metric as ReadingMetricField];
+
+  const latestReading = readings.length > 0 ? readings[readings.length - 1] : null;
   const multiSeries = !!composite;
 
   // Build chart options
@@ -308,10 +337,10 @@ export function MeterReadingsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-6 w-64 animate-pulse rounded bg-gray-200" />
-        <div className="h-[340px] animate-pulse rounded-lg bg-gray-100" />
-        <div className="h-48 animate-pulse rounded-lg bg-gray-100" />
+      <div className="space-y-6">
+        <div className="h-6 w-64 animate-pulse rounded bg-raised" />
+        <div className="h-[340px] animate-pulse rounded-lg bg-raised" />
+        <div className="h-48 animate-pulse rounded-lg bg-raised" />
       </div>
     );
   }
@@ -323,7 +352,7 @@ export function MeterReadingsPage() {
           <button
             type="button"
             onClick={() => navigate(`/monitoring/meter/${meterId}`)}
-            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+            className="rounded-md border border-border px-2.5 py-1 text-xs text-muted hover:bg-surface"
           >
             &larr; Volver
           </button>
@@ -348,15 +377,15 @@ export function MeterReadingsPage() {
         <button
           type="button"
           onClick={() => navigate(`/monitoring/meter/${meterId}`)}
-          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+          className="rounded-md border border-border px-2.5 py-1 text-xs text-muted hover:bg-surface"
         >
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]">Edificios</Link>
+        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">Edificios</Link>
         <Sep />
         {building && (
           <>
-            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]">
+            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-muted hover:text-brand">
               {building.name}
             </Link>
             <Sep />
@@ -364,13 +393,27 @@ export function MeterReadingsPage() {
         )}
         <Link
           to={`/monitoring/meter/${meterId}`}
-          className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]"
+          className="text-[13px] text-muted hover:text-brand"
         >
           {meter?.name ?? '—'} ({meter?.code ?? meterId})
         </Link>
         <Sep />
-        <span className="text-[13px] font-semibold text-gray-900">{monthLabel}</span>
-        <span className="text-[11px] text-gray-500">({readings.length} lecturas)</span>
+        <span className="text-[13px] font-semibold text-foreground">{monthLabel}</span>
+        <span className="text-[11px] text-muted">({readings.length} lecturas)</span>
+        {building?.timezone && (
+          <span className="text-[11px] text-subtle" title="Zona horaria del edificio">
+            TZ: {building.timezone}
+          </span>
+        )}
+        {latestReading && (
+          <ReadingQualityBadge quality={latestReading.quality} source={latestReading.source} />
+        )}
+        {latestReading?.timestamp_local && (
+          <span className="text-[11px] text-subtle">
+            Ultima: {latestReading.timestamp_local}
+            {latestReading.timezone ? ` (${latestReading.timezone})` : ''}
+          </span>
+        )}
       </div>
 
       {/* Chart card */}
@@ -382,7 +425,7 @@ export function MeterReadingsPage() {
               <button
                 type="button"
                 onClick={() => setSelectorOpen((o) => !o)}
-                className="flex items-center gap-1 text-sm font-semibold text-gray-900 transition-colors hover:text-gray-600"
+                className="flex items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-muted"
               >
                 {meta.label}
                 <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -390,14 +433,14 @@ export function MeterReadingsPage() {
                 </svg>
               </button>
               {selectorOpen && (
-                <ul className="absolute left-0 z-20 mt-1 w-56 overflow-y-auto rounded border border-gray-200 bg-white py-1 shadow-lg">
+                <ul className="absolute left-0 z-20 mt-1 w-56 overflow-y-auto rounded border border-border bg-background py-1 shadow-lg">
                   {SELECTOR_ITEMS.map(({ key, label }) => (
                     <li key={key}>
                       <button
                         type="button"
                         onClick={() => { setMetric(key); setSelectorOpen(false); }}
                         className={`block w-full px-3 py-1.5 text-left text-sm transition-colors ${
-                          key === metric ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-600 hover:bg-gray-50'
+                          key === metric ? 'bg-raised font-semibold text-foreground' : 'text-muted hover:bg-surface'
                         }`}
                       >
                         {label}
@@ -425,15 +468,16 @@ export function MeterReadingsPage() {
       {readings.length > 0 && (
         <Card className="flex min-h-0 flex-1 flex-col" noPadding>
           <div className="px-6 pt-4 pb-2">
-            <h2 className="text-sm font-semibold text-gray-900">Resumen diario</h2>
+            <h2 className="text-sm font-semibold text-foreground">Resumen diario</h2>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="sticky top-0 z-10 bg-white">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="sticky top-0 z-10 bg-background">
                 <tr>
                   <Th>Dia</Th>
                   <Th>Lecturas</Th>
                   <Th>Incidencias</Th>
+                  <Th>Calidad</Th>
                   <Th>Pot. prom. (kW)</Th>
                   <Th>Pot. peak (kW)</Th>
                   <Th colSpan={3}>Voltaje (V)</Th>
@@ -443,7 +487,7 @@ export function MeterReadingsPage() {
                   <Th>Frec. (Hz)</Th>
                 </tr>
                 <tr>
-                  <Th></Th><Th></Th><Th></Th><Th></Th><Th></Th>
+                  <Th></Th><Th></Th><Th></Th><Th></Th><Th></Th><Th></Th>
                   <ThSub>L1</ThSub><ThSub>L2</ThSub><ThSub>L3</ThSub>
                   <ThSub>L1</ThSub><ThSub>L2</ThSub><ThSub>L3</ThSub>
                   <Th></Th><Th></Th><Th></Th>
@@ -451,11 +495,11 @@ export function MeterReadingsPage() {
               </thead>
               <TableStateBody
                 phase={daySummaries.length === 0 ? 'empty' : 'ready'}
-                colSpan={14}
+                colSpan={15}
                 emptyMessage="Sin lecturas para este mes."
               >
                 {daySummaries.map((d) => (
-                  <tr key={d.day} className="hover:bg-gray-50">
+                  <tr key={d.day} className="hover:bg-surface">
                     <Td>{d.label}</Td>
                     <Td>{d.count}</Td>
                     <Td>
@@ -467,6 +511,9 @@ export function MeterReadingsPage() {
                           {d.alertCount}
                         </Link>
                       ) : '—'}
+                    </Td>
+                    <Td>
+                      <ReadingQualityBadge quality={d.dominantQuality} source={d.primarySource} compact />
                     </Td>
                     <Td>{fmtNum(d.avgPowerKw, 2)}</Td>
                     <Td>{fmtNum(d.peakPowerKw, 2)}</Td>
@@ -483,10 +530,11 @@ export function MeterReadingsPage() {
                 ))}
                 {/* Total footer */}
                 {daySummaries.length > 0 && (
-                  <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+                  <tr className="border-t-2 border-border bg-surface font-semibold">
                     <Td>Total</Td>
                     <Td>{daySummaries.reduce((s, d) => s + d.count, 0)}</Td>
                     <Td>{daySummaries.reduce((s, d) => s + d.alertCount, 0) || '—'}</Td>
+                    <Td>—</Td>
                     <Td>{fmtNum(avgNonNull(daySummaries.map((d) => d.avgPowerKw)), 2)}</Td>
                     <Td>{fmtNum(maxNonNull(daySummaries.map((d) => d.peakPowerKw)), 2)}</Td>
                     <Td>{fmtNum(avgNonNull(daySummaries.map((d) => d.avgVoltageL1)))}</Td>
@@ -512,12 +560,12 @@ export function MeterReadingsPage() {
 /* ── Small sub-components ── */
 
 function Sep() {
-  return <span className="text-[11px] text-gray-400">/</span>;
+  return <span className="text-[11px] text-subtle">/</span>;
 }
 
 function Th({ children, colSpan }: Readonly<{ children?: React.ReactNode; colSpan?: number }>) {
   return (
-    <th colSpan={colSpan} className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th colSpan={colSpan} className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
@@ -525,14 +573,14 @@ function Th({ children, colSpan }: Readonly<{ children?: React.ReactNode; colSpa
 
 function ThSub({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-3 py-1 text-left text-[10px] font-medium text-gray-400">
+    <th className="px-3 py-1 text-left text-[10px] font-medium text-subtle">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-3 py-2.5 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-3 py-2.5 text-sm text-foreground ${className}`}>{children}</td>;
 }
 
 function ResBtn({ label, active, onClick }: Readonly<{ label: string; active: boolean; onClick: () => void }>) {
@@ -541,7 +589,7 @@ function ResBtn({ label, active, onClick }: Readonly<{ label: string; active: bo
       type="button"
       onClick={onClick}
       className={`rounded px-2 py-1 text-xs transition-colors ${
-        active ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-500 hover:text-gray-900'
+        active ? 'bg-raised font-semibold text-foreground' : 'text-muted hover:text-foreground'
       }`}
     >
       {label}

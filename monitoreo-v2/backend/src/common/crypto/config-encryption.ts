@@ -100,3 +100,23 @@ function deepDecrypt(obj: Record<string, unknown>, key: Buffer): Record<string, 
   }
   return result;
 }
+
+/**
+ * Encrypts a single secret string (e.g. SSO client secret).
+ * Returns plaintext unchanged when CONFIG_ENCRYPTION_KEY is unset.
+ */
+export function encryptString(plaintext: string): string {
+  const key = deriveKey();
+  if (!key || isEncrypted(plaintext)) return plaintext;
+  return encryptValue(plaintext, key);
+}
+
+/**
+ * Decrypts a value produced by encryptString.
+ * Returns value unchanged when CONFIG_ENCRYPTION_KEY is unset or value is not encrypted.
+ */
+export function decryptString(encoded: string): string {
+  const key = deriveKey();
+  if (!key || !isEncrypted(encoded)) return encoded;
+  return decryptValue(encoded, key);
+}

@@ -2,61 +2,65 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-base:    #ffffff;
-  --color-surface: #f9fafb;
-  --color-raised:  #f3f4f6;
-  --color-border:  #e5e7eb;
-  --color-text:    #111827;
-  --color-muted:   #6b7280;
-  --color-subtle:  #9ca3af;
-  --color-accent:  #2563eb;
+  /* ── Semantic shell (Handle-aligned, fixed across tenants) ── */
+  --color-base:       #ffffff;
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-surface:    #fafafa;
+  --color-raised:     #f3f4f6;
+  --color-border:     #e5e5e5;
+  --color-text:       #0a0a0a;
+  --color-muted:      #6b6b6b;
+  --color-subtle:     #9ca3af;
 
-  /* Brand tokens — Globe Power palette (from globe-landing) */
-  --color-pa-navy:       #1C1C1C;
-  --color-pa-blue:       #3a5b1e;
-  --color-pa-blue-light: #4a7328;
-  --color-pa-coral:      #ab2f2a;
-  --color-pa-green:      #3a5b1e;
-  --color-pa-amber:      #F5A623;
-  --color-pa-bg-alt:     #F9F9F9;
-  --color-pa-border:     #E4E4E4;
-  --color-pa-text:       #1C1C1C;
-  --color-pa-text-muted: #808080;
-}
+  /* @handled-ai/design-system — radius + elevation (globals.css) */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-panel: var(--radius-xl);
+  --radius-control: var(--radius-md);
+  --shadow-panel: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-float: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
 
-/* ── Theme: PASA ────────────────────────────────────── */
-[data-theme="pasa"] {
-  --color-pa-navy:       #1E3A5F;
-  --color-pa-blue:       #3D3BF3;
-  --color-pa-blue-light: #5B59F5;
-  --color-pa-coral:      #E84C6F;
-  --color-pa-green:      #10B981;
-  --color-pa-amber:      #F5A623;
-  --color-pa-bg-alt:     #F5F7FA;
-  --color-pa-border:     #E2E8F0;
-  --color-pa-text:       #1E3A5F;
-  --color-pa-text-muted: #64748B;
-}
+  /* ── Semantic status (fixed, not tenant-branded) ── */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger:  #ef4444;
+  --color-info:    #3b82f6;
 
-/* ── Theme: Siemens ──────────────────────────────────── */
-[data-theme="siemens"] {
-  --color-pa-navy:       #00646E;
-  --color-pa-blue:       #009999;
-  --color-pa-blue-light: #00B3B3;
-  --color-pa-coral:      #E84C6F;
-  --color-pa-green:      #2D9F5D;
-  --color-pa-amber:      #E6830F;
-  --color-pa-bg-alt:     #F3F3F0;
-  --color-pa-border:     #E0E0DC;
-  --color-pa-text:       #2D2D2D;
-  --color-pa-text-muted: #6B7280;
+  /* ── Brand (defaults Globe Power; overridden at runtime per tenant) ── */
+  --color-brand:       #3a5b1e;
+  --color-brand-hover: #272628;
+  --color-brand-muted: color-mix(in srgb, var(--color-brand) 10%, transparent);
+  --color-brand-fg:    #ffffff;
+
+  /* ── App chrome ── */
+  --color-sidebar:       #1c1c1c;
+  --color-sidebar-fg:    #ffffff;
+  --color-sidebar-muted: #a3a3a3;
+
+  /* ── Charts (brand-aware; chart-1/2 follow --color-brand at runtime) ── */
+  --color-chart-1:          var(--color-brand);
+  --color-chart-2:          var(--color-brand-hover);
+  --color-chart-3:          #6366f1;
+  --color-chart-4:          #8b5cf6;
+  --color-chart-text:       var(--color-foreground);
+  --color-chart-text-muted: var(--color-muted);
+  --color-chart-border:     var(--color-border);
+  --color-chart-grid:       var(--color-surface);
+  --color-chart-bg:         var(--color-background);
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', monospace;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  background: var(--color-base);
-  color: var(--color-text);
+  font-family: var(--font-sans);
+  background: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -75,7 +79,6 @@ button, [role="button"] {
   cursor: pointer;
 }
 
-/* Scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
@@ -98,31 +101,48 @@ button, [role="button"] {
   background: var(--color-subtle);
 }
 
-/* Skeleton shimmer sweep */
 @keyframes shimmer {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
 
-/* Form inputs */
 .input-field {
   width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-pa-border);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
   padding: 0.5rem 0.75rem;
   font-size: 0.8125rem;
-  color: var(--color-pa-text);
+  color: var(--color-foreground);
   outline: none;
   transition: border-color 0.15s;
 }
+
 .input-field:focus {
-  border-color: var(--color-pa-blue);
-}
-.input-field::placeholder {
-  color: var(--color-pa-text-muted);
+  border-color: var(--color-brand);
 }
 
-/* Reduced motion: disable animations for users who prefer it */
+.input-field::placeholder {
+  color: var(--color-muted);
+}
+
+/* Handle-inspired surfaces */
+.app-canvas {
+  background: var(--color-surface);
+}
+
+.panel {
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  box-shadow: var(--shadow-panel);
+}
+
+.panel-muted {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -12,9 +12,10 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { TenantUnitForm } from './TenantUnitForm';
 import type { TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload } from '../../../types/tenant-unit';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
-const COL_COUNT = 7;
-const SKELETON_WIDTHS = ['w-28', 'w-16', 'w-24', 'w-24', 'w-32', 'w-16', 'w-20'];
+const COL_COUNT = 8;
+const SKELETON_WIDTHS = ['w-28', 'w-16', 'w-20', 'w-24', 'w-24', 'w-32', 'w-16', 'w-20'];
 
 export function TenantsPage() {
   const [buildingFilter, setBuildingFilter] = useState<string>('');
@@ -58,9 +59,9 @@ export function TenantsPage() {
   const buildingName = (id: string) => buildings.find((b) => b.id === id)?.name ?? id;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-pa-text">Locatarios</h1>
+        <PageHeader title="Locatarios" eyebrow="Administración" />
         <div className="flex items-center gap-3">
           <DropdownSelect
             options={[
@@ -75,7 +76,7 @@ export function TenantsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-lg bg-pa-blue px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-pa-blue-light"
+              className="rounded-lg bg-brand px-4 py-2 text-[13px] font-medium text-brand-fg transition-colors hover:bg-brand-hover"
             >
               Nuevo Locatario
             </button>
@@ -83,12 +84,13 @@ export function TenantsPage() {
         </div>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Nombre</Th>
               <Th>Codigo</Th>
+              <Th>ID externo</Th>
               <Th>Edificio</Th>
               <Th>Contacto</Th>
               <Th>Email Contacto</Th>
@@ -105,9 +107,10 @@ export function TenantsPage() {
             skeletonWidths={SKELETON_WIDTHS}
           >
             {visibleTenants.map((t) => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{t.name}</Td>
+              <tr key={t.id} className="hover:bg-surface">
+                <Td className="font-medium text-foreground">{t.name}</Td>
                 <Td>{t.unitCode}</Td>
+                <Td>{t.externalUnitId ?? '—'}</Td>
                 <Td>{buildingName(t.buildingId)}</Td>
                 <Td>{t.contactName ?? '—'}</Td>
                 <Td>{t.contactEmail ?? '—'}</Td>
@@ -126,7 +129,7 @@ export function TenantsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleTenants.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       <TenantUnitForm
         open={formOpen}

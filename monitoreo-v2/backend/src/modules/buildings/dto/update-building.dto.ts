@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  IsUUID,
+  IsISO31661Alpha2,
+  IsIn,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { SITE_KINDS, type SiteKind } from '../../../common/constants/site-metadata';
 
 export class UpdateBuildingDto {
   @IsOptional()
@@ -18,4 +29,26 @@ export class UpdateBuildingDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  regionId?: string | null;
+
+  @IsOptional()
+  @IsISO31661Alpha2()
+  countryCode?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  timezone?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  externalSiteId?: string | null;
+
+  @IsOptional()
+  @IsIn([...SITE_KINDS])
+  siteKind?: SiteKind | null;
 }

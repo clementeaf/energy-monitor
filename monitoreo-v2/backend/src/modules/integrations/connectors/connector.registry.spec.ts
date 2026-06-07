@@ -1,15 +1,22 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConnectorRegistry } from './connector.registry';
+import type { MqttReadingsIngressService } from '../../readings/mqtt-readings-ingress.service';
+
+function mockMqttIngress(): MqttReadingsIngressService {
+  return {
+    ingestFromMqttMessage: jest.fn().mockResolvedValue(false),
+  } as unknown as MqttReadingsIngressService;
+}
 
 describe('ConnectorRegistry', () => {
   let registry: ConnectorRegistry;
 
   beforeEach(() => {
-    registry = new ConnectorRegistry();
+    registry = new ConnectorRegistry(mockMqttIngress());
   });
 
   describe('get', () => {
-    it.each(['rest_api', 'webhook', 'mqtt', 'ftp'])(
+    it.each(['rest_api', 'webhook', 'mqtt', 'ftp', 'bacnet', 'snmp'])(
       'returns connector for type "%s"',
       (type) => {
         const connector = registry.get(type);
@@ -32,6 +39,8 @@ describe('ConnectorRegistry', () => {
         expect((e as BadRequestException).message).toContain('webhook');
         expect((e as BadRequestException).message).toContain('mqtt');
         expect((e as BadRequestException).message).toContain('ftp');
+        expect((e as BadRequestException).message).toContain('bacnet');
+        expect((e as BadRequestException).message).toContain('snmp');
       }
     });
   });
@@ -48,10 +57,17 @@ describe('ConnectorRegistry', () => {
   });
 
   describe('listTypes', () => {
-    it('returns all 4 types with labels', () => {
+    it('returns all 6 types with labels', () => {
       const types = registry.listTypes();
-      expect(types).toHaveLength(4);
-      expect(types.map((t) => t.type).sort()).toEqual(['ftp', 'mqtt', 'rest_api', 'webhook']);
+      expect(types).toHaveLength(6);
+      expect(types.map((t) => t.type).sort()).toEqual([
+        'bacnet',
+        'ftp',
+        'mqtt',
+        'rest_api',
+        'snmp',
+        'webhook',
+      ]);
       types.forEach((t) => {
         expect(typeof t.label).toBe('string');
         expect(t.label.length).toBeGreaterThan(0);

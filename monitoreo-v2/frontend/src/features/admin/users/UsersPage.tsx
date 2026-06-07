@@ -7,9 +7,19 @@ import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { useUsersQuery, useCreateUser, useUpdateUser, useDeleteUser } from '../../../hooks/queries/useUsersQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { UserForm } from './UserForm';
+import { UserImportTab } from './UserImportTab';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
+import { PageHeader } from '../../../components/ui/PageHeader';
+
+type UsersTab = 'list' | 'import';
+
+const TAB_CLASS = (active: boolean): string =>
+  `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+  }`;
 
 export function UsersPage() {
+  const [activeTab, setActiveTab] = useState<UsersTab>('list');
   const query = useUsersQuery();
   const qs = useQueryState(query, {
     isEmpty: (data) => data === undefined || data.length === 0,
@@ -46,68 +56,86 @@ export function UsersPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Usuarios</h1>
-        {canWrite && (
+    <div className="space-y-6">
+      <PageHeader
+        title="Usuarios"
+        eyebrow="Administración"
+        actions={canWrite && activeTab === 'list' ? (
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
           >
             Nuevo Usuario
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
-            <tr>
-              <Th>Email</Th>
-              <Th>Nombre</Th>
-              <Th>Rol</Th>
-              <Th>Proveedor</Th>
-              <Th>Estado</Th>
-              <Th>Ultimo Login</Th>
-              {canWrite && <Th></Th>}
-            </tr>
-          </thead>
-          <TableStateBody
-            phase={qs.phase}
-            colSpan={canWrite ? 7 : 6}
-            error={qs.error}
-            onRetry={() => { query.refetch(); }}
-            emptyMessage="No hay usuarios registrados."
-            skeletonWidths={['w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-24', 'w-20']}
-          >
-            {visibleUsers.map((u) => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{u.email}</Td>
-                <Td>{u.displayName ?? '—'}</Td>
-                <Td>
-                  <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                    {u.role.name}
-                  </span>
-                </Td>
-                <Td className="capitalize">{u.authProvider}</Td>
-                <Td><StatusBadge active={u.isActive} /></Td>
-                <Td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
-                {canWrite && (
-                  <Td>
-                    <div className="flex gap-1">
-                      <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
-                      <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
-                    </div>
-                  </Td>
-                )}
-              </tr>
-            ))}
-          </TableStateBody>
-        </table>
-        {hasMore && <div ref={sentinelRef} className="h-4" />}
-      </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleUsers.length} de {total}</p>}
+      {canWrite ? (
+        <nav className="flex gap-2" aria-label="Usuarios">
+          <button type="button" className={TAB_CLASS(activeTab === 'list')} onClick={() => { setActiveTab('list'); }}>
+            Lista
+          </button>
+          <button type="button" className={TAB_CLASS(activeTab === 'import')} onClick={() => { setActiveTab('import'); }}>
+            Importar
+          </button>
+        </nav>
+      ) : null}
+
+      {activeTab === 'import' && canWrite ? (
+        <UserImportTab onViewUsers={() => { setActiveTab('list'); }} />
+      ) : (
+        <>
+          <div className="max-h-[70vh] overflow-y-auto panel">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="sticky top-0 z-10 bg-surface">
+                <tr>
+                  <Th>Email</Th>
+                  <Th>Nombre</Th>
+                  <Th>Rol</Th>
+                  <Th>Proveedor</Th>
+                  <Th>Estado</Th>
+                  <Th>Ultimo Login</Th>
+                  {canWrite && <Th></Th>}
+                </tr>
+              </thead>
+              <TableStateBody
+                phase={qs.phase}
+                colSpan={canWrite ? 7 : 6}
+                error={qs.error}
+                onRetry={() => { query.refetch(); }}
+                emptyMessage="No hay usuarios registrados."
+                skeletonWidths={['w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-24', 'w-20']}
+              >
+                {visibleUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-surface">
+                    <Td className="font-medium text-foreground">{u.email}</Td>
+                    <Td>{u.displayName ?? '—'}</Td>
+                    <Td>
+                      <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {u.role.name}
+                      </span>
+                    </Td>
+                    <Td className="capitalize">{u.authProvider}</Td>
+                    <Td><StatusBadge active={u.isActive} /></Td>
+                    <Td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
+                    {canWrite && (
+                      <Td>
+                        <div className="flex gap-1">
+                          <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
+                          <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
+                        </div>
+                      </Td>
+                    )}
+                  </tr>
+                ))}
+              </TableStateBody>
+            </table>
+            {hasMore && <div ref={sentinelRef} className="h-4" />}
+          </div>
+          {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleUsers.length} de {total}</p>}
+        </>
+      )}
 
       <UserForm
         open={formOpen}

@@ -8,6 +8,7 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { AggregatedReading } from '../../../types/reading';
 import { isGenerationMeterType } from '../lib/meterClassification';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 /**
  * Suma una metrica por bucket para un conjunto de medidores.
@@ -147,19 +148,19 @@ export function GenerationSitePage() {
 
   if (!siteId) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Generacion por sitio</h1>
-        <p className="text-sm text-gray-500">Seleccione un edificio para ver curvas y balance.</p>
+      <div className="space-y-6">
+        <PageHeader title="Generacion por sitio" eyebrow="Monitoreo" />
+        <p className="text-sm text-muted">Seleccione un edificio para ver curvas y balance.</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(buildingsQuery.data ?? []).map((b) => (
             <button
               key={b.id}
               type="button"
               onClick={() => { navigate(`/monitoring/generation/${b.id}`); }}
-              className="rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-gray-200 transition-colors hover:ring-[var(--color-primary,#3D3BF3)]"
+              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
             >
-              <p className="font-medium text-gray-900">{b.name}</p>
-              <p className="text-xs text-gray-500">{b.code}</p>
+              <p className="font-medium text-foreground">{b.name}</p>
+              <p className="text-xs text-muted">{b.code}</p>
             </button>
           ))}
         </div>
@@ -169,42 +170,42 @@ export function GenerationSitePage() {
 
   return (
     <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
-        <Link to="/monitoring/generation" className="hover:text-gray-700">Generacion</Link>
+        <Link to="/monitoring/generation" className="hover:text-foreground">Generacion</Link>
         <span>/</span>
-        <span className="text-gray-900">{building?.name ?? 'Sitio'}</span>
+        <span className="text-foreground">{building?.name ?? 'Sitio'}</span>
       </nav>
 
-      <h1 className="text-2xl font-semibold text-gray-900">Generacion — {building?.name ?? 'Sitio'}</h1>
-      <p className="text-sm text-gray-500">
-        Medidores con tipo generacion / solar / PV se suman como generacion; el resto del sitio como carga.
-        Configure el tipo de medidor (p. ej. solar o generation) en la ficha de cada medidor.
-      </p>
+      <PageHeader
+        title={`Generación — ${building?.name ?? 'Sitio'}`}
+        eyebrow="Monitoreo"
+        description="Medidores con tipo generación / solar / PV se suman como generación; el resto del sitio como carga. Configure el tipo de medidor en la ficha de cada medidor."
+      />
 
       {metersQuery.isLoading || aggQuery.isLoading ? (
         <div className="space-y-3 animate-pulse">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="h-3 w-24 rounded bg-gray-200" />
+              <div key={i} className="panel p-4 shadow-sm">
+                <div className="h-3 w-24 rounded bg-raised" />
                 <div className="mt-2 h-6 w-20 rounded bg-gray-300" />
-                <div className="mt-1 h-3 w-32 rounded bg-gray-100" />
+                <div className="mt-1 h-3 w-32 rounded bg-raised" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="h-3 w-24 rounded bg-gray-200" />
+              <div key={i} className="panel p-4 shadow-sm">
+                <div className="h-3 w-24 rounded bg-raised" />
                 <div className="mt-2 h-6 w-28 rounded bg-gray-300" />
-                <div className="mt-1 h-3 w-36 rounded bg-gray-100" />
+                <div className="mt-1 h-3 w-36 rounded bg-raised" />
               </div>
             ))}
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="h-64 rounded bg-gray-100" />
+          <div className="panel p-4 shadow-sm">
+            <div className="h-64 rounded bg-raised" />
           </div>
         </div>
       ) : (
@@ -265,10 +266,10 @@ export function GenerationSitePage() {
 
 function Kpi({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-400">{sub}</p>
+    <div className="panel p-4 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">{title}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+      <p className="text-xs text-subtle">{sub}</p>
     </div>
   );
 }

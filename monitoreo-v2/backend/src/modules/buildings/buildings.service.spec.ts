@@ -13,6 +13,12 @@ const mockBuilding = (overrides: Partial<Building> = {}): Building => ({
   address: 'Calle 1',
   areaSqm: '1200.00',
   isActive: true,
+  regionId: null,
+  region: null,
+  countryCode: null,
+  timezone: null,
+  externalSiteId: null,
+  siteKind: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   tenant: {} as any,
@@ -81,6 +87,7 @@ describe('BuildingsService', () => {
     it('returns building when found', async () => {
       const building = mockBuilding();
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(building),
@@ -93,6 +100,7 @@ describe('BuildingsService', () => {
 
     it('returns null when not found', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(null),
@@ -118,8 +126,44 @@ describe('BuildingsService', () => {
         code: 'EC',
         address: null,
         areaSqm: null,
+        regionId: null,
+        countryCode: null,
+        timezone: null,
+        externalSiteId: null,
+        siteKind: null,
       });
       expect(result).toEqual(building);
+    });
+
+    it('creates a building with geographic metadata', async () => {
+      const building = mockBuilding({
+        countryCode: 'CL',
+        timezone: 'America/Santiago',
+        externalSiteId: 'SITE-001',
+        siteKind: 'mall',
+        regionId: 'reg-1',
+      });
+      repo.create.mockReturnValue(building);
+      repo.save.mockResolvedValue(building);
+
+      const result = await service.create(TENANT_ID, {
+        name: 'Mall Norte',
+        code: 'MN',
+        countryCode: 'CL',
+        timezone: 'America/Santiago',
+        externalSiteId: 'SITE-001',
+        siteKind: 'mall',
+        regionId: 'reg-1',
+      });
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          countryCode: 'CL',
+          externalSiteId: 'SITE-001',
+          siteKind: 'mall',
+        }),
+      );
+      expect(result.countryCode).toBe('CL');
     });
   });
 
@@ -210,6 +254,7 @@ describe('BuildingsService', () => {
 
     it('findOne enforces tenant scoping — tenant B cannot access tenant A building', async () => {
       const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(null),

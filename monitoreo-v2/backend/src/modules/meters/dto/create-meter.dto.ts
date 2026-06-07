@@ -11,6 +11,7 @@ import {
   IsIP,
 } from 'class-validator';
 import type { MeterPhaseType } from '../../platform/entities/meter.entity';
+import type { LoadCategory } from '../../../common/constants/site-metadata';
 
 export class CreateMeterDto {
   @IsString()
@@ -89,6 +90,14 @@ export class CreateMeterDto {
   @IsNumber()
   @Min(0)
   contractedDemandKw?: number;
+
+  @IsOptional()
+  @IsIn(['hvac', 'lighting', 'tenant', 'main', 'other'])
+  loadCategory?: LoadCategory;
+
+  @IsOptional()
+  @IsUUID()
+  parentMeterId?: string | null;
 
   /** Only used by super_admin in cross-tenant mode. */
   @IsOptional()

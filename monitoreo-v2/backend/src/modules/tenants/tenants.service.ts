@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { mergeTenantSettings, normalizeTenantSettings } from '../../lib/tenant-settings';
+import { cloneGlobalRegisterMappings } from '../../lib/register-mapping-templates';
 
 export interface TenantTheme {
   primaryColor: string;
@@ -19,6 +21,7 @@ export interface OnboardingResult {
   tenant: Tenant;
   adminUserId: string;
   rolesCreated: number;
+  mappingsCloned: number;
 }
 
 @Injectable()
@@ -96,7 +99,7 @@ export class TenantsService {
         addressDetail: dto.addressDetail ?? null,
         phone: dto.phone ?? null,
         taxId: dto.taxId ?? null,
-        settings: dto.settings ?? {},
+        settings: normalizeTenantSettings(dto.settings ?? {}),
         isActive: true,
       });
       const savedTenant = await manager.save(Tenant, tenant);
@@ -104,13 +107,16 @@ export class TenantsService {
       // 2. Clone standard roles from the first active tenant (template)
       const rolesCreated = await this.cloneRoles(manager, savedTenant.id);
 
-      // 3. Get the super_admin role for this new tenant
+      // 3. Clone global register mapping templates (Modbus PAC, etc.)
+      const mappingsCloned = await cloneGlobalRegisterMappings(manager, savedTenant.id);
+
+      // 4. Get the super_admin role for this new tenant
       const [adminRole] = await manager.query(
         `SELECT id FROM roles WHERE tenant_id = $1 AND slug = 'super_admin' LIMIT 1`,
         [savedTenant.id],
       );
 
-      // 4. Create first admin user
+      // 5. Create first admin user
       const [adminUser] = await manager.query(
         `INSERT INTO users (tenant_id, email, display_name, auth_provider, auth_provider_id, role_id, is_active)
          VALUES ($1, $2, $3, $4, $5, $6, true)
@@ -129,6 +135,7 @@ export class TenantsService {
         tenant: savedTenant,
         adminUserId: adminUser.id,
         rolesCreated,
+        mappingsCloned,
       };
     });
   }
@@ -150,11 +157,20 @@ export class TenantsService {
     if (dto.logoUrl !== undefined) row.logoUrl = dto.logoUrl;
     if (dto.faviconUrl !== undefined) row.faviconUrl = dto.faviconUrl;
     if (dto.timezone !== undefined) row.timezone = dto.timezone;
+    if (dto.defaultCountryCode !== undefined) row.defaultCountryCode = dto.defaultCountryCode;
+    if (dto.defaultCurrency !== undefined) row.defaultCurrency = dto.defaultCurrency;
     if (dto.address !== undefined) row.address = dto.address;
     if (dto.addressDetail !== undefined) row.addressDetail = dto.addressDetail;
     if (dto.phone !== undefined) row.phone = dto.phone;
     if (dto.taxId !== undefined) row.taxId = dto.taxId;
-    if (dto.settings !== undefined) row.settings = dto.settings;
+    if (dto.settings !== undefined) {
+      try {
+        row.settings = mergeTenantSettings(row.settings ?? {}, dto.settings);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Invalid tenant settings';
+        throw new BadRequestException(message);
+      }
+    }
     if (dto.isActive !== undefined) row.isActive = dto.isActive;
 
     return this.repo.save(row);

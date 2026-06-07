@@ -56,7 +56,7 @@ describe('UsersController', () => {
   it('findAll delegates to service with tenantId', async () => {
     service.findAll.mockResolvedValue([user]);
     const result = await controller.findAll(admin);
-    expect(service.findAll).toHaveBeenCalledWith('t-1');
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined);
     expect(result).toEqual([user]);
   });
 

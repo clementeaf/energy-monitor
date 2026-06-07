@@ -27,4 +27,9 @@ export class UpdateTenantUnitDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  externalUnitId?: string | null;
 }

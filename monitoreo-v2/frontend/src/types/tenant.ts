@@ -16,6 +16,8 @@ export interface Tenant {
   faviconUrl: string | null;
   timezone: string;
   settings: Record<string, unknown>;
+  defaultCountryCode: string | null;
+  defaultCurrency: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,4 +65,6 @@ export interface UpdateTenantPayload {
   phone?: string | null;
   taxId?: string | null;
   isActive?: boolean;
+  defaultCountryCode?: string | null;
+  defaultCurrency?: string | null;
 }

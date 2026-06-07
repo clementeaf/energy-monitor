@@ -18,6 +18,7 @@ import {
 } from '../../../hooks/queries/useRolesQuery';
 import { ROLE_MODULE_GROUPS } from './role-modules';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../../../types/role';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 export function RolesPage() {
   const query = useRolesQuery();
@@ -189,17 +190,24 @@ export function RolesPage() {
   const formId = 'role-form';
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Roles</h1>
-        {canWrite && (
-          <Button onClick={openCreate}>Nuevo Rol</Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Roles"
+        eyebrow="Administración"
+        actions={canWrite ? (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+          >
+            Nuevo Rol
+          </button>
+        ) : undefined}
+      />
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Nombre</Th>
               <Th>Descripción</Th>
@@ -217,8 +225,8 @@ export function RolesPage() {
             skeletonWidths={['w-28', 'w-32', 'w-16', 'w-16', 'w-20']}
           >
             {visibleRoles.map((role) => (
-              <tr key={role.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{role.name}</Td>
+              <tr key={role.id} className="hover:bg-surface">
+                <Td className="font-medium text-foreground">{role.name}</Td>
                 <Td className="max-w-[250px] truncate" title={role.description ?? undefined}>
                   {role.description ?? '—'}
                 </Td>
@@ -251,7 +259,7 @@ export function RolesPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleRoles.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleRoles.length} de {total}</p>}
 
       {/* Create/Edit Drawer */}
       <Drawer
@@ -277,7 +285,7 @@ export function RolesPage() {
                 onChange={(e) => { setFormName(e.target.value); }}
                 required
                 placeholder="Ej: Operador, Administrador, Locatario"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </Field>
 
@@ -287,40 +295,40 @@ export function RolesPage() {
                 onChange={(e) => { setFormDescription(e.target.value); }}
                 rows={2}
                 placeholder="Breve descripción de este rol"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
               />
             </Field>
           </div>
 
           {/* Module-based permissions */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-gray-900">Accesos y capacidades</h3>
+            <h3 className="mb-4 text-sm font-semibold text-foreground">Accesos y capacidades</h3>
             {catalogQuery.isPending && (
-              <p className="text-sm text-gray-400">Cargando módulos...</p>
+              <p className="text-sm text-subtle">Cargando módulos...</p>
             )}
 
             <div className="space-y-3">
               {ROLE_MODULE_GROUPS.map((group, gi) => (
-                <div key={group.group} className="rounded-lg border border-gray-200 overflow-hidden">
+                <div key={group.group} className="rounded-lg border border-border overflow-hidden">
                   {/* Group header */}
-                  <label className="flex cursor-pointer items-center gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <label className="flex cursor-pointer items-center gap-3 bg-surface px-4 py-3 border-b border-border">
                     <input
                       type="checkbox"
                       checked={isGroupAllSelected(gi)}
                       ref={(el) => { if (el) el.indeterminate = isGroupPartial(gi); }}
                       onChange={() => { toggleGroupAll(gi); }}
-                      className="size-4 rounded border-gray-300"
+                      className="size-4 rounded border-border"
                     />
-                    <span className="text-sm font-semibold text-gray-800">{group.group}</span>
+                    <span className="text-sm font-semibold text-foreground">{group.group}</span>
                   </label>
 
                   {/* Modules inside group */}
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-border">
                     {group.modules.map((mod) => (
                       <div key={`${mod.permissionModule}-${mod.label}`} className="px-4 py-3">
                         <div className="mb-1">
-                          <span className="text-sm font-medium text-gray-700">{mod.label}</span>
-                          <p className="text-xs text-gray-400">{mod.description}</p>
+                          <span className="text-sm font-medium text-foreground">{mod.label}</span>
+                          <p className="text-xs text-subtle">{mod.description}</p>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-3">
                           {mod.capabilities.map((cap) => {
@@ -334,9 +342,9 @@ export function RolesPage() {
                                   type="checkbox"
                                   checked={checked}
                                   onChange={() => { togglePerm(mod.permissionModule, cap.action); }}
-                                  className="size-3.5 rounded border-gray-300"
+                                  className="size-3.5 rounded border-border"
                                 />
-                                <span className={checked ? 'text-gray-800' : 'text-gray-500'}>
+                                <span className={checked ? 'text-foreground' : 'text-muted'}>
                                   {cap.label}
                                 </span>
                               </label>
@@ -369,7 +377,7 @@ export function RolesPage() {
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

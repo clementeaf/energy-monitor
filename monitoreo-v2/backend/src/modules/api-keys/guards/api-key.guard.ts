@@ -10,6 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../../common/decorators/public.decorator';
 import { API_KEY_AUTH_FLAG } from '../../../common/guards/jwt-auth.guard';
 import { ApiKeysService } from '../api-keys.service';
+import { resolveApiKeyRateLimit } from '../lib/ingress-rate-limit';
 
 const API_KEY_HEADER = 'x-api-key';
 
@@ -52,8 +53,11 @@ export class ApiKeyGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or expired API key');
     }
 
-    // Enforce per-key rate limit
-    this.checkRateLimit(payload._apiKeyId, payload._rateLimitPerMinute ?? 60);
+    // Enforce per-key rate limit (higher ceiling for measurement ingress)
+    const method = String(request.method ?? 'GET');
+    const url = String(request.url ?? request.originalUrl ?? '');
+    const limit = resolveApiKeyRateLimit(method, url, payload);
+    this.checkRateLimit(payload._apiKeyId, limit);
 
     // Inject JwtPayload-compatible user + flag for JwtAuthGuard
     request.user = payload;

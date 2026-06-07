@@ -47,7 +47,7 @@ function FlagCircle({ code, size = 18 }: Readonly<{ code: string; size?: number 
 
 export function Header() {
   const { user } = useAuthStore();
-  const { toggleSidebar } = useAppStore();
+  const { toggleSidebar, sidebarOpen } = useAppStore();
   const navigate = useNavigate();
   const [activeCountry, setActiveCountry] = useState<string>('CL');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,13 +63,13 @@ export function Header() {
     .toUpperCase();
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-pa-border bg-white px-4">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
       {/* Hamburger — always visible when sidebar collapsed */}
       <button
         type="button"
         onClick={toggleSidebar}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100"
-        aria-label="Toggle sidebar"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface"
+        aria-label={sidebarOpen ? 'Colapsar menú lateral' : 'Expandir menú lateral'}
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -79,16 +79,16 @@ export function Header() {
       <div className="flex-1" />
 
       {/* Country selector */}
-      <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+      <div className="flex items-center gap-0.5 rounded-full border border-border bg-surface p-0.5">
         {COUNTRIES.map((c) => (
           <button
             key={c.code}
             type="button"
             onClick={() => setActiveCountry(c.code)}
-            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
               activeCountry === c.code
-                ? 'bg-white text-pa-navy shadow-sm'
-                : 'text-pa-text-muted hover:text-pa-text'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted hover:text-foreground'
             }`}
           >
             <FlagCircle code={c.code} />
@@ -97,14 +97,14 @@ export function Header() {
         ))}
       </div>
 
-      <div className="h-5 w-px bg-pa-border" />
+      <div className="h-5 w-px bg-border" />
 
       {/* Contact icons */}
       <a
         href="https://wa.me/56221111111"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100 hover:text-green-600"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface hover:text-success"
         title="WhatsApp"
       >
         <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="currentColor">
@@ -113,7 +113,7 @@ export function Header() {
       </a>
       <a
         href="mailto:atencion@globepower.cl"
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-pa-text-muted transition-colors hover:bg-gray-100 hover:text-pa-blue"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface hover:text-brand"
         title="Email"
       >
         <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,7 +122,7 @@ export function Header() {
         </svg>
       </a>
 
-      <div className="h-5 w-px bg-pa-border" />
+      <div className="h-5 w-px bg-border" />
 
       {/* User menu */}
       <div className="relative">
@@ -130,9 +130,9 @@ export function Header() {
           ref={btnRef}
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-pa-text transition-colors hover:bg-gray-100"
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-surface"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pa-navy text-[11px] font-semibold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-brand-fg">
             {initials}
           </span>
           <span className="hidden text-[13px] font-medium sm:inline">{user?.displayName ?? user?.email ?? 'Usuario'}</span>
@@ -144,14 +144,14 @@ export function Header() {
         {menuOpen && (
           <div
             ref={menuRef}
-            className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-pa-border bg-white py-1 shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border border-border bg-background py-1 shadow-lg"
           >
             <button
               type="button"
               onClick={() => { setMenuOpen(false); navigate('/admin/settings'); }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-pa-text transition-colors hover:bg-gray-100"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-foreground transition-colors hover:bg-surface"
             >
-              <svg className="h-4 w-4 text-pa-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="h-4 w-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
                 <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

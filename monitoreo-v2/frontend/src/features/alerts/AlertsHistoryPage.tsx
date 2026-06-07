@@ -7,6 +7,7 @@ import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { Alert, AlertSeverity } from '../../types/alert';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 interface MonthlySla {
   month: string;
@@ -101,7 +102,7 @@ export function AlertsHistoryPage(): ReactElement {
       ],
       tooltip: { shared: true },
       series: [
-        { type: 'column' as const, name: 'Total alertas', data: monthlySla.map((m) => m.total), yAxis: 0, color: 'var(--color-primary, #3D3BF3)' },
+        { type: 'column' as const, name: 'Total alertas', data: monthlySla.map((m) => m.total), yAxis: 0, color: 'var(--color-chart-1, #3a5b1e)' },
         { type: 'column' as const, name: 'Resueltas', data: monthlySla.map((m) => m.resolved), yAxis: 0, color: '#10b981' },
         { type: 'line' as const, name: 'Tiempo medio (h)', data: monthlySla.map((m) => Math.round(m.avgResolutionHours * 10) / 10), yAxis: 1, color: '#f59e0b' },
       ],
@@ -127,7 +128,7 @@ export function AlertsHistoryPage(): ReactElement {
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Historial de Alertas y SLA</h1>
+        <PageHeader title="Historial de Alertas y SLA" eyebrow="Alertas" />
         <div className="flex gap-2">
           <DropdownSelect
             options={[
@@ -164,17 +165,17 @@ export function AlertsHistoryPage(): ReactElement {
       </div>
 
       {/* Chart with toggle */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="panel p-4">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-gray-700">
+          <h2 className="text-sm font-medium text-foreground">
             {chartTab === 'trend' ? 'Tendencia mensual' : 'Cumplimiento SLA mensual'}
           </h2>
-          <div className="flex rounded-full border border-gray-200">
+          <div className="flex rounded-full border border-border">
             <button
               type="button"
               onClick={() => setChartTab('trend')}
               className={`px-2.5 py-0.5 text-[11px] rounded-l-full transition-colors ${
-                chartTab === 'trend' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+                chartTab === 'trend' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
               Tendencia
@@ -183,7 +184,7 @@ export function AlertsHistoryPage(): ReactElement {
               type="button"
               onClick={() => setChartTab('sla')}
               className={`px-2.5 py-0.5 text-[11px] rounded-r-full transition-colors ${
-                chartTab === 'sla' ? 'bg-[var(--color-primary,#3a5b1e)] text-white' : 'text-gray-600 hover:bg-gray-100'
+                chartTab === 'sla' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
               SLA
@@ -201,9 +202,9 @@ export function AlertsHistoryPage(): ReactElement {
       </div>
 
       {/* Monthly table */}
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+      <div className="max-h-[70vh] overflow-y-auto panel">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+          <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
             <tr>
               <th className="px-4 py-2">Mes</th>
               <th className="px-4 py-2 text-right">Total</th>
@@ -221,8 +222,8 @@ export function AlertsHistoryPage(): ReactElement {
             skeletonWidths={['w-20', 'w-16', 'w-16', 'w-24', 'w-16']}
           >
             {monthlySla.map((row) => (
-              <tr key={row.month} className="hover:bg-gray-50">
-                <td className="px-4 py-2 font-medium text-gray-900">{row.month}</td>
+              <tr key={row.month} className="hover:bg-surface">
+                <td className="px-4 py-2 font-medium text-foreground">{row.month}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{row.total}</td>
                 <td className="px-4 py-2 text-right tabular-nums text-green-600">{row.resolved}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{row.avgResolutionHours.toFixed(1)}</td>
@@ -242,9 +243,9 @@ export function AlertsHistoryPage(): ReactElement {
 
 function MiniKpi({ label, value, color }: Readonly<{ label: string; value: string; color?: string }>): ReactElement {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
-      <span className="text-[11px] text-gray-500">{label}</span>
-      <span className={`text-[13px] font-semibold ${color ?? 'text-gray-900'}`}>{value}</span>
+    <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
+      <span className="text-[11px] text-muted">{label}</span>
+      <span className={`text-[13px] font-semibold ${color ?? 'text-foreground'}`}>{value}</span>
     </div>
   );
 }

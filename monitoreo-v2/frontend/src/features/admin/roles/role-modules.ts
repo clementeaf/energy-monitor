@@ -72,6 +72,7 @@ export const ROLE_MODULE_GROUPS: RoleModuleGroup[] = [
         description: 'Tiempo real, demanda, calidad eléctrica, medidores por tipo, Modbus.',
         capabilities: [
           { action: 'read', label: 'Ver' },
+          { action: 'export', label: 'Exportar' },
         ],
       },
     ],
@@ -149,6 +150,17 @@ export const ROLE_MODULE_GROUPS: RoleModuleGroup[] = [
           { action: 'read', label: 'Ver' },
           { action: 'create', label: 'Crear' },
           { action: 'update', label: 'Editar / Sincronizar' },
+        ],
+      },
+      {
+        permissionModule: 'webhooks',
+        label: 'Webhooks salientes',
+        description: 'Suscripciones HTTP con firma HMAC para eventos del sistema.',
+        capabilities: [
+          { action: 'read', label: 'Ver' },
+          { action: 'create', label: 'Crear' },
+          { action: 'update', label: 'Editar' },
+          { action: 'delete', label: 'Eliminar' },
         ],
       },
     ],
@@ -237,6 +249,25 @@ export const ROLE_MODULE_GROUPS: RoleModuleGroup[] = [
         ],
       },
       {
+        permissionModule: 'oauth_clients',
+        label: 'OAuth Clients',
+        description: 'Clientes OAuth2 client_credentials para integraciones M2M.',
+        capabilities: [
+          { action: 'read', label: 'Ver' },
+          { action: 'create', label: 'Crear' },
+          { action: 'update', label: 'Editar / Rotar / Eliminar' },
+        ],
+      },
+      {
+        permissionModule: 'sso',
+        label: 'SSO Enterprise',
+        description: 'Configuracion OIDC por tenant (Azure AD, IdP generico).',
+        capabilities: [
+          { action: 'read', label: 'Ver' },
+          { action: 'update', label: 'Editar' },
+        ],
+      },
+      {
         permissionModule: 'admin_tenant_config',
         label: 'Configuración Tenant',
         description: 'Logo, título, colores, configuración general del tenant.',
@@ -251,6 +282,25 @@ export const ROLE_MODULE_GROUPS: RoleModuleGroup[] = [
         description: 'Logs de acceso, cambios y actividad del sistema.',
         capabilities: [
           { action: 'read', label: 'Ver' },
+        ],
+      },
+      {
+        permissionModule: 'data_quality',
+        label: 'Calidad de Datos',
+        description: 'Reportes de lecturas medidas, estimadas e invalidas por edificio.',
+        capabilities: [
+          { action: 'read', label: 'Ver reporte' },
+        ],
+      },
+      {
+        permissionModule: 'register_mappings',
+        label: 'Mapeos de Registros',
+        description: 'Matriz de equivalencia protocolo → campo canonico (Modbus, MQTT, etc.).',
+        capabilities: [
+          { action: 'read', label: 'Ver / Exportar' },
+          { action: 'create', label: 'Crear' },
+          { action: 'update', label: 'Editar' },
+          { action: 'delete', label: 'Eliminar' },
         ],
       },
     ],

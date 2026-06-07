@@ -80,6 +80,8 @@ export class MetersService {
       nominalVoltage: dto.nominalVoltage != null ? String(dto.nominalVoltage) : null,
       nominalCurrent: dto.nominalCurrent != null ? String(dto.nominalCurrent) : null,
       contractedDemandKw: dto.contractedDemandKw != null ? String(dto.contractedDemandKw) : null,
+      loadCategory: dto.loadCategory ?? null,
+      parentMeterId: dto.parentMeterId ?? null,
     });
     return this.repo.save(meter);
   }
@@ -113,6 +115,8 @@ export class MetersService {
     if (dto.contractedDemandKw !== undefined) {
       meter.contractedDemandKw = dto.contractedDemandKw != null ? String(dto.contractedDemandKw) : null;
     }
+    if (dto.loadCategory !== undefined) meter.loadCategory = dto.loadCategory;
+    if (dto.parentMeterId !== undefined) meter.parentMeterId = dto.parentMeterId;
 
     return this.repo.save(meter);
   }

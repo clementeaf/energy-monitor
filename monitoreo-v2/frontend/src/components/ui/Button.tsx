@@ -12,13 +12,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLS: Record<ButtonVariant, string> = {
   primary:
-    'bg-[var(--color-primary,#3D3BF3)] text-white hover:opacity-90 focus:ring-[var(--color-primary,#3D3BF3)]',
+    'bg-brand text-brand-fg hover:bg-brand-hover focus:ring-brand',
   secondary:
-    'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-300',
+    'border border-border bg-background text-foreground hover:bg-surface hover:border-subtle focus:ring-border',
   danger:
-    'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    'bg-danger text-white hover:opacity-90 focus:ring-danger',
   ghost:
-    'text-gray-600 hover:bg-gray-100 focus:ring-gray-300',
+    'text-muted hover:bg-surface hover:text-foreground focus:ring-border',
 };
 
 const SIZE_CLS: Record<ButtonSize, string> = {
@@ -43,7 +43,7 @@ export function Button({
       {...rest}
       disabled={isDisabled}
       className={
-        'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium ' +
+        'inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium ' +
         'transition-all duration-150 ease-in-out ' +
         'focus:outline-none focus:ring-2 focus:ring-offset-1 ' +
         'disabled:opacity-40 disabled:cursor-not-allowed ' +

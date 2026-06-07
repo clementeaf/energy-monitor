@@ -87,7 +87,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
               value={email}
               onChange={(e) => { setEmail(e.target.value); }}
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
         )}
@@ -100,7 +100,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
               onChange={(e) => { setPhone(e.target.value); }}
               placeholder="+56 9 1234 5678"
               maxLength={20}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
         )}
@@ -110,7 +110,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
             value={displayName}
             onChange={(e) => { setDisplayName(e.target.value); }}
             maxLength={255}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -157,7 +157,7 @@ export function UserForm({ open, onClose, onSubmit, isPending, user }: Readonly<
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <div className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

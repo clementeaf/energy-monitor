@@ -1,0 +1,109 @@
+ID,Funcionalidad,Estado,Capa,Evidencia_monitoreo_v2,Accion_propuesta,Prioridad
+ARQ-01,Escalabilidad Regional,Parcial,Backend/DB,tenants.timezone; sin country/currency en schema,"Agregar country_code, currency en tenants/buildings; soporte multi-zona horaria por building",P0
+ARQ-02,Estándar de Nube,Parcial,Infra,ECS Fargate + RDS TimescaleDB AWS us-east-1,Documentar arquitectura AWS + política soberanía; evaluar región/data residency PASA,P1
+ARQ-03,Protocolos de Campo,Parcial,Backend/DB,Modbus en meters; MQTT vía iot_readings; sin BACnet/SNMP,Tablas protocol_mappings + conectores BACnet/SNMP; ampliar ingest,P0
+ARQ-04,Gestión de Webhooks,Parcial,Backend,WebhookConnector integraciones; alertas ALERT_WEBHOOK_URL,Webhooks por tipo evento energético configurables por tenant,P1
+ARQ-05,Multitenancy y Jerarquía,Parcial,Backend/DB,tenant_id + buildings; sin país/región,Schema regions/countries + rollup views por país/región/mall,P0
+ARQ-06,Ambientes,Parcial,Infra,Prod ECS+RDS; dev local Docker,Formalizar ambientes QA/sandbox aislados con datos sintéticos,P1
+ARQ-07,Latencia y Concurrencia,Parcial,Mixto,CAGG + portfolio_summary; perf mejorada dashboard,Load tests PASA volumetría; índices/CAGG 15min,P1
+ARQ-08,Monitoreo y Observabilidad,Cubierto,Backend,GET /health,Extender health con checks DB/replica,P2
+ARQ-09,Interfaz Responsiva,Cubierto,Frontend,React responsive,N/A backend DB,—
+ARQ-10,Off-boarding Automático,Falta,Backend/Auth,OAuth Google/MS; sin SCIM/Azure AD sync,Integración SSO SAML/OIDC + desprovisionamiento AD,P0
+ARQ-11,Backup y RTO/RPO,Parcial,Infra,RDS backups AWS; sin RTO/RPO documentado,Automatizar backup diario 30d; runbook RTO<4h RPO<1h,P1
+ARQ-12,Almacenamiento Histórico,Falta,Backend/DB,retention_policy readings 3y; iot 2y,Subir a 5y; CAGG readings_15min; quitar drop prematuro,P0
+ARQ-13,Escalabilidad Horizontal,Parcial,Infra,ECS multi-task posible; single RDS,Read replica + escalar ECS; stateless API,P1
+ARQ-14,Sin puntos únicos de falla,Parcial,Infra,Single AZ RDS típico,Multi-AZ RDS + redundancia ECS,P1
+ARQ-15,Versionamiento,Parcial,Proceso,"docs/context/, README backend","Entregar pack PASA: diagramas, flujo datos, stack",P2
+ARQ-16,Gestión de Configuración,Parcial,Infra,Terraform/scripts parciales en repo,IaC versionado completo ECS/RDS/CF,P2
+ARQ-17,Pruebas de Carga,Falta,Proceso,Sin load test report PASA-scale,Ejecutar y documentar pruebas carga ~2700 medidores,P1
+ARQ-18,Latencia de Red,Falta,Proceso,No documentado,Especificar requisitos bandwidth/latencia por mall,P2
+ARQ-19,API-First,Parcial,Backend,External API v1 read-only; no 100% UI,Inventariar gaps API vs UI; exponer endpoints faltantes,P1
+ARQ-20,Gestión de Obsolescencia,Parcial,Proceso,"NestJS 11, PG16, deps actuales",Política obsolescencia + cron dependabot,P2
+ARQ-21,Logs de Errores Técnicos,Parcial,Infra,JsonLogger LOG_FORMAT=json,Integración CloudWatch/Splunk export formal,P2
+ARQ-22,Independencia de Navegador,Parcial,Frontend,Sin certificación formal,Matriz compatibilidad browsers,P3
+ARQ-23,Acoplamiento Mínimo,Parcial,Backend,Monolito NestJS modular,Documentar módulos desacoplables; path a microservicios,P2
+ARQ-24,Diccionario de Errores,Falta,Proceso,Sin manual códigos error,Publicar catálogo errores API + troubleshooting,P2
+CYB-01,Autenticación SSO,Parcial,Backend/Auth,OAuth Microsoft/Google; no SAML enterprise PASA,Azure AD SSO SAML/OIDC obligatorio PASA,P0
+CYB-02,Multi-Factor (MFA),Cubierto,Backend,MFA TOTP + require_mfa por rol,—,—
+CYB-03,Mínimo Privilegio,Cubierto,Backend/DB,RBAC roles/permissions; audit_logs,Reporte trimestral permisos (proceso),P2
+CYB-04,Cifrado en Tránsito,Cubierto,Infra,TLS RDS + HTTPS CloudFront/ECS,TLS medidores en ingest,P1
+CYB-05,Cifrado en Reposo,Parcial,Infra,RDS encryption at rest AWS,Verificar backups cifrados; documentar AES-256,P1
+CYB-06,Gestión de Sesiones,Parcial,Backend,Sesión 24h actual; no 15min idle estricto,Ajustar maxSessionMinutes; sesiones concurrentes,P1
+CYB-07,Escaneo DAST,Falta,Proceso,Sin DAST continuo documentado,Pipeline DAST portal/API/webhooks,P2
+CYB-08,Ethical Hacking,Falta,Proceso,Sin pentest anual tercero,Contratar pentest anual,P2
+CYB-09,Protección Perimetral,Parcial,Infra,"Helmet, throttler, CORS; sin WAF explícito",WAF CloudFront + shield,P1
+CYB-10,Logs de Auditoría,Parcial,Backend/DB,audit_logs hypertable; cron purga 2y vs req 12m min,Alinear retención audit ≥12m (ideal 5y ISO); no purgar a 2y,P0
+CYB-11,BCP / DRP,Parcial,Proceso,DR implícito RDS; sin DRP probado,Documentar y probar BCP/DRP,P1
+CYB-12,Borrado Seguro,Parcial,Backend,deletion_requests anonimización,Procedimiento borrado criptográfico fin contrato,P1
+CYB-13,Escaneo de Red y OS,Falta,Infra,Sin escaneo vuln OS/red documentado,Programa scanning infra EMS,P2
+CYB-14,Antivirus y EDR,Falta,Infra,Fargate managed; sin EDR explícito,Documentar controles AWS/shared responsibility,P2
+CYB-15,Control de Versiones,Parcial,Proceso,CI tests; hooks,Formalizar change management prod,P2
+CYB-16,Plan de Comunicación,Parcial,Backend,breach_reports tabla + timer 72h Ley 21.719,Ajustar a 24h notificación PASA CYB-16,P1
+CYB-17,Configuración Segura,Parcial,Infra,Hardening parcial Nest/Helmet,Baseline CIS/hardening RDS/ECS documentado,P2
+CYB-18,Proceso de Parcheo,Falta,Proceso,Sin SLA parcheo 30d formal,Política parcheo críticos ≤30d,P2
+CYB-19,Inventario de Componentes,Parcial,Proceso,"package.json, Dockerfile",Inventario SBOM componentes EMS,P2
+CYB-20,Revisión de Cuentas Privilegiadas,Falta,Proceso,Sin revisión mensual cuentas priv,Proceso PAM + revisión mensual,P2
+CYB-21,Recolección de Logs de Acceso,Cubierto,Backend/DB,"audit_logs IP, user, timestamp en auth",Incluir resultado auth fallo explícito,P2
+CYB-22,IDS / IPS,Falta,Infra,Sin IDS/IPS dedicado,AWS GuardDuty/IDS o equivalente,P2
+CYB-23,Integridad de Backups,Falta,Infra/DB,Sin prueba integridad backup semestral,Restore test semestral documentado,P1
+DAT-01,Base de Datos de Réplica,Falta,Infra/DB,Single RDS endpoint,RDS read replica + credenciales read-only ETL,P0
+DAT-02,API REST / GraphQL,Parcial,Backend,External API REST + Swagger dev; API keys no OAuth2,OAuth2 client credentials; OpenAPI prod; GraphQL opcional,P1
+DAT-03,Webhooks de Eventos,Parcial,Backend,Webhook connector genérico,Webhooks evento consumo/alarma configurables,P1
+DAT-04,Granularidad y Timestamp,Parcial,Backend/DB,timestamptz UTC; sin local_ts en API,Exponer timestamp_utc + timezone + timestamp_local por building,P0
+DAT-05,Diccionario de Datos,Falta,Proceso/DB,Sin catálogo datos formal,Documento data dictionary + unidades kWh/kVARh,P1
+DAT-06,Flag de Validación,Falta,Backend/DB,iot_readings.quality; readings sin flag,Columna readings.quality_status enum,P0
+DAT-07,Propiedad y Acceso,Parcial,Backend,Export JSON perfil; portabilidad ARCO,Script export total historia sin costo; cláusula contractual,P1
+DAT-08,Retención Histórica,Falta,Backend/DB,Retención 3y readings,Política 5y hot data accesible API/DB,P0
+DAT-09,Observabilidad de API,Falta,Backend,Sin dashboard uso API,Métricas API mensuales error/latencia,P2
+DAT-10,Gestión de Backfill,Falta,Backend/DB,Sin backfill automático post-outage,meter_sync_log + job backfill gaps,P0
+DAT-11,Metadatos de Activos,Parcial,Backend/DB,buildings/meters/tenant_units; sin load_type e IDs PASA,"Campos pasa_mall_id, country, load_type, locatario_id exportables",P0
+DAT-12,Exportación para Modelos,Parcial,Backend,Reports CSV/Excel; sin Parquet,Endpoint export Parquet/CSV comprimido bulk,P1
+DAT-13,Disponibilidad de Datos en Contingencia,Parcial,Infra/Backend,DR general; validación esquema parcial,BCP datos + notificación breaking schema changes,P1
+DAT-14,Auditoría de Acceso a Datos,Parcial,Backend/DB,audit_logs HTTP; no query-level data access,Log consultas datos sensibles consumo,P1
+DAT-15,Throttle y Quotas de API,Parcial,Backend,Throttler + api_keys rate_limit,Documentar quotas; tiers ETL,P1
+DAT-16,Consistencia de Agregación,Falta,Backend/DB,Jerarquía sin validación suma,Vista/job meter_balance_checks remarcador vs locatarios,P1
+DAT-17,Reporte de Salud de Datos,Falta,Backend/DB,Sin reporte calidad trimestral,Tabla data_quality_daily + reporte % real/estimado/erróneo,P1
+DAT-18,Documentación de Modelo Lógico,Parcial,Proceso/DB,Entidades TypeORM; sin DER entregable,Publicar DER actualizado PASA,P2
+DAT-19,Trazabilidad de Cargas (Lineage),Falta,Backend/DB,Sin trazabilidad sync por medidor,"meter_reading_status (last_sync, source, lag)",P0
+DAT-20,Certificación de Datos,Parcial,Backend/DB,Lecturas append-only; sin hash integridad,Checksums/audit trail ingest; certificación no manipulación,P2
+DAT-21,Soporte para Cargas Incrementales,Parcial,Backend,API filtros from/to; sin cursor ETL,Tabla etl_watermarks + API incremental,P1
+DAT-22,Documentación de Reglas de Negocio,Parcial,Backend,Fórmulas facturación en código,Documento reglas negocio KPIs/prorrateo,P2
+DAT-23,Acceso a Datos de Auditoría,Parcial,Backend/DB,audit_logs config changes parcial,Auditar cambios maestro medidores/tarifas completos,P1
+DAT-24,Alerta de Datos Estancados,Falta,Backend,offline alerts Lambda legacy; no en v2 DB,Alerta automática flujo sin update >4h por mall/medidor,P0
+DAT-25,Contratos de datos versionados,Falta,Backend/DB,Sin contratos versionados,"Tabla data_contracts (version, schema_json, changelog)",P1
+DAT-26,SLOs de datos,Falta,Backend/DB,Sin SLOs datos formalizados,Tabla data_slo_metrics + monitoreo frescura/completitud,P2
+DAT-27,Data observability avanzada,Falta,Backend/DB,Alert engine eléctrico; no data observability,Detección anomalías volumen/quiebres tendencia,P2
+DAT-28,Analítica	Capa semántica alineable con PASA,Falta,Backend/DB,Sin capa semántica,Tabla metric_definitions (métricas/dimensiones PASA),P2
+DAT-29,"Gobernanza de prompts, entradas y salidas",Falta,Backend,Sin IA generativa hoy,Si se agrega IA: audit prompts I/O,P3
+DAT-30,Restricción de entrenamiento con datos de PASA,Cubierto,Proceso,Política privacidad; datos tenant aislados,Cláusula contractual no-entrenamiento explícita,P1
+FIN-01,Escalabilidad de Costos,Falta,Contrato,N/A producto,Propuesta pricing tiered medidor/mall/usuario,—
+FIN-02,Escalabilidad del modelo,Parcial,Backend/DB,CRUD buildings/meters/tenant_units,Onboarding self-service mall/medidor sin consultoría,P1
+FIN-03,Escalabilidad del modelo,Parcial,Backend/DB,Schema extensible metadata JSONB,Plantillas onboarding por tipo inmueble,P1
+FIN-04,Facturación Regional,Falta,Contrato,N/A,Facturación legal CL/PE/CO proveedor,—
+FIN-05,Niveles de Soporte (SLA),Falta,Contrato,N/A,Documentar SLA soporte N1-N3,—
+FIN-06,Penalidades,Parcial,Infra,Sin SLA 99.5% medido formal,CloudWatch alarms + SLA reporting,P1
+FIN-07,Reporte de Service Desk,Falta,Proceso,Sin reporte mensual tickets,Proceso service desk mensual,—
+FIN-08,Plan de Training,Falta,Proceso,N/A,Plan capacitación multi-país,—
+FIN-09,Escrow de Código,Falta,Contrato,Opcional,Escrow código+data,—
+INT-01,Compatibilidad Industrial,Parcial,Backend/DB,Modbus fields; MQTT iot; sin BACnet/SNMP,Igual ARQ-03 protocol_mappings,P0
+INT-02,API de Salida (Egress),Parcial,Backend,External API + api_keys; no OAuth2,OAuth2 client credentials PASA,P1
+INT-03,API de Entrada (Ingress),Falta,Backend/DB,Readings read-only; sin POST ingress,POST /v1/measurements ingest virtual meters,P0
+INT-04,Gestión de Certificados,Parcial,Infra,TLS RDS/HTTPS; rotación manual,Rotación certificados/keys documentada datalake,P1
+INT-05,Mapeo de Datos,Falta,Backend/DB,Conversión W→kW IoT; sin reglas configurables,Tabla normalization_rules por tenant/protocolo,P1
+INT-06,Versionamiento de APIs,Parcial,Backend,Prefijo /v1 external API,Política deprecación 6 meses versionada,P2
+INT-07,Guía de Integración Técnica,Parcial,Proceso,Swagger dev,Postman collection + guía integración PASA,P2
+INT-08,Tiempo de Respuesta de API,Parcial,Backend/DB,Queries optimizadas CAGG; sin benchmark p95,Medir y garantizar p95 <500ms API datos,P1
+INT-09,Aislamiento de Tráfico,Parcial,Infra,API Gateway/CF; mismo cluster,Rate limit separado integración vs UI,P2
+INT-10,Estrategia de Reintentos (Retry),Parcial,Backend,retry.util integraciones,Retries exponenciales webhooks/ETL outbound,P1
+INT-11,Time-out Configurable,Parcial,Backend,Timeouts parciales axios/connectors,Timeout configurable por integración en config JSON,P2
+INT-12,Cifrado de Extremo a Extremo,Parcial,Backend,MQTT TLS IoT Core prod,Documentar TLS Modbus/BACnet field,P1
+INT-13,Dashboard de Salud de Interfaces,Falta,Backend,integration_sync_logs; sin UI salud,API/dashboard salud interfaces + latencia,P1
+INT-14,Mapeo de Transformaciones,Falta,Proceso/DB,Sin matriz mapping entregable,Export protocol_mappings Modbus/BACnet→API model,P1
+PRI-01,Punto de Contacto,Parcial,Proceso,DPO docs privacy/; no oficial PASA-dedicated,Designar contacto privacidad proveedor,—
+PRI-02,Notificación de Brechas,Cubierto,Backend,breach notification 72h Ley 21.719,Confirmar 24h PASA PRI-02 vs 72h ley CL,P1
+PRI-03,Impacto de Privacidad,Parcial,Proceso,EIPD docs existentes,PIA ante cambios software PASA,—
+PRI-04,Registro de Tratamiento,Parcial,Proceso,processing-registry endpoint,Registro tratamiento flujos PASA actualizado,—
+PRI-05,Necesidad y proporcionalidad,Parcial,Backend,Minimización PII; campos opcionales users,Config campos obligatorios por país/proceso,P2
+PRI-06,Campos personales y confidenciales,Parcial,Proceso/DB,PII encryption migration 13,Inventario campos PII/sensibles documentado,P1
+PRI-07,Subprocesadores y localización,Parcial,Proceso,privacy docs AWS transfer,Listado subprocesadores vivo,—
+PRI-08,Política por categoría de dato,Parcial,Backend,data-retention cron; políticas parciales,Retención diferenciada por categoría dato en DB,P1

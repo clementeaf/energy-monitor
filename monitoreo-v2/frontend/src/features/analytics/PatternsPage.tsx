@@ -6,6 +6,7 @@ import { Chart } from '../../components/charts/Chart';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 type Sensitivity = 'high' | 'medium' | 'low';
 
@@ -192,7 +193,7 @@ export function PatternsPage(): ReactElement {
       yAxis: { title: { text: 'kWh/día' } },
       tooltip: { shared: true },
       series: [
-        { type: 'line' as const, name: 'Consumo diario', data: normalData.filter(Boolean), color: 'var(--color-primary, #3D3BF3)' },
+        { type: 'line' as const, name: 'Consumo diario', data: normalData.filter(Boolean), color: 'var(--color-chart-1, #3a5b1e)' },
         { type: 'scatter' as const, name: 'Anomalías', data: anomalyData.filter(Boolean), color: '#ef4444', marker: { radius: 6, symbol: 'diamond' } },
       ],
     };
@@ -201,7 +202,7 @@ export function PatternsPage(): ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Patrones y Anomalías</h1>
+        <PageHeader title="Patrones y Anomalías" eyebrow="Analítica" />
         <div className="flex gap-2">
           <DropdownSelect
             options={[
@@ -245,25 +246,25 @@ export function PatternsPage(): ReactElement {
       >
         {/* Heatmap */}
         {heatmapOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Mapa de calor — consumo por hora y día de semana</h2>
+          <div className="panel p-4">
+            <h2 className="mb-2 text-sm font-medium text-foreground">Mapa de calor — consumo por hora y día de semana</h2>
             <Chart options={heatmapOptions} />
           </div>
         )}
 
         {/* Daily line + anomalies */}
         {dailyChartOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Consumo diario con anomalías</h2>
+          <div className="panel p-4">
+            <h2 className="mb-2 text-sm font-medium text-foreground">Consumo diario con anomalías</h2>
             <Chart options={dailyChartOptions} />
           </div>
         )}
 
         {/* Anomalies table */}
         {anomalies.length > 0 && (
-          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+          <div className="max-h-[70vh] overflow-y-auto panel">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+              <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                 <tr>
                   <th className="px-4 py-2">Fecha</th>
                   <th className="px-4 py-2 text-right">Valor (kWh)</th>
@@ -281,10 +282,10 @@ export function PatternsPage(): ReactElement {
                 skeletonWidths={['w-20', 'w-20', 'w-20', 'w-20', 'w-16']}
               >
                 {anomalies.map((a) => (
-                  <tr key={a.bucket} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-900">{a.bucket}</td>
+                  <tr key={a.bucket} className="hover:bg-surface">
+                    <td className="px-4 py-2 font-medium text-foreground">{a.bucket}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{Math.round(a.value).toLocaleString('es-CL')}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-500">{Math.round(a.expected).toLocaleString('es-CL')}</td>
+                    <td className="px-4 py-2 text-right tabular-nums text-muted">{Math.round(a.expected).toLocaleString('es-CL')}</td>
                     <td className="px-4 py-2 text-right tabular-nums">
                       <span className={a.deviationPct > 0 ? 'text-red-600' : 'text-green-600'}>
                         {a.deviationPct > 0 ? '+' : ''}{a.deviationPct.toFixed(1)}%
@@ -299,17 +300,17 @@ export function PatternsPage(): ReactElement {
         )}
 
         {anomalies.length === 0 && rows.length > 0 && (
-          <p className="text-sm text-gray-500">No se detectaron anomalías con la sensibilidad seleccionada.</p>
+          <p className="text-sm text-muted">No se detectaron anomalías con la sensibilidad seleccionada.</p>
         )}
       </DataWidget>
     </div>
   );
 }
 
-function KpiCard({ title, value, color = 'text-gray-900' }: Readonly<{ title: string; value: string; color?: string }>): ReactElement {
+function KpiCard({ title, value, color = 'text-foreground' }: Readonly<{ title: string; value: string; color?: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{title}</p>
+    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+      <p className="text-xs font-medium text-muted">{title}</p>
       <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
     </div>
   );

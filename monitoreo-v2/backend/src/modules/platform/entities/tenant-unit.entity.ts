@@ -38,6 +38,9 @@ export class TenantUnit {
   @Column({ name: 'unit_code', length: 50 })
   unitCode!: string;
 
+  @Column({ name: 'external_unit_id', type: 'varchar', length: 100, nullable: true })
+  externalUnitId!: string | null;
+
   @Column({ name: 'contact_name', type: 'varchar', length: 255, nullable: true })
   contactName!: string | null;
 

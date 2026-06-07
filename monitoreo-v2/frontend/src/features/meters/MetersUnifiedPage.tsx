@@ -3,6 +3,7 @@ import { MetersPage } from './MetersPage';
 import { RealtimePage } from '../monitoring/realtime/RealtimePage';
 import { DevicesPage } from '../monitoring/devices/DevicesPage';
 import { MetersByTypePage } from '../monitoring/meters-by-type/MetersByTypePage';
+import { PillToggle } from '../../components/ui/PillToggle';
 
 const TABS = [
   { key: 'realtime', label: 'Tiempo Real' },
@@ -13,35 +14,24 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]['key'];
 
+/**
+ * Unified meters hub with Handle-style pill tabs.
+ */
 export function MetersUnifiedPage() {
   const [params, setParams] = useSearchParams();
   const activeTab = (TABS.find((t) => t.key === params.get('tab'))?.key ?? 'realtime') as TabKey;
 
-  const handleTab = (key: TabKey) => {
+  const handleTab = (key: TabKey): void => {
     setParams(key === 'realtime' ? {} : { tab: key }, { replace: true });
   };
 
   return (
-    <div className="flex flex-col gap-0">
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b border-pa-border px-4 pt-3">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => handleTab(t.key)}
-            className={`rounded-t-lg px-4 py-2 text-[13px] font-medium transition-colors ${
-              activeTab === t.key
-                ? 'border-b-2 border-pa-blue bg-white text-pa-blue'
-                : 'text-pa-text-muted hover:bg-gray-50 hover:text-pa-text'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
+    <div className="space-y-6">
+      <PillToggle
+        options={TABS.map((t) => ({ key: t.key, label: t.label }))}
+        value={activeTab}
+        onChange={handleTab}
+      />
       <div>
         {activeTab === 'realtime' && <RealtimePage />}
         {activeTab === 'inventory' && <MetersPage />}

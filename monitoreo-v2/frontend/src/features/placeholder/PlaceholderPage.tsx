@@ -8,7 +8,7 @@ interface PlaceholderPageProps {
 export function PlaceholderPage(props: PlaceholderPageProps) {
   const { label } = props;
   return (
-    <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400">
+    <div className="panel flex h-64 items-center justify-center border-2 border-dashed text-subtle">
       {label} — por implementar
     </div>
   );

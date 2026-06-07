@@ -7,6 +7,7 @@ import { Chart } from '../../components/charts/Chart';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 type Variable = 'energy' | 'demand' | 'cost';
 type Horizon = 3 | 6 | 12;
@@ -204,7 +205,7 @@ export function TrendsPage(): ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Tendencias y Proyección</h1>
+        <PageHeader title="Tendencias y Proyección" eyebrow="Analítica" />
         <div className="flex gap-2">
           <DropdownSelect
             options={[
@@ -246,26 +247,26 @@ export function TrendsPage(): ReactElement {
         emptyDescription="No hay lecturas agregadas para generar tendencias."
       >
         {trendChartOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="panel p-4">
             <StockChart options={trendChartOptions} loading={aggQuery.isFetching} />
-            <p className="mt-2 text-xs text-gray-400">
+            <p className="mt-2 text-xs text-subtle">
               Proyección basada en regresión lineal sobre datos históricos. Banda: intervalo de confianza 95%.
             </p>
           </div>
         )}
 
         {variationChartOptions && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Variación mes a mes</h2>
+          <div className="panel p-4">
+            <h2 className="mb-2 text-sm font-medium text-foreground">Variación mes a mes</h2>
             <Chart options={variationChartOptions} />
           </div>
         )}
 
         {/* Forecast table */}
         {forecast.length > 0 && (
-          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+          <div className="max-h-[70vh] overflow-y-auto panel">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+              <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                 <tr>
                   <th className="px-4 py-2">Mes proyectado</th>
                   <th className="px-4 py-2 text-right">Estimado</th>
@@ -282,11 +283,11 @@ export function TrendsPage(): ReactElement {
                 skeletonWidths={['w-20', 'w-20', 'w-20', 'w-20']}
               >
                 {forecast.map((f) => (
-                  <tr key={f.month} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 font-medium text-gray-900">{f.month}</td>
+                  <tr key={f.month} className="hover:bg-surface">
+                    <td className="px-4 py-2 font-medium text-foreground">{f.month}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(f.y)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-500">{fmt(f.yLow)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-500">{fmt(f.yHigh)}</td>
+                    <td className="px-4 py-2 text-right tabular-nums text-muted">{fmt(f.yLow)}</td>
+                    <td className="px-4 py-2 text-right tabular-nums text-muted">{fmt(f.yHigh)}</td>
                   </tr>
                 ))}
               </TableStateBody>

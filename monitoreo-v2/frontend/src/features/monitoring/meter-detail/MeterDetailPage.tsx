@@ -93,22 +93,22 @@ export function MeterDetailPage() {
         <button
           type="button"
           onClick={() => navigate(building ? `/meters?buildingId=${building.id}` : '/meters')}
-          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+          className="rounded-md border border-border px-2.5 py-1 text-xs text-muted hover:bg-surface"
         >
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]">Edificios</Link>
-        <span className="text-[11px] text-gray-400">/</span>
+        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">Edificios</Link>
+        <span className="text-[11px] text-subtle">/</span>
         {building && (
           <>
-            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]">
+            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-muted hover:text-brand">
               {building.name}
             </Link>
-            <span className="text-[11px] text-gray-400">/</span>
+            <span className="text-[11px] text-subtle">/</span>
           </>
         )}
-        <span className="text-[13px] font-semibold text-gray-900">
-          {meter?.name ?? '—'} <span className="font-normal text-gray-500">({meter?.code ?? meterId})</span>
+        <span className="text-[13px] font-semibold text-foreground">
+          {meter?.name ?? '—'} <span className="font-normal text-muted">({meter?.code ?? meterId})</span>
         </span>
         {alertCount > 0 && (
           <Link
@@ -129,8 +129,8 @@ export function MeterDetailPage() {
             onClick={() => setSelectedMetric(i)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               i === selectedMetric
-                ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
-                : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+                ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                : 'border border-border text-muted hover:bg-surface'
             }`}
           >
             {m.label}
@@ -153,7 +153,7 @@ export function MeterDetailPage() {
       {/* Monthly table */}
       <Card className="flex min-h-0 flex-1 flex-col" noPadding>
         <div className="px-6 pt-4 pb-2">
-          <h2 className="text-sm font-semibold text-gray-900">Detalle mensual</h2>
+          <h2 className="text-sm font-semibold text-foreground">Detalle mensual</h2>
         </div>
         <DataWidget
           phase={aggQs.phase === 'loading' ? 'ready' : aggQs.phase}
@@ -163,8 +163,8 @@ export function MeterDetailPage() {
           emptyDescription="No hay lecturas mensuales para este medidor."
         >
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="sticky top-0 z-10 bg-white">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="sticky top-0 z-10 bg-background">
               <tr>
                 <Th>Mes</Th>
                 <Th>Consumo (kWh)</Th>
@@ -187,8 +187,8 @@ export function MeterDetailPage() {
                 const monthKey = r.bucket.slice(0, 7); // YYYY-MM
                 const label = `${MONTH_NAMES_SHORT[d.getMonth()]} ${d.getFullYear()}`;
                 return (
-                  <tr key={r.bucket} className="hover:bg-gray-50">
-                    <Td className="font-medium text-gray-900">{label}</Td>
+                  <tr key={r.bucket} className="hover:bg-surface">
+                    <Td className="font-medium text-foreground">{label}</Td>
                     <Td>{fmtNum(r.energy_delta_kwh)}</Td>
                     <Td>{fmtNum(r.avg_power_kw, 2)}</Td>
                     <Td>{fmtNum(r.max_power_kw, 2)}</Td>
@@ -199,7 +199,7 @@ export function MeterDetailPage() {
                       <button
                         type="button"
                         onClick={() => navigate(`/monitoring/meter/${meterId}/readings/${monthKey}`)}
-                        className="text-xs font-medium text-[var(--color-primary,#3a5b1e)] hover:underline"
+                        className="text-xs font-medium text-brand hover:underline"
                       >
                         Ver &rarr;
                       </button>
@@ -209,8 +209,8 @@ export function MeterDetailPage() {
               })}
               {/* Summary footer */}
               {summary && rows.length > 0 && (
-                <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
-                  <Td className="text-gray-900">Total / Prom.</Td>
+                <tr className="border-t-2 border-border bg-surface font-semibold">
+                  <Td className="text-foreground">Total / Prom.</Td>
                   <Td>{fmtNum(rows.reduce((s, r) => s + parseFloat(r.energy_delta_kwh ?? '0'), 0))}</Td>
                   <Td>{fmtNum(summary.avg, 2)}</Td>
                   <Td>{fmtNum(summary.max, 2)}</Td>
@@ -240,12 +240,12 @@ export function MeterDetailPage() {
 
 function Th({ children }: Readonly<{ children?: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children?: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

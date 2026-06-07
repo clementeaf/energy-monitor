@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router';
 import { isAxiosError } from 'axios';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
@@ -15,6 +16,7 @@ import {
   useDeleteIntegration,
   useTriggerIntegrationSync,
 } from '../../hooks/queries/useIntegrationsQuery';
+import { PageHeader } from '../../components/ui/PageHeader';
 import type {
   Integration,
   IntegrationStatus,
@@ -23,6 +25,13 @@ import type {
   UpdateIntegrationPayload,
   IntegrationQueryParams,
 } from '../../types/integration';
+import { IntegrationsTabBar, resolveIntegrationsTab } from './IntegrationsTabBar';
+import { IntegrationsWebhooksTab } from './IntegrationsWebhooksTab';
+import { IntegrationsHealthTab } from './IntegrationsHealthTab';
+import { IntegrationsBackfillTab } from './IntegrationsBackfillTab';
+import { IntegrationsIngestGapsTab } from './IntegrationsIngestGapsTab';
+import { IntegrationsWebhookDeliveriesTab } from './IntegrationsWebhookDeliveriesTab';
+import { INTEGRATION_TYPE_PRESETS, isStubIntegrationType } from './integration-types';
 
 const STATUS_OPTIONS: { value: IntegrationStatus; label: string }[] = [
   { value: 'active', label: 'Activo' },
@@ -86,8 +95,12 @@ function errorMessage(err: unknown): string {
 }
 
 export function IntegrationsPage() {
+  const location = useLocation();
+  const activeTab = resolveIntegrationsTab(location.pathname);
+
   const { has } = usePermissions();
   const canRead = has('integrations', 'read');
+  const canReadWebhooks = has('webhooks', 'read');
   const canCreate = has('integrations', 'create');
   const canUpdate = has('integrations', 'update');
 
@@ -208,15 +221,27 @@ export function IntegrationsPage() {
 
   return (
     <div className="flex h-full flex-col gap-6">
-      {!canRead ? (
-        <div className="flex flex-1 items-center justify-center text-gray-500">
+      <IntegrationsTabBar active={activeTab} canWebhooks={canReadWebhooks} />
+
+      {activeTab === 'webhooks' && <IntegrationsWebhooksTab />}
+
+      {activeTab === 'deliveries' && <IntegrationsWebhookDeliveriesTab />}
+
+      {activeTab === 'gaps' && <IntegrationsIngestGapsTab />}
+
+      {activeTab === 'backfill' && <IntegrationsBackfillTab />}
+
+      {activeTab === 'health' && <IntegrationsHealthTab />}
+
+      {activeTab === 'connectors' && !canRead ? (
+        <div className="flex flex-1 items-center justify-center text-muted">
           No tiene permisos para ver integraciones.
         </div>
-      ) : (
+      ) : activeTab === 'connectors' ? (
         <>
           <section>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h1 className="text-2xl font-semibold text-gray-900">Integraciones</h1>
+              <PageHeader title="Integraciones" eyebrow="Integraciones" />
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="text"
@@ -228,7 +253,7 @@ export function IntegrationsPage() {
                       integrationType: e.target.value || undefined,
                     })
                   }
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="rounded-md border border-border px-3 py-1.5 text-sm"
                 />
                 <DropdownSelect
                   options={[
@@ -248,7 +273,7 @@ export function IntegrationsPage() {
                   <button
                     type="button"
                     onClick={openCreate}
-                    className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                    className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
                   >
                     Nueva integracion
                   </button>
@@ -256,10 +281,10 @@ export function IntegrationsPage() {
               </div>
             </div>
 
-            <div className="overflow-auto rounded-lg border border-gray-200">
+            <div className="overflow-auto rounded-lg border border-border">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-white">
-                  <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <thead className="sticky top-0 z-10 bg-background">
+                  <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Estado</th>
@@ -279,20 +304,20 @@ export function IntegrationsPage() {
                   skeletonWidths={['w-24', 'w-20', 'w-16', 'w-24', 'w-24', 'w-28']}
                 >
                   {visibleIntegrations.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{row.name}</td>
-                      <td className="px-4 py-3 text-gray-700">{row.integrationType}</td>
+                    <tr key={row.id} className="hover:bg-surface">
+                      <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                      <td className="px-4 py-3 text-foreground">{row.integrationType}</td>
                       <td className="px-4 py-3">
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
+                        <span className="rounded-full bg-raised px-2 py-0.5 text-xs text-foreground">
                           {labelStatus(row.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-muted">
                         {row.lastSyncAt
                           ? new Date(row.lastSyncAt).toLocaleString('es-CL')
                           : '—'}
                       </td>
-                      <td className="max-w-xs truncate px-4 py-3 text-gray-500" title={row.errorMessage ?? undefined}>
+                      <td className="max-w-xs truncate px-4 py-3 text-muted" title={row.errorMessage ?? undefined}>
                         {row.errorMessage ?? '—'}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -301,7 +326,7 @@ export function IntegrationsPage() {
                           onClick={() => {
                             openLogs(row);
                           }}
-                          className="mr-2 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                          className="mr-2 text-sm font-medium text-brand hover:underline"
                         >
                           Historial
                         </button>
@@ -313,7 +338,7 @@ export function IntegrationsPage() {
                                 syncMutation.mutateAsync(row.id).catch(() => undefined);
                               }}
                               disabled={syncMutation.isPending}
-                              className="mr-2 text-sm font-medium text-gray-800 hover:underline disabled:opacity-50"
+                              className="mr-2 text-sm font-medium text-foreground hover:underline disabled:opacity-50"
                             >
                               Sincronizar
                             </button>
@@ -322,7 +347,7 @@ export function IntegrationsPage() {
                               onClick={() => {
                                 openEdit(row);
                               }}
-                              className="mr-2 text-sm font-medium text-gray-800 hover:underline"
+                              className="mr-2 text-sm font-medium text-foreground hover:underline"
                             >
                               Editar
                             </button>
@@ -344,38 +369,47 @@ export function IntegrationsPage() {
               </table>
               {hasMore && <div ref={sentinelRef} className="h-4" />}
             </div>
-            {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleIntegrations.length} de {total}</p>}
+            {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleIntegrations.length} de {total}</p>}
           </section>
 
           <Modal
             open={formOpen}
             onClose={closeForm}
             title={editing ? 'Editar integracion' : 'Nueva integracion'}
-            dialogClassName="m-auto max-w-2xl rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40"
+            dialogClassName="m-auto max-w-2xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40"
           >
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Nombre
                 <input
                   value={name}
                   onChange={(e) => {
                     setName(e.target.value);
                   }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </label>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Tipo de integracion
-                <input
+                <DropdownSelect
+                  options={[
+                    { value: '', label: 'Seleccionar tipo...' },
+                    ...INTEGRATION_TYPE_PRESETS.map((p) => ({
+                      value: p.value,
+                      label: p.stub ? `${p.label} (stub/dev)` : p.label,
+                    })),
+                  ]}
                   value={integrationType}
-                  onChange={(e) => {
-                    setIntegrationType(e.target.value);
-                  }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="p. ej. api_rest, datalake"
+                  onChange={setIntegrationType}
+                  className="mt-1 w-full"
                 />
+                {isStubIntegrationType(integrationType) && (
+                  <span className="mt-1 inline-block rounded-full bg-warning/10 px-2 py-0.5 text-xs text-warning">
+                    Conector stub — solo desarrollo
+                  </span>
+                )}
               </label>
-              <div className="block text-sm font-medium text-gray-700">
+              <div className="block text-sm font-medium text-foreground">
                 Estado
                 <DropdownSelect
                   options={STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
@@ -386,7 +420,7 @@ export function IntegrationsPage() {
                   className="mt-1 w-full"
                 />
               </div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Configuracion (JSON)
                 <textarea
                   value={configText}
@@ -394,7 +428,7 @@ export function IntegrationsPage() {
                     setConfigText(e.target.value);
                   }}
                   rows={10}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-xs"
                   spellCheck={false}
                 />
               </label>
@@ -405,7 +439,7 @@ export function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-surface"
                 >
                   Cancelar
                 </button>
@@ -413,7 +447,7 @@ export function IntegrationsPage() {
                   type="button"
                   onClick={submitForm}
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                  className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
                 >
                   Guardar
                 </button>
@@ -425,7 +459,7 @@ export function IntegrationsPage() {
             open={logsFor != null}
             onClose={closeLogs}
             title={logsFor ? `Historial: ${logsFor.name}` : 'Historial'}
-            dialogClassName="m-auto max-w-4xl rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40"
+            dialogClassName="m-auto max-w-4xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40"
           >
             {logsFor != null && (
               <SyncLogsPanel
@@ -456,7 +490,7 @@ export function IntegrationsPage() {
             isPending={deleteMutation.isPending}
           />
         </>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -485,10 +519,10 @@ function SyncLogsPanel({
 
   return (
     <>
-      <div className="max-h-96 overflow-auto rounded border border-gray-200">
+      <div className="max-h-96 overflow-auto rounded border border-border">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-white">
-            <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-3 py-2">Inicio</th>
               <th className="px-3 py-2">Fin</th>
               <th className="px-3 py-2">Estado</th>
@@ -508,15 +542,15 @@ function SyncLogsPanel({
           >
             {query.data?.items.map((log: IntegrationSyncLog) => (
               <tr key={log.id}>
-                <td className="whitespace-nowrap px-3 py-2 text-gray-700">
+                <td className="whitespace-nowrap px-3 py-2 text-foreground">
                   {new Date(log.startedAt).toLocaleString('es-CL')}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 text-gray-700">
+                <td className="whitespace-nowrap px-3 py-2 text-foreground">
                   {log.completedAt ? new Date(log.completedAt).toLocaleString('es-CL') : '—'}
                 </td>
                 <td className="px-3 py-2">{SYNC_STATUS_LABELS[log.status]}</td>
                 <td className="px-3 py-2">{log.recordsSynced}</td>
-                <td className="max-w-xs truncate text-gray-500" title={log.errorMessage ?? undefined}>
+                <td className="max-w-xs truncate text-muted" title={log.errorMessage ?? undefined}>
                   {log.errorMessage ?? '—'}
                 </td>
               </tr>
@@ -525,7 +559,7 @@ function SyncLogsPanel({
         </table>
       </div>
       {query.data != null && query.data.total > logsLimit && (
-        <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+        <div className="mt-3 flex items-center justify-between text-sm text-muted">
           <span>
             Pagina {logsPage} de {logsTotalPages} ({query.data.total} registros)
           </span>
@@ -536,7 +570,7 @@ function SyncLogsPanel({
               onClick={() => {
                 onPageChange(Math.max(1, logsPage - 1));
               }}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+              className="rounded border border-border px-3 py-1 hover:bg-surface disabled:opacity-40"
             >
               Anterior
             </button>
@@ -546,7 +580,7 @@ function SyncLogsPanel({
               onClick={() => {
                 onPageChange(Math.min(logsTotalPages, logsPage + 1));
               }}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+              className="rounded border border-border px-3 py-1 hover:bg-surface disabled:opacity-40"
             >
               Siguiente
             </button>

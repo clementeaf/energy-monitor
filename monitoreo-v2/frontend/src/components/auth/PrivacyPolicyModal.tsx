@@ -42,17 +42,17 @@ export function PrivacyPolicyModal() {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Política de Privacidad</h2>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="w-full max-w-2xl rounded-lg bg-background shadow-2xl">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">Política de Privacidad</h2>
+          <p className="mt-1 text-sm text-muted">
             De acuerdo con la Ley 21.719 de Protección de Datos Personales, debes aceptar nuestra política de privacidad para continuar.
           </p>
         </div>
 
         <div
           ref={scrollRef}
-          className="max-h-[60vh] overflow-y-auto px-6 py-4 text-sm text-gray-700"
+          className="max-h-[60vh] overflow-y-auto px-6 py-4 text-sm text-foreground"
           onScroll={handleScroll}
         >
           <h3 className="mb-2 font-semibold">1. Responsable del Tratamiento</h3>
@@ -123,19 +123,19 @@ export function PrivacyPolicyModal() {
             Para consultas sobre protección de datos: <strong>privacidad@globepower.cl</strong>
           </p>
 
-          <p className="text-xs text-gray-400">Versión 1.0 — Vigente desde mayo 2026</p>
+          <p className="text-xs text-subtle">Versión 1.0 — Vigente desde mayo 2026</p>
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4">
           <div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-subtle">
               {scrolledToBottom ? 'Puedes aceptar la política' : 'Lee la política completa para continuar'}
             </p>
             <a
               href="/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-[var(--color-primary,#3D3BF3)] hover:opacity-80"
+              className="text-xs text-brand hover:opacity-80"
             >
               Ver política completa en nueva pestaña
             </a>
@@ -144,7 +144,7 @@ export function PrivacyPolicyModal() {
             type="button"
             onClick={() => acceptMutation.mutate()}
             disabled={!scrolledToBottom || acceptMutation.isPending}
-            className="rounded-lg bg-[var(--color-primary,#3D3BF3)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40"
+            className="rounded-lg bg-brand px-6 py-2.5 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-40"
           >
             {acceptMutation.isPending ? 'Guardando...' : 'Acepto la Política de Privacidad'}
           </button>

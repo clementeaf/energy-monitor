@@ -10,6 +10,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { HierarchyNode } from '../../../types/hierarchy';
 import type { Concentrator } from '../../../types/concentrator';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 export function DrilldownPage() {
   const { siteId } = useParams<{ siteId: string }>();
@@ -67,19 +68,19 @@ export function DrilldownPage() {
 
   if (!siteId) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Drill-down por Sitio</h1>
-        <p className="text-sm text-gray-500">Seleccione un edificio para explorar su jerarquia electrica.</p>
+      <div className="space-y-6">
+        <PageHeader title="Drill-down por Sitio" eyebrow="Monitoreo" />
+        <p className="text-sm text-muted">Seleccione un edificio para explorar su jerarquia electrica.</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(buildingsQuery.data ?? []).map((b) => (
             <button
               key={b.id}
               type="button"
               onClick={() => navigate(`/monitoring/drilldown/${b.id}`)}
-              className="rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-gray-200 transition-colors hover:ring-[var(--color-primary,#3D3BF3)]"
+              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
             >
-              <p className="font-medium text-gray-900">{b.name}</p>
-              <p className="text-xs text-gray-500">{b.code}</p>
+              <p className="font-medium text-foreground">{b.name}</p>
+              <p className="text-xs text-muted">{b.code}</p>
             </button>
           ))}
         </div>
@@ -90,13 +91,13 @@ export function DrilldownPage() {
   return (
     <div className="space-y-4">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
         <button
           type="button"
           onClick={() => setSelectedNodeId(null)}
-          className="hover:text-gray-700"
+          className="hover:text-foreground"
         >
           {building?.name ?? 'Edificio'}
         </button>
@@ -106,7 +107,7 @@ export function DrilldownPage() {
             <button
               type="button"
               onClick={() => setSelectedNodeId(bc.id)}
-              className="hover:text-gray-700"
+              className="hover:text-foreground"
             >
               {bc.name}
             </button>
@@ -114,24 +115,25 @@ export function DrilldownPage() {
         ))}
       </nav>
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {building?.name ?? 'Drill-down'}
-        </h1>
-        <div className="flex gap-4 text-sm text-gray-500">
-          <span>{meterCount} medidores</span>
-          <span>{totalPower.toFixed(1)} kW total</span>
-        </div>
-      </div>
+      <PageHeader
+        title={building?.name ?? 'Drill-down'}
+        eyebrow="Monitoreo"
+        actions={
+          <div className="flex gap-4 text-sm text-muted">
+            <span>{meterCount} medidores</span>
+            <span>{totalPower.toFixed(1)} kW total</span>
+          </div>
+        }
+      />
 
       {/* Hierarchy tree */}
       {hierarchyQs.phase === 'loading' ? (
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 space-y-2">
-          <div className="mb-3 h-4 w-36 rounded bg-gray-200" />
+        <div className="animate-pulse panel p-4 space-y-2">
+          <div className="mb-3 h-4 w-36 rounded bg-raised" />
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-center gap-2" style={{ paddingLeft: `${(i % 3) * 20}px` }}>
-              <div className="h-3 w-12 rounded bg-gray-200" />
-              <div className="h-4 rounded bg-gray-200" style={{ width: `${80 + (i % 4) * 25}px` }} />
+              <div className="h-3 w-12 rounded bg-raised" />
+              <div className="h-4 rounded bg-raised" style={{ width: `${80 + (i % 4) * 25}px` }} />
             </div>
           ))}
         </div>
@@ -143,8 +145,8 @@ export function DrilldownPage() {
         emptyTitle="Sin jerarquia"
         emptyDescription="Este edificio no tiene jerarquia electrica configurada. Mostrando concentradores y medidores."
       >
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-medium text-gray-700">Jerarquia Electrica</h2>
+        <div className="panel p-4">
+          <h2 className="mb-3 text-sm font-medium text-foreground">Jerarquia Electrica</h2>
           <div className="space-y-1">
             {hierarchy.map((node) => (
               <HierarchyTreeNode
@@ -162,11 +164,11 @@ export function DrilldownPage() {
 
       {/* Concentrators */}
       {concentrators.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white">
-          <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+        <div className="panel">
+          <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
             Concentradores ({concentrators.length})
           </h2>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border">
             {concentrators.map((c) => (
               <ConcentratorRow key={c.id} concentrator={c} />
             ))}
@@ -175,12 +177,12 @@ export function DrilldownPage() {
       )}
 
       {/* Meters table */}
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <h2 className="border-b border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
           Medidores ({meters.length})
         </h2>
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Nombre</Th>
               <Th>Tipo</Th>
@@ -201,13 +203,13 @@ export function DrilldownPage() {
             {meters.map((m) => {
               const reading = readingByMeter.get(m.id);
               return (
-                <tr key={m.id} className="hover:bg-gray-50">
+                <tr key={m.id} className="hover:bg-surface">
                   <Td className="font-medium">{m.name}</Td>
                   <Td>{m.meterType}</Td>
                   <Td>{reading ? Number(reading.power_kw || 0).toFixed(2) : '—'}</Td>
                   <Td>{reading?.power_factor ? Number(reading.power_factor).toFixed(3) : '—'}</Td>
                   <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${m.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${m.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'}`}>
                       {m.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </Td>
@@ -262,12 +264,12 @@ function HierarchyTreeNode({
         onClick={() => onSelect(node.id)}
         className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors ${
           isSelected
-            ? 'bg-[var(--color-primary,#3D3BF3)]/10 text-[var(--color-primary,#3D3BF3)]'
-            : 'text-gray-700 hover:bg-gray-50'
+            ? 'bg-brand/10 text-brand'
+            : 'text-foreground hover:bg-surface'
         }`}
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
       >
-        <span className="text-xs text-gray-400">{node.levelType}</span>
+        <span className="text-xs text-subtle">{node.levelType}</span>
         <span className="font-medium">{node.name}</span>
       </button>
       {node.children?.map((child) => (
@@ -286,19 +288,19 @@ function HierarchyTreeNode({
 function ConcentratorRow({ concentrator }: Readonly<{ concentrator: Concentrator }>) {
   const statusColors: Record<string, string> = {
     online: 'bg-green-100 text-green-700',
-    offline: 'bg-gray-100 text-gray-600',
+    offline: 'bg-raised text-muted',
     error: 'bg-red-100 text-red-700',
     maintenance: 'bg-yellow-100 text-yellow-700',
   };
   return (
     <div className="flex items-center justify-between px-4 py-3">
       <div>
-        <p className="text-sm font-medium text-gray-900">{concentrator.name}</p>
-        <p className="text-xs text-gray-500">{concentrator.model} {concentrator.serialNumber ? `· S/N ${concentrator.serialNumber}` : ''}</p>
+        <p className="text-sm font-medium text-foreground">{concentrator.name}</p>
+        <p className="text-xs text-muted">{concentrator.model} {concentrator.serialNumber ? `· S/N ${concentrator.serialNumber}` : ''}</p>
       </div>
       <div className="flex items-center gap-3">
         {concentrator.ipAddress && (
-          <span className="text-xs text-gray-400">{concentrator.ipAddress}</span>
+          <span className="text-xs text-subtle">{concentrator.ipAddress}</span>
         )}
         <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[concentrator.status] ?? statusColors.offline}`}>
           {concentrator.status}
@@ -310,12 +312,12 @@ function ConcentratorRow({ concentrator }: Readonly<{ concentrator: Concentrator
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

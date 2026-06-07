@@ -8,6 +8,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { ConcentratorStatus } from '../../../types/concentrator';
 import type { LatestReading } from '../../../types/reading';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const STATUS_CONFIG: Record<ConcentratorStatus, { label: string; color: string }> = {
   online: { label: 'Online', color: 'bg-green-100 text-green-700' },
@@ -71,22 +72,20 @@ export function ConcentratorPage(): ReactElement {
     : '—';
 
   if (!concentratorId) {
-    return <p className="p-6 text-gray-500">Concentrador no especificado.</p>;
+    return <p className="p-6 text-muted">Concentrador no especificado.</p>;
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <nav className="mb-1 text-xs text-gray-400">
-          <Link to="/monitoring/devices" className="hover:text-gray-600">Dispositivos</Link>
+        <nav className="mb-1 text-xs text-subtle">
+          <Link to="/monitoring/devices" className="hover:text-muted">Dispositivos</Link>
           <span className="mx-1">/</span>
-          <span className="text-gray-600">{concentrator?.name ?? '...'}</span>
+          <span className="text-muted">{concentrator?.name ?? '...'}</span>
         </nav>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {concentrator?.name ?? 'Cargando...'}
-          </h1>
+          <PageHeader title={concentrator?.name ?? 'Cargando...'} eyebrow="Monitoreo" />
           {concentrator && (
             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CONFIG[concentrator.status].color}`}>
               {STATUS_CONFIG[concentrator.status].label}
@@ -94,7 +93,7 @@ export function ConcentratorPage(): ReactElement {
           )}
         </div>
         {building && (
-          <p className="mt-0.5 text-sm text-gray-500">{building.name}</p>
+          <p className="mt-0.5 text-sm text-muted">{building.name}</p>
         )}
       </div>
 
@@ -133,16 +132,16 @@ export function ConcentratorPage(): ReactElement {
         <div className="grid grid-cols-3 gap-4">
           <StatusCard label="Online" count={onlineCount} color="text-green-600 bg-green-50" />
           <StatusCard label="Offline" count={offlineCount} color="text-red-600 bg-red-50" />
-          <StatusCard label="Sin datos" count={noDataCount} color="text-gray-500 bg-gray-50" />
+          <StatusCard label="Sin datos" count={noDataCount} color="text-muted bg-surface" />
         </div>
       )}
 
       {/* Meters table */}
       <div className="space-y-2">
-        <h2 className="text-sm font-medium text-gray-700">Medidores del concentrador</h2>
-        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+        <h2 className="text-sm font-medium text-foreground">Medidores del concentrador</h2>
+        <div className="max-h-[70vh] overflow-y-auto panel">
           <table className="min-w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
               <tr>
                 <th className="px-4 py-2">Medidor</th>
                 <th className="px-4 py-2">Estado</th>
@@ -161,8 +160,8 @@ export function ConcentratorPage(): ReactElement {
               skeletonWidths={['w-32', 'w-20', 'w-24', 'w-24', 'w-16', 'w-28']}
             >
               {meterStatus.map(({ meter, status, latest }) => (
-                <tr key={meter.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium text-gray-900">{meter.name ?? meter.code}</td>
+                <tr key={meter.id} className="hover:bg-surface">
+                  <td className="px-4 py-2 font-medium text-foreground">{meter.name ?? meter.code}</td>
                   <td className="px-4 py-2">
                     <MeterStatusBadge status={status} />
                   </td>
@@ -175,7 +174,7 @@ export function ConcentratorPage(): ReactElement {
                   <td className="px-4 py-2 text-right tabular-nums">
                     {latest ? fmt(latest.power_factor, 3) : '—'}
                   </td>
-                  <td className="px-4 py-2 text-xs text-gray-500">
+                  <td className="px-4 py-2 text-xs text-muted">
                     {latest ? new Date(latest.timestamp).toLocaleString('es-CL') : '—'}
                   </td>
                 </tr>
@@ -194,9 +193,9 @@ function InfoCard({
   valueClass,
 }: Readonly<{ label: string; value: string; valueClass?: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className={`mt-1 text-sm font-semibold ${valueClass ?? 'text-gray-900'}`}>{value}</p>
+    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+      <p className="text-xs font-medium text-muted">{label}</p>
+      <p className={`mt-1 text-sm font-semibold ${valueClass ?? 'text-foreground'}`}>{value}</p>
     </div>
   );
 }
@@ -214,7 +213,7 @@ function MeterStatusBadge({ status }: Readonly<{ status: 'online' | 'offline' | 
   const config = {
     online: 'bg-green-100 text-green-700',
     offline: 'bg-red-100 text-red-600',
-    'sin datos': 'bg-gray-100 text-gray-500',
+    'sin datos': 'bg-raised text-muted',
   };
   const labels = { online: 'Online', offline: 'Offline', 'sin datos': 'Sin datos' };
   return (

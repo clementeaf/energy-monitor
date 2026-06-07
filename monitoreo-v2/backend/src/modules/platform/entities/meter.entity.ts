@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { Building } from './building.entity';
+import type { LoadCategory } from '../../../common/constants/site-metadata';
 
 export type MeterPhaseType = 'single_phase' | 'three_phase';
 export type MeterDiStatus = 'closed' | 'open' | 'unknown';
@@ -91,6 +92,12 @@ export class Meter {
 
   @Column({ name: 'contracted_demand_kw', type: 'decimal', precision: 10, scale: 2, nullable: true })
   contractedDemandKw!: string | null;
+
+  @Column({ name: 'load_category', type: 'varchar', length: 30, nullable: true })
+  loadCategory!: LoadCategory | null;
+
+  @Column({ name: 'parent_meter_id', type: 'uuid', nullable: true })
+  parentMeterId!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

@@ -5,6 +5,8 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { Chart } from '../../../components/charts/Chart';
+import { PillToggle } from '../../../components/ui/PillToggle';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import {
@@ -139,7 +141,7 @@ export function CompareDashboardPage(): ReactElement {
   }, [selectedIds, buildings, metrics, metricsPrev]);
 
   const lineChartOptions = useMemo(() => {
-    const colors = ['var(--color-pa-blue)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
+    const colors = ['var(--color-brand)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
     const series: SeriesOptionsType[] = selectedIds.map((id, idx) => {
       const b = buildings.find((x) => x.id === id);
       const pts = seriesByBuilding.get(id) ?? [];
@@ -193,47 +195,37 @@ export function CompareDashboardPage(): ReactElement {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-pa-text">Dashboard comparativo</h1>
-          <p className="mt-0.5 text-[13px] text-pa-text-muted">
-            {compareWithPrevious
-              ? 'Compara periodo actual con anterior'
-              : 'Selecciona al menos dos edificios'}
-          </p>
-        </div>
-        <div className="flex gap-1 rounded-lg border border-pa-border bg-white p-0.5">
-          {RANGE_PRESETS.map((r) => (
-            <button
-              key={r.key}
-              type="button"
-              onClick={() => setPreset(r.key)}
-              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                preset === r.key
-                  ? 'bg-pa-blue text-white'
-                  : 'text-pa-text-muted hover:text-pa-text'
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard comparativo"
+        eyebrow="Dashboard"
+        description={
+          compareWithPrevious
+            ? 'Compara periodo actual con anterior'
+            : 'Selecciona al menos dos edificios'
+        }
+        actions={
+          <PillToggle
+            options={RANGE_PRESETS.map((r) => ({ key: r.key, label: r.label }))}
+            value={preset}
+            onChange={setPreset}
+            size="sm"
+          />
+        }
+      />
 
       {/* Compare toggle */}
-      <div className="rounded-lg border border-pa-border bg-white p-4">
+      <div className="panel p-4">
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={compareWithPrevious}
             onChange={(e) => setCompareWithPrevious(e.target.checked)}
-            className="mt-1 size-4 rounded border-pa-border text-pa-blue focus:ring-pa-blue"
+            className="mt-1 size-4 rounded border-border text-brand focus:ring-brand"
           />
           <span>
-            <span className="text-[13px] font-medium text-pa-text">Comparar con periodo anterior</span>
-            <span className="mt-0.5 block text-[11px] text-pa-text-muted">
+            <span className="text-[13px] font-medium text-foreground">Comparar con periodo anterior</span>
+            <span className="mt-0.5 block text-[11px] text-muted">
               Misma duración, termina justo antes del periodo actual.
             </span>
           </span>
@@ -241,29 +233,29 @@ export function CompareDashboardPage(): ReactElement {
         {compareWithPrevious && (
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
-              <span className="font-medium text-pa-text">Actual</span>
-              <div className="tabular-nums text-pa-text-muted">{formatRangeLabel(from, to)}</div>
+              <span className="font-medium text-foreground">Actual</span>
+              <div className="tabular-nums text-muted">{formatRangeLabel(from, to)}</div>
             </div>
             <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
-              <span className="font-medium text-pa-text">Anterior</span>
-              <div className="tabular-nums text-pa-text-muted">{formatRangeLabel(prevRange.from, prevRange.to)}</div>
+              <span className="font-medium text-foreground">Anterior</span>
+              <div className="tabular-nums text-muted">{formatRangeLabel(prevRange.from, prevRange.to)}</div>
             </div>
           </div>
         )}
       </div>
 
       {/* Building selector */}
-      <div className="rounded-lg border border-pa-border bg-white p-4">
+      <div className="panel p-4">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-[13px] font-medium text-pa-text">Edificios</span>
-          <button type="button" onClick={selectAll} className="text-[11px] text-pa-blue hover:underline">
+          <span className="text-[13px] font-medium text-foreground">Edificios</span>
+          <button type="button" onClick={selectAll} className="text-[11px] text-brand hover:underline">
             Seleccionar todos
           </button>
-          <button type="button" onClick={clearSelection} className="text-[11px] text-pa-text-muted hover:underline">
+          <button type="button" onClick={clearSelection} className="text-[11px] text-muted hover:underline">
             Limpiar
           </button>
           {!canCompare && (
-            <span className="text-[11px] text-pa-amber">
+            <span className="text-[11px] text-warning">
               {compareWithPrevious ? 'Selecciona al menos un edificio.' : 'Elige al menos dos.'}
             </span>
           )}
@@ -278,8 +270,8 @@ export function CompareDashboardPage(): ReactElement {
                 onClick={() => toggleBuilding(b.id)}
                 className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
                   on
-                    ? 'border-pa-blue bg-pa-blue/10 text-pa-blue'
-                    : 'border-pa-border bg-surface text-pa-text-muted hover:bg-raised'
+                    ? 'border-brand bg-brand-muted text-brand'
+                    : 'border-border bg-surface text-muted hover:bg-background'
                 }`}
               >
                 {b.name}
@@ -292,18 +284,18 @@ export function CompareDashboardPage(): ReactElement {
       {/* Results */}
       {canCompare && loading && (
         <div className="animate-pulse space-y-4">
-          <div className="rounded-lg border border-pa-border bg-white p-4">
-            <div className="mb-2 h-4 w-48 rounded bg-gray-200" />
-            <div className="h-64 w-full rounded bg-gray-200" />
+          <div className="panel p-4">
+            <div className="mb-2 h-4 w-48 rounded bg-raised" />
+            <div className="h-64 w-full rounded bg-raised" />
           </div>
-          <div className="rounded-lg border border-pa-border bg-white">
-            <div className="h-8 w-full rounded-t bg-gray-200" />
+          <div className="panel">
+            <div className="h-8 w-full rounded-t bg-raised" />
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex gap-4 border-t border-pa-border px-3 py-2">
-                <div className="h-4 w-32 rounded bg-gray-200" />
-                <div className="ml-auto h-4 w-20 rounded bg-gray-200" />
-                <div className="h-4 w-20 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
+              <div key={i} className="flex gap-4 border-t border-border px-3 py-2">
+                <div className="h-4 w-32 rounded bg-raised" />
+                <div className="ml-auto h-4 w-20 rounded bg-raised" />
+                <div className="h-4 w-20 rounded bg-raised" />
+                <div className="h-4 w-16 rounded bg-raised" />
               </div>
             ))}
           </div>
@@ -334,24 +326,24 @@ export function CompareDashboardPage(): ReactElement {
           <div className="space-y-4">
             {/* Chart */}
             {compareWithPrevious ? (
-              <div className="rounded-lg border border-pa-border bg-white p-4">
-                <h2 className="mb-2 text-[13px] font-medium text-pa-text">Energía total: actual vs anterior</h2>
+              <div className="panel p-4">
+                <h2 className="mb-2 text-[13px] font-medium text-foreground">Energía total: actual vs anterior</h2>
                 <Chart options={columnChartOptions} />
               </div>
             ) : (
-              <div className="rounded-lg border border-pa-border bg-white p-4">
-                <h2 className="mb-2 text-[13px] font-medium text-pa-text">Curvas superpuestas</h2>
+              <div className="panel p-4">
+                <h2 className="mb-2 text-[13px] font-medium text-foreground">Curvas superpuestas</h2>
                 <StockChart options={lineChartOptions} loading={aggQuery.isFetching} />
               </div>
             )}
 
             {/* Table */}
             <div className="space-y-2">
-              <h2 className="text-[13px] font-medium text-pa-text">Tabla comparativa</h2>
-              <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-pa-border bg-white">
+              <h2 className="text-[13px] font-medium text-foreground">Tabla comparativa</h2>
+              <div className="max-h-[70vh] overflow-y-auto panel">
                 {compareWithPrevious ? (
                   <table className="min-w-full text-[13px]">
-                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Actual (kWh)</th>
@@ -364,7 +356,7 @@ export function CompareDashboardPage(): ReactElement {
                     <TableStateBody phase="ready" colSpan={6} skeletonWidths={['w-28', 'w-20', 'w-20', 'w-16', 'w-16', 'w-16']}>
                       {tableRowsDual.map((r) => (
                         <tr key={r.buildingId}>
-                          <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
+                          <td className="px-3 py-1.5 font-medium text-foreground">{r.name}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">
                             {r.energyCurrent.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
@@ -372,10 +364,10 @@ export function CompareDashboardPage(): ReactElement {
                             {r.energyPrevious.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
                           <td className={`px-3 py-1.5 text-right tabular-nums ${
-                            r.deltaPeriodPct == null ? 'text-pa-text-muted'
-                              : r.deltaPeriodPct > 1 ? 'text-pa-coral'
-                              : r.deltaPeriodPct < -1 ? 'text-pa-green'
-                              : 'text-pa-text'
+                            r.deltaPeriodPct == null ? 'text-muted'
+                              : r.deltaPeriodPct > 1 ? 'text-danger'
+                              : r.deltaPeriodPct < -1 ? 'text-success'
+                              : 'text-foreground'
                           }`}>
                             {r.deltaPeriodPct == null ? '—' : `${r.deltaPeriodPct > 0 ? '+' : ''}${r.deltaPeriodPct.toFixed(1)}%`}
                           </td>
@@ -387,7 +379,7 @@ export function CompareDashboardPage(): ReactElement {
                   </table>
                 ) : (
                   <table className="min-w-full text-[13px]">
-                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-pa-text-muted">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Energía (kWh)</th>
@@ -399,16 +391,16 @@ export function CompareDashboardPage(): ReactElement {
                     <TableStateBody phase="ready" colSpan={5} skeletonWidths={['w-28', 'w-20', 'w-16', 'w-16', 'w-16']}>
                       {tableRowsSingle.map((r) => (
                         <tr key={r.buildingId}>
-                          <td className="px-3 py-1.5 font-medium text-pa-text">{r.name}</td>
+                          <td className="px-3 py-1.5 font-medium text-foreground">{r.name}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">
                             {r.energyKwh.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                           </td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{r.peakDemandKw.toFixed(1)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{r.avgPf > 0 ? r.avgPf.toFixed(3) : '—'}</td>
                           <td className={`px-3 py-1.5 text-right tabular-nums ${
-                            r.deltaPct > 1 ? 'text-pa-coral'
-                              : r.deltaPct < -1 ? 'text-pa-green'
-                              : 'text-pa-text'
+                            r.deltaPct > 1 ? 'text-danger'
+                              : r.deltaPct < -1 ? 'text-success'
+                              : 'text-foreground'
                           }`}>
                             {r.deltaPct > 0 ? '+' : ''}{r.deltaPct.toFixed(1)}%
                           </td>
@@ -418,7 +410,7 @@ export function CompareDashboardPage(): ReactElement {
                   </table>
                 )}
               </div>
-              <p className="text-[11px] text-pa-text-muted">
+              <p className="text-[11px] text-muted">
                 {compareWithPrevious
                   ? 'Δ: variación energía actual vs anterior.'
                   : 'Delta referido al promedio del grupo.'}
@@ -430,7 +422,7 @@ export function CompareDashboardPage(): ReactElement {
       )}
 
       {!buildingsQuery.isPending && buildings.length === 0 && (
-        <p className="text-[13px] text-pa-text-muted">No hay edificios disponibles en tu alcance.</p>
+        <p className="text-[13px] text-muted">No hay edificios disponibles en tu alcance.</p>
       )}
     </div>
   );

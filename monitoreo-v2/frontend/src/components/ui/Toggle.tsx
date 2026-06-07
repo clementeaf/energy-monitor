@@ -32,18 +32,18 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={
           `relative inline-flex shrink-0 items-center rounded-full transition-all duration-200 ease-in-out ` +
-          `focus:outline-none focus:ring-2 focus:ring-[var(--color-primary,#3D3BF3)] focus:ring-offset-1 ${s.track} ` +
-          (checked ? 'bg-[var(--color-primary,#3D3BF3)]' : 'bg-gray-300')
+          `focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 ${s.track} ` +
+          (checked ? 'bg-brand' : 'bg-border')
         }
       >
         <span
           className={
-            `inline-block rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${s.knob} ` +
+            `inline-block rounded-full bg-background shadow-sm transition-transform duration-200 ease-in-out ${s.knob} ` +
             (checked ? s.translate : 'translate-x-1')
           }
         />
       </button>
-      {label && <span className="text-sm text-gray-700">{label}</span>}
+      {label && <span className="text-sm text-foreground">{label}</span>}
     </label>
   );
 }

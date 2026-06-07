@@ -1,7 +1,8 @@
 export type ReadingResolution = 'raw' | '5min' | '15min' | '1h' | '1d';
 export type AggregationInterval = 'hourly' | 'daily' | 'monthly';
+export type ReadingQuality = 'measured' | 'estimated' | 'invalid' | 'unknown';
 
-/** Mirrors backend ReadingRow (raw SQL — snake_case) */
+/** Mirrors backend ReadingResponse (enriched SQL row) */
 export interface Reading {
   id: string;
   meter_id: string;
@@ -20,6 +21,12 @@ export interface Reading {
   thd_voltage_pct: string | null;
   thd_current_pct: string | null;
   phase_imbalance_pct: string | null;
+  quality?: ReadingQuality | string;
+  source?: string | null;
+  ingested_at?: string | null;
+  timestamp_utc?: string;
+  timestamp_local?: string;
+  timezone?: string;
 }
 
 /** Mirrors backend LatestRow (raw SQL — snake_case) */
@@ -34,6 +41,9 @@ export interface LatestReading {
   current_l1: string | null;
   power_factor: string | null;
   frequency_hz: string | null;
+  timezone?: string;
+  timestamp_utc?: string | null;
+  timestamp_local?: string | null;
 }
 
 export interface ReadingQueryParams {

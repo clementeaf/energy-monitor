@@ -20,9 +20,13 @@ import { GenerationEvaluator } from './evaluators/generation.evaluator';
 import { BusEvaluator } from './evaluators/bus.evaluator';
 import { SesEmailService } from '../../common/email/ses-email.service';
 import { SnsSmsService } from '../../common/sms/sns-sms.service';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PlatformAlert, AlertRule, NotificationLog])],
+  imports: [
+    TypeOrmModule.forFeature([PlatformAlert, AlertRule, NotificationLog]),
+    WebhooksModule,
+  ],
   controllers: [
     AlertsController,
     AlertRulesController,

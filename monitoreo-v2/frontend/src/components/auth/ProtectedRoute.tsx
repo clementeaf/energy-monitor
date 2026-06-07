@@ -10,7 +10,7 @@ export function ProtectedRoute() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-[var(--color-primary,#3D3BF3)]" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-brand" />
       </div>
     );
   }

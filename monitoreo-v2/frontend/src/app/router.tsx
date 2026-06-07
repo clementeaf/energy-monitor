@@ -52,6 +52,7 @@ import {
   LazyConcentratorPage,
   LazyTenantSettingsPage,
   LazyApiKeysPage,
+  LazyOAuthClientsPage,
   LazyRolesPage,
   LazyCompaniesPage,
   LazyPlatformDashboardPage,
@@ -61,6 +62,10 @@ import {
   LazyProfilePage,
   LazyDeletionRequestsPage,
   LazyRectificationRequestsPage,
+  LazyDataQualityPage,
+  LazyRegisterMappingsPage,
+  LazyRegionsPage,
+  LazyBreachReportsPage,
   LazyPrivacyPolicyPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
@@ -80,12 +85,16 @@ const REPORTS = ['reports:read', 'reports:view_own'];
 const REPORTS_SCHED = ['reports:update'];
 const ANALYTICS = ['dashboard_executive:read'];
 const INTEGRATIONS = ['integrations:read'];
+const INTEGRATIONS_WEBHOOKS = ['integrations:read', 'webhooks:read'];
+const ADMIN_DATA_QUALITY = ['data_quality:read'];
+const ADMIN_REGISTER_MAPPINGS = ['register_mappings:read'];
 const ADMIN_USERS = ['admin_users:read'];
 const ADMIN_TENANTS = ['admin_tenants_units:read'];
 const ADMIN_HIERARCHY = ['admin_hierarchy:read'];
 const AUDIT = ['audit:read'];
 const ADMIN_SETTINGS = ['admin_tenant_config:update'];
 const ADMIN_API_KEYS = ['api_keys:read'];
+const ADMIN_OAUTH_CLIENTS = ['oauth_clients:read'];
 const ADMIN_ROLES = ['admin_roles:read'];
 const BUILDINGS = ['admin_buildings:read', 'dashboard_executive:read', 'dashboard_technical:read'];
 const METERS = ['admin_meters:read', 'dashboard_executive:read', 'dashboard_technical:read'];
@@ -108,6 +117,10 @@ export const router = createBrowserRouter([
     children: [
       {
         path: APP_ROUTES.login,
+        element: <LoginRouteShell />,
+      },
+      {
+        path: APP_ROUTES.loginWithTenant,
         element: <LoginRouteShell />,
       },
       {
@@ -178,6 +191,10 @@ export const router = createBrowserRouter([
 
                   /* Integraciones */
                   { path: APP_ROUTES.integrations, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
+                  { path: APP_ROUTES.integrationsWebhooks, element: <P any={INTEGRATIONS_WEBHOOKS}><LazyIntegrationsPage /></P> },
+                  { path: APP_ROUTES.integrationsWebhookDeliveries, element: <P any={INTEGRATIONS_WEBHOOKS}><LazyIntegrationsPage /></P> },
+                  { path: APP_ROUTES.integrationsGaps, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
+                  { path: APP_ROUTES.integrationsBackfill, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
                   { path: APP_ROUTES.integrationsStatus, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
                   { path: APP_ROUTES.integrationsConfig, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
                   { path: APP_ROUTES.integrationsSyncLog, element: <P any={INTEGRATIONS}><LazyIntegrationsPage /></P> },
@@ -190,6 +207,11 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.auditAccess, element: <P any={AUDIT}><LazyAuditAccessPage /></P> },
                   { path: APP_ROUTES.admin.settings, element: <P any={ADMIN_SETTINGS}><LazyTenantSettingsPage /></P> },
                   { path: APP_ROUTES.admin.apiKeys, element: <P any={ADMIN_API_KEYS}><LazyApiKeysPage /></P> },
+                  { path: APP_ROUTES.admin.oauthClients, element: <P any={ADMIN_OAUTH_CLIENTS}><LazyOAuthClientsPage /></P> },
+                  { path: APP_ROUTES.admin.dataQuality, element: <P any={ADMIN_DATA_QUALITY}><LazyDataQualityPage /></P> },
+                  { path: APP_ROUTES.admin.registerMappings, element: <P any={ADMIN_REGISTER_MAPPINGS}><LazyRegisterMappingsPage /></P> },
+                  { path: APP_ROUTES.admin.regions, element: <P any={BUILDINGS}><LazyRegionsPage /></P> },
+                  { path: APP_ROUTES.admin.breachReports, element: <P any={AUDIT}><LazyBreachReportsPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
               { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },

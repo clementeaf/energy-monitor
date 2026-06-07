@@ -6,6 +6,8 @@ import { NotificationLog } from './entities/notification-log.entity';
 import { PlatformAlert } from '../platform/entities/platform-alert.entity';
 import { AlertRule } from '../platform/entities/alert-rule.entity';
 import { SesEmailService } from '../../common/email/ses-email.service';
+import { SnsSmsService } from '../../common/sms/sns-sms.service';
+import { WebhookDispatcherService } from '../webhooks/webhook-dispatcher.service';
 
 describe('NotificationService', () => {
   let service: NotificationService;
@@ -35,6 +37,11 @@ describe('NotificationService', () => {
         { provide: getRepositoryToken(NotificationLog), useValue: logRepo },
         { provide: ConfigService, useValue: configService },
         { provide: SesEmailService, useValue: sesEmail },
+        { provide: SnsSmsService, useValue: { sendSms: jest.fn() } },
+        {
+          provide: WebhookDispatcherService,
+          useValue: { dispatch: jest.fn().mockResolvedValue({ delivered: 0, failed: 0 }) },
+        },
       ],
     }).compile();
 

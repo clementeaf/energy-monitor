@@ -18,6 +18,9 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    # Dev local: cap RAM so Docker no compite con IDE + Vite
+    mem_limit: 768m
+    memswap_limit: 768m
 
   backend:
     build:

@@ -3,6 +3,7 @@ export interface TenantUnit {
   buildingId: string;
   name: string;
   unitCode: string;
+  externalUnitId: string | null;
   contactName: string | null;
   contactEmail: string | null;
   userId: string | null;
@@ -15,6 +16,7 @@ export interface CreateTenantUnitPayload {
   buildingId: string;
   name: string;
   unitCode: string;
+  externalUnitId?: string;
   contactName?: string;
   contactEmail?: string;
   userId?: string;
@@ -23,6 +25,7 @@ export interface CreateTenantUnitPayload {
 export interface UpdateTenantUnitPayload {
   name?: string;
   unitCode?: string;
+  externalUnitId?: string | null;
   contactName?: string;
   contactEmail?: string;
   userId?: string;

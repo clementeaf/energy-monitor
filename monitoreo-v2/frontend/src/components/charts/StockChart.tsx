@@ -92,8 +92,8 @@ function StockChartInner({ options, className, loading, onRangeChange }: Readonl
         options={merged}
       />
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/50">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-primary,#3D3BF3)] border-t-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent" />
         </div>
       )}
     </div>

@@ -62,6 +62,7 @@ export class TenantUnitsService {
       contactName: dto.contactName ?? null,
       contactEmail: dto.contactEmail ?? null,
       userId: dto.userId ?? null,
+      externalUnitId: dto.externalUnitId ?? null,
     });
     return this.repo.save(unit);
   }
@@ -80,6 +81,7 @@ export class TenantUnitsService {
     if (dto.contactEmail !== undefined) unit.contactEmail = dto.contactEmail ?? null;
     if (dto.userId !== undefined) unit.userId = dto.userId ?? null;
     if (dto.isActive !== undefined) unit.isActive = dto.isActive;
+    if (dto.externalUnitId !== undefined) unit.externalUnitId = dto.externalUnitId;
 
     return this.repo.save(unit);
   }

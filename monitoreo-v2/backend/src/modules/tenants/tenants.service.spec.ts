@@ -23,6 +23,8 @@ const mockTenant: Tenant = {
   taxId: null,
   settings: {},
   timezone: 'America/Santiago',
+  defaultCountryCode: null,
+  defaultCurrency: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   users: [],
@@ -152,8 +154,17 @@ describe('TenantsService', () => {
       repo.findOneBy.mockResolvedValue({ ...mockTenant });
       await service.update('t-1', { settings: { locale: 'es-CL' } });
       expect(repo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ settings: { locale: 'es-CL' } }),
+        expect.objectContaining({
+          settings: { locale: 'es-CL', retentionYears: 5, staleThresholdHours: 4 },
+        }),
       );
+    });
+
+    it('rejects invalid retentionYears in settings', async () => {
+      repo.findOneBy.mockResolvedValue({ ...mockTenant });
+      await expect(
+        service.update('t-1', { settings: { retentionYears: 99 } }),
+      ).rejects.toThrow('settings.retentionYears');
     });
 
     it('can update address fields', async () => {
@@ -161,6 +172,14 @@ describe('TenantsService', () => {
       await service.update('t-1', { address: 'Apoquindo 320', addressDetail: 'Piso 12', phone: '+56912345678', taxId: '76.123.456-7' });
       expect(repo.save).toHaveBeenCalledWith(
         expect.objectContaining({ address: 'Apoquindo 320', addressDetail: 'Piso 12', phone: '+56912345678', taxId: '76.123.456-7' }),
+      );
+    });
+
+    it('can update geographic defaults', async () => {
+      repo.findOneBy.mockResolvedValue({ ...mockTenant });
+      await service.update('t-1', { defaultCountryCode: 'CL', defaultCurrency: 'CLP' });
+      expect(repo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ defaultCountryCode: 'CL', defaultCurrency: 'CLP' }),
       );
     });
   });
@@ -225,6 +244,8 @@ describe('TenantsService', () => {
           .mockResolvedValueOnce([{ id: 'r-old', slug: 'super_admin' }])
           // cloneRoles: clone permissions for super_admin
           .mockResolvedValueOnce([])
+          // cloneGlobalRegisterMappings
+          .mockResolvedValueOnce([{ id: 'map-1' }, { id: 'map-2' }])
           // get super_admin role
           .mockResolvedValueOnce([{ id: 'r-new' }])
           // create admin user
@@ -242,6 +263,7 @@ describe('TenantsService', () => {
       expect(result.tenant.slug).toBe('acme-corp');
       expect(result.adminUserId).toBe('u-new');
       expect(result.rolesCreated).toBe(1);
+      expect(result.mappingsCloned).toBe(2);
     });
 
     it('creates tenant with custom theme', async () => {
@@ -255,6 +277,7 @@ describe('TenantsService', () => {
           .mockResolvedValueOnce([{ id: 'r-new', slug: 'super_admin' }])
           .mockResolvedValueOnce([{ id: 'r-old', slug: 'super_admin' }])
           .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([{ id: 'map-1' }])
           .mockResolvedValueOnce([{ id: 'r-new' }])
           .mockResolvedValueOnce([{ id: 'u-new' }]),
       };

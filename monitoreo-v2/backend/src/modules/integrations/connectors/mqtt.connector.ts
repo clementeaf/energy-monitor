@@ -1,10 +1,12 @@
 import { Logger } from '@nestjs/common';
 import type { Integration } from '../../platform/entities/integration.entity';
 import type { IntegrationConnector, SyncResult, MqttConfig } from './connector.interface';
+import type { MqttReadingsIngressService } from '../../readings/mqtt-readings-ingress.service';
 
 /**
  * Connector for MQTT brokers.
  * Connects, subscribes to a topic, collects messages for a window, then disconnects.
+ * When ingress service is wired, valid JSON payloads are promoted to readings (source=mqtt).
  */
 export class MqttConnector implements IntegrationConnector {
   readonly type = 'mqtt';
@@ -13,9 +15,14 @@ export class MqttConnector implements IntegrationConnector {
 
   /** Sync window in ms — how long to listen for messages. */
   private readonly syncWindowMs: number;
+  private readonly ingressService: MqttReadingsIngressService | null;
 
-  constructor(syncWindowMs = 5_000) {
+  constructor(
+    syncWindowMs = 5_000,
+    ingressService: MqttReadingsIngressService | null = null,
+  ) {
     this.syncWindowMs = syncWindowMs;
+    this.ingressService = ingressService;
   }
 
   validateConfig(config: Record<string, unknown>): string[] {
@@ -65,6 +72,7 @@ export class MqttConnector implements IntegrationConnector {
 
     return new Promise<SyncResult>((resolve) => {
       let messageCount = 0;
+      let readingsIngested = 0;
       let resolved = false;
 
       const finish = (result: SyncResult) => {
@@ -88,7 +96,7 @@ export class MqttConnector implements IntegrationConnector {
         );
         finish({
           status: 'success',
-          recordsSynced: messageCount,
+          recordsSynced: this.ingressService ? readingsIngested : messageCount,
           errorMessage: null,
         });
       }, this.syncWindowMs);
@@ -106,8 +114,19 @@ export class MqttConnector implements IntegrationConnector {
         });
       });
 
-      client.on('message', () => {
+      client.on('message', (_topic: string, payload: Buffer) => {
         messageCount++;
+        if (!this.ingressService) return;
+
+        void this.ingressService
+          .ingestFromMqttMessage(integration, payload)
+          .then((inserted) => {
+            if (inserted) readingsIngested++;
+          })
+          .catch((err: unknown) => {
+            const msg = err instanceof Error ? err.message : 'ingress failed';
+            this.logger.debug(`[${integration.name}] MQTT ingress skip: ${msg}`);
+          });
       });
 
       client.on('error', (err) => {

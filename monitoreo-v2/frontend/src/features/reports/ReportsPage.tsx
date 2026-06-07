@@ -17,6 +17,7 @@ import {
   useUpdateScheduledReport,
 } from '../../hooks/queries/useReportsQuery';
 import { reportsEndpoints } from '../../services/endpoints';
+import { PageHeader } from '../../components/ui/PageHeader';
 import type {
   PlatformReportType,
   ReportFormat,
@@ -92,14 +93,14 @@ export function ReportsPage() {
   return (
     <div className="flex h-full flex-col gap-8">
       {!canRead ? (
-        <div className="flex flex-1 items-center justify-center text-gray-500">
+        <div className="flex flex-1 items-center justify-center text-muted">
           No tiene permisos para ver reportes.
         </div>
       ) : (
         <>
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Reportes</h1>
+          <PageHeader title="Reportes" eyebrow="Reportes" />
           <div className="flex flex-wrap items-center gap-3">
             <DropdownSelect
               options={[
@@ -123,7 +124,7 @@ export function ReportsPage() {
               <button
                 type="button"
                 onClick={() => setGenerateOpen(true)}
-                className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
               >
                 Generar reporte
               </button>
@@ -132,7 +133,7 @@ export function ReportsPage() {
               <button
                 type="button"
                 onClick={() => setScheduleOpen(true)}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+                className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
               >
                 Programar reporte
               </button>
@@ -140,10 +141,10 @@ export function ReportsPage() {
           </div>
         </div>
 
-        <div className="overflow-auto rounded-lg border border-gray-200">
+        <div className="overflow-auto rounded-lg border border-border">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Periodo</th>
                 <th className="px-4 py-3">Formato</th>
@@ -160,13 +161,13 @@ export function ReportsPage() {
               skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
             >
               {visibleReports.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-800">{labelForReportType(row.reportType)}</td>
-                  <td className="px-4 py-3 text-gray-600">
+                <tr key={row.id} className="hover:bg-surface">
+                  <td className="px-4 py-3 text-foreground">{labelForReportType(row.reportType)}</td>
+                  <td className="px-4 py-3 text-muted">
                     {row.periodStart} — {row.periodEnd}
                   </td>
                   <td className="px-4 py-3">{FORMAT_LABELS[row.format]}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-muted">
                     {new Date(row.createdAt).toLocaleString('es-CL')}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -174,7 +175,7 @@ export function ReportsPage() {
                       href={reportsEndpoints.exportHref(row.id)}
                       target="_blank"
                       rel="noreferrer"
-                      className="mr-3 text-sm font-medium text-[var(--color-primary,#3D3BF3)] hover:underline"
+                      className="mr-3 text-sm font-medium text-brand hover:underline"
                     >
                       Descargar
                     </a>
@@ -194,15 +195,15 @@ export function ReportsPage() {
           </table>
           {hasMoreReports && <div ref={reportsSentinelRef} className="h-4" />}
         </div>
-        {totalReports > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleReports.length} de {totalReports}</p>}
+        {totalReports > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleReports.length} de {totalReports}</p>}
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Reportes programados</h2>
-        <div className="overflow-auto rounded-lg border border-gray-200">
+        <h2 className="mb-4 text-2xl font-semibold tracking-tight text-foreground">Reportes programados</h2>
+        <div className="overflow-auto rounded-lg border border-border">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Cron</th>
                 <th className="px-4 py-3">Activo</th>
@@ -219,9 +220,9 @@ export function ReportsPage() {
               skeletonWidths={['w-20', 'w-24', 'w-12', 'w-28', 'w-20']}
             >
               {visibleScheduled.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr key={row.id} className="hover:bg-surface">
                   <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-700">{row.cronExpression}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-foreground">{row.cronExpression}</td>
                   <td className="px-4 py-3">
                     {canSchedule ? (
                       <button
@@ -233,7 +234,7 @@ export function ReportsPage() {
                           })
                         }
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          row.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                          row.isActive ? 'bg-green-100 text-green-800' : 'bg-raised text-muted'
                         }`}
                       >
                         {row.isActive ? 'Sí' : 'No'}
@@ -242,7 +243,7 @@ export function ReportsPage() {
                       <span>{row.isActive ? 'Sí' : 'No'}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-muted">
                     {row.nextRunAt ? new Date(row.nextRunAt).toLocaleString('es-CL') : '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -262,7 +263,7 @@ export function ReportsPage() {
           </table>
           {hasMoreScheduled && <div ref={scheduledSentinelRef} className="h-4" />}
         </div>
-        {totalScheduled > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleScheduled.length} de {totalScheduled}</p>}
+        {totalScheduled > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleScheduled.length} de {totalScheduled}</p>}
       </section>
 
       <GenerateDrawer
@@ -351,7 +352,7 @@ function GenerateDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-surface"
         >
           Cancelar
         </button>
@@ -359,7 +360,7 @@ function GenerateDrawer({
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? 'Generando…' : 'Generar'}
         </button>
@@ -367,7 +368,7 @@ function GenerateDrawer({
     }>
       <div className="flex flex-col gap-4 text-sm">
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Tipo</span>
+          <span className="text-muted">Tipo</span>
           <DropdownSelect
             options={REPORT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
             value={reportType}
@@ -376,7 +377,7 @@ function GenerateDrawer({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Edificio (opcional)</span>
+          <span className="text-muted">Edificio (opcional)</span>
           <DropdownSelect
             options={[
               { value: '', label: 'Todos (según permisos)' },
@@ -389,16 +390,16 @@ function GenerateDrawer({
         </div>
         <div className="flex gap-3">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-gray-600">Inicio</span>
+            <span className="text-muted">Inicio</span>
             <input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} className="input-field" />
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-gray-600">Fin</span>
+            <span className="text-muted">Fin</span>
             <input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} className="input-field" />
           </label>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Formato de exportación</span>
+          <span className="text-muted">Formato de exportación</span>
           <DropdownSelect
             options={(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))}
             value={format}
@@ -453,7 +454,7 @@ function ScheduleDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          className="rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-surface"
         >
           Cancelar
         </button>
@@ -461,18 +462,18 @@ function ScheduleDrawer({
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
     }>
       <div className="flex flex-col gap-4 text-sm">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted">
           Use una expresión cron (5 campos: minuto hora día mes día-semana). Ejemplo: 0 8 * * 1 = lunes 08:00.
         </p>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Tipo</span>
+          <span className="text-muted">Tipo</span>
           <DropdownSelect
             options={REPORT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
             value={reportType}
@@ -481,7 +482,7 @@ function ScheduleDrawer({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Edificio (opcional)</span>
+          <span className="text-muted">Edificio (opcional)</span>
           <DropdownSelect
             options={[
               { value: '', label: 'Todos (según permisos)' },
@@ -493,7 +494,7 @@ function ScheduleDrawer({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-600">Formato</span>
+          <span className="text-muted">Formato</span>
           <DropdownSelect
             options={(Object.keys(FORMAT_LABELS) as ReportFormat[]).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))}
             value={format}
@@ -502,11 +503,11 @@ function ScheduleDrawer({
           />
         </div>
         <label className="flex flex-col gap-1">
-          <span className="text-gray-600">Cron</span>
+          <span className="text-muted">Cron</span>
           <input value={cronExpression} onChange={(e) => setCronExpression(e.target.value)} className="input-field font-mono text-xs" />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-gray-600">Destinatarios (emails, separados por coma)</span>
+          <span className="text-muted">Destinatarios (emails, separados por coma)</span>
           <input value={recipientsRaw} onChange={(e) => setRecipientsRaw(e.target.value)} placeholder="a@empresa.cl, b@empresa.cl" className="input-field" />
         </label>
       </div>

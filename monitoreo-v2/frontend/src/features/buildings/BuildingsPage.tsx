@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -42,7 +43,7 @@ export function BuildingsPage() {
   if (needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-pa-text-muted">Selecciona un operador en la barra lateral para ver edificios.</p>
+        <p className="text-sm text-muted">Selecciona un operador en la barra lateral para ver edificios.</p>
       </div>
     );
   }
@@ -73,27 +74,30 @@ export function BuildingsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Edificios</h1>
-        {canWrite && (
+    <div className="space-y-6">
+      <PageHeader
+        title="Edificios"
+        eyebrow="Monitoreo"
+        actions={canWrite ? (
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
           >
             Nuevo Edificio
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               {isCrossTenant && <Th>Empresa</Th>}
               <Th>Nombre</Th>
               <Th>Codigo</Th>
+              <Th>Pais</Th>
+              <Th>Site ID</Th>
               <Th>Direccion</Th>
               <Th className="text-right">Area (m2)</Th>
               <Th>Estado</Th>
@@ -102,21 +106,23 @@ export function BuildingsPage() {
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={(canWrite ? 6 : 5) + (isCrossTenant ? 1 : 0)}
+            colSpan={(canWrite ? 8 : 7) + (isCrossTenant ? 1 : 0)}
             error={qs.error}
             onRetry={() => { query.refetch(); }}
             emptyMessage="No hay edificios registrados."
-            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
+            skeletonWidths={['w-28', 'w-20', 'w-12', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
           >
             {visibleBuildings.map((b) => (
               <tr
                 key={b.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-surface"
                 onClick={() => { navigate(`/buildings/${b.id}`); }}
               >
                 {isCrossTenant && <Td>{tenantMap.get(b.tenantId) ?? '—'}</Td>}
-                <Td className="font-medium text-gray-900">{b.name}</Td>
+                <Td className="font-medium text-foreground">{b.name}</Td>
                 <Td>{b.code}</Td>
+                <Td>{b.countryCode ?? '—'}</Td>
+                <Td className="max-w-[120px] truncate" title={b.externalSiteId ?? undefined}>{b.externalSiteId ?? '—'}</Td>
                 <Td>{b.address ?? '—'}</Td>
                 <Td className="text-right">{b.areaSqm ? Number(b.areaSqm).toLocaleString('es-CL') : '—'}</Td>
                 <Td><StatusBadge active={b.isActive} /></Td>
@@ -134,7 +140,7 @@ export function BuildingsPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleBuildings.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleBuildings.length} de {total}</p>}
 
       <BuildingForm
         open={formOpen}
@@ -158,21 +164,21 @@ export function BuildingsPage() {
 
 function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
+    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted ${className}`}>
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }
 
 function StatusBadge({ active }: Readonly<{ active: boolean }>) {
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+        active ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
       }`}
     >
       {active ? 'Activo' : 'Inactivo'}
@@ -183,7 +189,7 @@ function StatusBadge({ active }: Readonly<{ active: boolean }>) {
 function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
   const cls = variant === 'danger'
     ? 'text-red-600 hover:bg-red-50'
-    : 'text-gray-600 hover:bg-gray-100';
+    : 'text-muted hover:bg-surface';
   return (
     <button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}>
       {label}

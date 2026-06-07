@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.15.0-alpha.0] - 2026-06-06 — BULK USER IMPORT, INGEST GOVERNANCE, INTEGRATIONS PLATFORM
+
+### Added (monitoreo-v2/backend)
+- **Bulk user import** — `UserImportModule`: CSV/XLSX validate → staging preview → commit. Endpoints under `/users/import`. `auth_provider_id` nullable + `'pending-import'` placeholder. Migración `41-user-import-prereq`.
+- **Ingest & data ops** — ingest gaps, backfill jobs, ETL watermarks/export, meter reading status, measurements/MQTT/BACnet ingress, register mappings.
+- **Integrations** — BACnet/SNMP connectors, health dashboard, webhook subscriptions + delivery logs.
+- **Governance & admin** — data quality/contracts/SLO, breach reports, regions, tenant SSO config, OAuth clients.
+- **DB tooling** — `npm run db:migrate` (`scripts/apply-migration.mjs`), migraciones 15–41.
+
+### Added (monitoreo-v2/frontend)
+- **Users → tab Importar** — dropzone CSV/XLSX, preview paginado, checkbox Ley 21.719, historial jobs.
+- **Integraciones** — tabs Conectores, Webhooks, Entregas, Brechas, Backfill, Salud.
+- **Admin** — Calidad de datos, Regiones, OAuth clients, breach reports, `external_unit_id` en locatarios.
+
+### Changed
+- Sidebar redesign (flyout, iconos). Tenant settings: SSO + seguridad operacional.
+- Retención: purga jobs import >90 días en cron diario.
+
+### Tests
+- Backend: 38 tests `user-import` (parser + service + controller).
+- Frontend: 7 tests import (dropzone + tab).
+
+---
+
 ## [2.14.0-alpha.0] - 2026-05-30 — SMS INVITES, MFA UX, BENCHMARK PERF, CROSS-TENANT READINGS
 
 ### Added (monitoreo-v2/backend)

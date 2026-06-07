@@ -13,6 +13,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { aggregatePortfolioByBucket, dateRangeFromPreset } from '../dashboardAggregations';
 import { APP_ROUTES } from '../../../app/routes';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 type RangePreset = '7d' | '30d' | '90d';
 
@@ -139,7 +140,7 @@ export function ExecutiveSitePage(): ReactElement {
   }, [portfolioSeries, refEnergyRate, building?.name]);
 
   if (!siteId) {
-    return <p className="p-6 text-gray-500">Edificio no especificado.</p>;
+    return <p className="p-6 text-muted">Edificio no especificado.</p>;
   }
 
   return (
@@ -147,28 +148,26 @@ export function ExecutiveSitePage(): ReactElement {
       {/* Header con breadcrumb */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <nav className="mb-1 text-xs text-gray-400">
-            <Link to={APP_ROUTES.executive} className="hover:text-gray-600">Dashboard Ejecutivo</Link>
+          <nav className="mb-1 text-xs text-subtle">
+            <Link to={APP_ROUTES.executive} className="hover:text-muted">Dashboard Ejecutivo</Link>
             <span className="mx-1">/</span>
-            <span className="text-gray-600">{building?.name ?? '...'}</span>
+            <span className="text-muted">{building?.name ?? '...'}</span>
           </nav>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {building?.name ?? 'Cargando...'}
-          </h1>
+          <PageHeader title={building?.name ?? 'Cargando...'} eyebrow="Dashboard" />
           {building?.address && (
-            <p className="mt-0.5 text-sm text-gray-500">{building.address}</p>
+            <p className="mt-0.5 text-sm text-muted">{building.address}</p>
           )}
         </div>
-        <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
+        <div className="flex gap-1 panel p-1">
           {(['7d', '30d', '90d'] as const).map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => { setPreset(p); }}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
                 preset === p
-                  ? 'bg-[var(--color-primary,#3D3BF3)]/15 text-[var(--color-primary,#3D3BF3)]'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-brand/15 text-brand'
+                  : 'text-muted hover:bg-surface'
               }`}
             >
               {p === '7d' ? '7 días' : p === '30d' ? '30 días' : '90 días'}
@@ -181,9 +180,9 @@ export function ExecutiveSitePage(): ReactElement {
       {metersQuery.isPending || latestQuery.isPending ? (
         <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="h-3 w-20 rounded bg-gray-200" />
-              <div className="mt-2 h-6 w-24 rounded bg-gray-200" />
+            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+              <div className="h-3 w-20 rounded bg-raised" />
+              <div className="mt-2 h-6 w-24 rounded bg-raised" />
             </div>
           ))}
         </div>
@@ -207,9 +206,9 @@ export function ExecutiveSitePage(): ReactElement {
       {aggQuery.isPending ? (
         <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="h-3 w-28 rounded bg-gray-200" />
-              <div className="mt-2 h-6 w-32 rounded bg-gray-200" />
+            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+              <div className="h-3 w-28 rounded bg-raised" />
+              <div className="mt-2 h-6 w-32 rounded bg-raised" />
             </div>
           ))}
         </div>
@@ -234,31 +233,31 @@ export function ExecutiveSitePage(): ReactElement {
       {/* Chart tendencias */}
       {aggQuery.isPending ? (
         <div className="animate-pulse space-y-2">
-          <div className="h-4 w-40 rounded bg-gray-200" />
-          <div className="h-64 w-full rounded bg-gray-200" />
+          <div className="h-4 w-40 rounded bg-raised" />
+          <div className="h-64 w-full rounded bg-raised" />
         </div>
       ) : portfolioSeries.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-medium text-gray-700">Consumo, demanda y costo</h2>
+          <h2 className="text-sm font-medium text-foreground">Consumo, demanda y costo</h2>
           <StockChart options={chartOptions} loading={aggQuery.isFetching} />
         </div>
       )}
 
       {/* Tabla medidores del edificio */}
       <div className="space-y-2">
-        <h2 className="text-sm font-medium text-gray-700">
+        <h2 className="text-sm font-medium text-foreground">
           Medidores ({latestReadings.length} con última lectura)
         </h2>
         {latestQuery.isPending ? (
-          <div className="animate-pulse rounded-lg border border-gray-200 bg-white">
-            <div className="h-8 rounded-t bg-gray-200" />
+          <div className="animate-pulse panel">
+            <div className="h-8 rounded-t bg-raised" />
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex gap-4 border-t border-gray-200 px-4 py-2">
-                <div className="h-4 w-32 rounded bg-gray-200" />
-                <div className="ml-auto h-4 w-16 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
-                <div className="h-4 w-12 rounded bg-gray-200" />
+              <div key={i} className="flex gap-4 border-t border-border px-4 py-2">
+                <div className="h-4 w-32 rounded bg-raised" />
+                <div className="ml-auto h-4 w-16 rounded bg-raised" />
+                <div className="h-4 w-16 rounded bg-raised" />
+                <div className="h-4 w-16 rounded bg-raised" />
+                <div className="h-4 w-12 rounded bg-raised" />
               </div>
             ))}
           </div>
@@ -270,9 +269,9 @@ export function ExecutiveSitePage(): ReactElement {
           emptyTitle="Sin lecturas"
           emptyDescription="No hay lecturas recientes para los medidores de este edificio."
         >
-          <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
+          <div className="max-h-[70vh] overflow-y-auto panel">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+              <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                 <tr>
                   <th className="px-4 py-2">Medidor</th>
                   <th className="px-4 py-2 text-right">Potencia (kW)</th>
@@ -293,13 +292,13 @@ export function ExecutiveSitePage(): ReactElement {
               >
                 {latestReadings.map((r) => (
                   <tr key={r.meter_id}>
-                    <td className="px-4 py-2 font-medium text-gray-900">{r.meter_name}</td>
+                    <td className="px-4 py-2 font-medium text-foreground">{r.meter_name}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(r.power_kw)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(r.voltage_l1)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(r.current_l1)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(r.power_factor, 3)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{fmt(r.energy_kwh_total, 0)}</td>
-                    <td className="px-4 py-2 text-xs text-gray-500">
+                    <td className="px-4 py-2 text-xs text-muted">
                       {new Date(r.timestamp).toLocaleString('es-CL')}
                     </td>
                   </tr>
@@ -314,12 +313,12 @@ export function ExecutiveSitePage(): ReactElement {
       {/* Alertas críticas */}
       {criticalAlerts.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-medium text-gray-700">Alertas críticas</h2>
-          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+          <h2 className="text-sm font-medium text-foreground">Alertas críticas</h2>
+          <ul className="divide-y divide-border panel">
             {criticalAlerts.slice(0, 12).map((a) => (
               <li key={a.id} className="flex items-start justify-between gap-2 px-4 py-2 text-sm">
-                <span className="text-gray-900">{a.message}</span>
-                <span className="shrink-0 text-xs text-gray-400">
+                <span className="text-foreground">{a.message}</span>
+                <span className="shrink-0 text-xs text-subtle">
                   {new Date(a.createdAt).toLocaleString('es-CL')}
                 </span>
               </li>
@@ -333,9 +332,9 @@ export function ExecutiveSitePage(): ReactElement {
 
 function KpiCard({ title, value }: Readonly<{ title: string; value: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{title}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
+    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+      <p className="text-xs font-medium text-muted">{title}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
     </div>
   );
 }

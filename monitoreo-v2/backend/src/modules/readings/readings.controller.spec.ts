@@ -101,6 +101,7 @@ describe('ReadingsController', () => {
         'tenant-1',
         ['bld-1'],
         query,
+        undefined,
       );
     });
 

@@ -59,14 +59,14 @@ function PdfPreviewModalInner({ pdfPath, title, onClose }: Readonly<PdfPreviewMo
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} aria-hidden="true" />
 
       {/* Modal */}
-      <div className="relative z-10 flex h-[85vh] w-[70vw] flex-col rounded-xl bg-white shadow-2xl">
+      <div className="relative z-10 flex h-[85vh] w-[70vw] flex-col rounded-lg bg-background shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
-          <span className="text-sm font-semibold text-gray-900">{title}</span>
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
+          <span className="text-sm font-semibold text-foreground">{title}</span>
           <button
             type="button"
             onClick={handleClose}
-            className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded p-1 text-subtle transition-colors hover:bg-surface hover:text-muted"
             aria-label="Cerrar"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -78,7 +78,7 @@ function PdfPreviewModalInner({ pdfPath, title, onClose }: Readonly<PdfPreviewMo
         {/* Body */}
         {loading && (
           <div className="flex flex-1 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary,#3a5b1e)] border-t-transparent" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
           </div>
         )}
         {error && (

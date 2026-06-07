@@ -37,10 +37,10 @@ describe('Card', () => {
     expect(container.firstElementChild!.className).toContain('border');
   });
 
-  it('applies elevated variant (border, no shadow)', () => {
+  it('applies elevated variant (border + shadow)', () => {
     const { container } = render(<Card variant="elevated">Content</Card>);
     expect(container.firstElementChild!.className).toContain('border');
-    expect(container.firstElementChild!.className).not.toContain('shadow');
+    expect(container.firstElementChild!.className).toContain('shadow-md');
   });
 
   it('adds cursor-pointer when onClick is set', async () => {

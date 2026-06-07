@@ -20,6 +20,20 @@ export type {
   AssignBuildingsPayload, UserBuildingsResponse,
 } from './user';
 export type {
+  UserImportJob,
+  UserImportStagingRow,
+  UserImportSummary,
+  UserImportJobStatus,
+  UserImportRowStatus,
+  ValidateUserImportResponse,
+  UserImportJobDetailResponse,
+  UserImportRowsResponse,
+  UserImportJobsListResponse,
+  CommitUserImportPayload,
+  CommitUserImportResponse,
+  UserImportRowsQueryParams,
+} from './user-import';
+export type {
   TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload,
   TenantUnitMeter,
 } from './tenant-unit';

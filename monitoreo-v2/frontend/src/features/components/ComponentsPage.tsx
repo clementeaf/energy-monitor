@@ -1,5 +1,6 @@
 import type Highcharts from 'highcharts';
 import { Chart, StockChart, MonthlyChart } from '../../components/charts';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 // ---------------------------------------------------------------------------
 // Sample data
@@ -100,7 +101,7 @@ const DUAL_AXIS_OPTIONS: Highcharts.Options = {
 export function ComponentsPage() {
   return (
     <div className="space-y-8 overflow-y-auto p-6">
-      <h1 className="text-lg font-semibold text-gray-900">Componentes</h1>
+      <PageHeader title="Componentes" eyebrow="Desarrollo" />
 
       {/* Chart */}
       <Section title="Chart" description="Highcharts basico con merge de tema.">
@@ -139,10 +140,10 @@ function Section({ title, description, children }: Readonly<{ title: string; des
   return (
     <div className="space-y-2">
       <div>
-        <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
-        <p className="text-xs text-gray-500">{description}</p>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <p className="text-xs text-muted">{description}</p>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white p-4">{children}</div>
+      <div className="panel p-4">{children}</div>
     </div>
   );
 }

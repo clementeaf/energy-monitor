@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { mapIotQualityToReadingQuality } from '../../common/constants/reading-quality';
+import { NormalizationService } from '../../lib/normalization.service';
+import { normalizeIotVariableRow } from '../../lib/iot-variable-mappings';
 
 const ALLOWED_VARIABLES = new Set([
   'voltage_l1', 'voltage_l2', 'voltage_l3',
@@ -22,10 +25,20 @@ const RESOLUTION_MAP: Record<string, string> = {
 /**
  * IoT readings service for EAV-format hypertable.
  * All queries scoped by tenant_id + buildingIds RBAC.
+ *
+ * Quality mapping (iot_readings.quality → readings.quality when unified):
+ * use mapIotQualityToReadingQuality() from common/constants/reading-quality.ts
+ * @see mapIotQualityToReadingQuality
  */
 @Injectable()
 export class IotReadingsService {
-  constructor(private readonly dataSource: DataSource) {}
+  /** Exposed for ingest promotion docs/tests — maps numeric IoT quality to enum. */
+  readonly mapQuality = mapIotQualityToReadingQuality;
+
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly normalizationService: NormalizationService,
+  ) {}
 
   /**
    * Latest reading per variable for a meter (or all meters in scope).
@@ -138,12 +151,12 @@ export class IotReadingsService {
            MAX(value) FILTER (WHERE variable_name = 'current_l1') AS current_l1,
            MAX(value) FILTER (WHERE variable_name = 'current_l2') AS current_l2,
            MAX(value) FILTER (WHERE variable_name = 'current_l3') AS current_l3,
-           MAX(value) FILTER (WHERE variable_name = 'active_power_w') / 1000.0 AS power_kw,
-           MAX(value) FILTER (WHERE variable_name = 'reactive_power_var') / 1000.0 AS reactive_power_kvar,
+           MAX(value) FILTER (WHERE variable_name = 'active_power_w') AS active_power_w,
+           MAX(value) FILTER (WHERE variable_name = 'reactive_power_var') AS reactive_power_var,
            MAX(value) FILTER (WHERE variable_name = 'power_factor') AS power_factor,
            MAX(value) FILTER (WHERE variable_name = 'frequency_hz') AS frequency_hz,
-           MAX(value) FILTER (WHERE variable_name = 'energy_import_wh') / 1000.0 AS energy_kwh_total,
-           MAX(value) FILTER (WHERE variable_name = 'peak_demand_w') / 1000.0 AS peak_demand_kw
+           MAX(value) FILTER (WHERE variable_name = 'energy_import_wh') AS energy_import_wh,
+           MAX(value) FILTER (WHERE variable_name = 'peak_demand_w') AS peak_demand_w
          FROM iot_readings
          WHERE tenant_id = $1 AND meter_id = $2 AND time >= $3 AND time <= $4
          GROUP BY time
@@ -159,7 +172,23 @@ export class IotReadingsService {
       ),
     ]);
 
-    return { rows, total: countResult[0]?.total ?? 0 };
+    const normalizedRows = (rows as Record<string, unknown>[]).map((row) =>
+      this.normalizePivotedRow(row),
+    );
+
+    return { rows: normalizedRows, total: countResult[0]?.total ?? 0 };
+  }
+
+  /**
+   * Applies IoT variable mappings to a pivoted SQL row.
+   */
+  private normalizePivotedRow(row: Record<string, unknown>): Record<string, unknown> {
+    const { time, ...variables } = row;
+    const normalized = normalizeIotVariableRow(
+      this.normalizationService.apply.bind(this.normalizationService),
+      variables,
+    );
+    return { time, ...normalized };
   }
 
   /**
@@ -260,7 +289,31 @@ export class IotReadingsService {
       [tenantId, meterId, from, to],
     );
 
-    return rows[0] ?? null;
+    const stats = rows[0] ?? null;
+    if (!stats) return null;
+
+    const normalized = normalizeIotVariableRow(
+      this.normalizationService.apply.bind(this.normalizationService),
+      {
+        active_power_w: stats.avg_power_w,
+        energy_import_wh: stats.max_energy_import_wh,
+        peak_demand_w: stats.max_peak_demand_w,
+      },
+    );
+
+    return {
+      ...stats,
+      avg_power_kw: normalized.power_kw ?? null,
+      max_power_kw:
+        stats.max_power_w != null
+          ? normalizeIotVariableRow(
+              this.normalizationService.apply.bind(this.normalizationService),
+              { active_power_w: stats.max_power_w },
+            ).power_kw ?? null
+          : null,
+      max_energy_kwh_total: normalized.energy_kwh_total ?? null,
+      max_peak_demand_kw: normalized.peak_demand_kw ?? null,
+    };
   }
 
   private async checkMeterScope(tenantId: string, buildingIds: string[], meterId: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import type { TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload } from '../../../types/tenant-unit';
@@ -13,20 +13,38 @@ interface TenantUnitFormProps {
   buildings: Building[];
 }
 
+/**
+ * Create/edit tenant unit form with optional external PASA/ERP identifier.
+ */
 export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit, buildings }: Readonly<TenantUnitFormProps>) {
   const isEdit = !!tenantUnit;
-  const [name, setName] = useState(tenantUnit?.name ?? '');
-  const [unitCode, setUnitCode] = useState(tenantUnit?.unitCode ?? '');
-  const [buildingId, setBuildingId] = useState(tenantUnit?.buildingId ?? (buildings[0]?.id ?? ''));
-  const [contactName, setContactName] = useState(tenantUnit?.contactName ?? '');
-  const [contactEmail, setContactEmail] = useState(tenantUnit?.contactEmail ?? '');
+  const [name, setName] = useState('');
+  const [unitCode, setUnitCode] = useState('');
+  const [externalUnitId, setExternalUnitId] = useState('');
+  const [buildingId, setBuildingId] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!open) return;
+    setName(tenantUnit?.name ?? '');
+    setUnitCode(tenantUnit?.unitCode ?? '');
+    setExternalUnitId(tenantUnit?.externalUnitId ?? '');
+    setBuildingId(tenantUnit?.buildingId ?? (buildings[0]?.id ?? ''));
+    setContactName(tenantUnit?.contactName ?? '');
+    setContactEmail(tenantUnit?.contactEmail ?? '');
+  }, [open, tenantUnit, buildings]);
+
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (isEdit) {
+    const trimmedExternalId = externalUnitId.trim();
+    if (isEdit && tenantUnit) {
       const payload: UpdateTenantUnitPayload = {};
       if (name !== tenantUnit.name) payload.name = name;
       if (unitCode !== tenantUnit.unitCode) payload.unitCode = unitCode;
+      if (trimmedExternalId !== (tenantUnit.externalUnitId ?? '')) {
+        payload.externalUnitId = trimmedExternalId || null;
+      }
       if (contactName !== (tenantUnit.contactName ?? '')) payload.contactName = contactName || undefined;
       if (contactEmail !== (tenantUnit.contactEmail ?? '')) payload.contactEmail = contactEmail || undefined;
       onSubmit(payload);
@@ -35,6 +53,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
         buildingId,
         name,
         unitCode,
+        ...(trimmedExternalId ? { externalUnitId: trimmedExternalId } : {}),
         ...(contactName ? { contactName } : {}),
         ...(contactEmail ? { contactEmail } : {}),
       });
@@ -61,7 +80,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
             onChange={(e) => { setName(e.target.value); }}
             required
             maxLength={255}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -71,7 +90,17 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
             onChange={(e) => { setUnitCode(e.target.value); }}
             required
             maxLength={50}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          />
+        </Field>
+
+        <Field label="ID externo">
+          <input
+            value={externalUnitId}
+            onChange={(e) => { setExternalUnitId(e.target.value); }}
+            maxLength={100}
+            placeholder="ID locatario en ERP/PASA"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -80,7 +109,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
             value={contactName}
             onChange={(e) => { setContactName(e.target.value); }}
             maxLength={255}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -89,7 +118,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
             type="email"
             value={contactEmail}
             onChange={(e) => { setContactEmail(e.target.value); }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -97,14 +126,14 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || !name || !unitCode}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>
@@ -117,7 +146,7 @@ export function TenantUnitForm({ open, onClose, onSubmit, isPending, tenantUnit,
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <div className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

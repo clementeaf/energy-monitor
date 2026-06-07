@@ -3,7 +3,14 @@ import { ExternalApiController } from './external-api.controller';
 import { BuildingsService } from '../buildings/buildings.service';
 import { MetersService } from '../meters/meters.service';
 import { ReadingsService } from '../readings/readings.service';
+import { MeasurementsIngressService } from '../readings/measurements-ingress.service';
 import { AlertsService } from '../alerts/alerts.service';
+import { MeterReadingStatusService } from '../ingest/meter-reading-status.service';
+import { TenantsService } from '../tenants/tenants.service';
+import { ReadingsExportService } from '../etl-export/readings-export.service';
+import { DataExportJobsService } from '../etl-export/data-export-jobs.service';
+import { ExportStorageService } from '../etl-export/export-storage.service';
+import { DataContractGuard } from '../data-governance/data-contract.guard';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 const user: JwtPayload = {
@@ -21,7 +28,13 @@ describe('ExternalApiController', () => {
   let buildingsSvc: Record<string, jest.Mock>;
   let metersSvc: Record<string, jest.Mock>;
   let readingsSvc: Record<string, jest.Mock>;
+  let ingressSvc: Record<string, jest.Mock>;
   let alertsSvc: Record<string, jest.Mock>;
+  let meterStatusSvc: Record<string, jest.Mock>;
+  let tenantsSvc: Record<string, jest.Mock>;
+  let exportSvc: Record<string, jest.Mock>;
+  let exportJobsSvc: Record<string, jest.Mock>;
+  let exportStorageSvc: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     buildingsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
@@ -31,7 +44,26 @@ describe('ExternalApiController', () => {
       findLatest: jest.fn().mockResolvedValue([]),
       findAggregated: jest.fn().mockResolvedValue([]),
     };
+    ingressSvc = { create: jest.fn() };
     alertsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    meterStatusSvc = { getStatusForMeter: jest.fn() };
+    tenantsSvc = { findById: jest.fn().mockResolvedValue({ settings: {} }) };
+    exportSvc = { streamCsvExport: jest.fn().mockResolvedValue({ rowCount: 0, nextCursor: null }) };
+    exportJobsSvc = {
+      create: jest.fn().mockResolvedValue({
+        id: 'job-1',
+        format: 'parquet',
+        status: 'pending',
+        rowCount: 0,
+        error: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        expiresAt: null,
+      }),
+      getStatus: jest.fn(),
+      getJobForDownload: jest.fn(),
+    };
+    exportStorageSvc = { readLocalFile: jest.fn() };
 
     const module = await Test.createTestingModule({
       controllers: [ExternalApiController],
@@ -39,9 +71,18 @@ describe('ExternalApiController', () => {
         { provide: BuildingsService, useValue: buildingsSvc },
         { provide: MetersService, useValue: metersSvc },
         { provide: ReadingsService, useValue: readingsSvc },
+        { provide: MeasurementsIngressService, useValue: ingressSvc },
         { provide: AlertsService, useValue: alertsSvc },
+        { provide: MeterReadingStatusService, useValue: meterStatusSvc },
+        { provide: TenantsService, useValue: tenantsSvc },
+        { provide: ReadingsExportService, useValue: exportSvc },
+        { provide: DataExportJobsService, useValue: exportJobsSvc },
+        { provide: ExportStorageService, useValue: exportStorageSvc },
       ],
-    }).compile();
+    })
+      .overrideGuard(DataContractGuard)
+      .useValue({ canActivate: jest.fn().mockResolvedValue(true) })
+      .compile();
 
     controller = module.get(ExternalApiController);
   });
@@ -54,10 +95,53 @@ describe('ExternalApiController', () => {
   });
 
   it('getBuilding delegates with id + tenant + buildingIds', async () => {
-    buildingsSvc.findOne.mockResolvedValue({ id: 'b-1', name: 'Test' });
+    const building = {
+      id: 'b-1',
+      name: 'Test',
+      code: 'T1',
+      countryCode: 'CL',
+      timezone: 'America/Santiago',
+      externalSiteId: 'EXT-1',
+      siteKind: 'mall',
+      regionId: 'reg-1',
+      region: { name: 'Chile Central' },
+    };
+    buildingsSvc.findOne.mockResolvedValue(building);
     const result = await controller.getBuilding('b-1', user);
     expect(buildingsSvc.findOne).toHaveBeenCalledWith('b-1', 't-1', ['b-1']);
-    expect(result).toEqual({ id: 'b-1', name: 'Test' });
+    expect(result).toEqual({
+      id: 'b-1',
+      name: 'Test',
+      code: 'T1',
+      countryCode: 'CL',
+      timezone: 'America/Santiago',
+      externalSiteId: 'EXT-1',
+      siteKind: 'mall',
+      regionId: 'reg-1',
+      regionName: 'Chile Central',
+    });
+  });
+
+  it('listBuildings maps geographic fields for external consumers', async () => {
+    buildingsSvc.findAll.mockResolvedValue([
+      {
+        id: 'b-1',
+        name: 'Mall',
+        code: 'M1',
+        countryCode: 'CL',
+        timezone: 'America/Santiago',
+        externalSiteId: 'ERP-99',
+        siteKind: 'mall',
+        regionId: null,
+        region: null,
+      },
+    ]);
+    const result = await controller.listBuildings(user);
+    expect(result[0]).toMatchObject({
+      countryCode: 'CL',
+      timezone: 'America/Santiago',
+      externalSiteId: 'ERP-99',
+    });
   });
 
   /* -- Meters -- */
@@ -72,6 +156,23 @@ describe('ExternalApiController', () => {
     expect(metersSvc.findAll).toHaveBeenCalledWith('t-1', ['b-1'], undefined);
   });
 
+  it('getMeter returns meter status with lag fields', async () => {
+    meterStatusSvc.getStatusForMeter.mockResolvedValue({
+      meterId: 'm-1',
+      lastReadingAt: '2026-01-01T12:00:00.000Z',
+      lastIngestedAt: '2026-01-01T12:00:05.000Z',
+      lastSource: 'modbus',
+      lagSeconds: 120,
+      isStale: false,
+      staleThresholdHours: 4,
+    });
+    const result = await controller.getMeterStatus('m-1', user);
+    expect(tenantsSvc.findById).toHaveBeenCalledWith('t-1');
+    expect(meterStatusSvc.getStatusForMeter).toHaveBeenCalledWith('m-1', 't-1', ['b-1'], {});
+    expect(result?.lagSeconds).toBe(120);
+    expect(result?.isStale).toBe(false);
+  });
+
   it('getMeter delegates with id', async () => {
     metersSvc.findOne.mockResolvedValue({ id: 'm-1' });
     await controller.getMeter('m-1', user);
@@ -80,10 +181,19 @@ describe('ExternalApiController', () => {
 
   /* -- Readings -- */
 
-  it('getReadings delegates to findByMeter', async () => {
+  it('getReadings delegates to findByMeter with timezone-enriched rows', async () => {
     const query = { meterId: 'm-1', from: '2026-01-01', to: '2026-01-31' };
-    await controller.getReadings(user, query as any);
+    const enriched = [{
+      meter_id: 'm-1',
+      timestamp_utc: '2026-01-01T12:00:00.000Z',
+      timezone: 'America/Santiago',
+      timestamp_local: '2026-01-01T09:00:00',
+      quality: 'measured',
+    }];
+    readingsSvc.findByMeter.mockResolvedValue(enriched);
+    const result = await controller.getReadings(user, query as Parameters<typeof controller.getReadings>[1]);
     expect(readingsSvc.findByMeter).toHaveBeenCalledWith('t-1', ['b-1'], query);
+    expect(result[0]?.timezone).toBe('America/Santiago');
   });
 
   it('getLatestReadings delegates to findLatest', async () => {
@@ -96,6 +206,61 @@ describe('ExternalApiController', () => {
     const query = { from: '2026-01-01', to: '2026-01-31', interval: 'daily' };
     await controller.getAggregatedReadings(user, query as any);
     expect(readingsSvc.findAggregated).toHaveBeenCalledWith('t-1', ['b-1'], query);
+  });
+
+  it('createMeasurement delegates to ingress service and maps response', async () => {
+    const dto = {
+      meterId: 'm-1',
+      timestamp: '2026-06-06T12:00:00.000Z',
+      metrics: { powerKw: 5, energyKwhTotal: 100 },
+    };
+    ingressSvc.create.mockResolvedValue({
+      id: 'r-1',
+      meter_id: 'm-1',
+      timestamp_utc: '2026-06-06T12:00:00.000Z',
+      timezone: 'America/Santiago',
+      timestamp_local: '2026-06-06T08:00:00',
+      power_kw: '5.000',
+      energy_kwh_total: '100.000',
+      quality: 'measured',
+      source: 'api_ingress',
+      ingested_at: '2026-06-06T12:00:01.000Z',
+    });
+
+    const result = await controller.createMeasurement(user, dto);
+
+    expect(ingressSvc.create).toHaveBeenCalledWith('t-1', ['b-1'], dto);
+    expect(result.meterId).toBe('m-1');
+    expect(result.source).toBe('api_ingress');
+  });
+
+  it('exportReadings delegates to readings export service', async () => {
+    const query = {
+      format: 'csv' as const,
+      from: '2026-01-01T00:00:00.000Z',
+      to: '2026-01-31T00:00:00.000Z',
+    };
+    const res = { setHeader: jest.fn(), write: jest.fn(), end: jest.fn() };
+    await controller.exportReadings(user, query, 'consumer-1', res as never);
+    expect(exportSvc.streamCsvExport).toHaveBeenCalledWith(
+      't-1',
+      ['b-1'],
+      query,
+      res,
+      'consumer-1',
+    );
+  });
+
+  it('createExportJob returns accepted job payload', async () => {
+    const dto = {
+      format: 'parquet' as const,
+      from: '2026-01-01T00:00:00.000Z',
+      to: '2026-01-31T00:00:00.000Z',
+    };
+    const result = await controller.createExportJob(user, dto);
+    expect(exportJobsSvc.create).toHaveBeenCalledWith('t-1', ['b-1'], dto);
+    expect(result.id).toBe('job-1');
+    expect(result.status).toBe('pending');
   });
 
   /* -- Alerts -- */

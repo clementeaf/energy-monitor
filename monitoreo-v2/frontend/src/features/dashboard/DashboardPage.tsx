@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
+import { PillToggle } from '../../components/ui/PillToggle';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
@@ -132,8 +134,8 @@ export function DashboardPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-semibold text-pa-text">Dashboard no disponible</p>
-          <p className="mt-1 text-sm text-pa-text-muted">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Dashboard no disponible</p>
+          <p className="mt-1 text-sm text-muted">
             El dashboard financiero no está disponible en modo técnico.
           </p>
         </div>
@@ -146,8 +148,8 @@ export function DashboardPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-semibold text-pa-text">Selecciona un operador</p>
-          <p className="mt-1 text-sm text-pa-text-muted">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un operador</p>
+          <p className="mt-1 text-sm text-muted">
             Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
           </p>
         </div>
@@ -162,30 +164,23 @@ export function DashboardPage() {
     : 0;
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="text-lg font-semibold text-pa-text">Dashboard</h1>
-        <div className="flex gap-1 rounded-lg border border-pa-border bg-white p-0.5">
-          {RANGE_PRESETS.map((r) => (
-            <button
-              key={r.key}
-              type="button"
-              disabled={meters.length === 0}
-              onClick={() => setPreset(r.key)}
-              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                meters.length === 0
-                  ? 'cursor-not-allowed opacity-40'
-                  : preset === r.key
-                    ? 'bg-pa-blue text-white'
-                    : 'text-pa-text-muted hover:text-pa-text'
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard"
+        eyebrow="Dashboard"
+        actions={
+          <PillToggle
+            options={RANGE_PRESETS.map((r) => ({
+              key: r.key,
+              label: r.label,
+              disabled: meters.length === 0,
+            }))}
+            value={preset}
+            onChange={setPreset}
+            size="sm"
+          />
+        }
+      />
 
       {/* 2-column layout: KPIs+Chart | Alerts+Buildings */}
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -203,10 +198,10 @@ export function DashboardPage() {
           </div>
 
           {/* Chart */}
-          <div className="rounded-lg border border-pa-border bg-white p-4">
-            <div className="mb-2 flex items-center justify-between">
+          <div className="panel p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-[13px] font-medium text-pa-text">{chartOptions.title.text}</h2>
+                <h2 className="text-sm font-semibold text-foreground">{chartOptions.title.text}</h2>
                 {meters.length > 0 ? (
                   <DropdownSelect
                     options={meters.map((m) => ({ value: m.id, label: m.name }))}
@@ -215,36 +210,27 @@ export function DashboardPage() {
                     className="w-44"
                   />
                 ) : (
-                  <div className="h-6 w-32 animate-pulse rounded-lg bg-gray-200" />
+                  <div className="h-6 w-32 animate-pulse rounded-lg bg-raised" />
                 )}
               </div>
-              <div className="flex gap-1 rounded-lg border border-pa-border bg-surface p-0.5">
-                {CHART_VIEWS.map((v) => (
-                  <button
-                    key={v.key}
-                    type="button"
-                    disabled={meters.length === 0}
-                    onClick={() => setChartView(v.key)}
-                    className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                      meters.length === 0
-                        ? 'cursor-not-allowed opacity-40'
-                        : chartView === v.key
-                          ? 'bg-white text-pa-blue'
-                          : 'text-pa-text-muted hover:text-pa-text'
-                    }`}
-                  >
-                    {v.label}
-                  </button>
-                ))}
-              </div>
+              <PillToggle
+                options={CHART_VIEWS.map((v) => ({
+                  key: v.key,
+                  label: v.label,
+                  disabled: meters.length === 0,
+                }))}
+                value={chartView}
+                onChange={setChartView}
+                size="sm"
+              />
             </div>
             {metersQuery.isLoading ? (
               <ChartSkeleton />
             ) : meters.length > 0 ? (
               <StockChart options={chartOptions} loading={readingsQuery.isFetching} />
             ) : (
-              <div className="flex h-[380px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80">
-                <p className="text-sm text-gray-500">Sin medidores para esta empresa.</p>
+              <div className="flex h-[380px] items-center justify-center rounded-lg border border-dashed border-border bg-surface/80">
+                <p className="text-sm text-muted">Sin medidores para esta empresa.</p>
               </div>
             )}
           </div>
@@ -254,10 +240,10 @@ export function DashboardPage() {
         <div className="flex w-full flex-col gap-4 lg:w-80">
           {/* Alerts */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-pa-text">
+            <h2 className="text-[13px] font-medium text-foreground">
               Alertas activas
               {activeAlerts.length > 0 && (
-                <span className="ml-1.5 text-[11px] font-normal text-pa-text-muted">
+                <span className="ml-1.5 text-[11px] font-normal text-muted">
                   ({activeAlerts.length})
                 </span>
               )}
@@ -269,18 +255,18 @@ export function DashboardPage() {
               emptyTitle="Sin alertas"
               emptyDescription="No hay alertas activas."
             >
-              <ul className="max-h-48 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
+              <ul className="panel max-h-48 divide-y divide-border overflow-y-auto">
                 {activeAlerts.map((a) => (
                   <li
                     key={a.id}
-                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-gray-50"
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
                     onClick={() => navigate(`/alerts?highlight=${a.id}`)}
                   >
                     <div className="flex items-center gap-2">
                       <SeverityDot severity={a.severity} />
-                      <span className="text-pa-text">{a.message}</span>
+                      <span className="text-foreground">{a.message}</span>
                     </div>
-                    <span className="shrink-0 text-[11px] text-pa-text-muted">
+                    <span className="shrink-0 text-[11px] text-muted">
                       {new Date(a.createdAt).toLocaleDateString('es-CL')}
                     </span>
                   </li>
@@ -291,7 +277,7 @@ export function DashboardPage() {
 
           {/* Buildings */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-pa-text">Edificios</h2>
+            <h2 className="text-[13px] font-medium text-foreground">Edificios</h2>
             <DataWidget
               phase={buildingsQs.phase}
               error={buildingsQs.error}
@@ -299,16 +285,16 @@ export function DashboardPage() {
               emptyTitle="Sin edificios"
               emptyDescription="No hay edificios registrados."
             >
-              <ul className="max-h-52 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
+              <ul className="panel max-h-52 divide-y divide-border overflow-y-auto">
                 {buildings.map((b) => {
                   const buildingReadings = allLatestReadings.filter((r) => r.building_id === b.id);
                   const power = buildingReadings.reduce((s, r) => s + Number(r.power_kw || 0), 0);
                   return (
                     <li key={b.id} className="flex items-center justify-between px-3 py-2 text-[13px]">
-                      <span className="font-medium text-pa-text">{b.name}</span>
+                      <span className="font-medium text-foreground">{b.name}</span>
                       <div className="text-right">
-                        <span className="text-pa-text">{power.toFixed(1)} kW</span>
-                        <span className="ml-2 text-[11px] text-pa-text-muted">{buildingReadings.length} med.</span>
+                        <span className="text-foreground">{power.toFixed(1)} kW</span>
+                        <span className="ml-2 text-[11px] text-muted">{buildingReadings.length} med.</span>
                       </div>
                     </li>
                   );
@@ -320,22 +306,22 @@ export function DashboardPage() {
           {/* Overdue invoices */}
           {billingKpis.overdueInvoices.length > 0 && (
             <div className="flex flex-col gap-2">
-              <h2 className="text-[13px] font-medium text-pa-text">
+              <h2 className="text-[13px] font-medium text-foreground">
                 Facturas vencidas
                 <span className="ml-1.5 text-[11px] font-normal text-red-500">
                   ({billingKpis.overdueInvoices.length})
                 </span>
               </h2>
-              <ul className="max-h-48 divide-y divide-pa-border overflow-y-auto rounded-lg border border-pa-border bg-white">
+              <ul className="panel max-h-48 divide-y divide-border overflow-y-auto">
                 {billingKpis.overdueInvoices.map((inv) => (
                   <li
                     key={inv.id}
-                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-gray-50"
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
                     onClick={() => navigate(`/buildings/${inv.buildingId}`)}
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium text-pa-text">{inv.invoiceNumber}</span>
-                      <span className="text-[11px] text-pa-text-muted">{inv.periodStart.slice(0, 7)}</span>
+                      <span className="font-medium text-foreground">{inv.invoiceNumber}</span>
+                      <span className="text-[11px] text-muted">{inv.periodStart.slice(0, 7)}</span>
                     </div>
                     <span className="shrink-0 text-[12px] font-medium text-red-600">
                       {fmtClp(inv.total)}
@@ -394,19 +380,19 @@ function computeBillingKpis(invoices: Invoice[]): BillingKpis {
 
 function KpiCard({ title, value, color }: Readonly<{ title: string; value: string; color?: string }>) {
   return (
-    <div className="flex-1 basis-32 rounded-lg border border-pa-border bg-white px-3 py-2.5">
-      <p className="text-[11px] font-medium text-pa-text-muted">{title}</p>
-      <p className={`mt-0.5 text-base font-semibold ${color ?? 'text-pa-text'}`}>{value}</p>
+    <div className="panel min-w-[7.5rem] flex-1 px-4 py-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{title}</p>
+      <p className={`mt-1 text-lg font-semibold tracking-tight ${color ?? 'text-foreground'}`}>{value}</p>
     </div>
   );
 }
 
 function SeverityDot({ severity }: Readonly<{ severity: string }>) {
   const colors: Record<string, string> = {
-    critical: 'bg-pa-coral',
-    high: 'bg-pa-amber',
+    critical: 'bg-danger',
+    high: 'bg-warning',
     medium: 'bg-yellow-500',
-    low: 'bg-pa-blue',
+    low: 'bg-brand',
   };
   return <span className={`inline-block size-2 rounded-full ${colors[severity] ?? 'bg-subtle'}`} />;
 }

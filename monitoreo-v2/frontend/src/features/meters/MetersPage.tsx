@@ -9,7 +9,10 @@ import { useMetersQuery, useCreateMeter, useUpdateMeter, useDeleteMeter } from '
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
 import { MeterForm } from './MeterForm';
+import { LOAD_CATEGORY_LABELS } from '../../lib/site-metadata-labels';
+import type { LoadCategory } from '../../types/site-metadata';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../../types/meter';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 export function MetersPage() {
   const navigate = useNavigate();
@@ -68,9 +71,9 @@ export function MetersPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Medidores</h1>
+        <PageHeader title="Medidores" eyebrow="Monitoreo" />
 
         <div className="flex gap-2">
           <DropdownSelect
@@ -87,7 +90,7 @@ export function MetersPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
             >
               Nuevo Medidor
             </button>
@@ -95,14 +98,15 @@ export function MetersPage() {
         </div>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               {showBuildingCol && <Th>Edificio</Th>}
               <Th>Nombre</Th>
               <Th>Codigo</Th>
               <Th>Tipo</Th>
+              <Th>Carga</Th>
               <Th>Fase</Th>
               <Th>Modelo</Th>
               <Th>Estado</Th>
@@ -111,22 +115,27 @@ export function MetersPage() {
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={(canWrite ? 7 : 6) + (showBuildingCol ? 1 : 0)}
+            colSpan={(canWrite ? 8 : 7) + (showBuildingCol ? 1 : 0)}
             error={qs.error}
             onRetry={() => { metersQuery.refetch(); }}
             emptyMessage="No hay medidores registrados."
-            skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-24', 'w-16', 'w-20']}
+            skeletonWidths={['w-28', 'w-20', 'w-20', 'w-20', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
             {meters.map((m) => (
               <tr
                 key={m.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-surface"
                 onClick={() => navigate(`/monitoring/meter/${m.id}`)}
               >
                 {showBuildingCol && <Td>{buildingMap.get(m.buildingId) ?? '—'}</Td>}
-                <Td className="font-medium text-gray-900">{m.name}</Td>
+                <Td className="font-medium text-foreground">{m.name}</Td>
                 <Td>{m.code}</Td>
                 <Td>{m.meterType}</Td>
+                <Td>
+                  {m.loadCategory
+                    ? LOAD_CATEGORY_LABELS[m.loadCategory as LoadCategory] ?? m.loadCategory
+                    : '—'}
+                </Td>
                 <Td>{m.phaseType === 'three_phase' ? 'Trifasico' : 'Monofasico'}</Td>
                 <Td>{m.model ?? '—'}</Td>
                 <Td><StatusBadge active={m.isActive} /></Td>
@@ -144,7 +153,7 @@ export function MetersPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
         {total > 0 && (
-          <p className="px-4 py-2 text-xs text-pa-text-muted">
+          <p className="px-4 py-2 text-xs text-muted">
             Mostrando {meters.length} de {total}
           </p>
         )}
@@ -173,21 +182,21 @@ export function MetersPage() {
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }
 
 function StatusBadge({ active }: Readonly<{ active: boolean }>) {
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+        active ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
       }`}
     >
       {active ? 'Activo' : 'Inactivo'}
@@ -198,7 +207,7 @@ function StatusBadge({ active }: Readonly<{ active: boolean }>) {
 function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
   const cls = variant === 'danger'
     ? 'text-red-600 hover:bg-red-50'
-    : 'text-gray-600 hover:bg-gray-100';
+    : 'text-muted hover:bg-surface';
   return (
     <button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}>
       {label}

@@ -42,21 +42,38 @@ describe('ReadingsService', () => {
     it('queries raw readings by default', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }]) // meter scope check
-        .mockResolvedValueOnce([{ id: 'r-1', power_kw: '10.5' }]);
+        .mockResolvedValueOnce([{ timezone: 'America/Santiago' }]) // meter timezone
+        .mockResolvedValueOnce([
+          {
+            id: 'r-1',
+            meter_id: METER_ID,
+            timestamp: '2026-01-01T12:00:00.000Z',
+            power_kw: '10.5',
+            quality: 'measured',
+            source: 'modbus',
+          },
+        ]);
 
       const result = await service.findByMeter(TENANT_ID, BUILDING_IDS, baseQuery);
 
-      expect(result).toEqual([{ id: 'r-1', power_kw: '10.5' }]);
-      expect(ds.query).toHaveBeenCalledTimes(2);
-      // Raw query should use readings table directly
-      const rawSql = ds.query.mock.calls[1][0] as string;
+      expect(result[0]?.power_kw).toBe('10.5');
+      expect(result[0]?.quality).toBe('measured');
+      expect(result[0]?.source).toBe('modbus');
+      expect(result[0]?.timezone).toBe('America/Santiago');
+      expect(result[0]?.timestamp_utc).toBeDefined();
+      expect(result[0]?.timestamp_local).toBeDefined();
+      expect(ds.query).toHaveBeenCalledTimes(3);
+      const rawSql = ds.query.mock.calls[2][0] as string;
       expect(rawSql).toContain('FROM readings');
-      expect(rawSql).toContain('ORDER BY timestamp ASC');
+      expect(rawSql).toContain('quality::text AS quality');
+      expect(rawSql).toContain('source');
+      expect(rawSql).toContain('ingested_at');
     });
 
     it('uses time_bucket for non-raw resolutions', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }])
         .mockResolvedValueOnce([]);
 
       await service.findByMeter(TENANT_ID, BUILDING_IDS, {
@@ -64,18 +81,20 @@ describe('ReadingsService', () => {
         resolution: '1h',
       });
 
-      expect(ds.query).toHaveBeenCalledTimes(2);
-      const sql = ds.query.mock.calls[1][0] as string;
+      expect(ds.query).toHaveBeenCalledTimes(3);
+      const sql = ds.query.mock.calls[2][0] as string;
       expect(sql).toContain('time_bucket');
-      expect(ds.query.mock.calls[1][1][0]).toBe('1 hour');
+      expect(ds.query.mock.calls[2][1][0]).toBe('1 hour');
     });
 
     it('returns empty for invalid resolution', async () => {
-      ds.query.mockResolvedValueOnce([{ '?column?': 1 }]);
+      ds.query
+        .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }]);
 
       const result = await service.findByMeter(TENANT_ID, BUILDING_IDS, {
         ...baseQuery,
-        resolution: 'invalid' as any,
+        resolution: 'invalid' as 'raw',
       });
 
       expect(result).toEqual([]);
@@ -84,6 +103,7 @@ describe('ReadingsService', () => {
     it('respects limit parameter', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }])
         .mockResolvedValueOnce([]);
 
       await service.findByMeter(TENANT_ID, BUILDING_IDS, {
@@ -91,24 +111,26 @@ describe('ReadingsService', () => {
         limit: 50,
       });
 
-      const params = ds.query.mock.calls[1][1];
+      const params = ds.query.mock.calls[2][1];
       expect(params[3]).toBe(50);
     });
 
     it('defaults limit to 1000', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }])
         .mockResolvedValueOnce([]);
 
       await service.findByMeter(TENANT_ID, BUILDING_IDS, baseQuery);
 
-      const params = ds.query.mock.calls[1][1];
+      const params = ds.query.mock.calls[2][1];
       expect(params[3]).toBe(1000);
     });
 
     it('checks meter scope without buildingIds when empty', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }])
         .mockResolvedValueOnce([]);
 
       await service.findByMeter(TENANT_ID, [], baseQuery);
@@ -120,6 +142,7 @@ describe('ReadingsService', () => {
     it('checks meter scope with buildingIds', async () => {
       ds.query
         .mockResolvedValueOnce([{ '?column?': 1 }])
+        .mockResolvedValueOnce([{ timezone: 'UTC' }])
         .mockResolvedValueOnce([]);
 
       await service.findByMeter(TENANT_ID, ['bld-1', 'bld-2'], baseQuery);
@@ -133,15 +156,23 @@ describe('ReadingsService', () => {
   });
 
   describe('findLatest', () => {
-    it('returns latest readings for tenant', async () => {
-      const rows = [{ meter_id: 'm-1', power_kw: '10.5' }];
+    it('returns latest readings for tenant with timezone fields', async () => {
+      const rows = [{
+        meter_id: 'm-1',
+        power_kw: '10.5',
+        timestamp: '2026-01-01T12:00:00.000Z',
+        timezone: 'America/Santiago',
+      }];
       ds.query.mockResolvedValue(rows);
 
       const result = await service.findLatest(TENANT_ID, [], {});
 
-      expect(result).toEqual(rows);
+      expect(result[0]?.timezone).toBe('America/Santiago');
+      expect(result[0]?.timestamp_utc).toBeDefined();
+      expect(result[0]?.timestamp_local).toBeDefined();
       const sql = ds.query.mock.calls[0][0] as string;
       expect(sql).toContain('LEFT JOIN LATERAL');
+      expect(sql).toContain('COALESCE(b.timezone, t.timezone');
       expect(sql).toContain('m.tenant_id = $1');
     });
 
@@ -323,6 +354,34 @@ describe('ReadingsService', () => {
       expect(sql).toContain('max_energy_kwh_total');
       expect(sql).toContain('min_energy_kwh_total');
       expect(sql).toContain('energy_delta_kwh');
+    });
+
+    it('15min: uses readings_15min CAGG when range > 7 days', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-31T23:59:59Z',
+        interval: '15min',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_15min');
+    });
+
+    it('15min: uses raw time_bucket when range <= 7 days', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-05T00:00:00Z',
+        interval: '15min',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('time_bucket');
+      expect(sql).not.toContain('readings_15min');
+      expect(ds.query.mock.calls[0][1][0]).toBe('15 minutes');
     });
   });
 });

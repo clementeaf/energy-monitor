@@ -9,6 +9,11 @@ import { createHash } from 'crypto';
  *
  * 1. Purge expired refresh tokens (>30 days past expiry)
  * 2. Anonymize users inactive for >2 years (no login, no activity)
+ * 3. Purge old user import jobs (>90 days, committed/failed/cancelled)
+ * 4. Refresh portfolio_summary materialized view
+ *
+ * audit_logs and readings retention are owned by TimescaleDB policies only
+ * (readings: 5 years @ 15min — see migration 22-retention-5y.sql; audit_logs: 5 years).
  */
 @Injectable()
 export class DataRetentionService {
@@ -22,11 +27,11 @@ export class DataRetentionService {
 
     const purged = await this.purgeExpiredTokens();
     const anonymized = await this.anonymizeInactiveUsers();
-    const auditPurged = await this.purgeOldAuditLogs();
+    const importJobsPurged = await this.purgeOldUserImportJobs();
     await this.refreshPortfolioSummary();
 
     this.logger.log(
-      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${auditPurged} audit logs purged`,
+      `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} import jobs purged`,
     );
   }
 
@@ -101,6 +106,29 @@ export class DataRetentionService {
   }
 
   /**
+   * Delete completed user import jobs older than 90 days (staging rows cascade).
+   */
+  private async purgeOldUserImportJobs(): Promise<number> {
+    try {
+      const result = await this.dataSource.query(
+        `DELETE FROM user_import_jobs
+         WHERE status IN ('committed', 'failed', 'cancelled')
+           AND COALESCE(committed_at, updated_at) < NOW() - INTERVAL '90 days'`,
+      );
+      const count = result[1] ?? 0;
+      if (count > 0) {
+        this.logger.log(`Purged ${count} old user_import_jobs`);
+      }
+      return count;
+    } catch (err) {
+      this.logger.warn(
+        `user_import_jobs purge skipped: ${err instanceof Error ? err.message : 'unknown'}`,
+      );
+      return 0;
+    }
+  }
+
+  /**
    * Refresh portfolio_summary materialized view for Executive Dashboard.
    */
   private async refreshPortfolioSummary(): Promise<void> {
@@ -110,20 +138,5 @@ export class DataRetentionService {
     } catch (err) {
       this.logger.warn(`portfolio_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`);
     }
-  }
-
-  /**
-   * Delete audit logs older than 2 years (ISO 27001 retention policy).
-   */
-  private async purgeOldAuditLogs(): Promise<number> {
-    const result = await this.dataSource.query(
-      `DELETE FROM audit_logs
-       WHERE created_at < NOW() - INTERVAL '2 years'`,
-    );
-    const count = result[1] ?? 0;
-    if (count > 0) {
-      this.logger.log(`Purged ${count} audit logs older than 2 years`);
-    }
-    return count;
   }
 }

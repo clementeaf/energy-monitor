@@ -7,6 +7,7 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { FaultEventQueryParams } from '../../../types/fault-event';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-red-100 text-red-700 border-red-300',
@@ -64,30 +65,28 @@ export function FaultHistoryPage() {
   const criticalCount = events.filter((e) => e.severity === 'critical').length;
 
   return (
-    <div className="space-y-4">
-      <nav className="flex items-center gap-1 text-sm text-gray-500">
-        <Link to="/monitoring/realtime" className="hover:text-gray-700">Monitoreo</Link>
+    <div className="space-y-6">
+      <nav className="flex items-center gap-1 text-sm text-muted">
+        <Link to="/monitoring/realtime" className="hover:text-foreground">Monitoreo</Link>
         <span>/</span>
         {building && (
           <>
-            <Link to={`/monitoring/drilldown/${building.id}`} className="hover:text-gray-700">{building.name}</Link>
+            <Link to={`/monitoring/drilldown/${building.id}`} className="hover:text-foreground">{building.name}</Link>
             <span>/</span>
           </>
         )}
-        <Link to="/monitoring/devices" className="hover:text-gray-700">Dispositivos</Link>
+        <Link to="/monitoring/devices" className="hover:text-foreground">Dispositivos</Link>
         <span>/</span>
-        <span className="text-gray-900">Historial de Fallos</span>
+        <span className="text-foreground">Historial de Fallos</span>
       </nav>
 
-      <h1 className="text-2xl font-semibold text-gray-900">
-        Historial de Fallos — {meter?.name ?? 'Medidor'}
-      </h1>
+      <PageHeader title={`Historial de fallos — ${meter?.name ?? 'Medidor'}`} eyebrow="Monitoreo" />
 
       {faultEventsQuery.isLoading ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="h-3 w-20 rounded bg-gray-200" />
+            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+              <div className="h-3 w-20 rounded bg-raised" />
               <div className="mt-2 h-5 w-10 rounded bg-gray-300" />
             </div>
           ))}
@@ -115,14 +114,14 @@ export function FaultHistoryPage() {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-border px-3 py-1.5 text-sm"
           placeholder="Desde"
         />
         <input
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-border px-3 py-1.5 text-sm"
           placeholder="Hasta"
         />
       </div>
@@ -130,18 +129,18 @@ export function FaultHistoryPage() {
       {faultEventsQuery.isLoading && (
         <div className="space-y-3 animate-pulse">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="rounded-lg border border-gray-200 bg-white p-4">
+            <div key={i} className="panel p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-1 size-3 rounded-full bg-gray-300" />
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="h-4 w-16 rounded-full bg-gray-200" />
-                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-4 w-16 rounded-full bg-raised" />
+                    <div className="h-4 w-28 rounded bg-raised" />
                   </div>
-                  <div className="h-3 w-3/4 rounded bg-gray-100" />
+                  <div className="h-3 w-3/4 rounded bg-raised" />
                   <div className="flex gap-4">
-                    <div className="h-3 w-32 rounded bg-gray-100" />
-                    <div className="h-3 w-24 rounded bg-gray-100" />
+                    <div className="h-3 w-32 rounded bg-raised" />
+                    <div className="h-3 w-24 rounded bg-raised" />
                   </div>
                 </div>
               </div>
@@ -169,21 +168,21 @@ export function FaultHistoryPage() {
             return (
               <div
                 key={event.id}
-                className={`relative rounded-lg border bg-white p-4 ${isOpen ? 'border-red-200' : 'border-gray-200'}`}
+                className={`relative rounded-lg border bg-background p-4 ${isOpen ? 'border-red-200' : 'border-gray-200'}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     {/* Timeline dot */}
                     <div className="mt-1 flex flex-col items-center">
                       <span className={`inline-block size-3 rounded-full ${dotColor}`} />
-                      <div className="mt-1 h-full w-px bg-gray-200" />
+                      <div className="mt-1 h-full w-px bg-raised" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${sevColors}`}>
                           {event.severity}
                         </span>
-                        <span className="text-sm font-medium text-gray-900">{event.faultType}</span>
+                        <span className="text-sm font-medium text-foreground">{event.faultType}</span>
                         {isOpen && (
                           <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                             Abierto
@@ -191,9 +190,9 @@ export function FaultHistoryPage() {
                         )}
                       </div>
                       {event.description && (
-                        <p className="mt-1 text-sm text-gray-600">{event.description}</p>
+                        <p className="mt-1 text-sm text-muted">{event.description}</p>
                       )}
-                      <div className="mt-2 flex gap-4 text-xs text-gray-400">
+                      <div className="mt-2 flex gap-4 text-xs text-subtle">
                         <span>Inicio: {new Date(event.startedAt).toLocaleString('es-CL')}</span>
                         {event.resolvedAt && (
                           <span>Resuelto: {new Date(event.resolvedAt).toLocaleString('es-CL')}</span>
@@ -205,7 +204,7 @@ export function FaultHistoryPage() {
                         )}
                       </div>
                       {event.resolutionNotes && (
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-xs text-muted">
                           Notas: {event.resolutionNotes}
                         </p>
                       )}
@@ -234,10 +233,10 @@ function formatDuration(start: Date, end: Date): string {
   return `${mins}m`;
 }
 
-function SummaryCard({ label, value, color = 'text-gray-900' }: Readonly<{ label: string; value: string; color?: string }>) {
+function SummaryCard({ label, value, color = 'text-foreground' }: Readonly<{ label: string; value: string; color?: string }>) {
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+      <p className="text-xs font-medium text-muted">{label}</p>
       <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
     </div>
   );

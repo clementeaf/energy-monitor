@@ -6,6 +6,7 @@ import { useConcentratorsQuery } from '../../../hooks/queries/useConcentratorsQu
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { useQueryState } from '../../../hooks/useQueryState';
 import type { Concentrator } from '../../../types/concentrator';
 import type { Meter } from '../../../types/meter';
@@ -128,7 +129,7 @@ export function DevicesPage() {
 
   const statusColors: Record<string, string> = {
     online: 'bg-green-100 text-green-700',
-    offline: 'bg-gray-100 text-gray-600',
+    offline: 'bg-raised text-muted',
     error: 'bg-red-100 text-red-700',
     maintenance: 'bg-yellow-100 text-yellow-700',
   };
@@ -145,61 +146,64 @@ export function DevicesPage() {
 
   return (
     <div className="space-y-3">
-      {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-2">
-        <DropdownSelect
-          options={[
-            { value: '', label: 'Todos los edificios' },
-            ...buildings.map((b) => ({ value: b.id, label: b.name })),
-          ]}
-          value={buildingFilter}
-          onChange={(val) => setBuildingFilter(val)}
-          className="w-48"
-        />
-        <DropdownSelect
-          options={[
-            { value: 'all', label: 'Todos los tipos' },
-            { value: 'meter', label: 'Medidores' },
-            { value: 'concentrator', label: 'Concentradores' },
-          ]}
-          value={typeFilter}
-          onChange={(val) => setTypeFilter(val as DeviceType)}
-          className="w-48"
-        />
-        <DropdownSelect
-          options={[
-            { value: 'all', label: 'Todos los estados' },
-            { value: 'online', label: 'En linea' },
-            { value: 'offline', label: 'Sin conexion' },
-            { value: 'error', label: 'Error' },
-          ]}
-          value={statusFilter}
-          onChange={(val) => setStatusFilter(val as StatusFilter)}
-          className="w-48"
-        />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar dispositivo..."
-          className="rounded-md border border-gray-300 px-2.5 py-1.5 text-[12px] w-44"
-        />
-        <span className="ml-auto text-[11px] text-pa-text-muted">
-          {filtered.length} de {devices.length} dispositivos
-        </span>
-      </div>
+      <PageHeader
+        title="Dispositivos"
+        eyebrow="Monitoreo"
+        description={`${filtered.length} de ${devices.length} dispositivos`}
+        actions={
+          <>
+            <DropdownSelect
+              options={[
+                { value: '', label: 'Todos los edificios' },
+                ...buildings.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              value={buildingFilter}
+              onChange={(val) => setBuildingFilter(val)}
+              className="w-48"
+            />
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todos los tipos' },
+                { value: 'meter', label: 'Medidores' },
+                { value: 'concentrator', label: 'Concentradores' },
+              ]}
+              value={typeFilter}
+              onChange={(val) => setTypeFilter(val as DeviceType)}
+              className="w-48"
+            />
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todos los estados' },
+                { value: 'online', label: 'En linea' },
+                { value: 'offline', label: 'Sin conexion' },
+                { value: 'error', label: 'Error' },
+              ]}
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val as StatusFilter)}
+              className="w-48"
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar dispositivo..."
+              className="w-44 rounded-md border border-border px-2.5 py-1.5 text-[12px]"
+            />
+          </>
+        }
+      />
 
       {/* Compact KPIs */}
       <div className="flex flex-wrap gap-2">
         <MiniKpi label="Total" value={devices.length} />
         <MiniKpi label="En linea" value={onlineCount} color="text-green-600" />
-        <MiniKpi label="Sin conexion" value={offlineCount} color="text-gray-500" />
+        <MiniKpi label="Sin conexion" value={offlineCount} color="text-muted" />
         <MiniKpi label="Error" value={errorCount} color="text-red-600" />
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Estado</Th>
               <Th>Nombre</Th>
@@ -220,7 +224,7 @@ export function DevicesPage() {
             skeletonWidths={['w-16', 'w-32', 'w-20', 'w-28', 'w-24', 'w-40', 'w-28', 'w-20']}
           >
             {visibleDevices.map((d) => (
-              <tr key={d.id} className="hover:bg-gray-50">
+              <tr key={d.id} className="hover:bg-surface">
                 <Td>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[d.status] ?? statusColors.offline}`}>
                     {d.status}
@@ -230,8 +234,8 @@ export function DevicesPage() {
                 <Td>{typeLabels[d.type]}</Td>
                 <Td>{buildingMap.get(d.buildingId) ?? '—'}</Td>
                 <Td>{d.model ?? '—'}</Td>
-                <Td className="max-w-xs truncate text-xs text-gray-500">{d.detail || '—'}</Td>
-                <Td className="text-xs text-gray-500">
+                <Td className="max-w-xs truncate text-xs text-muted">{d.detail || '—'}</Td>
+                <Td className="text-xs text-muted">
                   {d.lastComm ? new Date(d.lastComm).toLocaleString('es-CL') : '—'}
                 </Td>
                 <Td>
@@ -247,7 +251,7 @@ export function DevicesPage() {
                     {d.type === 'concentrator' && (
                       <Link
                         to={`/monitoring/concentrator/${d.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-[var(--color-primary,#3D3BF3)] hover:bg-[var(--color-primary,#3D3BF3)]/10"
+                        className="rounded px-2 py-1 text-xs font-medium text-brand hover:bg-brand/10"
                       >
                         Diagnostico
                       </Link>
@@ -264,10 +268,10 @@ export function DevicesPage() {
   );
 }
 
-function MiniKpi({ label, value, color = 'text-pa-text' }: Readonly<{ label: string; value: number | string; color?: string }>) {
+function MiniKpi({ label, value, color = 'text-foreground' }: Readonly<{ label: string; value: number | string; color?: string }>) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5">
-      <span className="text-[11px] text-gray-500">{label}</span>
+    <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
+      <span className="text-[11px] text-muted">{label}</span>
       <span className={`text-[13px] font-semibold ${color}`}>{value}</span>
     </div>
   );
@@ -275,12 +279,12 @@ function MiniKpi({ label, value, color = 'text-pa-text' }: Readonly<{ label: str
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }

@@ -24,15 +24,15 @@ export function Modal({ open, onClose, title, children, dialogClassName }: Reado
       onClose={onClose}
       className={
         dialogClassName ??
-        'm-auto max-w-lg rounded-xl border border-gray-200 bg-white p-0 backdrop:bg-black/50 backdrop:backdrop-blur-sm'
+        'm-auto max-w-lg panel p-0 backdrop:bg-black/50 backdrop:backdrop-blur-sm'
       }
     >
-      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md p-1.5 text-gray-400 transition-all duration-150 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded-md p-1.5 text-subtle transition-all duration-150 hover:bg-surface hover:text-muted"
         >
           <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

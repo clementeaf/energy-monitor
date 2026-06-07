@@ -20,4 +20,15 @@ export default defineConfig([globalIgnores(['dist']), {
     ecmaVersion: 2020,
     globals: globals.browser,
   },
+}, {
+  files: ['src/components/ui/**/*.{ts,tsx}'],
+  rules: {
+    'no-restricted-syntax': [
+      'warn',
+      {
+        selector: 'Literal[value=/\\b(?:text|bg|border|ring|divide|outline)-gray-/]',
+        message: 'Prefer semantic tokens (foreground, muted, surface, border) over gray-* in UI primitives.',
+      },
+    ],
+  },
 }, ...storybook.configs["flat/recommended"]])

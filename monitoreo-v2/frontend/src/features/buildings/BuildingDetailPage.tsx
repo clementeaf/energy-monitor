@@ -26,7 +26,7 @@ const BILLING_METRICS: Record<BillingMetricKey, MetricMeta> = {
 };
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  draft:    { label: 'Borrador',  cls: 'bg-gray-100 text-gray-600' },
+  draft:    { label: 'Borrador',  cls: 'bg-raised text-muted' },
   pending:  { label: 'Pendiente', cls: 'bg-amber-100 text-amber-700' },
   approved: { label: 'Aprobada',  cls: 'bg-green-100 text-green-700' },
   sent:     { label: 'Enviada',   cls: 'bg-blue-100 text-blue-700' },
@@ -131,19 +131,19 @@ export function BuildingDetailPage() {
         <button
           type="button"
           onClick={() => navigate('/buildings')}
-          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
+          className="rounded-md border border-border px-2.5 py-1 text-xs text-muted hover:bg-surface"
         >
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-gray-500 hover:text-[var(--color-primary)]">
+        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">
           Edificios
         </Link>
-        <span className="text-[11px] text-gray-400">/</span>
-        <span className="text-[13px] font-semibold text-gray-900">
+        <span className="text-[11px] text-subtle">/</span>
+        <span className="text-[13px] font-semibold text-foreground">
           {building?.name ?? '—'}
         </span>
         {building?.address && (
-          <span className="text-[11px] text-gray-400">— {building.address}</span>
+          <span className="text-[11px] text-subtle">— {building.address}</span>
         )}
       </div>
 
@@ -165,8 +165,8 @@ export function BuildingDetailPage() {
                 onClick={() => setChartMetric(key)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   key === chartMetric
-                    ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
-                    : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+                    ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                    : 'border border-border text-muted hover:bg-surface'
                 }`}
               >
                 {BILLING_METRICS[key].label}
@@ -190,8 +190,8 @@ export function BuildingDetailPage() {
           {/* Invoice table */}
           <Card className="flex min-h-0 flex-1 flex-col" noPadding>
             <div className="flex items-center justify-between px-6 pt-4 pb-2">
-              <h2 className="text-sm font-semibold text-gray-900">Facturas del edificio</h2>
-              <span className="text-[11px] text-gray-500">{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
+              <h2 className="text-sm font-semibold text-foreground">Facturas del edificio</h2>
+              <span className="text-[11px] text-muted">{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
             </div>
             <DataWidget
               phase={invoicesQs.phase === 'loading' ? 'ready' : invoicesQs.phase}
@@ -201,8 +201,8 @@ export function BuildingDetailPage() {
               emptyDescription="No hay facturas para este edificio."
             >
             <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="sticky top-0 z-10 bg-white">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="sticky top-0 z-10 bg-background">
                   <tr>
                     <Th>N° Factura</Th>
                     <Th>Periodo</Th>
@@ -224,10 +224,10 @@ export function BuildingDetailPage() {
                     return (
                       <tr
                         key={inv.id}
-                        className="cursor-pointer hover:bg-gray-50"
+                        className="cursor-pointer hover:bg-surface"
                         onClick={() => setSelectedInvoiceId(inv.id)}
                       >
-                        <Td className="font-medium text-gray-900">{inv.invoiceNumber}</Td>
+                        <Td className="font-medium text-foreground">{inv.invoiceNumber}</Td>
                         <Td>{monthLabel(inv.periodStart)} — {monthLabel(inv.periodEnd)}</Td>
                         <Td>
                           <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${st.cls}`}>
@@ -243,7 +243,7 @@ export function BuildingDetailPage() {
                               href={invoicesEndpoints.pdfUrl(inv.id)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[var(--color-primary,#3a5b1e)] hover:opacity-70"
+                              className="text-brand hover:opacity-70"
                               title="Descargar PDF"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -253,7 +253,7 @@ export function BuildingDetailPage() {
                             <button
                               type="button"
                               onClick={() => setPreviewInvoiceId(inv.id)}
-                              className="text-[var(--color-primary,#3a5b1e)] hover:opacity-70"
+                              className="text-brand hover:opacity-70"
                               title="Previsualizar PDF"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -268,8 +268,8 @@ export function BuildingDetailPage() {
                   })}
                   {/* Totals footer */}
                   {invoices.length > 0 && (
-                    <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
-                      <Td className="text-gray-900">Total</Td>
+                    <tr className="border-t-2 border-border bg-surface font-semibold">
+                      <Td className="text-foreground">Total</Td>
                       <Td>{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</Td>
                       <Td />
                       <Td>{fmtClp(invoices.reduce((s, i) => s + parseNum(i.totalNet), 0))}</Td>
@@ -290,8 +290,8 @@ export function BuildingDetailPage() {
       {activeTab === 'meters' && (
         <Card className="flex min-h-0 flex-1 flex-col" noPadding>
           <div className="flex items-center justify-between px-6 pt-4 pb-2">
-            <h2 className="text-sm font-semibold text-gray-900">Medidores</h2>
-            <span className="text-[11px] text-gray-500">{meters.length} medidor{meters.length !== 1 ? 'es' : ''}</span>
+            <h2 className="text-sm font-semibold text-foreground">Medidores</h2>
+            <span className="text-[11px] text-muted">{meters.length} medidor{meters.length !== 1 ? 'es' : ''}</span>
           </div>
           <DataWidget
             phase={metersQs.phase === 'loading' ? 'ready' : metersQs.phase}
@@ -301,8 +301,8 @@ export function BuildingDetailPage() {
             emptyDescription="No hay medidores en este edificio."
           >
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="sticky top-0 z-10 bg-white">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="sticky top-0 z-10 bg-background">
                 <tr>
                   <Th>Nombre</Th>
                   <Th>Codigo</Th>
@@ -321,17 +321,17 @@ export function BuildingDetailPage() {
                 {meters.map((m) => (
                   <tr
                     key={m.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="cursor-pointer hover:bg-surface"
                     onClick={() => navigate(`/monitoring/meter/${m.id}`)}
                   >
-                    <Td className="font-medium text-gray-900">{m.name}</Td>
+                    <Td className="font-medium text-foreground">{m.name}</Td>
                     <Td>{m.code}</Td>
                     <Td>{m.meterType}</Td>
                     <Td>{m.phaseType === 'three_phase' ? 'Trifasico' : 'Monofasico'}</Td>
                     <Td>{m.model ?? '—'}</Td>
                     <Td>
                       <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        m.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                        m.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
                       }`}>
                         {m.isActive ? 'Activo' : 'Inactivo'}
                       </span>
@@ -353,12 +353,12 @@ export function BuildingDetailPage() {
         size="xl"
       >
         {lineItemsQuery.isPending && (
-          <div className="flex h-32 items-center justify-center text-sm text-gray-500">Cargando...</div>
+          <div className="flex h-32 items-center justify-center text-sm text-muted">Cargando...</div>
         )}
         {lineItemsQuery.data && lineItemsQuery.data.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border text-sm">
+              <thead className="bg-surface">
                 <tr>
                   <ThSm>Medidor</ThSm>
                   <ThSm>kWh</ThSm>
@@ -371,9 +371,9 @@ export function BuildingDetailPage() {
                   <ThSm>Total Neto ($)</ThSm>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {lineItemsQuery.data.map((li: InvoiceLineItem) => (
-                  <tr key={li.id} className="hover:bg-gray-50">
+                  <tr key={li.id} className="hover:bg-surface">
                     <TdSm className="font-medium">{li.meterId.slice(0, 8)}...</TdSm>
                     <TdSm>{fmtNum(li.kwhConsumption)}</TdSm>
                     <TdSm>{fmtNum(li.kwDemandMax, 2)}</TdSm>
@@ -386,7 +386,7 @@ export function BuildingDetailPage() {
                   </tr>
                 ))}
                 {/* Totals */}
-                <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+                <tr className="border-t-2 border-border bg-surface font-semibold">
                   <TdSm>Total</TdSm>
                   <TdSm>{fmtNum(sumField(lineItemsQuery.data, 'kwhConsumption'))}</TdSm>
                   <TdSm>{fmtNum(maxField(lineItemsQuery.data, 'kwDemandMax'), 2)}</TdSm>
@@ -402,7 +402,7 @@ export function BuildingDetailPage() {
           </div>
         )}
         {lineItemsQuery.data && lineItemsQuery.data.length === 0 && (
-          <div className="flex h-32 items-center justify-center text-sm text-gray-500">Sin detalle de lineas.</div>
+          <div className="flex h-32 items-center justify-center text-sm text-muted">Sin detalle de lineas.</div>
         )}
       </Drawer>
 
@@ -442,8 +442,8 @@ function TabBtn({ label, active, onClick, count }: Readonly<{ label: string; act
       onClick={onClick}
       className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
         active
-          ? 'bg-[var(--color-primary,#3a5b1e)] text-white'
-          : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+          ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+          : 'border border-border text-muted hover:bg-surface'
       }`}
     >
       {label}
@@ -454,24 +454,24 @@ function TabBtn({ label, active, onClick, count }: Readonly<{ label: string; act
 
 function Th({ children }: Readonly<{ children?: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '' }: Readonly<{ children?: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`}>{children}</td>;
 }
 
 function ThSm({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-gray-500">
+    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function TdSm({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-3 py-2 text-[12px] text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-3 py-2 text-[12px] text-foreground ${className}`}>{children}</td>;
 }

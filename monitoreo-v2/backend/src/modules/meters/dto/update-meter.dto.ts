@@ -5,11 +5,13 @@ import {
   IsNumber,
   IsObject,
   IsIn,
+  IsUUID,
   MaxLength,
   Min,
   IsIP,
 } from 'class-validator';
 import type { MeterPhaseType } from '../../platform/entities/meter.entity';
+import type { LoadCategory } from '../../../common/constants/site-metadata';
 
 export class UpdateMeterDto {
   @IsOptional()
@@ -82,4 +84,12 @@ export class UpdateMeterDto {
   @IsNumber()
   @Min(0)
   contractedDemandKw?: number;
+
+  @IsOptional()
+  @IsIn(['hvac', 'lighting', 'tenant', 'main', 'other'])
+  loadCategory?: LoadCategory | null;
+
+  @IsOptional()
+  @IsUUID()
+  parentMeterId?: string | null;
 }

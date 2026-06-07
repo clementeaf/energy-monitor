@@ -39,8 +39,8 @@ function CronBuilderInner({ value, onChange, disabled = false, className = '' }:
               className={
                 'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ' +
                 (isActive
-                  ? 'border-[var(--color-primary,#3D3BF3)] bg-[var(--color-primary,#3D3BF3)] text-white'
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50')
+                  ? 'border-[var(--color-brand)] bg-brand text-brand-fg'
+                  : 'border-border bg-background text-foreground hover:bg-surface')
               }
             >
               {preset.label}
@@ -52,7 +52,7 @@ function CronBuilderInner({ value, onChange, disabled = false, className = '' }:
       {/* Custom input */}
       <div>
         <label className="block">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-foreground">
             Expresion Cron {!activePreset && '(personalizada)'}
           </span>
           <input
@@ -60,14 +60,14 @@ function CronBuilderInner({ value, onChange, disabled = false, className = '' }:
             onChange={(e) => { onChange(e.target.value); }}
             disabled={disabled}
             placeholder="* * * * *"
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm disabled:bg-gray-50 disabled:cursor-not-allowed"
+            className="mt-1 w-full rounded-md border border-border px-3 py-2 font-mono text-sm disabled:bg-surface disabled:cursor-not-allowed"
           />
         </label>
       </div>
 
       {/* Human-readable description */}
       {value.trim() && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           <span className="font-medium">Ejecuta:</span>{' '}
           {description}
         </p>

@@ -5,12 +5,14 @@ import { DataSource } from 'typeorm';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RolesService } from '../roles/roles.service';
+import { TenantsService } from '../tenants/tenants.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let ds: { query: jest.Mock; createQueryRunner: jest.Mock };
   let jwtService: { sign: jest.Mock };
   let rolesService: Record<string, jest.Mock>;
+  let tenantsService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     ds = {
@@ -23,6 +25,9 @@ describe('AuthService', () => {
       getUserBuildingIds: jest.fn().mockResolvedValue([]),
       getRoleByUserId: jest.fn().mockResolvedValue({ maxSessionMinutes: 30 }),
     };
+    tenantsService = {
+      findById: jest.fn().mockResolvedValue({ id: 't-1', settings: {} }),
+    };
 
     const module = await Test.createTestingModule({
       providers: [
@@ -31,6 +36,7 @@ describe('AuthService', () => {
         { provide: ConfigService, useValue: { get: jest.fn(), getOrThrow: jest.fn() } },
         { provide: DataSource, useValue: ds },
         { provide: RolesService, useValue: rolesService },
+        { provide: TenantsService, useValue: tenantsService },
       ],
     }).compile();
 
@@ -118,6 +124,36 @@ describe('AuthService', () => {
         expect.stringContaining('revoked_at'),
         ['u-1'],
       );
+    });
+  });
+
+  describe('validateSsoLogin', () => {
+    const ssoProfile = {
+      provider: 'oidc' as const,
+      providerId: 'oidc-sub-1',
+      email: 'sso@example.com',
+      displayName: 'SSO User',
+      tenantId: 't-1',
+    };
+
+    it('JIT provisions user when not found', async () => {
+      ds.query
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: 'role-1' }])
+        .mockResolvedValueOnce([{ id: 'u-new' }])
+        .mockResolvedValueOnce([{
+          id: 'u-new', tenant_id: 't-1', email: 'sso@example.com', role_id: 'r-1',
+          is_active: true, role_slug: 'operator', require_mfa: false,
+        }])
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce([{ mfa_enabled: false }])
+        .mockResolvedValueOnce(undefined);
+
+      tenantsService.findById.mockResolvedValue({ id: 't-1', settings: { ssoDefaultRoleSlug: 'operator' } });
+
+      const result = await service.validateSsoLogin(ssoProfile);
+      expect((result as { accessToken: string }).accessToken).toBe('jwt-token');
     });
   });
 

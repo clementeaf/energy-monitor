@@ -25,11 +25,11 @@ function CheckboxListInner({ options, selected, onChange, maxHeight = '10rem', c
 
   return (
     <div
-      className={`space-y-0.5 overflow-y-auto rounded-md border border-gray-200 bg-white p-1.5 ${className}`}
+      className={`space-y-0.5 overflow-y-auto rounded-md border border-border bg-background p-1.5 ${className}`}
       style={{ maxHeight }}
     >
       {options.length === 0 && (
-        <p className="px-2 py-1.5 text-xs text-gray-400">Sin opciones disponibles</p>
+        <p className="px-2 py-1.5 text-xs text-subtle">Sin opciones disponibles</p>
       )}
       {options.map((opt) => {
         const checked = selected.includes(opt.value);
@@ -39,18 +39,18 @@ function CheckboxListInner({ options, selected, onChange, maxHeight = '10rem', c
             type="button"
             onClick={() => toggle(opt.value)}
             className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors ${
-              checked ? 'bg-gray-50 text-gray-900' : 'text-gray-600 hover:bg-gray-50'
+              checked ? 'bg-surface text-foreground' : 'text-muted hover:bg-surface'
             }`}
           >
             <span
               className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
                 checked
-                  ? 'border-[var(--color-primary,#3D3BF3)] bg-[var(--color-primary,#3D3BF3)]'
-                  : 'border-gray-300 bg-white'
+                  ? 'border-brand bg-brand'
+                  : 'border-border bg-background'
               }`}
             >
               {checked && (
-                <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <svg className="size-3 text-brand-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               )}

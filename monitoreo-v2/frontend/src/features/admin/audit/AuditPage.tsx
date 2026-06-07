@@ -3,6 +3,7 @@ import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 import type { AuditLogQueryParams } from '../../../types/audit-log';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const PAGE_SIZE = 50;
 
@@ -53,40 +54,40 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">{config.title}</h1>
+    <div className="space-y-6">
+      <PageHeader title={config.title} eyebrow="Administración" />
 
       <div className="flex items-end gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500">Accion</label>
+          <label className="block text-xs font-medium text-muted">Accion</label>
           <input
             value={actionFilter}
             onChange={(e) => { setActionFilter(e.target.value); }}
             placeholder="POST, DELETE..."
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500">User ID</label>
+          <label className="block text-xs font-medium text-muted">User ID</label>
           <input
             value={userFilter}
             onChange={(e) => { setUserFilter(e.target.value); }}
             placeholder="UUID del usuario"
-            className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
         <button
           type="button"
           onClick={applyFilters}
-          className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
         >
           Filtrar
         </button>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Fecha</Th>
               <Th>Usuario</Th>
@@ -105,7 +106,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
             skeletonWidths={['w-28', 'w-32', 'w-20', 'w-24', 'w-20', 'w-24']}
           >
             {(query.data?.data ?? []).map((log) => (
-              <tr key={log.id} className="hover:bg-gray-50">
+              <tr key={log.id} className="hover:bg-surface">
                 <Td>{new Date(log.createdAt).toLocaleString('es-CL')}</Td>
                 <Td>{log.userEmail ?? log.userId ?? '—'}</Td>
                 <Td>
@@ -124,10 +125,10 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-3">
-          <span className="text-sm text-gray-500">{total} registros</span>
+          <span className="text-sm text-muted">{total} registros</span>
           <div className="flex gap-1">
             <PageBtn disabled={currentPage <= 1} onClick={() => { goToPage(currentPage - 1); }}>Anterior</PageBtn>
-            <span className="px-3 py-1 text-sm text-gray-700">
+            <span className="px-3 py-1 text-sm text-foreground">
               {currentPage} / {totalPages}
             </span>
             <PageBtn disabled={currentPage >= totalPages} onClick={() => { goToPage(currentPage + 1); }}>Siguiente</PageBtn>
@@ -147,7 +148,7 @@ function MethodBadge({ action }: Readonly<{ action: string }>) {
     DELETE: 'bg-red-50 text-red-700',
   };
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colors[method] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colors[method] ?? 'bg-raised text-muted'}`}>
       {action}
     </span>
   );
@@ -155,14 +156,14 @@ function MethodBadge({ action }: Readonly<{ action: string }>) {
 
 function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${className}`}>
+    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted ${className}`}>
       {children}
     </th>
   );
 }
 
 function Td({ children, className = '', title }: Readonly<{ children: React.ReactNode; className?: string; title?: string }>) {
-  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-gray-700 ${className}`} title={title}>{children}</td>;
+  return <td className={`whitespace-nowrap px-4 py-3 text-sm text-foreground ${className}`} title={title}>{children}</td>;
 }
 
 function PageBtn({ children, disabled, onClick }: Readonly<{ children: React.ReactNode; disabled: boolean; onClick: () => void }>) {
@@ -171,7 +172,7 @@ function PageBtn({ children, disabled, onClick }: Readonly<{ children: React.Rea
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+      className="rounded-md border border-border px-3 py-1 text-sm font-medium text-foreground hover:bg-surface disabled:opacity-40"
     >
       {children}
     </button>

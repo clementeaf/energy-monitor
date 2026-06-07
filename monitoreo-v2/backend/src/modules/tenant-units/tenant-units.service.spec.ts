@@ -12,6 +12,7 @@ const mockUnit = (overrides: Partial<TenantUnit> = {}): TenantUnit => ({
   buildingId: 'b-1',
   name: 'Local 101',
   unitCode: 'L101',
+  externalUnitId: null,
   contactName: 'Juan Pérez',
   contactEmail: 'juan@test.com',
   userId: null,
@@ -158,6 +159,7 @@ describe('TenantUnitsService', () => {
         contactName: null,
         contactEmail: null,
         userId: null,
+        externalUnitId: null,
       });
       expect(result).toEqual(item);
     });

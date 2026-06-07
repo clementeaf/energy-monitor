@@ -24,6 +24,15 @@ import type {
   AssignBuildingsPayload, UserBuildingsResponse,
 } from '../types/user';
 import type {
+  ValidateUserImportResponse,
+  UserImportJobDetailResponse,
+  UserImportRowsResponse,
+  UserImportJobsListResponse,
+  CommitUserImportPayload,
+  CommitUserImportResponse,
+  UserImportRowsQueryParams,
+} from '../types/user-import';
+import type {
   TenantUnit, CreateTenantUnitPayload, UpdateTenantUnitPayload,
   TenantUnitMeter,
 } from '../types/tenant-unit';
@@ -55,6 +64,51 @@ import type {
   CreateIntegrationPayload,
   UpdateIntegrationPayload,
 } from '../types/integration';
+import type {
+  SsoPublicConfig,
+  SsoStartResult,
+  TenantSsoAdminConfig,
+  UpsertTenantSsoPayload,
+} from '../types/sso';
+import type {
+  OAuthClient,
+  OAuthClientCreationResult,
+  CreateOAuthClientPayload,
+  UpdateOAuthClientPayload,
+} from '../types/oauth-client';
+import type {
+  WebhookSubscription,
+  CreateWebhookSubscriptionPayload,
+  UpdateWebhookSubscriptionPayload,
+  WebhookSubscriptionQueryParams,
+} from '../types/webhook';
+import type { IntegrationsHealthResponse } from '../types/integrations-health';
+import type { DataQualityReportResponse, DataQualityReportParams } from '../types/data-quality';
+import type {
+  BalanceAnomaly,
+  BalanceAnomalyQueryParams,
+  DataContract,
+  DataSloBreach,
+} from '../types/data-governance';
+import type { IngestGapListParams, IngestGapListResponse } from '../types/ingest-gap';
+import type { BackfillJob, CreateBackfillJobPayload } from '../types/backfill-job';
+import type {
+  WebhookDeliveryLogListResponse,
+  WebhookDeliveryLogQueryParams,
+} from '../types/webhook-delivery-log';
+import type { Region, CreateRegionPayload, UpdateRegionPayload } from '../types/region';
+import type {
+  BreachReport,
+  CreateBreachReportPayload,
+  UpdateBreachReportPayload,
+} from '../types/breach-report';
+import type {
+  RegisterMapping,
+  ProtocolType,
+  RegisterMappingQueryParams,
+  CreateRegisterMappingPayload,
+  UpdateRegisterMappingPayload,
+} from '../types/register-mapping';
 
 export interface MfaSetupResponse {
   secret: string;
@@ -118,6 +172,14 @@ export const authEndpoints = {
 
   automatedDecisions: (optOut: boolean) =>
     api.post<{ success: boolean }>(API_ROUTES.auth.automatedDecisions, { optOut }),
+};
+
+export const ssoEndpoints = {
+  getPublicConfig: (tenantSlug: string) =>
+    api.get<SsoPublicConfig>(API_ROUTES.auth.ssoConfig(tenantSlug)),
+
+  startLogin: (tenantSlug: string) =>
+    api.get<SsoStartResult>(API_ROUTES.auth.ssoStart(tenantSlug)),
 };
 
 export interface DeletionRequestItem {
@@ -398,6 +460,9 @@ export const integrationsEndpoints = {
 
   syncLogs: (id: string, params?: IntegrationSyncLogsParams) =>
     api.get<IntegrationSyncLogsResult>(`${API_ROUTES.integrations}/${id}/sync-logs`, { params }),
+
+  health: () =>
+    api.get<IntegrationsHealthResponse>(API_ROUTES.integrationsHealth),
 };
 
 export const readingsEndpoints = {
@@ -432,6 +497,34 @@ export const usersEndpoints = {
 
   assignBuildings: (id: string, payload: AssignBuildingsPayload) =>
     api.patch<UserBuildingsResponse>(`${API_ROUTES.users}/${id}/buildings`, payload),
+};
+
+export const userImportEndpoints = {
+  downloadTemplate: () =>
+    api.get<Blob>(API_ROUTES.usersImport.template, { responseType: 'blob' }),
+
+  validate: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<ValidateUserImportResponse>(API_ROUTES.usersImport.validate, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  listJobs: (params?: { limit?: number; offset?: number }) =>
+    api.get<UserImportJobsListResponse>(API_ROUTES.usersImport.base, { params }),
+
+  getJob: (jobId: string) =>
+    api.get<UserImportJobDetailResponse>(API_ROUTES.usersImport.job(jobId)),
+
+  getRows: (jobId: string, params?: UserImportRowsQueryParams) =>
+    api.get<UserImportRowsResponse>(API_ROUTES.usersImport.rows(jobId), { params }),
+
+  commit: (jobId: string, payload: CommitUserImportPayload) =>
+    api.post<CommitUserImportResponse>(API_ROUTES.usersImport.commit(jobId), payload),
+
+  cancel: (jobId: string) =>
+    api.delete(API_ROUTES.usersImport.job(jobId)),
 };
 
 export const tenantUnitsEndpoints = {
@@ -494,6 +587,93 @@ export const apiKeysEndpoints = {
   update: (id: string, payload: UpdateApiKeyPayload) => api.patch<ApiKey>(`${API_ROUTES.apiKeys}/${id}`, payload),
   rotate: (id: string) => api.post<ApiKeyCreationResult>(`${API_ROUTES.apiKeys}/${id}/rotate`, {}),
   remove: (id: string) => api.delete(`${API_ROUTES.apiKeys}/${id}`),
+};
+
+export const tenantSsoEndpoints = {
+  get: (tenantId: string) => api.get<TenantSsoAdminConfig | null>(API_ROUTES.tenantSso(tenantId)),
+  upsert: (tenantId: string, payload: UpsertTenantSsoPayload) =>
+    api.put<TenantSsoAdminConfig>(API_ROUTES.tenantSso(tenantId), payload),
+};
+
+export const oauthClientsEndpoints = {
+  list: () => api.get<OAuthClient[]>(API_ROUTES.oauthClients),
+  create: (payload: CreateOAuthClientPayload) =>
+    api.post<OAuthClientCreationResult>(API_ROUTES.oauthClients, payload),
+  update: (id: string, payload: UpdateOAuthClientPayload) =>
+    api.patch<OAuthClient>(`${API_ROUTES.oauthClients}/${id}`, payload),
+  rotate: (id: string) => api.post<OAuthClientCreationResult>(`${API_ROUTES.oauthClients}/${id}/rotate`, {}),
+  remove: (id: string) => api.delete(`${API_ROUTES.oauthClients}/${id}`),
+};
+
+export const webhookSubscriptionsEndpoints = {
+  list: (params?: WebhookSubscriptionQueryParams) =>
+    api.get<WebhookSubscription[]>(API_ROUTES.webhookSubscriptions, { params }),
+  create: (payload: CreateWebhookSubscriptionPayload) =>
+    api.post<WebhookSubscription>(API_ROUTES.webhookSubscriptions, payload),
+  update: (id: string, payload: UpdateWebhookSubscriptionPayload) =>
+    api.patch<WebhookSubscription>(`${API_ROUTES.webhookSubscriptions}/${id}`, payload),
+  remove: (id: string) => api.delete(`${API_ROUTES.webhookSubscriptions}/${id}`),
+};
+
+export const dataQualityEndpoints = {
+  report: (params: DataQualityReportParams) =>
+    api.get<DataQualityReportResponse>(API_ROUTES.dataQualityReport, { params }),
+  balanceAnomalies: (params?: BalanceAnomalyQueryParams) =>
+    api.get<BalanceAnomaly[]>(API_ROUTES.dataQualityBalanceAnomalies, { params }),
+  sloBreaches: (params?: { limit?: number }) =>
+    api.get<DataSloBreach[]>(API_ROUTES.dataQualitySloBreaches, { params }),
+  dataContracts: () =>
+    api.get<DataContract[]>(API_ROUTES.dataQualityDataContracts),
+};
+
+export const ingestGapsEndpoints = {
+  list: (params?: IngestGapListParams) =>
+    api.get<IngestGapListResponse>(API_ROUTES.ingestGaps, { params }),
+};
+
+export const backfillJobsEndpoints = {
+  list: () => api.get<BackfillJob[]>(API_ROUTES.backfillJobs),
+  create: (payload: CreateBackfillJobPayload) =>
+    api.post<BackfillJob>(API_ROUTES.backfillJobs, payload),
+  process: (id: string) => api.post<BackfillJob>(API_ROUTES.backfillJobProcess(id)),
+};
+
+export const webhookDeliveryLogsEndpoints = {
+  list: (params?: WebhookDeliveryLogQueryParams) =>
+    api.get<WebhookDeliveryLogListResponse>(API_ROUTES.webhookDeliveryLogs, { params }),
+};
+
+export const regionsEndpoints = {
+  list: () => api.get<Region[]>(API_ROUTES.regions),
+  create: (payload: CreateRegionPayload) => api.post<Region>(API_ROUTES.regions, payload),
+  update: (id: string, payload: UpdateRegionPayload) =>
+    api.patch<Region>(`${API_ROUTES.regions}/${id}`, payload),
+  remove: (id: string) => api.delete(`${API_ROUTES.regions}/${id}`),
+};
+
+export const breachReportsEndpoints = {
+  list: () => api.get<BreachReport[]>(API_ROUTES.breachReports),
+  create: (payload: CreateBreachReportPayload) =>
+    api.post<BreachReport>(API_ROUTES.breachReports, payload),
+  update: (id: string, payload: UpdateBreachReportPayload) =>
+    api.patch<BreachReport>(`${API_ROUTES.breachReports}/${id}`, payload),
+};
+
+export const registerMappingsEndpoints = {
+  list: (params?: RegisterMappingQueryParams) =>
+    api.get<RegisterMapping[]>(API_ROUTES.registerMappings, { params }),
+  protocolTypes: () =>
+    api.get<ProtocolType[]>(`${API_ROUTES.registerMappings}/protocol-types`),
+  create: (payload: CreateRegisterMappingPayload) =>
+    api.post<RegisterMapping>(API_ROUTES.registerMappings, payload),
+  update: (id: string, payload: UpdateRegisterMappingPayload) =>
+    api.patch<RegisterMapping>(`${API_ROUTES.registerMappings}/${id}`, payload),
+  remove: (id: string) => api.delete(`${API_ROUTES.registerMappings}/${id}`),
+  exportCsv: (params?: RegisterMappingQueryParams) =>
+    api.get<Blob>(`${API_ROUTES.registerMappings}/export`, {
+      params,
+      responseType: 'blob',
+    }),
 };
 
 export const rolesEndpoints = {

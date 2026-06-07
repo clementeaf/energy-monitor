@@ -17,9 +17,11 @@ import {
   useDeleteApiKey,
 } from '../../../hooks/queries/useApiKeysQuery';
 import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../../types/api-key';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const AVAILABLE_PERMISSIONS = [
   'readings:read',
+  'readings:export',
   'buildings:read',
   'meters:read',
   'alerts:read',
@@ -116,17 +118,24 @@ export function ApiKeysPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">API Keys</h1>
-        {canWrite && (
-          <Button onClick={openCreate}>Nueva API Key</Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="API Keys"
+        eyebrow="Administración"
+        actions={canWrite ? (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+          >
+            Nueva API Key
+          </button>
+        ) : undefined}
+      />
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto panel">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
               <Th>Nombre</Th>
               <Th>Prefijo</Th>
@@ -147,10 +156,10 @@ export function ApiKeysPage() {
             skeletonWidths={['w-28', 'w-20', 'w-32', 'w-16', 'w-20', 'w-24', 'w-16', 'w-20']}
           >
             {visibleKeys.map((key) => (
-              <tr key={key.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{key.name}</Td>
+              <tr key={key.id} className="hover:bg-surface">
+                <Td className="font-medium text-foreground">{key.name}</Td>
                 <Td>
-                  <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono">{key.keyPrefix}...</code>
+                  <code className="rounded bg-raised px-1.5 py-0.5 text-xs font-mono">{key.keyPrefix}...</code>
                 </Td>
                 <Td>
                   <div className="flex flex-wrap gap-1">
@@ -160,7 +169,7 @@ export function ApiKeysPage() {
                       </span>
                     ))}
                     {key.permissions.length > 3 && (
-                      <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                      <span className="inline-flex rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-muted">
                         +{key.permissions.length - 3}
                       </span>
                     )}
@@ -191,10 +200,10 @@ export function ApiKeysPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleKeys.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleKeys.length} de {total}</p>}
 
       {/* Create Modal */}
-      <Modal open={createOpen} onClose={closeCreate} title="Nueva API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-white p-0 shadow-xl backdrop:bg-black/40">
+      <Modal open={createOpen} onClose={closeCreate} title="Nueva API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40">
         <form onSubmit={handleCreate} className="space-y-4">
           <Field label="Nombre" required>
             <input
@@ -202,7 +211,7 @@ export function ApiKeysPage() {
               onChange={(e) => { setFormName(e.target.value); }}
               required
               placeholder="Mi integracion"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
 
@@ -221,7 +230,7 @@ export function ApiKeysPage() {
               onChange={(e) => { setFormRateLimit(e.target.value); }}
               min={1}
               max={10000}
-              className="w-32 rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-32 rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
 
@@ -231,11 +240,11 @@ export function ApiKeysPage() {
               value={formExpiry}
               onChange={(e) => { setFormExpiry(e.target.value); }}
               min={new Date().toISOString().split('T')[0]}
-              className="w-48 rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-48 rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
 
-          <div className="flex justify-end gap-2 border-t border-gray-200 pt-4">
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="secondary" type="button" onClick={closeCreate}>Cancelar</Button>
             <Button type="submit" loading={createMutation.isPending} disabled={!formName.trim()}>
               Crear API Key
@@ -251,11 +260,11 @@ export function ApiKeysPage() {
         title="API Key Generada"
       >
         <div className="space-y-3">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted">
             Copia esta clave ahora. No podras verla de nuevo.
           </p>
-          <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-3">
-            <code className="flex-1 break-all text-sm font-mono text-gray-900">
+          <div className="flex items-center gap-2 rounded-md border border-border bg-surface p-3">
+            <code className="flex-1 break-all text-sm font-mono text-foreground">
               {createdKey?.key}
             </code>
             <Button size="sm" variant="secondary" onClick={handleCopy}>
@@ -297,7 +306,7 @@ export function ApiKeysPage() {
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

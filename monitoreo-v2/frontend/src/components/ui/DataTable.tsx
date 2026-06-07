@@ -93,17 +93,17 @@ function DataTableInner<T>({
     a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : 'text-left';
 
   return (
-    <div className={`overflow-hidden rounded-lg border border-gray-200 bg-white ${className}`}>
+    <div className={`overflow-hidden panel ${className}`}>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+        <table className="min-w-full border-collapse text-sm">
+          <thead className="sticky top-0 z-10 border-b border-border bg-muted/20">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   className={
-                    `${headPad} text-xs font-medium uppercase tracking-wider text-gray-500 ${alignCls(col.align)} ${col.className ?? ''} ` +
-                    (col.sortable ? 'cursor-pointer select-none hover:text-gray-700' : '')
+                    `${headPad} text-xs font-medium text-muted-foreground/80 ${alignCls(col.align)} ${col.className ?? ''} ` +
+                    (col.sortable ? 'cursor-pointer select-none hover:text-foreground' : '')
                   }
                   onClick={col.sortable ? () => handleSort(col.key) : undefined}
                 >
@@ -117,10 +117,10 @@ function DataTableInner<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {paginated.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-gray-400">
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-subtle">
                   {emptyMessage}
                 </td>
               </tr>
@@ -128,11 +128,14 @@ function DataTableInner<T>({
             {paginated.map((row) => (
               <tr
                 key={rowKey(row)}
-                className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
+                className={
+                  `border-b border-border/50 transition-colors last:border-b-0 ` +
+                  (onRowClick ? 'cursor-pointer hover:bg-muted/30' : '')
+                }
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className={`${cellPad} whitespace-nowrap text-gray-700 ${alignCls(col.align)} ${col.className ?? ''}`}>
+                  <td key={col.key} className={`${cellPad} whitespace-nowrap text-foreground ${alignCls(col.align)} ${col.className ?? ''}`}>
                     {col.render(row)}
                   </td>
                 ))}
@@ -143,14 +146,14 @@ function DataTableInner<T>({
       </div>
 
       {pageSize > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-gray-200 px-4 py-2 text-xs text-gray-500">
+        <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted">
           <span>{data.length} registro{data.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded border border-gray-300 px-2 py-1 disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
             >
               Anterior
             </button>
@@ -159,7 +162,7 @@ function DataTableInner<T>({
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded border border-gray-300 px-2 py-1 disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
             >
               Siguiente
             </button>

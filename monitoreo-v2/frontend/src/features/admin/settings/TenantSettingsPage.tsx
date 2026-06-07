@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { Button } from '../../../components/ui/Button';
+import { Toggle } from '../../../components/ui/Toggle';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useMyTenantQuery, useUpdateMyTenant } from '../../../hooks/queries/useTenantSettingsQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { applyTenantTheme } from '../../../lib/tenant-theme';
+import { parseTenantSecuritySettings } from '../../../lib/tenant-security-settings';
+import { parseTenantOperationalSettings } from '../../../lib/tenant-operational-settings';
 import { MfaSection } from './MfaSection';
+import { SsoConfigSection } from './SsoConfigSection';
 import type { UpdateTenantPayload } from '../../../types/tenant';
 import type { TenantTheme } from '../../../types/auth';
+import type { SsoProvider } from '../../../types/sso';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 export function TenantSettingsPage() {
   const query = useMyTenantQuery();
   const qs = useQueryState(query, { isEmpty: (d) => d === undefined });
   const { has } = usePermissions();
-  const canWrite = has('admin_settings', 'update');
+  const canWrite = has('admin_tenant_config', 'update');
   const updateMutation = useUpdateMyTenant();
 
   const [name, setName] = useState('');
@@ -26,6 +32,18 @@ export function TenantSettingsPage() {
   const [logoUrl, setLogoUrl] = useState('');
   const [faviconUrl, setFaviconUrl] = useState('');
   const [saved, setSaved] = useState(false);
+
+  const [ssoProvider, setSsoProvider] = useState<SsoProvider | ''>('');
+  const [maxSessionMinutes, setMaxSessionMinutes] = useState('');
+  const [blockConcurrentSessions, setBlockConcurrentSessions] = useState(false);
+  const [ssoDefaultRoleSlug, setSsoDefaultRoleSlug] = useState('operator');
+  const [securitySaved, setSecuritySaved] = useState(false);
+
+  const [defaultCountryCode, setDefaultCountryCode] = useState('');
+  const [defaultCurrency, setDefaultCurrency] = useState('');
+  const [retentionYears, setRetentionYears] = useState('');
+  const [staleThresholdHours, setStaleThresholdHours] = useState('');
+  const [operationalSaved, setOperationalSaved] = useState(false);
 
   const tenant = query.data;
 
@@ -40,6 +58,18 @@ export function TenantSettingsPage() {
     setAccentColor(tenant.accentColor);
     setLogoUrl(tenant.logoUrl ?? '');
     setFaviconUrl(tenant.faviconUrl ?? '');
+
+    const security = parseTenantSecuritySettings(tenant.settings);
+    setSsoProvider(security.ssoProvider ?? '');
+    setMaxSessionMinutes(security.maxSessionMinutes != null ? String(security.maxSessionMinutes) : '');
+    setBlockConcurrentSessions(security.blockConcurrentSessions);
+    setSsoDefaultRoleSlug(security.ssoDefaultRoleSlug);
+
+    setDefaultCountryCode(tenant.defaultCountryCode ?? '');
+    setDefaultCurrency(tenant.defaultCurrency ?? '');
+    const operational = parseTenantOperationalSettings(tenant.settings);
+    setRetentionYears(String(operational.retentionYears));
+    setStaleThresholdHours(String(operational.staleThresholdHours));
   }, [tenant]);
 
   const handleSave = () => {
@@ -73,40 +103,99 @@ export function TenantSettingsPage() {
     });
   };
 
+  const handleSaveSecurity = () => {
+    if (!tenant) return;
+
+    const settingsPatch: Record<string, unknown> = {
+      ...tenant.settings,
+      ssoProvider: ssoProvider === '' ? null : ssoProvider,
+      blockConcurrentSessions,
+      ssoDefaultRoleSlug: ssoDefaultRoleSlug.trim() || 'operator',
+    };
+
+    const parsedMinutes = parseInt(maxSessionMinutes, 10);
+    if (maxSessionMinutes.trim() === '') {
+      settingsPatch.maxSessionMinutes = undefined;
+    } else if (!Number.isNaN(parsedMinutes)) {
+      settingsPatch.maxSessionMinutes = parsedMinutes;
+    }
+
+    const payload: UpdateTenantPayload = { settings: settingsPatch };
+
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setSecuritySaved(true);
+        setTimeout(() => { setSecuritySaved(false); }, 2000);
+      },
+    });
+  };
+
+  const handleSaveOperational = () => {
+    if (!tenant) return;
+
+    const parsedRetention = parseInt(retentionYears, 10);
+    const parsedStale = parseInt(staleThresholdHours, 10);
+
+    const settingsPatch: Record<string, unknown> = {
+      ...tenant.settings,
+      retentionYears:
+        !Number.isNaN(parsedRetention) && parsedRetention >= 1 && parsedRetention <= 10
+          ? parsedRetention
+          : parseTenantOperationalSettings(tenant.settings).retentionYears,
+      staleThresholdHours:
+        !Number.isNaN(parsedStale) && parsedStale >= 1 && parsedStale <= 72
+          ? parsedStale
+          : parseTenantOperationalSettings(tenant.settings).staleThresholdHours,
+    };
+
+    const payload: UpdateTenantPayload = {
+      defaultCountryCode: defaultCountryCode.trim() || null,
+      defaultCurrency: defaultCurrency.trim() || null,
+      settings: settingsPatch,
+    };
+
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setOperationalSaved(true);
+        setTimeout(() => { setOperationalSaved(false); }, 2000);
+      },
+    });
+  };
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900">Configuracion del Tenant</h1>
+    <div className="space-y-6">
+      <PageHeader title="Configuracion del Tenant" eyebrow="Administración" />
 
       <MfaSection />
 
       {qs.phase === 'loading' && (
-        <div className="animate-pulse max-w-2xl space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+        <div className="animate-pulse max-w-2xl space-y-6 panel p-6">
           <div className="space-y-3">
-            <div className="h-3 w-16 rounded bg-gray-200" />
+            <div className="h-3 w-16 rounded bg-raised" />
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="space-y-1">
-                <div className="h-3 w-28 rounded bg-gray-200" />
-                <div className="h-9 w-full rounded-md bg-gray-200" />
+                <div className="h-3 w-28 rounded bg-raised" />
+                <div className="h-9 w-full rounded-md bg-raised" />
               </div>
             ))}
           </div>
           <div className="space-y-3">
-            <div className="h-3 w-24 rounded bg-gray-200" />
+            <div className="h-3 w-24 rounded bg-raised" />
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="space-y-1">
-                  <div className="h-3 w-20 rounded bg-gray-200" />
-                  <div className="h-9 w-full rounded-md bg-gray-200" />
+                  <div className="h-3 w-20 rounded bg-raised" />
+                  <div className="h-9 w-full rounded-md bg-raised" />
                 </div>
               ))}
             </div>
           </div>
           <div className="space-y-3">
-            <div className="h-3 w-20 rounded bg-gray-200" />
+            <div className="h-3 w-20 rounded bg-raised" />
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="space-y-1">
-                <div className="h-3 w-28 rounded bg-gray-200" />
-                <div className="h-9 w-full rounded-md bg-gray-200" />
+                <div className="h-3 w-28 rounded bg-raised" />
+                <div className="h-9 w-full rounded-md bg-raised" />
               </div>
             ))}
           </div>
@@ -122,7 +211,7 @@ export function TenantSettingsPage() {
         emptyTitle="Sin datos"
         emptyDescription="No se pudo cargar la configuracion del tenant."
       >
-        <div className="max-w-2xl space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+        <div className="max-w-2xl space-y-6 panel p-6">
           {/* General */}
           <Section title="General">
             <Field label="Nombre del Tenant">
@@ -130,7 +219,7 @@ export function TenantSettingsPage() {
                 value={name}
                 onChange={(e) => { setName(e.target.value); }}
                 disabled={!canWrite}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
               />
             </Field>
 
@@ -140,7 +229,7 @@ export function TenantSettingsPage() {
                 onChange={(e) => { setAppTitle(e.target.value); }}
                 disabled={!canWrite}
                 placeholder="Energy Monitor"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
               />
             </Field>
 
@@ -150,7 +239,7 @@ export function TenantSettingsPage() {
                 onChange={(e) => { setTimezone(e.target.value); }}
                 disabled={!canWrite}
                 placeholder="America/Santiago"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
               />
             </Field>
           </Section>
@@ -166,7 +255,7 @@ export function TenantSettingsPage() {
 
             {/* Preview */}
             <div className="mt-3 flex items-center gap-3">
-              <span className="text-xs text-gray-500">Vista previa:</span>
+              <span className="text-xs text-muted">Vista previa:</span>
               <div className="flex gap-2">
                 <Swatch color={primaryColor} label="Primario" />
                 <Swatch color={secondaryColor} label="Secundario" />
@@ -185,7 +274,7 @@ export function TenantSettingsPage() {
                 onChange={(e) => { setLogoUrl(e.target.value); }}
                 disabled={!canWrite}
                 placeholder="https://ejemplo.com/logo.png"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
               />
             </Field>
 
@@ -196,23 +285,146 @@ export function TenantSettingsPage() {
                 onChange={(e) => { setFaviconUrl(e.target.value); }}
                 disabled={!canWrite}
                 placeholder="https://ejemplo.com/favicon.ico"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
               />
             </Field>
 
             {(logoUrl || faviconUrl) && (
-              <div className="flex items-center gap-4 rounded-md border border-gray-100 bg-gray-50 p-3">
+              <div className="flex items-center gap-4 rounded-md border border-gray-100 bg-surface p-3">
                 {logoUrl && (
                   <div className="text-center">
                     <img src={logoUrl} alt="Logo preview" className="mx-auto h-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <span className="mt-1 block text-xs text-gray-400">Logo</span>
+                    <span className="mt-1 block text-xs text-subtle">Logo</span>
                   </div>
                 )}
                 {faviconUrl && (
                   <div className="text-center">
                     <img src={faviconUrl} alt="Favicon preview" className="mx-auto size-6 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <span className="mt-1 block text-xs text-gray-400">Favicon</span>
+                    <span className="mt-1 block text-xs text-subtle">Favicon</span>
                   </div>
+                )}
+              </div>
+            )}
+          </Section>
+
+          {/* Operacion */}
+          <Section title="Operacion">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Pais por defecto (ISO 3166-1 alpha-2)">
+                <input
+                  value={defaultCountryCode}
+                  onChange={(e) => { setDefaultCountryCode(e.target.value.toUpperCase()); }}
+                  disabled={!canWrite}
+                  maxLength={2}
+                  placeholder="CL"
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm uppercase disabled:bg-surface"
+                />
+              </Field>
+
+              <Field label="Moneda por defecto (ISO 4217)">
+                <input
+                  value={defaultCurrency}
+                  onChange={(e) => { setDefaultCurrency(e.target.value.toUpperCase()); }}
+                  disabled={!canWrite}
+                  maxLength={3}
+                  placeholder="CLP"
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm uppercase disabled:bg-surface"
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Retencion de datos (anos, 1-10)">
+                <input
+                  type="number"
+                  value={retentionYears}
+                  onChange={(e) => { setRetentionYears(e.target.value); }}
+                  disabled={!canWrite}
+                  min={1}
+                  max={10}
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
+                />
+              </Field>
+
+              <Field label="Umbral obsoleto (horas sin lectura, 1-72)">
+                <input
+                  type="number"
+                  value={staleThresholdHours}
+                  onChange={(e) => { setStaleThresholdHours(e.target.value); }}
+                  disabled={!canWrite}
+                  min={1}
+                  max={72}
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
+                />
+              </Field>
+            </div>
+
+            {canWrite && (
+              <div className="flex items-center gap-3 pt-2">
+                <Button onClick={handleSaveOperational} loading={updateMutation.isPending} variant="secondary">
+                  Guardar Operacion
+                </Button>
+                {operationalSaved && (
+                  <span className="text-sm font-medium text-green-600">Operacion guardada</span>
+                )}
+              </div>
+            )}
+          </Section>
+
+          {/* Seguridad / SSO flags */}
+          <Section title="Seguridad">
+            <Field label="Proveedor SSO">
+              <select
+                value={ssoProvider}
+                onChange={(e) => { setSsoProvider(e.target.value as SsoProvider | ''); }}
+                disabled={!canWrite}
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
+              >
+                <option value="">Desactivado</option>
+                <option value="azure_ad">Azure AD</option>
+                <option value="oidc">OIDC genérico</option>
+              </select>
+            </Field>
+
+            <Field label="Duracion maxima de sesion (minutos, vacio = default del rol)">
+              <input
+                type="number"
+                value={maxSessionMinutes}
+                onChange={(e) => { setMaxSessionMinutes(e.target.value); }}
+                disabled={!canWrite}
+                min={5}
+                max={1440}
+                placeholder="1440"
+                className="w-40 rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
+              />
+            </Field>
+
+            <label className="flex items-center gap-3">
+              <Toggle
+                checked={blockConcurrentSessions}
+                onChange={setBlockConcurrentSessions}
+                disabled={!canWrite}
+              />
+              <span className="text-sm text-foreground">Bloquear sesiones concurrentes</span>
+            </label>
+
+            <Field label="Rol por defecto (JIT SSO)">
+              <input
+                value={ssoDefaultRoleSlug}
+                onChange={(e) => { setSsoDefaultRoleSlug(e.target.value); }}
+                disabled={!canWrite}
+                placeholder="operator"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm disabled:bg-surface"
+              />
+            </Field>
+
+            {canWrite && (
+              <div className="flex items-center gap-3 pt-2">
+                <Button onClick={handleSaveSecurity} loading={updateMutation.isPending} variant="secondary">
+                  Guardar Seguridad
+                </Button>
+                {securitySaved && (
+                  <span className="text-sm font-medium text-green-600">Seguridad guardada</span>
                 )}
               </div>
             )}
@@ -220,7 +432,7 @@ export function TenantSettingsPage() {
 
           {/* Actions */}
           {canWrite && (
-            <div className="flex items-center gap-3 border-t border-gray-200 pt-4">
+            <div className="flex items-center gap-3 border-t border-border pt-4">
               <Button
                 onClick={handleSave}
                 loading={updateMutation.isPending}
@@ -238,6 +450,8 @@ export function TenantSettingsPage() {
         </div>
       </DataWidget>
       )}
+
+      <SsoConfigSection tenantId={tenant?.id} />
     </div>
   );
 }
@@ -245,7 +459,7 @@ export function TenantSettingsPage() {
 function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">{title}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">{title}</h2>
       {children}
     </div>
   );
@@ -254,7 +468,7 @@ function Section({ title, children }: Readonly<{ title: string; children: React.
 function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
   );
@@ -273,14 +487,14 @@ function ColorField({
 }>) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
       <div className="mt-1 flex items-center gap-2">
         <input
           type="color"
           value={value}
           onChange={(e) => { onChange(e.target.value); }}
           disabled={disabled}
-          className="h-9 w-12 cursor-pointer rounded border border-gray-300 p-0.5 disabled:cursor-not-allowed"
+          className="h-9 w-12 cursor-pointer rounded border border-border p-0.5 disabled:cursor-not-allowed"
         />
         <input
           type="text"
@@ -288,7 +502,7 @@ function ColorField({
           onChange={(e) => { onChange(e.target.value); }}
           disabled={disabled}
           maxLength={7}
-          className="w-24 rounded-md border border-gray-300 px-2 py-1.5 text-sm font-mono disabled:bg-gray-50"
+          className="w-24 rounded-md border border-border px-2 py-1.5 text-sm font-mono disabled:bg-surface"
         />
       </div>
     </label>
@@ -299,7 +513,7 @@ function Swatch({ color, label }: Readonly<{ color: string; label: string }>) {
   return (
     <div className="text-center" title={`${label}: ${color}`}>
       <div
-        className="size-6 rounded border border-gray-200"
+        className="size-6 rounded border border-border"
         style={{ backgroundColor: color }}
       />
     </div>

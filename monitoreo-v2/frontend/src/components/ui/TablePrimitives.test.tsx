@@ -31,13 +31,13 @@ describe('StatusBadge', () => {
   it('shows Activo for active=true', () => {
     render(<StatusBadge active={true} />);
     expect(screen.getByText('Activo')).toBeInTheDocument();
-    expect(screen.getByText('Activo').className).toContain('bg-green-50');
+    expect(screen.getByText('Activo').className).toContain('text-success');
   });
 
   it('shows Inactivo for active=false', () => {
     render(<StatusBadge active={false} />);
     expect(screen.getByText('Inactivo')).toBeInTheDocument();
-    expect(screen.getByText('Inactivo').className).toContain('bg-gray-50');
+    expect(screen.getByText('Inactivo').className).toContain('bg-surface');
   });
 });
 
@@ -51,11 +51,11 @@ describe('ActionBtn', () => {
 
   it('applies danger variant styling', () => {
     render(<ActionBtn label="Delete" onClick={() => {}} variant="danger" />);
-    expect(screen.getByText('Delete').className).toContain('text-red-600');
+    expect(screen.getByText('Delete').className).toContain('text-danger');
   });
 
   it('applies default variant styling', () => {
     render(<ActionBtn label="View" onClick={() => {}} />);
-    expect(screen.getByText('View').className).toContain('text-gray-600');
+    expect(screen.getByText('View').className).toContain('text-muted');
   });
 });

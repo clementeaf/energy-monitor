@@ -7,7 +7,7 @@ export class AggregatedQueryDto {
   @IsISO8601()
   to!: string;
 
-  @IsIn(['hourly', 'daily', 'monthly'])
+  @IsIn(['15min', 'hourly', 'daily', 'monthly'])
   interval!: string;
 
   @IsOptional()

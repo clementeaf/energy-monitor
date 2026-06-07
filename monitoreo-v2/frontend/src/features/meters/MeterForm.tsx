@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Drawer } from '../../components/ui/Drawer';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAppStore } from '../../store/useAppStore';
+import { LOAD_CATEGORY_OPTIONS } from '../../lib/site-metadata-labels';
+import type { LoadCategory } from '../../types/site-metadata';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload, MeterPhaseType } from '../../types/meter';
 
 interface MeterFormProps {
@@ -23,23 +26,61 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
   const needsTenantSelect = !isEdit && isSuperAdmin && !selectedTenantId;
   const tenantsQuery = useTenantsAdminQuery();
   const buildingsQuery = useBuildingsQuery();
+  const [buildingId, setBuildingId] = useState(meter?.buildingId ?? defaultBuildingId ?? '');
+  const effectiveBuildingId = isEdit ? meter?.buildingId ?? '' : buildingId;
+  const metersQuery = useMetersQuery(effectiveBuildingId || undefined);
 
   const [tenantId, setTenantId] = useState('');
-  const [buildingId, setBuildingId] = useState(meter?.buildingId ?? defaultBuildingId ?? '');
-  const [name, setName] = useState(meter?.name ?? '');
-  const [code, setCode] = useState(meter?.code ?? '');
-  const [meterType, setMeterType] = useState(meter?.meterType ?? 'electrical');
-  const [phaseType, setPhaseType] = useState<MeterPhaseType>(meter?.phaseType ?? 'three_phase');
-  const [model, setModel] = useState(meter?.model ?? '');
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [meterType, setMeterType] = useState('electrical');
+  const [phaseType, setPhaseType] = useState<MeterPhaseType>('three_phase');
+  const [model, setModel] = useState('');
+  const [loadCategory, setLoadCategory] = useState<LoadCategory | ''>('');
+  const [parentMeterId, setParentMeterId] = useState('');
+
+  useEffect(() => {
+    if (!meter) {
+      setBuildingId(defaultBuildingId ?? '');
+      setName('');
+      setCode('');
+      setMeterType('electrical');
+      setPhaseType('three_phase');
+      setModel('');
+      setLoadCategory('');
+      setParentMeterId('');
+      return;
+    }
+    setBuildingId(meter.buildingId);
+    setName(meter.name);
+    setCode(meter.code);
+    setMeterType(meter.meterType);
+    setPhaseType(meter.phaseType);
+    setModel(meter.model ?? '');
+    setLoadCategory(meter.loadCategory ?? '');
+    setParentMeterId(meter.parentMeterId ?? '');
+  }, [meter, defaultBuildingId, open]);
+
+  const parentMeterOptions = useMemo(() => {
+    const candidates = (metersQuery.data ?? []).filter(
+      (m) => m.buildingId === effectiveBuildingId && m.id !== meter?.id,
+    );
+    return [
+      { value: '', label: 'Sin medidor padre' },
+      ...candidates.map((m) => ({ value: m.id, label: `${m.name} (${m.code})` })),
+    ];
+  }, [metersQuery.data, effectiveBuildingId, meter?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit) {
+    if (isEdit && meter) {
       const payload: UpdateMeterPayload = {};
       if (name !== meter.name) payload.name = name;
       if (meterType !== meter.meterType) payload.meterType = meterType;
       if (phaseType !== meter.phaseType) payload.phaseType = phaseType;
       if (model !== (meter.model ?? '')) payload.model = model || undefined;
+      if (loadCategory !== (meter.loadCategory ?? '')) payload.loadCategory = loadCategory || null;
+      if (parentMeterId !== (meter.parentMeterId ?? '')) payload.parentMeterId = parentMeterId || null;
       onSubmit(payload);
     } else {
       onSubmit({
@@ -49,6 +90,8 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
         meterType,
         phaseType,
         ...(model ? { model } : {}),
+        ...(loadCategory ? { loadCategory } : {}),
+        ...(parentMeterId ? { parentMeterId } : {}),
         ...(needsTenantSelect && tenantId ? { tenantId } : {}),
       });
     }
@@ -91,7 +134,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
             onChange={(e) => { setName(e.target.value); }}
             required
             maxLength={255}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -102,7 +145,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
               onChange={(e) => { setCode(e.target.value); }}
               required
               maxLength={100}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
         )}
@@ -113,7 +156,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
               value={meterType}
               onChange={(e) => { setMeterType(e.target.value); }}
               maxLength={50}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
             />
           </Field>
 
@@ -135,7 +178,25 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
             value={model}
             onChange={(e) => { setModel(e.target.value); }}
             maxLength={100}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          />
+        </Field>
+
+        <Field label="Categoria de carga">
+          <DropdownSelect
+            options={[{ value: '', label: 'Sin categoria' }, ...LOAD_CATEGORY_OPTIONS]}
+            value={loadCategory}
+            onChange={(val) => { setLoadCategory(val as LoadCategory | ''); }}
+            className="w-full"
+          />
+        </Field>
+
+        <Field label="Medidor padre (balance)">
+          <DropdownSelect
+            options={parentMeterOptions}
+            value={parentMeterId}
+            onChange={setParentMeterId}
+            className="w-full"
           />
         </Field>
 
@@ -143,14 +204,14 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || !name || (!isEdit && (!code || !buildingId)) || (needsTenantSelect && !tenantId)}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>
@@ -163,7 +224,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <div className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

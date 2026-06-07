@@ -140,7 +140,7 @@ function MonthlyChartInner({
     <div>
       {showToggle && modes.length > 1 && (
         <div className="mb-2 flex justify-end">
-          <div className="flex rounded-full border border-gray-200">
+          <div className="flex rounded-full border border-border">
             {modes.map((m) => (
               <button
                 key={m}
@@ -148,8 +148,8 @@ function MonthlyChartInner({
                 onClick={() => setMode(m)}
                 className={`px-2.5 py-0.5 text-[11px] transition-colors first:rounded-l-full last:rounded-r-full ${
                   mode === m
-                    ? 'bg-[var(--color-primary,#3D3BF3)] text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-brand text-brand-fg'
+                    : 'text-muted hover:bg-surface'
                 }`}
               >
                 {MODE_LABELS[m]}

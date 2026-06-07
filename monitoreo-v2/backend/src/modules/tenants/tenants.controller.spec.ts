@@ -99,6 +99,19 @@ describe('TenantsController', () => {
     expect(result).toEqual(tenant);
   });
 
+  it('update accepts default country and currency', async () => {
+    service.update.mockResolvedValue({ ...tenant, defaultCountryCode: 'CL', defaultCurrency: 'CLP' });
+    const result = await controller.update('t-1', {
+      defaultCountryCode: 'CL',
+      defaultCurrency: 'CLP',
+    });
+    expect(service.update).toHaveBeenCalledWith('t-1', {
+      defaultCountryCode: 'CL',
+      defaultCurrency: 'CLP',
+    });
+    expect(result.defaultCountryCode).toBe('CL');
+  });
+
   it('update throws when not found', async () => {
     service.update.mockResolvedValue(null);
     await expect(controller.update('x', { name: 'y' })).rejects.toThrow(NotFoundException);

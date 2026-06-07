@@ -78,12 +78,34 @@ export interface FtpConfig {
   filePattern?: string;
 }
 
+export interface BacnetConfig {
+  host: string;
+  port?: number;
+  deviceId: number;
+  deviceProfile?: string;
+  meterId?: string;
+  timeoutMs?: number;
+}
+
+export interface SnmpConfig {
+  host: string;
+  port?: number;
+  community: string;
+  version?: '1' | '2c';
+  pingOid?: string;
+  deviceProfile?: string;
+  meterId?: string;
+  timeoutMs?: number;
+}
+
 /** All supported integration type keys. */
 export const SUPPORTED_INTEGRATION_TYPES = [
   'rest_api',
   'webhook',
   'mqtt',
   'ftp',
+  'bacnet',
+  'snmp',
 ] as const;
 
 export type IntegrationTypeKey = (typeof SUPPORTED_INTEGRATION_TYPES)[number];

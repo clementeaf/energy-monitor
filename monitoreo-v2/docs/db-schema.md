@@ -15,7 +15,7 @@ settings (JSONB), is_active, created_at, updated_at
 ### users
 ```
 id (UUID PK), tenant_id (FK tenants), email (unique per tenant),
-display_name, auth_provider ('microsoft'|'google'), auth_provider_id,
+display_name, auth_provider ('microsoft'|'google'), auth_provider_id (nullable; 'pending-import' until OAuth),
 role_id (FK roles), is_active, mfa_secret, mfa_enabled,
 last_login_at, created_at, updated_at
 ```
@@ -172,6 +172,25 @@ id (UUID PK), tenant_id, user_id, action, resource_type, resource_id,
 details (JSONB), ip_address, user_agent, created_at
 ```
 
+### user_import_jobs
+Bulk user CSV/XLSX import jobs (IMP-0). Purged after 90 days when committed/failed/cancelled.
+```
+id (UUID PK), tenant_id (FK), created_by_user_id (FK users),
+original_filename, file_format ('csv'|'xlsx'), status (enum),
+total_rows, valid_rows, error_rows, duplicate_rows, created_rows,
+age_verified_at_commit, error_summary, committed_at, created_at, updated_at
+```
+
+### user_import_staging_rows
+Parsed rows per import job. CASCADE delete with job.
+```
+id (UUID PK), job_id (FK), tenant_id (FK), row_number,
+raw_cells (JSONB), email, display_name, auth_provider, role_slug,
+building_codes_raw, phone, status (enum), error_codes (text[]),
+resolved_role_id, resolved_building_ids (uuid[]), created_user_id, created_at
+UNIQUE (job_id, row_number)
+```
+
 ## Migrations
 
 | File | Description |
@@ -182,3 +201,22 @@ details (JSONB), ip_address, user_agent, created_at
 | `database/init/04-seed.sql` | Initial data |
 | `backend/src/database/migrations/09-mfa-columns.sql` | MFA fields on users |
 | `backend/src/database/migrations/10-add-missing-permissions.sql` | 8 new permissions |
+| `database/migrations/41-user-import-prereq.sql` | User import jobs/staging; nullable auth_provider_id |
+
+### Apply one migration (local or AWS RDS)
+
+```bash
+cd monitoreo-v2/backend
+
+# Local Docker
+DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=monitoreo_v2 \
+DB_USERNAME=monitoreo_v2 DB_PASSWORD=monitoreo2026 \
+npm run db:migrate -- 41-user-import-prereq
+
+# AWS RDS
+DB_HOST=<rds-endpoint> DB_SSL=true DB_NAME=monitoreo_v2 \
+DB_USERNAME=... DB_PASSWORD=... \
+npm run db:migrate -- 41-user-import-prereq
+```
+
+Or `psql -f database/migrations/41-user-import-prereq.sql`. Verify: `SELECT version FROM schema_migrations WHERE version = '41-user-import-prereq';`

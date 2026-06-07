@@ -17,6 +17,7 @@ import {
   type AlertFamily,
 } from '../../types/alert-engine';
 import type { AlertRule, UpdateAlertRulePayload } from '../../types/alert';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-red-100 text-red-800',
@@ -72,14 +73,14 @@ export function AlertRulesPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Reglas de Alertas</h1>
+        <PageHeader title="Reglas de Alertas" eyebrow="Alertas" />
         <button
           type="button"
           onClick={() => { evaluate.mutate(); }}
           disabled={evaluate.isPending}
-          className="rounded-md bg-pa-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
         >
           {evaluate.isPending ? 'Evaluando...' : 'Evaluar Ahora'}
         </button>
@@ -93,7 +94,7 @@ export function AlertRulesPage() {
 
       <div className="flex items-end gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500">Familia</label>
+          <label className="block text-xs font-medium text-muted">Familia</label>
           <DropdownSelect
             options={[
               { value: '', label: 'Todas' },
@@ -105,7 +106,7 @@ export function AlertRulesPage() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500">Edificio</label>
+          <label className="block text-xs font-medium text-muted">Edificio</label>
           <DropdownSelect
             options={[
               { value: '', label: 'Todos (globales)' },
@@ -118,17 +119,17 @@ export function AlertRulesPage() {
         </div>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50">
+      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-border">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Tipo</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Nombre</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Severidad</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Intervalo</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-500">Escalamiento</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-500">Activa</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-500">Acciones</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Tipo</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Nombre</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Severidad</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Intervalo</th>
+              <th className="px-4 py-3 text-left font-medium text-muted">Escalamiento</th>
+              <th className="px-4 py-3 text-center font-medium text-muted">Activa</th>
+              <th className="px-4 py-3 text-center font-medium text-muted">Acciones</th>
             </tr>
           </thead>
           <TableStateBody
@@ -148,8 +149,8 @@ export function AlertRulesPage() {
                     {rule.severity}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-600">{rule.checkIntervalSeconds}s</td>
-                <td className="px-4 py-3 text-xs text-gray-500">
+                <td className="px-4 py-3 text-muted">{rule.checkIntervalSeconds}s</td>
+                <td className="px-4 py-3 text-xs text-muted">
                   L1: {rule.escalationL1Minutes}m / L2: {rule.escalationL2Minutes}m / L3: {rule.escalationL3Minutes}m
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -157,10 +158,10 @@ export function AlertRulesPage() {
                     type="button"
                     onClick={() => { handleToggle(rule); }}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      rule.isActive ? 'bg-pa-blue' : 'bg-gray-300'
+                      rule.isActive ? 'bg-brand' : 'bg-gray-300'
                     }`}
                   >
-                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform ${
                       rule.isActive ? 'translate-x-4' : 'translate-x-1'
                     }`} />
                   </button>
@@ -169,7 +170,7 @@ export function AlertRulesPage() {
                   <button
                     type="button"
                     onClick={() => { setEditingRule({ ...rule }); }}
-                    className="text-pa-blue hover:underline text-xs mr-2"
+                    className="text-brand hover:underline text-xs mr-2"
                   >
                     Editar
                   </button>
@@ -187,16 +188,16 @@ export function AlertRulesPage() {
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
       </div>
-      {total > 0 && <p className="px-4 py-2 text-xs text-pa-text-muted">Mostrando {visibleRules.length} de {total}</p>}
+      {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleRules.length} de {total}</p>}
 
       {editingRule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl space-y-4">
+          <div className="w-full max-w-lg rounded-lg bg-background p-6 shadow-xl space-y-4">
             <h2 className="text-lg font-semibold">
               Editar: {ALERT_TYPE_LABELS[editingRule.alertTypeCode] ?? editingRule.alertTypeCode}
             </h2>
             <div>
-              <div className="block text-xs font-medium text-gray-500">Severidad</div>
+              <div className="block text-xs font-medium text-muted">Severidad</div>
               <DropdownSelect
                 options={[
                   { value: 'low', label: 'low' },
@@ -211,35 +212,35 @@ export function AlertRulesPage() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500">L1 (min)</label>
+                <label className="block text-xs font-medium text-muted">L1 (min)</label>
                 <input
                   type="number"
                   value={editingRule.escalationL1Minutes}
                   onChange={(e) => { setEditingRule({ ...editingRule, escalationL1Minutes: +e.target.value }); }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500">L2 (min)</label>
+                <label className="block text-xs font-medium text-muted">L2 (min)</label>
                 <input
                   type="number"
                   value={editingRule.escalationL2Minutes}
                   onChange={(e) => { setEditingRule({ ...editingRule, escalationL2Minutes: +e.target.value }); }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500">L3 (min)</label>
+                <label className="block text-xs font-medium text-muted">L3 (min)</label>
                 <input
                   type="number"
                   value={editingRule.escalationL3Minutes}
                   onChange={(e) => { setEditingRule({ ...editingRule, escalationL3Minutes: +e.target.value }); }}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500">Config (JSON)</label>
+              <label className="block text-xs font-medium text-muted">Config (JSON)</label>
               <textarea
                 rows={4}
                 value={JSON.stringify(editingRule.config, null, 2)}
@@ -249,14 +250,14 @@ export function AlertRulesPage() {
                     setEditingRule({ ...editingRule, config: parsed });
                   } catch { /* ignore invalid JSON while typing */ }
                 }}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono"
+                className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm font-mono"
               />
             </div>
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => { setEditingRule(null); }}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm"
+                className="rounded-md border border-border px-4 py-2 text-sm"
               >
                 Cancelar
               </button>
@@ -264,7 +265,7 @@ export function AlertRulesPage() {
                 type="button"
                 onClick={handleSaveConfig}
                 disabled={updateRule.isPending}
-                className="rounded-md bg-pa-blue px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
               >
                 Guardar
               </button>

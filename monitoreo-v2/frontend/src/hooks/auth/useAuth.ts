@@ -7,6 +7,7 @@ import { useMicrosoftAuth } from './useMicrosoftAuth';
 import { setSessionFlag, clearSessionFlag } from './useSessionResolver';
 import type { AuthProvider } from '../../types/auth';
 import { applyTenantTheme } from '../../lib/tenant-theme';
+import { startSsoLogin } from '../../hooks/queries/useSsoQuery';
 
 export function useAuth() {
   const { user, tenant, isAuthenticated, isLoading, error, setSession, clearSession, setLoading, setError } =
@@ -127,6 +128,65 @@ export function useAuth() {
     [loginWithProvider],
   );
 
+  /**
+   * Redirects browser to tenant OIDC IdP via backend /auth/sso/:slug/start.
+   */
+  const loginWithSso = useCallback(
+    async (tenantSlug: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const redirectUrl = await startSsoLogin(tenantSlug);
+        window.location.assign(redirectUrl);
+      } catch (err: unknown) {
+        const message =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+          'Error al iniciar sesion SSO';
+        setError(message);
+        setLoading(false);
+      }
+    },
+    [setLoading, setError],
+  );
+
+  /**
+   * Handles post-SSO-callback query params (?mfaRequired, ?mfaSetupRequired).
+   */
+  const handleSsoCallbackParams = useCallback(
+    async (params: URLSearchParams) => {
+      const mfaRequired = params.get('mfaRequired') === '1';
+      const mfaSetupRequired = params.get('mfaSetupRequired') === '1';
+      const userId = params.get('userId');
+
+      if (!mfaRequired && !mfaSetupRequired) return false;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (mfaRequired && userId) {
+          setMfaPending({ userId });
+          setLoading(false);
+          return true;
+        }
+
+        if (mfaSetupRequired) {
+          setSessionFlag();
+          const { data: setup } = await authEndpoints.mfaSetup();
+          setMfaSetupData(setup);
+          setLoading(false);
+          return true;
+        }
+      } catch {
+        setError('Error al procesar el inicio de sesion SSO.');
+        setLoading(false);
+      }
+
+      return true;
+    },
+    [setLoading, setError],
+  );
+
   const logout = useCallback(async () => {
     try {
       await authEndpoints.logout();
@@ -150,6 +210,8 @@ export function useAuth() {
     error,
     loginMicrosoft,
     loginGoogle,
+    loginWithSso,
+    handleSsoCallbackParams,
     logout,
     mfaPending,
     validateMfa,

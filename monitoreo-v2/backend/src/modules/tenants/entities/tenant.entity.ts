@@ -61,6 +61,12 @@ export class Tenant {
   @Column({ length: 50, default: 'America/Santiago' })
   timezone!: string;
 
+  @Column({ name: 'default_country_code', type: 'char', length: 2, nullable: true })
+  defaultCountryCode!: string | null;
+
+  @Column({ name: 'default_currency', type: 'char', length: 3, nullable: true })
+  defaultCurrency!: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

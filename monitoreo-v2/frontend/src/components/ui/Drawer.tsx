@@ -77,8 +77,8 @@ export function Drawer({
     : isRight ? 'translate-x-full' : '-translate-x-full';
 
   const positionCls = isRight
-    ? 'right-0 rounded-l-xl'
-    : 'left-0 rounded-r-xl';
+    ? 'right-0 rounded-l-lg'
+    : 'left-0 rounded-r-lg';
 
   return createPortal(
     <div className="fixed inset-0 z-[9999]">
@@ -95,19 +95,19 @@ export function Drawer({
         role="dialog"
         aria-modal="true"
         className={
-          `absolute inset-y-0 flex h-full flex-col border-none bg-white shadow-2xl ` +
+          `absolute inset-y-0 flex h-full flex-col border-none bg-background shadow-2xl ` +
           `transition-transform ease-out ` +
           `${positionCls} ${SIZE_CLS[size]} ${translateCls}`
         }
         style={{ transitionDuration: `${DURATION}ms` }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 transition-all duration-150 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-subtle transition-all duration-150 hover:bg-surface hover:text-muted"
           >
             <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -120,7 +120,7 @@ export function Drawer({
 
         {/* Footer */}
         {footer && (
-          <div className="shrink-0 border-t border-gray-200 px-6 py-4">{footer}</div>
+          <div className="shrink-0 border-t border-border px-6 py-4">{footer}</div>
         )}
       </div>
     </div>,

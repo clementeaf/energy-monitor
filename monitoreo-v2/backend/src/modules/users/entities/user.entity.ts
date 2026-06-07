@@ -33,8 +33,8 @@ export class User {
   @Column({ name: 'auth_provider', length: 20 })
   authProvider!: 'microsoft' | 'google';
 
-  @Column({ name: 'auth_provider_id', length: 255 })
-  authProviderId!: string;
+  @Column({ name: 'auth_provider_id', type: 'varchar', length: 255, nullable: true })
+  authProviderId!: string | null;
 
   @Column({ name: 'role_id' })
   roleId!: string;

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { Meter } from './meter.entity';
+import type { ReadingQuality, ReadingSource } from '../../../common/constants/reading-quality';
 
 @Entity('readings')
 @Index('idx_readings_meter_ts', ['meterId', 'timestamp'])
@@ -101,4 +102,18 @@ export class Reading {
 
   @Column({ name: 'modbus_crc_errors', type: 'integer', nullable: true })
   modbusCrcErrors!: number | null;
+
+  @Column({
+    type: 'enum',
+    enum: ['measured', 'estimated', 'invalid', 'unknown'],
+    enumName: 'reading_quality',
+    default: 'unknown',
+  })
+  quality!: ReadingQuality;
+
+  @Column({ name: 'ingested_at', type: 'timestamptz', default: () => 'NOW()' })
+  ingestedAt!: Date;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  source!: ReadingSource | string | null;
 }

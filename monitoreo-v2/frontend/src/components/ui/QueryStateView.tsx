@@ -71,13 +71,13 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
     <div className="relative">
       {isFetching ? (
         <div
-          className={`pointer-events-none absolute right-0 top-0 z-10 flex items-center gap-2 rounded-md bg-white/90 shadow-sm ring-1 ring-gray-200 ${
-            variant === 'widget' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs text-gray-500'
+          className={`pointer-events-none absolute right-0 top-0 z-10 flex items-center gap-2 rounded-md bg-background/90 shadow-sm ring-1 ring-border ${
+            variant === 'widget' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs text-muted'
           }`}
           aria-live="polite"
         >
           <span
-            className={`inline-block animate-spin rounded-full border-2 border-gray-300 border-t-gray-600 ${
+            className={`inline-block animate-spin rounded-full border-2 border-border border-t-gray-600 ${
               variant === 'widget' ? 'size-2.5' : 'size-3'
             }`}
             aria-hidden
@@ -95,7 +95,7 @@ function QueryLoadingPanel(props: { variant: QueryStateVariant }): ReactElement 
   const isWidget = variant === 'widget';
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white ${
+      className={`flex flex-col items-center justify-center panel ${
         isWidget ? 'min-h-[8rem] gap-2 p-4' : 'min-h-[12rem] gap-4 p-8'
       }`}
     >
@@ -106,7 +106,7 @@ function QueryLoadingPanel(props: { variant: QueryStateVariant }): ReactElement 
         role="status"
         aria-label="Cargando"
       />
-      <p className={isWidget ? 'text-xs text-gray-500' : 'text-sm text-gray-500'}>Cargando datos…</p>
+      <p className={isWidget ? 'text-xs text-muted' : 'text-sm text-muted'}>Cargando datos…</p>
     </div>
   );
 }
@@ -152,16 +152,16 @@ function QueryEmptyPanel(props: {
   const isWidget = variant === 'widget';
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80 text-center ${
+      className={`flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface/80 text-center ${
         isWidget ? 'min-h-[8rem] gap-1 p-4' : 'min-h-[12rem] gap-2 p-8'
       }`}
     >
-      <p className={isWidget ? 'text-xs font-medium text-gray-700' : 'text-sm font-medium text-gray-700'}>
+      <p className={isWidget ? 'text-xs font-medium text-foreground' : 'text-sm font-medium text-foreground'}>
         {title}
       </p>
       <p
         className={
-          isWidget ? 'line-clamp-3 max-w-full text-[11px] text-gray-500' : 'max-w-md text-sm text-gray-500'
+          isWidget ? 'line-clamp-3 max-w-full text-[11px] text-muted' : 'max-w-md text-sm text-muted'
         }
       >
         {description}

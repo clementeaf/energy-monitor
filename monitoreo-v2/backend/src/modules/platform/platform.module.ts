@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Building } from './entities/building.entity';
+import { Region } from './entities/region.entity';
 import { Meter } from './entities/meter.entity';
 import { BuildingHierarchy } from './entities/building-hierarchy.entity';
 import { MeterHierarchy } from './entities/meter-hierarchy.entity';
@@ -19,9 +20,17 @@ import { Report } from './entities/report.entity';
 import { ScheduledReport } from './entities/scheduled-report.entity';
 import { Integration } from './entities/integration.entity';
 import { IntegrationSyncLog } from './entities/integration-sync-log.entity';
+import { MeterReadingStatus } from './entities/meter-reading-status.entity';
+import { IngestGap } from './entities/ingest-gap.entity';
+import { BackfillJob } from './entities/backfill-job.entity';
+import { EtlWatermark } from './entities/etl-watermark.entity';
+import { DataExportJob } from './entities/data-export-job.entity';
+import { ProtocolType } from './entities/protocol-type.entity';
+import { RegisterMapping } from './entities/register-mapping.entity';
 
 const platformEntities = [
   Building,
+  Region,
   Meter,
   BuildingHierarchy,
   MeterHierarchy,
@@ -40,6 +49,13 @@ const platformEntities = [
   ScheduledReport,
   Integration,
   IntegrationSyncLog,
+  MeterReadingStatus,
+  IngestGap,
+  BackfillJob,
+  EtlWatermark,
+  DataExportJob,
+  ProtocolType,
+  RegisterMapping,
 ];
 
 @Module({

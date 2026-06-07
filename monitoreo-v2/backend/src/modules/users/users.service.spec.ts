@@ -143,6 +143,7 @@ describe('UsersService', () => {
         email: user.email,
         displayName: user.displayName,
         authProvider: 'google',
+        phone: null,
       });
       expect(result).toEqual(user);
     });

@@ -70,7 +70,7 @@ export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
         {/* Crosshair hint */}
         <div className="absolute bottom-0 top-0 left-[62%] w-px border-l border-dashed border-gray-200" />
         <div className="absolute top-[36%] left-[62%] -translate-x-1/2 -translate-y-1/2">
-          <div className="size-2 rounded-full border border-gray-300 bg-white" />
+          <div className="size-2 rounded-full border border-border bg-background" />
         </div>
       </div>
 

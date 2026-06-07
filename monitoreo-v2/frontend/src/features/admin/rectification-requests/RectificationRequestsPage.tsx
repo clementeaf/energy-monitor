@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rectificationRequestsEndpoints } from '../../../services/endpoints';
 import type { RectificationRequestItem } from '../../../services/endpoints';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const STATUS_LABELS: Record<string, { text: string; cls: string }> = {
   pending: { text: 'Pendiente', cls: 'bg-amber-100 text-amber-800' },
   approved: { text: 'Aprobada', cls: 'bg-green-100 text-green-800' },
-  rejected: { text: 'Rechazada', cls: 'bg-gray-100 text-gray-600' },
+  rejected: { text: 'Rechazada', cls: 'bg-raised text-muted' },
   executed: { text: 'Ejecutada', cls: 'bg-blue-100 text-blue-800' },
 };
 
@@ -49,15 +50,14 @@ export function RectificationRequestsPage() {
   const resolved = items.filter((i) => i.status !== 'pending');
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Solicitudes de Rectificación</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Gestión de solicitudes ARCO+ de rectificación de datos (Ley 21.719). Plazo máximo: 15 días hábiles.
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <PageHeader
+        title="Solicitudes de rectificación"
+        eyebrow="Administración"
+        description="Gestión de solicitudes ARCO+ de rectificación de datos (Ley 21.719). Plazo máximo: 15 días hábiles."
+      />
 
-      {query.isPending && <p className="text-sm text-gray-400">Cargando...</p>}
+      {query.isPending && <p className="text-sm text-subtle">Cargando...</p>}
 
       {/* Pending requests */}
       {pending.length > 0 && (
@@ -67,25 +67,25 @@ export function RectificationRequestsPage() {
           </h2>
           <div className="space-y-3">
             {pending.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-lg bg-white p-4 shadow-sm">
+              <div key={item.id} className="flex items-center justify-between rounded-lg bg-background p-4 shadow-sm">
                 <div>
-                  <p className="font-medium text-gray-900">{item.userEmail}</p>
+                  <p className="font-medium text-foreground">{item.userEmail}</p>
                   {item.userDisplayName && (
-                    <p className="text-sm text-gray-500">{item.userDisplayName}</p>
+                    <p className="text-sm text-muted">{item.userDisplayName}</p>
                   )}
-                  <p className="mt-1 text-sm text-gray-700">
+                  <p className="mt-1 text-sm text-foreground">
                     <span className="font-medium">Campo:</span> {FIELD_LABELS[item.fieldName] ?? item.fieldName}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted">
                     <span className="font-medium">Valor actual:</span> {item.currentValue ?? '—'}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted">
                     <span className="font-medium">Valor solicitado:</span> {item.requestedValue}
                   </p>
                   {item.reason && (
-                    <p className="mt-1 text-sm text-gray-600">Motivo: {item.reason}</p>
+                    <p className="mt-1 text-sm text-muted">Motivo: {item.reason}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-subtle">
                     Solicitado: {new Date(item.requestedAt).toLocaleString('es-CL')}
                     {' · Plazo: '}
                     {new Date(item.responseDeadline).toLocaleDateString('es-CL')}
@@ -94,7 +94,7 @@ export function RectificationRequestsPage() {
                 <button
                   type="button"
                   onClick={() => { setSelected(item); setNotes(''); }}
-                  className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
                 >
                   Gestionar
                 </button>
@@ -105,20 +105,20 @@ export function RectificationRequestsPage() {
       )}
 
       {pending.length === 0 && !query.isPending && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+        <div className="panel p-6 text-center text-sm text-muted">
           No hay solicitudes pendientes
         </div>
       )}
 
       {/* Resolved requests */}
       {resolved.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white">
-          <div className="border-b border-gray-200 px-6 py-4">
-            <h2 className="font-medium text-gray-900">Historial</h2>
+        <div className="panel">
+          <div className="border-b border-border px-6 py-4">
+            <h2 className="font-medium text-foreground">Historial</h2>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-6 py-3">Usuario</th>
                 <th className="px-6 py-3">Campo</th>
                 <th className="px-6 py-3">Valor solicitado</th>
@@ -128,23 +128,23 @@ export function RectificationRequestsPage() {
                 <th className="px-6 py-3">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {resolved.map((item) => {
                 const badge = STATUS_LABELS[item.status] ?? STATUS_LABELS.pending;
                 return (
                   <tr key={item.id}>
                     <td className="px-6 py-3">{item.userEmail}</td>
-                    <td className="px-6 py-3 text-gray-500">{FIELD_LABELS[item.fieldName] ?? item.fieldName}</td>
-                    <td className="px-6 py-3 text-gray-600">{item.requestedValue}</td>
+                    <td className="px-6 py-3 text-muted">{FIELD_LABELS[item.fieldName] ?? item.fieldName}</td>
+                    <td className="px-6 py-3 text-muted">{item.requestedValue}</td>
                     <td className="px-6 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
                         {badge.text}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="px-6 py-3 text-muted">
                       {new Date(item.requestedAt).toLocaleDateString('es-CL')}
                     </td>
-                    <td className="px-6 py-3 text-gray-500">{item.notes ?? '—'}</td>
+                    <td className="px-6 py-3 text-muted">{item.notes ?? '—'}</td>
                     <td className="px-6 py-3">
                       {item.status === 'approved' && (
                         <button
@@ -167,9 +167,9 @@ export function RectificationRequestsPage() {
       {/* Resolve modal */}
       {selected && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-900">Gestionar Rectificación</h3>
-            <div className="mt-2 space-y-1 text-sm text-gray-600">
+          <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+            <h3 className="text-2xl font-semibold tracking-tight text-foreground">Gestionar Rectificación</h3>
+            <div className="mt-2 space-y-1 text-sm text-muted">
               <p><strong>{selected.userEmail}</strong></p>
               <p>Campo: {FIELD_LABELS[selected.fieldName] ?? selected.fieldName}</p>
               <p>Actual: {selected.currentValue ?? '—'}</p>
@@ -177,12 +177,12 @@ export function RectificationRequestsPage() {
               {selected.reason && <p>Motivo: {selected.reason}</p>}
             </div>
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">Notas (opcional)</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Notas (opcional)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm"
                 placeholder="Motivo de la decisión..."
               />
             </div>
@@ -190,7 +190,7 @@ export function RectificationRequestsPage() {
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
               >
                 Cancelar
               </button>
@@ -198,7 +198,7 @@ export function RectificationRequestsPage() {
                 type="button"
                 onClick={() => resolveMutation.mutate({ id: selected.id, status: 'rejected' })}
                 disabled={resolveMutation.isPending}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface disabled:opacity-50"
               >
                 Rechazar
               </button>
@@ -218,9 +218,9 @@ export function RectificationRequestsPage() {
       {/* Execute confirmation */}
       {confirmExecute && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-900">Ejecutar Rectificación</h3>
-            <p className="mt-2 text-sm text-gray-600">
+          <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+            <h3 className="text-2xl font-semibold tracking-tight text-foreground">Ejecutar Rectificación</h3>
+            <p className="mt-2 text-sm text-muted">
               Se actualizará el campo <strong>{FIELD_LABELS[confirmExecute.fieldName] ?? confirmExecute.fieldName}</strong> del
               usuario <strong>{confirmExecute.userEmail}</strong> al valor: <strong>{confirmExecute.requestedValue}</strong>
             </p>
@@ -228,7 +228,7 @@ export function RectificationRequestsPage() {
               <button
                 type="button"
                 onClick={() => setConfirmExecute(null)}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
               >
                 Cancelar
               </button>

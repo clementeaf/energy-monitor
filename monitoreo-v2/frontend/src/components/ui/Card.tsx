@@ -14,9 +14,9 @@ interface CardProps {
 }
 
 const VARIANT_CLS: Record<CardVariant, string> = {
-  default: 'bg-white border border-gray-200 hover:border-gray-300',
-  outlined: 'bg-white border border-gray-200 hover:border-gray-300',
-  elevated: 'bg-white border border-gray-200 hover:border-gray-300',
+  default: 'panel hover:border-subtle',
+  outlined: 'panel-muted hover:border-subtle',
+  elevated: 'panel shadow-md hover:border-subtle',
 };
 
 export function Card({
@@ -38,7 +38,7 @@ export function Card({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={
-        `rounded-lg transition-all duration-150 ${VARIANT_CLS[variant]} ` +
+        `transition-all duration-150 ${VARIANT_CLS[variant]} ` +
         (onClick ? 'cursor-pointer active:scale-[0.99] ' : '') +
         className
       }
@@ -46,8 +46,8 @@ export function Card({
       {hasHeader && (
         <div className={`flex items-start justify-between ${noPadding ? 'px-6 pt-6' : 'px-6 pt-6 pb-0'}`}>
           <div>
-            {title && <p className="text-sm font-semibold text-gray-900">{title}</p>}
-            {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
+            {title && <p className="text-sm font-semibold text-foreground">{title}</p>}
+            {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>

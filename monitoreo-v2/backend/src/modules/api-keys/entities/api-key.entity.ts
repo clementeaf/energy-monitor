@@ -43,6 +43,10 @@ export class ApiKey {
   @Column({ name: 'rate_limit_per_minute', type: 'int', default: 60 })
   rateLimitPerMinute!: number;
 
+  /** Optional higher limit for POST /v1/measurements. NULL = use ingress multiplier. */
+  @Column({ name: 'ingress_rate_limit_per_minute', type: 'int', nullable: true })
+  ingressRateLimitPerMinute!: number | null;
+
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt!: Date | null;
 

@@ -11,6 +11,7 @@ import {
 } from '../../../hooks/queries/useHierarchyQuery';
 import { usePermissions } from '../../../hooks/usePermissions';
 import type { HierarchyNode, HierarchyLevelType, CreateHierarchyNodePayload, UpdateHierarchyNodePayload } from '../../../types/hierarchy';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 const LEVEL_LABELS: Record<HierarchyLevelType, string> = {
   floor: 'Piso',
@@ -25,7 +26,7 @@ const LEVEL_COLORS: Record<HierarchyLevelType, string> = {
   zone: 'bg-purple-50 text-purple-700',
   panel: 'bg-amber-50 text-amber-700',
   circuit: 'bg-green-50 text-green-700',
-  sub_circuit: 'bg-gray-100 text-gray-600',
+  sub_circuit: 'bg-raised text-muted',
 };
 
 export function HierarchyPage() {
@@ -77,9 +78,9 @@ export function HierarchyPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Jerarquia Electrica</h1>
+        <PageHeader title="Jerarquia Electrica" eyebrow="Administración" />
         <div className="flex items-center gap-3">
           <DropdownSelect
             options={buildings.map((b) => ({ value: b.id, label: b.name }))}
@@ -91,7 +92,7 @@ export function HierarchyPage() {
             <button
               type="button"
               onClick={() => { openCreate(null); }}
-              className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
             >
               Nuevo Nodo Raiz
             </button>
@@ -100,12 +101,12 @@ export function HierarchyPage() {
       </div>
 
       {qs.phase === 'loading' && (
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+        <div className="animate-pulse panel p-4 space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-center gap-2" style={{ marginLeft: `${(i % 3) * 20}px` }}>
-              <div className="size-5 rounded bg-gray-200" />
-              <div className="h-5 w-16 rounded-full bg-gray-200" />
-              <div className="h-4 rounded bg-gray-200" style={{ width: `${80 + (i % 4) * 30}px` }} />
+              <div className="size-5 rounded bg-raised" />
+              <div className="h-5 w-16 rounded-full bg-raised" />
+              <div className="h-4 rounded bg-raised" style={{ width: `${80 + (i % 4) * 30}px` }} />
             </div>
           ))}
         </div>
@@ -120,7 +121,7 @@ export function HierarchyPage() {
           emptyTitle={buildings.length === 0 ? 'Sin edificios' : 'Sin jerarquia'}
           emptyDescription={buildings.length === 0 ? 'No hay edificios registrados.' : 'No hay nodos de jerarquia para este edificio.'}
         >
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="panel p-4">
             {(query.data ?? []).map((node) => (
               <TreeNode
                 key={node.id}
@@ -173,18 +174,18 @@ function TreeNode({
 
   return (
     <div style={{ marginLeft: depth * 20 }}>
-      <div className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-50">
+      <div className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-surface">
         <button
           type="button"
           onClick={() => { setExpanded(!expanded); }}
-          className="flex size-5 items-center justify-center text-gray-400"
+          className="flex size-5 items-center justify-center text-subtle"
         >
           {hasChildren ? (expanded ? '▼' : '▶') : '·'}
         </button>
         <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${LEVEL_COLORS[node.levelType]}`}>
           {LEVEL_LABELS[node.levelType]}
         </span>
-        <span className="text-sm font-medium text-gray-900">{node.name}</span>
+        <span className="text-sm font-medium text-foreground">{node.name}</span>
         {canWrite && (
           <div className="ml-auto flex gap-1">
             <button
@@ -197,7 +198,7 @@ function TreeNode({
             <button
               type="button"
               onClick={() => { onEdit(node); }}
-              className="rounded px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100"
+              className="rounded px-2 py-0.5 text-xs text-muted hover:bg-surface"
             >
               Editar
             </button>
@@ -267,7 +268,7 @@ function NodeFormModal({
             onChange={(e) => { setName(e.target.value); }}
             required
             maxLength={255}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -284,14 +285,14 @@ function NodeFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || !name}
-            className="rounded-md bg-[var(--color-primary,#3D3BF3)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>
@@ -304,7 +305,7 @@ function NodeFormModal({
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {
   return (
     <div className="block">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>

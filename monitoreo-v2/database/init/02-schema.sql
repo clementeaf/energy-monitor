@@ -123,8 +123,8 @@ ALTER TABLE iot_readings SET (
 
 SELECT add_compression_policy('iot_readings', INTERVAL '7 days');
 
--- Retention policy: drop raw data older than 2 years
-SELECT add_retention_policy('iot_readings', INTERVAL '2 years');
+-- Retention policy: drop raw data older than 5 years (aligned with readings hypertable)
+SELECT add_retention_policy('iot_readings', INTERVAL '5 years');
 
 -- Continuous aggregate: hourly readings
 CREATE MATERIALIZED VIEW iot_readings_hourly

@@ -64,18 +64,20 @@ describe('DataRetentionService', () => {
     expect(importPurgeCall).toBeDefined();
   });
 
-  it('refreshes portfolio_summary', async () => {
+  it('refreshes portfolio_summary and building_summary', async () => {
     queryMock
       .mockResolvedValueOnce([[], 0])
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([[], 0])
+      .mockResolvedValueOnce([[], 0])
+      .mockResolvedValueOnce([[], 0])
       .mockResolvedValueOnce([[], 0])
       .mockResolvedValueOnce([]);
 
     await service.run();
 
-    const refreshCall = queryMock.mock.calls.find((call: [string]) =>
-      call[0].includes('REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary'),
-    );
-    expect(refreshCall).toBeDefined();
+    const refreshCalls = queryMock.mock.calls.map((call: [string]) => call[0] as string);
+    expect(refreshCalls.some((sql) => sql.includes('REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary'))).toBe(true);
+    expect(refreshCalls.some((sql) => sql.includes('REFRESH MATERIALIZED VIEW CONCURRENTLY building_summary'))).toBe(true);
   });
 });

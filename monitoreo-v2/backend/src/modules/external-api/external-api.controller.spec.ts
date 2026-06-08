@@ -10,6 +10,14 @@ import { TenantsService } from '../tenants/tenants.service';
 import { ReadingsExportService } from '../etl-export/readings-export.service';
 import { DataExportJobsService } from '../etl-export/data-export-jobs.service';
 import { ExportStorageService } from '../etl-export/export-storage.service';
+import { TenantUnitsService } from '../tenant-units/tenant-units.service';
+import { HierarchyService } from '../hierarchy/hierarchy.service';
+import { ConcentratorsService } from '../concentrators/concentrators.service';
+import { FaultEventsService } from '../fault-events/fault-events.service';
+import { InvoicesService } from '../invoices/invoices.service';
+import { TariffsService } from '../tariffs/tariffs.service';
+import { IotReadingsService } from '../iot-readings/iot-readings.service';
+import { IntegrationsHealthService } from '../integrations/integrations-health.service';
 import { DataContractGuard } from '../data-governance/data-contract.guard';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
@@ -35,14 +43,32 @@ describe('ExternalApiController', () => {
   let exportSvc: Record<string, jest.Mock>;
   let exportJobsSvc: Record<string, jest.Mock>;
   let exportStorageSvc: Record<string, jest.Mock>;
+  let tenantUnitsSvc: Record<string, jest.Mock>;
+  let hierarchySvc: Record<string, jest.Mock>;
+  let concentratorsSvc: Record<string, jest.Mock>;
+  let faultEventsSvc: Record<string, jest.Mock>;
+  let invoicesSvc: Record<string, jest.Mock>;
+  let tariffsSvc: Record<string, jest.Mock>;
+  let iotReadingsSvc: Record<string, jest.Mock>;
+  let integrationsHealthSvc: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     buildingsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
-    metersSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    metersSvc = { findAll: jest.fn().mockResolvedValue({ data: [], total: 0, limit: 0, offset: 0 }), findOne: jest.fn() };
     readingsSvc = {
       findByMeter: jest.fn().mockResolvedValue([]),
       findLatest: jest.fn().mockResolvedValue([]),
       findAggregated: jest.fn().mockResolvedValue([]),
+      findLatestAnchor: jest.fn().mockResolvedValue({ timestamp: null }),
+      findCompareBuildings: jest.fn().mockResolvedValue({
+        anchor: null,
+        from: '2026-01-01',
+        to: '2026-01-31',
+        previousFrom: '2025-12-01',
+        previousTo: '2025-12-31',
+        current: [],
+        previous: [],
+      }),
     };
     ingressSvc = { create: jest.fn() };
     alertsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
@@ -64,6 +90,20 @@ describe('ExternalApiController', () => {
       getJobForDownload: jest.fn(),
     };
     exportStorageSvc = { readLocalFile: jest.fn() };
+    tenantUnitsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    hierarchySvc = { findByBuilding: jest.fn().mockResolvedValue([]) };
+    concentratorsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    faultEventsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    invoicesSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn() };
+    tariffsSvc = { findAll: jest.fn().mockResolvedValue([]), findOne: jest.fn(), findBlocks: jest.fn().mockResolvedValue([]) };
+    iotReadingsSvc = {
+      getLatest: jest.fn(),
+      getTimeSeries: jest.fn(),
+      getReadings: jest.fn(),
+      getAlerts: jest.fn(),
+      getStats: jest.fn(),
+    };
+    integrationsHealthSvc = { getHealth: jest.fn().mockResolvedValue({ integrations: [] }) };
 
     const module = await Test.createTestingModule({
       controllers: [ExternalApiController],
@@ -78,6 +118,14 @@ describe('ExternalApiController', () => {
         { provide: ReadingsExportService, useValue: exportSvc },
         { provide: DataExportJobsService, useValue: exportJobsSvc },
         { provide: ExportStorageService, useValue: exportStorageSvc },
+        { provide: TenantUnitsService, useValue: tenantUnitsSvc },
+        { provide: HierarchyService, useValue: hierarchySvc },
+        { provide: ConcentratorsService, useValue: concentratorsSvc },
+        { provide: FaultEventsService, useValue: faultEventsSvc },
+        { provide: InvoicesService, useValue: invoicesSvc },
+        { provide: TariffsService, useValue: tariffsSvc },
+        { provide: IotReadingsService, useValue: iotReadingsSvc },
+        { provide: IntegrationsHealthService, useValue: integrationsHealthSvc },
       ],
     })
       .overrideGuard(DataContractGuard)
@@ -173,10 +221,22 @@ describe('ExternalApiController', () => {
     expect(result?.isStale).toBe(false);
   });
 
-  it('getMeter delegates with id', async () => {
-    metersSvc.findOne.mockResolvedValue({ id: 'm-1' });
-    await controller.getMeter('m-1', user);
+  it('getMeter delegates with id and maps external DTO', async () => {
+    metersSvc.findOne.mockResolvedValue({
+      id: 'm-1',
+      buildingId: 'b-1',
+      name: 'M1',
+      code: 'M1',
+      meterType: 'electrical',
+      isActive: true,
+      externalId: null,
+      model: null,
+      serialNumber: null,
+    });
+    const result = await controller.getMeter('m-1', user);
     expect(metersSvc.findOne).toHaveBeenCalledWith('m-1', 't-1', ['b-1']);
+    expect(result.id).toBe('m-1');
+    expect(result.buildingId).toBe('b-1');
   });
 
   /* -- Readings -- */

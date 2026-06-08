@@ -5,32 +5,39 @@ import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { StockChart } from '../../../components/charts/StockChart';
 import { DataWidget } from '../../../components/ui/DataWidget';
-import { useQueryState } from '../../../hooks/useQueryState';
+import type { QueryUiPhase } from '../../../hooks/useQueryState';
 import type { AggregatedReading } from '../../../types/reading';
 import { isGenerationMeterType } from '../lib/meterClassification';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
 /**
- * Suma una metrica por bucket para un conjunto de medidores.
- * @param rows - Filas agregadas API
- * @param meterIds - Medidores incluidos
- * @param field - Campo numerico a sumar por bucket
+ * Conviere filas agregadas (una por bucket) en mapa bucket -> valor.
+ * @param rows - Filas del API con groupBy building
+ * @param field - Campo numerico a leer
  * @returns Map bucket ISO -> total
  */
-function sumByBucket(
+function rowsToBucketMap(
   rows: AggregatedReading[],
-  meterIds: Set<string>,
   field: 'avg_power_kw' | 'energy_delta_kwh',
 ): Map<string, number> {
   const map = new Map<string, number>();
   for (const r of rows) {
-    if (!meterIds.has(r.meter_id)) continue;
-    const b = r.bucket;
     const v = Number(r[field] ?? 0);
     if (Number.isNaN(v)) continue;
-    map.set(b, (map.get(b) ?? 0) + v);
+    map.set(r.bucket, (map.get(r.bucket) ?? 0) + v);
   }
   return map;
+}
+
+/**
+ * Suma todos los valores de un mapa bucket.
+ * @param bucketMap - Mapa bucket -> valor
+ * @returns Total numerico
+ */
+function sumBucketValues(bucketMap: Map<string, number>): number {
+  let total = 0;
+  for (const v of bucketMap.values()) total += v;
+  return total;
 }
 
 /**
@@ -62,12 +69,12 @@ export function GenerationSitePage() {
   const metersQuery = useMetersQuery(siteId);
   const meters = metersQuery.data ?? [];
 
-  const genIds = useMemo(
-    () => new Set(meters.filter((m) => isGenerationMeterType(m.meterType)).map((m) => m.id)),
+  const genCount = useMemo(
+    () => meters.filter((m) => isGenerationMeterType(m.meterType)).length,
     [meters],
   );
-  const loadIds = useMemo(
-    () => new Set(meters.filter((m) => !isGenerationMeterType(m.meterType)).map((m) => m.id)),
+  const loadCount = useMemo(
+    () => meters.filter((m) => !isGenerationMeterType(m.meterType)).length,
     [meters],
   );
 
@@ -83,39 +90,59 @@ export function GenerationSitePage() {
     to: now.toISOString(),
   });
 
-  const aggQuery = useAggregatedReadingsQuery(
-    { from: range.from, to: range.to, interval: 'hourly', buildingId: siteId },
+  const aggBase = useMemo(
+    () => ({
+      from: range.from,
+      to: range.to,
+      interval: 'hourly' as const,
+      groupBy: 'building' as const,
+      buildingId: siteId,
+    }),
+    [range.from, range.to, siteId],
+  );
+
+  const genQuery = useAggregatedReadingsQuery(
+    { ...aggBase, meterRole: 'generation' },
+    !!siteId,
+  );
+  const loadQuery = useAggregatedReadingsQuery(
+    { ...aggBase, meterRole: 'load' },
     !!siteId,
   );
 
-  const aggQs = useQueryState(aggQuery, {
-    isEmpty: (d) => !d || d.length === 0,
-  });
-
-  const aggData = aggQuery.data ?? [];
+  const aggPhase = useMemo((): QueryUiPhase => {
+    if (genQuery.isPending || loadQuery.isPending) return 'loading';
+    if (genQuery.isError || loadQuery.isError) return 'error';
+    const empty = (genQuery.data?.length ?? 0) === 0 && (loadQuery.data?.length ?? 0) === 0;
+    if (empty) return 'empty';
+    return 'ready';
+  }, [
+    genQuery.isPending,
+    loadQuery.isPending,
+    genQuery.isError,
+    loadQuery.isError,
+    genQuery.data,
+    loadQuery.data,
+  ]);
 
   const genByBucket = useMemo(
-    () => sumByBucket(aggData, genIds, 'avg_power_kw'),
-    [aggData, genIds],
+    () => rowsToBucketMap(genQuery.data ?? [], 'avg_power_kw'),
+    [genQuery.data],
   );
   const loadByBucket = useMemo(
-    () => sumByBucket(aggData, loadIds, 'avg_power_kw'),
-    [aggData, loadIds],
+    () => rowsToBucketMap(loadQuery.data ?? [], 'avg_power_kw'),
+    [loadQuery.data],
   );
 
-  const energyGenKwh = useMemo(() => {
-    const m = sumByBucket(aggData, genIds, 'energy_delta_kwh');
-    let s = 0;
-    for (const v of m.values()) s += v;
-    return s;
-  }, [aggData, genIds]);
+  const energyGenKwh = useMemo(
+    () => sumBucketValues(rowsToBucketMap(genQuery.data ?? [], 'energy_delta_kwh')),
+    [genQuery.data],
+  );
 
-  const energyLoadKwh = useMemo(() => {
-    const m = sumByBucket(aggData, loadIds, 'energy_delta_kwh');
-    let s = 0;
-    for (const v of m.values()) s += v;
-    return s;
-  }, [aggData, loadIds]);
+  const energyLoadKwh = useMemo(
+    () => sumBucketValues(rowsToBucketMap(loadQuery.data ?? [], 'energy_delta_kwh')),
+    [loadQuery.data],
+  );
 
   const selfPct = useMemo(
     () => averageSelfConsumptionRatio(genByBucket, loadByBucket),
@@ -144,6 +171,14 @@ export function GenerationSitePage() {
       from: new Date(min).toISOString(),
       to: new Date(max).toISOString(),
     });
+  };
+
+  const isLoading = metersQuery.isLoading || genQuery.isLoading || loadQuery.isLoading;
+  const isFetching = genQuery.isFetching || loadQuery.isFetching;
+
+  const refetchAll = (): void => {
+    void genQuery.refetch();
+    void loadQuery.refetch();
   };
 
   if (!siteId) {
@@ -184,7 +219,7 @@ export function GenerationSitePage() {
         description="Medidores con tipo generación / solar / PV se suman como generación; el resto del sitio como carga. Configure el tipo de medidor en la ficha de cada medidor."
       />
 
-      {metersQuery.isLoading || aggQuery.isLoading ? (
+      {isLoading ? (
         <div className="space-y-3 animate-pulse">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -211,8 +246,8 @@ export function GenerationSitePage() {
       ) : (
         <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi title="Medidores generacion" value={String(genIds.size)} sub="Tipos solar / PV / generation" />
-        <Kpi title="Medidores carga" value={String(loadIds.size)} sub="Resto electricos en el sitio" />
+        <Kpi title="Medidores generacion" value={String(genCount)} sub="Tipos solar / PV / generation" />
+        <Kpi title="Medidores carga" value={String(loadCount)} sub="Resto electricos en el sitio" />
         <Kpi
           title="Energia generada (periodo)"
           value={`${energyGenKwh.toFixed(0)} kWh`}
@@ -238,7 +273,7 @@ export function GenerationSitePage() {
         />
       </div>
 
-      {genIds.size === 0 && (
+      {genCount === 0 && (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           No hay medidores marcados como generacion en este edificio. Asigne tipo (p. ej. solar o generation) en
           Medidores o use la vista solo para curva de carga.
@@ -246,15 +281,15 @@ export function GenerationSitePage() {
       )}
 
       <DataWidget
-        phase={aggQs.phase}
-        error={aggQs.error}
-        onRetry={() => { aggQuery.refetch(); }}
+        phase={aggPhase}
+        error={genQuery.error ?? loadQuery.error}
+        onRetry={refetchAll}
         emptyTitle="Sin series agregadas"
         emptyDescription="No hay lecturas en el rango para este sitio."
       >
         <StockChart
           options={chartOptions}
-          loading={aggQuery.isFetching}
+          loading={isFetching}
           onRangeChange={handleRangeChange}
         />
       </DataWidget>

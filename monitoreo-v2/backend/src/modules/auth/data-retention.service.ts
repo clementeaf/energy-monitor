@@ -10,7 +10,7 @@ import { createHash } from 'crypto';
  * 1. Purge expired refresh tokens (>30 days past expiry)
  * 2. Anonymize users inactive for >2 years (no login, no activity)
  * 3. Purge old user import jobs (>90 days, committed/failed/cancelled)
- * 4. Refresh portfolio_summary materialized view
+ * 4. Refresh portfolio_summary and building_summary materialized views
  *
  * audit_logs and readings retention are owned by TimescaleDB policies only
  * (readings: 5 years @ 15min — see migration 22-retention-5y.sql; audit_logs: 5 years).
@@ -23,6 +23,7 @@ export class DataRetentionService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.ensurePortfolioSummaryPopulated();
+    await this.ensureBuildingSummaryPopulated();
   }
 
   @Cron('0 8 * * *', { name: 'data-retention' })
@@ -36,6 +37,7 @@ export class DataRetentionService implements OnModuleInit {
     const tenantUnitImportPurged = await this.purgeOldImportJobs('tenant_unit_import_jobs');
     const meterImportPurged = await this.purgeOldImportJobs('meter_import_jobs');
     await this.refreshPortfolioSummary();
+    await this.refreshBuildingSummary();
 
     this.logger.log(
       `Data retention: done — ${purged} tokens purged, ${anonymized} users anonymized, ${importJobsPurged} user import jobs purged, ${buildingImportPurged} building import jobs purged, ${tenantUnitImportPurged} tenant unit import jobs purged, ${meterImportPurged} meter import jobs purged`,
@@ -175,6 +177,43 @@ export class DataRetentionService implements OnModuleInit {
       } catch (err) {
         this.logger.warn(
           `portfolio_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Populates building_summary on startup when the matview exists but has no data.
+   */
+  private async ensureBuildingSummaryPopulated(): Promise<void> {
+    try {
+      const rows: { relispopulated: boolean }[] = await this.dataSource.query(
+        `SELECT relispopulated FROM pg_class WHERE relname = 'building_summary'`,
+      );
+      if (rows.length === 0 || rows[0].relispopulated) return;
+      await this.dataSource.query('REFRESH MATERIALIZED VIEW building_summary');
+      this.logger.log('building_summary populated on startup');
+    } catch (err) {
+      this.logger.warn(
+        `building_summary startup populate failed: ${err instanceof Error ? err.message : 'unknown'}`,
+      );
+    }
+  }
+
+  /**
+   * Refresh building_summary materialized view for Compare/Benchmark dashboards.
+   */
+  private async refreshBuildingSummary(): Promise<void> {
+    try {
+      await this.dataSource.query('REFRESH MATERIALIZED VIEW CONCURRENTLY building_summary');
+      this.logger.log('Refreshed building_summary (concurrent)');
+    } catch {
+      try {
+        await this.dataSource.query('REFRESH MATERIALIZED VIEW building_summary');
+        this.logger.log('Refreshed building_summary');
+      } catch (err) {
+        this.logger.warn(
+          `building_summary refresh failed: ${err instanceof Error ? err.message : 'unknown'}`,
         );
       }
     }

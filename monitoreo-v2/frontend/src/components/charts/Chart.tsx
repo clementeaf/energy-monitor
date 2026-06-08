@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo } from 'react';
-import Highcharts from 'highcharts';
+import { Highcharts } from '../../lib/highcharts-init';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';

@@ -17,7 +17,8 @@ import {
   useDeleteInvoice,
   useGenerateInvoice,
 } from '../../hooks/queries/useInvoicesQuery';
-import { invoicesEndpoints } from '../../services/endpoints';
+import { InvoicePdfPreview } from '../../components/billing/InvoicePdfPreview';
+import { useInvoicePdfUrl } from '../../hooks/useInvoicePdfUrl';
 import type { Invoice, InvoiceStatus, InvoiceQueryParams, GenerateInvoicePayload } from '../../types/invoice';
 import { PageHeader } from '../../components/ui/PageHeader';
 
@@ -268,11 +269,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
         size="xl"
       >
         {previewInvoiceId && (
-          <iframe
-            src={invoicesEndpoints.pdfUrl(previewInvoiceId)}
-            className="h-full w-full rounded border-0"
-            title="Previsualizacion factura"
-          />
+          <InvoicePdfPreview invoiceId={previewInvoiceId} />
         )}
       </Drawer>
     </div>
@@ -296,6 +293,8 @@ function InvoiceRow({
   onVoid: () => void;
   onDelete: () => void;
 }) {
+  const pdfUrl = useInvoicePdfUrl(invoice.id);
+
   return (
     <tr className="hover:bg-surface">
       <td className="px-4 py-3 font-medium text-foreground">{invoice.invoiceNumber}</td>
@@ -313,7 +312,7 @@ function InvoiceRow({
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
           <a
-            href={invoicesEndpoints.pdfUrl(invoice.id)}
+            href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted hover:text-foreground"

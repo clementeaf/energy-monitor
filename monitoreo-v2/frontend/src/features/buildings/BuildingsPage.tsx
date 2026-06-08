@@ -119,8 +119,6 @@ export function BuildingsPage() {
               {isCrossTenant && <Th>Empresa</Th>}
               <Th>Nombre</Th>
               <Th>Codigo</Th>
-              <Th>Pais</Th>
-              <Th>Site ID</Th>
               <Th>Direccion</Th>
               <Th className="text-right">Area (m2)</Th>
               <Th>Estado</Th>
@@ -129,11 +127,11 @@ export function BuildingsPage() {
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={(canWrite ? 8 : 7) + (isCrossTenant ? 1 : 0)}
+            colSpan={(canWrite ? 6 : 5) + (isCrossTenant ? 1 : 0)}
             error={qs.error}
             onRetry={() => { query.refetch(); }}
             emptyMessage="No hay edificios registrados."
-            skeletonWidths={['w-28', 'w-20', 'w-12', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
+            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20']}
           >
             {visibleBuildings.map((b) => (
               <tr
@@ -144,8 +142,6 @@ export function BuildingsPage() {
                 {isCrossTenant && <Td>{tenantMap.get(b.tenantId) ?? '—'}</Td>}
                 <Td className="font-medium text-foreground">{b.name}</Td>
                 <Td>{b.code}</Td>
-                <Td>{b.countryCode ?? '—'}</Td>
-                <Td className="max-w-[120px] truncate" title={b.externalSiteId ?? undefined}>{b.externalSiteId ?? '—'}</Td>
                 <Td>{b.address ?? '—'}</Td>
                 <Td className="text-right">{b.areaSqm ? Number(b.areaSqm).toLocaleString('es-CL') : '—'}</Td>
                 <Td><StatusBadge active={b.isActive} /></Td>

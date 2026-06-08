@@ -3,6 +3,8 @@ import { DataSource } from 'typeorm';
 import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
+import { meterRoleWhereClause } from './meter-role-sql';
+import { CompareBuildingsQueryDto } from './dto/compare-buildings-query.dto';
 import { resolveMeterTimezone } from '../../lib/timezone';
 import {
   type ReadingRow,
@@ -14,6 +16,17 @@ import {
 } from '../../lib/reading-response';
 
 export type { ReadingRow, ReadingResponse, LatestRow, AggregatedRow };
+
+/** Bundled compare-dashboard payload (anchor + current + previous periods). */
+export interface CompareBuildingsResponse {
+  anchor: string | null;
+  from: string;
+  to: string;
+  previousFrom: string;
+  previousTo: string;
+  current: AggregatedRow[];
+  previous: AggregatedRow[];
+}
 
 const RESOLUTION_MAP: Record<string, string> = {
   '5min': '5 minutes',
@@ -221,6 +234,7 @@ export class ReadingsService {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const readingScope = crossTenant ? '' : 'WHERE r.tenant_id = $1';
 
     const rows: LatestRow[] = await this.dataSource.query(
       `SELECT
@@ -239,20 +253,162 @@ export class ReadingsService {
        FROM meters m
        JOIN buildings b ON b.id = m.building_id
        JOIN tenants t ON t.id = m.tenant_id
-       LEFT JOIN LATERAL (
-         SELECT r.timestamp, r.power_kw, r.energy_kwh_total,
-                r.voltage_l1, r.current_l1, r.power_factor, r.frequency_hz
+       LEFT JOIN (
+         SELECT DISTINCT ON (r.meter_id)
+           r.meter_id,
+           r.timestamp,
+           r.power_kw,
+           r.energy_kwh_total,
+           r.voltage_l1,
+           r.current_l1,
+           r.power_factor,
+           r.frequency_hz
          FROM readings r
-         WHERE r.meter_id = m.id
-         ORDER BY r.timestamp DESC
-         LIMIT 1
-       ) lr ON true
+         ${readingScope}
+         ORDER BY r.meter_id, r.timestamp DESC
+       ) lr ON lr.meter_id = m.id
        ${whereClause}
        ORDER BY m.name`,
       params,
     );
 
     return rows.map((row) => enrichLatestRow(row));
+  }
+
+  /**
+   * Returns the newest reading timestamp for the tenant (fast anchor for dashboard charts).
+   * Prefers readings_daily MAX(bucket); falls back to raw readings MAX(timestamp).
+   */
+  async findLatestAnchor(
+    tenantId: string,
+    buildingIds: string[],
+    crossTenant = false,
+  ): Promise<{ timestamp: string | null }> {
+    const dailyTs = await this.maxBucketFromDaily(tenantId, buildingIds, crossTenant);
+    if (dailyTs) return { timestamp: dailyTs };
+
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
+
+    if (!crossTenant) {
+      conditions.push(`r.tenant_id = $${paramIdx}`);
+      params.push(tenantId);
+      paramIdx++;
+    }
+
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`r.meter_id IN (SELECT id FROM meters WHERE building_id IN (${placeholders.join(', ')}))`);
+      params.push(...buildingIds);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const rows: { timestamp: string | null }[] = await this.dataSource.query(
+      `SELECT MAX(r.timestamp)::text AS timestamp FROM readings r ${whereClause}`,
+      params,
+    );
+    return { timestamp: rows[0]?.timestamp ?? null };
+  }
+
+  /**
+   * Fast anchor from readings_daily continuous aggregate.
+   */
+  private async maxBucketFromDaily(
+    tenantId: string,
+    buildingIds: string[],
+    crossTenant: boolean,
+  ): Promise<string | null> {
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
+
+    if (!crossTenant) {
+      conditions.push(`a.tenant_id = $${paramIdx}`);
+      params.push(tenantId);
+      paramIdx++;
+    }
+
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`a.meter_id IN (SELECT id FROM meters WHERE building_id IN (${placeholders.join(', ')}))`);
+      params.push(...buildingIds);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const rows: { timestamp: string | null }[] = await this.dataSource.query(
+      `SELECT MAX(a.bucket)::text AS timestamp FROM readings_daily a ${whereClause}`,
+      params,
+    );
+    return rows[0]?.timestamp ?? null;
+  }
+
+  /**
+   * Compare dashboard bundle: anchor + daily building aggregates for current and previous periods.
+   * @param tenantId - Tenant scope
+   * @param buildingIds - RBAC building filter
+   * @param days - Window length (1, 7, or 30)
+   * @param crossTenant - Super-admin cross-tenant flag
+   * @returns Anchor timestamp and aggregated rows for both periods
+   */
+  async findCompareBuildings(
+    tenantId: string,
+    buildingIds: string[],
+    days: number,
+    crossTenant = false,
+  ): Promise<CompareBuildingsResponse> {
+    const { timestamp: anchor } = await this.findLatestAnchor(tenantId, buildingIds, crossTenant);
+    const { from, to } = this.dateRangeFromDays(days, anchor);
+    const { from: previousFrom, to: previousTo } = this.previousPeriodRange(from, to);
+
+    const baseQuery = { interval: 'daily' as const, groupBy: 'building' as const };
+    const [current, previous] = await Promise.all([
+      this.findAggregated(tenantId, buildingIds, { ...baseQuery, from, to }, crossTenant),
+      this.findAggregated(
+        tenantId,
+        buildingIds,
+        { ...baseQuery, from: previousFrom, to: previousTo },
+        crossTenant,
+      ),
+    ]);
+
+    return {
+      anchor,
+      from,
+      to,
+      previousFrom,
+      previousTo,
+      current,
+      previous,
+    };
+  }
+
+  /**
+   * Rango ISO [from, to] de N días terminando en anchor (o now si null).
+   */
+  private dateRangeFromDays(
+    days: number,
+    anchorIso: string | null,
+  ): { from: string; to: string } {
+    const end = anchorIso ? new Date(anchorIso) : new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - days);
+    return { from: start.toISOString(), to: end.toISOString() };
+  }
+
+  /**
+   * Periodo anterior con la misma duración que [from, to].
+   */
+  private previousPeriodRange(fromIso: string, toIso: string): { from: string; to: string } {
+    const startMs = new Date(fromIso).getTime();
+    const endMs = new Date(toIso).getTime();
+    const durationMs = endMs - startMs;
+    const prevEndMs = startMs - 1;
+    const prevStartMs = prevEndMs - durationMs;
+    return {
+      from: new Date(prevStartMs).toISOString(),
+      to: new Date(prevEndMs).toISOString(),
+    };
   }
 
   /**
@@ -284,9 +440,10 @@ export class ReadingsService {
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
 
-    // Portfolio cache — avoids slow sequential scans on continuous aggregates
-    if (query.groupBy === 'portfolio') {
-      const cacheKey = `${crossTenant ? '_all' : tenantId}:${query.interval}:${query.from}:${query.to}`;
+    // Portfolio / building cache — avoids slow sequential scans on continuous aggregates
+    if (query.groupBy === 'portfolio' || query.groupBy === 'building') {
+      const scopeKey = buildingIds.length > 0 ? buildingIds.slice().sort().join(',') : '_all';
+      const cacheKey = `${query.groupBy}:${crossTenant ? '_xt' : tenantId}:${scopeKey}:${query.interval}:${query.from}:${query.to}:${query.meterRole ?? ''}`;
       const cached = this.getCached(cacheKey);
       if (cached) return cached;
 
@@ -339,8 +496,8 @@ export class ReadingsService {
     conditions.push(`a.bucket >= $${paramIdx}`, `a.bucket <= $${paramIdx + 1}`);
     paramIdx += 2;
 
-    // Only JOIN meters when filtering by building — avoids expensive join on large datasets
-    const needsMeterJoin = buildingIds.length > 0 || !!query.buildingId;
+    // JOIN meters when filtering by building or meter role
+    const needsMeterJoin = buildingIds.length > 0 || !!query.buildingId || !!query.meterRole;
     const meterJoin = needsMeterJoin ? 'INNER JOIN meters m ON m.id = a.meter_id' : '';
 
     if (buildingIds.length > 0) {
@@ -360,6 +517,10 @@ export class ReadingsService {
       conditions.push(`a.meter_id = $${paramIdx}`);
       params.push(query.meterId);
       paramIdx++;
+    }
+
+    if (query.meterRole) {
+      conditions.push(meterRoleWhereClause(query.meterRole as 'generation' | 'load'));
     }
 
     const where = conditions.join(' AND ');
@@ -414,10 +575,17 @@ export class ReadingsService {
     }
 
     if (isPortfolio && !agg.reBucket) {
+      if (agg.view === 'readings_hourly') {
+        return this.findPortfolioHourly(tenantId, query, crossTenant);
+      }
       return this.findPortfolioDaily(tenantId, query, crossTenant);
     }
 
-    // groupBy=building: aggregate per building instead of per meter
+    if (query.groupBy === 'building' && agg.view === 'readings_daily' && !agg.reBucket && !query.meterRole) {
+      return this.findBuildingDaily(tenantId, buildingIds, query, crossTenant);
+    }
+
+    // groupBy=building (monthly re-bucket): aggregate per building from daily CAGG
     if (query.groupBy === 'building') {
       return this.dataSource.query(
         `SELECT
@@ -460,19 +628,171 @@ export class ReadingsService {
   }
 
   /**
-   * Portfolio daily aggregate — prefers portfolio_summary matview, falls back to readings_daily.
+   * Building daily aggregate — prefers building_summary matview, falls back to readings_daily JOIN.
+   */
+  private async findBuildingDaily(
+    tenantId: string,
+    buildingIds: string[],
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    let rows: AggregatedRow[] = [];
+    try {
+      rows = await this.queryBuildingSummary(tenantId, buildingIds, query, crossTenant);
+    } catch (err) {
+      if (!isUnpopulatedMatviewError(err)) throw err;
+    }
+    if (rows.length > 0) return rows;
+    return this.queryBuildingFromDaily(tenantId, buildingIds, query, crossTenant);
+  }
+
+  /**
+   * Reads pre-computed building_summary materialized view (~5ms when populated).
+   */
+  private async queryBuildingSummary(
+    tenantId: string,
+    buildingIds: string[],
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
+
+    if (!crossTenant) {
+      params.push(tenantId);
+      conditions.push(`bs.tenant_id = $${paramIdx}`);
+      paramIdx++;
+    }
+
+    params.push(query.from, query.to);
+    conditions.push(`bs.bucket >= $${paramIdx}::date`, `bs.bucket <= $${paramIdx + 1}::date`);
+    paramIdx += 2;
+
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`bs.building_id IN (${placeholders.join(', ')})`);
+      params.push(...buildingIds);
+      paramIdx += buildingIds.length;
+    }
+
+    if (query.buildingId) {
+      conditions.push(`bs.building_id = $${paramIdx}`);
+      params.push(query.buildingId);
+      paramIdx++;
+    }
+
+    const where = conditions.join(' AND ');
+    return this.dataSource.query(
+      `SELECT
+         bs.bucket::text,
+         bs.building_id::text AS meter_id,
+         bs.sum_power_kw::text AS avg_power_kw,
+         bs.max_power_kw::text AS max_power_kw,
+         bs.min_power_kw::text AS min_power_kw,
+         bs.avg_power_factor::text AS avg_power_factor,
+         bs.avg_voltage_l1::text AS avg_voltage_l1,
+         COALESCE(bs.sum_energy_kwh, 0)::text AS energy_delta_kwh,
+         bs.reading_count::text AS reading_count
+       FROM building_summary bs
+       WHERE ${where}
+       ORDER BY bs.bucket ASC, bs.building_id ASC`,
+      params,
+    );
+  }
+
+  /**
+   * Live building aggregate from readings_daily when building_summary is empty.
+   */
+  private async queryBuildingFromDaily(
+    tenantId: string,
+    buildingIds: string[],
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    const params: unknown[] = [];
+    const conditions: string[] = [];
+    let paramIdx = 1;
+
+    if (!crossTenant) {
+      params.push(tenantId);
+      conditions.push(`a.tenant_id = $${paramIdx}`);
+      paramIdx++;
+    }
+
+    params.push(query.from, query.to);
+    conditions.push(`a.bucket >= $${paramIdx}`, `a.bucket <= $${paramIdx + 1}`);
+    paramIdx += 2;
+
+    const meterJoin = 'INNER JOIN meters m ON m.id = a.meter_id';
+
+    if (buildingIds.length > 0) {
+      const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
+      conditions.push(`m.building_id IN (${placeholders.join(', ')})`);
+      params.push(...buildingIds);
+      paramIdx += buildingIds.length;
+    }
+
+    if (query.buildingId) {
+      conditions.push(`m.building_id = $${paramIdx}`);
+      params.push(query.buildingId);
+      paramIdx++;
+    }
+
+    const where = conditions.join(' AND ');
+    return this.dataSource.query(
+      `SELECT
+         a.bucket,
+         m.building_id AS meter_id,
+         (SUM(a.avg_power_kw * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_kw,
+         MAX(a.max_power_kw)::text AS max_power_kw,
+         MIN(a.min_power_kw)::text AS min_power_kw,
+         (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+         (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+         SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+         SUM(a.reading_count)::text AS reading_count
+       FROM readings_daily a
+       ${meterJoin}
+       WHERE ${where}
+       GROUP BY a.bucket, m.building_id
+       ORDER BY a.bucket ASC, m.building_id ASC`,
+      params,
+    );
+  }
+
+  /**
+   * Portfolio daily aggregate — prefers portfolio_summary matview, falls back to readings_daily then raw.
    */
   private async findPortfolioDaily(
     tenantId: string,
     query: AggregatedQueryDto,
     crossTenant: boolean,
   ): Promise<AggregatedRow[]> {
+    let rows: AggregatedRow[] = [];
     try {
-      return await this.queryPortfolioSummary(tenantId, query, crossTenant);
+      rows = await this.queryPortfolioSummary(tenantId, query, crossTenant);
     } catch (err) {
       if (!isUnpopulatedMatviewError(err)) throw err;
-      return this.queryPortfolioFromDaily(tenantId, query, crossTenant);
     }
+    if (rows.length > 0) return rows;
+
+    rows = await this.queryPortfolioFromDaily(tenantId, query, crossTenant);
+    if (rows.length > 0) return rows;
+
+    return this.queryPortfolioFromRaw(tenantId, query, crossTenant, '1 day');
+  }
+
+  /**
+   * Portfolio hourly aggregate — prefers readings_hourly CAGG, falls back to raw readings.
+   */
+  private async findPortfolioHourly(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    const rows = await this.queryPortfolioFromHourly(tenantId, query, crossTenant);
+    if (rows.length > 0) return rows;
+    return this.queryPortfolioFromRaw(tenantId, query, crossTenant, '1 hour');
   }
 
   /**
@@ -486,37 +806,84 @@ export class ReadingsService {
     if (crossTenant) {
       return this.dataSource.query(
         `SELECT
-           bucket::text,
+           ps.bucket::text,
            '_portfolio' AS meter_id,
-           SUM(sum_power_kw)::text AS avg_power_kw,
-           MAX(max_power_kw)::text AS max_power_kw,
-           MIN(min_power_kw)::text AS min_power_kw,
-           (SUM(avg_power_factor * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_power_factor,
-           (SUM(avg_voltage_l1 * reading_count) / NULLIF(SUM(reading_count), 0))::text AS avg_voltage_l1,
-           '0' AS energy_delta_kwh,
-           SUM(reading_count)::text AS reading_count
-         FROM portfolio_summary
-         WHERE bucket >= $1::date AND bucket <= $2::date
-         GROUP BY bucket
-         ORDER BY bucket ASC`,
+           SUM(ps.sum_power_kw)::text AS avg_power_kw,
+           MAX(ps.max_power_kw)::text AS max_power_kw,
+           MIN(ps.min_power_kw)::text AS min_power_kw,
+           (SUM(ps.avg_power_factor * ps.reading_count) / NULLIF(SUM(ps.reading_count), 0))::text AS avg_power_factor,
+           (SUM(ps.avg_voltage_l1 * ps.reading_count) / NULLIF(SUM(ps.reading_count), 0))::text AS avg_voltage_l1,
+           COALESCE(SUM(ps.sum_energy_kwh), 0)::text AS energy_delta_kwh,
+           SUM(ps.reading_count)::text AS reading_count
+         FROM portfolio_summary ps
+         WHERE ps.bucket >= $1::date AND ps.bucket <= $2::date
+         GROUP BY ps.bucket
+         ORDER BY ps.bucket ASC`,
         [query.from, query.to],
       );
     }
     return this.dataSource.query(
       `SELECT
-         bucket::text,
+         ps.bucket::text,
          '_portfolio' AS meter_id,
-         sum_power_kw::text AS avg_power_kw,
-         max_power_kw::text AS max_power_kw,
-         min_power_kw::text AS min_power_kw,
-         avg_power_factor::text AS avg_power_factor,
-         avg_voltage_l1::text AS avg_voltage_l1,
-         '0' AS energy_delta_kwh,
-         reading_count::text AS reading_count
-       FROM portfolio_summary
-       WHERE tenant_id = $1
-         AND bucket >= $2::date AND bucket <= $3::date
-       ORDER BY bucket ASC`,
+         ps.sum_power_kw::text AS avg_power_kw,
+         ps.max_power_kw::text AS max_power_kw,
+         ps.min_power_kw::text AS min_power_kw,
+         ps.avg_power_factor::text AS avg_power_factor,
+         ps.avg_voltage_l1::text AS avg_voltage_l1,
+         COALESCE(ps.sum_energy_kwh, 0)::text AS energy_delta_kwh,
+         ps.reading_count::text AS reading_count
+       FROM portfolio_summary ps
+       WHERE ps.tenant_id = $1
+         AND ps.bucket >= $2::date AND ps.bucket <= $3::date
+       ORDER BY ps.bucket ASC`,
+      [tenantId, query.from, query.to],
+    );
+  }
+
+  /**
+   * Portfolio hourly aggregate from readings_hourly continuous aggregate.
+   */
+  private async queryPortfolioFromHourly(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+  ): Promise<AggregatedRow[]> {
+    if (crossTenant) {
+      return this.dataSource.query(
+        `SELECT
+           a.bucket::text,
+           '_portfolio' AS meter_id,
+           SUM(a.avg_power_kw * a.reading_count)::text AS avg_power_kw,
+           MAX(a.max_power_kw)::text AS max_power_kw,
+           MIN(a.min_power_kw)::text AS min_power_kw,
+           (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+           (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+           SUM(a.reading_count)::text AS reading_count
+         FROM readings_hourly a
+         WHERE a.bucket >= $1 AND a.bucket <= $2
+         GROUP BY a.bucket
+         ORDER BY a.bucket ASC`,
+        [query.from, query.to],
+      );
+    }
+    return this.dataSource.query(
+      `SELECT
+         a.bucket::text,
+         '_portfolio' AS meter_id,
+         SUM(a.avg_power_kw * a.reading_count)::text AS avg_power_kw,
+         MAX(a.max_power_kw)::text AS max_power_kw,
+         MIN(a.min_power_kw)::text AS min_power_kw,
+         (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
+         (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
+         SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
+         SUM(a.reading_count)::text AS reading_count
+       FROM readings_hourly a
+       WHERE a.tenant_id = $1
+         AND a.bucket >= $2 AND a.bucket <= $3
+       GROUP BY a.bucket
+       ORDER BY a.bucket ASC`,
       [tenantId, query.from, query.to],
     );
   }
@@ -539,7 +906,7 @@ export class ReadingsService {
            MIN(a.min_power_kw)::text AS min_power_kw,
            (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
            (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
-           '0' AS energy_delta_kwh,
+           SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
            SUM(a.reading_count)::text AS reading_count
          FROM readings_daily a
          WHERE a.bucket >= $1::date AND a.bucket <= $2::date
@@ -557,7 +924,7 @@ export class ReadingsService {
          MIN(a.min_power_kw)::text AS min_power_kw,
          (SUM(a.avg_power_factor * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_power_factor,
          (SUM(a.avg_voltage_l1 * a.reading_count) / NULLIF(SUM(a.reading_count), 0))::text AS avg_voltage_l1,
-         '0' AS energy_delta_kwh,
+         SUM(a.max_energy_kwh_total - a.min_energy_kwh_total)::text AS energy_delta_kwh,
          SUM(a.reading_count)::text AS reading_count
        FROM readings_daily a
        WHERE a.tenant_id = $1
@@ -565,6 +932,82 @@ export class ReadingsService {
        GROUP BY a.bucket
        ORDER BY a.bucket ASC`,
       [tenantId, query.from, query.to],
+    );
+  }
+
+  /**
+   * Live portfolio aggregate from raw readings when continuous aggregates are empty.
+   */
+  private async queryPortfolioFromRaw(
+    tenantId: string,
+    query: AggregatedQueryDto,
+    crossTenant: boolean,
+    pgInterval: string,
+  ): Promise<AggregatedRow[]> {
+    assertSafeInterval(pgInterval);
+    if (crossTenant) {
+      return this.dataSource.query(
+        `SELECT
+           sub.bucket::text,
+           '_portfolio' AS meter_id,
+           SUM(sub.avg_power_kw)::text AS avg_power_kw,
+           MAX(sub.max_power_kw)::text AS max_power_kw,
+           MIN(sub.min_power_kw)::text AS min_power_kw,
+           (SUM(sub.avg_power_factor * sub.reading_count) / NULLIF(SUM(sub.reading_count), 0))::text AS avg_power_factor,
+           (SUM(sub.avg_voltage_l1 * sub.reading_count) / NULLIF(SUM(sub.reading_count), 0))::text AS avg_voltage_l1,
+           SUM(sub.energy_delta_kwh)::text AS energy_delta_kwh,
+           SUM(sub.reading_count)::text AS reading_count
+         FROM (
+           SELECT
+             time_bucket($1::interval, r.timestamp) AS bucket,
+             r.meter_id,
+             AVG(r.power_kw::numeric) AS avg_power_kw,
+             MAX(r.power_kw::numeric) AS max_power_kw,
+             MIN(r.power_kw::numeric) AS min_power_kw,
+             AVG(r.power_factor::numeric) AS avg_power_factor,
+             AVG(r.voltage_l1::numeric) AS avg_voltage_l1,
+             (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric)) AS energy_delta_kwh,
+             COUNT(*)::bigint AS reading_count
+           FROM readings r
+           WHERE r.timestamp >= $2 AND r.timestamp <= $3
+           GROUP BY time_bucket($1::interval, r.timestamp), r.meter_id
+         ) sub
+         GROUP BY sub.bucket
+         ORDER BY sub.bucket ASC`,
+        [pgInterval, query.from, query.to],
+      );
+    }
+    return this.dataSource.query(
+      `SELECT
+         sub.bucket::text,
+         '_portfolio' AS meter_id,
+         SUM(sub.avg_power_kw)::text AS avg_power_kw,
+         MAX(sub.max_power_kw)::text AS max_power_kw,
+         MIN(sub.min_power_kw)::text AS min_power_kw,
+         (SUM(sub.avg_power_factor * sub.reading_count) / NULLIF(SUM(sub.reading_count), 0))::text AS avg_power_factor,
+         (SUM(sub.avg_voltage_l1 * sub.reading_count) / NULLIF(SUM(sub.reading_count), 0))::text AS avg_voltage_l1,
+         SUM(sub.energy_delta_kwh)::text AS energy_delta_kwh,
+         SUM(sub.reading_count)::text AS reading_count
+       FROM (
+         SELECT
+           time_bucket($1::interval, r.timestamp) AS bucket,
+           r.meter_id,
+           AVG(r.power_kw::numeric) AS avg_power_kw,
+           MAX(r.power_kw::numeric) AS max_power_kw,
+           MIN(r.power_kw::numeric) AS min_power_kw,
+           AVG(r.power_factor::numeric) AS avg_power_factor,
+           AVG(r.voltage_l1::numeric) AS avg_voltage_l1,
+           (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric)) AS energy_delta_kwh,
+           COUNT(*)::bigint AS reading_count
+         FROM readings r
+         INNER JOIN meters m ON m.id = r.meter_id
+         WHERE m.tenant_id = $2
+           AND r.timestamp >= $3 AND r.timestamp <= $4
+         GROUP BY time_bucket($1::interval, r.timestamp), r.meter_id
+       ) sub
+       GROUP BY sub.bucket
+       ORDER BY sub.bucket ASC`,
+      [pgInterval, tenantId, query.from, query.to],
     );
   }
 
@@ -602,6 +1045,10 @@ export class ReadingsService {
       conditions.push(`m.id = $${paramIdx}`);
       params.push(query.meterId);
       paramIdx++;
+    }
+
+    if (query.meterRole) {
+      conditions.push(meterRoleWhereClause(query.meterRole as 'generation' | 'load'));
     }
 
     const where = conditions.join(' AND ');

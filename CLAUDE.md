@@ -26,13 +26,15 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-08)
+- **2.18.0:** Perf analytics (`groupBy`, `meterRole`, compare-buildings); fix Highcharts arearange; seed demo integraciones/reportes; tabs Integraciones. [CHANGELOG — 2.18.0-alpha.0](CHANGELOG.md)
+- **Prod:** backend `meter-role-20260608-135454` + frontend desplegado en `power-monitor.cloud`.
+- **Migraciones locales:** `47-portfolio-summary-energy`, `48-building-summary` (aplicar prod vía ECS Exec).
+
 ### Completado (2026-06-07)
 - **2.17.0 prod:** Backend ECS + frontend `power-monitor.cloud`; migr. RDS `43–46`; login OAuth+MFA OK. [CHANGELOG — 2.17.0-alpha.0](CHANGELOG.md)
-- **PASA lecturas:** Script `scripts/pasa-readings/` — local y prod con 875 medidores / ~2.6M readings (ene 2026). CSV fuente en [Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V).
-- **Dashboard:** Gráfico Potencia anclado al último dato disponible (fix prod con datos históricos).
-- **Auth MFA:** `clear-session`, `finalizeAuthSession`; smoke 30/30. Runbook [`docs/ops/pasa-prod-readings-import.md`](docs/ops/pasa-prod-readings-import.md).
-- **Import masiva IMP-070/071/072:** edificios, locatarios, medidores. [CHANGELOG — 2.16.0-alpha.0](CHANGELOG.md)
-- **Migraciones prod previas:** `16`, `18–42` vía ECS Exec. Pendiente Timescale: `22`, `23`.
+- **PASA lecturas:** 875 medidores / ~2.6M readings (ene 2026). Script `scripts/pasa-readings/`. [Drive](https://drive.google.com/drive/folders/1VwbEPmoB1fXvhJTDMaP_6m3bBMYLi0-V).
+- **Import masiva IMP-070/071/072:** edificios, locatarios, medidores.
 
 ### Completado (2026-06-06)
 - **Import masiva usuarios:** CSV/XLSX → validate → preview → commit. Backend `UserImportModule` (7 endpoints). Frontend tab **Importar** en Usuarios. Migración `41-user-import-prereq`. [CHANGELOG — 2.15.0-alpha.0](CHANGELOG.md)
@@ -218,9 +220,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — backend 2.17 + migr. 43–46 + PASA 875 medidores.
+Prod: power-monitor.cloud — 2.18.x; PASA 875 medidores; migr. prod pendiente 47–48.
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
-Local PASA: monitoreo-v2/scripts/pasa-readings/import-one-month.sh
+Seed demo: monitoreo-v2/scripts/pasa-readings/seed-pasa-frontend-gaps.mjs
 Smoke: npm run test:smoke-dashboard (monitoreo-v2/backend)
 ```
 
@@ -270,6 +272,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **Shared hooks:** `useClickOutside`, `useOperatorFilter` en `hooks/`
 - **Styling:** Tailwind v4 tokens PA: `text-pa-text`, `text-pa-text-muted`, `text-pa-navy`, `bg-white`, `border-pa-border`, `text-pa-blue`, `hover:bg-gray-100`
 - **StockChart:** afterSetExtremes → pickResolution(rangeMs) → refetch; keepPreviousData
+- **Highcharts init:** import único desde `lib/highcharts-init.ts` (Stock + more en misma instancia)
 
 ## Backend Patterns
 - **NestJS module (4-file):** entity → service → controller → module. Registrar en app.module.ts.
@@ -337,4 +340,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.17.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.18.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

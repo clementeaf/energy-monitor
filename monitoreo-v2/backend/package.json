@@ -23,6 +23,8 @@
     "db:migrate": "node scripts/apply-migration.mjs",
     "db:migrate:ecs": "node scripts/apply-migration-ecs.mjs",
     "pasa:seed": "node ../scripts/pasa-readings/seed-pasa-synthetic.mjs",
+    "pasa:seed-gaps": "node ../scripts/pasa-readings/seed-pasa-frontend-gaps.mjs",
+    "pasa:seed-gaps:ecs": "node scripts/seed-pasa-frontend-gaps-ecs.mjs",
     "pasa:import-csv": "node ../scripts/pasa-readings/import-pasa-csv.mjs"
   },
   "dependencies": {

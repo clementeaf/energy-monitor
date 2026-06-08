@@ -2,7 +2,7 @@ import api from './api';
 import { API_ROUTES } from './routes';
 import type { AuthProvider, MeResponse } from '../types/auth';
 import type { Tenant, CreateTenantPayload, OnboardingResult, UpdateTenantPayload } from '../types/tenant';
-import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload, UpdateApiKeyPayload } from '../types/api-key';
+import type { ApiKey, ApiKeyCreationResult, ApiKeyScopeMeta, CreateApiKeyPayload, UpdateApiKeyPayload } from '../types/api-key';
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../types/role';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../types/building';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../types/meter';
@@ -11,8 +11,8 @@ import type {
   AlertRule, CreateAlertRulePayload, UpdateAlertRulePayload,
 } from '../types/alert';
 import type {
-  Reading, ReadingQueryParams, LatestQueryParams, LatestReading,
-  AggregatedQueryParams, AggregatedReading,
+  Reading, ReadingQueryParams, LatestQueryParams, LatestReading, LatestReadingAnchor,
+  AggregatedQueryParams, AggregatedReading, CompareBuildingsResponse,
 } from '../types/reading';
 import type {
   HierarchyNode, CreateHierarchyNodePayload, UpdateHierarchyNodePayload,
@@ -442,10 +442,14 @@ export const invoicesEndpoints = {
   my: (params?: { limit?: number; offset?: number }) =>
     api.get<Invoice[] | { data: Invoice[]; total: number }>(`${API_ROUTES.invoices}/my`, { params }),
 
-  pdfUrl: (id: string) => {
+  pdfUrl: (id: string, tenantId?: string) => {
     const b = import.meta.env.VITE_API_BASE_URL || '/api';
     const base = b.endsWith('/') ? b.slice(0, -1) : b;
-    return `${base}${API_ROUTES.invoices}/${id}/pdf`;
+    const path = `${base}${API_ROUTES.invoices}/${id}/pdf`;
+    if (!tenantId) {
+      return path;
+    }
+    return `${path}?tenantId=${encodeURIComponent(tenantId)}`;
   },
 };
 
@@ -467,8 +471,13 @@ export const reportsEndpoints = {
   remove: (id: string) =>
     api.delete(`${API_ROUTES.reports}/${id}`),
 
-  exportHref: (id: string): string =>
-    `${apiBase()}${API_ROUTES.reports}/${id}/export`,
+  exportHref: (id: string, tenantId?: string): string => {
+    let url = `${apiBase()}${API_ROUTES.reports}/${id}/export`;
+    if (tenantId) {
+      url += `?tenantId=${encodeURIComponent(tenantId)}`;
+    }
+    return url;
+  },
 
   scheduledList: (params?: ScheduledReportQueryParams) =>
     api.get<ScheduledReport[]>(`${API_ROUTES.reports}/scheduled`, { params }),
@@ -515,6 +524,12 @@ export const readingsEndpoints = {
 
   latest: (params?: LatestQueryParams) =>
     api.get<LatestReading[]>(`${API_ROUTES.readings}/latest`, { params }),
+
+  latestAnchor: () =>
+    api.get<LatestReadingAnchor>(`${API_ROUTES.readings}/latest-anchor`),
+
+  compareBuildings: (params: { days: number }) =>
+    api.get<CompareBuildingsResponse>(`${API_ROUTES.readings}/compare-buildings`, { params }),
 
   aggregated: (params: AggregatedQueryParams) =>
     api.get<AggregatedReading[]>(`${API_ROUTES.readings}/aggregated`, { params }),
@@ -711,6 +726,7 @@ export const tenantsEndpoints = {
 
 export const apiKeysEndpoints = {
   list: () => api.get<ApiKey[]>(API_ROUTES.apiKeys),
+  scopesCatalog: () => api.get<ApiKeyScopeMeta[]>(`${API_ROUTES.apiKeys}/scopes/catalog`),
   create: (payload: CreateApiKeyPayload) => api.post<ApiKeyCreationResult>(API_ROUTES.apiKeys, payload),
   update: (id: string, payload: UpdateApiKeyPayload) => api.patch<ApiKey>(`${API_ROUTES.apiKeys}/${id}`, payload),
   rotate: (id: string) => api.post<ApiKeyCreationResult>(`${API_ROUTES.apiKeys}/${id}/rotate`, {}),

@@ -8,6 +8,14 @@ import { IngestModule } from '../ingest/ingest.module';
 import { TenantsModule } from '../tenants/tenants.module';
 import { EtlExportModule } from '../etl-export/etl-export.module';
 import { DataGovernanceModule } from '../data-governance/data-governance.module';
+import { TenantUnitsModule } from '../tenant-units/tenant-units.module';
+import { HierarchyModule } from '../hierarchy/hierarchy.module';
+import { ConcentratorsModule } from '../concentrators/concentrators.module';
+import { FaultEventsModule } from '../fault-events/fault-events.module';
+import { InvoicesModule } from '../invoices/invoices.module';
+import { TariffsModule } from '../tariffs/tariffs.module';
+import { IotReadingsModule } from '../iot-readings/iot-readings.module';
+import { IntegrationsModule } from '../integrations/integrations.module';
 
 @Module({
   imports: [
@@ -19,6 +27,14 @@ import { DataGovernanceModule } from '../data-governance/data-governance.module'
     TenantsModule,
     EtlExportModule,
     DataGovernanceModule,
+    TenantUnitsModule,
+    HierarchyModule,
+    ConcentratorsModule,
+    FaultEventsModule,
+    InvoicesModule,
+    TariffsModule,
+    IotReadingsModule,
+    IntegrationsModule,
   ],
   controllers: [ExternalApiController],
 })

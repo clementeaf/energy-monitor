@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiKeysEndpoints } from '../../services/endpoints';
 import type {
   ApiKey,
+  ApiKeyScopeMeta,
   CreateApiKeyPayload, UpdateApiKeyPayload,
 } from '../../types/api-key';
 
 const KEYS = {
   all: ['api-keys'] as const,
+  scopes: ['api-keys', 'scopes'] as const,
 };
 
 export function useApiKeysQuery() {
@@ -16,6 +18,17 @@ export function useApiKeysQuery() {
       const { data } = await apiKeysEndpoints.list();
       return data;
     },
+  });
+}
+
+export function useApiKeyScopesQuery() {
+  return useQuery({
+    queryKey: KEYS.scopes,
+    queryFn: async (): Promise<ApiKeyScopeMeta[]> => {
+      const { data } = await apiKeysEndpoints.scopesCatalog();
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

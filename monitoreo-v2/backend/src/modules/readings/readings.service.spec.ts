@@ -171,7 +171,7 @@ describe('ReadingsService', () => {
       expect(result[0]?.timestamp_utc).toBeDefined();
       expect(result[0]?.timestamp_local).toBeDefined();
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('LEFT JOIN LATERAL');
+      expect(sql).toContain('DISTINCT ON');
       expect(sql).toContain('COALESCE(b.timezone, t.timezone');
       expect(sql).toContain('m.tenant_id = $1');
     });
@@ -230,6 +230,31 @@ describe('ReadingsService', () => {
       expect(sql).not.toContain('m.tenant_id = $');
       const params = ds.query.mock.calls[0][1];
       expect(params).toEqual([]);
+    });
+  });
+
+  describe('findLatestAnchor', () => {
+    it('returns MAX bucket from readings_daily when available', async () => {
+      ds.query.mockResolvedValueOnce([{ timestamp: '2026-04-30T00:00:00.000Z' }]);
+
+      const result = await service.findLatestAnchor(TENANT_ID, [], false);
+
+      expect(result.timestamp).toBe('2026-04-30T00:00:00.000Z');
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_daily');
+      expect(sql).toContain('MAX(a.bucket)');
+      expect(ds.query).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to raw readings when readings_daily is empty', async () => {
+      ds.query
+        .mockResolvedValueOnce([{ timestamp: null }])
+        .mockResolvedValueOnce([{ timestamp: '2026-04-30T12:00:00.000Z' }]);
+
+      const result = await service.findLatestAnchor(TENANT_ID, [], false);
+
+      expect(result.timestamp).toBe('2026-04-30T12:00:00.000Z');
+      expect(ds.query.mock.calls[1][0]).toContain('MAX(r.timestamp)');
     });
   });
 
@@ -385,16 +410,49 @@ describe('ReadingsService', () => {
     });
 
     it('portfolio daily: queries portfolio_summary when populated', async () => {
-      ds.query.mockResolvedValue([]);
+      const rows = [{ bucket: '2026-01-01', meter_id: '_portfolio', avg_power_kw: '100', energy_delta_kwh: '50' }];
+      ds.query.mockResolvedValueOnce(rows);
 
-      await service.findAggregated(TENANT_ID, [], {
+      const result = await service.findAggregated(TENANT_ID, [], {
         ...baseQuery,
         groupBy: 'portfolio',
       });
 
+      expect(result).toEqual(rows);
       const sql = ds.query.mock.calls[0][0] as string;
       expect(sql).toContain('portfolio_summary');
-      expect(sql).not.toContain('readings_daily');
+      expect(sql).toContain('sum_energy_kwh');
+    });
+
+    it('portfolio daily: falls back to readings_daily when portfolio_summary is empty', async () => {
+      const rows = [{ bucket: '2026-01-01', meter_id: '_portfolio', avg_power_kw: '100' }];
+      ds.query.mockResolvedValueOnce([]).mockResolvedValueOnce(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        groupBy: 'portfolio',
+      });
+
+      expect(result).toEqual(rows);
+      expect(ds.query.mock.calls[0][0]).toContain('portfolio_summary');
+      expect(ds.query.mock.calls[1][0]).toContain('readings_daily');
+      expect(ds.query.mock.calls[1][0]).not.toContain('portfolio_summary');
+    });
+
+    it('portfolio hourly: queries readings_hourly not portfolio_summary', async () => {
+      const rows = [{ bucket: '2026-01-01T12:00:00Z', meter_id: '_portfolio', avg_power_kw: '80' }];
+      ds.query.mockResolvedValueOnce(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        interval: 'hourly',
+        groupBy: 'portfolio',
+      });
+
+      expect(result).toEqual(rows);
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_hourly');
+      expect(sql).not.toContain('portfolio_summary');
     });
 
     it('portfolio daily: falls back to readings_daily when portfolio_summary is unpopulated', async () => {
@@ -414,6 +472,95 @@ describe('ReadingsService', () => {
       expect(ds.query.mock.calls[0][0]).toContain('portfolio_summary');
       expect(ds.query.mock.calls[1][0]).toContain('readings_daily');
       expect(ds.query.mock.calls[1][0]).not.toContain('portfolio_summary');
+    });
+
+    it('building daily: queries building_summary when populated', async () => {
+      const rows = [{ bucket: '2026-01-01', meter_id: 'bld-1', avg_power_kw: '100', energy_delta_kwh: '50' }];
+      ds.query.mockResolvedValueOnce(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        groupBy: 'building',
+      });
+
+      expect(result).toEqual(rows);
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('building_summary');
+      expect(sql).toContain('sum_energy_kwh');
+    });
+
+    it('building daily: falls back to readings_daily when building_summary is empty', async () => {
+      const rows = [{ bucket: '2026-01-01', meter_id: 'bld-1', avg_power_kw: '100' }];
+      ds.query.mockResolvedValueOnce([]).mockResolvedValueOnce(rows);
+
+      const result = await service.findAggregated(TENANT_ID, [], {
+        ...baseQuery,
+        groupBy: 'building',
+      });
+
+      expect(result).toEqual(rows);
+      expect(ds.query.mock.calls[0][0]).toContain('building_summary');
+      expect(ds.query.mock.calls[1][0]).toContain('readings_daily');
+      expect(ds.query.mock.calls[1][0]).not.toContain('building_summary');
+    });
+
+    it('building hourly: filters generation meters when meterRole=generation', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-31T23:59:59Z',
+        interval: 'hourly',
+        groupBy: 'building',
+        buildingId: 'bld-1',
+        meterRole: 'generation',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('readings_hourly');
+      expect(sql).toContain("m.meter_type");
+      expect(sql).toContain('generation');
+      expect(sql).toContain('GROUP BY a.bucket, m.building_id');
+    });
+
+    it('building hourly: excludes generation meters when meterRole=load', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-31T23:59:59Z',
+        interval: 'hourly',
+        groupBy: 'building',
+        buildingId: 'bld-1',
+        meterRole: 'load',
+      });
+
+      const sql = ds.query.mock.calls[0][0] as string;
+      expect(sql).toContain('NOT');
+      expect(sql).toContain("m.meter_type");
+    });
+  });
+
+  describe('findCompareBuildings', () => {
+    it('returns anchor and parallel current/previous aggregates', async () => {
+      const anchorRow = [{ timestamp: '2026-04-30T00:00:00.000Z' }];
+      const currentRows = [{ bucket: '2026-04-01', meter_id: 'bld-1', energy_delta_kwh: '100' }];
+      const previousRows = [{ bucket: '2026-03-01', meter_id: 'bld-1', energy_delta_kwh: '80' }];
+
+      ds.query
+        .mockResolvedValueOnce(anchorRow)
+        .mockResolvedValueOnce(currentRows)
+        .mockResolvedValueOnce(previousRows);
+
+      const result = await service.findCompareBuildings(TENANT_ID, [], 30, false);
+
+      expect(result.anchor).toBe('2026-04-30T00:00:00.000Z');
+      expect(result.current).toEqual(currentRows);
+      expect(result.previous).toEqual(previousRows);
+      expect(result.from).toBeTruthy();
+      expect(result.to).toBeTruthy();
+      expect(result.previousFrom).toBeTruthy();
+      expect(result.previousTo).toBeTruthy();
     });
   });
 });

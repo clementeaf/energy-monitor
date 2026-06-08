@@ -1,20 +1,17 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import type { SeriesOptionsType, Options as HighchartsOptions } from 'highcharts';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { StockChart } from '../../../components/charts/StockChart';
+import { useCompareBuildingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { Chart } from '../../../components/charts/Chart';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import {
-  compareMetricsByBuilding,
-  dailyEnergySeriesByBuilding,
-  meterToBuildingMap,
-  previousPeriodRange,
+  compareMetricsFromBuildingRows,
+  dailyEnergySeriesFromBuildingRows,
 } from '../dashboardAggregations';
+import type { Building } from '../../../types/building';
 
 type RangePreset = 'day' | 'week' | 'month';
 
@@ -24,6 +21,14 @@ const RANGE_PRESETS: { key: RangePreset; label: string; days: number }[] = [
   { key: 'month', label: 'Mes', days: 30 },
 ];
 
+const CHART_COLORS = ['var(--color-brand)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
+
+/**
+ * Formatea rango de fechas para etiquetas de periodo.
+ * @param fromIso - Inicio ISO
+ * @param toIso - Fin ISO
+ * @returns Texto legible es-CL
+ */
 function formatRangeLabel(fromIso: string, toIso: string): string {
   const from = new Date(fromIso);
   const to = new Date(toIso);
@@ -31,26 +36,24 @@ function formatRangeLabel(fromIso: string, toIso: string): string {
   return `${from.toLocaleDateString('es-CL', opts)} — ${to.toLocaleDateString('es-CL', opts)}`;
 }
 
+/**
+ * Dashboard comparativo multi-edificio con datos precargados vía bundle API.
+ * @returns Vista de la ruta `/dashboard/compare`
+ */
 export function CompareDashboardPage(): ReactElement {
   const [preset, setPreset] = useState<RangePreset>('month');
   const [compareWithPrevious, setCompareWithPrevious] = useState(false);
 
   const rangeConfig = RANGE_PRESETS.find((r) => r.key === preset)!;
-  const { from, to } = useMemo(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - rangeConfig.days);
-    return { from: start.toISOString(), to: end.toISOString() };
-  }, [rangeConfig.days]);
-
-  const prevRange = useMemo(() => previousPeriodRange(from, to), [from, to]);
-
+  const compareQuery = useCompareBuildingsQuery(rangeConfig.days);
   const buildingsQuery = useBuildingsQuery();
-  const metersQuery = useMetersQuery();
 
   const buildings = buildingsQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
-  const meterById = useMemo(() => meterToBuildingMap(meters), [meters]);
+  const buildingsById = useMemo(() => {
+    const map = new Map<string, Building>();
+    for (const b of buildings) map.set(b.id, b);
+    return map;
+  }, [buildings]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -67,36 +70,34 @@ export function CompareDashboardPage(): ReactElement {
   const selectAll = (): void => setSelectedIds(buildings.map((b) => b.id));
   const clearSelection = (): void => setSelectedIds([]);
 
-  const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'daily' },
-    canCompare,
-  );
-  const aggQueryPrev = useAggregatedReadingsQuery(
-    { from: prevRange.from, to: prevRange.to, interval: 'daily' },
-    canCompare && compareWithPrevious,
-  );
+  const bundle = compareQuery.data;
+  const from = bundle?.from ?? '';
+  const to = bundle?.to ?? '';
+  const prevRange = bundle
+    ? { from: bundle.previousFrom, to: bundle.previousTo }
+    : { from: '', to: '' };
 
-  const aggRows = aggQuery.data ?? [];
-  const aggRowsPrev = aggQueryPrev.data ?? [];
+  const aggRows = bundle?.current ?? [];
+  const aggRowsPrev = bundle?.previous ?? [];
 
   const seriesByBuilding = useMemo(
-    () => dailyEnergySeriesByBuilding(aggRows, meterById, selectedIds),
-    [aggRows, meterById, selectedIds],
+    () => dailyEnergySeriesFromBuildingRows(aggRows, selectedIds),
+    [aggRows, selectedIds],
   );
 
   const metrics = useMemo(
-    () => compareMetricsByBuilding(aggRows, meterById, selectedIds),
-    [aggRows, meterById, selectedIds],
+    () => compareMetricsFromBuildingRows(aggRows, selectedIds),
+    [aggRows, selectedIds],
   );
 
   const metricsPrev = useMemo(
-    () => compareMetricsByBuilding(aggRowsPrev, meterById, selectedIds),
-    [aggRowsPrev, meterById, selectedIds],
+    () => compareMetricsFromBuildingRows(aggRowsPrev, selectedIds),
+    [aggRowsPrev, selectedIds],
   );
 
   const tableRowsSingle = useMemo(() => {
     const rows = selectedIds.map((id) => {
-      const b = buildings.find((x) => x.id === id);
+      const b = buildingsById.get(id);
       const m = metrics.get(id);
       return {
         buildingId: id,
@@ -113,11 +114,11 @@ export function CompareDashboardPage(): ReactElement {
       deltaPct:
         meanEnergy > 0 ? ((r.energyKwh - meanEnergy) / meanEnergy) * 100 : 0,
     }));
-  }, [selectedIds, buildings, metrics]);
+  }, [selectedIds, buildingsById, metrics]);
 
   const tableRowsDual = useMemo(() => {
     return selectedIds.map((id) => {
-      const b = buildings.find((x) => x.id === id);
+      const b = buildingsById.get(id);
       const cur = metrics.get(id);
       const prev = metricsPrev.get(id);
       const energyA = cur?.energyKwh ?? 0;
@@ -138,33 +139,31 @@ export function CompareDashboardPage(): ReactElement {
         avgPf: cur?.avgPf ?? 0,
       };
     });
-  }, [selectedIds, buildings, metrics, metricsPrev]);
+  }, [selectedIds, buildingsById, metrics, metricsPrev]);
 
-  const lineChartOptions = useMemo(() => {
-    const colors = ['var(--color-brand)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
+  const lineChartOptions = useMemo((): HighchartsOptions => {
     const series: SeriesOptionsType[] = selectedIds.map((id, idx) => {
-      const b = buildings.find((x) => x.id === id);
+      const b = buildingsById.get(id);
       const pts = seriesByBuilding.get(id) ?? [];
       return {
         type: 'line' as const,
         name: b?.name ?? id,
         data: pts,
-        color: colors[idx % colors.length],
+        color: CHART_COLORS[idx % CHART_COLORS.length],
       };
     });
 
     return {
-      rangeSelector: { enabled: false },
-      navigator: { enabled: false },
-      scrollbar: { enabled: false },
+      chart: { type: 'line' },
       title: { text: 'Consumo diario por edificio (kWh)' },
+      xAxis: { type: 'datetime' },
       yAxis: [{ title: { text: 'kWh' } }],
       series,
     };
-  }, [selectedIds, buildings, seriesByBuilding]);
+  }, [selectedIds, buildingsById, seriesByBuilding]);
 
   const columnChartOptions = useMemo((): HighchartsOptions => {
-    const categories = selectedIds.map((id) => buildings.find((x) => x.id === id)?.name ?? id);
+    const categories = selectedIds.map((id) => buildingsById.get(id)?.name ?? id);
     const dataCurrent = selectedIds.map((id) => metrics.get(id)?.energyKwh ?? 0);
     const dataPrevious = selectedIds.map((id) => metricsPrev.get(id)?.energyKwh ?? 0);
     return {
@@ -180,18 +179,17 @@ export function CompareDashboardPage(): ReactElement {
         { type: 'column', name: 'Periodo anterior', data: dataPrevious },
       ],
     };
-  }, [selectedIds, buildings, metrics, metricsPrev]);
+  }, [selectedIds, buildingsById, metrics, metricsPrev]);
 
-  const loading = aggQuery.isPending || (compareWithPrevious && aggQueryPrev.isPending);
-  const fetchError = aggQuery.error ?? aggQueryPrev.error;
-  const isError = aggQuery.isError || (compareWithPrevious && aggQueryPrev.isError);
+  const loading = compareQuery.isPending && !compareQuery.data;
+  const fetchError = compareQuery.error;
+  const isError = compareQuery.isError;
   const emptyData = compareWithPrevious
     ? aggRows.length === 0 && aggRowsPrev.length === 0
     : aggRows.length === 0;
 
   const onRetry = (): void => {
-    aggQuery.refetch();
-    if (compareWithPrevious) aggQueryPrev.refetch();
+    void compareQuery.refetch();
   };
 
   return (
@@ -214,7 +212,6 @@ export function CompareDashboardPage(): ReactElement {
         }
       />
 
-      {/* Compare toggle */}
       <div className="panel p-4">
         <label className="flex cursor-pointer items-start gap-3">
           <input
@@ -230,7 +227,7 @@ export function CompareDashboardPage(): ReactElement {
             </span>
           </span>
         </label>
-        {compareWithPrevious && (
+        {compareWithPrevious && bundle && (
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
               <span className="font-medium text-foreground">Actual</span>
@@ -244,7 +241,6 @@ export function CompareDashboardPage(): ReactElement {
         )}
       </div>
 
-      {/* Building selector */}
       <div className="panel p-4">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-[13px] font-medium text-foreground">Edificios</span>
@@ -281,28 +277,6 @@ export function CompareDashboardPage(): ReactElement {
         </div>
       </div>
 
-      {/* Results */}
-      {canCompare && loading && (
-        <div className="animate-pulse space-y-4">
-          <div className="panel p-4">
-            <div className="mb-2 h-4 w-48 rounded bg-raised" />
-            <div className="h-64 w-full rounded bg-raised" />
-          </div>
-          <div className="panel">
-            <div className="h-8 w-full rounded-t bg-raised" />
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex gap-4 border-t border-border px-3 py-2">
-                <div className="h-4 w-32 rounded bg-raised" />
-                <div className="ml-auto h-4 w-20 rounded bg-raised" />
-                <div className="h-4 w-20 rounded bg-raised" />
-                <div className="h-4 w-16 rounded bg-raised" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!(canCompare && loading) && (
       <DataWidget
         phase={
           !canCompare ? 'empty'
@@ -324,20 +298,18 @@ export function CompareDashboardPage(): ReactElement {
       >
         {canCompare && !emptyData && (
           <div className="space-y-4">
-            {/* Chart */}
             {compareWithPrevious ? (
               <div className="panel p-4">
                 <h2 className="mb-2 text-[13px] font-medium text-foreground">Energía total: actual vs anterior</h2>
-                <Chart options={columnChartOptions} />
+                <Chart options={columnChartOptions} loading={compareQuery.isFetching && !compareQuery.isPending} />
               </div>
             ) : (
               <div className="panel p-4">
                 <h2 className="mb-2 text-[13px] font-medium text-foreground">Curvas superpuestas</h2>
-                <StockChart options={lineChartOptions} loading={aggQuery.isFetching} />
+                <Chart options={lineChartOptions} loading={compareQuery.isFetching && !compareQuery.isPending} />
               </div>
             )}
 
-            {/* Table */}
             <div className="space-y-2">
               <h2 className="text-[13px] font-medium text-foreground">Tabla comparativa</h2>
               <div className="max-h-[70vh] overflow-y-auto panel">
@@ -419,7 +391,6 @@ export function CompareDashboardPage(): ReactElement {
           </div>
         )}
       </DataWidget>
-      )}
 
       {!buildingsQuery.isPending && buildings.length === 0 && (
         <p className="text-[13px] text-muted">No hay edificios disponibles en tu alcance.</p>

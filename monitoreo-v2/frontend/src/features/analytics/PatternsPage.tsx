@@ -50,7 +50,13 @@ export function PatternsPage(): ReactElement {
 
   const buildingsQuery = useBuildingsQuery();
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'hourly', buildingId: buildingFilter || undefined },
+    {
+      from,
+      to,
+      interval: 'hourly',
+      groupBy: buildingFilter ? 'building' : 'portfolio',
+      buildingId: buildingFilter || undefined,
+    },
     true,
   );
 

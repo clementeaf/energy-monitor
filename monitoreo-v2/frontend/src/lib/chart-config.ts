@@ -1,4 +1,4 @@
-import Highcharts from 'highcharts';
+import type Highcharts from 'highcharts';
 
 // ---------------------------------------------------------------------------
 // Color palette — reads CSS variables at call time so it reacts to theme changes

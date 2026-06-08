@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { useMyInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
-import { invoicesEndpoints } from '../../services/endpoints';
+import { useInvoicePdfUrl } from '../../hooks/useInvoicePdfUrl';
 import { Chart } from '../../components/charts/Chart';
 import { ChartSkeleton } from '../../components/ui/ChartSkeleton';
 import { TableStateBody } from '../../components/ui/TableStateBody';
@@ -143,6 +143,8 @@ export function MyInvoicePage(): ReactElement {
 }
 
 function MyInvoiceRow({ invoice }: Readonly<{ invoice: Invoice }>): ReactElement {
+  const pdfUrl = useInvoicePdfUrl(invoice.id);
+
   return (
     <tr className="hover:bg-surface">
       <td className="px-4 py-3 text-foreground">{invoice.periodStart} — {invoice.periodEnd}</td>
@@ -157,7 +159,7 @@ function MyInvoiceRow({ invoice }: Readonly<{ invoice: Invoice }>): ReactElement
       </td>
       <td className="px-4 py-3 text-right">
         <a
-          href={invoicesEndpoints.pdfUrl(invoice.id)}
+          href={pdfUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm font-medium text-brand hover:underline"

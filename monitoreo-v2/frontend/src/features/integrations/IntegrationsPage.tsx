@@ -221,7 +221,7 @@ export function IntegrationsPage() {
 
   return (
     <div className="flex h-full flex-col gap-6">
-      <IntegrationsTabBar active={activeTab} canWebhooks={canReadWebhooks} />
+      <IntegrationsTabBar canWebhooks={canReadWebhooks} />
 
       {activeTab === 'webhooks' && <IntegrationsWebhooksTab />}
 

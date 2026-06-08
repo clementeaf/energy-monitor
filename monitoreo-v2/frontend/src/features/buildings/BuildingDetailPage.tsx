@@ -9,7 +9,8 @@ import { useQueryState } from '../../hooks/useQueryState';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useInvoicesQuery, useInvoiceLineItemsQuery } from '../../hooks/queries/useInvoicesQuery';
-import { invoicesEndpoints } from '../../services/endpoints';
+import { InvoicePdfPreview } from '../../components/billing/InvoicePdfPreview';
+import { InvoicePdfDownloadLink } from '../../components/billing/InvoicePdfDownloadLink';
 import { fmtNum, fmtClp, monthLabel } from '../../lib/formatters';
 import type { Invoice, InvoiceLineItem } from '../../types/invoice';
 
@@ -239,17 +240,15 @@ export function BuildingDetailPage() {
                         <Td className="font-medium">{fmtClp(inv.total)}</Td>
                         <Td>
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            <a
-                              href={invoicesEndpoints.pdfUrl(inv.id)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <InvoicePdfDownloadLink
+                              invoiceId={inv.id}
                               className="text-brand hover:opacity-70"
                               title="Descargar PDF"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
                               </svg>
-                            </a>
+                            </InvoicePdfDownloadLink>
                             <button
                               type="button"
                               onClick={() => setPreviewInvoiceId(inv.id)}
@@ -414,11 +413,7 @@ export function BuildingDetailPage() {
         size="xl"
       >
         {previewInvoiceId && (
-          <iframe
-            src={invoicesEndpoints.pdfUrl(previewInvoiceId)}
-            className="h-full w-full rounded border-0"
-            title="Previsualizacion factura"
-          />
+          <InvoicePdfPreview invoiceId={previewInvoiceId} />
         )}
       </Drawer>
     </div>

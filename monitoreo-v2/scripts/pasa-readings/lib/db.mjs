@@ -1,18 +1,36 @@
-import pg from 'pg';
+import fs from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+
+const requirePg = fs.existsSync('/app/package.json')
+  ? createRequire('/app/package.json')
+  : createRequire(fileURLToPath(import.meta.url));
+
+const pg = requirePg('pg');
 
 /**
  * Build PostgreSQL client config from environment variables.
  * @returns {import('pg').ClientConfig}
  */
 export function buildDbConfig() {
-  const sslEnabled = process.env.DB_SSL === 'true';
+  const host = process.env.DB_HOST ?? '127.0.0.1';
+  const isLocal = host === '127.0.0.1' || host === 'localhost';
+  const sslEnabled = process.env.DB_SSL === 'true' || !isLocal;
+  const caPath = process.env.RDS_CA_BUNDLE_PATH ?? '/app/certs/rds-global-bundle.pem';
+  let ssl;
+  if (sslEnabled) {
+    ssl = {
+      rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+      ...(!isLocal && fs.existsSync(caPath) ? { ca: fs.readFileSync(caPath) } : {}),
+    };
+  }
   return {
-    host: process.env.DB_HOST ?? '127.0.0.1',
-    port: Number(process.env.DB_PORT ?? 5434),
+    host,
+    port: Number(process.env.DB_PORT ?? (isLocal ? 5434 : 5432)),
     database: process.env.DB_NAME ?? 'monitoreo_v2',
     user: process.env.DB_USERNAME ?? 'postgres',
     password: process.env.DB_PASSWORD ?? 'monitoreo2026',
-    ssl: sslEnabled ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } : undefined,
+    ssl,
   };
 }
 

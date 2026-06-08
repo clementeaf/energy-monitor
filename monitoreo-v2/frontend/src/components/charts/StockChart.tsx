@@ -1,11 +1,8 @@
 import { useRef, useMemo } from 'react';
-import Highcharts from 'highcharts/highstock';
+import { HighchartsStock as Highcharts } from '../../lib/highcharts-init';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions, stockChartExtras } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';
-
-// Remove "Zoom" label from range selector
-Highcharts.setOptions({ lang: { rangeSelectorZoom: '' } });
 
 // Guard against "Cannot read properties of undefined (reading 'hoverPoint')"
 const proto = Highcharts.Pointer.prototype as unknown as Record<string, unknown>;

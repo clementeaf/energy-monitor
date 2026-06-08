@@ -55,7 +55,7 @@ export function TrendsPage(): ReactElement {
   const [variable, setVariable] = useState<Variable>('energy');
   const [horizon, setHorizon] = useState<Horizon>(3);
 
-  // Fetch 365 days of monthly data
+  // Fetch 365 days of daily aggregates (portfolio_summary / building_summary), roll up to months client-side.
   const from = useMemo(() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 1);
@@ -65,7 +65,13 @@ export function TrendsPage(): ReactElement {
 
   const buildingsQuery = useBuildingsQuery();
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'monthly', buildingId: buildingFilter || undefined },
+    {
+      from,
+      to,
+      interval: 'daily',
+      groupBy: buildingFilter ? 'building' : 'portfolio',
+      buildingId: buildingFilter || undefined,
+    },
     true,
   );
 

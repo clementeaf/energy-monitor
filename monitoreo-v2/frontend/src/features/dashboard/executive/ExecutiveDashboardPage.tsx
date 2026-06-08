@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useLatestReadingAnchorQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useTariffsQuery, useTariffBlocksQuery } from '../../../hooks/queries/useTariffsQuery';
@@ -16,6 +16,7 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import {
   aggregatePortfolioByBucket,
   countMetersByBuilding,
+  dateRangeFromAnchor,
   dateRangeFromLatestReadings,
 } from '../dashboardAggregations';
 
@@ -47,16 +48,24 @@ export function ExecutiveDashboardPage(): ReactElement {
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
+  const anchorQuery = useLatestReadingAnchorQuery();
   const latestQuery = useLatestReadingsQuery();
 
-  const { from, to } = useMemo(
-    () => dateRangeFromLatestReadings(rangeConfig.days, latestQuery.data ?? []),
-    [latestQuery.data, rangeConfig.days],
-  );
+  const chartRangeReady = anchorQuery.isSuccess || latestQuery.isSuccess;
+
+  const { from, to } = useMemo(() => {
+    if (anchorQuery.data?.timestamp) {
+      return dateRangeFromAnchor(rangeConfig.days, anchorQuery.data.timestamp);
+    }
+    if (latestQuery.isSuccess) {
+      return dateRangeFromLatestReadings(rangeConfig.days, latestQuery.data ?? []);
+    }
+    return dateRangeFromAnchor(rangeConfig.days, null);
+  }, [anchorQuery.data, latestQuery.data, latestQuery.isSuccess, rangeConfig.days]);
 
   const aggQuery = useAggregatedReadingsQuery(
     { from, to, interval: rangeConfig.interval, groupBy: 'portfolio' },
-    latestQuery.isSuccess,
+    chartRangeReady,
   );
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
   const tariffsQuery = useTariffsQuery();
@@ -246,6 +255,19 @@ export function ExecutiveDashboardPage(): ReactElement {
               </div>
               <StockChart options={chartOptions} loading={aggQuery.isFetching} />
             </div>
+          )}
+          {!aggQuery.isPending && portfolioSeries.length === 0 && (
+            <DataWidget
+              phase={aggQuery.isError ? 'error' : 'ready'}
+              error={aggQuery.error}
+              onRetry={() => { aggQuery.refetch(); latestQuery.refetch(); }}
+              emptyTitle="Sin datos en el periodo"
+              emptyDescription="No hay lecturas agregadas para el rango seleccionado. Prueba Semana/Mes o verifica que el tenant PASA tenga lecturas cargadas."
+            >
+              <div className="panel p-4 text-[13px] text-muted">
+                Rango consultado: {new Date(from).toLocaleDateString('es-CL')} — {new Date(to).toLocaleDateString('es-CL')}
+              </div>
+            </DataWidget>
           )}
         </div>
 

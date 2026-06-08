@@ -10,23 +10,25 @@ export type IntegrationsTab =
   | 'backfill';
 
 interface IntegrationsTabBarProps {
-  active: IntegrationsTab;
   canWebhooks: boolean;
 }
 
 const TAB_CLASS = ({ isActive }: { isActive: boolean }): string =>
-  `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+  `rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${
     isActive
-      ? 'bg-brand text-brand-fg'
-      : 'text-muted hover:bg-surface hover:text-foreground'
+      ? 'bg-background text-foreground shadow-sm ring-1 ring-border'
+      : 'text-muted hover:text-foreground'
   }`;
 
 /**
  * Tab navigation for Integrations section.
  */
-export function IntegrationsTabBar({ active, canWebhooks }: Readonly<IntegrationsTabBarProps>) {
+export function IntegrationsTabBar({ canWebhooks }: Readonly<IntegrationsTabBarProps>) {
   return (
-    <nav className="flex flex-wrap gap-2" aria-label="Integraciones">
+    <nav
+      className="inline-flex flex-wrap gap-1 rounded-full border border-border bg-surface p-1"
+      aria-label="Integraciones"
+    >
       <NavLink to={APP_ROUTES.integrations} end className={TAB_CLASS}>
         Conectores
       </NavLink>
@@ -49,7 +51,6 @@ export function IntegrationsTabBar({ active, canWebhooks }: Readonly<Integration
       <NavLink to={APP_ROUTES.integrationsStatus} className={TAB_CLASS}>
         Salud
       </NavLink>
-      {active === 'connectors' && <span className="sr-only">Conectores activo</span>}
     </nav>
   );
 }

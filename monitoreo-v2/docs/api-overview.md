@@ -96,19 +96,33 @@ Swagger docs: `/api/docs` (development only).
 
 ## External API (v1)
 
-Auth: `X-API-Key` header. Rate-limited per key.
+Auth: `X-API-Key: emk_...` header (or OAuth2 `client_credentials` → Bearer token). Rate-limited per key/client. Building scope optional on key (`buildingIds` empty = all tenant buildings).
 
-| Method | Path | Description |
-|---|---|---|
-| GET | /api/v1/buildings | List buildings |
-| GET | /api/v1/buildings/:id | Building detail |
-| GET | /api/v1/meters | List meters |
-| GET | /api/v1/meters/:id | Meter detail |
-| GET | /api/v1/readings | Time-series |
-| GET | /api/v1/readings/latest | Latest readings |
-| GET | /api/v1/readings/aggregated | Aggregated readings |
-| GET | /api/v1/alerts | Active alerts |
-| GET | /api/v1/alerts/:id | Alert detail |
+Admin: **Administración → API Keys** (`GET /api/api-keys/scopes/catalog` lists valid permission scopes).
+
+| Scope | Endpoints |
+|---|---|
+| `buildings:read` | GET `/api/v1/buildings`, `/api/v1/buildings/:id` |
+| `meters:read` | GET `/api/v1/meters`, `/api/v1/meters/:id`, `/api/v1/meters/:id/status` |
+| `readings:read` | GET `/api/v1/readings`, `/readings/latest`, `/readings/aggregated`, `/readings/latest-anchor`, `/readings/compare-buildings`, `/api/v1/iot-readings*` |
+| `readings:export` | GET `/api/v1/readings/export`, POST/GET `/api/v1/exports*` |
+| `readings:create` | POST `/api/v1/measurements` (ingress; optional higher `ingressRateLimitPerMinute` on key) |
+| `alerts:read` | GET `/api/v1/alerts`, `/api/v1/alerts/:id` |
+| `billing:read` | GET `/api/v1/invoices*`, `/api/v1/tariffs*` |
+| `tenant_units:read` | GET `/api/v1/tenant-units*` |
+| `hierarchy:read` | GET `/api/v1/hierarchy/buildings/:buildingId` |
+| `concentrators:read` | GET `/api/v1/concentrators*` |
+| `fault_events:read` | GET `/api/v1/fault-events*` |
+| `integrations:read` | GET `/api/v1/integrations/health` |
+
+OAuth2 machine-to-machine: `POST /api/oauth/token` with `grant_type=client_credentials`, `client_id`, `client_secret`. Same scopes as API keys.
+
+Example:
+
+```bash
+curl -H "X-API-Key: emk_your_key" \
+  "https://power-monitor.cloud/api/v1/readings/compare-buildings?days=7"
+```
 
 ## IoT Readings
 

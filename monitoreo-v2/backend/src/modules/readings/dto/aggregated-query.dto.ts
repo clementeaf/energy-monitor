@@ -21,4 +21,8 @@ export class AggregatedQueryDto {
   @IsOptional()
   @IsIn(['portfolio', 'building'])
   groupBy?: string;
+
+  @IsOptional()
+  @IsIn(['generation', 'load'])
+  meterRole?: string;
 }

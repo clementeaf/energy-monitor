@@ -67,6 +67,22 @@ export function dateRangeFromLatestReadings(
 }
 
 /**
+ * Rango ISO [from, to] anclado a un timestamp máximo (p. ej. `/readings/latest-anchor`).
+ * @param days - Ventana en días
+ * @param anchorIso - Timestamp ISO del dato más reciente, o null para usar `now`
+ * @param now - Fallback cuando anchor es null
+ * @returns Fechas from/to en ISO 8601
+ */
+export function dateRangeFromAnchor(
+  days: number,
+  anchorIso: string | null | undefined,
+  now: Date = new Date(),
+): { from: string; to: string } {
+  const anchor = anchorIso ? new Date(anchorIso) : now;
+  return dateRangeFromDays(days, anchor);
+}
+
+/**
  * Construye el rango ISO [from, to] a partir de un preset relativo a "ahora".
  * @param preset - Ventana: 7, 30 o 90 días hacia atrás
  * @param now - Referencia temporal (inyectable para tests)
@@ -182,6 +198,87 @@ export function rankBuildingsByIntensity(
     }
   }
   return rows.sort((a, b) => a.intensity - b.intensity);
+}
+
+/**
+ * Series diarias kWh desde filas ya agregadas por edificio (`groupBy=building`).
+ * @param rows - Filas con `meter_id` = buildingId
+ * @param buildingIds - Edificios seleccionados
+ * @returns Mapa buildingId → [timestamp, kWh]
+ */
+export function dailyEnergySeriesFromBuildingRows(
+  rows: AggregatedReading[],
+  buildingIds: string[],
+): Map<string, [number, number][]> {
+  const allowed = new Set(buildingIds);
+  const series = new Map<string, [number, number][]>();
+  for (const bid of buildingIds) {
+    series.set(bid, []);
+  }
+  for (const r of rows) {
+    const bid = r.meter_id;
+    if (!allowed.has(bid)) continue;
+    const pts = series.get(bid);
+    if (!pts) continue;
+    pts.push([new Date(r.bucket).getTime(), Number(r.energy_delta_kwh ?? 0)]);
+  }
+  for (const pts of series.values()) {
+    pts.sort((a, b) => a[0] - b[0]);
+  }
+  return series;
+}
+
+/**
+ * Métricas comparativas desde filas agregadas por edificio (`groupBy=building`).
+ * @param rows - Filas con `meter_id` = buildingId
+ * @param buildingIds - Edificios seleccionados
+ * @returns Métricas por edificio
+ */
+export function compareMetricsFromBuildingRows(
+  rows: AggregatedReading[],
+  buildingIds: string[],
+): Map<string, { energyKwh: number; peakDemandKw: number; avgPf: number; pfWeight: number }> {
+  const allowed = new Set(buildingIds);
+  const energySum = new Map<string, number>();
+  const sumPfAcc = new Map<string, { sum: number; count: number }>();
+  const powerByBuildingBucket = new Map<string, Map<string, number>>();
+
+  for (const bid of buildingIds) {
+    energySum.set(bid, 0);
+    sumPfAcc.set(bid, { sum: 0, count: 0 });
+    powerByBuildingBucket.set(bid, new Map());
+  }
+
+  for (const r of rows) {
+    const bid = r.meter_id;
+    if (!allowed.has(bid)) continue;
+    energySum.set(bid, (energySum.get(bid) ?? 0) + Number(r.energy_delta_kwh ?? 0));
+    const pf = Number(r.avg_power_factor ?? 0);
+    if (pf > 0) {
+      const acc = sumPfAcc.get(bid)!;
+      acc.sum += pf;
+      acc.count += 1;
+    }
+    const ap = Number(r.avg_power_kw ?? 0);
+    powerByBuildingBucket.get(bid)!.set(r.bucket, ap);
+  }
+
+  const result = new Map<string, { energyKwh: number; peakDemandKw: number; avgPf: number; pfWeight: number }>();
+  for (const bid of buildingIds) {
+    const bm = powerByBuildingBucket.get(bid)!;
+    let peakDemandKw = 0;
+    for (const v of bm.values()) {
+      if (v > peakDemandKw) peakDemandKw = v;
+    }
+    const pfA = sumPfAcc.get(bid)!;
+    result.set(bid, {
+      energyKwh: energySum.get(bid) ?? 0,
+      peakDemandKw,
+      avgPf: pfA.count > 0 ? pfA.sum / pfA.count : 0,
+      pfWeight: pfA.count,
+    });
+  }
+  return result;
 }
 
 /**

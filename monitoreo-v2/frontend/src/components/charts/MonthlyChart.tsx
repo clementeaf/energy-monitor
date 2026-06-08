@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import Highcharts from 'highcharts';
+import { Highcharts } from '../../lib/highcharts-init';
 import { HighchartsReact } from 'highcharts-react-official';
 import { baseChartOptions, axisLabelFormatter, getSeriesColors } from '../../lib/chart-config';
 import { WidgetErrorBoundary } from '../ui/WidgetErrorBoundary';

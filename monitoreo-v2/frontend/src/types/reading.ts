@@ -29,6 +29,22 @@ export interface Reading {
   timezone?: string;
 }
 
+/** Latest reading timestamp anchor for dashboard chart ranges */
+export interface LatestReadingAnchor {
+  timestamp: string | null;
+}
+
+/** Bundled compare dashboard response from GET /readings/compare-buildings */
+export interface CompareBuildingsResponse {
+  anchor: string | null;
+  from: string;
+  to: string;
+  previousFrom: string;
+  previousTo: string;
+  current: AggregatedReading[];
+  previous: AggregatedReading[];
+}
+
 /** Mirrors backend LatestRow (raw SQL — snake_case) */
 export interface LatestReading {
   meter_id: string;
@@ -66,6 +82,7 @@ export interface AggregatedQueryParams {
   buildingId?: string;
   meterId?: string;
   groupBy?: 'portfolio' | 'building';
+  meterRole?: 'generation' | 'load';
 }
 
 /** Mirrors backend AggregatedRow (raw SQL — snake_case) */

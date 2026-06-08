@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.18.0-alpha.0] - 2026-06-08 — ANALYTICS PERF, HIGHCHARTS, DEMO SEEDS
+
+### Deploy (prod)
+- **Backend ECS** — `meterRole` filter + compare-buildings; imagen `meter-role-20260608-135454`.
+- **Frontend** — `power-monitor.cloud`; Highcharts init unificado; tabs Integraciones corregidos.
+
+### Fixed
+- **Highcharts #17 arearange** — instancia única en `lib/highcharts-init.ts` (Stock + more); Tendencias ya no falla.
+- **Integraciones tabs** — `IntegrationsTabBar` usa patrón PillToggle (legible en tema PASA).
+
+### Performance
+- **Aggregated `groupBy`** — Patrones, Tendencias, Demanda y Ejecutivo por edificio piden agregación server-side (`portfolio` / `building`).
+- **Generación** — param `meterRole=generation|load` en `/readings/aggregated`; matviews omitidas cuando aplica filtro por rol.
+- **Comparativo** — `GET /readings/compare-buildings` (un request vs N por edificio).
+- **Matviews** — migraciones `47` (energy en `portfolio_summary`) y `48` (`building_summary`); refresh en `DataRetentionService`.
+
+### Added
+- **Demo seed PASA** — `seed-pasa-frontend-gaps.mjs` + runner ECS: facturas, reportes, integraciones, webhooks, backfill jobs.
+- **Invoice PDF cross-tenant** — hook `useInvoicePdfUrl` + `InvoicePdfPreview`.
+- **External API** — lecturas latest/aggregated por medidor; scopes OAuth ampliados.
+- **API keys UI** — rotación y detalle en `ApiKeysPage`.
+
+### Changed
+- Charts (`Chart`, `StockChart`, `MonthlyChart`) importan desde `highcharts-init.ts`.
+- `dashboardAggregations.ts` — helpers alineados con endpoints agregados.
+
 ## [2.17.0-alpha.0] - 2026-06-07 — PASA READINGS, PROD DEPLOY, AUTH & DASHBOARD
 
 ### Deploy (prod)

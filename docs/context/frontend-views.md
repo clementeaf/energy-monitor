@@ -309,7 +309,7 @@ Patrón 3 archivos: `services/routes.ts` → `services/endpoints.ts` → `hooks/
 | Buildings | `/buildings` | `useBuildingsQuery` |
 | Meters | `/meters` | `useMetersQuery(buildingId?)` |
 | Alerts | `/alerts`, `/alert-rules` | `useAlertsQuery(params?)` |
-| Readings | `/readings`, `/readings/latest`, `/readings/aggregated` | `useReadingsQuery`, `useLatestReadingsQuery`, `useAggregatedReadingsQuery` (ejecutivo/comparativo agregan en cliente desde `aggregated` + medidores) |
+| Readings | `/readings`, `/readings/latest`, `/readings/aggregated`, `/readings/compare-buildings` | `useReadingsQuery`, `useLatestReadingsQuery`, `useAggregatedReadingsQuery` (`groupBy`, `meterRole`), `useCompareBuildingsQuery` |
 | Hierarchy | `/hierarchy/buildings/:id`, `/hierarchy/:id/meters` | `useHierarchyByBuildingQuery` |
 | Concentrators | `/concentrators` | `useConcentratorsQuery(buildingId?)` |
 | Fault Events | `/fault-events` | `useFaultEventsQuery(params?)` |

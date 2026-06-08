@@ -22,6 +22,16 @@ describe('ReadingsController', () => {
     service = {
       findByMeter: jest.fn().mockResolvedValue([]),
       findLatest: jest.fn().mockResolvedValue([]),
+      findLatestAnchor: jest.fn().mockResolvedValue({ timestamp: null }),
+      findCompareBuildings: jest.fn().mockResolvedValue({
+        anchor: null,
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-31T23:59:59Z',
+        previousFrom: '2025-12-01T00:00:00Z',
+        previousTo: '2025-12-31T23:59:59Z',
+        current: [],
+        previous: [],
+      }),
       findAggregated: jest.fn().mockResolvedValue([]),
     };
 
@@ -82,6 +92,19 @@ describe('ReadingsController', () => {
         'tenant-1',
         ['bld-1'],
         {},
+        undefined,
+      );
+    });
+  });
+
+  describe('findCompareBuildings', () => {
+    it('delegates to service with days param', async () => {
+      await controller.findCompareBuildings(mockUser, { days: 30 });
+
+      expect(service.findCompareBuildings).toHaveBeenCalledWith(
+        'tenant-1',
+        ['bld-1'],
+        30,
         undefined,
       );
     });

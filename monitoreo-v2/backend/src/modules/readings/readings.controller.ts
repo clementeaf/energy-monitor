@@ -9,6 +9,7 @@ import { ReadingsService } from './readings.service';
 import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
+import { CompareBuildingsQueryDto } from './dto/compare-buildings-query.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequireAnyPermission } from '../../common/guards/permissions.guard';
@@ -35,6 +36,36 @@ export class ReadingsController {
       throw new BadRequestException('"to" must be after "from"');
     }
     return this.readingsService.findByMeter(user.tenantId, user.buildingIds, query);
+  }
+
+  @Get('latest-anchor')
+  @ApiOperation({ summary: 'Get newest reading timestamp for chart date anchoring' })
+  @ApiResponse({ status: 200, description: 'Latest timestamp anchor returned' })
+  @RequireAnyPermission(
+    'dashboard_executive:read',
+    'dashboard_technical:read',
+  )
+  async findLatestAnchor(@CurrentUser() user: JwtPayload) {
+    return this.readingsService.findLatestAnchor(user.tenantId, user.buildingIds, user.crossTenant);
+  }
+
+  @Get('compare-buildings')
+  @ApiOperation({ summary: 'Compare dashboard bundle (anchor + building aggregates × 2 periods)' })
+  @ApiResponse({ status: 200, description: 'Compare dashboard data returned' })
+  @RequireAnyPermission(
+    'dashboard_executive:read',
+    'dashboard_technical:read',
+  )
+  async findCompareBuildings(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: CompareBuildingsQueryDto,
+  ) {
+    return this.readingsService.findCompareBuildings(
+      user.tenantId,
+      user.buildingIds,
+      query.days,
+      user.crossTenant,
+    );
   }
 
   @Get('latest')

@@ -6,12 +6,19 @@ export interface ApiKey {
   permissions: string[];
   buildingIds: string[];
   rateLimitPerMinute: number;
+  ingressRateLimitPerMinute: number | null;
   expiresAt: string | null;
   isActive: boolean;
   lastUsedAt: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiKeyScopeMeta {
+  scope: string;
+  label: string;
+  description: string;
 }
 
 export interface ApiKeyCreationResult {
@@ -24,6 +31,7 @@ export interface CreateApiKeyPayload {
   permissions: string[];
   buildingIds?: string[];
   rateLimitPerMinute?: number;
+  ingressRateLimitPerMinute?: number | null;
   expiresAt?: string;
 }
 
@@ -32,6 +40,7 @@ export interface UpdateApiKeyPayload {
   permissions?: string[];
   buildingIds?: string[];
   rateLimitPerMinute?: number;
+  ingressRateLimitPerMinute?: number | null;
   expiresAt?: string | null;
   isActive?: boolean;
 }

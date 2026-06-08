@@ -16,7 +16,7 @@ import {
   useDeleteScheduledReport,
   useUpdateScheduledReport,
 } from '../../hooks/queries/useReportsQuery';
-import { reportsEndpoints } from '../../services/endpoints';
+import { useReportExportHref } from '../../hooks/useReportExportHref';
 import { PageHeader } from '../../components/ui/PageHeader';
 import type {
   PlatformReportType,
@@ -48,6 +48,50 @@ const FORMAT_LABELS: Record<ReportFormat, string> = {
 
 function labelForReportType(t: PlatformReportType): string {
   return REPORT_TYPES.find((x) => x.value === t)?.label ?? t;
+}
+
+function ReportRow({
+  row,
+  canSchedule,
+  onDelete,
+}: Readonly<{
+  row: Report;
+  canSchedule: boolean;
+  onDelete: () => void;
+}>) {
+  const exportHref = useReportExportHref(row.id);
+
+  return (
+    <tr className="hover:bg-surface">
+      <td className="px-4 py-3 text-foreground">{labelForReportType(row.reportType)}</td>
+      <td className="px-4 py-3 text-muted">
+        {row.periodStart} — {row.periodEnd}
+      </td>
+      <td className="px-4 py-3">{FORMAT_LABELS[row.format]}</td>
+      <td className="px-4 py-3 text-muted">
+        {new Date(row.createdAt).toLocaleString('es-CL')}
+      </td>
+      <td className="px-4 py-3 text-right">
+        <a
+          href={exportHref}
+          target="_blank"
+          rel="noreferrer"
+          className="mr-3 text-sm font-medium text-brand hover:underline"
+        >
+          Descargar
+        </a>
+        {canSchedule && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="text-sm text-red-600 hover:underline"
+          >
+            Eliminar
+          </button>
+        )}
+      </td>
+    </tr>
+  );
 }
 
 export function ReportsPage() {
@@ -161,35 +205,12 @@ export function ReportsPage() {
               skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
             >
               {visibleReports.map((row) => (
-                <tr key={row.id} className="hover:bg-surface">
-                  <td className="px-4 py-3 text-foreground">{labelForReportType(row.reportType)}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {row.periodStart} — {row.periodEnd}
-                  </td>
-                  <td className="px-4 py-3">{FORMAT_LABELS[row.format]}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {new Date(row.createdAt).toLocaleString('es-CL')}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <a
-                      href={reportsEndpoints.exportHref(row.id)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mr-3 text-sm font-medium text-brand hover:underline"
-                    >
-                      Descargar
-                    </a>
-                    {canSchedule && (
-                      <button
-                        type="button"
-                        onClick={() => setDeletingReport(row)}
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                <ReportRow
+                  key={row.id}
+                  row={row}
+                  canSchedule={canSchedule}
+                  onDelete={() => setDeletingReport(row)}
+                />
               ))}
             </TableStateBody>
           </table>

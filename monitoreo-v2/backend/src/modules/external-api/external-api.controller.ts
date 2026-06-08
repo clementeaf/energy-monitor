@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Body, Query, HttpCode, HttpStatus, Res, Headers, UseInterceptors, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, Body, Query, HttpCode, HttpStatus, Res, Headers, UseInterceptors, UseGuards, NotFoundException } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody, ApiHeader } from '@nestjs/swagger';
 import { UseReadReplica } from '../../database/use-read-replica.decorator';
@@ -30,6 +30,22 @@ import {
   ExternalBuildingResponse,
   toExternalBuilding,
 } from './dto/external-building.response';
+import {
+  ExternalMeterResponse,
+  toExternalMeter,
+} from './dto/external-meter.response';
+import { TenantUnitsService } from '../tenant-units/tenant-units.service';
+import { HierarchyService } from '../hierarchy/hierarchy.service';
+import { ConcentratorsService } from '../concentrators/concentrators.service';
+import { FaultEventsService } from '../fault-events/fault-events.service';
+import { InvoicesService } from '../invoices/invoices.service';
+import { TariffsService } from '../tariffs/tariffs.service';
+import { IotReadingsService } from '../iot-readings/iot-readings.service';
+import { IntegrationsHealthService } from '../integrations/integrations-health.service';
+import { CompareBuildingsQueryDto } from '../readings/dto/compare-buildings-query.dto';
+import { QueryInvoicesDto } from '../invoices/dto/query-invoices.dto';
+import { QueryFaultEventsDto } from '../fault-events/dto/query-fault-events.dto';
+import { IotTimeSeriesDto, IotLatestDto, IotReadingsQueryDto, IotAlertsDto } from '../iot-readings/dto/iot-query.dto';
 import { ReadingsExportService } from '../etl-export/readings-export.service';
 import { ReadingsExportQueryDto } from '../etl-export/dto/readings-export-query.dto';
 import { DataExportJobsService } from '../etl-export/data-export-jobs.service';
@@ -58,6 +74,14 @@ export class ExternalApiController {
     private readonly readingsExportService: ReadingsExportService,
     private readonly dataExportJobsService: DataExportJobsService,
     private readonly exportStorageService: ExportStorageService,
+    private readonly tenantUnitsService: TenantUnitsService,
+    private readonly hierarchyService: HierarchyService,
+    private readonly concentratorsService: ConcentratorsService,
+    private readonly faultEventsService: FaultEventsService,
+    private readonly invoicesService: InvoicesService,
+    private readonly tariffsService: TariffsService,
+    private readonly iotReadingsService: IotReadingsService,
+    private readonly integrationsHealthService: IntegrationsHealthService,
   ) {}
 
   /* ------------------------------------------------------------------ */
@@ -83,9 +107,10 @@ export class ExternalApiController {
   async getBuilding(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
-  ): Promise<ExternalBuildingResponse | null> {
+  ): Promise<ExternalBuildingResponse> {
     const building = await this.buildingsService.findOne(id, user.tenantId, user.buildingIds);
-    return building ? toExternalBuilding(building) : null;
+    if (!building) throw new NotFoundException('Building not found');
+    return toExternalBuilding(building);
   }
 
   /* ------------------------------------------------------------------ */
@@ -96,25 +121,28 @@ export class ExternalApiController {
   @RequirePermission('meters', 'read')
   @ApiOperation({ summary: 'List all meters' })
   @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
-  @ApiResponse({ status: 200, description: 'Meters list returned' })
+  @ApiResponse({ status: 200, description: 'Meters list returned', type: [ExternalMeterResponse] })
   async listMeters(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
-  ) {
-    return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId);
+  ): Promise<ExternalMeterResponse[]> {
+    const result = await this.metersService.findAll(user.tenantId, user.buildingIds, buildingId);
+    return result.data.map(toExternalMeter);
   }
 
   @Get('meters/:id')
   @RequirePermission('meters', 'read')
   @ApiOperation({ summary: 'Get a meter by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Meter returned' })
+  @ApiResponse({ status: 200, description: 'Meter returned', type: ExternalMeterResponse })
   @ApiResponse({ status: 404, description: 'Meter not found' })
   async getMeter(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
-  ) {
-    return this.metersService.findOne(id, user.tenantId, user.buildingIds);
+  ): Promise<ExternalMeterResponse> {
+    const meter = await this.metersService.findOne(id, user.tenantId, user.buildingIds);
+    if (!meter) throw new NotFoundException('Meter not found');
+    return toExternalMeter(meter);
   }
 
   @Get('meters/:id/status')
@@ -146,6 +174,30 @@ export class ExternalApiController {
   @ApiResponse({ status: 200, description: 'Readings returned' })
   async getReadings(@CurrentUser() user: JwtPayload, @Query() query: ReadingQueryDto) {
     return this.readingsService.findByMeter(user.tenantId, user.buildingIds, query);
+  }
+
+  @Get('readings/latest-anchor')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'Newest reading timestamp for chart date anchoring' })
+  @ApiResponse({ status: 200, description: 'Anchor timestamp returned' })
+  async getLatestAnchor(@CurrentUser() user: JwtPayload) {
+    return this.readingsService.findLatestAnchor(user.tenantId, user.buildingIds, user.crossTenant);
+  }
+
+  @Get('readings/compare-buildings')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'Compare dashboard bundle (current + previous periods by building)' })
+  @ApiResponse({ status: 200, description: 'Compare bundle returned' })
+  async getCompareBuildings(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: CompareBuildingsQueryDto,
+  ) {
+    return this.readingsService.findCompareBuildings(
+      user.tenantId,
+      user.buildingIds,
+      query.days,
+      user.crossTenant,
+    );
   }
 
   @Get('readings/latest')
@@ -302,6 +354,238 @@ export class ExternalApiController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.alertsService.findOne(id, user.tenantId, user.buildingIds);
+    const alert = await this.alertsService.findOne(id, user.tenantId, user.buildingIds);
+    if (!alert) throw new NotFoundException('Alert not found');
+    return alert;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Tenant units, hierarchy, concentrators, faults                     */
+  /* ------------------------------------------------------------------ */
+
+  @Get('tenant-units')
+  @RequirePermission('tenant_units', 'read')
+  @ApiOperation({ summary: 'List tenant units (locatarios)' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  async listTenantUnits(
+    @CurrentUser() user: JwtPayload,
+    @Query('buildingId') buildingId?: string,
+  ) {
+    return this.tenantUnitsService.findAll(user.tenantId, user.buildingIds, buildingId);
+  }
+
+  @Get('tenant-units/:id')
+  @RequirePermission('tenant_units', 'read')
+  @ApiOperation({ summary: 'Get tenant unit by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async getTenantUnit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const unit = await this.tenantUnitsService.findOne(id, user.tenantId, user.buildingIds);
+    if (!unit) throw new NotFoundException('Tenant unit not found');
+    return unit;
+  }
+
+  @Get('hierarchy/buildings/:buildingId')
+  @RequirePermission('hierarchy', 'read')
+  @ApiOperation({ summary: 'Hierarchy tree for a building' })
+  @ApiParam({ name: 'buildingId', type: 'string', format: 'uuid' })
+  async getHierarchyByBuilding(
+    @Param('buildingId', ParseUUIDPipe) buildingId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.hierarchyService.findByBuilding(user.tenantId, buildingId, user.buildingIds);
+  }
+
+  @Get('concentrators')
+  @RequirePermission('concentrators', 'read')
+  @ApiOperation({ summary: 'List concentrators' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  async listConcentrators(
+    @CurrentUser() user: JwtPayload,
+    @Query('buildingId') buildingId?: string,
+  ) {
+    return this.concentratorsService.findAll(user.tenantId, user.buildingIds, buildingId);
+  }
+
+  @Get('concentrators/:id')
+  @RequirePermission('concentrators', 'read')
+  @ApiOperation({ summary: 'Get concentrator by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async getConcentrator(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const row = await this.concentratorsService.findOne(id, user.tenantId, user.buildingIds);
+    if (!row) throw new NotFoundException('Concentrator not found');
+    return row;
+  }
+
+  @Get('fault-events')
+  @RequirePermission('fault_events', 'read')
+  @ApiOperation({ summary: 'List fault events with filters' })
+  async listFaultEvents(
+    @Query() query: QueryFaultEventsDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.faultEventsService.findAll(user.tenantId, user.buildingIds, query);
+  }
+
+  @Get('fault-events/:id')
+  @RequirePermission('fault_events', 'read')
+  @ApiOperation({ summary: 'Get fault event by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async getFaultEvent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const event = await this.faultEventsService.findOne(id, user.tenantId, user.buildingIds);
+    if (!event) throw new NotFoundException('Fault event not found');
+    return event;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Billing (read-only)                                                */
+  /* ------------------------------------------------------------------ */
+
+  @Get('invoices')
+  @RequirePermission('billing', 'read')
+  @ApiOperation({ summary: 'List invoices with filters' })
+  async listInvoices(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: QueryInvoicesDto,
+  ) {
+    return this.invoicesService.findAll(user.tenantId, user.buildingIds, {
+      buildingId: query.buildingId,
+      status: query.status,
+      periodStart: query.periodStart,
+      periodEnd: query.periodEnd,
+      limit: query.limit,
+      offset: query.offset,
+    });
+  }
+
+  @Get('invoices/:id')
+  @RequirePermission('billing', 'read')
+  @ApiOperation({ summary: 'Get invoice by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async getInvoice(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const invoice = await this.invoicesService.findOne(id, user.tenantId, user.buildingIds);
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    return invoice;
+  }
+
+  @Get('tariffs')
+  @RequirePermission('billing', 'read')
+  @ApiOperation({ summary: 'List tariffs' })
+  @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
+  async listTariffs(
+    @CurrentUser() user: JwtPayload,
+    @Query('buildingId') buildingId?: string,
+  ) {
+    return this.tariffsService.findAll(user.tenantId, user.buildingIds, buildingId);
+  }
+
+  @Get('tariffs/:id')
+  @RequirePermission('billing', 'read')
+  @ApiOperation({ summary: 'Get tariff by ID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async getTariff(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const tariff = await this.tariffsService.findOne(id, user.tenantId, user.buildingIds);
+    if (!tariff) throw new NotFoundException('Tariff not found');
+    return tariff;
+  }
+
+  @Get('tariffs/:id/blocks')
+  @RequirePermission('billing', 'read')
+  @ApiOperation({ summary: 'List tariff time blocks' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  async listTariffBlocks(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.tariffsService.findBlocks(id, user.tenantId);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  IoT readings (Siemens / MQTT)                                      */
+  /* ------------------------------------------------------------------ */
+
+  @Get('iot-readings/latest')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'Latest IoT reading for a meter' })
+  async getIotLatest(@CurrentUser() user: JwtPayload, @Query() query: IotLatestDto) {
+    return this.iotReadingsService.getLatest(user.tenantId, user.buildingIds, query.meterId);
+  }
+
+  @Get('iot-readings/timeseries')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'IoT time-series with optional resolution' })
+  async getIotTimeSeries(@CurrentUser() user: JwtPayload, @Query() query: IotTimeSeriesDto) {
+    const variables = query.variables?.split(',').map((v) => v.trim()) ?? [];
+    return this.iotReadingsService.getTimeSeries(
+      user.tenantId,
+      user.buildingIds,
+      query.meterId,
+      query.from,
+      query.to,
+      variables,
+      query.resolution ?? 'raw',
+    );
+  }
+
+  @Get('iot-readings')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'Raw IoT readings for a meter in date range' })
+  async getIotReadings(@CurrentUser() user: JwtPayload, @Query() query: IotReadingsQueryDto) {
+    return this.iotReadingsService.getReadings(
+      user.tenantId,
+      user.buildingIds,
+      query.meterId,
+      query.from,
+      query.to,
+      query.limit ?? 100,
+    );
+  }
+
+  @Get('iot-readings/alerts')
+  @RequirePermission('alerts', 'read')
+  @ApiOperation({ summary: 'IoT-derived anomaly alerts' })
+  async getIotAlerts(@CurrentUser() user: JwtPayload, @Query() query: IotAlertsDto) {
+    return this.iotReadingsService.getAlerts(user.tenantId, user.buildingIds, {
+      severity: query.severity,
+      meterId: query.meterId,
+    });
+  }
+
+  @Get('iot-readings/stats')
+  @RequirePermission('readings', 'read')
+  @ApiOperation({ summary: 'Statistical summary for IoT readings' })
+  async getIotStats(@CurrentUser() user: JwtPayload, @Query() query: IotTimeSeriesDto) {
+    return this.iotReadingsService.getStats(
+      user.tenantId,
+      user.buildingIds,
+      query.meterId,
+      query.from,
+      query.to,
+    );
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Integrations                                                       */
+  /* ------------------------------------------------------------------ */
+
+  @Get('integrations/health')
+  @RequirePermission('integrations', 'read')
+  @ApiOperation({ summary: 'Integration connector health summary' })
+  async getIntegrationsHealth(@CurrentUser() user: JwtPayload) {
+    return this.integrationsHealthService.getHealth(user.tenantId);
   }
 }

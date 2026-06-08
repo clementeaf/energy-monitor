@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
-vi.mock('highcharts', () => ({
-  default: { setOptions: vi.fn(), numberFormat: vi.fn(() => '0') },
+vi.mock('../../lib/highcharts-init', () => ({
+  Highcharts: { setOptions: vi.fn(), numberFormat: vi.fn(() => '0') },
 }));
 vi.mock('highcharts-react-official', () => ({
   HighchartsReact: () => <div data-testid="highcharts-mock" />,

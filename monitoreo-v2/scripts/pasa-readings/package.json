@@ -6,7 +6,8 @@
   "scripts": {
     "import": "node import-pasa-csv.mjs",
     "import:one-month": "bash import-one-month.sh",
-    "seed": "node seed-pasa-synthetic.mjs"
+    "seed": "node seed-pasa-synthetic.mjs",
+    "seed:gaps": "node seed-pasa-frontend-gaps.mjs"
   },
   "dependencies": {
     "csv-parse": "^5.6.0",

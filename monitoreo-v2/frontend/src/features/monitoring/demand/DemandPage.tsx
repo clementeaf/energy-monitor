@@ -39,7 +39,13 @@ export function DemandPage() {
   });
 
   const aggQuery = useAggregatedReadingsQuery(
-    { from: range.from, to: range.to, interval: 'hourly', buildingId: siteId },
+    {
+      from: range.from,
+      to: range.to,
+      interval: 'hourly',
+      groupBy: 'building',
+      buildingId: siteId,
+    },
     !!siteId,
   );
 

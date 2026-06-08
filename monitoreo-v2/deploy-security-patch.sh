@@ -130,9 +130,9 @@ VITE_GOOGLE_CLIENT_ID="420852401159-iv8trudae3p77cbgcgagc0pbllkbcag4.apps.google
 VITE_AUTH_MODE="microsoft" \
 npm run build
 
-# Sync to S3 (assets with long cache, index.html with no-cache)
+# Sync to S3 (assets with long cache, index.html with no-cache).
+# Do NOT use --delete: old hashed chunks must remain for browsers with cached bundles.
 aws s3 sync dist/ "s3://${S3_BUCKET}/" \
-  --delete \
   --cache-control "public,max-age=31536000,immutable" \
   --exclude "index.html" \
   --exclude "*.json" \

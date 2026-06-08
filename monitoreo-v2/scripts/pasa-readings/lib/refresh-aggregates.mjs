@@ -42,6 +42,22 @@ export async function refreshAggregates(client, fromDate, toDate) {
     await client.query('REFRESH MATERIALIZED VIEW portfolio_summary');
     console.log('[refresh] portfolio_summary OK');
   }
+
+  const buildingExists = await client.query(
+    `SELECT 1 FROM pg_class WHERE relname = 'building_summary' AND relkind = 'm'`,
+  );
+  if (buildingExists.rowCount === 0) {
+    console.warn('[refresh] building_summary not found — apply migration 48');
+    return;
+  }
+
+  try {
+    await client.query('REFRESH MATERIALIZED VIEW CONCURRENTLY building_summary');
+    console.log('[refresh] building_summary OK (concurrent)');
+  } catch {
+    await client.query('REFRESH MATERIALIZED VIEW building_summary');
+    console.log('[refresh] building_summary OK');
+  }
 }
 
 /**

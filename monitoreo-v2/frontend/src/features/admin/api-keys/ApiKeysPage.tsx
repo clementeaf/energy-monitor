@@ -9,33 +9,49 @@ import { Th, Td, ActionBtn } from '../../../components/ui/TablePrimitives';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import { usePermissions } from '../../../hooks/usePermissions';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import {
   useApiKeysQuery,
+  useApiKeyScopesQuery,
   useCreateApiKey,
   useUpdateApiKey,
   useRotateApiKey,
   useDeleteApiKey,
 } from '../../../hooks/queries/useApiKeysQuery';
-import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload } from '../../../types/api-key';
+import type { ApiKey, ApiKeyCreationResult, CreateApiKeyPayload, UpdateApiKeyPayload } from '../../../types/api-key';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
-const AVAILABLE_PERMISSIONS = [
-  'readings:read',
-  'readings:export',
-  'buildings:read',
-  'meters:read',
-  'alerts:read',
-  'invoices:read',
-  'reports:read',
-];
+interface KeyFormState {
+  name: string;
+  permissions: string[];
+  buildingIds: string[];
+  rateLimitPerMinute: string;
+  ingressRateLimitPerMinute: string;
+  expiresAt: string;
+}
 
+const EMPTY_FORM: KeyFormState = {
+  name: '',
+  permissions: [],
+  buildingIds: [],
+  rateLimitPerMinute: '60',
+  ingressRateLimitPerMinute: '',
+  expiresAt: '',
+};
+
+/**
+ * Admin page for external API keys (X-API-Key auth on /api/v1/*).
+ */
 export function ApiKeysPage() {
   const query = useApiKeysQuery();
+  const scopesQuery = useApiKeyScopesQuery();
+  const buildingsQuery = useBuildingsQuery();
   const qs = useQueryState(query, {
     isEmpty: (data) => data === undefined || data.length === 0,
   });
   const { has } = usePermissions();
-  const canWrite = has('admin_api_keys', 'create');
+  const canCreate = has('api_keys', 'create');
+  const canUpdate = has('api_keys', 'update');
 
   const createMutation = useCreateApiKey();
   const updateMutation = useUpdateApiKey();
@@ -46,36 +62,65 @@ export function ApiKeysPage() {
   const { visible: visibleKeys, hasMore, sentinelRef, total } = useInfiniteScroll(allKeys, []);
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<ApiKey | null>(null);
   const [deleting, setDeleting] = useState<ApiKey | null>(null);
   const [rotating, setRotating] = useState<ApiKey | null>(null);
   const [createdKey, setCreatedKey] = useState<ApiKeyCreationResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [form, setForm] = useState<KeyFormState>(EMPTY_FORM);
 
-  // Create form state
-  const [formName, setFormName] = useState('');
-  const [formPermissions, setFormPermissions] = useState<string[]>([]);
-  const [formRateLimit, setFormRateLimit] = useState('60');
-  const [formExpiry, setFormExpiry] = useState('');
+  const scopeOptions = (scopesQuery.data ?? []).map((s) => ({
+    value: s.scope,
+    label: `${s.label} (${s.scope})`,
+  }));
 
-  const resetForm = () => {
-    setFormName('');
-    setFormPermissions([]);
-    setFormRateLimit('60');
-    setFormExpiry('');
-  };
+  const buildingOptions = (buildingsQuery.data ?? []).map((b) => ({
+    value: b.id,
+    label: b.name,
+  }));
+
+  const resetForm = () => { setForm(EMPTY_FORM); };
 
   const openCreate = () => { resetForm(); setCreateOpen(true); };
   const closeCreate = () => { setCreateOpen(false); };
 
+  const openEdit = (key: ApiKey) => {
+    setForm({
+      name: key.name,
+      permissions: [...key.permissions],
+      buildingIds: [...key.buildingIds],
+      rateLimitPerMinute: String(key.rateLimitPerMinute),
+      ingressRateLimitPerMinute: key.ingressRateLimitPerMinute != null
+        ? String(key.ingressRateLimitPerMinute)
+        : '',
+      expiresAt: key.expiresAt ? key.expiresAt.slice(0, 10) : '',
+    });
+    setEditing(key);
+  };
+
+  const closeEdit = () => { setEditing(null); resetForm(); };
+
+  const buildPayloadBase = (): Pick<
+    CreateApiKeyPayload,
+    'permissions' | 'buildingIds' | 'rateLimitPerMinute' | 'ingressRateLimitPerMinute' | 'expiresAt'
+  > => {
+    const ingressRaw = form.ingressRateLimitPerMinute.trim();
+    return {
+      permissions: form.permissions,
+      buildingIds: form.buildingIds.length > 0 ? form.buildingIds : undefined,
+      rateLimitPerMinute: parseInt(form.rateLimitPerMinute, 10) || 60,
+      ingressRateLimitPerMinute: ingressRaw ? parseInt(ingressRaw, 10) : null,
+      expiresAt: form.expiresAt || undefined,
+    };
+  };
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName.trim()) return;
+    if (!form.name.trim()) return;
 
     const payload: CreateApiKeyPayload = {
-      name: formName.trim(),
-      permissions: formPermissions,
-      rateLimitPerMinute: parseInt(formRateLimit, 10) || 60,
-      expiresAt: formExpiry || undefined,
+      name: form.name.trim(),
+      ...buildPayloadBase(),
     };
 
     createMutation.mutate(payload, {
@@ -86,7 +131,20 @@ export function ApiKeysPage() {
     });
   };
 
-  const permissionOptions = AVAILABLE_PERMISSIONS.map((p) => ({ value: p, label: p }));
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing || !form.name.trim()) return;
+
+    const payload: UpdateApiKeyPayload = {
+      name: form.name.trim(),
+      ...buildPayloadBase(),
+    };
+
+    updateMutation.mutate(
+      { id: editing.id, payload },
+      { onSuccess: () => { closeEdit(); } },
+    );
+  };
 
   const handleToggleActive = (key: ApiKey) => {
     updateMutation.mutate({
@@ -117,12 +175,87 @@ export function ApiKeysPage() {
     setTimeout(() => { setCopied(false); }, 2000);
   };
 
+  const scopeCountLabel = (key: ApiKey): string => {
+    if (key.buildingIds.length === 0) return 'Todos';
+    return `${key.buildingIds.length} edificio(s)`;
+  };
+
+  const formFields = (
+    <>
+      <Field label="Nombre" required>
+        <input
+          value={form.name}
+          onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); }}
+          required
+          placeholder="Mi integracion"
+          className="w-full rounded-md border border-border px-3 py-2 text-sm"
+        />
+      </Field>
+
+      <Field label="Permisos (scopes API v1)">
+        {scopesQuery.isLoading ? (
+          <p className="text-sm text-muted">Cargando catalogo...</p>
+        ) : (
+          <CheckboxList
+            options={scopeOptions}
+            selected={form.permissions}
+            onChange={(permissions) => { setForm((f) => ({ ...f, permissions })); }}
+          />
+        )}
+      </Field>
+
+      <Field label="Alcance edificios (vacio = todos)">
+        <CheckboxList
+          options={buildingOptions}
+          selected={form.buildingIds}
+          onChange={(buildingIds) => { setForm((f) => ({ ...f, buildingIds })); }}
+        />
+      </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Rate limit general (req/min)">
+          <input
+            type="number"
+            value={form.rateLimitPerMinute}
+            onChange={(e) => { setForm((f) => ({ ...f, rateLimitPerMinute: e.target.value })); }}
+            min={1}
+            max={10000}
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          />
+        </Field>
+
+        <Field label="Rate limit ingesta (req/min, opcional)">
+          <input
+            type="number"
+            value={form.ingressRateLimitPerMinute}
+            onChange={(e) => { setForm((f) => ({ ...f, ingressRateLimitPerMinute: e.target.value })); }}
+            min={1}
+            max={100000}
+            placeholder="Default del tenant"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm"
+          />
+        </Field>
+      </div>
+
+      <Field label="Fecha de expiracion (opcional)">
+        <input
+          type="date"
+          value={form.expiresAt}
+          onChange={(e) => { setForm((f) => ({ ...f, expiresAt: e.target.value })); }}
+          min={new Date().toISOString().split('T')[0]}
+          className="w-48 rounded-md border border-border px-3 py-2 text-sm"
+        />
+      </Field>
+    </>
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="API Keys"
-        eyebrow="Administración"
-        actions={canWrite ? (
+        eyebrow="Administracion"
+        description="Claves para consumir la API externa v1 (header X-API-Key)."
+        actions={canCreate ? (
           <button
             type="button"
             onClick={openCreate}
@@ -140,20 +273,21 @@ export function ApiKeysPage() {
               <Th>Nombre</Th>
               <Th>Prefijo</Th>
               <Th>Permisos</Th>
+              <Th>Edificios</Th>
               <Th>Rate Limit</Th>
               <Th>Expira</Th>
               <Th>Ultimo Uso</Th>
               <Th>Activa</Th>
-              {canWrite && <Th></Th>}
+              {canUpdate && <Th></Th>}
             </tr>
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={canWrite ? 8 : 7}
+            colSpan={canUpdate ? 9 : 8}
             error={qs.error}
             onRetry={() => { query.refetch(); }}
             emptyMessage="No hay API keys configuradas."
-            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-16', 'w-20', 'w-24', 'w-16', 'w-20']}
+            skeletonWidths={['w-28', 'w-20', 'w-32', 'w-20', 'w-16', 'w-20', 'w-24', 'w-16', 'w-24']}
           >
             {visibleKeys.map((key) => (
               <tr key={key.id} className="hover:bg-surface">
@@ -175,7 +309,15 @@ export function ApiKeysPage() {
                     )}
                   </div>
                 </Td>
-                <Td>{key.rateLimitPerMinute}/min</Td>
+                <Td className="text-sm text-muted">{scopeCountLabel(key)}</Td>
+                <Td>
+                  {key.rateLimitPerMinute}/min
+                  {key.ingressRateLimitPerMinute != null && (
+                    <span className="block text-xs text-muted">
+                      ingesta {key.ingressRateLimitPerMinute}/min
+                    </span>
+                  )}
+                </Td>
                 <Td>{key.expiresAt ? new Date(key.expiresAt).toLocaleDateString('es-CL') : 'Sin expiracion'}</Td>
                 <Td>{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString('es-CL') : 'Nunca'}</Td>
                 <Td>
@@ -183,12 +325,13 @@ export function ApiKeysPage() {
                     checked={key.isActive}
                     onChange={() => { handleToggleActive(key); }}
                     size="sm"
-                    disabled={!canWrite}
+                    disabled={!canUpdate}
                   />
                 </Td>
-                {canWrite && (
+                {canUpdate && (
                   <Td>
                     <div className="flex gap-1">
+                      <ActionBtn label="Editar" onClick={() => { openEdit(key); }} />
                       <ActionBtn label="Rotar" onClick={() => { setRotating(key); }} />
                       <ActionBtn label="Eliminar" onClick={() => { setDeleting(key); }} variant="danger" />
                     </div>
@@ -202,58 +345,30 @@ export function ApiKeysPage() {
       </div>
       {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleKeys.length} de {total}</p>}
 
-      {/* Create Modal */}
       <Modal open={createOpen} onClose={closeCreate} title="Nueva API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <Field label="Nombre" required>
-            <input
-              value={formName}
-              onChange={(e) => { setFormName(e.target.value); }}
-              required
-              placeholder="Mi integracion"
-              className="w-full rounded-md border border-border px-3 py-2 text-sm"
-            />
-          </Field>
-
-          <Field label="Permisos">
-            <CheckboxList
-              options={permissionOptions}
-              selected={formPermissions}
-              onChange={setFormPermissions}
-            />
-          </Field>
-
-          <Field label="Rate Limit (por minuto)">
-            <input
-              type="number"
-              value={formRateLimit}
-              onChange={(e) => { setFormRateLimit(e.target.value); }}
-              min={1}
-              max={10000}
-              className="w-32 rounded-md border border-border px-3 py-2 text-sm"
-            />
-          </Field>
-
-          <Field label="Fecha de Expiracion (opcional)">
-            <input
-              type="date"
-              value={formExpiry}
-              onChange={(e) => { setFormExpiry(e.target.value); }}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-48 rounded-md border border-border px-3 py-2 text-sm"
-            />
-          </Field>
-
+        <form onSubmit={handleCreate} className="space-y-4 p-6">
+          {formFields}
           <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="secondary" type="button" onClick={closeCreate}>Cancelar</Button>
-            <Button type="submit" loading={createMutation.isPending} disabled={!formName.trim()}>
+            <Button type="submit" loading={createMutation.isPending} disabled={!form.name.trim()}>
               Crear API Key
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Key Display Modal (shown once after creation/rotation) */}
+      <Modal open={!!editing} onClose={closeEdit} title="Editar API Key" dialogClassName="m-auto max-w-xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40">
+        <form onSubmit={handleUpdate} className="space-y-4 p-6">
+          {formFields}
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="secondary" type="button" onClick={closeEdit}>Cancelar</Button>
+            <Button type="submit" loading={updateMutation.isPending} disabled={!form.name.trim()}>
+              Guardar
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
       <Modal
         open={!!createdKey}
         onClose={() => { setCreatedKey(null); setCopied(false); }}
@@ -279,7 +394,6 @@ export function ApiKeysPage() {
         </div>
       </Modal>
 
-      {/* Rotate Confirm */}
       <ConfirmDialog
         open={!!rotating}
         onClose={() => { setRotating(null); }}
@@ -290,7 +404,6 @@ export function ApiKeysPage() {
         isPending={rotateMutation.isPending}
       />
 
-      {/* Delete Confirm */}
       <ConfirmDialog
         open={!!deleting}
         onClose={() => { setDeleting(null); }}

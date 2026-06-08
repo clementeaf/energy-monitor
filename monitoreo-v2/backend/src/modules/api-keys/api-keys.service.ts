@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
@@ -6,6 +6,7 @@ import { ApiKey } from './entities/api-key.entity';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { UpdateApiKeyDto } from './dto/update-api-key.dto';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { assertValidExternalApiPermissions } from '../external-api/lib/external-api-scopes';
 
 export interface ApiKeyCreationResult {
   /** The full plain-text key — shown ONCE at creation. */
@@ -46,6 +47,12 @@ export class ApiKeysService {
   }
 
   async create(tenantId: string, dto: CreateApiKeyDto, createdBy: string): Promise<ApiKeyCreationResult> {
+    try {
+      assertValidExternalApiPermissions(dto.permissions);
+    } catch (err) {
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid permissions');
+    }
+
     const plainKey = this.generateKey();
     const keyHash = this.hashKey(plainKey);
     const keyPrefix = plainKey.slice(0, 8);
@@ -72,6 +79,14 @@ export class ApiKeysService {
   async update(id: string, tenantId: string, dto: UpdateApiKeyDto): Promise<ApiKey | null> {
     const row = await this.repo.findOneBy({ id, tenantId });
     if (!row) return null;
+
+    if (dto.permissions !== undefined) {
+      try {
+        assertValidExternalApiPermissions(dto.permissions);
+      } catch (err) {
+        throw new BadRequestException(err instanceof Error ? err.message : 'Invalid permissions');
+      }
+    }
 
     if (dto.name !== undefined) row.name = dto.name;
     if (dto.permissions !== undefined) row.permissions = dto.permissions;

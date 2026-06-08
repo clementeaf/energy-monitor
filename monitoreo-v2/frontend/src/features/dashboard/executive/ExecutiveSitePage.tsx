@@ -35,7 +35,13 @@ export function ExecutiveSitePage(): ReactElement {
   const metersQuery = useMetersQuery(siteId);
   const latestQuery = useLatestReadingsQuery({ buildingId: siteId });
   const aggQuery = useAggregatedReadingsQuery(
-    { from, to, interval: 'daily', buildingId: siteId },
+    {
+      from,
+      to,
+      interval: 'daily',
+      groupBy: 'building',
+      buildingId: siteId,
+    },
     !!siteId,
   );
   const activeAlertsQuery = useAlertsQuery({ status: 'active', buildingId: siteId });

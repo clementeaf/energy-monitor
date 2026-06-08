@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
-import Highcharts from 'highcharts';
-import HighchartsStock from 'highcharts/highstock';
+import { Highcharts, HighchartsStock } from '../../../lib/highcharts-init';
 import { HighchartsReact } from 'highcharts-react-official';
 import { Card } from '../../../components/ui/Card';
 import { TableStateBody } from '../../../components/ui/TableStateBody';

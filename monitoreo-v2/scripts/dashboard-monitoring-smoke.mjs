@@ -91,37 +91,19 @@ async function runExecutiveDashboard(token, ctx) {
 async function runCompareDashboard(token) {
   console.log('\nCompare Dashboard (/dashboard/compare)\n');
 
-  const month = dateRange(30);
-  const prevStart = new Date(month.from);
-  const prevEnd = new Date(month.to);
-  const spanMs = prevEnd.getTime() - prevStart.getTime();
-  prevStart.setTime(prevStart.getTime() - spanMs);
-  prevEnd.setTime(prevEnd.getTime() - spanMs);
-
-  await smokeGet(
-    'GET /readings/aggregated daily (per-meter)',
-    `/readings/aggregated?${qs({ from: month.from, to: month.to, interval: 'daily' })}`,
-    token,
-    isArray,
-  );
-
-  await smokeGet(
-    'GET /readings/aggregated daily previous period',
-    `/readings/aggregated?${qs({
-      from: prevStart.toISOString(),
-      to: prevEnd.toISOString(),
-      interval: 'daily',
-    })}`,
-    token,
-    isArray,
-  );
-
-  await smokeGet(
-    'GET /readings/aggregated groupBy=building',
-    `/readings/aggregated?${qs({ ...month, interval: 'daily', groupBy: 'building' })}`,
-    token,
-    isArray,
-  );
+  for (const days of [1, 7, 30]) {
+    await smokeGet(
+      `GET /readings/compare-buildings days=${days}`,
+      `/readings/compare-buildings?${qs({ days })}`,
+      token,
+      (d) =>
+        isObject(d)
+        && isArray(d.current)
+        && isArray(d.previous)
+        && typeof d.from === 'string'
+        && typeof d.to === 'string',
+    );
+  }
 }
 
 /**

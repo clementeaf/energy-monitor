@@ -18,6 +18,7 @@ import { UpdateApiKeyDto } from './dto/update-api-key.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/guards/permissions.guard';
+import { EXTERNAL_API_SCOPE_CATALOG } from '../external-api/lib/external-api-scopes';
 
 @ApiTags('API Keys')
 @Controller('api-keys')
@@ -30,6 +31,14 @@ export class ApiKeysController {
   @ApiResponse({ status: 200, description: 'API keys list returned' })
   async findAll(@CurrentUser() user: JwtPayload) {
     return this.apiKeysService.findAll(user.tenantId);
+  }
+
+  @Get('scopes/catalog')
+  @RequirePermission('api_keys', 'read')
+  @ApiOperation({ summary: 'External API v1 permission catalog' })
+  @ApiResponse({ status: 200, description: 'Scope catalog returned' })
+  listScopes() {
+    return EXTERNAL_API_SCOPE_CATALOG;
   }
 
   @Get(':id')

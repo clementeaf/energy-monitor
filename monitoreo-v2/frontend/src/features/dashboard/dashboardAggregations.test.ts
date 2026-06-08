@@ -8,7 +8,9 @@ import {
   sumEnergyByBuilding,
   rankBuildingsByIntensity,
   dailyEnergySeriesByBuilding,
+  dailyEnergySeriesFromBuildingRows,
   compareMetricsByBuilding,
+  compareMetricsFromBuildingRows,
   meterToBuildingMap,
   countMetersByBuilding,
 } from './dashboardAggregations';
@@ -217,6 +219,40 @@ describe('compareMetricsByBuilding', () => {
       makeRow({ bucket: '2026-01-02', meter_id: 'm-1', energy_delta_kwh: '200', avg_power_kw: '80', avg_power_factor: '0.95' }),
     ];
     const result = compareMetricsByBuilding(rows, meterMap, ['b-1']);
+    const b1 = result.get('b-1')!;
+    expect(b1.energyKwh).toBe(300);
+    expect(b1.peakDemandKw).toBe(80);
+    expect(b1.avgPf).toBeCloseTo(0.925, 2);
+  });
+});
+
+describe('dailyEnergySeriesFromBuildingRows', () => {
+  it('groups energy by building when rows are pre-aggregated', () => {
+    const rows = [
+      makeRow({ bucket: '2026-01-01', meter_id: 'b-1', energy_delta_kwh: '100' }),
+      makeRow({ bucket: '2026-01-02', meter_id: 'b-1', energy_delta_kwh: '80' }),
+      makeRow({ bucket: '2026-01-01', meter_id: 'b-2', energy_delta_kwh: '50' }),
+    ];
+    const result = dailyEnergySeriesFromBuildingRows(rows, ['b-1', 'b-2']);
+    expect(result.get('b-1')).toHaveLength(2);
+    expect(result.get('b-1')![0][1]).toBe(100);
+    expect(result.get('b-2')![0][1]).toBe(50);
+  });
+
+  it('excludes buildings not in buildingIds', () => {
+    const rows = [makeRow({ meter_id: 'b-1' })];
+    const result = dailyEnergySeriesFromBuildingRows(rows, ['b-2']);
+    expect(result.get('b-2')!).toHaveLength(0);
+  });
+});
+
+describe('compareMetricsFromBuildingRows', () => {
+  it('computes metrics from building-level aggregated rows', () => {
+    const rows = [
+      makeRow({ bucket: '2026-01-01', meter_id: 'b-1', energy_delta_kwh: '100', avg_power_kw: '50', avg_power_factor: '0.9' }),
+      makeRow({ bucket: '2026-01-02', meter_id: 'b-1', energy_delta_kwh: '200', avg_power_kw: '80', avg_power_factor: '0.95' }),
+    ];
+    const result = compareMetricsFromBuildingRows(rows, ['b-1']);
     const b1 = result.get('b-1')!;
     expect(b1.energyKwh).toBe(300);
     expect(b1.peakDemandKw).toBe(80);

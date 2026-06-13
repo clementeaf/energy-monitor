@@ -142,150 +142,155 @@ export function ReportsPage() {
         </div>
       ) : (
         <>
-      <section>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <PageHeader title="Reportes" eyebrow="Reportes" />
-          <div className="flex flex-wrap items-center gap-3">
-            <DropdownSelect
-              options={[
-                { value: '', label: 'Todos los edificios' },
-                ...buildingOptions.map((b) => ({ value: b.id, label: b.name })),
-              ]}
-              value={reportFilters.buildingId ?? ''}
-              onChange={(val) => setReportFilters({ ...reportFilters, buildingId: val || undefined })}
-              className="w-48"
-            />
-            <DropdownSelect
-              options={[
-                { value: '', label: 'Todos los tipos' },
-                ...REPORT_TYPES.map((t) => ({ value: t.value, label: t.label })),
-              ]}
-              value={reportFilters.reportType ?? ''}
-              onChange={(val) => setReportFilters({ ...reportFilters, reportType: (val || undefined) as PlatformReportType | undefined })}
-              className="w-48"
-            />
-            {canCreate && (
-              <button
-                type="button"
-                onClick={() => setGenerateOpen(true)}
-                className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
-              >
-                Generar reporte
-              </button>
-            )}
-            {canSchedule && (
-              <button
-                type="button"
-                onClick={() => setScheduleOpen(true)}
-                className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
-              >
-                Programar reporte
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="overflow-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-background">
-              <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Periodo</th>
-                <th className="px-4 py-3">Formato</th>
-                <th className="px-4 py-3">Creado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <TableStateBody
-              phase={reportsQs.phase}
-              colSpan={5}
-              error={reportsQs.error}
-              onRetry={reportsQs.refetch}
-              emptyMessage="No hay reportes generados"
-              skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <PageHeader title="Reportes" eyebrow="Reportes" />
+        <div className="flex flex-wrap items-center gap-3">
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los edificios' },
+              ...buildingOptions.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+            value={reportFilters.buildingId ?? ''}
+            onChange={(val) => setReportFilters({ ...reportFilters, buildingId: val || undefined })}
+            className="w-48"
+          />
+          <DropdownSelect
+            options={[
+              { value: '', label: 'Todos los tipos' },
+              ...REPORT_TYPES.map((t) => ({ value: t.value, label: t.label })),
+            ]}
+            value={reportFilters.reportType ?? ''}
+            onChange={(val) => setReportFilters({ ...reportFilters, reportType: (val || undefined) as PlatformReportType | undefined })}
+            className="w-48"
+          />
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setGenerateOpen(true)}
+              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
             >
-              {visibleReports.map((row) => (
-                <ReportRow
-                  key={row.id}
-                  row={row}
-                  canSchedule={canSchedule}
-                  onDelete={() => setDeletingReport(row)}
-                />
-              ))}
-            </TableStateBody>
-          </table>
-          {hasMoreReports && <div ref={reportsSentinelRef} className="h-4" />}
-        </div>
-        {totalReports > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleReports.length} de {totalReports}</p>}
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight text-foreground">Reportes programados</h2>
-        <div className="overflow-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-background">
-              <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Cron</th>
-                <th className="px-4 py-3">Activo</th>
-                <th className="px-4 py-3">Próxima ejecución</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <TableStateBody
-              phase={scheduledQs.phase}
-              colSpan={5}
-              error={scheduledQs.error}
-              onRetry={scheduledQs.refetch}
-              emptyMessage="No hay reportes programados"
-              skeletonWidths={['w-20', 'w-24', 'w-12', 'w-28', 'w-20']}
+              Generar reporte
+            </button>
+          )}
+          {canSchedule && (
+            <button
+              type="button"
+              onClick={() => setScheduleOpen(true)}
+              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
             >
-              {visibleScheduled.map((row) => (
-                <tr key={row.id} className="hover:bg-surface">
-                  <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{row.cronExpression}</td>
-                  <td className="px-4 py-3">
-                    {canSchedule ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateScheduledMutation.mutate({
-                            id: row.id,
-                            payload: { isActive: !row.isActive },
-                          })
-                        }
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          row.isActive ? 'bg-green-100 text-green-800' : 'bg-raised text-muted'
-                        }`}
-                      >
-                        {row.isActive ? 'Sí' : 'No'}
-                      </button>
-                    ) : (
-                      <span>{row.isActive ? 'Sí' : 'No'}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {row.nextRunAt ? new Date(row.nextRunAt).toLocaleString('es-CL') : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canSchedule && (
-                      <button
-                        type="button"
-                        onClick={() => setDeletingScheduled(row)}
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                  </td>
+              Programar reporte
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Reportes generados */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes generados</h2>
+          <div className="max-h-[calc(100vh-280px)] overflow-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <th className="px-4 py-3">Tipo</th>
+                  <th className="px-4 py-3">Periodo</th>
+                  <th className="px-4 py-3">Formato</th>
+                  <th className="px-4 py-3">Creado</th>
+                  <th className="px-4 py-3 text-right">Acciones</th>
                 </tr>
-              ))}
-            </TableStateBody>
-          </table>
-          {hasMoreScheduled && <div ref={scheduledSentinelRef} className="h-4" />}
-        </div>
-        {totalScheduled > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleScheduled.length} de {totalScheduled}</p>}
-      </section>
+              </thead>
+              <TableStateBody
+                phase={reportsQs.phase}
+                colSpan={5}
+                error={reportsQs.error}
+                onRetry={reportsQs.refetch}
+                emptyMessage="No hay reportes generados"
+                skeletonWidths={['w-20', 'w-32', 'w-16', 'w-24', 'w-24']}
+              >
+                {visibleReports.map((row) => (
+                  <ReportRow
+                    key={row.id}
+                    row={row}
+                    canSchedule={canSchedule}
+                    onDelete={() => setDeletingReport(row)}
+                  />
+                ))}
+              </TableStateBody>
+            </table>
+            {hasMoreReports && <div ref={reportsSentinelRef} className="h-4" />}
+          </div>
+          {totalReports > 0 && <p className="px-2 py-1 text-xs text-muted">Mostrando {visibleReports.length} de {totalReports}</p>}
+        </section>
+
+        {/* Reportes programados */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes programados</h2>
+          <div className="max-h-[calc(100vh-280px)] overflow-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <th className="px-4 py-3">Tipo</th>
+                  <th className="px-4 py-3">Cron</th>
+                  <th className="px-4 py-3">Activo</th>
+                  <th className="px-4 py-3">Próxima ejecución</th>
+                  <th className="px-4 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <TableStateBody
+                phase={scheduledQs.phase}
+                colSpan={5}
+                error={scheduledQs.error}
+                onRetry={scheduledQs.refetch}
+                emptyMessage="No hay reportes programados"
+                skeletonWidths={['w-20', 'w-24', 'w-12', 'w-28', 'w-20']}
+              >
+                {visibleScheduled.map((row) => (
+                  <tr key={row.id} className="hover:bg-surface">
+                    <td className="px-4 py-3">{labelForReportType(row.reportType)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-foreground">{row.cronExpression}</td>
+                    <td className="px-4 py-3">
+                      {canSchedule ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateScheduledMutation.mutate({
+                              id: row.id,
+                              payload: { isActive: !row.isActive },
+                            })
+                          }
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                            row.isActive ? 'bg-green-100 text-green-800' : 'bg-raised text-muted'
+                          }`}
+                        >
+                          {row.isActive ? 'Sí' : 'No'}
+                        </button>
+                      ) : (
+                        <span>{row.isActive ? 'Sí' : 'No'}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted">
+                      {row.nextRunAt ? new Date(row.nextRunAt).toLocaleString('es-CL') : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {canSchedule && (
+                        <button
+                          type="button"
+                          onClick={() => setDeletingScheduled(row)}
+                          className="text-sm text-red-600 hover:underline"
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </TableStateBody>
+            </table>
+            {hasMoreScheduled && <div ref={scheduledSentinelRef} className="h-4" />}
+          </div>
+          {totalScheduled > 0 && <p className="px-2 py-1 text-xs text-muted">Mostrando {visibleScheduled.length} de {totalScheduled}</p>}
+        </section>
+      </div>
 
       <GenerateDrawer
         open={generateOpen}

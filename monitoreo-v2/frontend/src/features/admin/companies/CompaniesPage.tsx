@@ -117,7 +117,7 @@ export function CompaniesPage() {
         }
       />
 
-      <div className="max-h-[70vh] overflow-y-auto panel">
+      <div className="max-h-[70vh] overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

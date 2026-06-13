@@ -75,7 +75,7 @@ export function DataQualityReportTab() {
         emptyTitle="Sin datos en el rango"
         emptyDescription="No hay agregados de calidad para las fechas seleccionadas."
       >
-        <div className="max-h-[65vh] overflow-y-auto panel">
+        <div className="max-h-[65vh] overflow-auto panel">
           <table className="min-w-full divide-y divide-border">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr>

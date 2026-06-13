@@ -145,7 +145,7 @@ export function MetersByTypePage() {
         <MiniKpi label="Potencia total" value={`${totalKw.toFixed(1)} kW`} />
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto panel">
+      <div className="max-h-[70vh] overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
@@ -182,7 +182,7 @@ export function MetersByTypePage() {
                 {expanded.has(g.typeKey) && (
                   <tr key={`${g.typeKey}-detail`} className="bg-surface">
                     <td colSpan={4} className="p-0">
-                      <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
+                      <div className="max-h-[70vh] overflow-auto px-4 py-3">
                         <table className="min-w-full text-sm">
                           <thead className="sticky top-0 z-10 bg-background">
                             <tr className="text-left text-xs uppercase text-muted">

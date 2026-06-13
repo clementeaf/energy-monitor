@@ -112,11 +112,11 @@ export function RectificationRequestsPage() {
 
       {/* Resolved requests */}
       {resolved.length > 0 && (
-        <div className="panel">
+        <div className="overflow-auto panel">
           <div className="border-b border-border px-6 py-4">
             <h2 className="font-medium text-foreground">Historial</h2>
           </div>
-          <table className="w-full text-sm">
+          <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-6 py-3">Usuario</th>

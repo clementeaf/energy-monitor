@@ -245,7 +245,7 @@ export function QualityPage() {
 
       {/* Active quality alerts */}
       {qualityAlerts.length > 0 && (
-        <div className="max-h-[70vh] overflow-y-auto panel">
+        <div className="max-h-[70vh] overflow-auto panel">
           <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
             Alertas de Calidad Activas
           </h2>

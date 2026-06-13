@@ -40,7 +40,7 @@ export function PlatformDashboardPage(): ReactElement {
         <div className="border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold text-foreground">Resumen por empresa</h2>
         </div>
-        <div className="max-h-[50vh] overflow-y-auto">
+        <div className="max-h-[50vh] overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr className="text-left text-xs font-medium uppercase text-muted">

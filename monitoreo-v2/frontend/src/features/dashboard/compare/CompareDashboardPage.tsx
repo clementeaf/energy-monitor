@@ -312,7 +312,7 @@ export function CompareDashboardPage(): ReactElement {
 
             <div className="space-y-2">
               <h2 className="text-[13px] font-medium text-foreground">Tabla comparativa</h2>
-              <div className="max-h-[70vh] overflow-y-auto panel">
+              <div className="max-h-[70vh] overflow-auto panel">
                 {compareWithPrevious ? (
                   <table className="min-w-full text-[13px]">
                     <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">

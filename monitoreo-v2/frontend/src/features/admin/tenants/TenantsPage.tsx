@@ -68,7 +68,7 @@ export function TenantsPage() {
   const buildingName = (id: string) => buildings.find((b) => b.id === id)?.name ?? id;
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-col gap-6 overflow-hidden">
       <div className="flex items-center justify-between">
         <PageHeader title="Locatarios" eyebrow="Administración" />
         <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function TenantsPage() {
       {activeTab === 'import' && canWrite ? (
         <TenantUnitImportTab onViewTenants={() => { setActiveTab('list'); }} />
       ) : (
-      <div className="max-h-[70vh] overflow-y-auto panel">
+      <div className="min-h-0 flex-1 overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
@@ -153,9 +153,9 @@ export function TenantsPage() {
           </TableStateBody>
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
+        {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
       </div>
       )}
-      {total > 0 && activeTab === 'list' && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleTenants.length} de {total}</p>}
 
       <TenantUnitForm
         open={formOpen}

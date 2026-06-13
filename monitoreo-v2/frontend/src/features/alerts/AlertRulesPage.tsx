@@ -119,7 +119,7 @@ export function AlertRulesPage() {
         </div>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-border">
+      <div className="max-h-[70vh] overflow-auto rounded-lg border border-border">
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

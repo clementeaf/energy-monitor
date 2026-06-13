@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.19.0-alpha.0] - 2026-06-13 — TABLE OVERFLOW FIX, REPORTS LAYOUT
+
+### Fixed
+- **Table horizontal scroll** — All table containers changed from `overflow-y-auto` to `overflow-auto`, preventing horizontal clipping on narrow viewports (44 pages).
+- **Double scroll eliminated** — Pages with tables (Tiempo Real, Medidores, Locatarios, Mapeos de Registros) use `flex h-full overflow-hidden` layout so tables scroll internally without triggering page-level scroll.
+- **DeletionRequests / RectificationRequests** — History tables wrapped in `overflow-auto` container with `min-w-full`.
+
+### Changed
+- **ReportsPage** — Two tables side-by-side (`grid-cols-2` desktop, stacked mobile) with fixed height and internal scroll.
+- **Auth (dev)** — Microsoft token: prefer `email` over `preferred_username`. MFA `epochTolerance` set to 30 steps for dev flexibility.
+
+---
+
 ## [2.18.0-alpha.0] - 2026-06-08 — ANALYTICS PERF, HIGHCHARTS, DEMO SEEDS
 
 ### Deploy (prod)

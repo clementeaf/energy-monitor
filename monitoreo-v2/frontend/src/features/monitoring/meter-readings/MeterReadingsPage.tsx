@@ -469,7 +469,7 @@ export function MeterReadingsPage() {
           <div className="px-6 pt-4 pb-2">
             <h2 className="text-sm font-semibold text-foreground">Resumen diario</h2>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
+          <div className="min-h-0 flex-1 overflow-auto px-6 pb-4">
             <table className="min-w-full divide-y divide-border">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr>

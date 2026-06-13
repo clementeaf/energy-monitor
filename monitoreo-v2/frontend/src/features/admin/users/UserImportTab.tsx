@@ -206,7 +206,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
             })}
           </div>
 
-          <div className="max-h-[50vh] overflow-y-auto panel">
+          <div className="max-h-[50vh] overflow-auto panel">
             <table className="min-w-full divide-y divide-border text-sm">
               <thead className="sticky top-0 z-10 bg-surface">
                 <tr>

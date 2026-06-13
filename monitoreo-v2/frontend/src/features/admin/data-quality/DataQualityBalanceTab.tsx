@@ -39,7 +39,7 @@ export function DataQualityBalanceTab() {
         emptyTitle="Sin anomalias"
         emptyDescription="No hay discrepancias de balance padre/hijos en el rango."
       >
-        <div className="max-h-[65vh] overflow-y-auto panel">
+        <div className="max-h-[65vh] overflow-auto panel">
           <table className="min-w-full divide-y divide-border">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr>

@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-13)
+- **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-08)
 - **2.18.0:** Perf analytics (`groupBy`, `meterRole`, compare-buildings); fix Highcharts arearange; seed demo integraciones/reportes; tabs Integraciones. [CHANGELOG — 2.18.0-alpha.0](CHANGELOG.md)
 - **Prod:** backend `meter-role-20260608-135454` + frontend desplegado en `power-monitor.cloud`.

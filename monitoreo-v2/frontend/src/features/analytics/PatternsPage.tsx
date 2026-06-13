@@ -268,7 +268,7 @@ export function PatternsPage(): ReactElement {
 
         {/* Anomalies table */}
         {anomalies.length > 0 && (
-          <div className="max-h-[70vh] overflow-y-auto panel">
+          <div className="max-h-[70vh] overflow-auto panel">
             <table className="min-w-full text-sm">
               <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                 <tr>

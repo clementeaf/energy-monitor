@@ -7,7 +7,7 @@ import { encryptPii, decryptPii } from '../../common/crypto/pii-encryption';
 
 const ISSUER = 'EnergyMonitor';
 const RECOVERY_CODE_COUNT = 8;
-const TOTP_EPOCH_TOLERANCE = 1;
+const TOTP_EPOCH_TOLERANCE = 30;
 
 @Injectable()
 export class MfaService {

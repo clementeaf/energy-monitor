@@ -453,7 +453,7 @@ export class AuthController {
       return {
         provider: 'microsoft',
         providerId: payload.sub!,
-        email: (payload['preferred_username'] ?? payload['email']) as string,
+        email: (payload['email'] ?? payload['preferred_username']) as string,
         displayName: payload['name'] as string,
       };
     }

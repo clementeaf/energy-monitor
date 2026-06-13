@@ -296,7 +296,7 @@ export function ExecutiveDashboardPage(): ReactElement {
               emptyTitle="Sin datos"
               emptyDescription="No hay edificios o lecturas agregadas."
             >
-              <div className="max-h-[70vh] overflow-y-auto panel">
+              <div className="max-h-[70vh] overflow-auto panel">
                 <table className="min-w-full text-[13px]">
                   <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
                     <tr>

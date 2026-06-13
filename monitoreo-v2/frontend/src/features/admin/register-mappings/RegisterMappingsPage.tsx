@@ -149,7 +149,7 @@ export function RegisterMappingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-col gap-6 overflow-hidden">
       <PageHeader
         title="Mapeos de Registros"
         eyebrow="Administración"
@@ -180,7 +180,7 @@ export function RegisterMappingsPage() {
         />
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto panel">
+      <div className="min-h-0 flex-1 overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
@@ -232,8 +232,8 @@ export function RegisterMappingsPage() {
           </TableStateBody>
         </table>
         {hasMore && <div ref={sentinelRef} className="h-4" />}
+        {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleRows.length} de {total}</p>}
       </div>
-      {total > 0 && <p className="text-xs text-muted">Mostrando {visibleRows.length} de {total}</p>}
 
       <Drawer
         open={drawerOpen}

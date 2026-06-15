@@ -85,6 +85,7 @@ export class AuthService {
   async getMeResponse(userId: string): Promise<{
     user: Awaited<ReturnType<AuthService['buildUserProfile']>>;
     tenant: Awaited<ReturnType<TenantsService['getTheme']>>;
+    idleTimeoutMinutes: number;
   }> {
     const user = await this.getUserProfile(userId);
     const rows = await this.dataSource.query<{ tenant_id: string }[]>(

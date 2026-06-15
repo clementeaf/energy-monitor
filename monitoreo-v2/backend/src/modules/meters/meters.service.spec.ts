@@ -30,6 +30,7 @@ const mockMeter = (overrides: Partial<Meter> = {}): Meter => ({
   nominalCurrent: null,
   contractedDemandKw: null,
   loadCategory: null,
+  parentMeterId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   tenant: {} as any,

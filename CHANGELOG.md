@@ -28,11 +28,13 @@
 - **Network requirements (ARQ-18)** — `npm run docs:network-reqs` generates `docs/context/network-requirements.md`: 9 connection types (HTTPS, MQTT, Modbus TCP/RTU, BACnet, SNMP, API, DNS, NTP), 7 firewall rules, bandwidth per mall size, latency targets, resilience features.
 - **Change management (CYB-15)** — `npm run docs:change-mgmt` generates `docs/ops/change-management.md`: 8 sections covering change lifecycle, branch strategy, pre-merge gates, CI/CD workflows (auto-detected), test suites, deployment steps, rollback, and emergency procedures.
 - **Login audit with IP (CYB-21)** — `writeLoginAudit()` records LOGIN_SUCCESS, LOGIN_FAILED, LOGIN_MFA_PENDING, LOGIN_MFA_SUCCESS with IP address, user-agent, provider, and user ID in `audit_logs`. Called from login and MFA validation endpoints.
+- **Data catalog (DAT-05)** — `npm run docs:data-catalog` generates `docs/context/data-catalog.md`: 53 tables, 625 columns with type, nullable, unit (kW, kWh, V, A, Hz, %, CLP), and description.
+- **API operations guide (DAT-15 + DAT-21 + DAT-24)** — `npm run docs:api-ops` generates `docs/context/api-operations.md`: rate limit tiers (auto-extracted from source), incremental loading pattern (watermark + dateRange), bulk export flow, stale data alert config (4h default, 1–72h range).
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: 1162 total (0 failures), 131 suites.
+- Backend: 1183 total (0 failures), 133 suites.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

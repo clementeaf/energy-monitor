@@ -29,7 +29,8 @@
     "db:er-diagram": "node scripts/generate-er-diagram.mjs",
     "db:error-catalog": "node scripts/generate-error-catalog.mjs",
     "db:postman": "node scripts/generate-postman-collection.mjs",
-    "privacy:inventory": "node scripts/generate-privacy-inventory.mjs"
+    "privacy:inventory": "node scripts/generate-privacy-inventory.mjs",
+    "db:protocol-mapping": "node scripts/generate-protocol-mapping.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

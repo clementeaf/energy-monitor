@@ -11,6 +11,7 @@
 - **Error catalog (ARQ-24)** — `npm run db:error-catalog` generates `docs/context/api-error-catalog.md` from 197 throw statements (101 unique errors across 5 HTTP codes). Includes troubleshooting guidance per status code and source file locations.
 - **Postman collection (INT-07)** — `npm run db:postman` generates `docs/postman-collection.json` (Postman v2.1) from 252 routes across 34 module folders. Bearer auth, `{{baseUrl}}` / `{{accessToken}}` variables, body stubs for POST/PATCH.
 - **Privacy inventory (PRI-06 + PRI-07)** — `npm run privacy:inventory` generates PII field inventory (25 fields, 3 categories with legal basis and retention) and sub-processors list (6 third-party services with purpose, country, safeguards).
+- **Protocol mapping (INT-14)** — `npm run db:protocol-mapping` generates `docs/context/protocol-mapping.md`: 5 protocols, 14 Siemens POC3000 variable mappings with scale factors, 14 reading target fields, quality classification (measured/estimated/invalid/unknown), 6 reading sources, and register_mappings model.
 - **Anexo 07 gap analysis** — `docs/PASA/anexo07-gap-analysis.md` maps 99 non-functional requirements vs current platform state.
 
 ### Changed
@@ -18,7 +19,7 @@
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: +7 guard + 4 tenant-settings + 9 ER + 10 errors + 11 Postman + 16 privacy = 1020 total.
+- Backend: +7 guard + 4 settings + 9 ER + 10 errors + 11 Postman + 16 privacy + 11 protocol = 1032 total.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

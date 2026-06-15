@@ -25,4 +25,9 @@ export class AggregatedQueryDto {
   @IsOptional()
   @IsIn(['generation', 'load'])
   meterRole?: string;
+
+  /** Comma-separated quality filter: measured,estimated,invalid,unknown */
+  @IsOptional()
+  @IsString()
+  quality?: string;
 }

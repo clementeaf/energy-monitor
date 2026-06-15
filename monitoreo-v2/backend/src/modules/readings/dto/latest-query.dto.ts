@@ -8,4 +8,9 @@ export class LatestQueryDto {
   @IsOptional()
   @IsString()
   meterId?: string;
+
+  /** Comma-separated quality filter: measured,estimated,invalid,unknown */
+  @IsOptional()
+  @IsString()
+  quality?: string;
 }

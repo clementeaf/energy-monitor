@@ -21,4 +21,9 @@ export class ReadingQueryDto {
   @Min(1)
   @Max(10000)
   limit?: number;
+
+  /** Comma-separated quality filter: measured,estimated,invalid,unknown */
+  @IsOptional()
+  @IsString()
+  quality?: string;
 }

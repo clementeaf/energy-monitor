@@ -16,11 +16,12 @@
 - **Anexo 07 gap analysis** — `docs/PASA/anexo07-gap-analysis.md` maps 99 non-functional requirements vs current platform state.
 
 ### Changed
+- **Quality filter (DAT-06)** — `?quality=measured,estimated` param on `GET /readings`, `GET /readings/latest`, `GET /readings/aggregated`, and all external API v1 equivalents. Filters readings by quality before aggregation. Quality enum already set on all ingest paths (MQTT, BACnet, API, Drive pipeline).
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: +7 guard + 4 settings + 9 ER + 10 errors + 11 Postman + 16 privacy + 11 protocol + 15 KPI = 1047 total.
+- Backend: +7 guard + 4 settings + 9 ER + 10 errors + 11 Postman + 16 privacy + 11 protocol + 15 KPI + 12 quality = 1059 total.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

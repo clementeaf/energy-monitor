@@ -4,6 +4,7 @@ import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
 import { meterRoleWhereClause } from './meter-role-sql';
+import { parseQualityFilter, qualityWhereFragment } from './quality-filter-sql';
 import { CompareBuildingsQueryDto } from './dto/compare-buildings-query.dto';
 import { resolveMeterTimezone } from '../../lib/timezone';
 import {
@@ -141,7 +142,17 @@ export class ReadingsService {
 
     let rows: ReadingRow[];
 
+    const qualities = parseQualityFilter(query.quality);
+
     if (resolution === 'raw') {
+      const params: unknown[] = [query.meterId, query.from, query.to, limit];
+      let qualityClause = '';
+      const qf = qualityWhereFragment('', 5, qualities);
+      if (qf) {
+        qualityClause = `AND ${qf.clause}`;
+        params.push(...qf.params);
+      }
+
       rows = await this.dataSource.query(
         `SELECT id, meter_id, timestamp,
                 voltage_l1, voltage_l2, voltage_l3,
@@ -154,13 +165,22 @@ export class ReadingsService {
          WHERE meter_id = $1
            AND timestamp >= $2
            AND timestamp <= $3
+           ${qualityClause}
          ORDER BY timestamp ASC
          LIMIT $4`,
-        [query.meterId, query.from, query.to, limit],
+        params,
       );
     } else {
       const pgInterval = RESOLUTION_MAP[resolution];
       if (!pgInterval) return [];
+
+      const params: unknown[] = [pgInterval, query.meterId, query.from, query.to, limit];
+      let qualityClause = '';
+      const qf = qualityWhereFragment('', 6, qualities);
+      if (qf) {
+        qualityClause = `AND ${qf.clause}`;
+        params.push(...qf.params);
+      }
 
       rows = await this.dataSource.query(
         `SELECT
@@ -181,17 +201,18 @@ export class ReadingsService {
            AVG(thd_voltage_pct::numeric)::text AS thd_voltage_pct,
            AVG(thd_current_pct::numeric)::text AS thd_current_pct,
            AVG(phase_imbalance_pct::numeric)::text AS phase_imbalance_pct,
-           'unknown' AS quality,
+           NULL AS quality,
            NULL AS source,
            NULL AS ingested_at
          FROM readings
          WHERE meter_id = $2
            AND timestamp >= $3
            AND timestamp <= $4
+           ${qualityClause}
          GROUP BY time_bucket($1::interval, timestamp), meter_id
          ORDER BY timestamp ASC
          LIMIT $5`,
-        [pgInterval, query.meterId, query.from, query.to, limit],
+        params,
       );
     }
 
@@ -234,7 +255,20 @@ export class ReadingsService {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const readingScope = crossTenant ? '' : 'WHERE r.tenant_id = $1';
+
+    const readingConditions: string[] = [];
+    if (!crossTenant) readingConditions.push('r.tenant_id = $1');
+
+    const qualities = parseQualityFilter(query.quality);
+    const qf = qualityWhereFragment('r', paramIdx, qualities);
+    if (qf) {
+      readingConditions.push(qf.clause);
+      params.push(...qf.params);
+    }
+
+    const readingScope = readingConditions.length > 0
+      ? `WHERE ${readingConditions.join(' AND ')}`
+      : '';
 
     const rows: LatestRow[] = await this.dataSource.query(
       `SELECT

@@ -37,7 +37,8 @@
     "docs:network-reqs": "node scripts/generate-network-requirements.mjs",
     "docs:change-mgmt": "node scripts/generate-change-management.mjs",
     "docs:data-catalog": "node scripts/generate-data-catalog.mjs",
-    "docs:api-ops": "node scripts/generate-api-operations-docs.mjs"
+    "docs:api-ops": "node scripts/generate-api-operations-docs.mjs",
+    "docs:security-processes": "node scripts/generate-security-processes.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

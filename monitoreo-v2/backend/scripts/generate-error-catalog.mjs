@@ -1,0 +1,238 @@
+#!/usr/bin/env node
+/**
+ * ARQ-24: Generate API error catalog from backend source code.
+ *
+ * Usage:
+ *   node scripts/generate-error-catalog.mjs [--output path]
+ *
+ * Scans all *.ts files under src/ for `throw new *Exception('...')` patterns.
+ * Groups by HTTP status code and module. Outputs Markdown catalog.
+ */
+
+import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { join, dirname, resolve, relative } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SRC_DIR = resolve(__dirname, '..', 'src');
+const DEFAULT_OUTPUT = resolve(__dirname, '..', '..', '..', 'docs', 'context', 'api-error-catalog.md');
+
+/* ── Exception → HTTP status mapping ── */
+
+const EXCEPTION_STATUS = {
+  BadRequestException: 400,
+  UnauthorizedException: 401,
+  ForbiddenException: 403,
+  NotFoundException: 404,
+  ConflictException: 409,
+  HttpException: null, // status extracted from args
+};
+
+const STATUS_LABELS = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  409: 'Conflict',
+  429: 'Too Many Requests',
+};
+
+const TROUBLESHOOTING = {
+  400: 'Verify request body matches the expected DTO schema. Check required fields, types, and value constraints.',
+  401: 'Ensure a valid access token (cookie or Bearer header) is present. If expired, call POST /auth/refresh. For API keys, verify the X-API-Key header.',
+  403: 'The authenticated user lacks the required permission or is accessing a cross-tenant resource. Check role permissions in admin.',
+  404: 'The requested resource does not exist or has been deleted. Verify the ID/slug and tenant scope.',
+  409: 'A resource with the same unique key already exists. Check for duplicate names, codes, or slugs.',
+  429: 'Rate limit exceeded. Wait and retry with exponential backoff. For API keys, check per-key rate_limit_per_minute.',
+};
+
+/* ── File discovery ── */
+
+function collectTsFiles(dir) {
+  const results = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectTsFiles(full));
+      continue;
+    }
+    if (entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts') && !entry.name.endsWith('.test.ts')) {
+      results.push(full);
+    }
+  }
+  return results.sort();
+}
+
+/* ── Parsing ── */
+
+const THROW_RE = /throw\s+new\s+(\w+Exception)\(\s*['"`]([^'"`]+)['"`]/g;
+const HTTP_EXCEPTION_STATUS_RE = /HttpStatus\.(\w+)/;
+
+function extractModule(filePath, srcDir) {
+  const rel = relative(srcDir, filePath);
+  const parts = rel.split('/');
+  // modules/auth/auth.service.ts → auth
+  // common/guards/idle-timeout.guard.ts → common/guards
+  const modulesIdx = parts.indexOf('modules');
+  if (modulesIdx >= 0 && parts.length > modulesIdx + 1) return parts[modulesIdx + 1];
+  return parts.slice(0, -1).join('/');
+}
+
+function parseFile(filePath, srcDir) {
+  const source = readFileSync(filePath, 'utf-8');
+  const entries = [];
+  const lines = source.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    THROW_RE.lastIndex = 0;
+    let match;
+    while ((match = THROW_RE.exec(line)) !== null) {
+      const exceptionType = match[1];
+      const message = match[2];
+      let status = EXCEPTION_STATUS[exceptionType];
+
+      // For HttpException, try to find status in surrounding lines
+      if (status === null || status === undefined) {
+        const context = lines.slice(Math.max(0, i - 2), i + 3).join(' ');
+        const statusMatch = context.match(HTTP_EXCEPTION_STATUS_RE);
+        if (statusMatch) {
+          const statusName = statusMatch[1];
+          const httpStatusMap = {
+            BAD_REQUEST: 400, UNAUTHORIZED: 401, FORBIDDEN: 403,
+            NOT_FOUND: 404, CONFLICT: 409, TOO_MANY_REQUESTS: 429,
+            INTERNAL_SERVER_ERROR: 500,
+          };
+          status = httpStatusMap[statusName] ?? 500;
+        } else {
+          status = 500;
+        }
+      }
+
+      entries.push({
+        status,
+        message,
+        exceptionType,
+        module: extractModule(filePath, srcDir),
+        file: relative(srcDir, filePath),
+        line: i + 1,
+      });
+    }
+  }
+
+  return entries;
+}
+
+/* ── Markdown generation ── */
+
+function generateMarkdown(entries) {
+  // Deduplicate by status + message
+  const seen = new Set();
+  const unique = [];
+  for (const e of entries) {
+    const key = `${e.status}::${e.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(e);
+  }
+
+  // Group by status
+  const byStatus = new Map();
+  for (const e of unique) {
+    const list = byStatus.get(e.status) ?? [];
+    list.push(e);
+    byStatus.set(e.status, list);
+  }
+
+  const statusCodes = [...byStatus.keys()].sort((a, b) => a - b);
+
+  const lines = [
+    '# API Error Catalog — monitoreo-v2',
+    '',
+    `> Auto-generated by \`scripts/generate-error-catalog.mjs\` from ${entries.length} throw statements (${unique.length} unique).`,
+    '> Re-generate: `npm run db:error-catalog`',
+    '',
+    '## Summary',
+    '',
+    '| HTTP Status | Label | Count |',
+    '|------------|-------|------:|',
+  ];
+
+  for (const status of statusCodes) {
+    const label = STATUS_LABELS[status] ?? `HTTP ${status}`;
+    lines.push(`| ${status} | ${label} | ${byStatus.get(status).length} |`);
+  }
+
+  lines.push('');
+
+  // Detail per status code
+  for (const status of statusCodes) {
+    const label = STATUS_LABELS[status] ?? `HTTP ${status}`;
+    const troubleshooting = TROUBLESHOOTING[status] ?? 'Check server logs for details.';
+    const group = byStatus.get(status);
+
+    lines.push(`---`);
+    lines.push('');
+    lines.push(`## ${status} — ${label}`);
+    lines.push('');
+    lines.push(`**Troubleshooting:** ${troubleshooting}`);
+    lines.push('');
+    lines.push('| Message | Module | Source |');
+    lines.push('|---------|--------|--------|');
+
+    // Sort by module then message
+    group.sort((a, b) => a.module.localeCompare(b.module) || a.message.localeCompare(b.message));
+
+    for (const e of group) {
+      const msg = e.message.replace(/\|/g, '\\|');
+      lines.push(`| ${msg} | ${e.module} | \`${e.file}:${e.line}\` |`);
+    }
+
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/* ── Main ── */
+
+export function generate(srcDir = SRC_DIR) {
+  const files = collectTsFiles(srcDir);
+  const allEntries = [];
+
+  for (const file of files) {
+    allEntries.push(...parseFile(file, srcDir));
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  const unique = [];
+  for (const e of allEntries) {
+    const key = `${e.status}::${e.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(e);
+  }
+
+  const statusCodes = [...new Set(unique.map(e => e.status))].sort((a, b) => a - b);
+  const modules = [...new Set(unique.map(e => e.module))].sort();
+
+  return {
+    markdown: generateMarkdown(allEntries),
+    totalThrows: allEntries.length,
+    uniqueErrors: unique.length,
+    statusCodes,
+    modules,
+  };
+}
+
+// CLI entry point
+const isMain = process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
+if (isMain) {
+  const outputIdx = process.argv.indexOf('--output');
+  const outputPath = outputIdx >= 0 ? resolve(process.argv[outputIdx + 1]) : DEFAULT_OUTPUT;
+
+  const result = generate();
+  writeFileSync(outputPath, result.markdown, 'utf-8');
+  console.log(`Error catalog: ${result.uniqueErrors} unique errors across ${result.statusCodes.length} HTTP codes → ${outputPath}`);
+}

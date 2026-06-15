@@ -26,7 +26,8 @@
     "pasa:seed-gaps": "node ../scripts/pasa-readings/seed-pasa-frontend-gaps.mjs",
     "pasa:seed-gaps:ecs": "node scripts/seed-pasa-frontend-gaps-ecs.mjs",
     "pasa:import-csv": "node ../scripts/pasa-readings/import-pasa-csv.mjs",
-    "db:er-diagram": "node scripts/generate-er-diagram.mjs"
+    "db:er-diagram": "node scripts/generate-er-diagram.mjs",
+    "db:error-catalog": "node scripts/generate-error-catalog.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

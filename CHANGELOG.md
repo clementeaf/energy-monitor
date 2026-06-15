@@ -32,11 +32,12 @@
 - **API operations guide (DAT-15 + DAT-21 + DAT-24)** — `npm run docs:api-ops` generates `docs/context/api-operations.md`: rate limit tiers (auto-extracted from source), incremental loading pattern (watermark + dateRange), bulk export flow, stale data alert config (4h default, 1–72h range).
 - **Configurable timeouts (INT-11)** — Already implemented: `timeoutMs` in all connector configs (REST 30s, webhook 10s, SNMP/BACnet 6s, MQTT 5s). Validated with 23 tests.
 - **Security processes (CYB-14 + CYB-18 + CYB-20 + CYB-23 + DAT-13b)** — `npm run docs:security-processes` generates `docs/ops/security-processes.md`: Fargate antivirus justification, patching SLA (7/14/30/90d by CVSS), privileged account monthly review checklist, backup integrity semestral procedure, schema change 30-day notification process.
+- **Data governance validated (DAT-16 + DAT-17 + DAT-19)** — Already implemented: balance anomalies API, quality report API (daily rollup cron), meter sync status API. 10 validation tests.
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: 1214 total (0 failures), 135 suites.
+- Backend: 1224 total (0 failures), 136 suites.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

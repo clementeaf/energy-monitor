@@ -47,6 +47,7 @@ import { RegisterMappingsModule } from './modules/register-mappings/register-map
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { DataGovernanceModule } from './modules/data-governance/data-governance.module';
 import { OAuthClientsModule } from './modules/oauth-clients/oauth-clients.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
@@ -125,6 +126,7 @@ import { HealthController } from './health.controller';
     WebhooksModule,
     DataGovernanceModule,
     OAuthClientsModule,
+    AdminModule,
   ],
   controllers: [HealthController],
   providers: [

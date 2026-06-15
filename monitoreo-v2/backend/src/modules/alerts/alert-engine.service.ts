@@ -11,6 +11,7 @@ import { ConsumptionEvaluator } from './evaluators/consumption.evaluator';
 import { OperationalEvaluator } from './evaluators/operational.evaluator';
 import { GenerationEvaluator } from './evaluators/generation.evaluator';
 import { BusEvaluator } from './evaluators/bus.evaluator';
+import { DataObservabilityEvaluator } from './evaluators/data-observability.evaluator';
 import { NotificationService } from './notification.service';
 
 @Injectable()
@@ -31,6 +32,7 @@ export class AlertEngineService {
     operationalEval: OperationalEvaluator,
     generationEval: GenerationEvaluator,
     busEval: BusEvaluator,
+    dataObservabilityEval: DataObservabilityEvaluator,
   ) {
     this.evaluatorMap = new Map();
     const evaluators: AlertEvaluator[] = [
@@ -40,6 +42,7 @@ export class AlertEngineService {
       operationalEval,
       generationEval,
       busEval,
+      dataObservabilityEval,
     ];
     for (const ev of evaluators) {
       for (const code of ev.supportedCodes) {

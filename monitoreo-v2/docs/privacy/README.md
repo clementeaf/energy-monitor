@@ -21,7 +21,7 @@
 | Política de privacidad pública | `/privacy-policy` + `GET /privacy/policy` | ✅ Prod |
 | Registro de tratamiento | `GET /privacy/processing-registry` | ✅ Prod |
 | Retención automática | Cron diario: purga tokens 30d + anonimiza inactivos 2y | ✅ Prod |
-| Breach notification | `POST/GET/PATCH /admin/breach-reports` con timer 72h | ✅ Prod |
+| Breach notification | `POST/GET/PATCH /admin/breach-reports` con timer 24h (CYB-16) | ✅ Prod |
 | Seguridad técnica | MFA, httpOnly, theft detection, rate limiting, cifrado, audit inmutable | ✅ Prod |
 
 ### Documentación legal (este directorio)
@@ -63,7 +63,7 @@ PATCH /deletion-requests/:id/execute → Ejecutar anonimización PII
 
 # Breach (admin/auditor)
 GET   /admin/breach-reports      → Listar reportes de breach
-POST  /admin/breach-reports      → Crear reporte (inicia timer 72h)
+POST  /admin/breach-reports      → Crear reporte (inicia timer 24h CYB-16)
 PATCH /admin/breach-reports/:id  → Actualizar estado (notificado/resuelto)
 ```
 

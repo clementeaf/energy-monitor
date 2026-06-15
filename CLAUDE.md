@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
+- **2.21.0:** 11 Anexo 07 gaps resolvibles cerrados (77%→~88%). Breach 24h, API observability, data observability evaluators, cert rotation, data minimization, CIS audit, docs ZIP. 1294 backend / 295 frontend tests. [CHANGELOG — 2.21.0-alpha.0](CHANGELOG.md)
 - **2.20.0:** 39 Anexo 07 gaps cerrados (47%→~85%). AWS infra scripts listos (WAF, GuardDuty, Inspector, Read Replica, Terraform). 1252 backend / 295 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
@@ -249,7 +250,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 737 tests / 63 suites). Frontend: Vitest + @testing-library/react (260 tests / 34 suites).
+- **Testing:** Jest 30 (backend, 1294 tests / 142 suites). Frontend: Vitest + @testing-library/react (295 tests / 40 suites).
 
 ## Architecture
 ```
@@ -347,4 +348,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.18.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.21.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

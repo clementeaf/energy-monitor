@@ -91,7 +91,7 @@
 
 | ID | Requerimiento | Estado actual | Falta |
 |----|---------------|---------------|-------|
-| CYB-16 | Notificacion brechas 24h | 72h (Ley 21.719) | Ajustar proceso a 24h per Anexo |
+| CYB-16 | Notificacion brechas 24h | **OK** — v2.21 `BREACH_NOTIFICATION_HOURS=24`, 7 tests | — |
 | CYB-22 | IDS / IPS 24x7 | **v2.20** Script GuardDuty listo (`infra/aws/02-guardduty-enable.sh`). Ejecutar | Activar + monitorear |
 | CYB-23 | Integridad backups | **v2.20** Procedimiento documentado (`docs/ops/security-processes.md` §4). Ejecutar test semestral |
 
@@ -147,7 +147,7 @@
 | ID | Requerimiento | Bloqueante |
 |----|---------------|------------|
 | DAT-07 | Propiedad datos | Clausula contractual |
-| DAT-12 | Export Parquet | Formato Parquet no implementado (CSV existe) |
+| DAT-12 | Export Parquet | **OK** — ya implementado: `POST /v1/export-jobs` con `format: 'parquet'`, serializer + S3 storage |
 | DAT-13a | Datos sitio contingencia | Cross-region replica (presupuesto) |
 | DAT-26 | SLOs de datos | Definir con PASA |
 | DAT-28 | Capa semantica alineable | Definir con BI PASA |
@@ -192,7 +192,7 @@
 | ID | Requerimiento | Estado actual | Falta |
 |----|---------------|---------------|-------|
 | INT-01 | Modbus/BACnet/SNMP/MQTT | MQTT OK, BACnet/SNMP connectors | Lectura directa Modbus TCP/RTU |
-| INT-03 | API ingress | POST /v1/measurements + manual CNR | API generica para sistemas diversos |
+| INT-03 | API ingress | **OK** — `POST /v1/measurements` (generic, OAuth2 scoped) + `POST /readings/manual-cnr` | — |
 | INT-10 | Reintentos exponenciales | Retry en algunos connectors | Estandarizar en todos |
 
 ### Falta (3)
@@ -200,7 +200,7 @@
 | ID | Requerimiento | Bloqueante |
 |----|---------------|------------|
 | INT-04 | Rotacion automatica certificados | Medio esfuerzo |
-| INT-05 | UI config reglas transformacion | register_mappings CRUD existe, falta UI PASA |
+| INT-05 | UI config reglas transformacion | **OK** — `RegisterMappingsPage` + backend CRUD + hooks |
 | INT-09 | Aislamiento trafico API vs UI | Separate ALB (infra) |
 
 ---

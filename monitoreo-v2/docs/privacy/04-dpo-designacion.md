@@ -41,7 +41,7 @@ Dado el tamaño de la operación, se recomienda:
 - [ ] Asesorar sobre evaluaciones de impacto (EIPD)
 - [ ] Actuar como punto de contacto con la Agencia de Protección de Datos
 - [ ] Atender solicitudes ARCO+ que escalen más allá del flujo automatizado
-- [ ] Supervisar respuesta a breach incidents (72h)
+- [ ] Supervisar respuesta a breach incidents (24h PASA / 72h Agencia)
 - [ ] Capacitar al equipo en protección de datos
 - [ ] Revisar anualmente: EIPD, registro de tratamiento, política de privacidad
 - [ ] Monitorear cambios regulatorios y directrices de la Agencia

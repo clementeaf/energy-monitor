@@ -4,6 +4,7 @@ import {
   getRetentionYears,
   getIdleTimeoutMinutes,
   getSsoProvider,
+  getDataMinimization,
   mergeTenantSettings,
   normalizeTenantSettings,
   resolveSessionMinutes,
@@ -89,5 +90,65 @@ describe('tenant-settings', () => {
     expect(() => mergeTenantSettings({}, { idleTimeoutMinutes: 4 })).toThrow();
     expect(() => mergeTenantSettings({}, { idleTimeoutMinutes: 61 })).toThrow();
     expect(mergeTenantSettings({}, { idleTimeoutMinutes: 15 }).idleTimeoutMinutes).toBe(15);
+  });
+
+  describe('PRI-05: dataMinimization', () => {
+    it('returns empty object when not set', () => {
+      expect(getDataMinimization({})).toEqual({});
+      expect(getDataMinimization(undefined)).toEqual({});
+      expect(getDataMinimization(null)).toEqual({});
+    });
+
+    it('parses valid config', () => {
+      const settings = {
+        dataMinimization: {
+          phone: 'excluded',
+          email: 'required',
+          fullName: 'optional',
+        },
+      };
+      const result = getDataMinimization(settings);
+      expect(result.phone).toBe('excluded');
+      expect(result.email).toBe('required');
+      expect(result.fullName).toBe('optional');
+    });
+
+    it('skips invalid visibility values', () => {
+      const settings = {
+        dataMinimization: {
+          phone: 'excluded',
+          email: 'bogus',
+        },
+      };
+      const result = getDataMinimization(settings);
+      expect(result.phone).toBe('excluded');
+      expect(result.email).toBeUndefined();
+    });
+
+    it('validates in merge — rejects invalid type', () => {
+      expect(() => mergeTenantSettings({}, { dataMinimization: 'not-object' })).toThrow();
+      expect(() => mergeTenantSettings({}, { dataMinimization: [1, 2] })).toThrow();
+    });
+
+    it('validates in merge — rejects invalid field visibility', () => {
+      expect(() =>
+        mergeTenantSettings({}, { dataMinimization: { phone: 'nope' } }),
+      ).toThrow('settings.dataMinimization.phone');
+    });
+
+    it('accepts valid config in merge', () => {
+      const result = mergeTenantSettings({}, {
+        dataMinimization: { phone: 'excluded', email: 'required' },
+      });
+      expect((result.dataMinimization as Record<string, string>).phone).toBe('excluded');
+    });
+
+    it('accepts null (reset to default)', () => {
+      const result = mergeTenantSettings(
+        { dataMinimization: { phone: 'excluded' } },
+        { dataMinimization: null },
+      );
+      expect(result.dataMinimization).toBeNull();
+    });
   });
 });

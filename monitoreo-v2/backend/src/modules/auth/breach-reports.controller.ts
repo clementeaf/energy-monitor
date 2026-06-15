@@ -18,9 +18,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
+/** Anexo 07 CYB-16 requires 24h notification to PASA (stricter than Ley 21.719's 72h). */
+export const BREACH_NOTIFICATION_HOURS = 24;
+
 /**
- * Breach report management — Ley 21.719.
- * 72-hour notification deadline to the Agency.
+ * Breach report management — Ley 21.719 + Anexo 07 CYB-16.
+ * 24-hour notification deadline to PASA.
  * Only accessible to users with audit:read permission (typically admin/auditor).
  */
 @ApiTags('Breach Reports (Ley 21.719)')
@@ -64,13 +67,13 @@ export class BreachReportsController {
   @Post()
   @RequirePermission('audit', 'read')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create breach report (starts 72h timer)' })
-  @ApiResponse({ status: 201, description: 'Breach report created with 72h deadline' })
+  @ApiOperation({ summary: 'Create breach report (starts 24h timer)' })
+  @ApiResponse({ status: 201, description: 'Breach report created with 24h deadline' })
   async create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateBreachReportDto,
   ) {
-    const deadline = new Date(new Date(dto.detectedAt).getTime() + 72 * 60 * 60 * 1000);
+    const deadline = new Date(new Date(dto.detectedAt).getTime() + BREACH_NOTIFICATION_HOURS * 60 * 60 * 1000);
 
     const rows = await this.dataSource.query(
       `INSERT INTO breach_reports

@@ -34,6 +34,11 @@ export const BUS_ERROR = 'BUS_ERROR';
 export const MODBUS_TIMEOUT = 'MODBUS_TIMEOUT';
 export const CRC_ERROR = 'CRC_ERROR';
 
+// ── Data Observability (DAT-27) ──────────────────────
+export const TREND_BREAK = 'TREND_BREAK';
+export const NULL_SPIKE = 'NULL_SPIKE';
+export const VOLUME_ANOMALY = 'VOLUME_ANOMALY';
+
 // ── Extra (XLSX) ──────────────────────────────────────
 export const FREQUENCY_OUT_OF_RANGE = 'FREQUENCY_OUT_OF_RANGE';
 export const OVERCURRENT = 'OVERCURRENT';
@@ -60,6 +65,9 @@ export type AlertTypeCode =
   | typeof BUS_ERROR
   | typeof MODBUS_TIMEOUT
   | typeof CRC_ERROR
+  | typeof TREND_BREAK
+  | typeof NULL_SPIKE
+  | typeof VOLUME_ANOMALY
   | typeof FREQUENCY_OUT_OF_RANGE
   | typeof OVERCURRENT
   | typeof BREAKER_TRIP
@@ -85,6 +93,9 @@ export const ALL_ALERT_TYPE_CODES: AlertTypeCode[] = [
   BUS_ERROR,
   MODBUS_TIMEOUT,
   CRC_ERROR,
+  TREND_BREAK,
+  NULL_SPIKE,
+  VOLUME_ANOMALY,
   FREQUENCY_OUT_OF_RANGE,
   OVERCURRENT,
   BREAKER_TRIP,
@@ -99,4 +110,5 @@ export const ALERT_FAMILIES: Record<string, AlertTypeCode[]> = {
   operational: [METER_TAMPER, CONFIG_CHANGE, FIRMWARE_MISMATCH],
   generation: [GENERATION_LOW, INVERTER_FAULT, GRID_EXPORT_LIMIT],
   bus: [BUS_ERROR, MODBUS_TIMEOUT, CRC_ERROR],
+  dataObservability: [TREND_BREAK, NULL_SPIKE, VOLUME_ANOMALY],
 };

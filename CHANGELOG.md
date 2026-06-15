@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.21.0-alpha.0] - 2026-06-15 — ANEXO 07 GAP CLOSURE (11 items)
+
+### Added
+- **CYB-16** — Breach notification deadline 72h → 24h (Anexo 07). `BREACH_NOTIFICATION_HOURS` constant. 7 tests.
+- **DAT-09** — `GET /admin/api-observability` endpoint. Periods, top endpoints, summary (request count, error rate, p50/p95/p99 latency). 5 tests.
+- **DAT-27** — Data observability evaluators: `TREND_BREAK`, `NULL_SPIKE`, `VOLUME_ANOMALY` in AlertEngine. 7 tests.
+- **INT-04** — Certificate rotation script `infra/aws/05-cert-rotation.sh` (ACM check, IoT Core rotation, RDS CA bundle). 5 tests.
+- **PRI-05** — `dataMinimization` tenant setting (field → required/optional/excluded). 7 tests.
+- **ARQ-15** — `scripts/package-docs.mjs` packages 27 docs into dated ZIP deliverable. 5 tests.
+- **CYB-17** — `scripts/generate-cis-audit.mjs` generates CIS hardening checklist (31 checks, 5 categories). 6 tests.
+
+### Changed
+- **INT-10** — BACnet and SNMP connectors now use `withRetry` exponential backoff (matching REST, webhook, FTP).
+- **Breach reports** — Frontend labels and docs updated from 72h to 24h.
+- **Privacy docs** — `README.md`, `02-eipd.md`, `04-dpo-designacion.md` reflect 24h PASA / 72h Agency distinction.
+
+### Fixed
+- **DAT-12** — Gap analysis corrected: Parquet export already implemented (`POST /v1/export-jobs` format=parquet).
+- **INT-03** — Gap analysis corrected: API ingress already implemented (`POST /v1/measurements`).
+- **INT-05** — Gap analysis corrected: RegisterMappingsPage already implemented.
+
+### Tests
+- Backend: 1294 total (42 new), 142 suites, 0 failures.
+
+---
+
 ## [2.20.0-alpha.0] - 2026-06-15 — SESSION IDLE TIMEOUT (CYB-06), ER DIAGRAM (DAT-18)
 
 ### Added

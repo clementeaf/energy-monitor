@@ -215,6 +215,52 @@ export function assertValidSsoDefaultRoleSlug(settings: Record<string, unknown>)
   }
 }
 
+// ── PRI-05: Data minimization ──────────────────────────
+const DATA_MINIMIZATION_KEY = 'dataMinimization';
+
+export type FieldVisibility = 'required' | 'optional' | 'excluded';
+
+export interface DataMinimizationConfig {
+  [fieldName: string]: FieldVisibility;
+}
+
+const VALID_VISIBILITIES = new Set<string>(['required', 'optional', 'excluded']);
+
+/**
+ * PRI-05: Returns data minimization config for a tenant (field → visibility).
+ * Empty object means all fields use platform defaults.
+ */
+export function getDataMinimization(
+  settings: Record<string, unknown> | null | undefined,
+): DataMinimizationConfig {
+  const raw = settings?.[DATA_MINIMIZATION_KEY];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const config: DataMinimizationConfig = {};
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof val === 'string' && VALID_VISIBILITIES.has(val)) {
+      config[key] = val as FieldVisibility;
+    }
+  }
+  return config;
+}
+
+/**
+ * PRI-05: Validates dataMinimization when present in a settings patch.
+ */
+export function assertValidDataMinimization(settings: Record<string, unknown>): void {
+  if (!(DATA_MINIMIZATION_KEY in settings)) return;
+  const raw = settings[DATA_MINIMIZATION_KEY];
+  if (raw === null) return;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('settings.dataMinimization must be an object mapping field names to "required" | "optional" | "excluded"');
+  }
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof val !== 'string' || !VALID_VISIBILITIES.has(val)) {
+      throw new Error(`settings.dataMinimization.${key} must be "required", "optional", or "excluded"`);
+    }
+  }
+}
+
 /**
  * Merges tenant settings and ensures retentionYears default when missing.
  */
@@ -229,6 +275,7 @@ export function mergeTenantSettings(
   assertValidBlockConcurrentSessions(patch);
   assertValidIdleTimeoutMinutes(patch);
   assertValidSsoDefaultRoleSlug(patch);
+  assertValidDataMinimization(patch);
   const merged: Record<string, unknown> = { ...current, ...patch };
   if (merged[RETENTION_YEARS_KEY] === undefined) {
     merged[RETENTION_YEARS_KEY] = DEFAULT_RETENTION_YEARS;

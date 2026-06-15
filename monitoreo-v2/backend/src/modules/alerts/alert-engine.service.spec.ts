@@ -11,6 +11,7 @@ import { ConsumptionEvaluator } from './evaluators/consumption.evaluator';
 import { OperationalEvaluator } from './evaluators/operational.evaluator';
 import { GenerationEvaluator } from './evaluators/generation.evaluator';
 import { BusEvaluator } from './evaluators/bus.evaluator';
+import { DataObservabilityEvaluator } from './evaluators/data-observability.evaluator';
 
 const TENANT_ID = 'tenant-1';
 
@@ -87,6 +88,7 @@ describe('AlertEngineService', () => {
         { provide: OperationalEvaluator, useValue: emptyEvaluator(['METER_TAMPER', 'CONFIG_CHANGE', 'FIRMWARE_MISMATCH']) },
         { provide: GenerationEvaluator, useValue: emptyEvaluator(['GENERATION_LOW', 'INVERTER_FAULT', 'GRID_EXPORT_LIMIT']) },
         { provide: BusEvaluator, useValue: emptyEvaluator(['BUS_ERROR', 'MODBUS_TIMEOUT', 'CRC_ERROR']) },
+        { provide: DataObservabilityEvaluator, useValue: emptyEvaluator(['TREND_BREAK', 'NULL_SPIKE', 'VOLUME_ANOMALY']) },
       ],
     }).compile();
 

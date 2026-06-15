@@ -18,6 +18,7 @@ import { ConsumptionEvaluator } from './evaluators/consumption.evaluator';
 import { OperationalEvaluator } from './evaluators/operational.evaluator';
 import { GenerationEvaluator } from './evaluators/generation.evaluator';
 import { BusEvaluator } from './evaluators/bus.evaluator';
+import { DataObservabilityEvaluator } from './evaluators/data-observability.evaluator';
 import { SesEmailService } from '../../common/email/ses-email.service';
 import { SnsSmsService } from '../../common/sms/sns-sms.service';
 import { WebhooksModule } from '../webhooks/webhooks.module';
@@ -47,6 +48,7 @@ import { WebhooksModule } from '../webhooks/webhooks.module';
     OperationalEvaluator,
     GenerationEvaluator,
     BusEvaluator,
+    DataObservabilityEvaluator,
   ],
   exports: [AlertsService, AlertRulesService, AlertEngineService, NotificationService],
 })

@@ -112,6 +112,37 @@ describe('AWS infrastructure scripts', () => {
     });
   });
 
+  describe('INT-04: Certificate rotation', () => {
+    const script = readFileSync(resolve(AWS_DIR, '05-cert-rotation.sh'), 'utf-8');
+
+    it('checks ACM certificate status', () => {
+      expect(script).toContain('acm list-certificates');
+      expect(script).toContain('auto-renewal');
+    });
+
+    it('rotates IoT Core device certificate', () => {
+      expect(script).toContain('iot create-keys-and-certificate');
+      expect(script).toContain('attach-thing-principal');
+      expect(script).toContain('update-certificate');
+      expect(script).toContain('INACTIVE');
+    });
+
+    it('updates RDS CA bundle', () => {
+      expect(script).toContain('rds-global-bundle.pem');
+      expect(script).toContain('truststore.pki.rds.amazonaws.com');
+    });
+
+    it('supports dry-run mode', () => {
+      expect(script).toContain('--dry-run');
+      expect(script).toContain('DRY-RUN');
+    });
+
+    it('supports selective rotation (iot-only, rds-only)', () => {
+      expect(script).toContain('--iot-only');
+      expect(script).toContain('--rds-only');
+    });
+  });
+
   describe('ARQ-16: Terraform IaC', () => {
     const tf = readFileSync(resolve(TF_DIR, 'main.tf'), 'utf-8');
 

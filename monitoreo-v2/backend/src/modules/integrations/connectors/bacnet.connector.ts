@@ -5,6 +5,7 @@ import {
   UdpBacnetPingClient,
   type BacnetPingClient,
 } from './bacnet-ping.client';
+import { withRetry } from './retry.util';
 
 const DEFAULT_BACNET_PORT = 47808;
 const DEFAULT_TIMEOUT_MS = 6_000;
@@ -67,11 +68,9 @@ export class BacnetConnector implements IntegrationConnector {
     const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
     try {
-      const result = await this.pingClient.ping(
-        config.host,
-        port,
-        config.deviceId,
-        timeoutMs,
+      const result = await withRetry(
+        () => this.pingClient.ping(config.host, port, config.deviceId, timeoutMs),
+        { maxRetries: 2, delayMs: 1000 },
       );
 
       if (!result.reachable) {

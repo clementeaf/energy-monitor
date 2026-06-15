@@ -87,7 +87,7 @@
 - [x] Política de privacidad publicada y aceptada por usuarios
 - [x] Registro de actividades de tratamiento documentado
 - [x] Flujo de derechos ARCO+ implementado (acceso, rectificación, cancelación, portabilidad)
-- [x] Workflow de breach notification con timer 72h
+- [x] Workflow de breach notification con timer 24h (CYB-16; Ley 21.719 permite 72h)
 - [ ] DPA con AWS formalizado (en proceso)
 - [ ] Capacitación equipo en protección de datos (pendiente)
 - [ ] DPO designado (recomendado)

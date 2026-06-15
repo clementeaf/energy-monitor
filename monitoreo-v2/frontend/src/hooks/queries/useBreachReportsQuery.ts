@@ -7,7 +7,7 @@ const KEYS = {
 };
 
 /**
- * Lists breach reports (Ley 21.719, 72h timer).
+ * Lists breach reports (Ley 21.719, 24h timer).
  */
 export function useBreachReportsQuery(options?: { enabled?: boolean }) {
   return useQuery({
@@ -18,7 +18,7 @@ export function useBreachReportsQuery(options?: { enabled?: boolean }) {
 }
 
 /**
- * Creates a breach report and starts the 72h notification deadline.
+ * Creates a breach report and starts the 24h notification deadline.
  */
 export function useCreateBreachReport() {
   const qc = useQueryClient();

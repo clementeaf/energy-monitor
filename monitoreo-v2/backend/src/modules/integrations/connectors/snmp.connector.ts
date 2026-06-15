@@ -6,6 +6,7 @@ import {
   UdpSnmpPingClient,
   type SnmpPingClient,
 } from './snmp-ping.client';
+import { withRetry } from './retry.util';
 
 const DEFAULT_SNMP_PORT = 161;
 const DEFAULT_TIMEOUT_MS = 6_000;
@@ -87,12 +88,9 @@ export class SnmpConnector implements IntegrationConnector {
     }
 
     try {
-      const result = await this.pingClient.ping(
-        config.host,
-        port,
-        config.community,
-        oid,
-        timeoutMs,
+      const result = await withRetry(
+        () => this.pingClient.ping(config.host, port, config.community, oid, timeoutMs),
+        { maxRetries: 2, delayMs: 1000 },
       );
 
       if (!result.reachable) {

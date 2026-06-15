@@ -19,7 +19,7 @@ const SEVERITY_LABELS: Record<BreachReportSeverity, string> = {
 };
 
 /**
- * Ley 21.719 breach reports with 72h agency notification deadline.
+ * Ley 21.719 breach reports with 24h agency notification deadline.
  */
 export function BreachReportsPage() {
   const { has } = usePermissions();
@@ -84,7 +84,7 @@ export function BreachReportsPage() {
       <PageHeader
         title="Reportes de brecha de seguridad"
         eyebrow="Administración"
-        description="Ley 21.719 — plazo 72h para notificar a la Agencia."
+        description="Ley 21.719 — plazo 24h para notificar a la Agencia."
       />
 
       <Button onClick={() => { setCreateOpen(true); }}>Registrar brecha</Button>
@@ -151,7 +151,7 @@ export function BreachReportsPage() {
           </label>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => { setCreateOpen(false); }}>Cancelar</Button>
-            <Button onClick={handleCreate} loading={createMutation.isPending}>Crear (inicia timer 72h)</Button>
+            <Button onClick={handleCreate} loading={createMutation.isPending}>Crear (inicia timer 24h)</Button>
           </div>
         </div>
       </Modal>

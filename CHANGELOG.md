@@ -21,11 +21,12 @@
 - **API versioning (INT-06)** — `ApiVersionInterceptor` adds `API-Version: 1.0` header to every response. `@ApiDeprecated()` decorator sets `Deprecation`, `Sunset`, `X-Deprecation-Notice` headers (RFC 8594). Versioning policy doc: backward compatibility rules, 6-month deprecation cycle, schema change notification.
 - **SBOM (CYB-19)** — `npm run sbom` generates CycloneDX 1.5 JSON (`docs/sbom.json`) and summary Markdown (`docs/sbom-summary.md`) from backend + frontend package.json. 105 packages (53 runtime, 52 dev).
 - **Load test (ARQ-17)** — k6 script (`scripts/load-test.k6.js`) with 5 scenarios (dashboard, realtime, timeseries, auth, buildings). Thresholds: dashboard p95 < 3s (ARQ-07), API p95 < 500ms (INT-08), error rate < 1%.
+- **DAST scan (CYB-07)** — GitHub Actions workflow (`zap-dast.yml`): weekly OWASP ZAP baseline scan against API with TimescaleDB service. Rules file for false-positive tuning. HTML + JSON reports as artifacts.
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: 1097 total (0 failures), 124 suites.
+- Backend: 1111 total (0 failures), 125 suites.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

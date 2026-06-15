@@ -211,6 +211,7 @@ describe('MetersService', () => {
         nominalCurrent: null,
         contractedDemandKw: null,
         loadCategory: null,
+        parentMeterId: null,
       });
       expect(result).toEqual(meter);
     });

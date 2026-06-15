@@ -28,7 +28,8 @@
     "pasa:import-csv": "node ../scripts/pasa-readings/import-pasa-csv.mjs",
     "db:er-diagram": "node scripts/generate-er-diagram.mjs",
     "db:error-catalog": "node scripts/generate-error-catalog.mjs",
-    "db:postman": "node scripts/generate-postman-collection.mjs"
+    "db:postman": "node scripts/generate-postman-collection.mjs",
+    "privacy:inventory": "node scripts/generate-privacy-inventory.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

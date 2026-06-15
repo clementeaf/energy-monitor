@@ -32,7 +32,8 @@
     "privacy:inventory": "node scripts/generate-privacy-inventory.mjs",
     "db:protocol-mapping": "node scripts/generate-protocol-mapping.mjs",
     "db:kpi-rules": "node scripts/generate-kpi-rules.mjs",
-    "sbom": "node scripts/generate-sbom.mjs"
+    "sbom": "node scripts/generate-sbom.mjs",
+    "docs:bcp-drp": "node scripts/generate-bcp-drp.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

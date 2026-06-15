@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
-- **2.20.0:** 13 Anexo 07 gaps cerrados (CYB-06 idle timeout, DAT-06 quality, DAT-20 CNR, INT-06 versioning, CYB-19 SBOM, ARQ-17 load test, DAT-18 ER, ARQ-24 errors, INT-07 Postman, PRI-06/07 privacy, INT-14 protocol, DAT-22 KPI). 1097 backend tests / 301 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+- **2.20.0:** 15 Anexo 07 gaps cerrados (Fase 1+2+3 parcial). CYB-06/07/11/19, DAT-06/18/20/22, ARQ-17/24, INT-06/07/14, PRI-06/07. 1123 backend tests / 295 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)

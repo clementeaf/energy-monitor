@@ -33,7 +33,8 @@
     "db:protocol-mapping": "node scripts/generate-protocol-mapping.mjs",
     "db:kpi-rules": "node scripts/generate-kpi-rules.mjs",
     "sbom": "node scripts/generate-sbom.mjs",
-    "docs:bcp-drp": "node scripts/generate-bcp-drp.mjs"
+    "docs:bcp-drp": "node scripts/generate-bcp-drp.mjs",
+    "docs:network-reqs": "node scripts/generate-network-requirements.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",

@@ -5,6 +5,7 @@ import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
 import { meterRoleWhereClause } from './meter-role-sql';
 import { parseQualityFilter, qualityWhereFragment } from './quality-filter-sql';
+import { timeBucketExpr } from './timezone-bucket-sql';
 import { CompareBuildingsQueryDto } from './dto/compare-buildings-query.dto';
 import { resolveMeterTimezone } from '../../lib/timezone';
 import {
@@ -182,9 +183,10 @@ export class ReadingsService {
         params.push(...qf.params);
       }
 
+      const bucket = timeBucketExpr(pgInterval, 'timestamp', timezone, '$1::interval');
       rows = await this.dataSource.query(
         `SELECT
-           time_bucket($1::interval, timestamp) AS timestamp,
+           ${bucket} AS timestamp,
            meter_id,
            '' AS id,
            AVG(voltage_l1::numeric)::text AS voltage_l1,
@@ -209,7 +211,7 @@ export class ReadingsService {
            AND timestamp >= $3
            AND timestamp <= $4
            ${qualityClause}
-         GROUP BY time_bucket($1::interval, timestamp), meter_id
+         GROUP BY ${bucket}, meter_id
          ORDER BY timestamp ASC
          LIMIT $5`,
         params,

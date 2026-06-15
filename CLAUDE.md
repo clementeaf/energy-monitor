@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
-- **2.20.0:** 34 Anexo 07 gaps cerrados (47%→~78%). 1224 backend / 295 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+- **2.20.0:** 39 Anexo 07 gaps cerrados (47%→~85%). AWS infra scripts listos (WAF, GuardDuty, Inspector, Read Replica, Terraform). 1252 backend / 295 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)

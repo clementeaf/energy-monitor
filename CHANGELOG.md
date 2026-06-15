@@ -33,11 +33,12 @@
 - **Configurable timeouts (INT-11)** — Already implemented: `timeoutMs` in all connector configs (REST 30s, webhook 10s, SNMP/BACnet 6s, MQTT 5s). Validated with 23 tests.
 - **Security processes (CYB-14 + CYB-18 + CYB-20 + CYB-23 + DAT-13b)** — `npm run docs:security-processes` generates `docs/ops/security-processes.md`: Fargate antivirus justification, patching SLA (7/14/30/90d by CVSS), privileged account monthly review checklist, backup integrity semestral procedure, schema change 30-day notification process.
 - **Data governance validated (DAT-16 + DAT-17 + DAT-19)** — Already implemented: balance anomalies API, quality report API (daily rollup cron), meter sync status API. 10 validation tests.
+- **AWS infra scripts (CYB-09 + CYB-13 + CYB-22 + DAT-01 + ARQ-16)** — Ready-to-run scripts in `infra/aws/`: WAF Web ACL (4 managed rule groups + rate limit), GuardDuty (S3/ECS/RDS monitoring), Inspector v2 (ECR+Lambda scanning), RDS Read Replica for PASA ETL, Terraform IaC (RDS, ECS, S3, CloudFront, ECR). All support `--dry-run`. 28 validation tests.
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: 1224 total (0 failures), 136 suites.
+- Backend: 1252 total (0 failures), 137 suites.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

@@ -19,11 +19,12 @@
 - **Quality filter (DAT-06)** — `?quality=measured,estimated` param on `GET /readings`, `GET /readings/latest`, `GET /readings/aggregated`, and all external API v1 equivalents. Filters readings by quality before aggregation. Quality enum already set on all ingest paths (MQTT, BACnet, API, Drive pipeline).
 - **Manual CNR readings (DAT-20)** — `POST /readings/manual-cnr` inserts readings with `quality=estimated`, `source=manual_cnr`. Requires `reason` field for audit trail. Full audit log entry (`CNR_MANUAL_READING`) with user, meter, timestamp, and justification. Permission-gated (`readings:create`). `manual_cnr` added to `READING_SOURCES`.
 - **API versioning (INT-06)** — `ApiVersionInterceptor` adds `API-Version: 1.0` header to every response. `@ApiDeprecated()` decorator sets `Deprecation`, `Sunset`, `X-Deprecation-Notice` headers (RFC 8594). Versioning policy doc: backward compatibility rules, 6-month deprecation cycle, schema change notification.
+- **SBOM (CYB-19)** — `npm run sbom` generates CycloneDX 1.5 JSON (`docs/sbom.json`) and summary Markdown (`docs/sbom-summary.md`) from backend + frontend package.json. 105 packages (53 runtime, 52 dev).
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: +7 guard + 4 settings + 9 ER + 10 errors + 11 Postman + 16 privacy + 11 protocol + 15 KPI + 12 quality + 7 CNR + 9 versioning = 1075 total.
+- Backend: 1085 total (0 failures). +7 guard, +4 settings, +9 ER, +10 errors, +11 Postman, +16 privacy, +11 protocol, +15 KPI, +12 quality, +7 CNR, +9 versioning, +10 SBOM.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

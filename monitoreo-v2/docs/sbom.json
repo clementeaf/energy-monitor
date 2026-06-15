@@ -1,0 +1,1282 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-06-15T11:02:56.625Z",
+    "tools": [
+      {
+        "vendor": "energy-monitor",
+        "name": "generate-sbom.mjs",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "energy-monitor-v2",
+      "version": "0.0.1"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "@aws-sdk/client-s3",
+      "version": "3.1063.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@aws-sdk/client-ses",
+      "version": "3.1022.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@aws-sdk/client-sns",
+      "version": "3.1057.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@aws-sdk/s3-request-presigner",
+      "version": "3.1063.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@dsnp/parquetjs",
+      "version": "1.8.7",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nest-lab/throttler-storage-redis",
+      "version": "1.2.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/common",
+      "version": "11.0.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/config",
+      "version": "4.0.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/core",
+      "version": "11.0.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/jwt",
+      "version": "11.0.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/passport",
+      "version": "11.0.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/platform-express",
+      "version": "11.0.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/schedule",
+      "version": "6.1.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/swagger",
+      "version": "11.3.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/throttler",
+      "version": "6.5.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/typeorm",
+      "version": "11.0.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "basic-ftp",
+      "version": "5.3.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "class-transformer",
+      "version": "0.5.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "class-validator",
+      "version": "0.15.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cookie-parser",
+      "version": "1.4.7",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cron-parser",
+      "version": "5.5.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "csv-parse",
+      "version": "5.6.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "exceljs",
+      "version": "4.4.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "express-session",
+      "version": "1.19.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "helmet",
+      "version": "8.1.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ioredis",
+      "version": "5.10.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jose",
+      "version": "6.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "mqtt",
+      "version": "5.15.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "otplib",
+      "version": "13.4.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "passport",
+      "version": "0.7.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "passport-jwt",
+      "version": "4.0.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pdfkit",
+      "version": "0.18.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pg",
+      "version": "8.20.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "qrcode",
+      "version": "1.5.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "reflect-metadata",
+      "version": "0.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "rxjs",
+      "version": "7.8.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typeorm",
+      "version": "0.3.28",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "uuid",
+      "version": "13.0.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@eslint/eslintrc",
+      "version": "3.2.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@eslint/js",
+      "version": "9.18.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/cli",
+      "version": "11.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/schematics",
+      "version": "11.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@nestjs/testing",
+      "version": "11.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/cookie-parser",
+      "version": "1.4.10",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/express",
+      "version": "5.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/express-session",
+      "version": "1.18.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/jest",
+      "version": "30.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/node",
+      "version": "22.10.7",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/passport-jwt",
+      "version": "4.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/pdfkit",
+      "version": "0.17.5",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/qrcode",
+      "version": "1.5.6",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/supertest",
+      "version": "6.0.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/uuid",
+      "version": "10.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint",
+      "version": "9.18.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint-config-prettier",
+      "version": "10.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint-plugin-prettier",
+      "version": "5.2.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "globals",
+      "version": "16.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jest",
+      "version": "30.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "prettier",
+      "version": "3.4.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "source-map-support",
+      "version": "0.5.21",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "supertest",
+      "version": "7.0.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ts-jest",
+      "version": "29.2.5",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ts-loader",
+      "version": "9.5.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ts-node",
+      "version": "10.9.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tsconfig-paths",
+      "version": "4.2.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typescript",
+      "version": "5.7.3",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typescript-eslint",
+      "version": "8.20.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "backend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@azure/msal-browser",
+      "version": "5.6.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@azure/msal-react",
+      "version": "5.1.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@fontsource-variable/inter",
+      "version": "5.2.8",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@react-oauth/google",
+      "version": "0.13.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@tailwindcss/vite",
+      "version": "4.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@tanstack/react-query",
+      "version": "5.95.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "axios",
+      "version": "1.13.6",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "highcharts",
+      "version": "12.5.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "highcharts-react-official",
+      "version": "3.2.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react",
+      "version": "19.2.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-dom",
+      "version": "19.2.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-router",
+      "version": "7.13.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-router-dom",
+      "version": "7.13.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tailwindcss",
+      "version": "4.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "zustand",
+      "version": "5.0.12",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@eslint/js",
+      "version": "9.39.4",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@playwright/test",
+      "version": "1.60.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@storybook/react",
+      "version": "9.1.20",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@storybook/react-vite",
+      "version": "9.1.20",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@testing-library/dom",
+      "version": "10.4.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@testing-library/jest-dom",
+      "version": "6.9.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@testing-library/react",
+      "version": "16.3.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@testing-library/user-event",
+      "version": "14.6.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/node",
+      "version": "24.12.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/react",
+      "version": "19.2.14",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/react-dom",
+      "version": "19.2.3",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@vitejs/plugin-react",
+      "version": "6.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@vitest/coverage-v8",
+      "version": "3.2.4",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint",
+      "version": "9.39.4",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint-plugin-react-hooks",
+      "version": "7.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eslint-plugin-react-refresh",
+      "version": "0.5.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "globals",
+      "version": "17.4.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jsdom",
+      "version": "29.0.2",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "storybook",
+      "version": "9.1.20",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typescript",
+      "version": "5.9.3",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typescript-eslint",
+      "version": "8.57.0",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "vite",
+      "version": "8.0.1",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "vitest",
+      "version": "3.2.4",
+      "scope": "optional",
+      "properties": [
+        {
+          "name": "component",
+          "value": "frontend"
+        }
+      ]
+    }
+  ]
+}

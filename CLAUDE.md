@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
-- **2.20.0:** Idle timeout 15min (CYB-06) + ER diagram (DAT-18) + error catalog (ARQ-24). `npm run db:er-diagram` (53 tablas, 106 FKs). `npm run db:error-catalog` (101 errores, 5 HTTP codes). Gap analysis Anexo 07. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+- **2.20.0:** CYB-06 idle timeout + DAT-18 ER diagram + ARQ-24 error catalog + INT-07 Postman collection. 4 generators (`db:er-diagram`, `db:error-catalog`, `db:postman`). Gap analysis Anexo 07. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)

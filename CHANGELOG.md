@@ -9,6 +9,7 @@
 - **`/auth/me` returns `idleTimeoutMinutes`** — frontend reads it to configure the idle timer dynamically.
 - **ER diagram (DAT-18)** — `npm run db:er-diagram` generates `docs/context/er-diagram.md` (Mermaid) from 53 TypeORM entities (106 FK relations). Handles `@PrimaryGeneratedColumn`, `@PrimaryColumn` (composite PKs), `@ManyToOne`, `@OneToOne`, enums, and multi-line decorators.
 - **Error catalog (ARQ-24)** — `npm run db:error-catalog` generates `docs/context/api-error-catalog.md` from 197 throw statements (101 unique errors across 5 HTTP codes). Includes troubleshooting guidance per status code and source file locations.
+- **Postman collection (INT-07)** — `npm run db:postman` generates `docs/postman-collection.json` (Postman v2.1) from 252 routes across 34 module folders. Bearer auth, `{{baseUrl}}` / `{{accessToken}}` variables, body stubs for POST/PATCH.
 - **Anexo 07 gap analysis** — `docs/PASA/anexo07-gap-analysis.md` maps 99 non-functional requirements vs current platform state.
 
 ### Changed
@@ -16,7 +17,7 @@
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: +7 guard + 4 tenant-settings + 9 ER diagram + 10 error catalog = 993 total.
+- Backend: +7 guard + 4 tenant-settings + 9 ER diagram + 10 error catalog + 11 Postman = 1004 total.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

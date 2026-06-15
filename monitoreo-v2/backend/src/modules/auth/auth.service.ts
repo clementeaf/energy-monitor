@@ -547,6 +547,39 @@ export class AuthService {
     );
   }
 
+  /* ── CYB-21: Login audit with IP + result ── */
+
+  /**
+   * Writes an explicit login audit log with IP, user-agent, and auth result.
+   * Called by controller after successful login or MFA validation.
+   */
+  async writeLoginAudit(params: {
+    userId: string;
+    tenantId: string;
+    action: 'LOGIN_SUCCESS' | 'LOGIN_MFA_PENDING' | 'LOGIN_MFA_SUCCESS' | 'LOGIN_FAILED';
+    provider: string;
+    ipAddress: string | null;
+    userAgent: string | null;
+  }): Promise<void> {
+    try {
+      await this.dataSource.query(
+        `INSERT INTO audit_logs (tenant_id, user_id, action, resource_type, resource_id, details, ip_address, user_agent)
+         VALUES ($1, $2, $3, 'session', $4, $5, $6::inet, $7)`,
+        [
+          params.tenantId,
+          params.userId,
+          params.action,
+          params.userId,
+          JSON.stringify({ provider: params.provider }),
+          params.ipAddress,
+          params.userAgent,
+        ],
+      );
+    } catch {
+      this.logger.warn(`Login audit write failed for ${params.action} user=${params.userId}`);
+    }
+  }
+
   /* ── Ley 21.719: Privacy & Data Rights ── */
 
   /** Audit trail for ARCO+ right exercises — required by Ley 21.719 for traceability. */

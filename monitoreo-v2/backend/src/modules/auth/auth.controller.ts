@@ -70,22 +70,26 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid token' })
   async login(
     @Body() dto: OAuthLoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const profile = await this.verifyIdToken(dto.provider, dto.idToken);
+    const ip = (req as any).ip ?? null;
+    const ua = req.headers['user-agent'] ?? null;
     const result = await this.authService.validateOAuthLogin(profile);
 
     // If user has MFA enabled, don't issue tokens yet — require MFA validation
     if ('mfaRequired' in result) {
+      this.authService.writeLoginAudit({ userId: result.userId, tenantId: '', action: 'LOGIN_MFA_PENDING', provider: dto.provider, ipAddress: ip, userAgent: ua });
       return { mfaRequired: true, userId: result.userId };
     }
 
     // If role requires MFA but user hasn't set it up — issue tokens but flag it
-    // (user needs access to settings page to configure MFA)
     if ('mfaSetupRequired' in result) {
       const tokens = await this.authService.issueTokensForUser(result.userId);
       this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
       const mfaSetup = await this.mfaService.setupMfa(result.userId, profile.email);
+      this.authService.writeLoginAudit({ userId: result.userId, tenantId: '', action: 'LOGIN_SUCCESS', provider: dto.provider, ipAddress: ip, userAgent: ua });
       return {
         success: true,
         mfaSetupRequired: true,
@@ -98,6 +102,7 @@ export class AuthController {
     }
 
     this.setTokenCookies(res, result.accessToken, result.refreshToken);
+    this.authService.writeLoginAudit({ userId: '', tenantId: '', action: 'LOGIN_SUCCESS', provider: dto.provider, ipAddress: ip, userAgent: ua });
     return { success: true, ...this.devTokenFields(result.accessToken) };
   }
 
@@ -219,15 +224,20 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid MFA code' })
   async mfaValidate(
     @Body() body: MfaValidateDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
+    const ip = (req as any).ip ?? null;
+    const ua = req.headers['user-agent'] ?? null;
     const isValid = await this.mfaService.validate(body.userId, body.code);
     if (!isValid) {
+      this.authService.writeLoginAudit({ userId: body.userId, tenantId: '', action: 'LOGIN_FAILED', provider: 'mfa', ipAddress: ip, userAgent: ua });
       throw new UnauthorizedException('Invalid MFA code.');
     }
     const tokens = await this.authService.issueTokensForUser(body.userId);
     this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
     const session = await this.authService.getMeResponse(body.userId);
+    this.authService.writeLoginAudit({ userId: body.userId, tenantId: '', action: 'LOGIN_MFA_SUCCESS', provider: 'mfa', ipAddress: ip, userAgent: ua });
     return { success: true, ...session, ...this.devTokenFields(tokens.accessToken) };
   }
 

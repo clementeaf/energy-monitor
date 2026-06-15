@@ -54,3 +54,4 @@ coverage/
 **/coverage/
 .scannerwork/
 **/.scannerwork/
+.github/

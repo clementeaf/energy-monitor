@@ -23,6 +23,10 @@ jest.mock('qrcode', () => ({
 
 type CookieCall = { name: string; value: string; options: Record<string, unknown> };
 
+function createRequestMock() {
+  return { ip: '127.0.0.1', headers: { 'user-agent': 'jest-test' } };
+}
+
 function createResponseMock(): {
   res: { cookie: jest.Mock; clearCookie: jest.Mock };
   cookies: CookieCall[];
@@ -59,6 +63,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
         tenant: { appTitle: 'Energy Monitor' },
       }),
       revokeAllTokens: jest.fn(),
+      writeLoginAudit: jest.fn().mockResolvedValue(undefined),
     };
     mfaService = {
       validate: jest.fn(),
@@ -97,7 +102,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
     mfaService.validate.mockResolvedValue(false);
     const { res } = createResponseMock();
     await expect(
-      controller.mfaValidate({ userId: 'u-1', code: '000000' }, res as never),
+      controller.mfaValidate({ userId: 'u-1', code: '000000' }, createRequestMock() as never, res as never),
     ).rejects.toThrow(UnauthorizedException);
     expect(authService.issueTokensForUser).not.toHaveBeenCalled();
   });
@@ -106,7 +111,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
     mfaService.validate.mockResolvedValue(true);
     const { res, cookies, cleared } = createResponseMock();
 
-    await controller.mfaValidate({ userId: 'u-1', code: '123456' }, res as never);
+    await controller.mfaValidate({ userId: 'u-1', code: '123456' }, createRequestMock() as never, res as never);
 
     expect(cleared).toContain('access_token');
     expect(cleared).toContain('refresh_token');
@@ -122,7 +127,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
     mfaService.validate.mockResolvedValue(true);
     const { res } = createResponseMock();
 
-    const devResult = await controller.mfaValidate({ userId: 'u-1', code: '123456' }, res as never);
+    const devResult = await controller.mfaValidate({ userId: 'u-1', code: '123456' }, createRequestMock() as never, res as never);
     expect(devResult.accessToken).toBe('new-access-jwt');
 
     configGet.mockImplementation((key: string) => {
@@ -146,6 +151,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
     const prodRes = createResponseMock();
     const prodResult = await prodController.mfaValidate(
       { userId: 'u-1', code: '123456' },
+      createRequestMock() as never,
       prodRes.res as never,
     );
     expect(prodResult.accessToken).toBeUndefined();
@@ -188,7 +194,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
     const prodController = prodModule.get(AuthController);
     const { res, cookies, cleared } = createResponseMock();
 
-    await prodController.mfaValidate({ userId: 'u-1', code: '123456' }, res as never);
+    await prodController.mfaValidate({ userId: 'u-1', code: '123456' }, createRequestMock() as never, res as never);
 
     expect(cleared).toContain('__Host-access_token');
     expect(cookies.some((c) => c.name === '__Host-access_token')).toBe(true);

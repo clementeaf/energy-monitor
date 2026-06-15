@@ -27,11 +27,12 @@
 - **Load category filter (DAT-11 partial)** — `?loadCategory=clima` on `GET /meters` and `GET /readings/aggregated`. Enables filtering by asset type (Clima, Iluminación, Fuerza, etc.) for Anexo 07 DAT-11 metadata enrichment.
 - **Network requirements (ARQ-18)** — `npm run docs:network-reqs` generates `docs/context/network-requirements.md`: 9 connection types (HTTPS, MQTT, Modbus TCP/RTU, BACnet, SNMP, API, DNS, NTP), 7 firewall rules, bandwidth per mall size, latency targets, resilience features.
 - **Change management (CYB-15)** — `npm run docs:change-mgmt` generates `docs/ops/change-management.md`: 8 sections covering change lifecycle, branch strategy, pre-merge gates, CI/CD workflows (auto-detected), test suites, deployment steps, rollback, and emergency procedures.
+- **Login audit with IP (CYB-21)** — `writeLoginAudit()` records LOGIN_SUCCESS, LOGIN_FAILED, LOGIN_MFA_PENDING, LOGIN_MFA_SUCCESS with IP address, user-agent, provider, and user ID in `audit_logs`. Called from login and MFA validation endpoints.
 - **`SessionExpiredModal`** — now triggers proactively on client-side idle detection (not just on 401 refresh failure).
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: 1156 total (0 failures), 130 suites.
+- Backend: 1162 total (0 failures), 131 suites.
 - Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---

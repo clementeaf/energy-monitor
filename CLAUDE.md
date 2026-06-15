@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
-- **2.20.0:** Idle timeout 15min (CYB-06). Backend `IdleTimeoutGuard` + migración `49` (`last_activity_at`). Frontend `useIdleTimeout` hook + `SessionExpiredModal`. Configurable por tenant (`idleTimeoutMinutes`, 5–60). Gap analysis Anexo 07. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+- **2.20.0:** Idle timeout 15min (CYB-06) + ER diagram generator (DAT-18). Backend `IdleTimeoutGuard` + migración `49`. Frontend `useIdleTimeout`. `npm run db:er-diagram` genera `docs/context/er-diagram.md` (53 tablas, 106 FKs). Gap analysis Anexo 07. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)

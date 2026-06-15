@@ -1,12 +1,13 @@
 # Changelog
 
-## [2.20.0-alpha.0] - 2026-06-15 — SESSION IDLE TIMEOUT (CYB-06)
+## [2.20.0-alpha.0] - 2026-06-15 — SESSION IDLE TIMEOUT (CYB-06), ER DIAGRAM (DAT-18)
 
 ### Added
 - **Idle timeout (CYB-06)** — Sessions expire after 15 min of inactivity (configurable per tenant, 5–60 min). Backend `IdleTimeoutGuard` checks and updates `last_activity_at` atomically on every authenticated request. Frontend `useIdleTimeout` hook mirrors the timeout client-side via DOM events.
 - **Migration `49-session-idle-timeout`** — `last_activity_at` column on `refresh_tokens` with partial index on active tokens.
 - **Tenant setting `idleTimeoutMinutes`** — getter, validator, and merge support in `tenant-settings.ts`.
 - **`/auth/me` returns `idleTimeoutMinutes`** — frontend reads it to configure the idle timer dynamically.
+- **ER diagram (DAT-18)** — `npm run db:er-diagram` generates `docs/context/er-diagram.md` (Mermaid) from 53 TypeORM entities (106 FK relations). Handles `@PrimaryGeneratedColumn`, `@PrimaryColumn` (composite PKs), `@ManyToOne`, `@OneToOne`, enums, and multi-line decorators.
 - **Anexo 07 gap analysis** — `docs/PASA/anexo07-gap-analysis.md` maps 99 non-functional requirements vs current platform state.
 
 ### Changed
@@ -14,8 +15,8 @@
 - **Auth store** — carries `idleTimeoutMinutes` from session bootstrap through to the idle hook.
 
 ### Tests
-- Backend: +7 tests (`idle-timeout.guard.spec`) + 4 tests (`tenant-settings.spec`). 974 total.
-- Frontend: +6 tests (`useIdleTimeout.test`). 295 total / 40 suites.
+- Backend: +7 guard + 4 tenant-settings + 9 ER diagram = 983 total.
+- Frontend: +6 useIdleTimeout = 295 total / 40 suites.
 
 ---
 

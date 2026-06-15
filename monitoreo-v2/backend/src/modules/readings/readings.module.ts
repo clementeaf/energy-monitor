@@ -4,6 +4,7 @@ import { ReadingsController } from './readings.controller';
 import { MeasurementsIngressService } from './measurements-ingress.service';
 import { MqttReadingsIngressService } from './mqtt-readings-ingress.service';
 import { BacnetReadingsIngressService } from './bacnet-readings-ingress.service';
+import { CnrReadingsService } from './cnr-readings.service';
 import { NormalizationService } from '../../lib/normalization.service';
 
 @Module({
@@ -13,6 +14,7 @@ import { NormalizationService } from '../../lib/normalization.service';
     MeasurementsIngressService,
     MqttReadingsIngressService,
     BacnetReadingsIngressService,
+    CnrReadingsService,
     NormalizationService,
   ],
   exports: [
@@ -20,6 +22,7 @@ import { NormalizationService } from '../../lib/normalization.service';
     MeasurementsIngressService,
     MqttReadingsIngressService,
     BacnetReadingsIngressService,
+    CnrReadingsService,
     NormalizationService,
   ],
 })

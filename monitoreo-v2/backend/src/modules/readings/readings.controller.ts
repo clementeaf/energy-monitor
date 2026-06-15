@@ -1,23 +1,32 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   Query,
+  HttpCode,
+  HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ReadingsService } from './readings.service';
+import { CnrReadingsService } from './cnr-readings.service';
 import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
 import { AggregatedQueryDto } from './dto/aggregated-query.dto';
 import { CompareBuildingsQueryDto } from './dto/compare-buildings-query.dto';
+import { CreateCnrReadingDto } from './dto/create-cnr-reading.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
-import { RequireAnyPermission } from '../../common/guards/permissions.guard';
+import { RequireAnyPermission, RequirePermission } from '../../common/guards/permissions.guard';
 
 @ApiTags('Readings')
 @Controller('readings')
 export class ReadingsController {
-  constructor(private readonly readingsService: ReadingsService) {}
+  constructor(
+    private readonly readingsService: ReadingsService,
+    private readonly cnrReadingsService: CnrReadingsService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get time-series readings for a meter' })
@@ -100,5 +109,19 @@ export class ReadingsController {
       throw new BadRequestException('"to" must be after "from"');
     }
     return this.readingsService.findAggregated(user.tenantId, user.buildingIds, query, user.crossTenant);
+  }
+
+  @Post('manual-cnr')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Insert manual CNR reading (Consumo No Registrado)' })
+  @ApiResponse({ status: 201, description: 'CNR reading created with audit trail' })
+  @ApiResponse({ status: 403, description: 'Meter not accessible' })
+  @ApiResponse({ status: 409, description: 'Duplicate reading' })
+  @RequirePermission('readings', 'create')
+  async createCnrReading(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateCnrReadingDto,
+  ) {
+    return this.cnrReadingsService.create(user.tenantId, user.buildingIds, user.sub, dto);
   }
 }

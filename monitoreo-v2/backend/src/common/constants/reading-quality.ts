@@ -8,6 +8,7 @@ export const READING_SOURCES = [
   'backfill',
   'synthetic',
   'drive_pipeline',
+  'manual_cnr',
 ] as const;
 export type ReadingSource = (typeof READING_SOURCES)[number];
 

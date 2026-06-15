@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { ReadingsController } from './readings.controller';
 import { ReadingsService } from './readings.service';
+import { CnrReadingsService } from './cnr-readings.service';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 const mockUser: JwtPayload = {
@@ -37,7 +38,10 @@ describe('ReadingsController', () => {
 
     const module = await Test.createTestingModule({
       controllers: [ReadingsController],
-      providers: [{ provide: ReadingsService, useValue: service }],
+      providers: [
+        { provide: ReadingsService, useValue: service },
+        { provide: CnrReadingsService, useValue: { create: jest.fn() } },
+      ],
     }).compile();
 
     controller = module.get(ReadingsController);

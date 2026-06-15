@@ -14,6 +14,7 @@ import { maskEmail, maskProviderId } from '../../common/logging/pii-redaction';
 import { encryptPii, decryptPii, hmacPii, isPiiEncrypted } from '../../common/crypto/pii-encryption';
 import {
   getBlockConcurrentSessions,
+  getIdleTimeoutMinutes,
   getSsoDefaultRoleSlug,
   resolveSessionMinutes,
 } from '../../lib/tenant-settings';
@@ -94,7 +95,9 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     const tenant = await this.tenantsService.getTheme(rows[0].tenant_id);
-    return { user, tenant };
+    const tenantFull = await this.tenantsService.findById(rows[0].tenant_id);
+    const idleTimeoutMinutes = getIdleTimeoutMinutes(tenantFull.settings);
+    return { user, tenant, idleTimeoutMinutes };
   }
 
   private buildUserProfile(

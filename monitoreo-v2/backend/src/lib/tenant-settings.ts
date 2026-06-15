@@ -6,6 +6,9 @@ export const MIN_RETENTION_YEARS = 1;
 export const MAX_RETENTION_YEARS = 10;
 export const MIN_SESSION_MINUTES = 5;
 export const MAX_SESSION_MINUTES = 1440;
+export const DEFAULT_IDLE_TIMEOUT_MINUTES = 15;
+export const MIN_IDLE_TIMEOUT_MINUTES = 5;
+export const MAX_IDLE_TIMEOUT_MINUTES = 60;
 export const DEFAULT_SSO_DEFAULT_ROLE_SLUG = 'operator';
 
 export type SsoProvider = 'azure_ad' | 'oidc';
@@ -15,6 +18,7 @@ const STALE_THRESHOLD_HOURS_KEY = 'staleThresholdHours';
 const SSO_PROVIDER_KEY = 'ssoProvider';
 const MAX_SESSION_MINUTES_KEY = 'maxSessionMinutes';
 const BLOCK_CONCURRENT_SESSIONS_KEY = 'blockConcurrentSessions';
+const IDLE_TIMEOUT_MINUTES_KEY = 'idleTimeoutMinutes';
 const SSO_DEFAULT_ROLE_SLUG_KEY = 'ssoDefaultRoleSlug';
 
 const VALID_SSO_PROVIDERS = new Set<string>(['azure_ad', 'oidc']);
@@ -82,6 +86,22 @@ export function resolveSessionMinutes(
  */
 export function getBlockConcurrentSessions(settings: Record<string, unknown> | null | undefined): boolean {
   return settings?.[BLOCK_CONCURRENT_SESSIONS_KEY] === true;
+}
+
+/**
+ * Returns idle timeout in minutes from tenant settings (default 15).
+ */
+export function getIdleTimeoutMinutes(settings: Record<string, unknown> | null | undefined): number {
+  const raw = settings?.[IDLE_TIMEOUT_MINUTES_KEY];
+  if (
+    typeof raw === 'number'
+    && Number.isInteger(raw)
+    && raw >= MIN_IDLE_TIMEOUT_MINUTES
+    && raw <= MAX_IDLE_TIMEOUT_MINUTES
+  ) {
+    return raw;
+  }
+  return DEFAULT_IDLE_TIMEOUT_MINUTES;
 }
 
 /**
@@ -167,6 +187,24 @@ export function assertValidBlockConcurrentSessions(settings: Record<string, unkn
 }
 
 /**
+ * Validates idleTimeoutMinutes when present in a settings patch.
+ */
+export function assertValidIdleTimeoutMinutes(settings: Record<string, unknown>): void {
+  if (!(IDLE_TIMEOUT_MINUTES_KEY in settings)) return;
+  const raw = settings[IDLE_TIMEOUT_MINUTES_KEY];
+  if (
+    typeof raw !== 'number'
+    || !Number.isInteger(raw)
+    || raw < MIN_IDLE_TIMEOUT_MINUTES
+    || raw > MAX_IDLE_TIMEOUT_MINUTES
+  ) {
+    throw new Error(
+      `settings.idleTimeoutMinutes must be an integer between ${MIN_IDLE_TIMEOUT_MINUTES} and ${MAX_IDLE_TIMEOUT_MINUTES}`,
+    );
+  }
+}
+
+/**
  * Validates ssoDefaultRoleSlug when present in a settings patch.
  */
 export function assertValidSsoDefaultRoleSlug(settings: Record<string, unknown>): void {
@@ -189,6 +227,7 @@ export function mergeTenantSettings(
   assertValidSsoProvider(patch);
   assertValidMaxSessionMinutes(patch);
   assertValidBlockConcurrentSessions(patch);
+  assertValidIdleTimeoutMinutes(patch);
   assertValidSsoDefaultRoleSlug(patch);
   const merged: Record<string, unknown> = { ...current, ...patch };
   if (merged[RETENTION_YEARS_KEY] === undefined) {

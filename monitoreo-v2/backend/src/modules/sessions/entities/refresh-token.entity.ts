@@ -42,4 +42,7 @@ export class RefreshToken {
 
   @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent!: string | null;
+
+  @Column({ name: 'last_activity_at', type: 'timestamptz', default: () => 'NOW()' })
+  lastActivityAt!: Date;
 }

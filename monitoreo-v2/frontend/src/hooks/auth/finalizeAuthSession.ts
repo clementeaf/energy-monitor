@@ -52,7 +52,7 @@ export async function finalizeAuthSession(options: FinalizeAuthSessionOptions): 
   }
 
   if (authData && isTrustedMeResponse(authData)) {
-    applyMeResponse({ user: authData.user, tenant: authData.tenant });
+    applyMeResponse({ user: authData.user, tenant: authData.tenant, idleTimeoutMinutes: authData.idleTimeoutMinutes });
     return;
   }
 

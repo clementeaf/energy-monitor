@@ -46,6 +46,7 @@ import { RegisterMappingsModule } from './modules/register-mappings/register-map
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { DataGovernanceModule } from './modules/data-governance/data-governance.module';
 import { OAuthClientsModule } from './modules/oauth-clients/oauth-clients.module';
+import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
@@ -140,6 +141,11 @@ import { HealthController } from './health.controller';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    // CYB-06: Idle timeout guard — rejects sessions inactive > tenant threshold (default 15min)
+    {
+      provide: APP_GUARD,
+      useClass: IdleTimeoutGuard,
     },
     // Global permissions guard (skip with @Public())
     {

@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-15)
+- **2.20.0:** Idle timeout 15min (CYB-06). Backend `IdleTimeoutGuard` + migración `49` (`last_activity_at`). Frontend `useIdleTimeout` hook + `SessionExpiredModal`. Configurable por tenant (`idleTimeoutMinutes`, 5–60). Gap analysis Anexo 07. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)
 
@@ -327,6 +330,7 @@ cd monitoreo-v2/frontend && npm run test
 ## Known Issues & Tech Debt
 - **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.
 - **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
+- **Idle timeout (CYB-06):** `IdleTimeoutGuard` global revoca sesión tras inactividad (default 15min, configurable por tenant `idleTimeoutMinutes` 5–60). Frontend `useIdleTimeout` espeja el timeout client-side. `last_activity_at` en `refresh_tokens` (migración `49`).
 - **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
 - **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 260 tests / 34 suites. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.

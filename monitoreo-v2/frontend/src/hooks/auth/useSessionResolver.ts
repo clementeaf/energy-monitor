@@ -61,7 +61,7 @@ export function useSessionResolver() {
       .me()
       .then(({ data }) => {
         const { buildings, ...user } = data.user;
-        setSession(user, data.tenant, buildings ?? []);
+        setSession(user, data.tenant, buildings ?? [], data.idleTimeoutMinutes);
         applyTenantTheme(data.tenant);
       })
       .catch(() => {

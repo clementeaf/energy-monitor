@@ -2,15 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { setSessionExpiredHandler } from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 
 export function SessionExpiredModal() {
   const [open, setOpen] = useState(false);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const idleTimeoutMinutes = useAuthStore((s) => s.idleTimeoutMinutes);
 
   useEffect(() => {
     setSessionExpiredHandler(() => setOpen(true));
     return () => setSessionExpiredHandler(() => {});
   }, []);
+
+  // CYB-06: client-side idle detection mirrors backend guard
+  useIdleTimeout(idleTimeoutMinutes, () => setOpen(true), isAuthenticated && !open);
 
   const handleContinue = useCallback(() => {
     localStorage.removeItem('has_session');

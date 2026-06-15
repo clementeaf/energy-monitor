@@ -48,4 +48,5 @@ export interface BuildingRef {
 export interface MeResponse {
   user: AuthUser & { buildings: BuildingRef[] };
   tenant: TenantTheme;
+  idleTimeoutMinutes?: number;
 }

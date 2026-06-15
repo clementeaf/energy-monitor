@@ -1,6 +1,8 @@
 import {
   DEFAULT_RETENTION_YEARS,
+  DEFAULT_IDLE_TIMEOUT_MINUTES,
   getRetentionYears,
+  getIdleTimeoutMinutes,
   getSsoProvider,
   mergeTenantSettings,
   normalizeTenantSettings,
@@ -54,5 +56,38 @@ describe('tenant-settings', () => {
   it('resolveSessionMinutes prefers tenant override', () => {
     expect(resolveSessionMinutes({ maxSessionMinutes: 15 }, 1440)).toBe(15);
     expect(resolveSessionMinutes({}, 30)).toBe(30);
+  });
+
+  describe('getIdleTimeoutMinutes', () => {
+    it('defaults to 15', () => {
+      expect(getIdleTimeoutMinutes({})).toBe(DEFAULT_IDLE_TIMEOUT_MINUTES);
+      expect(getIdleTimeoutMinutes(undefined)).toBe(15);
+      expect(getIdleTimeoutMinutes(null)).toBe(15);
+    });
+
+    it('reads valid value from settings', () => {
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 30 })).toBe(30);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 5 })).toBe(5);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 60 })).toBe(60);
+    });
+
+    it('falls back to default for out-of-range values', () => {
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 4 })).toBe(15);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 61 })).toBe(15);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 0 })).toBe(15);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: -1 })).toBe(15);
+    });
+
+    it('falls back to default for non-integer values', () => {
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 15.5 })).toBe(15);
+      expect(getIdleTimeoutMinutes({ idleTimeoutMinutes: 'fifteen' })).toBe(15);
+    });
+  });
+
+  it('mergeTenantSettings validates idleTimeoutMinutes', () => {
+    expect(() => mergeTenantSettings({}, { idleTimeoutMinutes: 0 })).toThrow();
+    expect(() => mergeTenantSettings({}, { idleTimeoutMinutes: 4 })).toThrow();
+    expect(() => mergeTenantSettings({}, { idleTimeoutMinutes: 61 })).toThrow();
+    expect(mergeTenantSettings({}, { idleTimeoutMinutes: 15 }).idleTimeoutMinutes).toBe(15);
   });
 });

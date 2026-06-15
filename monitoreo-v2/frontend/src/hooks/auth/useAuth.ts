@@ -38,7 +38,7 @@ export function useAuth() {
     (data: MeResponse) => {
       const { buildings, ...usr } = data.user;
       setSessionFlag();
-      setSession(usr, data.tenant, buildings ?? []);
+      setSession(usr, data.tenant, buildings ?? [], data.idleTimeoutMinutes);
       applyTenantTheme(data.tenant);
       const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
       navigate(returnTo, { replace: true });

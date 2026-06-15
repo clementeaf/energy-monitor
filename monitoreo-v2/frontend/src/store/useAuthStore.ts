@@ -5,13 +5,14 @@ interface AuthState {
   user: AuthUser | null;
   tenant: TenantTheme | null;
   buildings: BuildingRef[];
+  idleTimeoutMinutes: number;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
 interface AuthActions {
-  setSession: (user: AuthUser, tenant: TenantTheme, buildings: BuildingRef[]) => void;
+  setSession: (user: AuthUser, tenant: TenantTheme, buildings: BuildingRef[], idleTimeoutMinutes?: number) => void;
   clearSession: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -21,15 +22,16 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   user: null,
   tenant: null,
   buildings: [],
+  idleTimeoutMinutes: 15,
   isAuthenticated: false,
   isLoading: true,
   error: null,
 
-  setSession: (user, tenant, buildings) =>
-    set({ user, tenant, buildings, isAuthenticated: true, isLoading: false, error: null }),
+  setSession: (user, tenant, buildings, idleTimeoutMinutes = 15) =>
+    set({ user, tenant, buildings, idleTimeoutMinutes, isAuthenticated: true, isLoading: false, error: null }),
 
   clearSession: () =>
-    set({ user: null, tenant: null, buildings: [], isAuthenticated: false, isLoading: false, error: null }),
+    set({ user: null, tenant: null, buildings: [], idleTimeoutMinutes: 15, isAuthenticated: false, isLoading: false, error: null }),
 
   setLoading: (isLoading) => set({ isLoading }),
 

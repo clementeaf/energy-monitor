@@ -18,6 +18,7 @@ export class MetersService {
     filterBuildingId?: string,
     crossTenant = false,
     pagination?: { limit?: number; offset?: number },
+    filterLoadCategory?: string,
   ): Promise<{ data: Meter[]; total: number; limit: number; offset: number }> {
     const qb = this.repo
       .createQueryBuilder('m')
@@ -33,6 +34,10 @@ export class MetersService {
 
     if (filterBuildingId) {
       qb.andWhere('m.building_id = :filterBuildingId', { filterBuildingId });
+    }
+
+    if (filterLoadCategory) {
+      qb.andWhere('m.load_category = :filterLoadCategory', { filterLoadCategory });
     }
 
     const limit = pagination?.limit ?? 200;

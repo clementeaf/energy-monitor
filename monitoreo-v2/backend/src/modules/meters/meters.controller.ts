@@ -29,8 +29,9 @@ export class MetersController {
   constructor(private readonly metersService: MetersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all meters, optionally filtered by building' })
+  @ApiOperation({ summary: 'List all meters, optionally filtered by building or load category' })
   @ApiQuery({ name: 'buildingId', required: false, description: 'Filter by building UUID' })
+  @ApiQuery({ name: 'loadCategory', required: false, description: 'Filter by load category (e.g., clima, iluminacion, fuerza)' })
   @ApiQuery({ name: 'limit', required: false, description: 'Max items (default 200)' })
   @ApiQuery({ name: 'offset', required: false, description: 'Offset for pagination' })
   @ApiResponse({ status: 200, description: 'List of meters' })
@@ -39,13 +40,14 @@ export class MetersController {
   async findAll(
     @CurrentUser() user: JwtPayload,
     @Query('buildingId') buildingId?: string,
+    @Query('loadCategory') loadCategory?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     return this.metersService.findAll(user.tenantId, user.buildingIds, buildingId, user.crossTenant, {
       limit: limit ? parseInt(limit, 10) : undefined,
       offset: offset ? parseInt(offset, 10) : undefined,
-    });
+    }, loadCategory);
   }
 
   @Get(':id')

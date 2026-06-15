@@ -30,4 +30,9 @@ export class AggregatedQueryDto {
   @IsOptional()
   @IsString()
   quality?: string;
+
+  /** Filter by meter load category (e.g., clima, iluminacion, fuerza) */
+  @IsOptional()
+  @IsString()
+  loadCategory?: string;
 }

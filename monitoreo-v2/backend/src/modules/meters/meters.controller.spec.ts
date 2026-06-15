@@ -65,14 +65,14 @@ describe('MetersController', () => {
   it('findAll delegates to service with tenant, buildingIds, and optional filter', async () => {
     service.findAll.mockResolvedValue({ data: [meter], total: 1, limit: 200, offset: 0 });
     const result = await controller.findAll(user);
-    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined, undefined, { limit: undefined, offset: undefined });
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], undefined, undefined, { limit: undefined, offset: undefined }, undefined);
     expect(result).toEqual({ data: [meter], total: 1, limit: 200, offset: 0 });
   });
 
   it('findAll passes buildingId filter', async () => {
     service.findAll.mockResolvedValue({ data: [meter], total: 1, limit: 200, offset: 0 });
     await controller.findAll(user, 'bld-1');
-    expect(service.findAll).toHaveBeenCalledWith('t-1', [], 'bld-1', undefined, { limit: undefined, offset: undefined });
+    expect(service.findAll).toHaveBeenCalledWith('t-1', [], 'bld-1', undefined, { limit: undefined, offset: undefined }, undefined);
   });
 
   it('findOne returns meter', async () => {

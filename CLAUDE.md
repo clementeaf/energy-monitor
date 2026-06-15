@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-15)
-- **2.20.0:** CYB-06 idle timeout + DAT-06 quality filter + DAT-20 CNR readings + DAT-18 ER + ARQ-24 errors + INT-07 Postman + PRI-06/07 privacy + INT-14 protocol + DAT-22 KPI rules. 7 generators. Anexo 07 gap analysis. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
+- **2.20.0:** CYB-06 idle timeout + DAT-06 quality + DAT-20 CNR + INT-06 versioning + DAT-18 ER + ARQ-24 errors + INT-07 Postman + PRI-06/07 privacy + INT-14 protocol + DAT-22 KPI. Anexo 07 gap analysis. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-13)
 - **2.19.0:** Fix scroll horizontal en 44 tablas (`overflow-y-auto` → `overflow-auto`). Eliminado doble scroll en páginas con tablas (Tiempo Real, Medidores, Locatarios, Mapeos). Reportes: layout side-by-side. [CHANGELOG — 2.19.0-alpha.0](CHANGELOG.md)

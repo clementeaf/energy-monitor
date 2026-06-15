@@ -8,6 +8,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
 import { DatabaseModule } from './database/database.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { ApiVersionInterceptor } from './common/interceptors/api-version.interceptor';
 import { TenantOverrideInterceptor } from './common/interceptors/tenant-override.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -161,6 +162,11 @@ import { HealthController } from './health.controller';
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantOverrideInterceptor,
+    },
+    // INT-06: API-Version + Deprecation/Sunset headers on all responses
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiVersionInterceptor,
     },
     // Global audit log (ISO 27001: immutable audit trail)
     {

@@ -129,19 +129,20 @@ export class MfaService {
     );
 
     if (rows.length === 0 || !rows[0].mfa_enabled || !rows[0].mfa_secret) {
-      // MFA not enabled — reject. This endpoint should only be called
-      // for users who triggered mfaRequired during login.
+      this.logger.warn(`MFA validate bail: user=${userId} found=${rows.length} enabled=${rows[0]?.mfa_enabled} hasSecret=${!!rows[0]?.mfa_secret}`);
       return false;
     }
 
     // Try TOTP first
     const decryptedSecret = decryptPii(rows[0].mfa_secret);
-    const totpValid = verifySync({
+    const isBase32 = /^[A-Z2-7]+=*$/.test(decryptedSecret);
+    const result = verifySync({
       token: code.trim(),
       secret: decryptedSecret,
       epochTolerance: TOTP_EPOCH_TOLERANCE,
-    }).valid;
-    if (totpValid) {
+    });
+    this.logger.warn(`MFA validate: user=${userId} codeLen=${code.trim().length} secretLen=${decryptedSecret.length} base32=${isBase32} valid=${result.valid} delta=${(result as any).delta ?? 'N/A'}`);
+    if (result.valid) {
       return true;
     }
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.21.1-alpha.0] - 2026-06-16 — PROD MIGRATIONS 47–49, MFA DIAGNOSTIC
+
+### Deploy (prod)
+- **Migrations 47–49 applied** via ECS Exec (`apply-prod-migrations-2.21.sh`).
+  - `47-portfolio-summary-energy` — `sum_energy_kwh` in `portfolio_summary` matview.
+  - `48-building-summary` — `building_summary` matview for compare dashboards.
+  - `49-session-idle-timeout` — `last_activity_at` on `refresh_tokens`. **Fixes MFA validate 401** (missing column caused token issuance to fail after successful TOTP check).
+- **Backend ECS** — image `mfa-diag-20260616-112518` with MFA diagnostic logging.
+
+### Fixed
+- **MFA validate 401** — Root cause: migration `49` not applied in prod. `issueTokensForUser` tried to INSERT `last_activity_at` into `refresh_tokens` → column missing → 500 interpreted as 401 by frontend.
+
+### Added
+- **MFA validate diagnostic logging** — `mfa.service.ts` logs `secretLen`, `base32` validity, `codeLen`, and TOTP result on every validate call for post-mortem debugging.
+- **`apply-prod-migrations-2.21.sh`** — Migration runner for 47–49 chain.
+
+---
+
 ## [2.21.0-alpha.0] - 2026-06-15 — ANEXO 07 GAP CLOSURE (11 items)
 
 ### Added

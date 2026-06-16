@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-16)
+- **2.21.1:** Migraciones prod 47–49 aplicadas. Fix MFA validate 401 (`last_activity_at` missing). Logging diagnóstico MFA. Script `apply-prod-migrations-2.21.sh`. [CHANGELOG — 2.21.1-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-15)
 - **2.21.0:** 11 Anexo 07 gaps resolvibles cerrados (77%→~88%). Breach 24h, API observability, data observability evaluators, cert rotation, data minimization, CIS audit, docs ZIP. 1294 backend / 295 frontend tests. [CHANGELOG — 2.21.0-alpha.0](CHANGELOG.md)
 - **2.20.0:** 39 Anexo 07 gaps cerrados (47%→~85%). AWS infra scripts listos (WAF, GuardDuty, Inspector, Read Replica, Terraform). 1252 backend / 295 frontend tests. [CHANGELOG — 2.20.0-alpha.0](CHANGELOG.md)
@@ -36,7 +39,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Completado (2026-06-08)
 - **2.18.0:** Perf analytics (`groupBy`, `meterRole`, compare-buildings); fix Highcharts arearange; seed demo integraciones/reportes; tabs Integraciones. [CHANGELOG — 2.18.0-alpha.0](CHANGELOG.md)
 - **Prod:** backend `meter-role-20260608-135454` + frontend desplegado en `power-monitor.cloud`.
-- **Migraciones locales:** `47-portfolio-summary-energy`, `48-building-summary` (aplicar prod vía ECS Exec).
+- **Migraciones 47–49 aplicadas en prod** (2026-06-16). Script: `apply-prod-migrations-2.21.sh`.
 
 ### Completado (2026-06-07)
 - **2.17.0 prod:** Backend ECS + frontend `power-monitor.cloud`; migr. RDS `43–46`; login OAuth+MFA OK. [CHANGELOG — 2.17.0-alpha.0](CHANGELOG.md)
@@ -227,7 +230,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.18.x; PASA 875 medidores; migr. prod pendiente 47–48.
+Prod: power-monitor.cloud — 2.21.1; PASA 875 medidores; migr. prod 1–49 aplicadas.
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
 Seed demo: monitoreo-v2/scripts/pasa-readings/seed-pasa-frontend-gaps.mjs
 Smoke: npm run test:smoke-dashboard (monitoreo-v2/backend)
@@ -348,4 +351,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.21.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.21.1-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

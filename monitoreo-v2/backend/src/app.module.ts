@@ -48,6 +48,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { DataGovernanceModule } from './modules/data-governance/data-governance.module';
 import { OAuthClientsModule } from './modules/oauth-clients/oauth-clients.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { MapvxModule } from './modules/mapvx/mapvx.module';
 import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
@@ -85,6 +86,11 @@ import { HealthController } from './health.controller';
             { name: 'medium', ttl: 60000, limit: 100 },
             { name: 'long', ttl: 3600000, limit: 1000 },
           ],
+          ignoreUserAgents: [],
+          skipIf: (context) => {
+            const req = context.switchToHttp().getRequest();
+            return req.url?.startsWith('/api/mapvx/tiles/') ?? false;
+          },
           ...(redisUrl ? { storage: new ThrottlerStorageRedisService(redisUrl) } : {}),
         };
       },
@@ -127,6 +133,7 @@ import { HealthController } from './health.controller';
     DataGovernanceModule,
     OAuthClientsModule,
     AdminModule,
+    MapvxModule,
   ],
   controllers: [HealthController],
   providers: [

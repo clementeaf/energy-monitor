@@ -838,3 +838,12 @@ export const integrationTypesEndpoints = {
 export const platformDashboardEndpoints = {
   kpis: () => api.get<import('../types/platform-dashboard').PlatformKpis>(`${API_ROUTES.platformDashboard}/kpis`),
 };
+
+export const mapvxEndpoints = {
+  malls: () => api.get<import('../types/mapvx').MapvxMall[]>(API_ROUTES.mapvx.malls),
+  stores: (mallId: string) => api.get<import('../types/mapvx').MapvxStore[]>(API_ROUTES.mapvx.stores(mallId)),
+  geometry: (mallId: string, floorKey: string, layer: string) =>
+    api.get<import('../types/mapvx').MapvxGeometry>(API_ROUTES.mapvx.geometry(mallId), {
+      params: { floor_key: floorKey, layer },
+    }),
+};

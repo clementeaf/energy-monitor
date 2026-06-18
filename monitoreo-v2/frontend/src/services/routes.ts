@@ -95,4 +95,9 @@ export const API_ROUTES = {
   roles: '/roles',
   permissions: '/roles/permissions',
   platformDashboard: '/platform-dashboard',
+  mapvx: {
+    malls: '/mapvx/malls',
+    stores: (mallId: string) => `/mapvx/malls/${mallId}/stores`,
+    geometry: (mallId: string) => `/mapvx/malls/${mallId}/geometry`,
+  },
 } as const;

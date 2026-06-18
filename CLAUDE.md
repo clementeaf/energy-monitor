@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-18)
-- **2.22.0:** Mapa interactivo MapLibre GL JS (`/map`). Buildings con `latitude`/`longitude` (migración 50). Markers + popups + polygon perimeters + indoor vector tiles (MapVX `tiles.mapvx.com`, 1383 áreas). Floor selector 16 niveles. Centrado Parque Arauco zoom 17. 303 frontend / 1294 backend tests. [CHANGELOG — 2.22.0-alpha.0](CHANGELOG.md)
+- **2.22.0:** Mapa interactivo MapLibre GL JS (`/map`). 18 malls con indoor mapping (PBF tiles cacheados en DB, zero deps externas). MapvxModule (4 endpoints). 5800+ tiendas buscables. Store search + pin + m². 575 tiles cached. Migraciones 50–52. 304 frontend / 1294 backend tests. [CHANGELOG — 2.22.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-16)
 - **2.21.1:** Migraciones prod 47–49 aplicadas. Fix MFA validate 401 (`last_activity_at` missing). Logging diagnóstico MFA. Script `apply-prod-migrations-2.21.sh`. [CHANGELOG — 2.21.1-alpha.0](CHANGELOG.md)
@@ -354,4 +354,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.22.0-alpha.0) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.22.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

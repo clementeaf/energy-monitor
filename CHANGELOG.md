@@ -1,18 +1,22 @@
 # Changelog
 
-## [2.22.0-alpha.0] - 2026-06-18 — MAP VIEW (MapLibre GL JS)
+## [2.22.0-alpha.0] - 2026-06-18 — MAP VIEW + INDOOR MAPPING (18 malls, zero external deps)
 
 ### Added
-- **MapLibre GL JS** — Interactive 2D/3D map with OpenStreetMap tiles. Tilted perspective (pitch 50°), navigation controls, building markers with popups.
-- **`/map` route** — New page under Monitoreo → Mapa. Cross-tenant. Shows buildings with coordinates as green markers. Click marker → popup with name, address, code.
-- **`MapView` component** — Reusable (`components/ui/MapView.tsx`). Props: `buildings`, `center`, `zoom`, `pitch`. XSS-safe popups. Cleanup on unmount. 7 tests.
-- **Building coordinates** — `latitude`/`longitude` columns on `buildings` table (migration `50-building-coordinates`). Validated `@Min/@Max` in DTOs. Form fields in BuildingForm.
-- **PASA seed coordinates** — 5 buildings: Mallplaza Gestión (-33.39, -70.58), Mall del Mar (-32.95, -71.55), Open Temuco (-38.73, -72.59), SC52/SC53 Santiago Centro.
-- **Polygon perimeters** — `MapPolygon` interface. Polygons baked into MapLibre style spec (no load-event race). Parque Arauco perimeter decoded from MapVX polyline.
-- **Indoor vector tiles** — `IndoorConfig` prop on MapView. Source: `tiles.mapvx.com` (1383 area polygons, POIs, labels, transportation). Filtered by `floor_key`. Floor selector UI (16 levels). Centered on Parque Arauco at zoom 17.
+- **MapLibre GL JS** — Interactive map with OSM raster tiles. Building markers with popups, polygon perimeters, floor selector, store search with m² display.
+- **`/map` route** — Monitoreo → Mapa. Cross-tenant. Mall selector (18 malls), store search (DropdownSelect style), floor selector, pin + area highlight with m².
+- **Building coordinates** — `latitude`/`longitude` on `buildings` (migration `50`). DTOs validated. BuildingForm fields. 5 PASA buildings seeded.
+- **MapVX cache** — Zero runtime dependency on external APIs:
+  - Migration `51`: `mapvx_malls`, `mapvx_floors`, `mapvx_stores`, `mapvx_geometries` tables.
+  - Migration `52`: `mapvx_tiles` table (raw PBF blobs).
+  - `MapvxModule` — 4 endpoints: `GET /mapvx/malls`, `/malls/:id/stores`, `/malls/:id/geometry`, `/tiles/:z/:x/:y.pbf`.
+  - `seed-mapvx-data.mjs` — Fetches 4 MapVX API malls (stores, floors, polygons).
+  - `seed-osm-malls.mjs` — Fetches 14 Mallplaza buildings from OSM Overpass + indoor tiles.
+  - `seed-mapvx-tiles.mjs` — Downloads 575 PBF vector tiles (z14–z19, 3×3 grid per mall).
+- **18 malls total** — 15 with indoor floor plans, 3 with OSM POIs as store points. 5800+ stores searchable.
 
 ### Stats
-- Frontend: 302 tests / 41 suites. Backend: 1294 tests / 142 suites.
+- Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.
 
 ---
 

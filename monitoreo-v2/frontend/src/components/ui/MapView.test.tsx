@@ -154,4 +154,15 @@ describe('MapView', () => {
     expect(styleArg.layers.some((l: { id: string }) => l.id === 'polygon-fill-test-poly')).toBe(true);
     expect(styleArg.layers.some((l: { id: string }) => l.id === 'polygon-line-test-poly')).toBe(true);
   });
+
+  it('includes indoor vector tile source when indoor config provided', async () => {
+    const maplibregl = (await import('maplibre-gl')).default;
+    const { MapView } = await import('./MapView');
+    render(<MapView buildings={[]} indoor={{ floorKey: 'test-floor' }} />);
+    const styleArg = (maplibregl.Map as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0].style;
+    expect(styleArg.sources['indoor']).toBeDefined();
+    expect(styleArg.sources['indoor'].type).toBe('vector');
+    expect(styleArg.sources['indoor'].tiles[0]).toContain('/api/mapvx/tiles/');
+    expect(styleArg.layers.some((l: { id: string }) => l.id === 'indoor-area-fill')).toBe(true);
+  });
 });

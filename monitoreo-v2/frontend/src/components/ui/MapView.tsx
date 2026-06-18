@@ -7,7 +7,20 @@ const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
 const DEFAULT_PITCH = 50;
 
-const INDOOR_TILES_URL = 'https://tiles.mapvx.com/tiles/{z}/{x}/{y}.pbf';
+const INDOOR_TILES_URL = 'http://localhost:4000/api/mapvx/tiles/{z}/{x}/{y}.pbf';
+
+const HIGHLIGHT_SOURCE = 'highlight-area';
+const HIGHLIGHT_FILL = 'highlight-area-fill';
+const HIGHLIGHT_LINE = 'highlight-area-line';
+
+function clearHighlight(map: maplibregl.Map | null) {
+  if (!map) return;
+  try {
+    if (map.getLayer(HIGHLIGHT_FILL)) map.removeLayer(HIGHLIGHT_FILL);
+    if (map.getLayer(HIGHLIGHT_LINE)) map.removeLayer(HIGHLIGHT_LINE);
+    if (map.getSource(HIGHLIGHT_SOURCE)) map.removeSource(HIGHLIGHT_SOURCE);
+  } catch { /* map destroyed */ }
+}
 
 export interface MapPolygon {
   id: string;
@@ -19,20 +32,20 @@ export interface MapPolygon {
 }
 
 export interface IndoorConfig {
-  /** Floor key to filter indoor areas (e.g. "-Ok-zJ4XAd3cBJhlBZti") */
   floorKey: string;
-  /** Fill color for indoor areas */
-  fillColor?: string;
-  /** Fill opacity */
-  fillOpacity?: number;
-  /** Line color for borders */
-  lineColor?: string;
+}
+
+export interface SelectedPoint {
+  lng: number;
+  lat: number;
+  label: string;
 }
 
 interface MapViewProps {
   buildings: Building[];
   polygons?: MapPolygon[];
   indoor?: IndoorConfig;
+  selectedPoint?: SelectedPoint | null;
   center?: [number, number];
   zoom?: number;
   pitch?: number;
@@ -48,6 +61,7 @@ function buildStyle(
       type: 'raster',
       tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
+      maxzoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     },
   };
@@ -98,13 +112,13 @@ function buildStyle(
     });
   });
 
-  // Indoor vector tiles (MapVX / indoorequal)
+  // Indoor vector tiles from our cached PBF endpoint
   if (indoor) {
     sources['indoor'] = {
       type: 'vector',
       tiles: [INDOOR_TILES_URL],
       minzoom: 14,
-      maxzoom: 20,
+      maxzoom: 19,
     };
 
     const floorFilter = ['==', ['get', 'floor_key'], indoor.floorKey];
@@ -115,10 +129,7 @@ function buildStyle(
       source: 'indoor',
       'source-layer': 'area',
       filter: floorFilter,
-      paint: {
-        'fill-color': indoor.fillColor ?? '#e0e7ff',
-        'fill-opacity': indoor.fillOpacity ?? 0.6,
-      },
+      paint: { 'fill-color': '#e0e7ff', 'fill-opacity': 0.6 },
       minzoom: 15,
     });
 
@@ -128,16 +139,12 @@ function buildStyle(
       source: 'indoor',
       'source-layer': 'area',
       filter: floorFilter,
-      paint: {
-        'line-color': indoor.lineColor ?? '#6366f1',
-        'line-width': 1,
-        'line-opacity': 0.7,
-      },
+      paint: { 'line-color': '#6366f1', 'line-width': 1, 'line-opacity': 0.7 },
       minzoom: 15,
     });
 
     layers.push({
-      id: 'indoor-area-label',
+      id: 'indoor-label',
       type: 'symbol',
       source: 'indoor',
       'source-layer': 'area_name',
@@ -157,7 +164,7 @@ function buildStyle(
     });
 
     layers.push({
-      id: 'indoor-poi',
+      id: 'indoor-poi-circle',
       type: 'circle',
       source: 'indoor',
       'source-layer': 'poi',
@@ -170,6 +177,16 @@ function buildStyle(
       },
       minzoom: 17,
     });
+
+    layers.push({
+      id: 'indoor-transport-line',
+      type: 'line',
+      source: 'indoor',
+      'source-layer': 'transportation',
+      filter: ['==', ['get', 'floor_key'], indoor.floorKey],
+      paint: { 'line-color': '#a5b4fc', 'line-width': 2, 'line-dasharray': [2, 2] },
+      minzoom: 16,
+    });
   }
 
   return { version: 8, sources, layers };
@@ -179,6 +196,7 @@ export function MapView({
   buildings,
   polygons = [],
   indoor,
+  selectedPoint,
   center = SANTIAGO_CENTER,
   zoom = DEFAULT_ZOOM,
   pitch = DEFAULT_PITCH,
@@ -187,6 +205,7 @@ export function MapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const selectedMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -198,7 +217,7 @@ export function MapView({
       center,
       zoom,
       pitch,
-      bearing: -10,
+      bearing: 0,
       antialias: true,
     });
 
@@ -239,7 +258,96 @@ export function MapView({
     });
   }, [buildings]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    selectedMarkerRef.current?.remove();
+    selectedMarkerRef.current = null;
+    clearHighlight(map);
+
+    if (!map || !selectedPoint) return;
+
+    selectedMarkerRef.current = new maplibregl.Marker({ color: '#ef4444', scale: 1.2 })
+      .setLngLat([selectedPoint.lng, selectedPoint.lat])
+      .addTo(map);
+
+    map.flyTo({
+      center: [selectedPoint.lng, selectedPoint.lat],
+      zoom: 19,
+      speed: 1.5,
+    });
+
+    const highlightArea = () => {
+      const point = map.project([selectedPoint.lng, selectedPoint.lat]);
+      const features = map.queryRenderedFeatures(point, { layers: ['indoor-area-fill'] });
+      const match = features[0];
+
+      const areaSqm = match ? getPolygonArea(match.geometry) : 0;
+      const areaText = areaSqm > 0
+        ? `<p style="margin:4px 0 0;font-size:12px;color:#6366f1;font-weight:600">${formatArea(areaSqm)} m²</p>`
+        : '';
+
+      const popup = new maplibregl.Popup({ offset: 30 }).setHTML(
+        `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+          <strong style="font-size:13px">${escapeHtml(selectedPoint.label)}</strong>
+          ${areaText}
+        </div>`,
+      );
+      selectedMarkerRef.current?.setPopup(popup).togglePopup();
+
+      if (!match) return;
+
+      clearHighlight(map);
+
+      map.addSource(HIGHLIGHT_SOURCE, {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: match.geometry },
+      });
+
+      map.addLayer({
+        id: HIGHLIGHT_FILL,
+        type: 'fill',
+        source: HIGHLIGHT_SOURCE,
+        paint: { 'fill-color': '#ef4444', 'fill-opacity': 0.35 },
+      });
+
+      map.addLayer({
+        id: HIGHLIGHT_LINE,
+        type: 'line',
+        source: HIGHLIGHT_SOURCE,
+        paint: { 'line-color': '#ef4444', 'line-width': 3, 'line-opacity': 0.9 },
+      });
+    };
+
+    map.once('idle', highlightArea);
+  }, [selectedPoint]);
+
   return <div ref={containerRef} className={`h-full w-full ${className}`} />;
+}
+
+/** Geodesic polygon area via Shoelace on spherical coordinates (m²). */
+function computeAreaSqm(coords: number[][]): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371000;
+  let area = 0;
+  const n = coords.length;
+  for (let i = 0; i < n; i++) {
+    const [lng1, lat1] = coords[i];
+    const [lng2, lat2] = coords[(i + 1) % n];
+    area += toRad(lng2 - lng1) * (2 + Math.sin(toRad(lat1)) + Math.sin(toRad(lat2)));
+  }
+  return Math.abs((area * R * R) / 2);
+}
+
+function getPolygonArea(geometry: GeoJSON.Geometry): number {
+  if (geometry.type === 'Polygon') return computeAreaSqm(geometry.coordinates[0]);
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.reduce((sum, poly) => sum + computeAreaSqm(poly[0]), 0);
+  }
+  return 0;
+}
+
+function formatArea(sqm: number): string {
+  return sqm.toLocaleString('es-CL', { maximumFractionDigits: 1 });
 }
 
 function escapeHtml(str: string): string {

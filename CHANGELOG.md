@@ -15,6 +15,7 @@
   - `seed-mapvx-tiles.mjs` — Downloads 575 PBF vector tiles (z14–z19, 3×3 grid per mall).
 - **20 malls total** — 15 with indoor floor plans, 5 with OSM POIs as store points. 5785 stores searchable. Includes PASA buildings: Open Temuco (47 stores, 14 indoor tiles) and SC52 (27 OSM POIs).
 - **Throttler bypass** — `skipIf` for `/api/mapvx/tiles/` route (MapLibre requests ~20 tiles simultaneously).
+- **Map sidebar panel** — Left panel with cascading selectors: Empresa (PASA / Mall Plaza) → Edificio → Tienda (search) → Nivel. DropdownSelect styling.
 
 ### Stats
 - Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.

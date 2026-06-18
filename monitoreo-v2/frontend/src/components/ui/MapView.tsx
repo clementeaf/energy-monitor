@@ -7,6 +7,8 @@ const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
 const DEFAULT_PITCH = 50;
 
+const INDOOR_TILES_URL = 'https://tiles.mapvx.com/tiles/{z}/{x}/{y}.pbf';
+
 export interface MapPolygon {
   id: string;
   label: string;
@@ -16,16 +18,31 @@ export interface MapPolygon {
   opacity?: number;
 }
 
+export interface IndoorConfig {
+  /** Floor key to filter indoor areas (e.g. "-Ok-zJ4XAd3cBJhlBZti") */
+  floorKey: string;
+  /** Fill color for indoor areas */
+  fillColor?: string;
+  /** Fill opacity */
+  fillOpacity?: number;
+  /** Line color for borders */
+  lineColor?: string;
+}
+
 interface MapViewProps {
   buildings: Building[];
   polygons?: MapPolygon[];
+  indoor?: IndoorConfig;
   center?: [number, number];
   zoom?: number;
   pitch?: number;
   className?: string;
 }
 
-function buildStyle(polygons: MapPolygon[]): maplibregl.StyleSpecification {
+function buildStyle(
+  polygons: MapPolygon[],
+  indoor?: IndoorConfig,
+): maplibregl.StyleSpecification {
   const sources: Record<string, maplibregl.SourceSpecification> = {
     osm: {
       type: 'raster',
@@ -45,6 +62,7 @@ function buildStyle(polygons: MapPolygon[]): maplibregl.StyleSpecification {
     },
   ];
 
+  // Static polygons (e.g. mall perimeters)
   polygons.forEach((poly) => {
     const sourceId = `polygon-${poly.id}`;
     const ring = poly.coordinates.map(([lat, lng]) => [lng, lat] as [number, number]);
@@ -80,12 +98,87 @@ function buildStyle(polygons: MapPolygon[]): maplibregl.StyleSpecification {
     });
   });
 
+  // Indoor vector tiles (MapVX / indoorequal)
+  if (indoor) {
+    sources['indoor'] = {
+      type: 'vector',
+      tiles: [INDOOR_TILES_URL],
+      minzoom: 14,
+      maxzoom: 20,
+    };
+
+    const floorFilter = ['==', ['get', 'floor_key'], indoor.floorKey];
+
+    layers.push({
+      id: 'indoor-area-fill',
+      type: 'fill',
+      source: 'indoor',
+      'source-layer': 'area',
+      filter: floorFilter,
+      paint: {
+        'fill-color': indoor.fillColor ?? '#e0e7ff',
+        'fill-opacity': indoor.fillOpacity ?? 0.6,
+      },
+      minzoom: 15,
+    });
+
+    layers.push({
+      id: 'indoor-area-line',
+      type: 'line',
+      source: 'indoor',
+      'source-layer': 'area',
+      filter: floorFilter,
+      paint: {
+        'line-color': indoor.lineColor ?? '#6366f1',
+        'line-width': 1,
+        'line-opacity': 0.7,
+      },
+      minzoom: 15,
+    });
+
+    layers.push({
+      id: 'indoor-area-label',
+      type: 'symbol',
+      source: 'indoor',
+      'source-layer': 'area_name',
+      filter: ['==', ['get', 'floor_key'], indoor.floorKey],
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-size': 11,
+        'text-allow-overlap': false,
+        'text-padding': 2,
+      },
+      paint: {
+        'text-color': '#1e1b4b',
+        'text-halo-color': '#ffffff',
+        'text-halo-width': 1.5,
+      },
+      minzoom: 17,
+    });
+
+    layers.push({
+      id: 'indoor-poi',
+      type: 'circle',
+      source: 'indoor',
+      'source-layer': 'poi',
+      filter: ['==', ['get', 'floor_key'], indoor.floorKey],
+      paint: {
+        'circle-radius': 3,
+        'circle-color': '#818cf8',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1,
+      },
+      minzoom: 17,
+    });
+  }
+
   return { version: 8, sources, layers };
 }
 
 export function MapView({
   buildings,
   polygons = [],
+  indoor,
   center = SANTIAGO_CENTER,
   zoom = DEFAULT_ZOOM,
   pitch = DEFAULT_PITCH,
@@ -101,7 +194,7 @@ export function MapView({
 
     const map = new maplibregl.Map({
       container,
-      style: buildStyle(polygons),
+      style: buildStyle(polygons, indoor),
       center,
       zoom,
       pitch,
@@ -116,7 +209,7 @@ export function MapView({
       map.remove();
       mapRef.current = null;
     };
-  }, [center, zoom, pitch, polygons]);
+  }, [center, zoom, pitch, polygons, indoor]);
 
   useEffect(() => {
     const map = mapRef.current;

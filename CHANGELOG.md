@@ -13,7 +13,8 @@
   - `seed-mapvx-data.mjs` — Fetches 4 MapVX API malls (stores, floors, polygons).
   - `seed-osm-malls.mjs` — Fetches 14 Mallplaza buildings from OSM Overpass + indoor tiles.
   - `seed-mapvx-tiles.mjs` — Downloads 575 PBF vector tiles (z14–z19, 3×3 grid per mall).
-- **18 malls total** — 15 with indoor floor plans, 3 with OSM POIs as store points. 5800+ stores searchable.
+- **20 malls total** — 15 with indoor floor plans, 5 with OSM POIs as store points. 5785 stores searchable. Includes PASA buildings: Open Temuco (47 stores, 14 indoor tiles) and SC52 (27 OSM POIs).
+- **Throttler bypass** — `skipIf` for `/api/mapvx/tiles/` route (MapLibre requests ~20 tiles simultaneously).
 
 ### Stats
 - Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.

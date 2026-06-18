@@ -289,3 +289,8 @@ export const LazyProfilePage = lazy(async () => {
   const m = await import('../features/profile/ProfilePage');
   return { default: m.ProfilePage };
 });
+
+export const LazyMapPage = lazy(async () => {
+  const m = await import('../features/map/MapPage');
+  return { default: m.MapPage };
+});

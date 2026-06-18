@@ -6,6 +6,7 @@ import {
   IsUUID,
   IsISO31661Alpha2,
   IsIn,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -51,4 +52,16 @@ export class UpdateBuildingDto {
   @IsOptional()
   @IsIn([...SITE_KINDS])
   siteKind?: SiteKind | null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number | null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number | null;
 }

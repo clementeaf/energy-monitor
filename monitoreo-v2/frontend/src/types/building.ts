@@ -12,6 +12,8 @@ export interface Building {
   timezone: string | null;
   externalSiteId: string | null;
   siteKind: SiteKind | null;
+  latitude: number | null;
+  longitude: number | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +29,8 @@ export interface CreateBuildingPayload {
   timezone?: string;
   externalSiteId?: string;
   siteKind?: SiteKind;
+  latitude?: number;
+  longitude?: number;
   tenantId?: string;
 }
 
@@ -40,4 +44,6 @@ export interface UpdateBuildingPayload {
   timezone?: string | null;
   externalSiteId?: string | null;
   siteKind?: SiteKind | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }

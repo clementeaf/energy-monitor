@@ -59,6 +59,12 @@ export class Building {
   @Column({ name: 'site_kind', type: 'varchar', length: 30, nullable: true })
   siteKind!: SiteKind | null;
 
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude!: string | null;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude!: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

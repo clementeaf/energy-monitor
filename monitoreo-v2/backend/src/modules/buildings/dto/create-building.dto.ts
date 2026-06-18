@@ -5,6 +5,7 @@ import {
   IsUUID,
   IsISO31661Alpha2,
   IsIn,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -49,6 +50,18 @@ export class CreateBuildingDto {
   @IsOptional()
   @IsIn([...SITE_KINDS])
   siteKind?: SiteKind;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 
   /** Only used by super_admin in cross-tenant mode. */
   @IsOptional()

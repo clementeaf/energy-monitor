@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.22.0-alpha.0] - 2026-06-18 — MAP VIEW (MapLibre GL JS)
+
+### Added
+- **MapLibre GL JS** — Interactive 2D/3D map with OpenStreetMap tiles. Tilted perspective (pitch 50°), navigation controls, building markers with popups.
+- **`/map` route** — New page under Monitoreo → Mapa. Cross-tenant. Shows buildings with coordinates as green markers. Click marker → popup with name, address, code.
+- **`MapView` component** — Reusable (`components/ui/MapView.tsx`). Props: `buildings`, `center`, `zoom`, `pitch`. XSS-safe popups. Cleanup on unmount. 7 tests.
+- **Building coordinates** — `latitude`/`longitude` columns on `buildings` table (migration `50-building-coordinates`). Validated `@Min/@Max` in DTOs. Form fields in BuildingForm.
+- **PASA seed coordinates** — 5 buildings: Mallplaza Gestión (-33.39, -70.58), Mall del Mar (-32.95, -71.55), Open Temuco (-38.73, -72.59), SC52/SC53 Santiago Centro.
+
+### Stats
+- Frontend: 302 tests / 41 suites. Backend: 1294 tests / 142 suites.
+
+---
+
 ## [2.21.1-alpha.0] - 2026-06-16 — PROD MIGRATIONS 47–49, MFA DIAGNOSTIC
 
 ### Deploy (prod)

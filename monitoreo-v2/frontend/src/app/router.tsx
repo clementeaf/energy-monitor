@@ -60,6 +60,7 @@ import {
   LazyMeterDetailPage,
   LazyMeterReadingsPage,
   LazyProfilePage,
+  LazyMapPage,
   LazyDeletionRequestsPage,
   LazyRectificationRequestsPage,
   LazyDataQualityPage,
@@ -222,6 +223,7 @@ export const router = createBrowserRouter([
 
               /* Edificios & Medidores (listas cross-tenant) */
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },
+              { path: APP_ROUTES.map, element: <P any={BUILDINGS}><LazyMapPage /></P> },
               { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersUnifiedPage /></P> },
 
               /* Admin — cross-tenant routes */

@@ -19,6 +19,8 @@ const mockBuilding = (overrides: Partial<Building> = {}): Building => ({
   timezone: null,
   externalSiteId: null,
   siteKind: null,
+  latitude: null,
+  longitude: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   tenant: {} as any,

@@ -38,6 +38,8 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
   const [timezone, setTimezone] = useState('');
   const [externalSiteId, setExternalSiteId] = useState('');
   const [siteKind, setSiteKind] = useState<SiteKind | ''>('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
 
   useEffect(() => {
     if (!building) {
@@ -50,6 +52,8 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
       setTimezone('');
       setExternalSiteId('');
       setSiteKind('');
+      setLatitude('');
+      setLongitude('');
       return;
     }
     setName(building.name);
@@ -61,6 +65,8 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
     setTimezone(building.timezone ?? '');
     setExternalSiteId(building.externalSiteId ?? '');
     setSiteKind(building.siteKind ?? '');
+    setLatitude(building.latitude != null ? String(building.latitude) : '');
+    setLongitude(building.longitude != null ? String(building.longitude) : '');
   }, [building, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,6 +82,10 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
       if (timezone !== (building.timezone ?? '')) payload.timezone = timezone.trim() || null;
       if (externalSiteId !== (building.externalSiteId ?? '')) payload.externalSiteId = externalSiteId.trim() || null;
       if (siteKind !== (building.siteKind ?? '')) payload.siteKind = siteKind || null;
+      const latStr = building.latitude != null ? String(building.latitude) : '';
+      const lngStr = building.longitude != null ? String(building.longitude) : '';
+      if (latitude !== latStr) payload.latitude = latitude ? Number(latitude) : null;
+      if (longitude !== lngStr) payload.longitude = longitude ? Number(longitude) : null;
       onSubmit(payload);
     } else {
       onSubmit({
@@ -88,6 +98,8 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
         ...(timezone.trim() ? { timezone: timezone.trim() } : {}),
         ...(externalSiteId.trim() ? { externalSiteId: externalSiteId.trim() } : {}),
         ...(siteKind ? { siteKind } : {}),
+        ...(latitude ? { latitude: Number(latitude) } : {}),
+        ...(longitude ? { longitude: Number(longitude) } : {}),
         ...(needsTenantSelect && tenantId ? { tenantId } : {}),
       });
     }
@@ -137,6 +149,15 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
         <Field label="Zona horaria (IANA)">
           <input value={timezone} onChange={(e) => { setTimezone(e.target.value); }} placeholder="America/Santiago" className="input-field w-full" />
         </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Latitud">
+            <input type="number" value={latitude} onChange={(e) => { setLatitude(e.target.value); }} min={-90} max={90} step="0.0000001" placeholder="-33.4489" className="input-field w-full font-mono" />
+          </Field>
+          <Field label="Longitud">
+            <input type="number" value={longitude} onChange={(e) => { setLongitude(e.target.value); }} min={-180} max={180} step="0.0000001" placeholder="-70.6693" className="input-field w-full font-mono" />
+          </Field>
+        </div>
 
         <Field label="Region">
           <DropdownSelect

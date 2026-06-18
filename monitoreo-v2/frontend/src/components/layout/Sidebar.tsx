@@ -76,11 +76,12 @@ const NAV_ENTRIES: NavEntry[] = [
     label: 'Monitoreo',
     icon: 'monitoring',
     basePath: '/monitoring',
-    extraPaths: ['/buildings', '/meters'],
+    extraPaths: ['/buildings', '/meters', '/map'],
     requiredPerms: ['dashboard_technical:read', 'dashboard_executive:read'],
     children: [
       { to: '/meters', label: 'Medidores' },
       { to: '/buildings', label: 'Edificios' },
+      { to: '/map', label: 'Mapa' },
     ],
   },
   {

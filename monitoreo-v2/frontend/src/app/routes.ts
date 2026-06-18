@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   executiveSite: '/dashboard/executive/:siteId',
   compare: '/dashboard/compare',
   buildings: '/buildings',
+  map: '/map',
   buildingDetail: '/buildings/:buildingId',
   meters: '/meters',
   alerts: '/alerts',

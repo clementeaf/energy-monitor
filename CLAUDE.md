@@ -27,7 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-18)
-- **2.22.0:** Mapa interactivo MapLibre GL JS (`/map`). Buildings con `latitude`/`longitude` (migración 50). Markers + popups. 5 PASA buildings con coords reales. Sidebar Monitoreo → Mapa. 302 frontend / 1294 backend tests. [CHANGELOG — 2.22.0-alpha.0](CHANGELOG.md)
+- **2.22.0:** Mapa interactivo MapLibre GL JS (`/map`). Buildings con `latitude`/`longitude` (migración 50). Markers + popups + polygon perimeters (MapVX polyline). 5 PASA buildings con coords reales. Sidebar Monitoreo → Mapa. 302 frontend / 1294 backend tests. [CHANGELOG — 2.22.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-16)
 - **2.21.1:** Migraciones prod 47–49 aplicadas. Fix MFA validate 401 (`last_activity_at` missing). Logging diagnóstico MFA. Script `apply-prod-migrations-2.21.sh`. [CHANGELOG — 2.21.1-alpha.0](CHANGELOG.md)

@@ -7,17 +7,35 @@ const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
 const DEFAULT_PITCH = 50;
 
-const OSM_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
+export interface MapPolygon {
+  id: string;
+  label: string;
+  /** Each coordinate is [lat, lng] */
+  coordinates: [number, number][];
+  color?: string;
+  opacity?: number;
+}
+
+interface MapViewProps {
+  buildings: Building[];
+  polygons?: MapPolygon[];
+  center?: [number, number];
+  zoom?: number;
+  pitch?: number;
+  className?: string;
+}
+
+function buildStyle(polygons: MapPolygon[]): maplibregl.StyleSpecification {
+  const sources: Record<string, maplibregl.SourceSpecification> = {
     osm: {
       type: 'raster',
       tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     },
-  },
-  layers: [
+  };
+
+  const layers: maplibregl.LayerSpecification[] = [
     {
       id: 'osm-tiles',
       type: 'raster',
@@ -25,19 +43,49 @@ const OSM_STYLE: maplibregl.StyleSpecification = {
       minzoom: 0,
       maxzoom: 19,
     },
-  ],
-};
+  ];
 
-interface MapViewProps {
-  buildings: Building[];
-  center?: [number, number];
-  zoom?: number;
-  pitch?: number;
-  className?: string;
+  polygons.forEach((poly) => {
+    const sourceId = `polygon-${poly.id}`;
+    const ring = poly.coordinates.map(([lat, lng]) => [lng, lat] as [number, number]);
+
+    sources[sourceId] = {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: { label: poly.label },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      },
+    };
+
+    layers.push({
+      id: `polygon-fill-${poly.id}`,
+      type: 'fill',
+      source: sourceId,
+      paint: {
+        'fill-color': poly.color ?? '#3b82f6',
+        'fill-opacity': poly.opacity ?? 0.25,
+      },
+    });
+
+    layers.push({
+      id: `polygon-line-${poly.id}`,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': poly.color ?? '#3b82f6',
+        'line-width': 2,
+        'line-opacity': 0.8,
+      },
+    });
+  });
+
+  return { version: 8, sources, layers };
 }
 
 export function MapView({
   buildings,
+  polygons = [],
   center = SANTIAGO_CENTER,
   zoom = DEFAULT_ZOOM,
   pitch = DEFAULT_PITCH,
@@ -53,7 +101,7 @@ export function MapView({
 
     const map = new maplibregl.Map({
       container,
-      style: OSM_STYLE,
+      style: buildStyle(polygons),
       center,
       zoom,
       pitch,
@@ -68,7 +116,7 @@ export function MapView({
       map.remove();
       mapRef.current = null;
     };
-  }, [center, zoom, pitch]);
+  }, [center, zoom, pitch, polygons]);
 
   useEffect(() => {
     const map = mapRef.current;

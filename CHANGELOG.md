@@ -8,6 +8,7 @@
 - **`MapView` component** — Reusable (`components/ui/MapView.tsx`). Props: `buildings`, `center`, `zoom`, `pitch`. XSS-safe popups. Cleanup on unmount. 7 tests.
 - **Building coordinates** — `latitude`/`longitude` columns on `buildings` table (migration `50-building-coordinates`). Validated `@Min/@Max` in DTOs. Form fields in BuildingForm.
 - **PASA seed coordinates** — 5 buildings: Mallplaza Gestión (-33.39, -70.58), Mall del Mar (-32.95, -71.55), Open Temuco (-38.73, -72.59), SC52/SC53 Santiago Centro.
+- **Polygon perimeters** — `MapPolygon` interface. Polygons baked into MapLibre style spec (no load-event race). Parque Arauco perimeter decoded from MapVX polyline.
 
 ### Stats
 - Frontend: 302 tests / 41 suites. Backend: 1294 tests / 142 suites.

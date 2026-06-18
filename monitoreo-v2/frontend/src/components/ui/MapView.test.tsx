@@ -4,6 +4,13 @@ import type { Building } from '../../types/building';
 
 const mockAddControl = vi.fn();
 const mockRemove = vi.fn();
+const mockOn = vi.fn();
+const mockAddSource = vi.fn();
+const mockAddLayer = vi.fn();
+const mockGetSource = vi.fn().mockReturnValue(null);
+const mockGetLayer = vi.fn().mockReturnValue(null);
+const mockRemoveLayer = vi.fn();
+const mockRemoveSource = vi.fn();
 const mockMarkerSetLngLat = vi.fn().mockReturnThis();
 const mockMarkerSetPopup = vi.fn().mockReturnThis();
 const mockMarkerAddTo = vi.fn().mockReturnThis();
@@ -15,6 +22,14 @@ vi.mock('maplibre-gl', () => ({
     Map: vi.fn().mockImplementation(() => ({
       addControl: mockAddControl,
       remove: mockRemove,
+      on: mockOn,
+      loaded: vi.fn().mockReturnValue(false),
+      addSource: mockAddSource,
+      addLayer: mockAddLayer,
+      getSource: mockGetSource,
+      getLayer: mockGetLayer,
+      removeLayer: mockRemoveLayer,
+      removeSource: mockRemoveSource,
     })),
     NavigationControl: vi.fn(),
     Marker: vi.fn().mockImplementation(() => ({
@@ -119,5 +134,24 @@ describe('MapView', () => {
     const { MapView } = await import('./MapView');
     const { container } = render(<MapView buildings={[]} className="custom-class" />);
     expect(container.firstElementChild!.className).toContain('custom-class');
+  });
+
+  it('includes polygon sources and layers in style when polygons provided', async () => {
+    const maplibregl = (await import('maplibre-gl')).default;
+    const { MapView } = await import('./MapView');
+    const polygons = [
+      {
+        id: 'test-poly',
+        label: 'Test Mall',
+        coordinates: [[-33.40, -70.58], [-33.41, -70.57], [-33.40, -70.56], [-33.40, -70.58]] as [number, number][],
+        color: '#ff0000',
+        opacity: 0.3,
+      },
+    ];
+    render(<MapView buildings={[]} polygons={polygons} />);
+    const styleArg = (maplibregl.Map as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0].style;
+    expect(styleArg.sources['polygon-test-poly']).toBeDefined();
+    expect(styleArg.layers.some((l: { id: string }) => l.id === 'polygon-fill-test-poly')).toBe(true);
+    expect(styleArg.layers.some((l: { id: string }) => l.id === 'polygon-line-test-poly')).toBe(true);
   });
 });

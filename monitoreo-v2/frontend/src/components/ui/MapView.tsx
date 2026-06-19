@@ -218,6 +218,7 @@ export function MapView({
       zoom,
       pitch,
       bearing: 0,
+      maxZoom: 18.5,
       antialias: true,
     });
 
@@ -272,7 +273,7 @@ export function MapView({
 
     map.flyTo({
       center: [selectedPoint.lng, selectedPoint.lat],
-      zoom: 19,
+      zoom: 18.5,
       speed: 1.5,
     });
 

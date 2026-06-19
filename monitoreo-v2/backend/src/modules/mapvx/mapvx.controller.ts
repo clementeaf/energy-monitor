@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Res, NotFoundException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
@@ -37,7 +37,6 @@ export class MapvxController {
     @Res() res: Response,
   ) {
     const data = await this.mapvxService.getTile(Number(z), Number(x), Number(y));
-    if (!data) throw new NotFoundException();
 
     res.set({
       'Content-Type': 'application/x-protobuf',
@@ -45,6 +44,7 @@ export class MapvxController {
       'Cache-Control': 'public, max-age=86400',
       'Access-Control-Allow-Origin': '*',
     });
-    res.send(data);
+    // Empty PBF for missing tiles — MapLibre renders blank area without errors
+    res.send(data ?? Buffer.alloc(0));
   }
 }

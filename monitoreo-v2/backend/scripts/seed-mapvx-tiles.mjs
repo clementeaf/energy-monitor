@@ -24,7 +24,7 @@ function latLngToTile(lat, lng, z) {
 
 function getTileCoverage(lat, lng, z) {
   const center = latLngToTile(lat, lng, z);
-  const radius = 1;
+  const radius = z >= 18 ? 2 : 1;
   const tiles = [];
   for (let dx = -radius; dx <= radius; dx++) {
     for (let dy = -radius; dy <= radius; dy++) {

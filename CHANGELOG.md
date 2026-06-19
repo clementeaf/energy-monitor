@@ -15,7 +15,12 @@
   - `seed-mapvx-tiles.mjs` — Downloads 575 PBF vector tiles (z14–z19, 3×3 grid per mall).
 - **20 malls total** — 15 with indoor floor plans, 5 with OSM POIs as store points. 5785 stores searchable. Includes PASA buildings: Open Temuco (47 stores, 14 indoor tiles) and SC52 (27 OSM POIs).
 - **Throttler bypass** — `skipIf` for `/api/mapvx/tiles/` route (MapLibre requests ~20 tiles simultaneously).
-- **Map sidebar panel** — Left panel with cascading selectors: Empresa (PASA / Mall Plaza) → Edificio → Tienda (search) → Nivel. DropdownSelect styling.
+- **Map sidebar panel** — Left panel: Edificio → Tienda (search) → Nivel → stats. DropdownSelect styling.
+
+### Fixed
+- **Map blank at high zoom** — `maxZoom: 18.5` prevents exceeding OSM tile coverage. FlyTo capped at 18.5.
+- **Missing tiles → white map** — Tile endpoint returns empty PBF instead of 404. MapLibre renders cleanly.
+- **Tile coverage gaps** — Expanded to 5×5 grid at z18–19. 872 tiles cached (was 575).
 
 ### Stats
 - Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.

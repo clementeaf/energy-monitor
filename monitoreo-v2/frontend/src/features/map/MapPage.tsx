@@ -6,22 +6,10 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useMapVxMalls, useMapVxStoresQuery } from '../../hooks/queries/useMapVxQuery';
-import type { MapvxMall, MapvxFloor, MapvxStore } from '../../types/mapvx';
+import type { MapvxFloor, MapvxStore } from '../../types/mapvx';
 import type { Building } from '../../types/building';
 
-type Company = 'pasa' | 'mallplaza';
-
-const COMPANY_OPTIONS: { value: Company; label: string }[] = [
-  { value: 'pasa', label: 'PASA' },
-  { value: 'mallplaza', label: 'Mall Plaza / Arauco' },
-];
-
-function getCompany(mall: MapvxMall): Company {
-  return mall.externalId.startsWith('pasa-') ? 'pasa' : 'mallplaza';
-}
-
 export function MapPage() {
-  const [company, setCompany] = useState<Company>('pasa');
   const [activeMallId, setActiveMallId] = useState<string>('');
   const [floorKey, setFloorKey] = useState('');
   const [selectedStore, setSelectedStore] = useState<MapvxStore | null>(null);
@@ -29,19 +17,12 @@ export function MapPage() {
   const mallsQuery = useMapVxMalls();
   const malls = mallsQuery.data ?? [];
 
-  const companyMalls = useMemo(
-    () => malls.filter((m) => getCompany(m) === company),
-    [malls, company],
-  );
-
   const activeMall = malls.find((m) => m.id === activeMallId) ?? null;
 
-  // Sync mall when company changes
+  // Select first mall on load
   useEffect(() => {
-    const first = companyMalls[0];
-    setActiveMallId(first?.id ?? '');
-    setSelectedStore(null);
-  }, [company, companyMalls.length]);
+    if (malls.length > 0 && !activeMallId) setActiveMallId(malls[0].id);
+  }, [malls.length]);
 
   // Sync floor when mall changes
   useEffect(() => {
@@ -109,18 +90,9 @@ export function MapPage() {
         <div className="flex gap-4" style={{ height: 'calc(100vh - 180px)' }}>
           {/* ── Left Panel ── */}
           <div className="flex w-72 shrink-0 flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-background p-4">
-            <SelectorField label="Empresa">
-              <SelectDropdown
-                options={COMPANY_OPTIONS}
-                value={company}
-                onChange={(v) => setCompany(v as Company)}
-                placeholder="Seleccionar empresa..."
-              />
-            </SelectorField>
-
             <SelectorField label="Edificio">
               <SelectDropdown
-                options={companyMalls.map((m) => ({ value: m.id, label: m.name }))}
+                options={malls.map((m) => ({ value: m.id, label: m.name }))}
                 value={activeMallId}
                 onChange={setActiveMallId}
                 placeholder={mallsQuery.isLoading ? 'Cargando...' : 'Seleccionar edificio...'}
@@ -148,9 +120,10 @@ export function MapPage() {
             </SelectorField>
 
             {activeMall && (
-              <div className="mt-auto border-t border-border pt-3 text-[11px] text-subtle">
-                <p>{activeMall.name}</p>
-                <p>{activeMall.floors.length} pisos · {storesQuery.data?.length ?? 0} tiendas</p>
+              <div className="mt-1 text-xs text-muted">
+                <span>{activeMall.floors.length} pisos</span>
+                <span className="mx-1.5">·</span>
+                <span>{storesQuery.data?.length ?? 0} tiendas</span>
               </div>
             )}
           </div>

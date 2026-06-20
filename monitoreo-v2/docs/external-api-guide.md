@@ -1,569 +1,637 @@
-# External API v1 — Integration Guide
+# External API — Guia para Desarrolladores
 
-> Base URL: `https://power-monitor.cloud/api/v1`
-> Version: 1.0 | Header: `API-Version: 1.0`
+Base URL: `https://power-monitor.cloud/api`
 
----
+## Contenido
 
-## Authentication
-
-Two methods, both scoped to a tenant and building set:
-
-### API Key (recommended for server-to-server)
-
-```
-X-API-Key: <your-api-key>
-```
-
-API keys are created in the platform admin panel (**Configuración → API Keys**). Each key has assigned scopes that control endpoint access.
-
-### OAuth2 Bearer Token
-
-```
-Authorization: Bearer <access_token>
-```
-
-Same JWT issued by the platform login flow. Useful for user-context integrations.
+1. [Autenticacion](#1-autenticacion)
+2. [Scopes (Permisos)](#2-scopes)
+3. [Rate Limiting](#3-rate-limiting)
+4. [Endpoints](#4-endpoints)
+5. [Codigos de Error](#5-codigos-de-error)
+6. [Ejemplos Completos](#6-ejemplos-completos)
 
 ---
 
-## Rate Limits
+## 1. Autenticacion
 
-| Tier | Window | Limit |
-|------|--------|-------|
-| Short | 1 second | 10 requests |
-| Medium | 1 minute | 100 requests |
-| Long | 1 hour | 1,000 requests |
+Dos mecanismos disponibles. Ambos proporcionan acceso a los mismos endpoints `/api/v1/*`.
 
-Exceeding limits returns `429 Too Many Requests`. Use exponential backoff for retries.
+### Opcion A: OAuth2 Client Credentials (recomendado)
 
----
+Flujo estandar para integraciones maquina-a-maquina.
 
-## Scopes
+**Paso 1 — Solicitar credenciales**
 
-Each API key is assigned one or more scopes:
+Un administrador de la plataforma crea un "Cliente OAuth" desde Administracion > OAuth Clients. Recibira:
+- `client_id` (ej: `emoc_2LXBrXC4RxBXsPrpCjTuT8OtmHEcvOwq`)
+- `client_secret` (ej: `snWKFhnt9zhGE-4lHM0pvite2ccWxUKyfKXxVunMGF85VnPN`)
 
-| Scope | Endpoints |
-|-------|-----------|
-| `buildings:read` | `GET /v1/buildings`, `GET /v1/buildings/:id` |
-| `meters:read` | `GET /v1/meters`, `GET /v1/meters/:id`, `GET /v1/meters/:id/status` |
-| `readings:read` | `GET /v1/readings`, `GET /v1/readings/latest`, `GET /v1/readings/aggregated`, `GET /v1/readings/latest-anchor`, `GET /v1/readings/compare-buildings`, `GET /v1/iot-readings/*` |
-| `readings:create` | `POST /v1/measurements` |
-| `readings:export` | `GET /v1/readings/export`, `POST /v1/exports`, `GET /v1/exports/:id`, `GET /v1/exports/:id/download` |
-| `alerts:read` | `GET /v1/alerts`, `GET /v1/alerts/:id`, `GET /v1/iot-readings/alerts` |
-| `billing:read` | `GET /v1/invoices`, `GET /v1/invoices/:id`, `GET /v1/tariffs`, `GET /v1/tariffs/:id`, `GET /v1/tariffs/:id/blocks` |
-| `tenant_units:read` | `GET /v1/tenant-units`, `GET /v1/tenant-units/:id` |
-| `hierarchy:read` | `GET /v1/hierarchy/buildings/:buildingId` |
-| `concentrators:read` | `GET /v1/concentrators`, `GET /v1/concentrators/:id` |
-| `fault_events:read` | `GET /v1/fault-events`, `GET /v1/fault-events/:id` |
-| `integrations:read` | `GET /v1/integrations/health` |
+**Paso 2 — Obtener token**
 
----
+```bash
+curl -X POST https://power-monitor.cloud/api/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "client_credentials",
+    "client_id": "emoc_2LXBrXC4RxBXsPrpCjTuT8OtmHEcvOwq",
+    "client_secret": "snWKFhnt9zhGE-4lHM0pvite2ccWxUKyfKXxVunMGF85VnPN"
+  }'
+```
 
-## Common Response Format
-
-All list endpoints return JSON arrays. Paginated endpoints return:
+**Respuesta:**
 
 ```json
 {
-  "data": [...],
-  "total": 150,
-  "limit": 20,
-  "offset": 0
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600
 }
 ```
 
-Error responses:
+**Paso 3 — Usar token en cada request**
 
-```json
-{
-  "statusCode": 404,
-  "message": "Meter not found",
-  "error": "Not Found"
-}
+```bash
+curl https://power-monitor.cloud/api/v1/buildings \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+```
+
+**Renovacion:** cuando el token expire (campo `expires_in` en segundos), repita el Paso 2. No se usa refresh token.
+
+### Opcion B: API Key
+
+Acceso directo sin flujo de token. Ideal para scripts simples.
+
+**Paso 1 — Crear API Key**
+
+Un administrador crea la key desde Administracion > API Keys. La clave se muestra una sola vez — guardarla de forma segura.
+
+**Paso 2 — Usar en cada request**
+
+```bash
+curl https://power-monitor.cloud/api/v1/buildings \
+  -H "X-API-Key: emak_abc123..."
 ```
 
 ---
 
-## Endpoints
+## 2. Scopes
 
-### Buildings
+Al crear un cliente OAuth o API Key, el administrador selecciona que permisos tendra. Solo los endpoints cubiertos por los scopes asignados estaran disponibles.
+
+| Scope | Endpoints | Descripcion |
+|-------|-----------|-------------|
+| `buildings:read` | `GET /v1/buildings`, `GET /v1/buildings/:id` | Listar y consultar edificios |
+| `meters:read` | `GET /v1/meters`, `GET /v1/meters/:id`, `GET /v1/meters/:id/status` | Listar medidores y su estado |
+| `readings:read` | `GET /v1/readings`, `GET /v1/readings/latest`, `GET /v1/readings/aggregated`, `GET /v1/readings/compare-buildings`, `GET /v1/iot-readings/*` | Lecturas en tiempo real, historicas y agregadas |
+| `readings:create` | `POST /v1/measurements` | Ingestar mediciones via API |
+| `readings:export` | `GET /v1/readings/export`, `POST /v1/exports`, `GET /v1/exports/:id` | Exportar lecturas (CSV/Parquet) |
+| `alerts:read` | `GET /v1/alerts`, `GET /v1/alerts/:id`, `GET /v1/iot-readings/alerts` | Consultar alertas activas e historicas |
+| `billing:read` | `GET /v1/invoices`, `GET /v1/invoices/:id`, `GET /v1/tariffs`, `GET /v1/tariffs/:id`, `GET /v1/tariffs/:id/blocks` | Facturas y tarifas |
+| `tenant_units:read` | `GET /v1/tenant-units`, `GET /v1/tenant-units/:id` | Locatarios (unidades de arriendo) |
+| `hierarchy:read` | `GET /v1/hierarchy/buildings/:buildingId` | Arbol jerarquico del edificio |
+| `concentrators:read` | `GET /v1/concentrators`, `GET /v1/concentrators/:id` | Concentradores de datos |
+| `fault_events:read` | `GET /v1/fault-events`, `GET /v1/fault-events/:id` | Eventos de falla |
+| `integrations:read` | `GET /v1/integrations/health` | Estado de conectores |
+
+---
+
+## 3. Rate Limiting
+
+| Tipo de acceso | Limite |
+|----------------|--------|
+| OAuth token (`/oauth/token`) | 30 req/min |
+| API Key — lectura | 60 req/min |
+| API Key — ingesta (`POST /v1/measurements`) | 600 req/min |
+
+Si se excede el limite, la API responde `429 Too Many Requests`.
+
+---
+
+## 4. Endpoints
+
+Todos los endpoints estan bajo `/api/v1/`. Los IDs son UUID v4.
+
+### 4.1 Edificios
 
 #### `GET /v1/buildings`
 
-List all buildings accessible to the API key.
+Lista todos los edificios accesibles.
 
-**Response:**
+**Scope:** `buildings:read`
 
+**Respuesta:**
 ```json
 [
   {
-    "id": "uuid",
-    "name": "Mall Parque Arauco",
-    "code": "MPA-001",
-    "countryCode": "CL",
-    "timezone": "America/Santiago",
-    "externalSiteId": "ERP-1234",
-    "siteKind": "mall",
-    "regionId": "uuid",
-    "regionName": "Región Metropolitana"
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Mall Arauco Maipu",
+    "code": "MAM",
+    "address": "Av. Americo Vespucio 399, Maipu",
+    "latitude": -33.482,
+    "longitude": -70.751,
+    "tenantId": "..."
   }
 ]
 ```
 
 #### `GET /v1/buildings/:id`
 
-Get a single building by UUID.
+Detalle de un edificio por ID.
 
 ---
 
-### Meters
+### 4.2 Medidores
 
 #### `GET /v1/meters`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
+Lista todos los medidores.
 
-**Response:**
+**Scope:** `meters:read`
 
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
+
+**Respuesta:**
 ```json
 [
   {
-    "id": "uuid",
-    "buildingId": "uuid",
+    "id": "...",
     "name": "Medidor Principal",
-    "code": "MP-001",
-    "meterType": "electrical",
-    "isActive": true,
-    "externalId": "EXT-456",
-    "model": "Siemens 7KT1260",
-    "serialNumber": "SN12345"
+    "serialNumber": "SN-001",
+    "buildingId": "...",
+    "meterType": "main",
+    "protocol": "modbus",
+    "isActive": true
   }
 ]
 ```
 
 #### `GET /v1/meters/:id`
 
-Get a single meter.
+Detalle de un medidor.
 
 #### `GET /v1/meters/:id/status`
 
-Ingest status for a meter.
+Estado de ingesta de un medidor: ultima lectura, latencia, flag stale.
 
-**Response:**
-
+**Respuesta:**
 ```json
 {
-  "meterId": "uuid",
-  "lastReadingAt": "2026-06-15T10:00:00.000Z",
-  "lastIngestedAt": "2026-06-15T10:00:05.000Z",
-  "lastSource": "mqtt",
-  "lagSeconds": 120,
-  "isStale": false,
-  "staleThresholdHours": 4
+  "meterId": "...",
+  "lastReadingAt": "2026-06-20T12:30:00Z",
+  "lagMinutes": 15,
+  "isStale": false
 }
 ```
 
 ---
 
-### Readings
+### 4.3 Lecturas
 
 #### `GET /v1/readings`
 
-Time-series readings with automatic downsampling.
+Lecturas time-series con downsampling automatico.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `meterId` | string | **Yes** | Meter UUID |
-| `from` | ISO 8601 | **Yes** | Start timestamp |
-| `to` | ISO 8601 | **Yes** | End timestamp |
-| `resolution` | string | No | `raw`, `5min`, `15min`, `1h`, `1d` (default: auto) |
-| `limit` | number | No | Max rows (1–10,000) |
-| `quality` | string | No | Comma-separated: `measured,estimated,invalid,unknown` |
+**Scope:** `readings:read`
+
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (requerido) | Medidor a consultar |
+| `from` | ISO 8601 (requerido) | Inicio del rango |
+| `to` | ISO 8601 (requerido) | Fin del rango |
+| `resolution` | string (opcional) | `raw`, `15min`, `1h`, `1d`, `1M` |
+
+**Ejemplo:**
+```bash
+curl "https://power-monitor.cloud/api/v1/readings?meterId=UUID&from=2026-06-01T00:00:00Z&to=2026-06-20T00:00:00Z&resolution=1h" \
+  -H "Authorization: Bearer TOKEN"
+```
 
 #### `GET /v1/readings/latest`
 
-Latest reading per meter.
+Ultima lectura por medidor. Util para dashboards en tiempo real.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
-| `meterId` | uuid | No | Filter by meter |
-| `quality` | string | No | Comma-separated quality filter |
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
 
 #### `GET /v1/readings/aggregated`
 
-Aggregated readings (hourly, daily, monthly).
+Lecturas agregadas (hourly/daily/monthly).
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `from` | ISO 8601 | **Yes** | Start timestamp |
-| `to` | ISO 8601 | **Yes** | End timestamp |
-| `interval` | string | **Yes** | `15min`, `hourly`, `daily`, `monthly` |
-| `buildingId` | uuid | No | Filter by building |
-| `meterId` | uuid | No | Filter by meter |
-| `groupBy` | string | No | `portfolio` or `building` |
-| `meterRole` | string | No | `generation` or `load` |
-| `quality` | string | No | Quality filter |
-| `loadCategory` | string | No | e.g. `clima`, `iluminacion` |
-
-#### `GET /v1/readings/latest-anchor`
-
-Returns the newest reading timestamp for chart date anchoring.
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (opcional) | Medidor especifico |
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
+| `from` | ISO 8601 (requerido) | Inicio |
+| `to` | ISO 8601 (requerido) | Fin |
+| `interval` | string (requerido) | `hourly`, `daily`, `monthly` |
+| `groupBy` | string (opcional) | `portfolio`, `building` |
+| `meterRole` | string (opcional) | `generation`, `load` |
 
 #### `GET /v1/readings/compare-buildings`
 
-Compare buildings (current vs previous period).
+Comparar consumo entre edificios (periodo actual vs anterior).
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `days` | number | **Yes** | `1`, `7`, or `30` |
-
----
-
-### Ingress (Write)
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `days` | number (opcional, default 30) | Dias a comparar |
 
 #### `POST /v1/measurements`
 
-Ingest a single meter reading. Scope: `readings:create`.
+Ingestar una medicion.
 
-**Request body:**
+**Scope:** `readings:create`
 
+**Body:**
 ```json
 {
-  "meterId": "uuid",
-  "timestamp": "2026-06-15T10:00:00.000Z",
-  "metrics": {
-    "powerKw": 12.5,
-    "energyKwhTotal": 10450.25,
-    "voltageL1": 220.1,
-    "voltageL2": 219.8,
-    "voltageL3": 220.3,
-    "currentL1": 45.2,
-    "currentL2": 44.8,
-    "currentL3": 45.0,
-    "reactivePowerKvar": 2.1,
-    "powerFactor": 0.98,
-    "frequencyHz": 50.01,
-    "thdVoltagePct": 2.3,
-    "thdCurrentPct": 4.1,
-    "phaseImbalancePct": 0.5
-  },
-  "quality": "measured",
-  "externalRef": "ERP-INV-12345"
+  "meterId": "UUID",
+  "timestamp": "2026-06-20T12:00:00Z",
+  "activePowerKw": 150.5,
+  "reactivePowerKvar": 25.3,
+  "voltageV": 220.1,
+  "currentA": 45.2,
+  "powerFactor": 0.98,
+  "frequencyHz": 50.0,
+  "energyKwh": 1250.0,
+  "source": "api_ingress"
 }
 ```
 
-Only `meterId`, `timestamp`, `metrics.powerKw`, and `metrics.energyKwhTotal` are required. All other fields are optional.
-
-**Response (201):**
-
-```json
-{
-  "id": "uuid",
-  "meterId": "uuid",
-  "timestampUtc": "2026-06-15T10:00:00.000Z",
-  "timezone": "America/Santiago",
-  "timestampLocal": "2026-06-15T06:00:00",
-  "powerKw": "12.500",
-  "energyKwhTotal": "10450.250",
-  "quality": "measured",
-  "source": "api_ingress",
-  "ingestedAt": "2026-06-15T10:00:01.000Z"
-}
-```
-
-**Errors:**
-- `403` — Meter not accessible for this API key
-- `409` — Duplicate measurement (same meter + timestamp + source)
+**Respuesta:** `201 Created`
 
 ---
 
-### Export (ETL)
+### 4.4 Exportacion de Datos
 
 #### `GET /v1/readings/export`
 
-Stream readings as CSV with cursor pagination.
+Stream de lecturas en CSV con paginacion por cursor.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `format` | string | **Yes** | `csv` |
-| `from` | ISO 8601 | **Yes** | Start date |
-| `to` | ISO 8601 | **Yes** | End date |
-| `cursor` | string | No | Continuation cursor from `X-Next-Cursor` header |
-| `meterId` | uuid | No | Filter by meter |
-| `buildingId` | uuid | No | Filter by building |
+**Scope:** `readings:export`
 
-**Headers (optional):**
-- `X-Consumer-Id` — Persists watermark cursor for incremental loads
-- `X-Data-Contract-Version` — Contract validation (e.g. `readings-export@1.0.0`)
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `from` | ISO 8601 (requerido) | Inicio |
+| `to` | ISO 8601 (requerido) | Fin |
+| `meterId` | UUID (opcional) | Filtrar por medidor |
+| `cursor` | string (opcional) | Cursor de paginacion |
+| `limit` | number (opcional, default 10000) | Filas por pagina |
 
-**Response:** CSV stream. Header `X-Next-Cursor` present when more data exists.
+**Headers opcionales:**
+- `X-Consumer-Id`: identificador del consumidor ETL. Persiste watermark para cargas incrementales.
+- `X-Data-Contract-Version`: version del contrato de datos (ej: `readings-export@1.0.0`).
+
+**Respuesta:** `200 OK` con body CSV. Header `X-Next-Cursor` presente si hay mas datos.
 
 #### `POST /v1/exports`
 
-Create async export job (CSV or Parquet). Returns `202 Accepted`.
+Crear job de exportacion asincrono (CSV o Parquet).
 
-**Request body:**
-
+**Body:**
 ```json
 {
   "format": "parquet",
   "from": "2026-01-01T00:00:00Z",
-  "to": "2026-06-01T00:00:00Z",
-  "buildingId": "uuid",
-  "meterId": "uuid"
+  "to": "2026-06-01T00:00:00Z"
 }
 ```
 
-**Response (202):**
-
+**Respuesta:** `202 Accepted`
 ```json
 {
-  "id": "uuid",
+  "id": "UUID",
   "format": "parquet",
   "status": "pending",
-  "rowCount": 0,
-  "error": null,
-  "createdAt": "2026-06-15T10:00:00Z",
-  "updatedAt": "2026-06-15T10:00:00Z",
-  "expiresAt": null,
-  "downloadUrl": null
+  "rowCount": null,
+  "createdAt": "2026-06-20T12:00:00Z"
 }
 ```
 
 #### `GET /v1/exports/:id`
 
-Poll job status. `downloadUrl` appears when `status=completed`.
+Consultar estado del job. Cuando `status` es `completed`, el campo `downloadUrl` contiene la URL de descarga.
 
 #### `GET /v1/exports/:id/download`
 
-Download the completed export file.
+Descargar archivo de exportacion completado.
 
 ---
 
-### Alerts
+### 4.5 Alertas
 
 #### `GET /v1/alerts`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | string | No | `active`, `acknowledged`, `resolved` |
-| `severity` | string | No | `critical`, `high`, `medium`, `low` |
-| `buildingId` | uuid | No | Filter by building |
-| `meterId` | uuid | No | Filter by meter |
+Lista alertas con filtros.
+
+**Scope:** `alerts:read`
+
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `status` | string (opcional) | `active`, `acknowledged`, `resolved` |
+| `severity` | string (opcional) | `critical`, `high`, `medium`, `low` |
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
+| `meterId` | UUID (opcional) | Filtrar por medidor |
 
 #### `GET /v1/alerts/:id`
 
-Get a single alert.
+Detalle de una alerta.
 
 ---
 
-### Billing
+### 4.6 Facturacion
 
 #### `GET /v1/invoices`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
-| `status` | string | No | Invoice status filter |
-| `periodStart` | ISO 8601 | No | Period start |
-| `periodEnd` | ISO 8601 | No | Period end |
-| `limit` | number | No | 1–100 (default 20) |
-| `offset` | number | No | Pagination offset |
+Lista facturas.
+
+**Scope:** `billing:read`
+
+**Query params:**
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
+| `status` | string (opcional) | `pending`, `approved`, `voided` |
+| `periodStart` | ISO 8601 (opcional) | Inicio del periodo |
+| `periodEnd` | ISO 8601 (opcional) | Fin del periodo |
+| `limit` | number (opcional, default 100) | |
+| `offset` | number (opcional, default 0) | |
+
+**Respuesta:**
+```json
+{
+  "data": [...],
+  "total": 45,
+  "limit": 100,
+  "offset": 0
+}
+```
 
 #### `GET /v1/invoices/:id`
 
-Get a single invoice with line items.
+Detalle de factura con line items.
 
 #### `GET /v1/tariffs`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
+Lista tarifas electricas.
+
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
 
 #### `GET /v1/tariffs/:id`
 
-Get a tariff.
+Detalle de tarifa.
 
 #### `GET /v1/tariffs/:id/blocks`
 
-List tariff time blocks.
+Bloques horarios de una tarifa (punta, llano, valle).
 
 ---
 
-### Tenant Units (Locatarios)
+### 4.7 Locatarios
 
 #### `GET /v1/tenant-units`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
+**Scope:** `tenant_units:read`
+
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
 
 #### `GET /v1/tenant-units/:id`
 
-Get a single tenant unit.
+Detalle de un locatario.
 
 ---
 
-### Hierarchy
+### 4.8 Jerarquia
 
 #### `GET /v1/hierarchy/buildings/:buildingId`
 
-Returns the full hierarchy tree for a building (building → concentrators → meters).
+**Scope:** `hierarchy:read`
+
+Retorna el arbol jerarquico completo del edificio (areas, sub-areas, medidores).
 
 ---
 
-### Concentrators
+### 4.9 Concentradores
 
 #### `GET /v1/concentrators`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
+**Scope:** `concentrators:read`
+
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `buildingId` | UUID (opcional) | Filtrar por edificio |
 
 #### `GET /v1/concentrators/:id`
 
-Get a single concentrator.
+Detalle de concentrador.
 
 ---
 
-### Fault Events
+### 4.10 Eventos de Falla
 
 #### `GET /v1/fault-events`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `buildingId` | uuid | No | Filter by building |
-| `meterId` | uuid | No | Filter by meter |
-| `severity` | string | No | Severity filter |
-| `faultType` | string | No | Fault type filter |
-| `dateFrom` | ISO 8601 | No | Start date |
-| `dateTo` | ISO 8601 | No | End date |
+**Scope:** `fault_events:read`
 
 #### `GET /v1/fault-events/:id`
 
-Get a single fault event.
+Detalle de evento de falla.
 
 ---
 
-### IoT Readings (Siemens / MQTT)
+### 4.11 IoT Readings (MQTT/Siemens)
+
+Lecturas de dispositivos IoT conectados via MQTT.
 
 #### `GET /v1/iot-readings`
 
-Raw IoT readings for a meter.
+**Scope:** `readings:read`
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `meterId` | uuid | **Yes** | Meter UUID |
-| `from` | ISO 8601 | **Yes** | Start timestamp |
-| `to` | ISO 8601 | **Yes** | End timestamp |
-| `limit` | number | No | Max rows (1–5,000, default 100) |
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (requerido) | |
+| `from` | ISO 8601 (requerido) | |
+| `to` | ISO 8601 (requerido) | |
+| `limit` | number (opcional, default 100) | |
 
 #### `GET /v1/iot-readings/latest`
 
-Latest IoT reading for a meter.
+Ultima lectura IoT para un medidor.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `meterId` | uuid | **Yes** | Meter UUID |
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (requerido) | |
 
 #### `GET /v1/iot-readings/timeseries`
 
-Time-series with optional resolution.
+Serie temporal IoT con resolucion configurable.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `meterId` | uuid | **Yes** | Meter UUID |
-| `from` | ISO 8601 | **Yes** | Start timestamp |
-| `to` | ISO 8601 | **Yes** | End timestamp |
-| `variables` | string | No | Comma-separated variable names |
-| `resolution` | string | No | `raw`, `5min`, `15min`, `1h`, `1d` |
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (requerido) | |
+| `from` | ISO 8601 (requerido) | |
+| `to` | ISO 8601 (requerido) | |
+| `variables` | string (opcional) | Comma-separated: `voltage,current,power` |
+| `resolution` | string (opcional) | `raw`, `15min`, `1h`, `1d` |
 
 #### `GET /v1/iot-readings/stats`
 
-Statistical summary (min, max, avg) for a meter in a range.
-
-Same params as `timeseries`.
+Resumen estadistico (min, max, avg, std) para un rango.
 
 #### `GET /v1/iot-readings/alerts`
 
-IoT-derived anomaly alerts.
+Alertas derivadas de anomalias IoT.
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `severity` | string | No | Filter by severity |
-| `meterId` | uuid | No | Filter by meter |
+| Param | Tipo | Descripcion |
+|-------|------|-------------|
+| `meterId` | UUID (opcional) | |
+| `severity` | string (opcional) | `critical`, `high`, `medium`, `low` |
 
 ---
 
-### Integrations
+### 4.12 Integraciones
 
 #### `GET /v1/integrations/health`
 
-Returns connector health summary for the tenant.
+**Scope:** `integrations:read`
+
+Estado de salud de los conectores configurados.
 
 ---
 
-## Incremental Loading Pattern
+## 5. Codigos de Error
 
-For ETL pipelines that need only new data since the last fetch:
+| Codigo | Significado |
+|--------|-------------|
+| `400` | Parametros invalidos o faltantes |
+| `401` | Token ausente, expirado o invalido |
+| `403` | Scope insuficiente para este endpoint |
+| `404` | Recurso no encontrado |
+| `409` | Conflicto (ej: medicion duplicada) |
+| `429` | Rate limit excedido |
+| `451` | Procesamiento de datos suspendido (derecho ARCO+) |
+| `500` | Error interno del servidor |
 
-1. First call: `GET /v1/readings/export?format=csv&from=2026-01-01&to=2026-12-31`
-   - Include header `X-Consumer-Id: my-etl-pipeline`
-2. Response streams CSV. Header `X-Next-Cursor` contains the cursor.
-3. Next call: add `&cursor=<X-Next-Cursor value>` to continue.
-4. The watermark is persisted server-side per consumer ID.
-
----
-
-## Data Quality Flags
-
-Every reading includes a `quality` field:
-
-| Value | Meaning |
-|-------|---------|
-| `measured` | Real hardware reading |
-| `estimated` | Calculated or interpolated (e.g. CNR manual entry) |
-| `invalid` | Failed validation |
-| `unknown` | Legacy or unclassified |
-
-Filter via `?quality=measured,estimated` on readings endpoints.
-
----
-
-## Error Codes
-
-| Status | Meaning |
-|--------|---------|
-| `400` | Validation error (check `message` for details) |
-| `401` | Missing or invalid authentication |
-| `403` | Valid auth but insufficient scope or building access |
-| `404` | Resource not found |
-| `409` | Duplicate (e.g. duplicate measurement) |
-| `429` | Rate limit exceeded |
-| `500` | Server error |
-
----
-
-## Postman Collection
-
-A ready-to-use Postman collection with all 252 routes is available at:
-
-```
-monitoreo-v2/docs/postman-collection.json
+**Formato de error:**
+```json
+{
+  "statusCode": 403,
+  "message": "Missing permission: billing:read",
+  "error": "Forbidden"
+}
 ```
 
-Import it and set variables:
-- `{{baseUrl}}` → `https://power-monitor.cloud/api`
-- `{{accessToken}}` → Your API key or Bearer token
+---
+
+## 6. Ejemplos Completos
+
+### Python
+
+```python
+import requests
+
+BASE = "https://power-monitor.cloud/api"
+
+# 1. Obtener token
+token_resp = requests.post(f"{BASE}/oauth/token", json={
+    "grant_type": "client_credentials",
+    "client_id": "emoc_...",
+    "client_secret": "snWK...",
+})
+token = token_resp.json()["access_token"]
+headers = {"Authorization": f"Bearer {token}"}
+
+# 2. Listar edificios
+buildings = requests.get(f"{BASE}/v1/buildings", headers=headers).json()
+for b in buildings:
+    print(f"{b['name']} — {b['address']}")
+
+# 3. Lecturas agregadas del ultimo mes
+import datetime
+now = datetime.datetime.utcnow()
+month_ago = now - datetime.timedelta(days=30)
+
+readings = requests.get(f"{BASE}/v1/readings/aggregated", headers=headers, params={
+    "buildingId": buildings[0]["id"],
+    "from": month_ago.isoformat() + "Z",
+    "to": now.isoformat() + "Z",
+    "interval": "daily",
+}).json()
+
+for r in readings:
+    print(f"{r['bucket']}: {r['avg_active_power_kw']:.1f} kW")
+```
+
+### JavaScript (Node.js)
+
+```javascript
+const BASE = 'https://power-monitor.cloud/api';
+
+// 1. Obtener token
+const tokenRes = await fetch(`${BASE}/oauth/token`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    grant_type: 'client_credentials',
+    client_id: 'emoc_...',
+    client_secret: 'snWK...',
+  }),
+});
+const { access_token } = await tokenRes.json();
+const headers = { Authorization: `Bearer ${access_token}` };
+
+// 2. Listar medidores
+const meters = await fetch(`${BASE}/v1/meters`, { headers }).then(r => r.json());
+console.log(`${meters.length} medidores encontrados`);
+
+// 3. Ultima lectura
+const latest = await fetch(`${BASE}/v1/readings/latest`, { headers }).then(r => r.json());
+for (const r of latest) {
+  console.log(`${r.meterName}: ${r.activePowerKw} kW`);
+}
+```
+
+### cURL (Bash)
+
+```bash
+# Obtener token
+TOKEN=$(curl -s -X POST https://power-monitor.cloud/api/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{"grant_type":"client_credentials","client_id":"emoc_...","client_secret":"snWK..."}' \
+  | jq -r '.access_token')
+
+# Listar alertas criticas
+curl -s "https://power-monitor.cloud/api/v1/alerts?severity=critical" \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# Exportar lecturas CSV
+curl -s "https://power-monitor.cloud/api/v1/readings/export?from=2026-06-01T00:00:00Z&to=2026-06-20T00:00:00Z" \
+  -H "Authorization: Bearer $TOKEN" \
+  -o readings.csv
+```
+
+### API Key (alternativa sin token)
+
+```bash
+# Directo con API Key — sin paso de token
+curl -s "https://power-monitor.cloud/api/v1/buildings" \
+  -H "X-API-Key: emak_abc123..."
+```
 
 ---
 
-## Versioning Policy
-
-- Current version: `1.0` (header `API-Version: 1.0`)
-- Breaking changes trigger a new major version
-- Deprecated endpoints include `Deprecation`, `Sunset`, and `X-Deprecation-Notice` headers (RFC 8594)
-- Minimum 6-month deprecation window before removal
+*Documentacion generada para API v1 — Junio 2026*

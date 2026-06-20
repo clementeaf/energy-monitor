@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.23.2-alpha.0] - 2026-06-20 — RBAC HARDENING, EXTERNAL API PERMISSIONS, USER MANUAL
+
+### Fixed
+- **Guards UUID validation** — `DataProcessingBlockGuard` and `IdleTimeoutGuard` now validate UUID format before SQL query. Any non-UUID `sub` (OAuth clients, API keys, test tokens) skips the guard instead of crashing.
+- **External API permission mismatch** — `/v1/buildings` required `buildings:read` but DB only had `admin_buildings:read`. Same for meters. Now accepts both via `RequireAnyPermission`. Invoices accept `billing:read` or `billing:view_own`.
+- **Missing permissions** — Added `buildings:read` and `meters:read` to DB permissions catalog.
+
+### Added
+- **3 example roles** — Técnico Eléctrico (data only), Gerente Financiero (costs only), Locatario Básico (own invoice only). Created via API, tested end-to-end.
+- **User manual** — `monitoreo-v2/docs/manual-usuario.md`. 12 sections for non-technical users: login, MFA, dashboard, monitoring, alerts, billing, reports, map, admin, privacy, FAQ.
+
+---
+
 ## [2.23.1-alpha.0] - 2026-06-20 — FIX EXTERNAL API 500 FOR OAUTH CLIENTS
 
 ### Fixed

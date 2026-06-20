@@ -27,7 +27,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-20)
-- **2.23.1:** Fix external API 500 para OAuth clients. `DataProcessingBlockGuard` e `IdleTimeoutGuard` crasheaban con `sub: "oauth:..."` (no UUID). Ambos guards ahora skip para OAuth tokens. [CHANGELOG — 2.23.1-alpha.0](CHANGELOG.md)
+- **2.23.2:** Guards validan UUID antes de query (no solo `oauth:` prefix). External API acepta `admin_buildings:read` + `buildings:read` via `RequireAnyPermission`. Invoices acepta `billing:view_own`. 3 roles ejemplo probados E2E. Manual de usuario 12 secciones (`docs/manual-usuario.md`). [CHANGELOG — 2.23.2-alpha.0](CHANGELOG.md)
+- **2.23.1:** Fix external API 500 para OAuth clients. Guards crasheaban con `sub` no-UUID. [CHANGELOG — 2.23.1-alpha.0](CHANGELOG.md)
 - **2.23.0:** 27 Parque Arauco marker malls (scraper Playwright + Nominatim → DB). Mall dropdown INDOOR/PIN. Metadata (m², dirección) en sidebar. Migration 53. Deploy prod: S3→ECS restore pattern para seeds grandes. 47 malls total (20 indoor + 27 markers), 5977 stores, 946 tiles. [CHANGELOG — 2.23.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-18)

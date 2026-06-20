@@ -40,8 +40,9 @@ export class IdleTimeoutGuard implements CanActivate {
     const user = request.user;
     if (!user?.sub) return true; // no user context — let other guards handle
 
-    // OAuth client tokens have no refresh token session — skip idle check
-    if (typeof user.sub === 'string' && user.sub.startsWith('oauth:')) return true;
+    // Skip for non-user tokens (OAuth clients, non-UUID subs) — no refresh token session
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(user.sub)) return true;
 
     const tenantSettings = await this.loadTenantSettings(user.tenantId);
     const idleMinutes = getIdleTimeoutMinutes(tenantSettings);

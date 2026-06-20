@@ -45,10 +45,10 @@ export class DataProcessingBlockGuard implements CanActivate {
     const user = request.user as JwtPayload | undefined;
     if (!user?.sub) return true;
 
-    // OAuth client tokens are not real users — skip block check
-    if (typeof user.sub === 'string' && user.sub.startsWith('oauth:')) return true;
-    // API key auth — same, skip
+    // Skip for non-user tokens (OAuth clients, API keys, non-UUID subs)
     if (request[API_KEY_AUTH_FLAG]) return true;
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(user.sub)) return true;
 
     // Allow auth/privacy paths even when blocked
     const path = (request.route?.path ?? request.url) as string;

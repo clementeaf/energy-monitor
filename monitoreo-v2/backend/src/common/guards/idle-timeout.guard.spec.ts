@@ -57,7 +57,7 @@ describe('IdleTimeoutGuard', () => {
     ds.query.mockResolvedValueOnce([{ id: 'rt-1' }]);
 
     const result = await guard.canActivate(
-      buildContext({ sub: 'u-1', tenantId: 't-1' }),
+      buildContext({ sub: 'a0000000-0000-0000-0000-000000000001', tenantId: 't-1' }),
     );
 
     expect(result).toBe(true);
@@ -66,7 +66,7 @@ describe('IdleTimeoutGuard', () => {
     const updateCall = ds.query.mock.calls[1];
     expect(updateCall[0]).toContain('UPDATE refresh_tokens');
     expect(updateCall[0]).toContain('make_interval');
-    expect(updateCall[1]).toEqual(['u-1', 15]);
+    expect(updateCall[1]).toEqual(['a0000000-0000-0000-0000-000000000001', 15]);
   });
 
   it('rejects idle session and revokes tokens', async () => {
@@ -78,39 +78,39 @@ describe('IdleTimeoutGuard', () => {
     ds.query.mockResolvedValueOnce(undefined);
 
     await expect(
-      guard.canActivate(buildContext({ sub: 'u-1', tenantId: 't-1' })),
+      guard.canActivate(buildContext({ sub: 'a0000000-0000-0000-0000-000000000001', tenantId: 't-1' })),
     ).rejects.toThrow(UnauthorizedException);
 
     // Verify revoke query was called
     const revokeCall = ds.query.mock.calls[2];
     expect(revokeCall[0]).toContain('idle_timeout');
-    expect(revokeCall[1]).toEqual(['u-1']);
+    expect(revokeCall[1]).toEqual(['a0000000-0000-0000-0000-000000000001']);
   });
 
   it('uses custom idle timeout from tenant settings', async () => {
     ds.query.mockResolvedValueOnce([{ settings: { idleTimeoutMinutes: 30 } }]);
     ds.query.mockResolvedValueOnce([{ id: 'rt-1' }]);
 
-    await guard.canActivate(buildContext({ sub: 'u-1', tenantId: 't-1' }));
+    await guard.canActivate(buildContext({ sub: 'a0000000-0000-0000-0000-000000000001', tenantId: 't-1' }));
 
     const updateCall = ds.query.mock.calls[1];
-    expect(updateCall[1]).toEqual(['u-1', 30]);
+    expect(updateCall[1]).toEqual(['a0000000-0000-0000-0000-000000000001', 30]);
   });
 
   it('defaults to 15 minutes when tenant has no settings', async () => {
     ds.query.mockResolvedValueOnce([]); // no tenant found
     ds.query.mockResolvedValueOnce([{ id: 'rt-1' }]);
 
-    await guard.canActivate(buildContext({ sub: 'u-1', tenantId: 't-1' }));
+    await guard.canActivate(buildContext({ sub: 'a0000000-0000-0000-0000-000000000001', tenantId: 't-1' }));
 
     const updateCall = ds.query.mock.calls[1];
-    expect(updateCall[1]).toEqual(['u-1', 15]);
+    expect(updateCall[1]).toEqual(['a0000000-0000-0000-0000-000000000001', 15]);
   });
 
   it('handles missing tenantId gracefully', async () => {
     ds.query.mockResolvedValueOnce([{ id: 'rt-1' }]);
 
-    const ctx = buildContext({ sub: 'u-1', tenantId: '' });
+    const ctx = buildContext({ sub: 'a0000000-0000-0000-0000-000000000001', tenantId: '' });
     // loadTenantSettings returns null for empty tenantId
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);

@@ -5,7 +5,7 @@ import { UseReadReplica } from '../../database/use-read-replica.decorator';
 import { ReadReplicaInterceptor } from '../../database/read-replica.interceptor';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
-import { RequirePermission } from '../../common/guards/permissions.guard';
+import { RequirePermission, RequireAnyPermission } from '../../common/guards/permissions.guard';
 import { BuildingsService } from '../buildings/buildings.service';
 import { MetersService } from '../meters/meters.service';
 import { ReadingsService } from '../readings/readings.service';
@@ -89,7 +89,7 @@ export class ExternalApiController {
   /* ------------------------------------------------------------------ */
 
   @Get('buildings')
-  @RequirePermission('buildings', 'read')
+  @RequireAnyPermission('buildings:read', 'admin_buildings:read')
   @ApiOperation({ summary: 'List all buildings' })
   @ApiResponse({ status: 200, description: 'Buildings list returned', type: [ExternalBuildingResponse] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -99,7 +99,7 @@ export class ExternalApiController {
   }
 
   @Get('buildings/:id')
-  @RequirePermission('buildings', 'read')
+  @RequireAnyPermission('buildings:read', 'admin_buildings:read')
   @ApiOperation({ summary: 'Get a building by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Building returned', type: ExternalBuildingResponse })
@@ -118,7 +118,7 @@ export class ExternalApiController {
   /* ------------------------------------------------------------------ */
 
   @Get('meters')
-  @RequirePermission('meters', 'read')
+  @RequireAnyPermission('meters:read', 'admin_meters:read')
   @ApiOperation({ summary: 'List all meters' })
   @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
   @ApiResponse({ status: 200, description: 'Meters list returned', type: [ExternalMeterResponse] })
@@ -131,7 +131,7 @@ export class ExternalApiController {
   }
 
   @Get('meters/:id')
-  @RequirePermission('meters', 'read')
+  @RequireAnyPermission('meters:read', 'admin_meters:read')
   @ApiOperation({ summary: 'Get a meter by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Meter returned', type: ExternalMeterResponse })
@@ -146,7 +146,7 @@ export class ExternalApiController {
   }
 
   @Get('meters/:id/status')
-  @RequirePermission('meters', 'read')
+  @RequireAnyPermission('meters:read', 'admin_meters:read')
   @ApiOperation({ summary: 'Get meter ingest status (last reading, lag, stale flag)' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Meter status returned', type: ExternalMeterStatusResponse })
@@ -450,7 +450,7 @@ export class ExternalApiController {
   /* ------------------------------------------------------------------ */
 
   @Get('invoices')
-  @RequirePermission('billing', 'read')
+  @RequireAnyPermission('billing:read', 'billing:view_own')
   @ApiOperation({ summary: 'List invoices with filters' })
   async listInvoices(
     @CurrentUser() user: JwtPayload,
@@ -467,7 +467,7 @@ export class ExternalApiController {
   }
 
   @Get('invoices/:id')
-  @RequirePermission('billing', 'read')
+  @RequireAnyPermission('billing:read', 'billing:view_own')
   @ApiOperation({ summary: 'Get invoice by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   async getInvoice(
@@ -480,7 +480,7 @@ export class ExternalApiController {
   }
 
   @Get('tariffs')
-  @RequirePermission('billing', 'read')
+  @RequireAnyPermission('billing:read', 'billing:view_own')
   @ApiOperation({ summary: 'List tariffs' })
   @ApiQuery({ name: 'buildingId', required: false, type: 'string' })
   async listTariffs(
@@ -491,7 +491,7 @@ export class ExternalApiController {
   }
 
   @Get('tariffs/:id')
-  @RequirePermission('billing', 'read')
+  @RequireAnyPermission('billing:read', 'billing:view_own')
   @ApiOperation({ summary: 'Get tariff by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   async getTariff(
@@ -504,7 +504,7 @@ export class ExternalApiController {
   }
 
   @Get('tariffs/:id/blocks')
-  @RequirePermission('billing', 'read')
+  @RequireAnyPermission('billing:read', 'billing:view_own')
   @ApiOperation({ summary: 'List tariff time blocks' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   async listTariffBlocks(

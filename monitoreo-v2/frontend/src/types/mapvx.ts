@@ -12,6 +12,10 @@ export interface MapvxMall {
   centerLat: number;
   centerLng: number;
   polygonCoords: number[][] | null;
+  hasIndoor: boolean;
+  address: string | null;
+  sizeText: string | null;
+  imageUrl: string | null;
   floors: MapvxFloor[];
 }
 
@@ -26,5 +30,5 @@ export interface MapvxStore {
 
 export interface MapvxGeometry {
   type: 'FeatureCollection';
-  features: GeoJSON.Feature[];
+  features: unknown[];
 }

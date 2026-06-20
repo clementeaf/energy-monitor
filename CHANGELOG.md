@@ -1,5 +1,38 @@
 # Changelog
 
+## [2.23.0-alpha.0] - 2026-06-20 — PARQUE ARAUCO MALLS (47 malls, 27 marker-only)
+
+### Added
+- **27 Parque Arauco marker malls** — Geocoded from Parauco API. Displayed as amber pins with popup (name, m², address).
+- **Mall metadata columns** — `has_indoor`, `address`, `size_text`, `image_url` on `mapvx_malls` (migration `53`).
+- **`MallDropdown`** — Mall selector with INDOOR/PIN badges per mall.
+- **Marker-only mall UX** — Store/floor selectors hidden for non-indoor malls. Metadata card with size and address in sidebar.
+- **`mallMarkers` prop** on `MapView` — Amber markers for marker-only malls with popup.
+- **Scraper scripts** — `scrape-parquearauco-malls.py`, `scrape-parquearauco-full.py`, `scrape-parquearauco-markers.py` (Playwright + Nominatim geocoding).
+- **`seed-parquearauco-markers.mjs`** — Seeds 27 marker malls + updates 4 indoor malls with Parauco metadata.
+- **`seed-mapvx-ecs.mjs`** — ECS Exec wrapper for all mapvx seeds.
+- **`restore-table-from-s3.mjs`** — S3 → ECS restore pattern for large SQL dumps (downloads via `@aws-sdk/client-s3` inside container).
+- **`apply-prod-migrations-2.23.sh`** — Migration chain 50–53.
+- **`deploy-2.23.sh`** — Full deploy script (migrations, Docker build, ECS update, frontend S3/CF, seeds).
+
+### Changed
+- **`pbf` + `@mapbox/vector-tile`** moved from devDependencies to dependencies (needed inside ECS container for seeds).
+- **SSL support** added to all seed scripts (`seed-mapvx-data`, `seed-osm-malls`, `seed-mapvx-tiles`, `seed-parquearauco-markers`) for prod RDS.
+- **`MapvxService.getMalls()`** returns `hasIndoor`, `address`, `sizeText`, `imageUrl`.
+- **`MapvxMall` type** — added `hasIndoor`, `address`, `sizeText`, `imageUrl`.
+- **IAM** — `ecsTaskRole` granted `s3:GetObject` on `power-monitor-frontend/seeds/*`.
+
+### Deploy (prod)
+- **Migrations 50–53** applied via ECS Exec.
+- **Backend ECS** — image `map-arauco-v2-20260619-181018`, task def v15.
+- **Frontend** — `power-monitor.cloud`, CloudFront invalidated.
+- **Data** — 47 malls, 111 floors, 5977 stores, 367 geometries, 946 tiles seeded via S3 → ECS restore.
+
+### Stats
+- Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.
+
+---
+
 ## [2.22.0-alpha.0] - 2026-06-18 — MAP VIEW + INDOOR MAPPING (18 malls, zero external deps)
 
 ### Added

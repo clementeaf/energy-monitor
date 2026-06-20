@@ -35,13 +35,19 @@ function getTileCoverage(lat, lng, z) {
 }
 
 async function main() {
-  const client = new pg.Client({
+  const config = {
     host: process.env.DB_HOST ?? '127.0.0.1',
     port: Number(process.env.DB_PORT ?? 5432),
     database: process.env.DB_NAME ?? 'monitoreo_v2',
     user: process.env.DB_USERNAME ?? 'postgres',
     password: process.env.DB_PASSWORD ?? '',
-  });
+  };
+  try {
+    const fs = await import('fs');
+    const ca = fs.readFileSync('/app/certs/rds-global-bundle.pem');
+    config.ssl = { rejectUnauthorized: true, ca };
+  } catch { /* local dev */ }
+  const client = new pg.Client(config);
   await client.connect();
 
   const malls = await client.query(`SELECT id, name, center_lat, center_lng FROM mapvx_malls ORDER BY name`);

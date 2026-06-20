@@ -7,7 +7,8 @@ export class MapvxService {
 
   async getMalls() {
     const malls = await this.dataSource.query(`
-      SELECT m.id, m.external_id, m.name, m.center_lat, m.center_lng, m.polygon_coords
+      SELECT m.id, m.external_id, m.name, m.center_lat, m.center_lng, m.polygon_coords,
+             m.has_indoor, m.address, m.size_text, m.image_url
       FROM mapvx_malls m
       ORDER BY m.name
     `);
@@ -32,6 +33,10 @@ export class MapvxService {
       centerLat: Number(m.center_lat),
       centerLng: Number(m.center_lng),
       polygonCoords: m.polygon_coords,
+      hasIndoor: m.has_indoor ?? true,
+      address: m.address ?? null,
+      sizeText: m.size_text ?? null,
+      imageUrl: m.image_url ?? null,
       floors: (floorsByMall.get(m.id as string) ?? []).map((f: Record<string, unknown>) => ({
         externalKey: f.external_key,
         label: f.label,

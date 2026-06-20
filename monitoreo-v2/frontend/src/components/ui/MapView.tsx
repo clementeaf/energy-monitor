@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Building } from '../../types/building';
+import type { MapvxMall } from '../../types/mapvx';
 
 const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
@@ -43,6 +44,7 @@ export interface SelectedPoint {
 
 interface MapViewProps {
   buildings: Building[];
+  mallMarkers?: MapvxMall[];
   polygons?: MapPolygon[];
   indoor?: IndoorConfig;
   selectedPoint?: SelectedPoint | null;
@@ -121,7 +123,7 @@ function buildStyle(
       maxzoom: 19,
     };
 
-    const floorFilter = ['==', ['get', 'floor_key'], indoor.floorKey];
+    const floorFilter: maplibregl.FilterSpecification = ['==', ['get', 'floor_key'], indoor.floorKey] as maplibregl.FilterSpecification;
 
     layers.push({
       id: 'indoor-area-fill',
@@ -194,6 +196,7 @@ function buildStyle(
 
 export function MapView({
   buildings,
+  mallMarkers = [],
   polygons = [],
   indoor,
   selectedPoint,
@@ -205,6 +208,7 @@ export function MapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const mallMarkersRef = useRef<maplibregl.Marker[]>([]);
   const selectedMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
@@ -219,7 +223,6 @@ export function MapView({
       pitch,
       bearing: 0,
       maxZoom: 18.5,
-      antialias: true,
     });
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -258,6 +261,36 @@ export function MapView({
         .addTo(map);
     });
   }, [buildings]);
+
+  // Mall markers (marker-only malls without indoor)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    mallMarkersRef.current.forEach((m) => m.remove());
+    mallMarkersRef.current = [];
+
+    mallMarkersRef.current = mallMarkers.map((m) => {
+      const sizeHtml = m.sizeText
+        ? `<p style="margin:4px 0 0;font-size:12px;color:#6366f1;font-weight:600">${escapeHtml(m.sizeText)}</p>`
+        : '';
+      const addrHtml = m.address
+        ? `<p style="margin:4px 0 0;font-size:11px;color:#666">${escapeHtml(m.address)}</p>`
+        : '';
+
+      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
+        `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+          <strong style="font-size:13px">${escapeHtml(m.name)}</strong>
+          ${sizeHtml}${addrHtml}
+        </div>`,
+      );
+
+      return new maplibregl.Marker({ color: '#f59e0b' })
+        .setLngLat([m.centerLng, m.centerLat])
+        .setPopup(popup)
+        .addTo(map);
+    });
+  }, [mallMarkers]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -339,10 +372,10 @@ function computeAreaSqm(coords: number[][]): number {
   return Math.abs((area * R * R) / 2);
 }
 
-function getPolygonArea(geometry: GeoJSON.Geometry): number {
-  if (geometry.type === 'Polygon') return computeAreaSqm(geometry.coordinates[0]);
+function getPolygonArea(geometry: { type: string; coordinates: number[][][] | number[][][][] }): number {
+  if (geometry.type === 'Polygon') return computeAreaSqm((geometry.coordinates as number[][][])[0]);
   if (geometry.type === 'MultiPolygon') {
-    return geometry.coordinates.reduce((sum, poly) => sum + computeAreaSqm(poly[0]), 0);
+    return (geometry.coordinates as number[][][][]).reduce((sum: number, poly: number[][][]) => sum + computeAreaSqm(poly[0]), 0);
   }
   return 0;
 }

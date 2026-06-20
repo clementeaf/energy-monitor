@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-20)
+- **2.23.0:** 27 Parque Arauco marker malls (scraper Playwright + Nominatim → DB). Mall dropdown INDOOR/PIN. Metadata (m², dirección) en sidebar. Migration 53. Deploy prod: S3→ECS restore pattern para seeds grandes. 47 malls total (20 indoor + 27 markers), 5977 stores, 946 tiles. [CHANGELOG — 2.23.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-18)
 - **2.22.0:** Mapa interactivo MapLibre GL JS (`/map`). 20 malls (incl. PASA Open Temuco + SC52) con indoor mapping (PBF tiles en DB, zero deps externas). MapvxModule (4 endpoints). 5785 tiendas buscables. Store search + pin + m². 575+ tiles cached. Migraciones 50–52. 304 frontend / 1294 backend tests. [CHANGELOG — 2.22.0-alpha.0](CHANGELOG.md)
 
@@ -233,7 +236,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.21.1; PASA 875 medidores; migr. prod 1–49 aplicadas.
+Prod: power-monitor.cloud — 2.23.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
+Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
 Seed demo: monitoreo-v2/scripts/pasa-readings/seed-pasa-frontend-gaps.mjs
 Smoke: npm run test:smoke-dashboard (monitoreo-v2/backend)

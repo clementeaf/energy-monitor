@@ -9,6 +9,7 @@
  */
 
 import pg from 'pg';
+import { readFileSync } from 'fs';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const TILES_URL = 'https://tiles.mapvx.com/tiles';
@@ -120,13 +121,18 @@ async function fetchIndoorGeometry(lat, lng) {
 // ── DB ──
 
 function buildDbConfig() {
-  return {
+  const config = {
     host: process.env.DB_HOST ?? '127.0.0.1',
     port: Number(process.env.DB_PORT ?? 5432),
     database: process.env.DB_NAME ?? 'monitoreo_v2',
     user: process.env.DB_USERNAME ?? 'postgres',
     password: process.env.DB_PASSWORD ?? '',
   };
+  try {
+    const ca = readFileSync('/app/certs/rds-global-bundle.pem');
+    config.ssl = { rejectUnauthorized: true, ca };
+  } catch { /* local dev */ }
+  return config;
 }
 
 async function main() {

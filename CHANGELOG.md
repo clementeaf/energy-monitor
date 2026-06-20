@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.23.1-alpha.0] - 2026-06-20 — FIX EXTERNAL API 500 FOR OAUTH CLIENTS
+
+### Fixed
+- **OAuth client 500 on `/v1/*` endpoints** — `DataProcessingBlockGuard` and `IdleTimeoutGuard` used `user.sub` as UUID in SQL queries. OAuth tokens have `sub: "oauth:<id>"` (not UUID) → Postgres `invalid input syntax`. Both guards now skip for OAuth client tokens.
+
+---
+
 ## [2.23.0-alpha.0] - 2026-06-20 — PARQUE ARAUCO MALLS (47 malls, 27 marker-only)
 
 ### Added

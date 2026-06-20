@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { DataSource } from 'typeorm';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { API_KEY_AUTH_FLAG } from './jwt-auth.guard';
 import type { JwtPayload } from '../decorators/current-user.decorator';
 
 /**
@@ -43,6 +44,11 @@ export class DataProcessingBlockGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload | undefined;
     if (!user?.sub) return true;
+
+    // OAuth client tokens are not real users — skip block check
+    if (typeof user.sub === 'string' && user.sub.startsWith('oauth:')) return true;
+    // API key auth — same, skip
+    if (request[API_KEY_AUTH_FLAG]) return true;
 
     // Allow auth/privacy paths even when blocked
     const path = (request.route?.path ?? request.url) as string;

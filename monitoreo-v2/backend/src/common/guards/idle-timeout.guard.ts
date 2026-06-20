@@ -40,6 +40,9 @@ export class IdleTimeoutGuard implements CanActivate {
     const user = request.user;
     if (!user?.sub) return true; // no user context — let other guards handle
 
+    // OAuth client tokens have no refresh token session — skip idle check
+    if (typeof user.sub === 'string' && user.sub.startsWith('oauth:')) return true;
+
     const tenantSettings = await this.loadTenantSettings(user.tenantId);
     const idleMinutes = getIdleTimeoutMinutes(tenantSettings);
 

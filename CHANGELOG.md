@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.24.0-alpha.0] - 2026-06-22 — LOGIN SIMPLIFICATION, DASHBOARD CHART STRETCH
+
+### Changed
+- **Login page** — Removed tenant slug input. OAuth buttons (Microsoft/Google) shown immediately. Backend identifies user, permissions, and tenant from OAuth token. Title renamed to "EMS".
+- **Dashboard chart** — Chart panel stretches vertically to match the right column height (Alerts + Buildings + Overdue Invoices). Uses ResizeObserver to feed pixel height to Highcharts.
+
+### Removed
+- **`/login/:tenantSlug` route** — No longer needed; users are pre-registered and identified by OAuth.
+- **`TenantSlugForm` component** — Slug input, SSO config query, and SSO-required button removed from login flow.
+
+### Stats
+- Frontend: 304 tests / 42 suites. Backend: 1294 tests / 142 suites.
+
+---
+
 ## [2.23.2-alpha.0] - 2026-06-20 — RBAC HARDENING, EXTERNAL API PERMISSIONS, USER MANUAL
 
 ### Fixed

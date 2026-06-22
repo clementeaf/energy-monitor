@@ -121,10 +121,6 @@ export const router = createBrowserRouter([
         element: <LoginRouteShell />,
       },
       {
-        path: APP_ROUTES.loginWithTenant,
-        element: <LoginRouteShell />,
-      },
-      {
         path: APP_ROUTES.privacyPolicy,
         element: <LazyPrivacyPolicyPage />,
       },

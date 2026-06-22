@@ -1,6 +1,5 @@
 export const APP_ROUTES = {
   login: '/login',
-  loginWithTenant: '/login/:tenantSlug',
   privacyPolicy: '/privacy-policy',
   dashboard: '/',
   platform: '/dashboard/platform',

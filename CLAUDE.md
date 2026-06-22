@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-22)
+- **2.24.0:** Login simplificado — sin slug de empresa, OAuth directo (Microsoft/Google). Backend identifica usuario, permisos y tenant. Título "EMS". Dashboard chart estira verticalmente hasta el borde inferior de Facturas Vencidas (ResizeObserver → Highcharts pixel height). Ruta `/login/:tenantSlug` eliminada. [CHANGELOG — 2.24.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-20)
 - **2.23.2:** Guards validan UUID antes de query (no solo `oauth:` prefix). External API acepta `admin_buildings:read` + `buildings:read` via `RequireAnyPermission`. Invoices acepta `billing:view_own`. 3 roles ejemplo probados E2E. Manual de usuario 12 secciones (`docs/manual-usuario.md`). [CHANGELOG — 2.23.2-alpha.0](CHANGELOG.md)
 - **2.23.1:** Fix external API 500 para OAuth clients. Guards crasheaban con `sub` no-UUID. [CHANGELOG — 2.23.1-alpha.0](CHANGELOG.md)

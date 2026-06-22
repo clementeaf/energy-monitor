@@ -1,34 +1,27 @@
 import { useState, useCallback, useEffect, type ReactElement } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import { useParams, useSearchParams, useNavigate } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { clearSessionFlag } from '../../hooks/auth/useSessionResolver';
 import { authEndpoints } from '../../services/endpoints';
 import { clearDevBearerToken } from '../../services/api';
-import { useSsoPublicConfigQuery } from '../../hooks/queries/useSsoQuery';
-import { ssoProviderLabel } from '../../lib/tenant-security-settings';
 import globeLogo from '../../assets/globe-logo.png';
 
 /**
  * OAuth, SSO and MFA login screen with Handle-inspired split layout.
  */
 export function LoginPage() {
-  const { tenantSlug: routeTenantSlug } = useParams<{ tenantSlug?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const queryTenantSlug = searchParams.get('tenant');
-  const initialSlug = routeTenantSlug ?? queryTenantSlug ?? '';
 
   const {
-    loginMicrosoft, loginGoogle, loginWithSso, error, isLoading,
+    loginMicrosoft, loginGoogle, error, isLoading,
     mfaPending, validateMfa,
     mfaSetupData, regenerateMfaSetup, verifyMfaSetup, finishMfaSetupAfterRecovery,
     mfaRecoveryCodes,
     handleSsoCallbackParams,
   } = useAuth();
 
-  const [tenantSlugInput, setTenantSlugInput] = useState(initialSlug);
-  const [activeTenantSlug, setActiveTenantSlug] = useState(initialSlug);
   const [mfaCode, setMfaCode] = useState('');
   const [setupCode, setSetupCode] = useState('');
   const [ssoCallbackHandled, setSsoCallbackHandled] = useState(false);
@@ -38,16 +31,6 @@ export function LoginPage() {
     clearDevBearerToken();
     void authEndpoints.clearSessionCookies();
   }, []);
-
-  const ssoConfigQuery = useSsoPublicConfigQuery(activeTenantSlug || null);
-  const ssoConfig = ssoConfigQuery.data;
-
-  useEffect(() => {
-    if (initialSlug) {
-      setTenantSlugInput(initialSlug);
-      setActiveTenantSlug(initialSlug);
-    }
-  }, [initialSlug]);
 
   useEffect(() => {
     if (ssoCallbackHandled) return;
@@ -79,18 +62,6 @@ export function LoginPage() {
     if (setupCode.length === 6) verifyMfaSetup(setupCode);
   };
 
-  const handleTenantSlugSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const slug = tenantSlugInput.trim().toLowerCase();
-    if (!slug) return;
-    setActiveTenantSlug(slug);
-  };
-
-  const handleSsoLogin = () => {
-    if (!activeTenantSlug) return;
-    void loginWithSso(activeTenantSlug);
-  };
-
   const oauthBtnClass =
     'flex w-full items-center justify-center gap-2.5 rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-subtle hover:bg-surface hover:shadow-sm disabled:opacity-50';
 
@@ -101,11 +72,7 @@ export function LoginPage() {
     ? 'Configura tu autenticación de dos factores'
     : mfaPending
       ? 'Ingresa tu código de verificación'
-      : ssoConfig?.ssoRequired
-        ? `Accede con ${ssoProviderLabel(ssoConfig.provider)}`
-        : 'Accede con tu cuenta corporativa';
-
-  const showOAuthProviders = !ssoConfig?.ssoRequired;
+      : 'Accede con tu cuenta corporativa';
 
   return (
     <div className="flex min-h-screen">
@@ -141,7 +108,7 @@ export function LoginPage() {
             <img src={globeLogo} alt="Globe Power" className="mx-auto mb-4 h-9 w-auto" />
           </div>
           <div className="text-center lg:text-left">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Energy Monitor</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">EMS</h2>
             <p className="mt-1.5 text-sm text-muted">{subtitle}</p>
           </div>
 
@@ -178,94 +145,16 @@ export function LoginPage() {
               primaryBtnClass={primaryBtnClass}
             />
           ) : (
-            <div className="space-y-4">
-              <TenantSlugForm
-                tenantSlugInput={tenantSlugInput}
-                onTenantSlugChange={setTenantSlugInput}
-                onSubmit={handleTenantSlugSubmit}
-                activeTenantSlug={activeTenantSlug}
-                isLoading={ssoConfigQuery.isFetching}
-              />
-
-              {ssoConfig?.ssoRequired && (
-                <button
-                  type="button"
-                  onClick={handleSsoLogin}
-                  disabled={isLoading || !activeTenantSlug}
-                  className={primaryBtnClass}
-                >
-                  {isLoading ? 'Redirigiendo...' : `Iniciar con ${ssoProviderLabel(ssoConfig.provider)}`}
-                </button>
-              )}
-
-              {showOAuthProviders && (
-                <OAuthPanel
-                  oauthBtnClass={oauthBtnClass}
-                  isLoading={isLoading}
-                  onMicrosoft={loginMicrosoft}
-                  onGoogle={() => googleLogin()}
-                />
-              )}
-
-              {activeTenantSlug && ssoConfigQuery.isError && (
-                <p className="text-center text-xs text-subtle">
-                  Empresa no encontrada o SSO no disponible. Usa Microsoft o Google.
-                </p>
-              )}
-            </div>
+            <OAuthPanel
+              oauthBtnClass={oauthBtnClass}
+              isLoading={isLoading}
+              onMicrosoft={loginMicrosoft}
+              onGoogle={() => googleLogin()}
+            />
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-interface TenantSlugFormProps {
-  tenantSlugInput: string;
-  onTenantSlugChange: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
-  activeTenantSlug: string;
-  isLoading: boolean;
-}
-
-/**
- * Tenant slug selector for SSO-enabled login flows.
- */
-function TenantSlugForm({
-  tenantSlugInput,
-  onTenantSlugChange,
-  onSubmit,
-  activeTenantSlug,
-  isLoading,
-}: Readonly<TenantSlugFormProps>) {
-  return (
-    <form onSubmit={onSubmit} className="space-y-2">
-      <label className="block">
-        <span className="text-sm font-medium text-foreground">Empresa (slug)</span>
-        <div className="mt-1 flex gap-2">
-          <input
-            type="text"
-            value={tenantSlugInput}
-            onChange={(e) => onTenantSlugChange(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-            placeholder="pasa"
-            className="input-field flex-1"
-            autoComplete="organization"
-          />
-          <button
-            type="submit"
-            disabled={!tenantSlugInput.trim() || isLoading}
-            className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface disabled:opacity-50"
-          >
-            {isLoading ? '...' : 'Buscar'}
-          </button>
-        </div>
-      </label>
-      {activeTenantSlug && (
-        <p className="text-xs text-subtle">
-          Empresa activa: <span className="font-medium text-muted">{activeTenantSlug}</span>
-        </p>
-      )}
-    </form>
   );
 }
 

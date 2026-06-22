@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { PillToggle } from '../../components/ui/PillToggle';
@@ -89,6 +89,21 @@ export function DashboardPage() {
   // Chart meter: from meters table (fast) — no waterfall through latest readings
   const chartMeterId = selectedMeterId ?? meters[0]?.id ?? null;
 
+  // Measure chart container so Highcharts gets an explicit pixel height
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(380);
+  const onResize = useCallback((entries: ResizeObserverEntry[]) => {
+    const h = entries[0]?.contentRect.height;
+    if (h && h > 100) setChartHeight(Math.round(h));
+  }, []);
+  useEffect(() => {
+    const el = chartContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(onResize);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [onResize]);
+
   const readingsQuery = useReadingsQuery(
     { meterId: chartMeterId ?? '', from, to, resolution: rangeConfig.resolution },
     !!chartMeterId && !isTecnico && !needsSelection,
@@ -97,6 +112,7 @@ export function DashboardPage() {
   const chartOptions = useMemo(() => {
     const readings = readingsQuery.data ?? [];
     const base = {
+      chart: { height: chartHeight },
       rangeSelector: { enabled: false },
       navigator: { enabled: false },
       scrollbar: { enabled: false },
@@ -125,7 +141,7 @@ export function DashboardPage() {
         data: readings.map((r) => [new Date(r.timestamp).getTime(), r.power_factor ? Number(r.power_factor) : null]),
       }],
     };
-  }, [readingsQuery.data, chartView]);
+  }, [readingsQuery.data, chartView, chartHeight]);
 
   // Técnico: no dashboard financiero
   if (isTecnico) {
@@ -181,7 +197,7 @@ export function DashboardPage() {
       />
 
       {/* 2-column layout: KPIs+Chart | Alerts+Buildings */}
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
         {/* Column 1: KPIs + Chart */}
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           {/* KPI row */}
@@ -196,7 +212,7 @@ export function DashboardPage() {
           </div>
 
           {/* Chart */}
-          <div className="panel p-5">
+          <div className="panel flex min-h-0 flex-1 flex-col p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{chartOptions.title.text}</h2>
@@ -222,15 +238,17 @@ export function DashboardPage() {
                 size="sm"
               />
             </div>
-            {metersQuery.isLoading ? (
-              <ChartSkeleton />
-            ) : meters.length > 0 ? (
-              <StockChart options={chartOptions} loading={readingsQuery.isFetching} />
-            ) : (
-              <div className="flex h-[380px] items-center justify-center rounded-lg border border-dashed border-border bg-surface/80">
-                <p className="text-sm text-muted">Sin medidores para esta empresa.</p>
-              </div>
-            )}
+            <div ref={chartContainerRef} className="flex-1">
+              {metersQuery.isLoading ? (
+                <ChartSkeleton />
+              ) : meters.length > 0 ? (
+                <StockChart options={chartOptions} loading={readingsQuery.isFetching} />
+              ) : (
+                <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-surface/80">
+                  <p className="text-sm text-muted">Sin medidores para esta empresa.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

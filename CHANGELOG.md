@@ -4,7 +4,8 @@
 
 ### Changed
 - **Login page** — Removed tenant slug input. OAuth buttons (Microsoft/Google) shown immediately. Backend identifies user, permissions, and tenant from OAuth token. Title renamed to "EMS".
-- **Dashboard chart** — Chart panel stretches vertically to match the right column height (Alerts + Buildings + Overdue Invoices). Uses ResizeObserver to feed pixel height to Highcharts.
+- **Dashboard chart** — Chart panel stretches vertically to match the right column height. Uses ResizeObserver to feed pixel height to Highcharts. Click on any data point navigates to the meter detail view.
+- **Dashboard navigation** — Buildings list, overdue invoices, and alerts are now clickable, each navigating to its detail view.
 
 ### Removed
 - **`/login/:tenantSlug` route** — No longer needed; users are pre-registered and identified by OAuth.

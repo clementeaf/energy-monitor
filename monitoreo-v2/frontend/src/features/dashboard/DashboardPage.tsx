@@ -116,6 +116,18 @@ export function DashboardPage() {
       rangeSelector: { enabled: false },
       navigator: { enabled: false },
       scrollbar: { enabled: false },
+      plotOptions: {
+        series: {
+          cursor: 'pointer' as const,
+          point: {
+            events: {
+              click: () => {
+                if (chartMeterId) navigate(`/monitoring/meter/${chartMeterId}`);
+              },
+            },
+          },
+        },
+      },
     };
 
     if (chartView === 'power') {
@@ -141,7 +153,7 @@ export function DashboardPage() {
         data: readings.map((r) => [new Date(r.timestamp).getTime(), r.power_factor ? Number(r.power_factor) : null]),
       }],
     };
-  }, [readingsQuery.data, chartView, chartHeight]);
+  }, [readingsQuery.data, chartView, chartHeight, chartMeterId, navigate]);
 
   // Técnico: no dashboard financiero
   if (isTecnico) {
@@ -306,7 +318,11 @@ export function DashboardPage() {
                   const buildingReadings = allLatestReadings.filter((r) => r.building_id === b.id);
                   const power = buildingReadings.reduce((s, r) => s + Number(r.power_kw || 0), 0);
                   return (
-                    <li key={b.id} className="flex items-center justify-between px-3 py-2 text-[13px]">
+                    <li
+                      key={b.id}
+                      className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
+                      onClick={() => navigate(`/buildings/${b.id}`)}
+                    >
                       <span className="font-medium text-foreground">{b.name}</span>
                       <div className="text-right">
                         <span className="text-foreground">{power.toFixed(1)} kW</span>
@@ -333,7 +349,7 @@ export function DashboardPage() {
                   <li
                     key={inv.id}
                     className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
-                    onClick={() => navigate(`/buildings/${inv.buildingId}`)}
+                    onClick={() => navigate(`/billing?highlight=${inv.id}`)}
                   >
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{inv.invoiceNumber}</span>

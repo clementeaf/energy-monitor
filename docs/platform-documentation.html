@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Monitor - Documentacion de Plataforma</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 18mm 25mm 18mm;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    background: #fff;
+  }
+
+  /* --- Cover --- */
+  .cover {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    text-align: center;
+    padding: 40px;
+  }
+  .cover h1 { font-size: 36pt; color: #0f4c3a; margin-bottom: 12px; }
+  .cover .subtitle { font-size: 16pt; color: #555; margin-bottom: 30px; }
+  .cover .meta { font-size: 11pt; color: #888; line-height: 1.8; }
+  .cover .badge {
+    display: inline-block;
+    background: #0f4c3a;
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 10pt;
+    margin-top: 20px;
+  }
+
+  /* --- TOC --- */
+  .toc { page-break-after: always; padding-top: 30px; }
+  .toc h2 { font-size: 20pt; color: #0f4c3a; margin-bottom: 20px; border-bottom: 2px solid #0f4c3a; padding-bottom: 6px; }
+  .toc ol { padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 12pt; }
+  .toc li a { color: #1a1a1a; text-decoration: none; }
+  .toc li a:hover { color: #0f4c3a; }
+  .toc .sub { padding-left: 20px; }
+  .toc .sub li { font-size: 10.5pt; color: #444; }
+
+  /* --- Sections --- */
+  section { page-break-before: always; padding-top: 10px; }
+  section:first-of-type { page-break-before: auto; }
+  h2 {
+    font-size: 18pt;
+    color: #0f4c3a;
+    border-bottom: 2px solid #0f4c3a;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    margin-top: 10px;
+  }
+  h3 {
+    font-size: 13pt;
+    color: #1b6b50;
+    margin-top: 22px;
+    margin-bottom: 8px;
+  }
+  h4 {
+    font-size: 11pt;
+    color: #333;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  p { margin-bottom: 10px; }
+  ul, ol { margin-bottom: 10px; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+
+  /* --- Tables --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 9.5pt;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #0f4c3a;
+    color: #fff;
+    font-weight: 600;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  tr:nth-child(even) { background: #f8faf9; }
+
+  /* --- Diagram boxes --- */
+  .diagram {
+    background: #f4f7f6;
+    border: 1px solid #d0d8d5;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .diagram pre {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 9pt;
+    line-height: 1.45;
+    white-space: pre;
+    color: #1a1a1a;
+  }
+
+  /* --- Flow diagram (visual) --- */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 16px 0;
+  }
+  .flow-box {
+    background: #0f4c3a;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 9.5pt;
+    font-weight: 600;
+    text-align: center;
+    min-width: 110px;
+  }
+  .flow-box.secondary {
+    background: #2d8a6e;
+  }
+  .flow-box.tertiary {
+    background: #4aa88a;
+  }
+  .flow-box.data {
+    background: #e8f0ed;
+    color: #0f4c3a;
+    border: 2px solid #0f4c3a;
+  }
+  .flow-box.external {
+    background: #f0e6d9;
+    color: #7a5a2f;
+    border: 2px solid #c4973e;
+  }
+  .flow-box.warning {
+    background: #fff3e0;
+    color: #bf360c;
+    border: 2px solid #e65100;
+  }
+  .flow-arrow {
+    font-size: 18pt;
+    color: #0f4c3a;
+    font-weight: bold;
+  }
+  .flow-arrow-down {
+    font-size: 18pt;
+    color: #0f4c3a;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* --- Vertical flow --- */
+  .vflow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 16px 0;
+  }
+  .vflow .flow-box { width: 280px; }
+
+  /* --- Grid layout --- */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .card {
+    background: #f8faf9;
+    border: 1px solid #d0d8d5;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .card h4 { margin-top: 0; color: #0f4c3a; }
+  .card ul { font-size: 9.5pt; }
+
+  /* --- Code --- */
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 9pt;
+    background: #eef2f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* --- Badges --- */
+  .badge-green {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-blue {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-amber {
+    display: inline-block;
+    background: #fff8e1;
+    color: #f57f17;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-red {
+    display: inline-block;
+    background: #fce4ec;
+    color: #c62828;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+
+  /* --- Separator --- */
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
+  }
+
+  /* --- Footer --- */
+  .page-footer {
+    font-size: 8pt;
+    color: #999;
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  /* --- Print --- */
+  @media print {
+    body { font-size: 10pt; }
+    .no-print { display: none; }
+    section { page-break-before: always; }
+    .diagram, .card, table { page-break-inside: avoid; }
+  }
+
+  .note {
+    background: #e8f0ed;
+    border-left: 4px solid #0f4c3a;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+    border-radius: 0 6px 6px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- COVER PAGE -->
+<!-- ============================================================ -->
+<div class="cover">
+  <h1>Energy Monitor</h1>
+  <div class="subtitle">Documentacion Tecnica y de Uso de la Plataforma</div>
+  <div class="meta">
+    <strong>Version:</strong> 2.21.1-alpha.0<br>
+    <strong>Fecha:</strong> Junio 2026<br>
+    <strong>Organizacion:</strong> Globe Power / Hoktus<br>
+    <strong>Ambiente Produccion:</strong> power-monitor.cloud<br>
+    <strong>Cliente Actual:</strong> PASA (875 medidores, 5 edificios)
+  </div>
+  <div class="badge">Documento Confidencial</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<div class="toc">
+  <h2>Indice</h2>
+  <ol>
+    <li><a href="#vision">Vision General de la Plataforma</a></li>
+    <li><a href="#arquitectura">Arquitectura del Sistema</a>
+      <ol class="sub">
+        <li><a href="#arq-general">Diagrama de arquitectura general</a></li>
+        <li><a href="#arq-tech">Stack tecnologico</a></li>
+        <li><a href="#arq-infra">Infraestructura AWS</a></li>
+      </ol>
+    </li>
+    <li><a href="#auth">Autenticacion y Control de Acceso (RBAC)</a>
+      <ol class="sub">
+        <li><a href="#auth-flow">Flujo de autenticacion</a></li>
+        <li><a href="#auth-rbac">Roles y permisos</a></li>
+        <li><a href="#auth-mfa">MFA y seguridad de sesion</a></li>
+        <li><a href="#auth-multi">Multi-tenancy</a></li>
+      </ol>
+    </li>
+    <li><a href="#modulos">Modulos Funcionales</a>
+      <ol class="sub">
+        <li><a href="#mod-dashboard">Dashboard y Ejecutivo</a></li>
+        <li><a href="#mod-monitoreo">Monitoreo en Tiempo Real</a></li>
+        <li><a href="#mod-edificios">Gestion de Edificios y Medidores</a></li>
+        <li><a href="#mod-alertas">Alertas y Escalamiento</a></li>
+        <li><a href="#mod-facturacion">Facturacion y Tarifas</a></li>
+        <li><a href="#mod-reportes">Reportes e Integraciones</a></li>
+        <li><a href="#mod-admin">Administracion</a></li>
+        <li><a href="#mod-compliance">Compliance (Ley 21.719)</a></li>
+      </ol>
+    </li>
+    <li><a href="#pipeline">Pipeline de Datos</a>
+      <ol class="sub">
+        <li><a href="#pipe-ingest">Ingesta de datos</a></li>
+        <li><a href="#pipe-iot">IoT (Siemens POC3000)</a></li>
+        <li><a href="#pipe-aggregates">Agregados y vistas materializadas</a></li>
+      </ol>
+    </li>
+    <li><a href="#api">Referencia de API</a></li>
+    <li><a href="#database">Modelo de Datos</a></li>
+    <li><a href="#seguridad">Seguridad y Hardening</a></li>
+    <li><a href="#deploy">Despliegue y Operaciones</a></li>
+    <li><a href="#testing">Testing y Calidad</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. VISION GENERAL -->
+<!-- ============================================================ -->
+<section id="vision">
+  <h2>1. Vision General de la Plataforma</h2>
+
+  <p><strong>Energy Monitor</strong> es una plataforma de monitoreo energetico multi-cliente desarrollada para <strong>Globe Power</strong>. Permite la gestion, visualizacion y analisis del consumo electrico de edificios comerciales e industriales en tiempo real.</p>
+
+  <h3>Objetivos Principales</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>Monitoreo en Tiempo Real</h4>
+      <ul>
+        <li>Lecturas cada 15 minutos</li>
+        <li>875 medidores activos</li>
+        <li>Status online/offline/alarma</li>
+        <li>Drill-down jerarquico</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Gestion Financiera</h4>
+      <ul>
+        <li>Facturacion automatica</li>
+        <li>Tarifas por bloque horario</li>
+        <li>Dashboard ejecutivo</li>
+        <li>Comparativos entre edificios</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Compliance y Seguridad</h4>
+      <ul>
+        <li>Ley 21.719 (ARCO+)</li>
+        <li>ISO 27001 alineado</li>
+        <li>Anexo 07 PASA (~88%)</li>
+        <li>MFA por rol</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Clientes y Temas</h3>
+  <table>
+    <tr>
+      <th>Tema</th>
+      <th>Cliente</th>
+      <th>Medidores</th>
+      <th>Edificios</th>
+      <th>Fuente de Datos</th>
+    </tr>
+    <tr>
+      <td><span class="badge-blue">PASA</span></td>
+      <td>Parque Arauco S.A.</td>
+      <td>875 (PAC1670/PAC1651)</td>
+      <td>5 malls</td>
+      <td>CSV + billing XLSX</td>
+    </tr>
+    <tr>
+      <td><span class="badge-green">Siemens</span></td>
+      <td>Siemens (POC3000)</td>
+      <td>IoT (451 variables)</td>
+      <td>Variable</td>
+      <td>MQTT via IoT Core</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- 2. ARQUITECTURA -->
+<!-- ============================================================ -->
+<section id="arquitectura">
+  <h2>2. Arquitectura del Sistema</h2>
+
+  <h3 id="arq-general">2.1 Diagrama de Arquitectura General</h3>
+
+  <div class="diagram">
+<pre>
+                          +-------------------+
+                          |    USUARIOS       |
+                          | (Browser / Mobile)|
+                          +--------+----------+
+                                   |
+                                   | HTTPS
+                                   v
+                       +-----------+-----------+
+                       |      CloudFront       |
+                       |  power-monitor.cloud  |
+                       +-----+----------+------+
+                             |          |
+                        /*   |          |  /api/*
+                             v          v
+                      +------+--+  +----+--------+
+                      |   S3    |  | API Gateway  |
+                      | Frontend|  |    HTTP      |
+                      | (SPA)  |  +------+-------+
+                      +--------+         |
+                                         v
+                                  +------+-------+
+                                  |   ECS        |
+                                  |   Fargate    |
+                                  |  (NestJS)    |
+                                  +------+-------+
+                                         |
+                          +--------------+---------------+
+                          |              |               |
+                          v              v               v
+                   +------+---+   +------+---+   +------+-----+
+                   |   RDS    |   |  Redis   |   |    SES     |
+                   | PG 16    |   | (opcion.)|   |  (Email)   |
+                   | Timescale|   +----------+   +------------+
+                   +----------+
+
+     +------------------+        +------------------+
+     |  IoT Core (MQTT) |        |   EventBridge    |
+     |  Siemens POC3000 |        |  (Crons/Rules)   |
+     +--------+---------+        +--------+---------+
+              |                           |
+              v                           v
+     +--------+---------+       +--------+---------+
+     | S3 (raw telemetry)|       | Lambda Functions  |
+     +--------+---------+       | - iot-ingest      |
+              |                 | - offlineAlerts   |
+              +--------+------->| - synthetic-gen   |
+                                +-------------------+
+</pre>
+  </div>
+
+  <h3 id="arq-tech">2.2 Stack Tecnologico</h3>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>Frontend</h4>
+      <ul>
+        <li><strong>React 19</strong> + TypeScript 5.9</li>
+        <li><strong>Vite 8</strong> (build + HMR)</li>
+        <li><strong>Tailwind CSS v4</strong> (tokens PA)</li>
+        <li><strong>Highcharts Stock 12</strong> (charts)</li>
+        <li><strong>TanStack Query v5</strong> (server state)</li>
+        <li><strong>TanStack Table v8</strong> (tablas)</li>
+        <li><strong>Zustand 5</strong> (client state)</li>
+        <li><strong>React Router v7</strong> (routing)</li>
+        <li><strong>MSAL v5</strong> + Google OAuth</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Backend</h4>
+      <ul>
+        <li><strong>NestJS 11</strong> (framework)</li>
+        <li><strong>TypeORM 0.3</strong> (ORM)</li>
+        <li><strong>PostgreSQL 16</strong> + TimescaleDB</li>
+        <li><strong>jose</strong> (JWT/JWKS verificacion)</li>
+        <li><strong>class-validator</strong> (DTOs)</li>
+        <li><strong>Helmet</strong> (headers seguridad)</li>
+        <li><strong>ThrottlerGuard</strong> (rate limiting)</li>
+        <li><strong>@aws-sdk/client-ses</strong> (email)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="arq-infra">2.3 Infraestructura AWS</h3>
+
+  <table>
+    <tr><th>Servicio</th><th>Recurso</th><th>Proposito</th></tr>
+    <tr><td>ECS Fargate</td><td><code>monitoreo-v2-backend-restored</code></td><td>API backend (NestJS)</td></tr>
+    <tr><td>RDS PostgreSQL</td><td>PG 16 (VPC privado)</td><td>Base de datos principal</td></tr>
+    <tr><td>S3</td><td><code>power-monitor-frontend</code></td><td>Frontend SPA (assets estaticos)</td></tr>
+    <tr><td>CloudFront</td><td><code>E1SNFETXON2VSI</code></td><td>CDN + routing frontend/API</td></tr>
+    <tr><td>IoT Core</td><td>Thing: <code>siemens-poc3000</code></td><td>MQTT telemetria Siemens</td></tr>
+    <tr><td>EventBridge</td><td>3 reglas cron</td><td>Ingesta, alertas offline, data retention</td></tr>
+    <tr><td>SES</td><td>Identidad verificada</td><td>Emails de alerta e invitaciones</td></tr>
+    <tr><td>WAF</td><td>Web ACL (4 rule groups)</td><td>Proteccion API</td></tr>
+    <tr><td>GuardDuty</td><td>S3/ECS/RDS monitoring</td><td>Deteccion de amenazas</td></tr>
+    <tr><td>Inspector v2</td><td>ECR + Lambda scanning</td><td>Vulnerabilidades en imagenes</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- 3. AUTENTICACION Y RBAC -->
+<!-- ============================================================ -->
+<section id="auth">
+  <h2>3. Autenticacion y Control de Acceso</h2>
+
+  <h3 id="auth-flow">3.1 Flujo de Autenticacion</h3>
+
+  <p>La plataforma soporta dos proveedores OAuth: <strong>Microsoft</strong> (MSAL redirect) y <strong>Google</strong> (credential flow). El flujo completo:</p>
+
+  <div class="vflow">
+    <div class="flow-box external">Usuario ingresa a plataforma</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Selecciona proveedor OAuth (Microsoft / Google)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box external">Redirect a proveedor &rarr; Login &rarr; id_token</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box secondary">POST /auth/login { provider, token }</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box secondary">Backend verifica JWT via JWKS (RS256)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box tertiary">Enlaza identidad OAuth con usuario pre-provisionado</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box warning">MFA requerido? &rarr; QR + TOTP validate</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Emite cookies httpOnly (access + refresh token)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box data">GET /auth/me &rarr; { user, tenant, permissions }</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box tertiary">Frontend: Zustand store + enrutamiento por permisos</div>
+  </div>
+
+  <div class="note">
+    <strong>Importante:</strong> Los usuarios no se autocrean al hacer login. Deben ser pre-provisionados desde <code>/admin/users</code> con rol y edificios asignados. El primer login OAuth vincula la identidad con el registro existente.
+  </div>
+
+  <h3 id="auth-rbac">3.2 Roles y Permisos</h3>
+
+  <table>
+    <tr>
+      <th>Rol</th>
+      <th>Nivel</th>
+      <th>Acceso</th>
+      <th>Descripcion</th>
+    </tr>
+    <tr>
+      <td><span class="badge-red">SUPER_ADMIN</span></td>
+      <td>Global</td>
+      <td>Todo</td>
+      <td>Administrador de plataforma (Globe Power). Cross-tenant.</td>
+    </tr>
+    <tr>
+      <td><span class="badge-amber">CORP_ADMIN</span></td>
+      <td>Tenant</td>
+      <td>Todos los edificios del tenant</td>
+      <td>Administrador corporativo (ej: PASA)</td>
+    </tr>
+    <tr>
+      <td><span class="badge-blue">SITE_ADMIN</span></td>
+      <td>Edificio</td>
+      <td>Edificios asignados</td>
+      <td>Administrador de sitio (ej: Mall Grande)</td>
+    </tr>
+    <tr>
+      <td><span class="badge-green">OPERATOR</span></td>
+      <td>Edificio</td>
+      <td>Edificios asignados</td>
+      <td>Operador tecnico (sin billing)</td>
+    </tr>
+    <tr>
+      <td><span class="badge-blue">ANALYST</span></td>
+      <td>Edificio</td>
+      <td>Lectura + export</td>
+      <td>Analista de datos energeticos</td>
+    </tr>
+    <tr>
+      <td><span class="badge-green">TENANT_USER</span></td>
+      <td>Locatario</td>
+      <td>Sus medidores</td>
+      <td>Usuario locatario (ej: tienda en mall)</td>
+    </tr>
+    <tr>
+      <td><span class="badge-amber">AUDITOR</span></td>
+      <td>Lectura</td>
+      <td>Todo (solo lectura)</td>
+      <td>Auditor de compliance</td>
+    </tr>
+  </table>
+
+  <h4>Modelo de permisos</h4>
+  <p>Cada permiso es una combinacion de <strong>modulo + accion</strong>:</p>
+  <ul>
+    <li><code>modulo</code> = vista funcional (ej: <code>admin_users</code>, <code>billing</code>, <code>reports</code>)</li>
+    <li><code>accion</code> = <code>read</code>, <code>create</code>, <code>update</code>, <code>delete</code>, <code>export</code></li>
+  </ul>
+  <p>Backend: <code>@RequirePermissions('modulo', 'accion')</code> en cada controller. Frontend: <code>usePermissions()</code> + <code>ProtectedRoute</code>.</p>
+
+  <h3 id="auth-mfa">3.3 MFA y Seguridad de Sesion</h3>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>MFA (TOTP)</h4>
+      <ul>
+        <li>Enforcement por rol (<code>require_mfa</code>)</li>
+        <li>QR directo en login si usuario nuevo</li>
+        <li>Recovery codes de respaldo</li>
+        <li>Apps: Google/Microsoft Authenticator</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Sesion</h4>
+      <ul>
+        <li>Access token: cookie httpOnly (24h)</li>
+        <li>Refresh token: rotacion automatica</li>
+        <li>Idle timeout: 15 min (configurable 5-60)</li>
+        <li>Deteccion de robo de refresh token</li>
+        <li>Cookie prefix: <code>__Host-</code> (prod)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="auth-multi">3.4 Multi-tenancy</h3>
+
+  <div class="diagram">
+<pre>
+  +------------------+     +------------------+     +------------------+
+  |  Globe Power     |     |   PASA           |     |   Siemens        |
+  |  (super_admin)   |     |   (tenant)       |     |   (tenant)       |
+  +--------+---------+     +--------+---------+     +--------+---------+
+           |                        |                        |
+           |  Cross-tenant          |  Scoped                |  Scoped
+           |  (ve todo)             |  a sus edificios       |  a sus edificios
+           v                        v                        v
+  +--------+------------------------+------------------------+---------+
+  |                    BASE DE DATOS (tenant_id en cada fila)          |
+  +--------------------------------------------------------------------+
+</pre>
+  </div>
+
+  <p>Cada request incluye <code>x-tenant-id</code> como header. El backend scopes automaticamente todas las queries por tenant. <code>super_admin</code> puede operar cross-tenant sin header.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- 4. MODULOS FUNCIONALES -->
+<!-- ============================================================ -->
+<section id="modulos">
+  <h2>4. Modulos Funcionales</h2>
+
+  <h3 id="mod-dashboard">4.1 Dashboard y Ejecutivo</h3>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>Dashboard Principal (<code>/</code>)</h4>
+      <ul>
+        <li>KPIs: alertas activas, consumo total, potencia prom.</li>
+        <li>StockChart dual-axis (consumo kWh + costo CLP)</li>
+        <li>Tabla resumen edificios con click-to-detail</li>
+        <li>Auto-refresh cada 30 segundos</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Ejecutivo (<code>/dashboard/executive</code>)</h4>
+      <ul>
+        <li>KPIs portfolio agregados</li>
+        <li>Tendencias diarias (consumo, demanda, costo ref.)</li>
+        <li>Ranking intensidad energetica por edificio</li>
+        <li>Alertas criticas recientes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <h4>Comparativo (<code>/dashboard/compare</code>)</h4>
+    <p>Compara 2+ edificios en periodos de 7, 30 o 90 dias. Curvas superpuestas con delta vs media. Opcion de comparar con periodo anterior (barras + tabla).</p>
+  </div>
+
+  <h3 id="mod-monitoreo">4.2 Monitoreo en Tiempo Real</h3>
+
+  <h4>Flujo de datos en tiempo real</h4>
+  <div class="flow">
+    <div class="flow-box external">Medidor PAC</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box secondary">Concentrador</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Base de Datos</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box tertiary">API /readings/latest</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box data">Frontend (refresh 30s)</div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Vista</th>
+      <th>Ruta</th>
+      <th>Funcion</th>
+    </tr>
+    <tr>
+      <td>Tiempo Real</td>
+      <td><code>/monitoring/realtime</code></td>
+      <td>Tabla de lecturas en vivo con status (online/delay/offline), filtros avanzados, sorting</td>
+    </tr>
+    <tr>
+      <td>Drill-down</td>
+      <td><code>/monitoring/drilldown/:siteId</code></td>
+      <td>Jerarquia electrica: edificio &rarr; paneles &rarr; circuitos &rarr; medidores</td>
+    </tr>
+    <tr>
+      <td>Demanda</td>
+      <td><code>/monitoring/demand/:siteId</code></td>
+      <td>StockChart demanda, peak vs contratada, Top 10 peaks</td>
+    </tr>
+    <tr>
+      <td>Calidad Electrica</td>
+      <td><code>/monitoring/quality/:siteId</code></td>
+      <td>4 charts: THD voltaje, THD corriente, factor potencia, desequilibrio de fases</td>
+    </tr>
+    <tr>
+      <td>Dispositivos</td>
+      <td><code>/monitoring/devices</code></td>
+      <td>Tabla unificada medidores + concentradores, filtros por edificio/tipo/estado</td>
+    </tr>
+    <tr>
+      <td>Generacion</td>
+      <td><code>/monitoring/generation</code></td>
+      <td>Curvas generacion vs carga, energia periodo, autoconsumo estimado</td>
+    </tr>
+    <tr>
+      <td>Mapa Modbus</td>
+      <td><code>/monitoring/modbus-map</code></td>
+      <td>Concentradores por bus: direccion Modbus, estado, CRC, uplink</td>
+    </tr>
+    <tr>
+      <td>Historial Fallos</td>
+      <td><code>/monitoring/fault-history/:meterId</code></td>
+      <td>Timeline eventos de fallo con filtros tipo/fecha</td>
+    </tr>
+  </table>
+
+  <h3 id="mod-edificios">4.3 Gestion de Edificios y Medidores</h3>
+
+  <h4>Flujo de gestion</h4>
+  <div class="vflow">
+    <div class="flow-box">Crear Edificio (manual o import CSV/XLSX)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box secondary">Agregar Medidores (manual, import, o auto-discovery)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box tertiary">Definir Jerarquia Electrica (paneles, circuitos)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box data">Asignar Locatarios a Medidores</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Configurar Tarifas y Bloques Horarios</div>
+  </div>
+
+  <p><strong>Import masivo:</strong> Tres flujos de importacion CSV/XLSX disponibles para edificios, locatarios y medidores. Cada uno sigue el patron: <em>descargar plantilla &rarr; subir archivo &rarr; preview con validacion &rarr; commit</em>.</p>
+
+  <h3 id="mod-alertas">4.4 Alertas y Escalamiento</h3>
+
+  <h4>Motor de alertas</h4>
+  <div class="flow">
+    <div class="flow-box">AlertEngine (cron 5min)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box secondary">6 Evaluadores (22+ tipos)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box tertiary">Crear Alerta</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box warning">EscalationService (cron 10min)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box external">Notificacion (email/webhook)</div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Familia</th>
+      <th>Tipos</th>
+      <th>Ejemplos</th>
+    </tr>
+    <tr>
+      <td>Comunicacion</td>
+      <td>METER_OFFLINE, COMM_FAILURE</td>
+      <td>Medidor sin lectura >2h</td>
+    </tr>
+    <tr>
+      <td>Electrica</td>
+      <td>VOLTAGE_HIGH/LOW, THD_HIGH, PF_LOW</td>
+      <td>Voltaje fuera de rango 200-250V</td>
+    </tr>
+    <tr>
+      <td>Consumo</td>
+      <td>CONSUMPTION_SPIKE, DEMAND_PEAK</td>
+      <td>Consumo >150% promedio</td>
+    </tr>
+    <tr>
+      <td>Operativa</td>
+      <td>BREAKER_TRIP, CRC_ERRORS</td>
+      <td>Interruptor abierto</td>
+    </tr>
+    <tr>
+      <td>Datos</td>
+      <td>TREND_BREAK, NULL_SPIKE, VOLUME_ANOMALY</td>
+      <td>Quiebre de tendencia, picos de nulos</td>
+    </tr>
+    <tr>
+      <td>Generacion</td>
+      <td>GENERATION_DROP, INVERTER_FAULT</td>
+      <td>Caida de generacion fotovoltaica</td>
+    </tr>
+  </table>
+
+  <h3 id="mod-facturacion">4.5 Facturacion y Tarifas</h3>
+
+  <h4>Flujo de facturacion</h4>
+  <div class="vflow">
+    <div class="flow-box">Configurar Tarifa + Bloques Horarios</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box secondary">POST /invoices/generate (periodo + edificio + tarifa)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box tertiary">Calculo: readings x tariff blocks (por medidor)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box data">Factura draft con line items</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Aprobar &rarr; PDF / Anular</div>
+  </div>
+
+  <p>Cada factura incluye desglose por medidor, aplicacion de bloques horarios (punta, llano, valle), IVA 19%, y export PDF.</p>
+
+  <h3 id="mod-reportes">4.6 Reportes e Integraciones</h3>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>Reportes</h4>
+      <ul>
+        <li>Tipos: consumo, calidad, demanda, comparativo</li>
+        <li>Formatos: PDF, XLSX, CSV</li>
+        <li>Generacion on-demand o programada (cron)</li>
+        <li>Envio automatico a destinatarios</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Integraciones</h4>
+      <ul>
+        <li>REST, Webhook, BACnet, SNMP, MQTT</li>
+        <li>Config JSON por integracion</li>
+        <li>Sync con reintentos exponencial</li>
+        <li>Historial de sincronizaciones</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="mod-admin">4.7 Administracion</h3>
+
+  <table>
+    <tr><th>Vista</th><th>Ruta</th><th>Funcionalidad</th></tr>
+    <tr>
+      <td>Usuarios</td>
+      <td><code>/admin/users</code></td>
+      <td>CRUD usuarios + import masivo CSV/XLSX + asignacion rol/edificios</td>
+    </tr>
+    <tr>
+      <td>Locatarios</td>
+      <td><code>/admin/tenants</code></td>
+      <td>CRUD locatarios + import masivo + asignacion medidores</td>
+    </tr>
+    <tr>
+      <td>Roles</td>
+      <td><code>/admin/roles</code></td>
+      <td>Grid de modulos x capacidades por rol</td>
+    </tr>
+    <tr>
+      <td>Jerarquia</td>
+      <td><code>/admin/hierarchy</code></td>
+      <td>Arbol recursivo con CRUD nodos (building &rarr; panel &rarr; circuito)</td>
+    </tr>
+    <tr>
+      <td>Audit Logs</td>
+      <td><code>/admin/audit</code></td>
+      <td>Historial de acciones con filtros (usuario, accion, recurso, fecha)</td>
+    </tr>
+    <tr>
+      <td>Empresas</td>
+      <td><code>/admin/companies</code></td>
+      <td>Crear tenant con roles + admin en un paso (onboarding)</td>
+    </tr>
+    <tr>
+      <td>API Keys</td>
+      <td><code>/admin/api-keys</code></td>
+      <td>Gestion de claves API externas, rotacion, scopes</td>
+    </tr>
+    <tr>
+      <td>Rectificaciones</td>
+      <td><code>/admin/rectification-requests</code></td>
+      <td>Approve/reject/execute solicitudes de rectificacion (Ley 21.719)</td>
+    </tr>
+    <tr>
+      <td>Eliminaciones</td>
+      <td><code>/admin/deletion-requests</code></td>
+      <td>Aprobar/ejecutar anonimizacion PII (ARCO+)</td>
+    </tr>
+  </table>
+
+  <h3 id="mod-compliance">4.8 Compliance - Ley 21.719</h3>
+
+  <div class="diagram">
+<pre>
+  Derechos ARCO+ implementados:
+
+  +-------------+     +---------------+     +---------------+     +-------------+
+  |   ACCESO    |     | RECTIFICACION |     |  CANCELACION  |     |  OPOSICION  |
+  |  /profile   |     | Solicitud     |     | Solicitud     |     |  /profile   |
+  |  Export JSON|     | via admin     |     | via admin     |     |  Toggle     |
+  +-------------+     +---------------+     +---------------+     +-------------+
+
+  +-------------+     +---------------+     +---------------+
+  |   BLOQUEO   |     | PORTABILIDAD  |     | REVOCACION    |
+  |  /profile   |     | Export JSON   |     | Consentimiento|
+  |  Toggle     |     | sin limite    |     |  /profile     |
+  +-------------+     +---------------+     +---------------+
+</pre>
+  </div>
+
+  <ul>
+    <li><strong>MFA enforcement</strong> por rol con <code>require_mfa</code></li>
+    <li><strong>Politica de privacidad</strong> con versionado, modal post-login</li>
+    <li><strong>Breach notification</strong> 24h (Anexo 07 PASA) / 72h (Agencia)</li>
+    <li><strong>Retencion automatica:</strong> cron diario purga tokens 30d, anonimiza inactivos 2yr</li>
+    <li><strong>Audit trail:</strong> login con IP, user-agent, provider</li>
+    <li><strong>Endpoints publicos:</strong> <code>/privacy/policy</code>, <code>/privacy/processing-registry</code></li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- 5. PIPELINE DE DATOS -->
+<!-- ============================================================ -->
+<section id="pipeline">
+  <h2>5. Pipeline de Datos</h2>
+
+  <h3 id="pipe-ingest">5.1 Ingesta de Datos PASA</h3>
+
+  <h4>Pipeline de Ingesta CSV &rarr; Base de Datos</h4>
+  <div class="flow">
+    <div class="flow-box external">Origen CSV<br>(5 archivos, ~6 GB)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">ECS Fargate<br>(drive-pipeline)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box secondary">S3<br>(staging)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box tertiary">Promote<br>(validate+catalog)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box data">RDS PostgreSQL<br>(readings)</div>
+  </div>
+
+  <table>
+    <tr><th>Fuente CSV</th><th>Medidores</th><th>Filas</th><th>Edificio</th></tr>
+    <tr><td>MALL_GRANDE_446_completo.csv</td><td>446</td><td>~15.6M</td><td>Mall Grande</td></tr>
+    <tr><td>MALL_MEDIANO_254_completo.csv</td><td>254</td><td>~8.9M</td><td>Mall Mediano</td></tr>
+    <tr><td>OUTLET_70_anual.csv</td><td>70</td><td>~2.5M</td><td>Outlet</td></tr>
+    <tr><td>SC52_StripCenter_anual.csv</td><td>52</td><td>~1.8M</td><td>Strip Center 52</td></tr>
+    <tr><td>SC53_StripCenter_anual.csv</td><td>53</td><td>~1.9M</td><td>Strip Center 53</td></tr>
+  </table>
+
+  <ul>
+    <li><strong>Schedule:</strong> EventBridge <code>cron(0 6 * * ? *)</code> = 03:00 Chile diariamente</li>
+    <li><strong>Idempotencia:</strong> <code>ON CONFLICT (meter_id, timestamp, source_file) DO NOTHING</code></li>
+    <li><strong>Deteccion de cambios:</strong> compara <code>driveModifiedTime</code> del manifest S3</li>
+  </ul>
+
+  <h3 id="pipe-iot">5.2 IoT - Siemens POC3000</h3>
+
+  <div class="flow">
+    <div class="flow-box external">POC3000<br>(MQTT)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">IoT Core<br>(TLS, certs)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box secondary">Rule<br>powercenter_to_s3</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box tertiary">S3<br>(raw telemetry)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Lambda<br>iot-ingest</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box data">RDS<br>(iot_readings)</div>
+  </div>
+
+  <ul>
+    <li><strong>Frecuencia:</strong> 451 variables cada 15 minutos</li>
+    <li><strong>Deduplicacion:</strong> unique index en <code>iot_readings</code></li>
+    <li><strong>Variables:</strong> voltaje, corriente, potencia, energia, THD, factor de potencia</li>
+    <li><strong>Alertas IoT:</strong> generadas on-the-fly desde anomalias (voltaje, PF, potencia, THD)</li>
+  </ul>
+
+  <h3 id="pipe-aggregates">5.3 Agregados y Vistas Materializadas</h3>
+
+  <table>
+    <tr><th>Vista Materializada</th><th>Granularidad</th><th>Proposito</th><th>Refresh</th></tr>
+    <tr>
+      <td><code>portfolio_summary</code></td>
+      <td>Tenant/dia</td>
+      <td>Dashboard ejecutivo (16s &rarr; 5ms)</td>
+      <td>Diario (DataRetentionService)</td>
+    </tr>
+    <tr>
+      <td><code>building_summary</code></td>
+      <td>Edificio/mes</td>
+      <td>Dashboards comparativos</td>
+      <td>Diario (DataRetentionService)</td>
+    </tr>
+    <tr>
+      <td><code>readings_daily</code></td>
+      <td>Medidor/dia</td>
+      <td>TimescaleDB continuous aggregate</td>
+      <td>Automatico</td>
+    </tr>
+  </table>
+
+  <h4>Flujo de agregacion</h4>
+  <div class="flow">
+    <div class="flow-box data">readings (raw)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box secondary">time_bucket (1h/1d/1mo)</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box tertiary">AVG/MAX/MIN power, energy delta</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Matview / CAGG</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box data">API response</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 6. REFERENCIA API -->
+<!-- ============================================================ -->
+<section id="api">
+  <h2>6. Referencia de API</h2>
+
+  <p>API REST base: <code>https://power-monitor.cloud/api</code>. Autenticacion via cookie httpOnly (JWT). Tenant scoping automatico desde JWT.</p>
+
+  <h3>Endpoints Principales</h3>
+
+  <table>
+    <tr><th>Modulo</th><th>Metodo</th><th>Endpoint</th><th>Descripcion</th></tr>
+    <tr><td rowspan="4">Auth</td><td>POST</td><td><code>/auth/login</code></td><td>Login OAuth (Microsoft/Google)</td></tr>
+    <tr><td>POST</td><td><code>/auth/refresh</code></td><td>Rotar refresh token</td></tr>
+    <tr><td>POST</td><td><code>/auth/logout</code></td><td>Cerrar sesion (limpia cookies)</td></tr>
+    <tr><td>GET</td><td><code>/auth/me</code></td><td>Perfil + tenant + permisos + idleTimeout</td></tr>
+
+    <tr><td rowspan="5">Buildings</td><td>GET</td><td><code>/buildings</code></td><td>Listar edificios (scoped)</td></tr>
+    <tr><td>GET</td><td><code>/buildings/:id</code></td><td>Detalle edificio</td></tr>
+    <tr><td>POST</td><td><code>/buildings</code></td><td>Crear edificio</td></tr>
+    <tr><td>PATCH</td><td><code>/buildings/:id</code></td><td>Actualizar edificio</td></tr>
+    <tr><td>DELETE</td><td><code>/buildings/:id</code></td><td>Eliminar edificio</td></tr>
+
+    <tr><td rowspan="3">Readings</td><td>GET</td><td><code>/readings</code></td><td>Time-series con downsampling (time_bucket)</td></tr>
+    <tr><td>GET</td><td><code>/readings/latest</code></td><td>Ultima lectura por medidor</td></tr>
+    <tr><td>GET</td><td><code>/readings/aggregated</code></td><td>Agregados hourly/daily/monthly</td></tr>
+
+    <tr><td rowspan="4">Alerts</td><td>GET</td><td><code>/alerts</code></td><td>Listar alertas (filtros status/severity)</td></tr>
+    <tr><td>GET</td><td><code>/alerts/:id</code></td><td>Detalle alerta</td></tr>
+    <tr><td>PATCH</td><td><code>/alerts/:id/acknowledge</code></td><td>Reconocer alerta</td></tr>
+    <tr><td>PATCH</td><td><code>/alerts/:id/resolve</code></td><td>Resolver alerta</td></tr>
+
+    <tr><td rowspan="3">Invoices</td><td>GET</td><td><code>/invoices</code></td><td>Listar facturas (filtros edificio/estado)</td></tr>
+    <tr><td>POST</td><td><code>/invoices/generate</code></td><td>Generar factura desde readings + tarifa</td></tr>
+    <tr><td>GET</td><td><code>/invoices/:id/pdf</code></td><td>Descargar PDF factura</td></tr>
+
+    <tr><td rowspan="2">Reports</td><td>POST</td><td><code>/reports/generate</code></td><td>Generar reporte (PDF/XLSX/CSV)</td></tr>
+    <tr><td>GET</td><td><code>/reports/:id/export</code></td><td>Descargar reporte generado</td></tr>
+
+    <tr><td rowspan="2">Privacy</td><td>GET</td><td><code>/privacy/policy</code></td><td>Politica de privacidad vigente</td></tr>
+    <tr><td>GET</td><td><code>/privacy/processing-registry</code></td><td>Registro de tratamiento de datos</td></tr>
+  </table>
+
+  <h3>API Externa v1</h3>
+  <p>Para integraciones de terceros. Requiere API key (<code>X-API-Key</code> header). Rate limiting por key. Endpoints disponibles:</p>
+  <ul>
+    <li><code>GET /v1/measurements</code> — lecturas (latest, aggregated, por medidor)</li>
+    <li><code>POST /v1/measurements</code> — ingreso de lecturas (API ingress)</li>
+    <li><code>POST /v1/export-jobs</code> — export en formato Parquet</li>
+    <li>Scopes OAuth configurables por API key</li>
+  </ul>
+
+  <h3>Parametros de consulta comunes</h3>
+  <table>
+    <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+    <tr><td><code>from</code>, <code>to</code></td><td>ISO 8601</td><td>Rango temporal (obligatorio en readings)</td></tr>
+    <tr><td><code>resolution</code></td><td>enum</td><td>raw, 5min, 15min, 1h, 1d</td></tr>
+    <tr><td><code>buildingId</code></td><td>UUID</td><td>Filtrar por edificio</td></tr>
+    <tr><td><code>meterId</code></td><td>UUID</td><td>Filtrar por medidor</td></tr>
+    <tr><td><code>groupBy</code></td><td>enum</td><td>portfolio, building (agrupacion server-side)</td></tr>
+    <tr><td><code>meterRole</code></td><td>enum</td><td>generation, load (filtro por rol del medidor)</td></tr>
+    <tr><td><code>quality</code></td><td>csv</td><td>measured, estimated (filtro calidad dato)</td></tr>
+    <tr><td><code>limit</code>, <code>offset</code></td><td>int</td><td>Paginacion</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- 7. MODELO DE DATOS -->
+<!-- ============================================================ -->
+<section id="database">
+  <h2>7. Modelo de Datos</h2>
+
+  <h3>Diagrama Entidad-Relacion (simplificado)</h3>
+
+  <div class="diagram">
+<pre>
+  tenants                  buildings                    meters
+  +-------------+          +------------------+         +------------------+
+  | id (UUID)   |---1:N---&gt;| id (UUID)        |---1:N--&gt;| id (UUID)        |
+  | name        |          | tenant_id (FK)   |         | building_id (FK) |
+  | slug        |          | name             |         | name             |
+  | settings    |          | address          |         | code             |
+  +-------------+          | total_area       |         | meter_type       |
+        |                  +------------------+         | phase_type       |
+        |                        |                      | status           |
+        |                        |                      +------------------+
+        |                        |                            |
+        |                  hierarchy_nodes                    |
+        |                  +------------------+               |
+        |                  | id (UUID)        |               |
+        |                  | building_id (FK) |          readings
+        |                  | parent_id (self) |          +------------------+
+        |                  | name             |          | id (int)         |
+        |                  | level_type       |          | meter_id (FK)    |
+        |                  | meter_id (FK)?   |          | timestamp        |
+        |                  +------------------+          | power_kw         |
+        |                                                | energy_kwh_total |
+  users                    tenant_units                  | voltage_l1/l2/l3 |
+  +-------------+          +------------------+          | current_l1/l2/l3 |
+  | id (UUID)   |          | id (UUID)        |          | power_factor     |
+  | tenant_id   |          | building_id (FK) |          | frequency_hz     |
+  | email (enc) |          | name             |          | thd_voltage_pct  |
+  | name (enc)  |          | unit_code        |          +------------------+
+  | role_id (FK)|          | contact_name     |
+  | mfa_secret  |          +------------------+          alerts
+  +-------------+                |                       +------------------+
+        |                        |                       | id (UUID)        |
+  refresh_tokens           tenant_unit_meters            | meter_id (FK)?   |
+  +------------------+     +------------------+          | building_id (FK)?|
+  | id (UUID)        |     | tenant_unit_id   |          | type             |
+  | user_id (FK)     |     | meter_id         |          | severity         |
+  | token_hash       |     +------------------+          | status           |
+  | last_activity_at |                                   | title            |
+  +------------------+                                   +------------------+
+
+  tariffs                  invoices                      audit_logs
+  +------------------+     +------------------+          +------------------+
+  | id (UUID)        |     | id (UUID)        |          | id (UUID)        |
+  | building_id (FK) |     | building_id (FK) |          | user_id          |
+  | name             |     | tariff_id (FK)?  |          | action           |
+  | effective_from   |     | status           |          | resource_type    |
+  +------------------+     | total_amount     |          | ip_address       |
+        |                  +------------------+          | timestamp        |
+  tariff_blocks                  |                       +------------------+
+  +------------------+     invoice_line_items
+  | tariff_id (FK)   |     +------------------+
+  | block_name       |     | invoice_id (FK)  |
+  | hour_start/end   |     | meter_id (FK)    |
+  | energy_rate      |     | energy_kwh       |
+  | demand_rate      |     | amount           |
+  +------------------+     +------------------+
+</pre>
+  </div>
+
+  <h3>Tablas principales (monitoreo-v2)</h3>
+  <table>
+    <tr><th>Tabla</th><th>Filas (prod)</th><th>Descripcion</th></tr>
+    <tr><td><code>readings</code></td><td>~2.6M</td><td>Lecturas energeticas cada 15 min (TimescaleDB hypertable)</td></tr>
+    <tr><td><code>meters</code></td><td>875</td><td>Medidores electricos (PAC1670/PAC1651)</td></tr>
+    <tr><td><code>buildings</code></td><td>5</td><td>Edificios/malls monitoreados</td></tr>
+    <tr><td><code>users</code></td><td>Variable</td><td>Usuarios con PII cifrado (AES-256-GCM)</td></tr>
+    <tr><td><code>alerts</code></td><td>Variable</td><td>Alertas generadas por motor de alertas</td></tr>
+    <tr><td><code>audit_logs</code></td><td>Creciente</td><td>Registro de auditoria (hypertable TimescaleDB)</td></tr>
+    <tr><td><code>invoices</code></td><td>Variable</td><td>Facturas generadas</td></tr>
+    <tr><td><code>iot_readings</code></td><td>Variable</td><td>Telemetria Siemens POC3000</td></tr>
+    <tr><td><code>refresh_tokens</code></td><td>Variable</td><td>Tokens de sesion con idle timeout</td></tr>
+    <tr><td><code>portfolio_summary</code></td><td>Matview</td><td>Agregado portfolio por tenant/dia</td></tr>
+    <tr><td><code>building_summary</code></td><td>Matview</td><td>Agregado por edificio/mes</td></tr>
+  </table>
+
+  <h3>Migraciones</h3>
+  <p>49 migraciones SQL aplicadas en produccion. Runner: <code>apply-migration.mjs</code> (local) / <code>apply-migration-ecs.mjs</code> (prod via ECS Exec). Sin ORM migration runner — migraciones manuales SQL.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- 8. SEGURIDAD -->
+<!-- ============================================================ -->
+<section id="seguridad">
+  <h2>8. Seguridad y Hardening</h2>
+
+  <h3>Capas de seguridad</h3>
+
+  <div class="diagram">
+<pre>
+  INTERNET
+      |
+      v
+  +---+-------------------------------------------+
+  |               WAF (AWS)                        |
+  |  4 managed rule groups + rate limit            |
+  +---+-------------------------------------------+
+      |
+      v
+  +---+-------------------------------------------+
+  |            CloudFront + HTTPS                  |
+  |  HSTS 1yr, TLS 1.2+                           |
+  +---+-------------------------------------------+
+      |
+      v
+  +---+-------------------------------------------+
+  |          API Gateway + ThrottlerGuard          |
+  |  3 tiers rate limiting (Redis-backed)          |
+  +---+-------------------------------------------+
+      |
+      v
+  +---+-------------------------------------------+
+  |              NestJS Backend                    |
+  |  Helmet | CORS whitelist | ValidationPipe      |
+  |  JWT Guard | RBAC Guard | Tenant Guard         |
+  |  SSRF Blocker | PII Encryption | Audit Log     |
+  +---+-------------------------------------------+
+      |
+      v
+  +---+-------------------------------------------+
+  |           RDS (VPC privado)                    |
+  |  TLS obligatorio | 3 subnets privadas          |
+  |  Sin acceso publico                            |
+  +---+-------------------------------------------+
+</pre>
+  </div>
+
+  <h3>Checklist de seguridad</h3>
+  <table>
+    <tr><th>Control</th><th>Estado</th><th>Detalle</th></tr>
+    <tr><td>HTTPS/TLS</td><td><span class="badge-green">OK</span></td><td>CloudFront + HSTS 1yr + Referrer-Policy + COOP</td></tr>
+    <tr><td>Autenticacion</td><td><span class="badge-green">OK</span></td><td>OAuth (Microsoft/Google) + JWT httpOnly + MFA TOTP</td></tr>
+    <tr><td>Autorizacion</td><td><span class="badge-green">OK</span></td><td>RBAC por modulo/accion + tenant scoping + buildingIds</td></tr>
+    <tr><td>Rate Limiting</td><td><span class="badge-green">OK</span></td><td>3 tiers (global, auth, API key) + Redis-backed</td></tr>
+    <tr><td>Input Validation</td><td><span class="badge-green">OK</span></td><td>ValidationPipe global (whitelist + forbidNonWhitelisted)</td></tr>
+    <tr><td>SQL Injection</td><td><span class="badge-green">OK</span></td><td>Queries parametrizadas (TypeORM + raw SQL con $1)</td></tr>
+    <tr><td>XSS</td><td><span class="badge-green">OK</span></td><td>CSP meta tag (prod) + HTML escape en PDFs</td></tr>
+    <tr><td>SSRF</td><td><span class="badge-green">OK</span></td><td>Blocker en connectors + re-validation DNS rebinding</td></tr>
+    <tr><td>Secrets</td><td><span class="badge-green">OK</span></td><td>ENV vars + JWT_SECRET min 32 chars + config encryption AES-256-GCM</td></tr>
+    <tr><td>PII</td><td><span class="badge-green">OK</span></td><td>Cifrado en DB + redaction en logs + anonimizacion automatica</td></tr>
+    <tr><td>Audit</td><td><span class="badge-green">OK</span></td><td>Login con IP + user-agent + todas las mutaciones</td></tr>
+    <tr><td>DAST</td><td><span class="badge-green">OK</span></td><td>OWASP ZAP semanal (GitHub Actions)</td></tr>
+    <tr><td>SBOM</td><td><span class="badge-green">OK</span></td><td>CycloneDX 1.5 (105 packages)</td></tr>
+    <tr><td>Idle Timeout</td><td><span class="badge-green">OK</span></td><td>15 min default (configurable 5-60 por tenant)</td></tr>
+    <tr><td>Swagger</td><td><span class="badge-green">OK</span></td><td>Deshabilitado en produccion</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- 9. DEPLOY -->
+<!-- ============================================================ -->
+<section id="deploy">
+  <h2>9. Despliegue y Operaciones</h2>
+
+  <h3>Ambientes</h3>
+  <table>
+    <tr><th>Ambiente</th><th>URL</th><th>Backend</th><th>Base de Datos</th></tr>
+    <tr>
+      <td><span class="badge-green">Produccion</span></td>
+      <td><code>power-monitor.cloud</code></td>
+      <td>ECS Fargate</td>
+      <td>RDS PG 16 (VPC privado)</td>
+    </tr>
+    <tr>
+      <td><span class="badge-blue">Desarrollo</span></td>
+      <td><code>localhost:5173</code> / <code>:4000</code></td>
+      <td>Node.js local</td>
+      <td>Docker TimescaleDB (:5434)</td>
+    </tr>
+  </table>
+
+  <h3>Flujo de despliegue</h3>
+  <div class="vflow">
+    <div class="flow-box data">Commit a main</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Docker build + push ECR</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box secondary">ECS update-service (rolling)</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box tertiary">Frontend: npm build + S3 sync + CF invalidation</div>
+    <div class="flow-arrow-down">&#8595;</div>
+    <div class="flow-box">Smoke tests (HTTP)</div>
+  </div>
+
+  <h3>Migraciones en produccion</h3>
+  <div class="note">
+    RDS esta en VPC privado sin acceso publico. Las migraciones se ejecutan via <strong>ECS Exec</strong> usando el script <code>apply-migration-ecs.mjs</code>. Ver runbook: <code>docs/ops/rds-migrations-via-ecs-exec.md</code>.
+  </div>
+
+  <h3>Monitoreo operacional</h3>
+  <ul>
+    <li><strong>CloudWatch:</strong> 6 alarmas + SNS notifications</li>
+    <li><strong>Health endpoint:</strong> <code>GET /health</code> (db status + schema version)</li>
+    <li><strong>Smoke tests:</strong> <code>npm run test:smoke-dashboard</code></li>
+    <li><strong>GuardDuty:</strong> deteccion de amenazas (S3/ECS/RDS)</li>
+    <li><strong>Inspector:</strong> scanning vulnerabilidades (ECR + Lambda)</li>
+  </ul>
+
+  <h3>Comandos de desarrollo</h3>
+  <table>
+    <tr><th>Comando</th><th>Ubicacion</th><th>Descripcion</th></tr>
+    <tr><td><code>docker compose up -d timescaledb</code></td><td><code>monitoreo-v2/</code></td><td>Levantar DB local</td></tr>
+    <tr><td><code>npm run start:dev</code></td><td><code>monitoreo-v2/backend</code></td><td>Backend con hot reload</td></tr>
+    <tr><td><code>npm run dev</code></td><td><code>monitoreo-v2/frontend</code></td><td>Frontend con HMR</td></tr>
+    <tr><td><code>npm run test</code></td><td><code>monitoreo-v2/backend</code></td><td>1294 tests backend</td></tr>
+    <tr><td><code>npm run test</code></td><td><code>monitoreo-v2/frontend</code></td><td>295 tests frontend</td></tr>
+    <tr><td><code>npm run pasa:seed</code></td><td><code>monitoreo-v2/backend</code></td><td>Seed datos PASA demo</td></tr>
+    <tr><td><code>npm run test:smoke-dashboard</code></td><td><code>monitoreo-v2/backend</code></td><td>Smoke tests prod</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- 10. TESTING -->
+<!-- ============================================================ -->
+<section id="testing">
+  <h2>10. Testing y Calidad</h2>
+
+  <h3>Cobertura de tests</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Backend (Jest 30)</h4>
+      <ul>
+        <li><strong>1,294 tests</strong> / 142 suites</li>
+        <li>0 failures</li>
+        <li>Unit + integration</li>
+        <li>Tenant isolation: 33 tests dedicados</li>
+        <li>Security: 28 tests brute-force</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Frontend (Vitest)</h4>
+      <ul>
+        <li><strong>295 tests</strong> / 40 suites</li>
+        <li>@testing-library/react + jsdom</li>
+        <li>Hooks, componentes, utilidades</li>
+        <li>E2E: Playwright 23 tests contra prod</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Tipos de test</h3>
+  <table>
+    <tr><th>Tipo</th><th>Herramienta</th><th>Alcance</th></tr>
+    <tr><td>Unit</td><td>Jest / Vitest</td><td>Servicios, utilidades, componentes aislados</td></tr>
+    <tr><td>Integration</td><td>Jest + supertest</td><td>Endpoints API con DB en memoria</td></tr>
+    <tr><td>E2E</td><td>Playwright</td><td>Flujos criticos contra prod (auth, dashboard, CRUD)</td></tr>
+    <tr><td>Security</td><td>Jest + OWASP ZAP</td><td>Brute-force, injection, isolation</td></tr>
+    <tr><td>Smoke</td><td>Scripts HTTP</td><td>Health check, endpoints criticos post-deploy</td></tr>
+    <tr><td>Load</td><td>k6</td><td>5 escenarios (dashboard p95 &lt;3s, API p95 &lt;500ms)</td></tr>
+  </table>
+
+  <h3>Calidad adicional</h3>
+  <ul>
+    <li><strong>SBOM:</strong> CycloneDX 1.5 — 53 runtime + 52 dev packages</li>
+    <li><strong>DAST:</strong> OWASP ZAP baseline semanal (GitHub Actions)</li>
+    <li><strong>Error catalog:</strong> 197 throw statements, 101 errores unicos, 5 codigos HTTP</li>
+    <li><strong>Postman collection:</strong> 252 rutas documentadas en formato v2.1</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="page-footer">
+  Energy Monitor v2.21.1 &mdash; Globe Power / Hoktus &mdash; Junio 2026
+</div>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 # CIS Hardening Audit — Energy Monitor Platform
 
-> Generated: 2026-06-15
+> Generated: 2026-06-20
 > Based on: CIS AWS Foundations Benchmark v3.0, CIS Docker Benchmark v1.6
 
 ## Summary

@@ -1,0 +1,1 @@
+SELECT 'malls' as t, count(*) FROM mapvx_malls UNION ALL SELECT 'floors', count(*) FROM mapvx_floors UNION ALL SELECT 'stores', count(*) FROM mapvx_stores UNION ALL SELECT 'geometries', count(*) FROM mapvx_geometries UNION ALL SELECT 'tiles', count(*) FROM mapvx_tiles;

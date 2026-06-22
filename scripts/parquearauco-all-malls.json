@@ -1,0 +1,745 @@
+[
+  {
+    "name": "Arauco Chicureo",
+    "lat": -33.2723244,
+    "lng": -70.6180713,
+    "has_indoor": false,
+    "parauco": {
+      "id": 186,
+      "code": "CHC",
+      "address": "Avenida Chicureo 125, Chicureo, Colina.",
+      "size": "40.000 mt2",
+      "inaugurated": "2026",
+      "image": "https://api-image-admin-bucket-prod.s3.amazonaws.com/mall_1/2026_5_5/malls/ebf8df63-9853-4405-ac58-4b25a6416578.webp",
+      "webPage": "https://www.parquechicureo.com/",
+      "description": "Arauco Chicureo, el nuevo centro comercial de arquitectura abierta.  Aportara al polo urbano de Colina y Chicureo Poniente una nueva oferta de salud, entretención, gastronomía, educación, farmacias y supermercado. "
+    }
+  },
+  {
+    "name": "Arauco Chillán",
+    "lat": -36.6097439,
+    "lng": -72.1007552,
+    "has_indoor": true,
+    "mapvx_id": "-OsXlNrHww4IRvg1Vqfo",
+    "stores_count": 110,
+    "floors_count": 6,
+    "floors": [
+      {
+        "id": "-OsXllesxvtnfj3Z1KKD",
+        "name": "Nivel 1",
+        "shortName": "1",
+        "level": 1,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXlq6G_RZsJ8yQXljM",
+        "name": "Nivel 2",
+        "shortName": "2",
+        "level": 2,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXltY4ZEsAFh-3bUKr",
+        "name": "Nivel 3",
+        "shortName": "3",
+        "level": 3,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXlxur1RatZLs8g3gI",
+        "name": "Nivel 4",
+        "shortName": "4",
+        "level": 4,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXm1MV_hxjlC55AbQT",
+        "name": "Nivel 5",
+        "shortName": "5",
+        "level": 5,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXm5NBB0AqT1h-sOBC",
+        "name": "Nivel 6",
+        "shortName": "6",
+        "level": 6,
+        "vectorTile": false
+      }
+    ],
+    "building_polygon": null,
+    "parauco": {
+      "id": 4,
+      "code": "ACH",
+      "address": "El Roble N° 770, Chillán, Ñuble.",
+      "size": "32.500 m²",
+      "inaugurated": "Incorporado en 2007",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/ACH.jpg",
+      "webPage": "https://www.araucochillan.cl"
+    }
+  },
+  {
+    "name": "Arauco Coronel",
+    "lat": -37.0624196,
+    "lng": -73.1414279,
+    "has_indoor": false,
+    "parauco": {
+      "id": 18,
+      "code": "ACO",
+      "address": "Carlos Pratt González 913, Coronel, Bío Bío.",
+      "size": "31.000 m²",
+      "inaugurated": "Incorporado en 2017",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/ACO.jpg",
+      "webPage": "https://www.araucocoronel.cl",
+      "description": "Arauco Coronel está ubicado en la ciudad de Coronel y se beneficia del crecimiento habitacional de la gran ciudad de Concepción."
+    }
+  },
+  {
+    "name": "Arauco El Bosque",
+    "lat": -33.5535063,
+    "lng": -70.6780927,
+    "has_indoor": false,
+    "parauco": {
+      "id": 19,
+      "code": "AEB",
+      "address": "Gran Av. José Miguel Carrera 10375, El Bosque, Región Metropolitana.",
+      "size": "30.000 m²",
+      "inaugurated": "Incorporado en 2018",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/AEB.jpg",
+      "webPage": "https://www.araucoelbosque.cl",
+      "description": "Inaugurado en 2008, es un centro comercial abierto de dos pisos ubicado en la comuna El Bosque."
+    }
+  },
+  {
+    "name": "Arauco Estación",
+    "lat": -33.4526663,
+    "lng": -70.6798689,
+    "has_indoor": false,
+    "parauco": {
+      "id": 5,
+      "code": "MAE",
+      "address": "Av. Libertador Bernardo OHiggins 3250, Estación Central, Región Metropolitana.",
+      "size": "68.000 m²",
+      "inaugurated": "Incorporado en 2008",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/MAE.jpg",
+      "webPage": "https://www.araucoestacion.cl",
+      "description": "Arauco Estación está ubicado en la principal estación de trenes y buses de la ciudad de Santiago. Es uno de los centros comerciales con mayor flujo de personas en Chile."
+    }
+  },
+  {
+    "name": "Arauco Express",
+    "lat": -33.4489,
+    "lng": -70.6627,
+    "has_indoor": false,
+    "parauco": {
+      "id": 25,
+      "code": "AEX",
+      "address": null,
+      "size": null,
+      "inaugurated": null,
+      "image": null,
+      "webPage": null,
+      "description": null
+    }
+  },
+  {
+    "name": "Arauco Express Antofagasta",
+    "lat": -23.7282831,
+    "lng": -70.4364779,
+    "has_indoor": false,
+    "parauco": {
+      "id": 165,
+      "code": "ANT",
+      "address": "Av. Iquique 5201, Antofagasta.",
+      "size": "5.943 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/ANT.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Boulevard Ciudad Empresarial",
+    "lat": -33.3979,
+    "lng": -70.6093,
+    "has_indoor": false,
+    "parauco": {
+      "id": 176,
+      "code": "CEM",
+      "address": "",
+      "size": "1.680 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CEM.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Calama",
+    "lat": -22.4439368,
+    "lng": -68.9046119,
+    "has_indoor": false,
+    "parauco": {
+      "id": 178,
+      "code": "CAL",
+      "address": "Av. Almirante Grau 1060, Calama, Antofagasta.",
+      "size": "800 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CAL.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Center Colón",
+    "lat": -33.4234859,
+    "lng": -70.5780925,
+    "has_indoor": false,
+    "parauco": {
+      "id": 169,
+      "code": "COL",
+      "address": "Av. Cristóbal Colón 4455, Las Condes, Región Metropolitana.",
+      "size": "940 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/COL.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Ciudad Empresarial",
+    "lat": -33.3899657,
+    "lng": -70.6205659,
+    "has_indoor": false,
+    "parauco": {
+      "id": 168,
+      "code": "CE2",
+      "address": "Av. del Parque 4722, Huechuraba, Región Metropolitana.",
+      "size": "4.789 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CE2.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express El Carmen de Huechuraba",
+    "lat": -33.345636,
+    "lng": -70.6707737,
+    "has_indoor": false,
+    "parauco": {
+      "id": 167,
+      "code": "CDH",
+      "address": "Av. Pedro Fontova 7810, Huechuraba, Región Metropolitana.",
+      "size": "5.650 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CDH.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express El Peñon",
+    "lat": -33.5741,
+    "lng": -70.5559,
+    "has_indoor": false,
+    "parauco": {
+      "id": 177,
+      "code": "SEP",
+      "address": "Camino a San José del Maipo 7788, Puente Alto.",
+      "size": "",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/SEP.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express La Reina",
+    "lat": -33.4417809,
+    "lng": -70.5440611,
+    "has_indoor": false,
+    "parauco": {
+      "id": 174,
+      "code": "REI",
+      "address": "Av. Echeñique 8480, La Reina, Región Metropolitana.",
+      "size": "1.431 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/REI.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Las Brujas",
+    "lat": -33.44059,
+    "lng": -70.5361925,
+    "has_indoor": false,
+    "parauco": {
+      "id": 166,
+      "code": "BRU",
+      "address": "Carlos Silva Vildósola 9073, La Reina, Región Metropolitana.",
+      "size": "3.600 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/BRU.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Luis Pasteur",
+    "lat": -33.39228,
+    "lng": -70.5805446,
+    "has_indoor": false,
+    "parauco": {
+      "id": 171,
+      "code": "LUI",
+      "address": "Av. Luis Pasteur 5515, Vitacura, Región Metropolitana.",
+      "size": "990 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/LUI.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Manuel Montt",
+    "lat": -33.4480573,
+    "lng": -70.6132345,
+    "has_indoor": false,
+    "parauco": {
+      "id": 172,
+      "code": "MAN",
+      "address": "Manuel Montt 2222, Ñuñoa, Región Metropolitana.",
+      "size": "970 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/MAN.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Pajaritos",
+    "lat": -33.486019,
+    "lng": -70.7500541,
+    "has_indoor": false,
+    "parauco": {
+      "id": 175,
+      "code": "SCP",
+      "address": "Av. Américo Vespucio 51, Maipú, Región Metropolitana.",
+      "size": "5.750 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/SCP.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Palmares",
+    "lat": -33.0103396,
+    "lng": -71.4968106,
+    "has_indoor": false,
+    "parauco": {
+      "id": 180,
+      "code": "PLM",
+      "address": "Angamos 242, Viña del Mar, Valparaíso.",
+      "size": "700 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/PAL.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Recoleta",
+    "lat": -33.4228956,
+    "lng": -70.6454515,
+    "has_indoor": false,
+    "parauco": {
+      "id": 173,
+      "code": "REC",
+      "address": "Av. Recoleta 806, Recoleta, Región Metropolitana.",
+      "size": "3.524 mt2",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/REC.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Express Rosario",
+    "lat": -33.4489,
+    "lng": -70.6627,
+    "has_indoor": false,
+    "parauco": {
+      "id": 179,
+      "code": "ROS",
+      "address": "",
+      "size": "",
+      "inaugurated": "Incorporados a partir de 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/ROS.jpg",
+      "webPage": "https://www.araucoexpress.cl/",
+      "description": "Arauco Express, la filial dedicada al desarrollo del formato de strip centers en Chile, cuenta con 16 activos que ofrecen productos y servicios de conveniencia en ubicaciones estratégicas de alta circulación vehicular."
+    }
+  },
+  {
+    "name": "Arauco Maipú",
+    "lat": -33.48200019739756,
+    "lng": -70.750964678736,
+    "has_indoor": true,
+    "mapvx_id": "-OsXmx3WlJMjxVbQ5q-f",
+    "stores_count": 292,
+    "floors_count": 2,
+    "floors": [
+      {
+        "id": "-OsXn2J4-vbEXh54nAmO",
+        "name": "Nivel 1",
+        "shortName": "1",
+        "level": 1,
+        "vectorTile": false
+      },
+      {
+        "id": "-OsXn6HRU-zd1XBNJnQe",
+        "name": "Nivel 2",
+        "shortName": "2",
+        "level": 2,
+        "vectorTile": false
+      }
+    ],
+    "building_polygon": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.75529,
+            -33.47902
+          ],
+          [
+            -70.751,
+            -33.47928
+          ],
+          [
+            -70.74887,
+            -33.48273
+          ],
+          [
+            -70.75163,
+            -33.48596
+          ],
+          [
+            -70.75529,
+            -33.47902
+          ]
+        ]
+      ]
+    },
+    "parauco": {
+      "id": 2,
+      "code": "MAM",
+      "address": "Av. Américo Vespucio 399, Maipú, Región Metropolitana.",
+      "size": "75.000 m2",
+      "inaugurated": "Inagurado en 1993",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/MAM.jpg",
+      "webPage": "https://www.araucomaipu.cl"
+    }
+  },
+  {
+    "name": "Arauco Premium Outlet Buenaventura",
+    "lat": -33.3315205,
+    "lng": -70.703114,
+    "has_indoor": true,
+    "mapvx_id": "-OsXmapC0hXtd0RrrBWY",
+    "stores_count": 125,
+    "floors_count": 1,
+    "floors": [
+      {
+        "id": "-OsXml-skLCrRFFshfcM",
+        "name": "Nivel 1",
+        "shortName": "1",
+        "level": 1,
+        "vectorTile": false
+      }
+    ],
+    "building_polygon": null,
+    "parauco": {
+      "id": 3,
+      "code": "BOM",
+      "address": "San Ignacio 500, Y 300, Quilicura, Región Metropolitana.",
+      "size": "29.500 m²",
+      "inaugurated": "Incorporado en 2012",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/BOM.jpg",
+      "webPage": "https://www.araucopremiumoutletbuenaventura.cl"
+    }
+  },
+  {
+    "name": "Arauco Premium Outlet Coquimbo",
+    "lat": -29.9765665,
+    "lng": -71.2962023,
+    "has_indoor": false,
+    "parauco": {
+      "id": 21,
+      "code": "COQ",
+      "address": "La Cantera 2325, 1802263 Coquimbo.",
+      "size": "6.000 m²",
+      "inaugurated": "Inaugurado en 2016",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/COQ.jpg",
+      "webPage": "https://www.araucopremiumoutletcoquimbo.cl",
+      "description": "Arauco Premium Outlet Coquimbo es nuestro cuarto premium outlet en Chile."
+    }
+  },
+  {
+    "name": "Arauco Premium Outlet Curauma",
+    "lat": -33.1326198,
+    "lng": -71.5641351,
+    "has_indoor": false,
+    "parauco": {
+      "id": 22,
+      "code": "CUR",
+      "address": "Av. Lomas de la Luz 4650, Curauma, Valparaíso.",
+      "size": "8.500 m²",
+      "inaugurated": "Inaugurado en 2014",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CUR.jpg",
+      "webPage": "https://www.araucopremiumoutletcurauma.cl",
+      "description": "Arauco Premium Outlet Curauma en Valparaíso, inaugurado el 2014. Es el tercer outlet mall de la compañía en Chile."
+    }
+  },
+  {
+    "name": "Arauco Premium Outlet San Pedro",
+    "lat": -36.8691165,
+    "lng": -73.1372427,
+    "has_indoor": false,
+    "parauco": {
+      "id": 20,
+      "code": "CON",
+      "address": "Av. Portal San Pedro 4850, San Pedro de la Paz, Concepción.",
+      "size": "10.500 m²",
+      "inaugurated": "Inaugurado en 2014",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/CON1.jpg",
+      "webPage": "https://www.araucopremiumoutletsanpedro.cl",
+      "description": "Arauco Premium Outlet San Pedro en Concepción, inaugurado el 2014. Es el segundo outlet mall de la compañía en Chile."
+    }
+  },
+  {
+    "name": "Arauco Quilicura",
+    "lat": -33.3708984,
+    "lng": -70.7176854,
+    "has_indoor": false,
+    "parauco": {
+      "id": 24,
+      "code": "MAQ",
+      "address": "Av. Bernardo OHiggins 581, Quilicura, Región Metropolitana.",
+      "size": "31.000 m²",
+      "inaugurated": "Inaugurado en 2013",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/MAQ.jpg",
+      "webPage": "https://www.araucoquilicura.cl",
+      "description": "Arauco Quilicura se convirtió en el primer centro comercial chileno en obtener Certificación LEED. Está ubicado estratégicamente a un costado de la plaza de armas de la comuna de Quilicura."
+    }
+  },
+  {
+    "name": "Arauco San Antonio",
+    "lat": -33.5817582,
+    "lng": -71.6136965,
+    "has_indoor": false,
+    "parauco": {
+      "id": 6,
+      "code": "ASA",
+      "address": "Barros Luco 105, San Antonio, Valparaíso.",
+      "size": "28.500 m²",
+      "inaugurated": "Inaugurado en 2009",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/ASA.jpg",
+      "webPage": "https://www.araucosanantonio.cl",
+      "description": "Arauco San Antonio es el primer centro comercial de San Antonio y es un hito de modernidad para la ciudad."
+    }
+  },
+  {
+    "name": "Parque Angamos",
+    "lat": -23.695044,
+    "lng": -70.4154528,
+    "has_indoor": false,
+    "parauco": {
+      "id": 23,
+      "code": "PAN",
+      "address": "Av. Angamos 02170, Antofagasta.",
+      "size": "10.500 m²",
+      "inaugurated": "Incorporado en 2018",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/PAN.jpg",
+      "webPage": "https://www.parqueangamos.cl",
+      "description": "El primer centro comercial vecinal de Parque Arauco en Chile, ubicado en Antofagasta."
+    }
+  },
+  {
+    "name": "Parque Arauco",
+    "lat": -33.4006301,
+    "lng": -70.57684,
+    "has_indoor": true,
+    "mapvx_id": "-Ok-yw5e32hv59dxorcN",
+    "stores_count": 2939,
+    "floors_count": 16,
+    "floors": [
+      {
+        "id": "-OpYs8gSAilq51t_nIUz",
+        "name": "Nivel 1.5",
+        "shortName": "1.5",
+        "level": -10,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ons7hshX_vjIes81OLE",
+        "name": "Nivel -6",
+        "shortName": "-6",
+        "level": -9,
+        "vectorTile": false
+      },
+      {
+        "id": "-OnqhMQTUG9E4LT-yUI2",
+        "name": "Nivel -5",
+        "shortName": "-5",
+        "level": -8,
+        "vectorTile": false
+      },
+      {
+        "id": "-OncWh9Ox1qGeWkS2UDy",
+        "name": "Nivel -4",
+        "shortName": "-4",
+        "level": -7,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmJqjgCsd5x-KgjnhUf",
+        "name": "Nivel 4.5",
+        "shortName": "4.5",
+        "level": -6,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmJqCZRzWWZSvV64fEd",
+        "name": "Nivel 3.5",
+        "shortName": "3.5",
+        "level": -5,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmJpuo1X_R3ddRW0zES",
+        "name": "Nivel 2.5",
+        "shortName": "2.5",
+        "level": -4,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmATkJy4hLSQKJO-yJj",
+        "name": "Nivel -3",
+        "shortName": "-3",
+        "level": -3,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmATfrgDFSCy6_C8YaY",
+        "name": "Nivel -2",
+        "shortName": "-2",
+        "level": -2,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ok-zE5qqNsLukgAMYrU",
+        "name": "Nivel -1",
+        "shortName": "-1",
+        "level": -1,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ok-zJ4XAd3cBJhlBZti",
+        "name": "Nivel 1",
+        "shortName": "1",
+        "level": 1,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ok-zUvxSQ8f4tR0aepM",
+        "name": "Nivel 2",
+        "shortName": "2",
+        "level": 2,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ok-zY4fl5dAapOtcv-H",
+        "name": "Nivel 3",
+        "shortName": "3",
+        "level": 3,
+        "vectorTile": false
+      },
+      {
+        "id": "-Ok-zb9k9Fa7_4jHFtV9",
+        "name": "Nivel 4",
+        "shortName": "4",
+        "level": 4,
+        "vectorTile": false
+      },
+      {
+        "id": "-OmJqgA8HTSC0xEpOf7l",
+        "name": "Nivel 5",
+        "shortName": "5",
+        "level": 5,
+        "vectorTile": false
+      },
+      {
+        "id": "-Onvq8MFNm3Nncvkzv3x",
+        "name": "Nivel 6",
+        "shortName": "6",
+        "level": 6,
+        "vectorTile": false
+      }
+    ],
+    "building_polygon": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -70.58087,
+            -33.40212
+          ],
+          [
+            -70.57976,
+            -33.40395
+          ],
+          [
+            -70.57387,
+            -33.40148
+          ],
+          [
+            -70.57502,
+            -33.39958
+          ],
+          [
+            -70.58087,
+            -33.40212
+          ]
+        ]
+      ]
+    },
+    "parauco": {
+      "id": 1,
+      "code": "PAK",
+      "address": "Av. Pdte. Kennedy 5413, Las Condes, Región Metropolitana.",
+      "size": "120.000 m²",
+      "inaugurated": "Inaugurado en 1982",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/PAK.jpg",
+      "webPage": "https://www.parquearauco.cl"
+    }
+  },
+  {
+    "name": "Puerto Nuevo",
+    "lat": -22.4842792,
+    "lng": -68.9232464,
+    "has_indoor": false,
+    "parauco": {
+      "id": 26,
+      "code": "PUE",
+      "address": "Balmaceda 2455, Antofagasta.",
+      "size": "8.500 m²",
+      "inaugurated": "Incorporado en 2019",
+      "image": "https://ecosis-prd-s3.s3.amazonaws.com/images/mall_picture/PUE.jpg",
+      "webPage": "https://www.puerto-nuevo.cl/",
+      "description": "Proyecto de uso mixto. Este centro comercial está compuesto de cuatro torres con un espacio comercial de 9.500 m2."
+    }
+  }
+]

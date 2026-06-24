@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useAppStore } from '../store/useAppStore';
+import { resolveProfile } from '../lib/profiles';
+import type { UserProfile } from '../lib/profiles';
 import type { RoleSlug } from '../types/auth';
 
 /** Permission sets per role slug (for viewAs impersonation) */
@@ -59,7 +61,9 @@ export function usePermissions() {
     return new Set(user?.permissions ?? []);
   }, [activeRole, isImpersonating, user?.permissions]);
 
-  const isAdmin = activeRole === 'super_admin' || activeRole === 'corp_admin' || activeRole === 'site_admin';
+  const ADMIN_ROLES: ReadonlySet<string> = useMemo(() => new Set(['super_admin', 'corp_admin', 'site_admin']), []);
+  const isAdmin = ADMIN_ROLES.has(activeRole ?? '');
+  const profile: UserProfile = resolveProfile(activeRole);
 
   // super_admin without impersonation bypasses all
   const bypassAll = isSuperAdmin && !isImpersonating;
@@ -79,5 +83,6 @@ export function usePermissions() {
     isSuperAdmin,
     isImpersonating,
     permSet,
+    profile,
   };
 }

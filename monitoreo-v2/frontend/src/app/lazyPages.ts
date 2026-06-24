@@ -10,6 +10,121 @@ export const LazyDashboardPage = lazy(async () => {
   return { default: m.DashboardPage };
 });
 
+export const LazyPanelConsolidadoPage = lazy(async () => {
+  const m = await import('../features/dashboard/consolidado/PanelConsolidadoPage');
+  return { default: m.PanelConsolidadoPage };
+});
+
+export const LazyConsumoJerarquicoPage = lazy(async () => {
+  const m = await import('../features/dashboard/consumo/ConsumoJerarquicoPage');
+  return { default: m.ConsumoJerarquicoPage };
+});
+
+export const LazyMisOrdenesPage = lazy(async () => {
+  const m = await import('../features/tecnico/ordenes/MisOrdenesPage');
+  return { default: m.MisOrdenesPage };
+});
+export const LazyMedidoresCatalogoPage = lazy(async () => {
+  const m = await import('../features/tecnico/medidores/MedidoresCatalogoPage');
+  return { default: m.MedidoresCatalogoPage };
+});
+export const LazyDiagnosticoCommsPage = lazy(async () => {
+  const m = await import('../features/tecnico/diagnostico/DiagnosticoCommsPage');
+  return { default: m.DiagnosticoCommsPage };
+});
+export const LazyRegIntervencionPage = lazy(async () => {
+  const m = await import('../features/tecnico/intervencion/RegIntervencionPage');
+  return { default: m.RegIntervencionPage };
+});
+export const LazyIngresoCnrPage = lazy(async () => {
+  const m = await import('../features/tecnico/cnr/IngresoCnrPage');
+  return { default: m.IngresoCnrPage };
+});
+export const LazyObservabilidadPage = lazy(async () => {
+  const m = await import('../features/admin/observabilidad/ObservabilidadPage');
+  return { default: m.ObservabilidadPage };
+});
+export const LazyConfigReleasesPage = lazy(async () => {
+  const m = await import('../features/admin/config-releases/ConfigReleasesPage');
+  return { default: m.ConfigReleasesPage };
+});
+export const LazyCuadraturaPage = lazy(async () => {
+  const m = await import('../features/auditor/cuadratura/CuadraturaPage');
+  return { default: m.CuadraturaPage };
+});
+export const LazyTrazabilidadPage = lazy(async () => {
+  const m = await import('../features/auditor/trazabilidad/TrazabilidadPage');
+  return { default: m.TrazabilidadPage };
+});
+export const LazyDatosCrudosPage = lazy(async () => {
+  const m = await import('../features/auditor/datos-crudos/DatosCrudosPage');
+  return { default: m.DatosCrudosPage };
+});
+export const LazyExportarEvidenciaPage = lazy(async () => {
+  const m = await import('../features/auditor/evidencia/ExportarEvidenciaPage');
+  return { default: m.ExportarEvidenciaPage };
+});
+
+export const LazySeguridadPamPage = lazy(async () => {
+  const m = await import('../features/admin/seguridad-pam/SeguridadPamPage');
+  return { default: m.SeguridadPamPage };
+});
+
+export const LazyMaestroMedidoresPage = lazy(async () => {
+  const m = await import('../features/tecnico/maestro/MaestroMedidoresPage');
+  return { default: m.MaestroMedidoresPage };
+});
+
+export const LazyMapaCoberturaPage = lazy(async () => {
+  const m = await import('../features/operacional/cobertura/MapaCoberturaPage');
+  return { default: m.MapaCoberturaPage };
+});
+
+export const LazyCnrPendientesPage = lazy(async () => {
+  const m = await import('../features/operacional/cnr/CnrPendientesPage');
+  return { default: m.CnrPendientesPage };
+});
+
+export const LazyCalidadBackfillPage = lazy(async () => {
+  const m = await import('../features/operacional/calidad/CalidadBackfillPage');
+  return { default: m.CalidadBackfillPage };
+});
+
+export const LazyTicketsSlaPage = lazy(async () => {
+  const m = await import('../features/operacional/tickets/TicketsSlaPage');
+  return { default: m.TicketsSlaPage };
+});
+
+export const LazyAlarmasEventosPage = lazy(async () => {
+  const m = await import('../features/operacional/alarmas/AlarmasEventosPage');
+  return { default: m.AlarmasEventosPage };
+});
+
+export const LazyMonitoreoVivoPage = lazy(async () => {
+  const m = await import('../features/operacional/monitoreo/MonitoreoVivoPage');
+  return { default: m.MonitoreoVivoPage };
+});
+
+export const LazyExportarReportesPage = lazy(async () => {
+  const m = await import('../features/dashboard/exportar/ExportarReportesPage');
+  return { default: m.ExportarReportesPage };
+});
+
+export const LazyReportesEjecutivosPage = lazy(async () => {
+  const m = await import('../features/dashboard/reportes/ReportesEjecutivosPage');
+  return { default: m.ReportesEjecutivosPage };
+});
+
+export const LazyAlarmasAgregadasPage = lazy(async () => {
+  const m = await import('../features/dashboard/alarmas/AlarmasAgregadasPage');
+  return { default: m.AlarmasAgregadasPage };
+});
+
+export const LazyCostosTendenciasPage = lazy(async () => {
+  const m = await import('../features/dashboard/costos/CostosTendenciasPage');
+  return { default: m.CostosTendenciasPage };
+});
+
 export const LazyPlatformDashboardPage = lazy(async () => {
   const m = await import('../features/dashboard/platform/PlatformDashboardPage');
   return { default: m.PlatformDashboardPage };

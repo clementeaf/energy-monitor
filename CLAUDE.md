@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-24)
+- **2.25.0:** Profile-based sidebar + 25 pantallas nuevas según spec `docs/roles-ems.md`. 5 perfiles: Gerencial (6 pantallas), Operacional (6), Técnico (6), Auditor (4 nuevas + 2 existentes), Súper-admin (3 nuevas + 3 existentes). Sidebar usa `PROFILE_NAV[profile]` lookup (zero ifs). `UserProfile` type, `ROLE_TO_PROFILE` mapping, `EnergyStatus` system. 777 frontend tests. [CHANGELOG — 2.25.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-22)
 - **2.24.0:** Login simplificado — OAuth directo, sin slug. Título "EMS". Dashboard: chart stretch vertical, click en punto → detalle medidor, edificios y facturas clickeables a sus vistas. [CHANGELOG — 2.24.0-alpha.0](CHANGELOG.md)
 
@@ -241,11 +244,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.23.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
+Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
+Perfiles: 5 perfiles EMS implementados (gerencial/operacional/tecnico/auditor/super_admin). 25 pantallas nuevas. 777 frontend tests.
+Spec: docs/roles-ems.md (legible) + docs/Roles EMS.pdf (original).
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
-Seed demo: monitoreo-v2/scripts/pasa-readings/seed-pasa-frontend-gaps.mjs
-Smoke: npm run test:smoke-dashboard (monitoreo-v2/backend)
 ```
 
 ## Prioridad Actual de Acceso

@@ -1,5 +1,58 @@
 # Changelog
 
+## [2.25.0-alpha.0] - 2026-06-24 — PROFILE-BASED SIDEBAR, 25 NEW PAGES (5 PROFILES)
+
+### Added
+- **Profile-based sidebar navigation** — `UserProfile` type (`gerencial`, `operacional`, `tecnico`, `auditor`, `super_admin`, `locatario`). `ROLE_TO_PROFILE` mapping. `PROFILE_NAV` Record with profile-specific nav entries. Sidebar renders via map lookup, zero permission filtering.
+- **Energy status system** — `EnergyStatus` type, `deriveBuildingStatus()`, `getStatusStyle()` with color Records for map markers and semaphores.
+
+#### Perfil Gerencial (6 pages)
+- **Panel Consolidado** (`/dashboard/consolidado`) — Two-column layout: map + KPIs. Country selector (CL/PE/CO). 4 KPI cards. Building list with energy status semaphore. Nivel 2 detail panel on building click.
+- **Consumo Jerárquico** (`/dashboard/consumo`) — Portfolio drill-down with expandable tree. Filters: country, period, metric. Buildings sorted by metric. Click expands to meter list.
+- **Costos y Tendencias** (`/dashboard/costos`) — Financial view. Stacked bar chart (monthly cost). Summary KPIs. Cost table per building with totals footer. Currency selector (CLP/UF/USD).
+- **Alarmas Agregadas** (`/dashboard/alarmas`) — Executive alert overview. KPI header. Top 5 malls. Alert table grouped by mall. No technical meter detail.
+- **Reportes Ejecutivos** (`/dashboard/reportes-ejecutivos`) — Report configurator (scope, period, sections, format, language). Preview thumbnails. Generate button. History table.
+- **Exportar Reportes** (`/dashboard/exportar`) — Ad-hoc export configurator. Content type checkboxes. Preview table (estimated rows/size). Export queue with status.
+
+#### Perfil Operacional (6 pages)
+- **Monitoreo en Vivo** (`/operacional/monitoreo`) — Real-time meter park. KPI header (total/online/offline/stale/alerts). Mall grid cards with semaphore. Expandable meter table. Event feed.
+- **Alarmas y Eventos** (`/operacional/alarmas`) — Operational alarm management. Severity/status filters. Alert table sorted by severity×age. Detail panel with triggered value, threshold, actions (assign/close), comment field. SLA summary.
+- **Tickets y SLA** (`/operacional/tickets`) — Ticket board derived from alerts. SLA deadlines per priority. Quick filter (all/due soon/overdue). Status badges.
+- **Calidad y Backfill** (`/operacional/calidad`) — Quality scorecard per building. Active backfill jobs panel. Degradation alerts (meters without recent data).
+- **CNR Pendientes** (`/operacional/cnr`) — Unregistered changes list. KPI header. Expandable rows with justification and responsible. Status filter.
+- **Mapa de Cobertura** (`/operacional/cobertura`) — Geographic coverage map. Side panel sorted by % online ascending. Search by name. Metric selector.
+
+#### Perfil Técnico (6 pages)
+- **Mis Órdenes** (`/tecnico/ordenes`) — Work orders derived from alerts. KPI header (pending/in-progress/closed/overdue). Detail panel with action buttons.
+- **Medidores / Remarcador** (`/tecnico/medidores`) — Meter catalog with search. Meter ficha (identification, last reading). Navigate to full detail.
+- **Diagnóstico Comms** (`/tecnico/diagnostico`) — Communication diagnostics per meter. State badge (online/offline/intermittent). Protocol/address display. Diagnostic tools.
+- **Reg. Intervención** (`/tecnico/intervencion`) — Intervention registration form. Type, description, result, CNR checkbox. Validation.
+- **Ingreso CNR Manual** (`/tecnico/cnr`) — Manual CNR entry form. Period, kWh value, motive, justification (min 20 chars). Validation.
+- **Maestro Medidores** (`/tecnico/maestro`) — Meter master data. Asset status badges. Filter by status. Search by serial/name.
+
+#### Perfil Súper-admin (3 new pages)
+- **Observabilidad** (`/admin/observabilidad`) — Health dashboard. Component semaphore. Ingestion metrics. Health alerts list.
+- **Config y Releases** (`/admin/config-releases`) — Release pipeline table. Deploy history with result badges.
+- **Seguridad y PAM** (`/admin/seguridad-pam`) — Vulnerability summary. TLS certificate expiry. PAM accounts table. Security KPIs.
+
+#### Perfil Auditor (4 new pages)
+- **Cuadratura Agregación** (`/auditor/cuadratura`) — Reconciliation table (main vs sub-meters). Tolerance check (±2%). Difference kWh and %.
+- **Trazabilidad / Lineage** (`/auditor/trazabilidad`) — Reading lineage panel. Raw vs shown comparison table. Quality type badge.
+- **Datos Crudos** (`/auditor/datos-crudos`) — Raw data preview (10 rows). Resolution selector. Format selector (CSV/JSON/Parquet). Export button.
+- **Exportar Evidencia** (`/auditor/evidencia`) — Evidence package configurator. Content checkboxes. SHA-256 signed ZIP. History table.
+
+### Changed
+- **Sidebar** — Replaced flat `NAV_ENTRIES` + permission filtering with `PROFILE_NAV[profile]` lookup. Removed `filterSubItems` with `superAdminOnly`/`requiresTenant`/`hideWithTenant` flags.
+- **`usePermissions`** — Exposes `profile: UserProfile` derived from active role via `resolveProfile()`.
+- **`DashboardIndex`** — Redirects gerencial → Panel Consolidado, super_admin → Platform via `PROFILE_DASHBOARD` Record.
+- **`routes.ts`** — 19 new route definitions.
+- **`lazyPages.ts`** — 25 new lazy imports.
+
+### Stats
+- Frontend: 777 tests / 58 suites. Backend: 1,294 tests / 142 suites.
+
+---
+
 ## [2.24.0-alpha.0] - 2026-06-22 — LOGIN SIMPLIFICATION, DASHBOARD CHART STRETCH
 
 ### Changed

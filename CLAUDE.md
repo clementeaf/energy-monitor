@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-24)
+- **2.26.0:** IoT ingest Lambda reescrita para formato EAV v2. Parser chain (POC3000 + genérico flat). Device map configurable por env var. 26 tests. No desplegada — lista para cuando se reactive IoT Core. [CHANGELOG — 2.26.0-alpha.0](CHANGELOG.md)
 - **2.25.0:** Profile-based sidebar + 25 pantallas nuevas según spec `docs/roles-ems.md`. 5 perfiles: Gerencial (6 pantallas), Operacional (6), Técnico (6), Auditor (4 nuevas + 2 existentes), Súper-admin (3 nuevas + 3 existentes). Sidebar usa `PROFILE_NAV[profile]` lookup (zero ifs). `UserProfile` type, `ROLE_TO_PROFILE` mapping, `EnergyStatus` system. 777 frontend tests. [CHANGELOG — 2.25.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-22)
@@ -247,8 +248,8 @@ Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
 Perfiles: 5 perfiles EMS implementados (gerencial/operacional/tecnico/auditor/super_admin). 25 pantallas nuevas. 777 frontend tests.
-Spec: docs/roles-ems.md (legible) + docs/Roles EMS.pdf (original).
-Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
+IoT ingest: Lambda reescrita para EAV v2 (no desplegada). Parser chain POC3000 + genérico. 26 tests.
+Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23, deploy iot-ingest cuando se reactive IoT Core.
 ```
 
 ## Prioridad Actual de Acceso

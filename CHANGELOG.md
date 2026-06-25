@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.26.0-alpha.0] - 2026-06-24 — IOT INGEST V2 (EAV FORMAT)
+
+### Changed
+- **`iot-ingest` Lambda** — Rewritten to insert into monitoreo-v2 `iot_readings` hypertable in EAV format (`time, tenant_id, meter_id, variable_name, value, quality`). Replaces legacy columnar schema.
+
+### Added
+- **Parser chain** — Two payload parsers: Siemens POC3000 (`_embedded.item[]`) and generic flat format (`{ deviceId, timestamp, variables }`). First match wins, unrecognized payloads logged without crash.
+- **Device map** — `DEVICE_MAP` resolves external `device_id` to `{ tenantId, meterId }` UUIDs. Overridable via env var (JSON).
+- **EAV expansion** — `toEavRows()` converts parsed readings into one row per variable.
+- **Tests** — 26 tests / 3 suites (parsers, device-map, eav). Vitest added as test runner.
+
+### Notes
+- Not deployed yet — code ready for when IoT Core service is reactivated.
+- No changes to AWS infrastructure (IoT Core, S3, EventBridge, VPC, IAM).
+
+---
+
 ## [2.25.0-alpha.0] - 2026-06-24 — PROFILE-BASED SIDEBAR, 25 NEW PAGES (5 PROFILES)
 
 ### Added

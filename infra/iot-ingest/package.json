@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "deploy": "npm run build && npx serverless deploy --verbose",
     "invoke": "npx serverless invoke -f ingest --log"
   },
@@ -16,6 +18,7 @@
     "@types/node": "^20.17.0",
     "@types/pg": "^8.11.0",
     "serverless": "^3.40.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.9"
   }
 }

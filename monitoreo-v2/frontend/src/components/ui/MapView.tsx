@@ -8,7 +8,10 @@ const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
 const DEFAULT_PITCH = 50;
 
-const INDOOR_TILES_URL = 'http://localhost:4000/api/mapvx/tiles/{z}/{x}/{y}.pbf';
+// ponytail: derive tile URL from current origin in prod, localhost in dev
+const INDOOR_TILES_URL = import.meta.env.DEV
+  ? 'http://localhost:4000/api/mapvx/tiles/{z}/{x}/{y}.pbf'
+  : `${window.location.origin}/api/mapvx/tiles/{z}/{x}/{y}.pbf`;
 
 const HIGHLIGHT_SOURCE = 'highlight-area';
 const HIGHLIGHT_FILL = 'highlight-area-fill';

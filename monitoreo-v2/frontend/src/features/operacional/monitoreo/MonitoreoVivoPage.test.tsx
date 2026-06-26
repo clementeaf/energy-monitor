@@ -94,9 +94,9 @@ describe('MonitoreoVivoPage', () => {
       expect(screen.getByText('Dato estancado >4h')).toBeInTheDocument();
     });
 
-    it('renders alert count', () => {
+    it('renders CNR pendientes', () => {
       renderPage();
-      expect(screen.getByText('Alertas activas')).toBeInTheDocument();
+      expect(screen.getByText('CNR pendientes')).toBeInTheDocument();
     });
   });
 

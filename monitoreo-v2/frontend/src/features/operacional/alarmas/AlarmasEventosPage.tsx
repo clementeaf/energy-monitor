@@ -60,6 +60,7 @@ function elapsed(createdAt: string): string {
 export function AlarmasEventosPage() {
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<string>('active');
+  const [mallFilter, setMallFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [comment, setComment] = useState('');
 
@@ -76,13 +77,13 @@ export function AlarmasEventosPage() {
     [buildings],
   );
 
-  // Filter by severity
-  const filtered = useMemo(
-    () => severityFilter === 'all'
-      ? alerts
-      : alerts.filter((a) => a.severity === severityFilter),
-    [alerts, severityFilter],
-  );
+  // Filter by severity + mall
+  const filtered = useMemo(() => {
+    let result = alerts;
+    if (severityFilter !== 'all') result = result.filter((a) => a.severity === severityFilter);
+    if (mallFilter !== 'all') result = result.filter((a) => a.buildingId === mallFilter);
+    return result;
+  }, [alerts, severityFilter, mallFilter]);
 
   // Sort: severity priority × age
   const SEVERITY_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -134,6 +135,14 @@ export function AlarmasEventosPage() {
               onChange={setStatusFilter}
               size="sm"
             />
+            <select
+              value={mallFilter}
+              onChange={(e) => setMallFilter(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              <option value="all">Todos los centros</option>
+              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
           </div>
         }
       />
@@ -200,9 +209,13 @@ export function AlarmasEventosPage() {
           {/* SLA summary bar */}
           <div className="panel mt-3 shrink-0 px-4 py-3">
             <h4 className="text-[12px] font-medium text-foreground">Resumen SLA</h4>
-            <div className="mt-2 flex gap-4 text-[12px]">
+            <div className="mt-2 flex flex-wrap gap-4 text-[12px]">
               <span className="text-muted">Total: {sorted.length}</span>
               <span className="text-muted">Resueltas período: {totalResolved}</span>
+              <span className="text-red-600">Críticas: {sorted.filter((a) => a.severity === 'critical').length}</span>
+              <span className="text-orange-600">Altas: {sorted.filter((a) => a.severity === 'high').length}</span>
+              <span className="text-amber-600">Medias: {sorted.filter((a) => a.severity === 'medium').length}</span>
+              <span className="text-blue-600">Bajas: {sorted.filter((a) => a.severity === 'low').length}</span>
             </div>
           </div>
         </div>

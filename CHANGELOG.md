@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.31.0-alpha.0] - 2026-06-26 — OPERACIONAL PROFILE SPEC ALIGNMENT
+
+### Changed
+- **MonitoreoVivoPage** — KPI "CNR pendientes" replaces "Alertas activas". Park behavior histogram (24h, colored bars by % online). Enriched feed includes offline/stale meter events alongside alerts.
+- **AlarmasEventosPage** — Mall filter dropdown. SLA summary with per-severity breakdown (critical/high/medium/low counts).
+- **CalidadBackfillPage** — Trend column (↑↓→) in quality scorecard table.
+- **CnrPendientesPage** — Export CSV button for filtered CNR records.
+- **MapaCoberturaPage** — Map markers colored by % online (green >95%, amber 85-95%, red <85%). Enriched popups with online %, meter count, alert count.
+
+### Stats
+- 828 frontend tests / 69 suites. All passing.
+
+---
+
 ## [2.30.0-alpha.0] - 2026-06-26 — GERENCIAL PROFILE SPEC ALIGNMENT
 
 ### Changed

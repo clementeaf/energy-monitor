@@ -176,34 +176,75 @@ export function MonitoreoVivoPage() {
   );
   const onlinePct = totalMeters > 0 ? ((onlineCount / totalMeters) * 100).toFixed(1) : '0';
 
-  // Feed events (alerts as events)
-  const feedEvents: FeedEvent[] = useMemo(
-    () => alerts
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 10)
-      .map((a) => ({
-        id: a.id,
-        type: 'alert' as const,
-        message: a.message,
-        building: buildings.find((b) => b.id === a.buildingId)?.name ?? '',
-        timestamp: a.createdAt,
-      })),
-    [alerts, buildings],
-  );
-
   // Expanded mall meters
   const expandedMeters = useMemo(
     () => expandedMallId ? meters.filter((m) => m.buildingId === expandedMallId) : [],
     [meters, expandedMallId],
   );
 
+  // CNR pending = stale meters (gap > 4h = potential CNR)
+  const cnrPending = staleCount;
+
   const kpis = [
     { title: 'Total medidores', value: String(totalMeters), color: 'text-foreground' },
     { title: 'En línea', value: `${onlineCount} (${onlinePct}%)`, color: 'text-emerald-600' },
     { title: 'Offline', value: String(offlineCount), color: offlineCount > 0 ? 'text-red-600' : 'text-foreground' },
     { title: 'Dato estancado >4h', value: String(staleCount), color: staleCount > 0 ? 'text-amber-600' : 'text-foreground' },
-    { title: 'Alertas activas', value: String(alerts.length), color: alerts.length > 0 ? 'text-red-600' : 'text-emerald-600' },
+    { title: 'CNR pendientes', value: String(cnrPending), color: cnrPending > 0 ? 'text-amber-600' : 'text-foreground' },
   ];
+
+  // Park behavior histogram — % online per hour (last 24h)
+  // ponytail: derived from current snapshot only (no historical hourly data without backend)
+  // Shows current status as a single bar per building as proxy
+  const parkHistogram = useMemo(() => {
+    const hours: { label: string; pctOnline: number }[] = [];
+    for (let h = 23; h >= 0; h--) {
+      const hourTs = now - h * 3_600_000;
+      const d = new Date(hourTs);
+      const label = `${d.getHours().toString().padStart(2, '0')}:00`;
+      // ponytail: approximate — count meters with reading in that hour window
+      const inHour = readings.filter((r) => {
+        const t = new Date(r.timestamp).getTime();
+        return t >= hourTs - 3_600_000 && t < hourTs;
+      }).length;
+      const pct = totalMeters > 0 ? (inHour / totalMeters) * 100 : 0;
+      hours.push({ label, pctOnline: Math.min(100, pct) });
+    }
+    return hours;
+  }, [readings, totalMeters, now]);
+
+  // Enriched feed: alerts + offline/stale meter events
+  const enrichedFeed: FeedEvent[] = useMemo(() => {
+    const alertEvents: FeedEvent[] = alerts
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 6)
+      .map((a) => ({
+        id: a.id,
+        type: 'alert' as const,
+        message: a.message,
+        building: buildings.find((b) => b.id === a.buildingId)?.name ?? '',
+        timestamp: a.createdAt,
+      }));
+
+    // Add offline/stale meter events
+    const meterEvents: FeedEvent[] = meters
+      .reduce<FeedEvent[]>((acc, m) => {
+        const reading = readingByMeter.get(m.id);
+        const status = deriveMeterStatus(reading, now);
+        if (status === 'online') return acc;
+        acc.push({
+          id: `${m.id}-${status}`,
+          type: status,
+          message: `${m.name} (${m.code}) — ${STATUS_STYLES[status].label}`,
+          building: buildings.find((b) => b.id === m.buildingId)?.name ?? '',
+          timestamp: reading?.timestamp ?? new Date(now - 86_400_000).toISOString(),
+        });
+        return acc;
+      }, [])
+      .slice(0, 4);
+
+    return [...alertEvents, ...meterEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 10);
+  }, [alerts, meters, buildings, readingByMeter, now]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -297,12 +338,32 @@ export function MonitoreoVivoPage() {
           </div>
         </div>
 
-        {/* Feed */}
-        <div className="hidden w-72 shrink-0 flex-col lg:flex">
-          <h3 className="mb-2 text-[13px] font-medium text-foreground">Eventos recientes</h3>
+        {/* Right column: histogram + feed */}
+        <div className="hidden w-72 shrink-0 flex-col gap-3 lg:flex">
+          {/* Park histogram */}
+          <div className="panel shrink-0 p-3">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Comportamiento parque — 24h</h3>
+            <div className="flex h-16 items-end gap-[1px]">
+              {parkHistogram.map((h) => (
+                <div
+                  key={h.label}
+                  className="flex-1 rounded-t"
+                  style={{ height: `${Math.max(2, h.pctOnline)}%`, backgroundColor: h.pctOnline >= 90 ? '#22c55e' : h.pctOnline >= 70 ? '#f59e0b' : '#ef4444' }}
+                  title={`${h.label}: ${h.pctOnline.toFixed(0)}% online`}
+                />
+              ))}
+            </div>
+            <div className="mt-1 flex justify-between text-[9px] text-subtle">
+              <span>{parkHistogram[0]?.label}</span>
+              <span>{parkHistogram[parkHistogram.length - 1]?.label}</span>
+            </div>
+          </div>
+
+          {/* Feed */}
+          <h3 className="text-[13px] font-medium text-foreground">Eventos recientes</h3>
           <div className="panel min-h-0 flex-1 overflow-y-auto">
             <ul className="divide-y divide-border">
-              {feedEvents.map((evt) => {
+              {enrichedFeed.map((evt) => {
                 const badge = EVENT_BADGE[evt.type] ?? '';
                 return (
                   <li key={evt.id} className="px-3 py-2.5">
@@ -321,7 +382,7 @@ export function MonitoreoVivoPage() {
                   </li>
                 );
               })}
-              {feedEvents.length === 0 && (
+              {enrichedFeed.length === 0 && (
                 <li className="px-3 py-6 text-center text-[12px] text-muted">Sin eventos recientes.</li>
               )}
             </ul>

@@ -103,12 +103,29 @@ export function CnrPendientesPage() {
         title="CNR Pendientes"
         eyebrow="CNR"
         actions={
-          <PillToggle
-            options={FILTER_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            size="sm"
-          />
+          <div className="flex items-center gap-2">
+            <PillToggle
+              options={FILTER_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              size="sm"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const header = 'ID,Medidor,Centro,Última lectura,Gap (h),Estado';
+                const csv = [header, ...filtered.map((c) => `${c.id},${c.meterName},${c.buildingName},${c.lastReading},${c.gapHours},${c.status}`)].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `cnr_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
+            >
+              Exportar CSV
+            </button>
+          </div>
         }
       />
 

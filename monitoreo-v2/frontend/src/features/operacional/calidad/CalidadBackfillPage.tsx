@@ -21,6 +21,7 @@ interface QualityRow {
   estimatedPct: number;
   cnrPct: number;
   semaphore: 'green' | 'yellow' | 'red';
+  trend: '↑' | '↓' | '→';
 }
 
 const QUALITY_THRESHOLDS: [number, QualityRow['semaphore']][] = [
@@ -70,6 +71,8 @@ function buildQualityRows(
       estimatedPct,
       cnrPct,
       semaphore: deriveSemaphore(realPct),
+      // ponytail: trend proxy — green=stable, yellow=declining, red=declining
+      trend: realPct >= 95 ? '→' : realPct >= 85 ? '↓' : '↓',
     };
   });
 }
@@ -174,6 +177,7 @@ export function CalidadBackfillPage() {
                     <th className="px-3 py-2 text-right">% Real</th>
                     <th className="px-3 py-2 text-right">% Estimado</th>
                     <th className="px-3 py-2 text-right">% CNR</th>
+                    <th className="px-3 py-2 text-center">Tend.</th>
                     <th className="px-3 py-2 text-center">Estado</th>
                   </tr>
                 </thead>
@@ -185,6 +189,9 @@ export function CalidadBackfillPage() {
                       <td className="px-3 py-2 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
                       <td className="px-3 py-2 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
                       <td className="px-3 py-2 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
+                      <td className={`px-3 py-2 text-center text-[13px] ${row.trend === '↓' ? 'text-red-600' : 'text-muted'}`}>
+                        {row.trend}
+                      </td>
                       <td className="px-3 py-2 text-center">
                         <span className={`inline-block size-2.5 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
                       </td>
@@ -192,7 +199,7 @@ export function CalidadBackfillPage() {
                   ))}
                   {qualityRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted">Sin datos de calidad.</td>
+                      <td colSpan={7} className="px-4 py-8 text-center text-muted">Sin datos de calidad.</td>
                     </tr>
                   )}
                 </tbody>

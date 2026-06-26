@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
-import { MapView } from '../../../components/ui/MapView';
+import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -135,6 +135,21 @@ export function MapaCoberturaPage() {
     [buildings],
   );
 
+  // Colored markers by % online
+  const buildingMeta = useMemo(() => {
+    const map = new Map<string, BuildingMarkerMeta>();
+    coverageRows.forEach((r) => {
+      const color = r.onlinePct >= 95 ? '#22c55e' : r.onlinePct >= 85 ? '#f59e0b' : '#ef4444';
+      const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+        <strong style="font-size:13px">${r.building.name}</strong>
+        <p style="margin:3px 0 0;font-size:12px">${r.onlinePct.toFixed(0)}% online (${r.onlineCount}/${r.totalMeters})</p>
+        ${r.alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.alertCount} alertas</p>` : ''}
+      </div>`;
+      map.set(r.building.id, { color, popupHtml });
+    });
+    return map;
+  }, [coverageRows]);
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
@@ -153,7 +168,7 @@ export function MapaCoberturaPage() {
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         {/* Map */}
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
-          <MapView buildings={geoBuildings} className="h-full w-full" />
+          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
         </div>
 
         {/* Side panel */}

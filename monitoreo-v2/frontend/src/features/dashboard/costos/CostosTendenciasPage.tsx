@@ -30,6 +30,8 @@ const CURRENCIES: SelectOption[] = [
   { key: 'CLP', label: 'CLP' },
   { key: 'UF', label: 'UF' },
   { key: 'USD', label: 'USD' },
+  { key: 'PEN', label: 'PEN' },
+  { key: 'COP', label: 'COP' },
 ];
 
 /* ── Currency conversion rates (placeholder) ── */
@@ -38,6 +40,8 @@ const CURRENCY_RATES: Record<string, number> = {
   CLP: 1,
   UF: 0.0000268, // ~1 UF = 37,300 CLP
   USD: 0.00106,   // ~1 USD = 943 CLP
+  PEN: 0.00397,   // ~1 PEN = 252 CLP
+  COP: 4.26,      // ~1 COP = 0.235 CLP
 };
 
 /* ── Cost row per building ── */
@@ -118,10 +122,25 @@ function aggregateMonthlyCosts(invoices: Invoice[], currencyRate: number): Month
 
 /* ── Page ── */
 
+function downloadCsv(rows: CostRow[], currency: string) {
+  const header = 'Centro,MWh,Precio medio,Costo total,Facturas,Variación %';
+  const csv = [header, ...rows.map((r) =>
+    `${r.buildingName},${r.consumptionMwh.toFixed(1)},${r.avgPricePerMwh.toFixed(2)},${r.totalCost.toFixed(2)},${r.invoiceCount},${r.variationPct ?? '—'}`,
+  )].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `costos_${currency}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function CostosTendenciasPage() {
   const [country, setCountry] = useState('CL');
   const [period, setPeriod] = useState('month');
   const [currency, setCurrency] = useState('CLP');
+  const [search, setSearch] = useState('');
 
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
@@ -155,10 +174,14 @@ export function CostosTendenciasPage() {
   );
 
   // Cost rows
-  const costRows = useMemo(
+  const allCostRows = useMemo(
     () => buildCostRows(filteredBuildings, filteredInvoices, filteredReadings, currencyRate)
       .sort((a, b) => b.totalCost - a.totalCost),
     [filteredBuildings, filteredInvoices, filteredReadings, currencyRate],
+  );
+  const costRows = useMemo(
+    () => search ? allCostRows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase())) : allCostRows,
+    [allCostRows, search],
   );
 
   // Summary KPIs
@@ -166,35 +189,67 @@ export function CostosTendenciasPage() {
   const totalMwh = costRows.reduce((sum, r) => sum + r.consumptionMwh, 0);
   const avgPrice = totalMwh > 0 ? totalCost / totalMwh : 0;
 
-  // Monthly chart data
+  // Monthly chart data — stacked by building
   const monthlyData = useMemo(
     () => aggregateMonthlyCosts(filteredInvoices, currencyRate),
     [filteredInvoices, currencyRate],
   );
 
-  const chartOptions = useMemo(() => ({
-    chart: { type: 'column' as const, height: 280 },
-    title: { text: '' },
-    xAxis: {
-      categories: monthlyData.map((d) => d.month),
-      crosshair: true,
-    },
-    yAxis: {
-      title: { text: `Costo (${currentCurrency.key})` },
-      min: 0,
-    },
-    tooltip: {
-      headerFormat: '<b>{point.key}</b><br/>',
-      pointFormat: `Costo: {point.y:,.0f} ${currentCurrency.key}`,
-    },
-    series: [{
-      name: 'Costo mensual',
+  // Stacked series per building + price line
+  const chartOptions = useMemo(() => {
+    const months = monthlyData.map((d) => d.month);
+
+    // Per-building monthly buckets
+    const buildingBuckets = new Map<string, Map<string, number>>();
+    filteredInvoices
+      .filter((inv) => inv.status !== 'voided')
+      .forEach((inv) => {
+        const month = inv.periodStart.slice(0, 7);
+        const name = filteredBuildings.find((b) => b.id === inv.buildingId)?.name ?? inv.buildingId;
+        if (!buildingBuckets.has(name)) buildingBuckets.set(name, new Map());
+        const bMap = buildingBuckets.get(name)!;
+        bMap.set(month, (bMap.get(month) ?? 0) + (parseFloat(inv.total) || 0) * currencyRate);
+      });
+
+    const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#22c55e', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+    const stackedSeries = Array.from(buildingBuckets.entries()).map(([name, bMap], i) => ({
+      name,
       type: 'column' as const,
-      data: monthlyData.map((d) => d.cost),
-      color: 'var(--color-brand)',
-    }],
-    legend: { enabled: false },
-  }), [monthlyData, currentCurrency.key]);
+      data: months.map((m) => bMap.get(m) ?? 0),
+      color: COLORS[i % COLORS.length],
+    }));
+
+    // Price line (avg cost/MWh per month)
+    const priceLine = months.map((m) => {
+      const bucket = monthlyData.find((d) => d.month === m);
+      return bucket && totalMwh > 0 ? bucket.cost / (totalMwh / months.length) : 0;
+    });
+
+    return {
+      chart: { type: 'column' as const, height: 280 },
+      title: { text: '' },
+      xAxis: { categories: months, crosshair: true },
+      yAxis: [
+        { title: { text: `Costo (${currentCurrency.key})` }, min: 0 },
+        { title: { text: `${currentCurrency.key}/MWh` }, opposite: true, min: 0 },
+      ],
+      tooltip: { shared: true },
+      plotOptions: { column: { stacking: 'normal' as const } },
+      series: [
+        ...stackedSeries,
+        {
+          name: 'Precio medio',
+          type: 'line' as const,
+          yAxis: 1,
+          data: priceLine,
+          color: '#f97316',
+          dashStyle: 'Dash' as const,
+          marker: { radius: 3 },
+        },
+      ],
+      legend: { enabled: stackedSeries.length > 1 },
+    };
+  }, [monthlyData, filteredInvoices, filteredBuildings, currencyRate, currentCurrency.key, totalMwh]);
 
   const summaryCards = [
     { title: 'Costo total', value: formatCurrency(totalCost, currentCurrency.key) },
@@ -257,9 +312,22 @@ export function CostosTendenciasPage() {
 
         {/* Cost table */}
         <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-          <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">
-            Costos por centro comercial
-          </h3>
+          <div className="flex shrink-0 items-center gap-2 px-4 py-3">
+            <h3 className="flex-1 text-[13px] font-medium text-foreground">Costos por centro comercial</h3>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar mall..."
+              className="w-36 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={() => downloadCsv(costRows, currentCurrency.key)}
+              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
+            >
+              Exportar CSV
+            </button>
+          </div>
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-[13px]">
               <thead className="sticky top-0 z-10 bg-background">
@@ -269,6 +337,7 @@ export function CostosTendenciasPage() {
                   <th className="px-3 py-2 text-right">Precio medio</th>
                   <th className="px-3 py-2 text-right">Costo total</th>
                   <th className="px-3 py-2 text-right">Facturas</th>
+                  <th className="px-3 py-2 text-right">Var. %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -283,11 +352,14 @@ export function CostosTendenciasPage() {
                       {formatCurrency(row.totalCost, currentCurrency.key)}
                     </td>
                     <td className="px-3 py-2 text-right text-muted">{row.invoiceCount}</td>
+                    <td className="px-3 py-2 text-right text-[11px] text-muted">
+                      {row.variationPct != null ? `${row.variationPct > 0 ? '+' : ''}${row.variationPct.toFixed(1)}%` : '—'}
+                    </td>
                   </tr>
                 ))}
                 {costRows.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted">
                       Sin datos de costos para el período seleccionado.
                     </td>
                   </tr>
@@ -301,6 +373,7 @@ export function CostosTendenciasPage() {
                     <td className="px-3 py-2 text-right">{avgPrice.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">{formatCurrency(totalCost, currentCurrency.key)}</td>
                     <td className="px-3 py-2 text-right">{costRows.reduce((s, r) => s + r.invoiceCount, 0)}</td>
+                    <td className="px-3 py-2" />
                   </tr>
                 </tfoot>
               )}

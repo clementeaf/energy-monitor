@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-26)
+- **2.30.0:** Perfil Gerencial alineado con spec Roles EMS. MapView con markers coloreados por status + popups enriquecidos + onClick. Panel Consolidado Nivel 2 con breadcrumb y voltaje. Consumo con intensidad kWh/m² + sort/filter. Costos con stacked chart por mall + línea precio + PEN/COP + export CSV. Alarmas con gráfico evolución 30d + resolución media. Reportes con PPT + search historial. Fix PlatformDashboard crash. [CHANGELOG — 2.30.0-alpha.0](CHANGELOG.md)
 - **2.29.0:** 9 gaps de spec Roles EMS cerrados (4 parciales + 5 stubs → todos con datos reales). 828 frontend tests / 69 suites. Zero stubs. Las 30 pantallas del spec ahora usan datos de API o derivados. [CHANGELOG — 2.29.0-alpha.0](CHANGELOG.md)
 - **2.28.0:** IoT frontend integrado. Parser para formato SENTRON flat (keys español). Migración 54 (building + meter Siemens en DB). Frontend: rutas, endpoints, hook y panel IoT en MeterDetailPage (lectura en vivo, auto-refresh 30s). 9 errores TS build preexistentes corregidos. Data real de Siemens confirmada. Pendiente: Siemens debe agregar ID por medidor para escalar a 100+. [CHANGELOG — 2.28.0-alpha.0](CHANGELOG.md)
 - **2.27.0:** IoT pipeline reactivado. Bucket S3 `energy-monitor-iot-ingest` (lifecycle Glacier 30d). VPC endpoint S3 Gateway (gratis). Lambda `iot-ingest-prod-ingest` desplegada. IoT Rule actualizada. Pipeline verificado E2E (IoT Core → S3 → Lambda → RDS). Certs enviados a Siemens. [CHANGELOG — 2.27.0-alpha.0](CHANGELOG.md)
@@ -374,4 +375,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.29.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.30.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

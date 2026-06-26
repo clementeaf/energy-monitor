@@ -29,6 +29,7 @@ const COMPARISON_OPTIONS: SelectOption[] = [
 
 const FORMAT_OPTIONS: SelectOption[] = [
   { key: 'pdf', label: 'PDF' },
+  { key: 'ppt', label: 'PPT' },
   { key: 'excel', label: 'Excel' },
   { key: 'csv', label: 'CSV' },
 ];
@@ -110,17 +111,24 @@ export function ReportesEjecutivosPage() {
   const [sections, setSections] = useState<Set<string>>(
     () => new Set(REPORT_SECTIONS.filter((s) => s.defaultChecked).map((s) => s.key)),
   );
+  const [historySearch, setHistorySearch] = useState('');
 
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
 
   const reports = reportsQuery.data ?? [];
 
-  // Sorted history (newest first)
-  const sortedReports = useMemo(
-    () => [...reports].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [reports],
-  );
+  // Sorted + filtered history (newest first)
+  const sortedReports = useMemo(() => {
+    const sorted = [...reports].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (!historySearch) return sorted;
+    const q = historySearch.toLowerCase();
+    return sorted.filter((r) =>
+      r.reportType.toLowerCase().includes(q)
+      || r.periodStart.includes(q)
+      || r.createdAt.includes(q),
+    );
+  }, [reports, historySearch]);
 
   const toggleSection = (key: string) => {
     setSections((prev) => {
@@ -262,15 +270,22 @@ export function ReportesEjecutivosPage() {
 
           {/* History */}
           <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">
-              Historial de reportes generados
-            </h3>
+            <div className="flex shrink-0 items-center gap-2 px-4 py-3">
+              <h3 className="flex-1 text-[13px] font-medium text-foreground">Historial de reportes generados</h3>
+              <input
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+                placeholder="Buscar por tipo o fecha..."
+                className="w-44 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-brand"
+              />
+            </div>
             <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full text-[13px]">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                     <th className="px-4 py-2">Fecha</th>
                     <th className="px-3 py-2">Tipo</th>
+                    <th className="px-3 py-2">Alcance</th>
                     <th className="px-3 py-2">Período</th>
                     <th className="px-3 py-2">Formato</th>
                     <th className="px-3 py-2 text-center">Estado</th>
@@ -283,7 +298,7 @@ export function ReportesEjecutivosPage() {
                   ))}
                   {sortedReports.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                      <td colSpan={7} className="px-4 py-8 text-center text-muted">
                         No hay reportes generados aún.
                       </td>
                     </tr>
@@ -322,6 +337,7 @@ function ReportRow({ report }: Readonly<{ report: Report }>) {
         {new Date(report.createdAt).toLocaleDateString('es-CL')}
       </td>
       <td className="px-3 py-2 capitalize text-foreground">{report.reportType}</td>
+      <td className="px-3 py-2 text-muted">Portafolio</td>
       <td className="px-3 py-2 text-muted">
         {report.periodStart.slice(0, 7)} — {report.periodEnd.slice(0, 7)}
       </td>

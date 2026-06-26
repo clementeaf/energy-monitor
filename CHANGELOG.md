@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.30.0-alpha.0] - 2026-06-26 — GERENCIAL PROFILE SPEC ALIGNMENT
+
+### Changed
+- **PanelConsolidadoPage** — Map markers colored by energy status (green/amber/red/grey). Enriched popups (power kW, alerts, address). Click marker opens building detail. KPIs aligned to spec (Demanda MW, Consumo MWh, Costo UF, Malls activos/total). Nivel 2: breadcrumb (País → Mall), voltage range bar, "En alarma" count.
+- **ConsumoJerarquicoPage** — Added Intensidad energética (kWh/m²) metric. User-controlled sort (by metric/alphabetic/alerts) and filter (all/critical/no data). Map markers colored by status with enriched popups. Expanded meters show energy MWh column and online/stale/offline status label.
+- **CostosTendenciasPage** — Chart now stacked by building (one series per mall). Price line on secondary Y axis. Added PEN/COP currencies. Search by mall name. Export CSV button. Variación % column in table.
+- **AlarmasAgregadasPage** — Added "Resolución media" KPI (hours). 30-day evolution chart (stacked bars: opened/resolved per day). Search by mall name. Export CSV button.
+- **ReportesEjecutivosPage** — Added PPT format option. History search by type/date. Scope column in history table.
+- **MapView** — New optional props: `buildingMeta` (per-building marker color + popup HTML), `onBuildingClick` callback. Backward compatible.
+
+### Fixed
+- **PlatformDashboardPage** — Guard against undefined `tenantSummaries` (crash on load).
+- **PanelConsolidadoPage** — Unused `meterCount` variable removed.
+
+### Stats
+- 828 frontend tests / 69 suites. All passing.
+
+---
+
 ## [2.29.0-alpha.0] - 2026-06-26 — ALL SPEC PAGES COMPLETED (9 GAPS CLOSED)
 
 ### Changed (partial → real)

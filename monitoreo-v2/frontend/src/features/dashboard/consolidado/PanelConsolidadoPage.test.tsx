@@ -139,14 +139,14 @@ describe('PanelConsolidadoPage', () => {
       expect(screen.getByText('0.45 MW')).toBeInTheDocument();
     });
 
-    it('renders critical alerts count', () => {
+    it('renders consumo acumulado KPI', () => {
       renderPage();
-      expect(screen.getByText('Alertas críticas')).toBeInTheDocument();
+      expect(screen.getByText('Consumo acumulado')).toBeInTheDocument();
     });
 
-    it('renders active meters count', () => {
+    it('renders malls activos KPI', () => {
       renderPage();
-      expect(screen.getByText('Medidores activos')).toBeInTheDocument();
+      expect(screen.getByText('Malls activos')).toBeInTheDocument();
     });
   });
 
@@ -177,10 +177,10 @@ describe('PanelConsolidadoPage', () => {
 
       await user.click(screen.getByText('Mall Norte'));
 
-      // Should show detail header
-      expect(screen.getByText('← Volver al portafolio')).toBeInTheDocument();
-      // Should show building name in detail
-      expect(screen.getByText('Mall Norte')).toBeInTheDocument();
+      // Breadcrumb + pill both show Chile
+      expect(screen.getAllByText('Chile').length).toBeGreaterThanOrEqual(2);
+      // Building name appears in breadcrumb + detail header
+      expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(2);
       // Should show metrics
       expect(screen.getByText('Carga total')).toBeInTheDocument();
       // Should show alert feed (alert also appears in critical events — use within)
@@ -195,10 +195,12 @@ describe('PanelConsolidadoPage', () => {
 
       // Go to detail
       await user.click(screen.getByText('Mall Norte'));
-      expect(screen.getByText('← Volver al portafolio')).toBeInTheDocument();
+      // Breadcrumb has country as link — find the one inside the detail panel (last Chile is the breadcrumb)
+      const chiles = screen.getAllByText('Chile');
+      expect(chiles.length).toBeGreaterThanOrEqual(2);
 
-      // Back to portfolio
-      await user.click(screen.getByText('← Volver al portafolio'));
+      // Back to portfolio via breadcrumb (last Chile is in the breadcrumb inside the detail panel)
+      await user.click(chiles[chiles.length - 1]);
       expect(screen.getByText('Centros comerciales')).toBeInTheDocument();
       expect(screen.getByText('Demanda agregada')).toBeInTheDocument();
     });

@@ -7,7 +7,8 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import { deriveBuildingStatus, getStatusStyle } from '../../../lib/energy-status';
+import { deriveBuildingStatus, getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
+import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 import type { Building } from '../../../types/building';
 import type { LatestReading } from '../../../types/reading';
 import type { Meter } from '../../../types/meter';
@@ -34,6 +35,19 @@ const METRICS: MetricOption[] = [
   { key: 'energy', label: 'Consumo', unit: 'MWh' },
   { key: 'demand', label: 'Demanda', unit: 'kW' },
   { key: 'cost', label: 'Costo', unit: 'UF' },
+  { key: 'intensity', label: 'Intensidad', unit: 'kWh/m²' },
+];
+
+const SORT_OPTIONS = [
+  { key: 'metric', label: 'Por métrica' },
+  { key: 'name', label: 'Alfabético' },
+  { key: 'alerts', label: 'Por alertas' },
+];
+
+const FILTER_OPTIONS = [
+  { key: 'all', label: 'Todos' },
+  { key: 'critical', label: 'Con alarma crítica' },
+  { key: 'nodata', label: 'Sin datos' },
 ];
 
 /* ── Building row enrichment ── */
@@ -94,6 +108,10 @@ const METRIC_ACCESSORS: Record<string, MetricAccessor> = {
   energy: (r) => r.energyMwh,
   demand: (r) => r.demandKw,
   cost: (r) => r.energyMwh * 0.12, // ponytail: placeholder UF/MWh rate, replace with tariff lookup
+  intensity: (r) => {
+    const area = Number(r.building.areaSqm ?? 0);
+    return area > 0 ? (r.energyMwh * 1000) / area : 0; // kWh/m²
+  },
 };
 
 /* ── Page ── */
@@ -104,6 +122,8 @@ export function ConsumoJerarquicoPage() {
   const [period, setPeriod] = useState('month');
   const [metric, setMetric] = useState('energy');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('metric');
+  const [filterBy, setFilterBy] = useState('all');
 
   // Queries
   const buildingsQuery = useBuildingsQuery();
@@ -131,11 +151,21 @@ export function ConsumoJerarquicoPage() {
     [filteredBuildings, readings, alerts],
   );
 
-  // Sort by metric descending
-  const sortedRows = useMemo(
-    () => [...rows].sort((a, b) => accessor(b) - accessor(a)),
-    [rows, accessor],
-  );
+  // Filter
+  const filteredRows = useMemo(() => {
+    if (filterBy === 'critical') return rows.filter((r) => r.status === 'critical');
+    if (filterBy === 'nodata') return rows.filter((r) => r.status === 'nodata');
+    return rows;
+  }, [rows, filterBy]);
+
+  // Sort
+  const sortedRows = useMemo(() => {
+    const sorted = [...filteredRows];
+    if (sortBy === 'name') sorted.sort((a, b) => a.building.name.localeCompare(b.building.name));
+    else if (sortBy === 'alerts') sorted.sort((a, b) => b.alertCount - a.alertCount);
+    else sorted.sort((a, b) => accessor(b) - accessor(a));
+    return sorted;
+  }, [filteredRows, sortBy, accessor]);
 
   // Total for portfolio
   const portfolioTotal = useMemo(
@@ -150,6 +180,24 @@ export function ConsumoJerarquicoPage() {
     ),
     [filteredBuildings],
   );
+
+  // Map marker meta — color by metric intensity
+  const STATUS_COLORS: Record<EnergyStatus, string> = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', nodata: '#9ca3af' };
+  const buildingMeta = useMemo(() => {
+    const map = new Map<string, BuildingMarkerMeta>();
+    rows.forEach((r) => {
+      const val = accessor(r);
+      map.set(r.building.id, {
+        color: STATUS_COLORS[r.status as EnergyStatus] ?? '#22c55e',
+        popupHtml: `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+          <strong style="font-size:13px">${r.building.name}</strong>
+          <p style="margin:3px 0 0;font-size:12px">${formatMetric(val, currentMetric.unit)}</p>
+          ${r.alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.alertCount} alerta${r.alertCount > 1 ? 's' : ''}</p>` : ''}
+        </div>`,
+      });
+    });
+    return map;
+  }, [rows, accessor, currentMetric.unit]);
 
   // Meters for expanded building
   const expandedMeters = useMemo(
@@ -187,6 +235,20 @@ export function ConsumoJerarquicoPage() {
               onChange={setMetric}
               size="sm"
             />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              {SORT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
+            <select
+              value={filterBy}
+              onChange={(e) => setFilterBy(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              {FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
           </div>
         }
       />
@@ -194,7 +256,12 @@ export function ConsumoJerarquicoPage() {
       <div className="flex min-h-0 flex-1 gap-4">
         {/* Left: Map */}
         <div className="hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
-          <MapView buildings={geoBuildings} className="h-full w-full" />
+          <MapView
+            buildings={geoBuildings}
+            buildingMeta={buildingMeta}
+            onBuildingClick={(id) => setExpandedId(expandedId === id ? null : id)}
+            className="h-full w-full"
+          />
         </div>
 
         {/* Center/Right: Tree */}
@@ -321,7 +388,11 @@ function TreeRow({
       {isExpanded && expandedMeters.map((meter) => {
         const reading = readingMap.get(meter.id);
         const powerKw = Number(reading?.power_kw ?? 0);
-        const status = reading ? 'online' : 'offline';
+        const energyKwh = Number(reading?.energy_kwh_total ?? 0);
+        const isOnline = !!reading;
+        const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;
+        const statusLabel = !isOnline ? 'offline' : stale ? 'stale' : 'online';
+        const STATUS_DOT: Record<string, string> = { online: 'bg-emerald-500', stale: 'bg-amber-400', offline: 'bg-gray-400' };
         return (
           <tr
             key={meter.id}
@@ -335,14 +406,19 @@ function TreeRow({
             <td className="px-3 py-1.5 text-right text-[12px] text-foreground">
               {powerKw.toFixed(1)} kW
             </td>
-            <td className="px-3 py-1.5" />
+            <td className="px-3 py-1.5 text-right text-[10px] text-muted">
+              {energyKwh > 0 ? `${(energyKwh / 1000).toFixed(2)} MWh` : '—'}
+            </td>
             <td className="px-3 py-1.5 text-right text-[10px] text-muted">
               {reading?.timestamp
                 ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
                 : '—'}
             </td>
             <td className="px-3 py-1.5 text-center">
-              <span className={`inline-block size-2 rounded-full ${status === 'online' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+              <span className="flex items-center justify-center gap-1">
+                <span className={`inline-block size-2 rounded-full ${STATUS_DOT[statusLabel]}`} />
+                <span className="text-[10px] text-muted">{statusLabel}</span>
+              </span>
             </td>
           </tr>
         );

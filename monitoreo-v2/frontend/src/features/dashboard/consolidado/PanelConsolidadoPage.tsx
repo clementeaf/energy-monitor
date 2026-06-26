@@ -9,10 +9,11 @@ import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery'
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
 import { deriveBuildingStatus, getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
-import { fmtClp } from '../../../lib/formatters';
+import { fmtClp, fmtNum } from '../../../lib/formatters';
 import type { Building } from '../../../types/building';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert, AlertSeverity } from '../../../types/alert';
+import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 
 /* ── Country selector ── */
 
@@ -122,12 +123,40 @@ export function PanelConsolidadoPage() {
     () => activeAlerts.filter((a) => a.severity === 'critical' || a.severity === 'high').length,
     [activeAlerts],
   );
+  const totalConsumptionMwh = useMemo(
+    () => enriched.reduce((sum, e) => sum + e.powerKw * 24 / 1000, 0), // ponytail: approx daily MWh from current power
+    [enriched],
+  );
   const totalCostUf = useMemo(() => {
     const paid = invoices
       .filter((inv) => inv.status !== 'voided')
       .reduce((sum, inv) => sum + (parseFloat(inv.total) || 0), 0);
     return paid;
   }, [invoices]);
+
+  // Build marker meta (color + enriched popup)
+  const STATUS_MARKER_COLORS: Record<EnergyStatus, string> = {
+    normal: '#22c55e',
+    warning: '#f59e0b',
+    critical: '#ef4444',
+    nodata: '#9ca3af',
+  };
+
+  const buildingMeta = useMemo(() => {
+    const map = new Map<string, BuildingMarkerMeta>();
+    enriched.forEach((e) => {
+      const color = STATUS_MARKER_COLORS[e.status];
+      const alertCount = e.activeAlerts.length;
+      const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+        <strong style="font-size:14px">${e.building.name}</strong>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${e.powerKw.toFixed(1)} kW</p>
+        ${alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${alertCount} alerta${alertCount > 1 ? 's' : ''} activa${alertCount > 1 ? 's' : ''}</p>` : ''}
+        ${e.building.address ? `<p style="margin:2px 0 0;font-size:11px;color:#999">${e.building.address}</p>` : ''}
+      </div>`;
+      map.set(e.building.id, { color, popupHtml });
+    });
+    return map;
+  }, [enriched]);
 
   // Selected building detail (Nivel 2)
   const selectedDetail = useMemo(
@@ -156,6 +185,8 @@ export function PanelConsolidadoPage() {
           <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
             <MapView
               buildings={geoBuildings}
+              buildingMeta={buildingMeta}
+              onBuildingClick={setSelectedBuildingId}
               className="h-full w-full"
             />
             {/* Status legend */}
@@ -202,12 +233,13 @@ export function PanelConsolidadoPage() {
         {/* Column 2: KPIs or Building Detail */}
         <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
           {selectedDetail
-            ? <BuildingDetail detail={selectedDetail} onBack={() => setSelectedBuildingId(null)} />
+            ? <BuildingDetail detail={selectedDetail} readings={readings} country={country} onBack={() => setSelectedBuildingId(null)} />
             : <PortfolioPanel
                 enriched={enriched}
                 totalDemandMw={totalDemandMw}
                 totalCostUf={totalCostUf}
                 totalCriticalAlerts={totalCriticalAlerts}
+                totalConsumptionMwh={totalConsumptionMwh}
                 onSelectBuilding={setSelectedBuildingId}
               />
           }
@@ -224,6 +256,7 @@ interface PortfolioPanelProps {
   totalDemandMw: number;
   totalCostUf: number;
   totalCriticalAlerts: number;
+  totalConsumptionMwh: number;
   onSelectBuilding: (id: string) => void;
 }
 
@@ -232,20 +265,16 @@ function PortfolioPanel({
   totalDemandMw,
   totalCostUf,
   totalCriticalAlerts,
+  totalConsumptionMwh,
   onSelectBuilding,
 }: Readonly<PortfolioPanelProps>) {
-  const totalMeters = enriched.reduce((sum, e) => sum + e.meterCount, 0);
   const activeCount = enriched.filter((e) => e.building.isActive).length;
 
   const kpis = [
-    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW`, color: 'text-foreground' },
-    { title: 'Medidores activos', value: String(totalMeters), color: 'text-foreground' },
-    { title: 'Costo acumulado', value: fmtClp(totalCostUf), color: 'text-foreground' },
-    {
-      title: 'Alertas críticas',
-      value: String(totalCriticalAlerts),
-      color: totalCriticalAlerts > 0 ? 'text-red-600' : 'text-emerald-600',
-    },
+    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW` },
+    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh` },
+    { title: 'Costo acumulado', value: fmtClp(totalCostUf) },
+    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}` },
   ];
 
   return (
@@ -255,7 +284,7 @@ function PortfolioPanel({
         {kpis.map((k) => (
           <div key={k.title} className="panel px-3 py-2.5">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
+            <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{k.value}</p>
           </div>
         ))}
       </div>
@@ -266,7 +295,14 @@ function PortfolioPanel({
           <h3 className="text-[12px] font-medium text-foreground">
             Centros comerciales
           </h3>
-          <span className="text-[11px] text-muted">{activeCount} / {enriched.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted">{activeCount} / {enriched.length}</span>
+            {totalCriticalAlerts > 0 && (
+              <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                {totalCriticalAlerts} críticas
+              </span>
+            )}
+          </div>
         </div>
         <ul className="divide-y divide-border">
           {enriched.map((e) => {
@@ -302,30 +338,39 @@ function PortfolioPanel({
 
 interface BuildingDetailProps {
   detail: EnrichedBuilding;
+  readings: LatestReading[];
+  country: string;
   onBack: () => void;
 }
 
-function BuildingDetail({ detail, onBack }: Readonly<BuildingDetailProps>) {
-  const { building, powerKw, meterCount, activeAlerts } = detail;
+function BuildingDetail({ detail, readings, country, onBack }: Readonly<BuildingDetailProps>) {
+  const { building, powerKw, activeAlerts } = detail;
   const style = getStatusStyle(detail.status);
+
+  // Voltaje promedio de los medidores del edificio
+  const buildingReadings = readings.filter((r) => r.building_id === building.id);
+  const voltages = buildingReadings.map((r) => Number(r.voltage_l1)).filter((v) => v > 0);
+  const avgVoltage = voltages.length > 0 ? voltages.reduce((s, v) => s + v, 0) / voltages.length : null;
+  const minVoltage = voltages.length > 0 ? Math.min(...voltages) : null;
+  const maxVoltage = voltages.length > 0 ? Math.max(...voltages) : null;
 
   const metrics = [
     { title: 'Carga total', value: `${powerKw.toFixed(1)} kW` },
-    { title: 'Medidores', value: String(meterCount) },
-    { title: 'Alertas activas', value: String(activeAlerts.length) },
+    { title: 'Voltaje prom.', value: avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—' },
+    { title: 'En alarma', value: String(activeAlerts.length), alert: activeAlerts.length > 0 },
   ];
+
+  const countryLabel = COUNTRIES.find((c) => c.code === country)?.label ?? country;
 
   return (
     <>
-      {/* Header with back */}
+      {/* Breadcrumb + header */}
       <div className="panel px-3 py-2.5">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-1.5 text-[11px] text-brand hover:underline"
-        >
-          ← Volver al portafolio
-        </button>
+        <div className="mb-1.5 flex items-center gap-1 text-[11px] text-muted">
+          <button type="button" onClick={onBack} className="text-brand hover:underline">{countryLabel}</button>
+          <span>/</span>
+          <span className="font-medium text-foreground">{building.name}</span>
+        </div>
         <div className="flex items-center gap-2">
           <span className={`inline-block size-3 rounded-full ${style.bg}`} />
           <h3 className="text-[15px] font-semibold text-foreground">{building.name}</h3>
@@ -340,10 +385,27 @@ function BuildingDetail({ detail, onBack }: Readonly<BuildingDetailProps>) {
         {metrics.map((m) => (
           <div key={m.title} className="panel px-2.5 py-2 text-center">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{m.title}</p>
-            <p className="mt-0.5 text-base font-semibold text-foreground">{m.value}</p>
+            <p className={`mt-0.5 text-base font-semibold ${m.alert ? 'text-red-600' : 'text-foreground'}`}>{m.value}</p>
           </div>
         ))}
       </div>
+
+      {/* Voltage range */}
+      {avgVoltage && minVoltage && maxVoltage && (
+        <div className="panel px-3 py-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Rango voltaje</p>
+          <div className="mt-1 flex items-center gap-2 text-[12px]">
+            <span className="text-muted">{minVoltage.toFixed(0)}V</span>
+            <div className="h-1.5 flex-1 rounded-full bg-gray-200">
+              <div
+                className="h-full rounded-full bg-emerald-400"
+                style={{ width: `${Math.min(100, ((avgVoltage - 200) / 60) * 100)}%` }}
+              />
+            </div>
+            <span className="text-muted">{maxVoltage.toFixed(0)}V</span>
+          </div>
+        </div>
+      )}
 
       {/* Alert feed */}
       <div className="panel flex flex-col">

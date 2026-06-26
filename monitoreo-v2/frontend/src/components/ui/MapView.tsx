@@ -42,6 +42,12 @@ export interface SelectedPoint {
   label: string;
 }
 
+/** Per-building enrichment for markers (color, popup content, click handler). */
+export interface BuildingMarkerMeta {
+  color: string;
+  popupHtml?: string;
+}
+
 interface MapViewProps {
   buildings: Building[];
   mallMarkers?: MapvxMall[];
@@ -52,6 +58,10 @@ interface MapViewProps {
   zoom?: number;
   pitch?: number;
   className?: string;
+  /** Per-building marker overrides keyed by building.id */
+  buildingMeta?: ReadonlyMap<string, BuildingMarkerMeta>;
+  /** Fires when a building marker is clicked */
+  onBuildingClick?: (buildingId: string) => void;
 }
 
 function buildStyle(
@@ -204,6 +214,8 @@ export function MapView({
   zoom = DEFAULT_ZOOM,
   pitch = DEFAULT_PITCH,
   className = '',
+  buildingMeta,
+  onBuildingClick,
 }: Readonly<MapViewProps>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -247,20 +259,27 @@ export function MapView({
     );
 
     markersRef.current = geoBuildings.map((b) => {
-      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
-        `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+      const meta = buildingMeta?.get(b.id);
+      const popupContent = meta?.popupHtml ?? `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
           <strong style="font-size:14px">${escapeHtml(b.name)}</strong>
           ${b.address ? `<p style="margin:4px 0 0;font-size:12px;color:#666">${escapeHtml(b.address)}</p>` : ''}
           <p style="margin:4px 0 0;font-size:11px;color:#999">${b.code}</p>
-        </div>`,
-      );
+        </div>`;
+      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(popupContent);
+      const markerColor = meta?.color ?? '#22c55e';
 
-      return new maplibregl.Marker({ color: '#22c55e' })
+      const marker = new maplibregl.Marker({ color: markerColor })
         .setLngLat([b.longitude, b.latitude])
         .setPopup(popup)
         .addTo(map);
+
+      if (onBuildingClick) {
+        marker.getElement().addEventListener('click', () => onBuildingClick(b.id));
+      }
+
+      return marker;
     });
-  }, [buildings]);
+  }, [buildings, buildingMeta, onBuildingClick]);
 
   // Mall markers (marker-only malls without indoor)
   useEffect(() => {

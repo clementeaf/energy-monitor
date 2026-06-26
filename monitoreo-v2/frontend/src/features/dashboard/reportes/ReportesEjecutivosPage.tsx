@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
-import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import type { Report, ReportFormat, PlatformReportType } from '../../../types/report';
 
@@ -112,7 +111,6 @@ export function ReportesEjecutivosPage() {
     () => new Set(REPORT_SECTIONS.filter((s) => s.defaultChecked).map((s) => s.key)),
   );
 
-  const buildingsQuery = useBuildingsQuery();
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
 

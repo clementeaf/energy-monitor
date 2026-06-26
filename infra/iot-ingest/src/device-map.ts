@@ -16,6 +16,11 @@ const DEFAULT_MAP: Readonly<Record<string, DeviceIdentity>> = {
     tenantId: '84adf8d4-830d-46e1-bef5-e2eac6a19014',
     meterId: '6ab27db7-0a61-40c2-8a93-35e9e2376683',
   },
+  // IoT Rule direct format — mqtt_topic as key
+  'powercenter/data': {
+    tenantId: '84adf8d4-830d-46e1-bef5-e2eac6a19014',
+    meterId: '6ab27db7-0a61-40c2-8a93-35e9e2376683',
+  },
 };
 
 const loadDeviceMap = (): Readonly<Record<string, DeviceIdentity>> => {

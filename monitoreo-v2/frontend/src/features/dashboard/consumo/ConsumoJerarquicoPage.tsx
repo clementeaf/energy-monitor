@@ -5,10 +5,9 @@ import { PillToggle } from '../../../components/ui/PillToggle';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { deriveBuildingStatus, getStatusStyle } from '../../../lib/energy-status';
-import { dateRangeFromDays } from '../dashboardAggregations';
 import type { Building } from '../../../types/building';
 import type { LatestReading } from '../../../types/reading';
 import type { Meter } from '../../../types/meter';
@@ -54,13 +53,9 @@ function buildRows(
   readings: LatestReading[],
   alerts: Alert[],
 ): BuildingRow[] {
-  const readingsByBuilding = Map.groupBy
-    ? Map.groupBy(readings, (r: LatestReading) => r.building_id)
-    : groupByFallback(readings, (r) => r.building_id);
+  const readingsByBuilding = groupByFallback(readings, (r) => r.building_id);
 
-  const alertsByBuilding = Map.groupBy
-    ? Map.groupBy(alerts, (a: Alert) => a.buildingId)
-    : groupByFallback(alerts, (a) => a.buildingId);
+  const alertsByBuilding = groupByFallback(alerts, (a) => a.buildingId);
 
   return buildings.map((building) => {
     const bReadings = readingsByBuilding.get(building.id) ?? [];

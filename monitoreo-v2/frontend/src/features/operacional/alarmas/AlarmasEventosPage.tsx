@@ -111,7 +111,7 @@ export function AlarmasEventosPage() {
   };
 
   const handleResolve = () => {
-    selectedId && resolveAlert.mutate({ id: selectedId, resolutionNotes: comment || undefined });
+    selectedId && resolveAlert.mutate({ id: selectedId, payload: { resolutionNotes: comment || undefined } });
     setComment('');
   };
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { APP_ROUTES } from '../../app/routes';
 import { useAppStore, VIEW_AS_LABELS } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/auth/useAuth';

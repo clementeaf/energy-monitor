@@ -8,7 +8,7 @@ import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuer
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
-import type { BackfillJob, BackfillJobStatus } from '../../../types/backfill-job';
+import type { BackfillJobStatus } from '../../../types/backfill-job';
 
 /* ── Quality scorecard row ── */
 
@@ -208,6 +208,7 @@ export function CalidadBackfillPage() {
             <h3 className="px-3 py-2.5 text-[13px] font-medium text-foreground">Backfill activo</h3>
             <DataWidget
               phase={activeJobs.length === 0 ? 'empty' : 'ready'}
+              error={null}
               emptyTitle="Sin backfill"
               emptyDescription="No hay procesos de backfill en curso."
             >
@@ -243,6 +244,7 @@ export function CalidadBackfillPage() {
             </h3>
             <DataWidget
               phase={degradedMeters.length === 0 ? 'empty' : 'ready'}
+              error={null}
               emptyTitle="Sin degradación"
               emptyDescription="Todos los medidores reportan normalmente."
             >

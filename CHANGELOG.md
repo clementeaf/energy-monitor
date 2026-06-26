@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.28.0-alpha.0] - 2026-06-26 — IOT FRONTEND INTEGRATION
+
+### Added
+- **IoT Rule direct parser** — Third parser in `iot-ingest` Lambda for Siemens SENTRON flat format (Spanish keys like `voltajeL1N_V`, `corrienteL1_A`). Detects by `received_at` + `voltajeL1N_V` fingerprint. Maps 11 variables to normalized names.
+- **Migration 54** — Registers Siemens building + meter (`6ab27db7...`) in `meters` table with `metadata.source = 'iot'`. Required for backend JOINs to return IoT data.
+- **Frontend IoT layer** — `iotReadings` routes, `iotReadingsEndpoints` (latest, timeseries, alerts, stats), `useIotReadingsQuery` hook (4 queries, auto-refresh 30s).
+- **MeterDetailPage IoT panel** — Detects `metadata.source === 'iot'` and renders live readings grid (11 variables), IoT badge, and IoT-derived alerts.
+
+### Fixed
+- **9 preexisting TS build errors** — Unused imports, missing `error` prop on `DataWidget`, `Map.groupBy` compatibility, implicit `any` types. Build now passes with `tsconfig.build.json`.
+
+### Changed
+- **`serverless.yml`** — Package pattern `*.js` (excludes `*.test.js`) replaces hardcoded `handler.js` + `rds-ssl.js`.
+- **`device-map.ts`** — Added `powercenter/data` topic entry pointing to Siemens meter UUID.
+
+### Deploy (prod)
+- Lambda `iot-ingest-prod-ingest` redeployed with new parser.
+- Migration 54 applied via ECS Exec.
+- Frontend deployed to S3 + CloudFront invalidated.
+
+### Notes
+- Siemens data confirmed arriving (1 real message, 11 EAV rows inserted).
+- Payload has no device identifier — scaling to 100+ meters requires Siemens to add per-meter topic or `deviceId` field.
+
+---
+
 ## [2.27.0-alpha.0] - 2026-06-26 — IOT PIPELINE REACTIVATION
 
 ### Added

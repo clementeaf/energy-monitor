@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../../hooks/queries/useAlertsQuery';

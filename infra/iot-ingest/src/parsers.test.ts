@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePoc3000, parseGenericFlat, parsePayload } from './parsers';
+import { parsePoc3000, parseGenericFlat, parseIotRuleDirect, parsePayload } from './parsers';
 
 // ── Fixtures ────────────────────────────────────────────
 
@@ -147,6 +147,71 @@ describe('parseGenericFlat', () => {
   });
 });
 
+// ── IoT Rule direct parser ──────────────────────────────
+
+const iotRulePayload = {
+  voltajeL1N_V: 218.024,
+  voltajeL2N_V: 220.533,
+  voltajeL3N_V: 218.048,
+  corrienteL1_A: 1.521,
+  corrienteL2_A: 0.289,
+  corrienteL3_A: 0.111,
+  potActTotal_W: 314.514,
+  potReacTotal_var: -183.69,
+  potAparTotal_VA: 426.446,
+  fpTotal: 0.75,
+  frecuencia_Hz: 50.071,
+  potActL1_W: 250.58,
+  mqtt_topic: 'powercenter/data',
+  received_at: 1782485212587,
+};
+
+describe('parseIotRuleDirect', () => {
+  it('extracts variables and maps spanish keys to normalized names', () => {
+    const result = parseIotRuleDirect(iotRulePayload)!;
+    expect(result).not.toBeNull();
+    expect(result.deviceId).toBe('powercenter/data');
+    expect(result.variables.get('voltage_l1')).toBe(218.024);
+    expect(result.variables.get('current_l1')).toBe(1.521);
+    expect(result.variables.get('active_power_w')).toBe(314.514);
+    expect(result.variables.get('power_factor')).toBe(0.75);
+    expect(result.variables.get('frequency_hz')).toBe(50.071);
+    expect(result.variables.get('apparent_power_va')).toBe(426.446);
+    expect(result.variables.get('reactive_power_var')).toBe(-183.69);
+  });
+
+  it('uses received_at as ISO timestamp', () => {
+    const result = parseIotRuleDirect(iotRulePayload)!;
+    expect(result.timestamp).toBe(new Date(1782485212587).toISOString());
+  });
+
+  it('ignores unmapped keys like potActL1_W', () => {
+    const result = parseIotRuleDirect(iotRulePayload)!;
+    expect(result.variables.size).toBe(11);
+  });
+
+  it('defaults deviceId to powercenter/data when mqtt_topic missing', () => {
+    const { mqtt_topic, ...noTopic } = iotRulePayload;
+    const result = parseIotRuleDirect(noTopic)!;
+    expect(result.deviceId).toBe('powercenter/data');
+  });
+
+  it('returns null without received_at', () => {
+    const { received_at, ...noTs } = iotRulePayload;
+    expect(parseIotRuleDirect(noTs)).toBeNull();
+  });
+
+  it('returns null without voltajeL1N_V fingerprint', () => {
+    const { voltajeL1N_V, ...noFingerprint } = iotRulePayload;
+    expect(parseIotRuleDirect(noFingerprint)).toBeNull();
+  });
+
+  it('returns null for non-object input', () => {
+    expect(parseIotRuleDirect(null)).toBeNull();
+    expect(parseIotRuleDirect('string')).toBeNull();
+  });
+});
+
 // ── Parser chain ────────────────────────────────────────
 
 describe('parsePayload', () => {
@@ -159,6 +224,12 @@ describe('parsePayload', () => {
   it('falls back to generic parser for flat payloads', () => {
     const result = parsePayload(genericPayload)!;
     expect(result.deviceId).toBe('device-abc-123');
+  });
+
+  it('matches IoT Rule direct format', () => {
+    const result = parsePayload(iotRulePayload)!;
+    expect(result.deviceId).toBe('powercenter/data');
+    expect(result.variables.get('voltage_l1')).toBe(218.024);
   });
 
   it('returns null for unrecognized payloads', () => {

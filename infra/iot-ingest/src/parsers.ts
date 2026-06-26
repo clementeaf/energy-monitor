@@ -123,9 +123,49 @@ export const parseGenericFlat: PayloadParser = (raw) => {
   };
 };
 
+/**
+ * IoT Rule direct format (Siemens SENTRON / flat Spanish keys):
+ * { voltajeL1N_V: 218, corrienteL1_A: 1.5, ..., mqtt_topic: "powercenter/data", received_at: 1782485212587 }
+ *
+ * No deviceId or timestamp fields — uses mqtt_topic as device key and received_at (epoch ms) as timestamp.
+ */
+const IOTRULE_DIRECT_MAP: ReadonlyMap<string, string> = new Map([
+  ['voltajeL1N_V', 'voltage_l1'],
+  ['voltajeL2N_V', 'voltage_l2'],
+  ['voltajeL3N_V', 'voltage_l3'],
+  ['corrienteL1_A', 'current_l1'],
+  ['corrienteL2_A', 'current_l2'],
+  ['corrienteL3_A', 'current_l3'],
+  ['potActTotal_W', 'active_power_w'],
+  ['potReacTotal_var', 'reactive_power_var'],
+  ['potAparTotal_VA', 'apparent_power_va'],
+  ['fpTotal', 'power_factor'],
+  ['frecuencia_Hz', 'frequency_hz'],
+]);
+
+// ponytail: detect by presence of spanish-keyed electrical vars + received_at
+const IOTRULE_FINGERPRINT = ['received_at', 'voltajeL1N_V'] as const;
+
+export const parseIotRuleDirect: PayloadParser = (raw) => {
+  if (!isRecord(raw)) return null;
+  if (!IOTRULE_FINGERPRINT.every((k) => k in raw)) return null;
+
+  const receivedAt = toFiniteNumber(raw.received_at);
+  if (receivedAt === null) return null;
+
+  const topic = isString(raw.mqtt_topic) ? raw.mqtt_topic : 'powercenter/data';
+  const variables = extractVariables(Object.entries(raw), IOTRULE_DIRECT_MAP);
+
+  return {
+    deviceId: topic,
+    timestamp: new Date(receivedAt).toISOString(),
+    variables,
+  };
+};
+
 // ── Parser chain ────────────────────────────────────────
 
-const PARSERS: readonly PayloadParser[] = [parsePoc3000, parseGenericFlat];
+const PARSERS: readonly PayloadParser[] = [parsePoc3000, parseIotRuleDirect, parseGenericFlat];
 
 /**
  * Runs each parser in order. First non-null result wins.

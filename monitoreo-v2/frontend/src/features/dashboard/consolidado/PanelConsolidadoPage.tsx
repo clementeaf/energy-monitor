@@ -350,6 +350,7 @@ function BuildingDetail({ detail, onBack }: Readonly<BuildingDetailProps>) {
         <h4 className="px-3 py-2 text-[12px] font-medium text-foreground">Alertas en vivo</h4>
         <DataWidget
           phase={activeAlerts.length === 0 ? 'empty' : 'ready'}
+          error={null}
           emptyTitle="Sin alertas"
           emptyDescription="Operación normal."
         >

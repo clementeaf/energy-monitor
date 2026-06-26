@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -63,8 +63,6 @@ const TOLERANCE_BADGE: Record<string, string> = {
 /* ── Page ── */
 
 export function CuadraturaPage() {
-  const [selectedBuildingId, setSelectedBuildingId] = useState('');
-
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();

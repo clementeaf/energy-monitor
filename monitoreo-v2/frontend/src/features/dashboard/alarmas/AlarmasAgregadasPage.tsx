@@ -5,7 +5,7 @@ import { PillToggle } from '../../../components/ui/PillToggle';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Building } from '../../../types/building';
-import type { Alert, AlertSeverity, AlertStatus } from '../../../types/alert';
+import type { Alert, AlertSeverity } from '../../../types/alert';
 
 /* ── Filter options ── */
 
@@ -28,15 +28,6 @@ const STATUS_OPTIONS: SelectOption[] = [
   { key: 'resolved', label: 'Resueltas' },
   { key: 'all', label: 'Todas' },
 ];
-
-/* ── Severity badge styling ── */
-
-const SEVERITY_BADGE: Record<string, string> = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-blue-100 text-blue-700',
-};
 
 /* ── Severity filter predicate ── */
 
@@ -64,8 +55,6 @@ function aggregateByMall(
   activeAlerts: Alert[],
   resolvedAlerts: Alert[],
 ): MallAlertRow[] {
-  const buildingMap = new Map(buildings.map((b) => [b.id, b.name]));
-
   const activeByBuilding = new Map<string, Alert[]>();
   activeAlerts.forEach((a) => {
     const list = activeByBuilding.get(a.buildingId) ?? [];
@@ -138,15 +127,6 @@ export function AlarmasAgregadasPage() {
     () => resolvedAlerts.filter((a) => buildingIds.has(a.buildingId)),
     [resolvedAlerts, buildingIds],
   );
-
-  // Choose which alerts to show based on status filter
-  const STATUS_ALERT_MAP: Record<string, Alert[]> = useMemo(() => ({
-    active: filteredActive,
-    resolved: filteredResolved,
-    all: [...filteredActive, ...filteredResolved],
-  }), [filteredActive, filteredResolved]);
-
-  const displayAlerts = STATUS_ALERT_MAP[statusFilter] ?? filteredActive;
 
   // KPIs
   const totalActive = filteredActive.length;

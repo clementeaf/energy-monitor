@@ -9,6 +9,7 @@ import { useMeterQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useIotLatestQuery, useIotAlertsQuery } from '../../../hooks/queries/useIotReadingsQuery';
 import { fmtNum, MONTH_NAMES_SHORT } from '../../../lib/formatters';
 
 /* ── Metric definitions ── */
@@ -57,11 +58,14 @@ export function MeterDetailPage() {
   const alertsQuery = useAlertsQuery({ meterId: meterId! });
 
   const meter = meterQuery.data;
+  const isIot = meter?.metadata?.source === 'iot';
   const building = buildingsQuery.data?.find((b) => b.id === meter?.buildingId);
   const rows = aggQuery.data ?? [];
   const alertCount = alertsQuery.data?.length ?? 0;
+  const iotLatest = useIotLatestQuery(meterId, isIot);
+  const iotAlerts = useIotAlertsQuery(meterId, isIot);
   const meta = METRICS[selectedMetric];
-  const isLoading = meterQuery.isPending || aggQuery.isPending;
+  const isLoading = meterQuery.isPending || (isIot ? iotLatest.isPending : aggQuery.isPending);
 
   const aggQs = useQueryState(aggQuery, { isEmpty: (d) => !d || d.length === 0 });
 
@@ -110,13 +114,15 @@ export function MeterDetailPage() {
         <span className="text-[13px] font-semibold text-foreground">
           {meter?.name ?? '—'} <span className="font-normal text-muted">({meter?.code ?? meterId})</span>
         </span>
-        {alertCount > 0 && (
-          <Link
-            to={`/alerts?meterId=${meterId}`}
-            className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700 hover:bg-red-200"
-          >
-            {alertCount} alerta{alertCount > 1 ? 's' : ''}
-          </Link>
+        {(isIot ? (iotAlerts.data?.length ?? 0) : alertCount) > 0 && (
+          <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
+            {isIot ? iotAlerts.data?.length : alertCount} alerta{(isIot ? (iotAlerts.data?.length ?? 0) : alertCount) > 1 ? 's' : ''}
+          </span>
+        )}
+        {isIot && (
+          <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+            IoT
+          </span>
         )}
       </div>
 
@@ -137,6 +143,22 @@ export function MeterDetailPage() {
           </button>
         ))}
       </div>
+
+      {/* IoT live readings */}
+      {isIot && iotLatest.data && iotLatest.data.length > 0 && (
+        <Card className="shrink-0">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Lectura en vivo (IoT)</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {iotLatest.data.map((r) => (
+              <div key={r.variable_name} className="rounded-lg border border-border p-3">
+                <div className="text-[11px] font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
+                <div className="mt-1 text-lg font-semibold text-foreground">{fmtNum(r.value, 2)}</div>
+                <div className="mt-0.5 text-[10px] text-subtle">{new Date(r.time).toLocaleString('es-CL')}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Chart */}
       {chartData.length > 0 && (
@@ -236,6 +258,24 @@ export function MeterDetailPage() {
       </Card>
     </div>
   );
+}
+
+const VAR_LABELS: Record<string, string> = {
+  voltage_l1: 'Voltaje L1 (V)',
+  voltage_l2: 'Voltaje L2 (V)',
+  voltage_l3: 'Voltaje L3 (V)',
+  current_l1: 'Corriente L1 (A)',
+  current_l2: 'Corriente L2 (A)',
+  current_l3: 'Corriente L3 (A)',
+  active_power_w: 'Pot. Activa (W)',
+  reactive_power_var: 'Pot. Reactiva (var)',
+  apparent_power_va: 'Pot. Aparente (VA)',
+  power_factor: 'Factor Potencia',
+  frequency_hz: 'Frecuencia (Hz)',
+};
+
+function formatVarName(name: string): string {
+  return VAR_LABELS[name] ?? name.replace(/_/g, ' ');
 }
 
 function Th({ children }: Readonly<{ children?: React.ReactNode }>) {

@@ -95,6 +95,13 @@ export const API_ROUTES = {
   roles: '/roles',
   permissions: '/roles/permissions',
   platformDashboard: '/platform-dashboard',
+  iotReadings: {
+    base: '/iot-readings',
+    latest: '/iot-readings/latest',
+    timeseries: '/iot-readings/timeseries',
+    alerts: '/iot-readings/alerts',
+    stats: '/iot-readings/stats',
+  },
   mapvx: {
     malls: '/mapvx/malls',
     stores: (mallId: string) => `/mapvx/malls/${mallId}/stores`,

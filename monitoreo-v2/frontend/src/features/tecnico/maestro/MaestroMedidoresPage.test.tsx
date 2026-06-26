@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
 vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({ useBuildingsQuery: () => ({ data: [{ id: 'b1', name: 'Mall Norte', tenantId: 't1', code: 'MN', address: null, countryCode: 'CL', isActive: true, latitude: null, longitude: null, areaSqm: null, regionId: null, timezone: null, externalSiteId: null, siteKind: null, createdAt: '', updatedAt: '' }], isLoading: false, isSuccess: true }) }));
-vi.mock('../../../hooks/queries/useMetersQuery', () => ({ useMetersQuery: () => ({ data: [
+vi.mock('../../../hooks/queries/useMetersQuery', () => ({ useUpdateMeter: () => ({ mutate: vi.fn(), isPending: false }), useMetersQuery: () => ({ data: [
   { id: 'm1', buildingId: 'b1', name: 'Principal', code: 'P1', meterType: 'main', isActive: true, metadata: {}, externalId: null, model: null, serialNumber: 'SN-001', ipAddress: null, modbusAddress: 10, busId: null, phaseType: 'three_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: null, parentMeterId: null, createdAt: '', updatedAt: '' },
   { id: 'm2', buildingId: 'b1', name: 'Dado de baja', code: 'X1', meterType: 'sub', isActive: false, metadata: {}, externalId: null, model: null, serialNumber: 'SN-OLD', ipAddress: null, modbusAddress: null, busId: null, phaseType: 'single_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: null, parentMeterId: null, createdAt: '', updatedAt: '' },
 ], isLoading: false, isSuccess: true }) }));

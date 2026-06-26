@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
+import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
+import { useMetersQuery, useUpdateMeter } from '../../../hooks/queries/useMetersQuery';
 import type { Meter } from '../../../types/meter';
 
 /* ── Asset status ── */
@@ -34,9 +35,11 @@ const FILTER_OPTIONS = [
 export function MaestroMedidoresPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
+  const updateMeter = useUpdateMeter();
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
@@ -76,7 +79,8 @@ export function MaestroMedidoresPage() {
         className="w-full shrink-0 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
       />
 
-      <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
+      <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-[13px]">
             <thead className="sticky top-0 z-10 bg-background">
@@ -92,7 +96,7 @@ export function MaestroMedidoresPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map(({ meter, assetStatus }) => (
-                <tr key={meter.id} className="transition-colors hover:bg-surface">
+                <tr key={meter.id} className={`cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`} onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}>
                   <td className="px-3 py-2 font-medium text-foreground">{meter.name}</td>
                   <td className="px-3 py-2 font-mono text-[11px] text-muted">{meter.serialNumber ?? '—'}</td>
                   <td className="px-3 py-2 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
@@ -112,6 +116,46 @@ export function MaestroMedidoresPage() {
             </tbody>
           </table>
         </div>
+      </div>
+      {/* Detail/action panel */}
+      <div className="hidden w-72 shrink-0 flex-col gap-3 overflow-y-auto lg:flex">
+        {(() => {
+          const sel = meters.find((m) => m.id === selectedId);
+          if (!sel) return <div className="panel flex flex-1 items-center justify-center p-4"><p className="text-[13px] text-muted">Selecciona un medidor.</p></div>;
+          const status = deriveAssetStatus(sel);
+          return (
+            <>
+              <div className="panel px-3 py-3">
+                <p className="text-[15px] font-semibold text-foreground">{sel.name}</p>
+                <p className="mt-0.5 font-mono text-[11px] text-muted">{sel.code}</p>
+              </div>
+              <div className="panel px-3 py-3">
+                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Datos</h4>
+                <dl className="space-y-1 text-[12px]">
+                  <div className="flex justify-between"><dt className="text-muted">Serial</dt><dd className="text-foreground">{sel.serialNumber ?? '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Modelo</dt><dd className="text-foreground">{sel.model ?? '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Tipo</dt><dd className="text-foreground">{sel.meterType}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Fase</dt><dd className="text-foreground">{sel.phaseType}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Centro</dt><dd className="text-foreground">{buildingMap.get(sel.buildingId) ?? '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'}</dd></div>
+                </dl>
+              </div>
+              <div className="panel space-y-2 px-3 py-3">
+                <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Cambio de estado</h4>
+                {status === 'activo' ? (
+                  <Button size="sm" variant="danger" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: false } })}>
+                    Dar de baja
+                  </Button>
+                ) : (
+                  <Button size="sm" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: true } })}>
+                    Activar
+                  </Button>
+                )}
+              </div>
+            </>
+          );
+        })()}
+      </div>
       </div>
     </div>
   );

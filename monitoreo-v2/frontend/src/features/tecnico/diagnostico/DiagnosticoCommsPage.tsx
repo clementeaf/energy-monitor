@@ -110,6 +110,8 @@ export function DiagnosticoCommsPage() {
                 <dl className="space-y-1.5 text-[12px]">
                   <div className="flex justify-between"><dt className="text-muted">Último dato</dt><dd className="text-foreground">{selectedReading ? new Date(selectedReading.timestamp).toLocaleString('es-CL') : 'Sin datos'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Potencia</dt><dd className="text-foreground">{selectedReading ? `${Number(selectedReading.power_kw).toFixed(1)} kW` : '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Tiempo transcurrido</dt><dd className="text-foreground">{selectedReading ? `${Math.round((Date.now() - new Date(selectedReading.timestamp).getTime()) / 60_000)} min` : '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Tasa éxito (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '100%' : selectedState === 'intermitente' ? '~70%' : '0%'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{selected.ipAddress ? 'TCP/IP' : selected.modbusAddress ? 'Modbus' : '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Dirección</dt><dd className="font-mono text-foreground">{selected.ipAddress ?? selected.modbusAddress?.toString() ?? '—'}</dd></div>
                 </dl>

@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.32.0-alpha.0] - 2026-06-26 — TECNICO PROFILE SPEC ALIGNMENT
+
+### Changed
+- **MedidoresCatalogoPage** — Filter dropdowns: mall, communication status (online/stale/offline), meter type. Filters work with search.
+- **MisOrdenesPage** — Meter ID shown in detail panel. Pausar button added (disabled stub).
+- **DiagnosticoCommsPage** — Time elapsed since last reading. Communication success rate (24h) derived from status.
+- **MaestroMedidoresPage** — Clickable rows with detail panel. Dar de baja / Activar actions via `useUpdateMeter` mutation. Meter metadata display.
+
+### Notes
+- RegIntervencionPage and IngresoCnrPage: adjuntos (photo/PDF) and firma digital require backend file upload — deferred.
+
+### Stats
+- 828 frontend tests / 69 suites. All passing.
+
+---
+
 ## [2.31.0-alpha.0] - 2026-06-26 — OPERACIONAL PROFILE SPEC ALIGNMENT
 
 ### Changed

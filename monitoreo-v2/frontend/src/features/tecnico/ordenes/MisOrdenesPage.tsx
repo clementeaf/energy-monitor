@@ -278,6 +278,7 @@ function OrderDetail({ order, buildingName, onStart, onClose, starting, closing,
   const details = [
     { label: 'Tipo', value: order.type },
     { label: 'Centro', value: buildingName },
+    { label: 'Medidor', value: order.meterId?.slice(0, 8) ?? '—' },
     { label: 'Prioridad', value: order.priority },
     { label: 'Asignada', value: new Date(order.assignedDate).toLocaleDateString('es-CL') },
     { label: 'Plazo', value: new Date(order.deadline).toLocaleDateString('es-CL') },
@@ -306,6 +307,7 @@ function OrderDetail({ order, buildingName, onStart, onClose, starting, closing,
         <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Acciones</h4>
         <div className="flex gap-2">
           <Button size="sm" onClick={onStart} loading={starting}>Iniciar</Button>
+          <Button size="sm" variant="secondary" disabled>Pausar</Button>
           <Button size="sm" variant="secondary" onClick={onClose} loading={closing}>Cerrar</Button>
         </div>
       </div>

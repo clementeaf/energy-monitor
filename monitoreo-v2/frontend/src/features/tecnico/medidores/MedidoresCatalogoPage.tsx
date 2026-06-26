@@ -33,6 +33,9 @@ export function MedidoresCatalogoPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mallFilter, setMallFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -46,12 +49,22 @@ export function MedidoresCatalogoPage() {
   const readingMap = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
   const now = Date.now();
 
+  const meterTypes = useMemo(() => [...new Set(meters.map((m) => m.meterType))], [meters]);
+
   const filtered = useMemo(() => {
+    let result = meters;
     const q = search.toLowerCase();
-    return q
-      ? meters.filter((m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q) || (m.serialNumber ?? '').toLowerCase().includes(q))
-      : meters;
-  }, [meters, search]);
+    if (q) result = result.filter((m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q) || (m.serialNumber ?? '').toLowerCase().includes(q));
+    if (mallFilter !== 'all') result = result.filter((m) => m.buildingId === mallFilter);
+    if (typeFilter !== 'all') result = result.filter((m) => m.meterType === typeFilter);
+    if (statusFilter !== 'all') {
+      result = result.filter((m) => {
+        const s = deriveCommStatus(readingMap.get(m.id), now);
+        return s === statusFilter;
+      });
+    }
+    return result;
+  }, [meters, search, mallFilter, typeFilter, statusFilter, readingMap, now]);
 
   const selected = meters.find((m) => m.id === selectedId) ?? null;
   const selectedReading = selected ? readingMap.get(selected.id) : undefined;
@@ -60,12 +73,28 @@ export function MedidoresCatalogoPage() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader title="Medidores / Remarcador" eyebrow="Medidores" />
 
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Buscar por serial, tag o nombre..."
-        className="w-full shrink-0 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
-      />
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por serial, tag o nombre..."
+          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
+        />
+        <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+          <option value="all">Todos los centros</option>
+          {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+          <option value="all">Todo estado</option>
+          <option value="online">Online</option>
+          <option value="stale">Estancado</option>
+          <option value="offline">Offline</option>
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+          <option value="all">Todo tipo</option>
+          {meterTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         {/* Table */}

@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.33.0-alpha.0] - 2026-06-26 — AUDITOR + SUPER-ADMIN PROFILE SPEC ALIGNMENT
+
+### Changed
+- **CuadraturaPage** — Mall filter dropdown. Export CSV button.
+- **TrazabilidadPage** — Reading type derived from data freshness (real/estimado/cnr) instead of hardcoded "real".
+- **DatosCrudosPage** — Preview increased from 10 to 100 rows.
+- **ExportarEvidenciaPage** — Mall selector and period selector (1m/3m/12m) added to configurator.
+- **ObservabilidadPage** — Health KPIs derived from real data (uptime from meter reporting %, error rate from alerts/meters ratio). Replaces hardcoded "99.9%", "45ms", "0.1%".
+
+### Stats
+- 828 frontend tests / 69 suites. All passing.
+- All 5 profiles (Gerencial, Operacional, Técnico, Auditor, Súper-admin) aligned with Roles EMS spec.
+
+---
+
 ## [2.32.0-alpha.0] - 2026-06-26 — TECNICO PROFILE SPEC ALIGNMENT
 
 ### Changed

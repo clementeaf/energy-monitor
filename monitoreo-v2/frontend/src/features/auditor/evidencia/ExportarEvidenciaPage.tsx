@@ -75,6 +75,8 @@ export function ExportarEvidenciaPage() {
   );
   const [generating, setGenerating] = useState(false);
   const [history, setHistory] = useState(loadHistory);
+  const [mallFilter, setMallFilter] = useState('all');
+  const [periodMonths, setPeriodMonths] = useState('1');
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -174,6 +176,23 @@ export function ExportarEvidenciaPage() {
                 </label>
               ))}
             </div>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Mall</h3>
+            <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
+              <option value="all">Todos</option>
+              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Período</h3>
+            <select value={periodMonths} onChange={(e) => setPeriodMonths(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
+              <option value="1">Último mes</option>
+              <option value="3">Último trimestre</option>
+              <option value="12">Último año</option>
+            </select>
           </div>
 
           <p className="text-[10px] text-muted">

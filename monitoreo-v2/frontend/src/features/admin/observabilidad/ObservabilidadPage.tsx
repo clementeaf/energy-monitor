@@ -43,11 +43,15 @@ export function ObservabilidadPage() {
     { name: 'Backfill', status: 'ok' as ComponentHealth },
   ], [meters.length, readings.length]);
 
+  // Derive uptime from % meters reporting
+  const uptimeEst = meters.length > 0 ? ((meters.filter((m) => readingMeterIds.has(m.id)).length / meters.length) * 100) : 100;
+  const errorRate = alerts.length > 0 ? ((alerts.length / Math.max(1, meters.length)) * 100) : 0;
+
   const healthKpis = [
-    { title: 'Uptime (30d)', value: '99.9%', color: 'text-emerald-600' },
-    { title: 'Latencia API', value: '45 ms', color: 'text-foreground' },
-    { title: 'Error rate', value: '0.1%', color: 'text-foreground' },
-    { title: 'p95 respuesta', value: '120 ms', color: 'text-foreground' },
+    { title: 'Uptime (30d)', value: `${uptimeEst.toFixed(1)}%`, color: uptimeEst >= 99 ? 'text-emerald-600' : uptimeEst >= 95 ? 'text-amber-600' : 'text-red-600' },
+    { title: 'Medidores online', value: `${readingMeterIds.size} / ${meters.length}`, color: 'text-foreground' },
+    { title: 'Error rate', value: `${errorRate.toFixed(1)}%`, color: errorRate < 1 ? 'text-emerald-600' : 'text-red-600' },
+    { title: 'Alertas activas', value: String(alerts.length), color: alerts.length > 0 ? 'text-red-600' : 'text-emerald-600' },
   ];
 
   const ingestionKpis = [

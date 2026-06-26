@@ -67,7 +67,9 @@ export function TrazabilidadPage() {
 /* ── Lineage Panel ── */
 
 function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
-  const readingType: ReadingType = 'real'; // ponytail: derive from reading.quality when available
+  // ponytail: derive type from data freshness — stale > 4h = estimated, no data = CNR
+  const ageMs = Date.now() - new Date(reading.timestamp).getTime();
+  const readingType: ReadingType = ageMs > 24 * 3_600_000 ? 'cnr' : ageMs > 4 * 3_600_000 ? 'estimado' : 'real';
 
   const lineageSteps = [
     { label: 'Valor en plataforma', value: `${Number(reading.power_kw).toFixed(1)} kW`, detail: `Tipo: ${readingType}` },

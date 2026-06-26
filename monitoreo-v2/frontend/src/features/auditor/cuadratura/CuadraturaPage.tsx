@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -63,6 +63,8 @@ const TOLERANCE_BADGE: Record<string, string> = {
 /* ── Page ── */
 
 export function CuadraturaPage() {
+  const [mallFilter, setMallFilter] = useState('all');
+
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
@@ -71,14 +73,41 @@ export function CuadraturaPage() {
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
 
-  const rows = useMemo(
+  const allRows = useMemo(
     () => buildReconciliation(buildings, meters, readings),
     [buildings, meters, readings],
   );
+  const rows = mallFilter === 'all' ? allRows : allRows.filter((r) => r.buildingId === mallFilter);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader title="Cuadratura Agregación" eyebrow="Auditoría" />
+      <PageHeader
+        title="Cuadratura Agregación"
+        eyebrow="Auditoría"
+        actions={
+          <div className="flex items-center gap-2">
+            <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
+              <option value="all">Todos los centros</option>
+              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                const header = 'Centro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia';
+                const csv = [header, ...rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`)].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `cuadratura_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
+            >
+              Exportar CSV
+            </button>
+          </div>
+        }
+      />
 
       <div className="panel p-4">
         <h3 className="mb-3 text-[13px] font-medium text-foreground">Tabla de reconciliación</h3>

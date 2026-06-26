@@ -20,7 +20,7 @@ describe('CuadraturaPage', () => {
   it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Cuadratura Agregación' })).toBeInTheDocument(); });
   it('renders reconciliation table', () => { renderPage(); expect(screen.getByText('Tabla de reconciliación')).toBeInTheDocument(); });
   it('renders table headers', () => { renderPage(); expect(screen.getByText('Remarcador [kWh]')).toBeInTheDocument(); expect(screen.getByText('Suma sub-med. [kWh]')).toBeInTheDocument(); expect(screen.getByText('Diferencia [kWh]')).toBeInTheDocument(); });
-  it('renders building row', () => { renderPage(); expect(screen.getByText('Mall Norte')).toBeInTheDocument(); });
+  it('renders building row', () => { renderPage(); expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1); });
   it('shows tolerance status', () => { renderPage(); expect(screen.getAllByText(/Sí|No/).length).toBeGreaterThanOrEqual(1); });
   it('shows tolerance percentage', () => { renderPage(); expect(screen.getByText(/±2%/)).toBeInTheDocument(); });
 });

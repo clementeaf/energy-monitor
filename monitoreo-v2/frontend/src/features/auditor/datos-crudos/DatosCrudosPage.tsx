@@ -64,7 +64,7 @@ export function DatosCrudosPage() {
 
   // Preview: show readings for selected meter
   const preview = useMemo(
-    () => selectedMeterId ? readings.filter((r) => r.meter_id === selectedMeterId).slice(0, 10) : [],
+    () => selectedMeterId ? readings.filter((r) => r.meter_id === selectedMeterId).slice(0, 100) : [],
     [readings, selectedMeterId],
   );
 
@@ -136,7 +136,7 @@ export function DatosCrudosPage() {
 
       {/* Preview table */}
       <div className="panel p-4">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Vista previa (primeras 10 filas)</h3>
+        <h3 className="mb-3 text-[13px] font-medium text-foreground">Vista previa (primeras 100 filas)</h3>
         <div className="overflow-auto">
           <table className="w-full text-[12px]">
             <thead>

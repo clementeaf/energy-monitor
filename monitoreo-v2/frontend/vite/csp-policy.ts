@@ -96,6 +96,7 @@ export function buildContentSecurityPolicy(env: CspBuildEnv): string {
     `connect-src ${connectSrc}`,
     `frame-src ${FRAME_SRC.join(' ')}`,
     `form-action ${FORM_ACTION.join(' ')}`,
+    "worker-src 'self' blob:",
     "base-uri 'self'",
     "object-src 'none'",
     'upgrade-insecure-requests',

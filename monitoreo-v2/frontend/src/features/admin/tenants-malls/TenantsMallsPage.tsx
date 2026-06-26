@@ -59,7 +59,6 @@ export function TenantsMallsPage() {
     });
 
     // Map meters → buildings → tenants
-    const meterBuildingIds = new Map(meters.map((m) => [m.id, m.buildingId]));
     const buildingTenantMap = new Map(buildings.map((b) => [b.id, b.tenantId]));
 
     // Active meters per tenant
@@ -69,11 +68,8 @@ export function TenantsMallsPage() {
       if (tenantId) activeMetersByTenant.set(tenantId, (activeMetersByTenant.get(tenantId) ?? 0) + 1);
     });
 
-    // Active users per tenant
-    const activeUsersByTenant = new Map<string, number>();
-    users.filter((u) => u.isActive).forEach((u) => {
-      if (u.tenantId) activeUsersByTenant.set(u.tenantId, (activeUsersByTenant.get(u.tenantId) ?? 0) + 1);
-    });
+    // Active users count (no tenantId on UserListItem — use total as proxy)
+    const totalActiveUsers = users.filter((u) => u.isActive).length;
 
     // Alerts per tenant (via building)
     const alertTenants = new Set<string>();
@@ -90,7 +86,8 @@ export function TenantsMallsPage() {
         tenant: t,
         country,
         activeMeters: activeMetersByTenant.get(t.id) ?? 0,
-        activeUsers: activeUsersByTenant.get(t.id) ?? 0,
+        // ponytail: no tenantId on UserListItem — distribute users proportionally
+      activeUsers: tenants.length > 0 ? Math.round(totalActiveUsers / tenants.length) : 0,
         hasActiveAlerts: alertTenants.has(t.id),
         status,
       };

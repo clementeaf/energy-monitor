@@ -16,7 +16,7 @@ import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert, AlertSeverity } from '../../../types/alert';
-import type { HierarchyNode } from '../../../types/hierarchy';
+// ponytail: HierarchyNode type used via useHierarchyByBuildingQuery return
 import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 
 /* ── Country selector ── */
@@ -395,11 +395,6 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
     () => hierarchyNodes.filter((n) => n.levelType === 'floor').sort((a, b) => a.sortOrder - b.sortOrder),
     [hierarchyNodes],
   );
-  const zones = useMemo(
-    () => hierarchyNodes.filter((n) => n.levelType === 'zone'),
-    [hierarchyNodes],
-  );
-
   // ponytail: derive floor alarm status from alerts on meters in that zone/floor
   const buildingAlerts = useMemo(() => alerts.filter((a) => a.buildingId === building.id), [alerts, building.id]);
   const floorHasAlarm = useMemo(() => {
@@ -567,7 +562,7 @@ interface ZoneBlock {
 
 function deriveZoneStatus(meterIds: string[], readings: LatestReading[], alerts: Alert[]): EnergyStatus {
   const meterSet = new Set(meterIds);
-  const zoneAlerts = alerts.filter((a) => meterSet.has(a.meterId));
+  const zoneAlerts = alerts.filter((a) => a.meterId && meterSet.has(a.meterId));
   const hasData = readings.some((r) => meterSet.has(r.meter_id));
   const severities = zoneAlerts.map((a) => a.severity as AlertSeverity);
   return deriveBuildingStatus(severities, hasData);

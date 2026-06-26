@@ -134,7 +134,7 @@ export function ConfigReleasesPage() {
   const [expandedDiff, setExpandedDiff] = useState<string | null>(null);
 
   // Derive config diffs from audit logs
-  const configDiffs = useMemo(() => deriveConfigDiffs(auditLogs), [auditLogs]);
+  const configDiffs = useMemo(() => deriveConfigDiffs(auditLogs as Array<{ action: string; resourceType: string; resourceId?: string; changes?: Record<string, unknown>; createdAt: string }>), [auditLogs]);
 
   // Derive deploy history from recent audit log config/system changes
   const deployHistory = useMemo(() =>

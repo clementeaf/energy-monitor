@@ -10,7 +10,7 @@ provider:
   memorySize: 256
   timeout: 120
   environment:
-    INGEST_BUCKET: energy-monitor-ingest-058310292956
+    INGEST_BUCKET: energy-monitor-iot-ingest
     DB_HOST: ${env:DB_HOST}
     DB_PORT: ${env:DB_PORT, '5432'}
     DB_NAME: ${env:DB_NAME}
@@ -32,8 +32,8 @@ provider:
             - s3:GetObject
             - s3:ListBucket
           Resource:
-            - arn:aws:s3:::energy-monitor-ingest-058310292956
-            - arn:aws:s3:::energy-monitor-ingest-058310292956/raw/iot/*
+            - arn:aws:s3:::energy-monitor-iot-ingest
+            - arn:aws:s3:::energy-monitor-iot-ingest/raw/iot/*
 
 functions:
   ingest:

@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.27.0-alpha.0] - 2026-06-26 — IOT PIPELINE REACTIVATION
+
+### Added
+- **S3 bucket `energy-monitor-iot-ingest`** — New ingest bucket with lifecycle policy (Glacier Deep Archive after 30 days, no expiration).
+- **S3 Gateway VPC endpoint** — Free endpoint so Lambda in VPC can reach S3 without NAT gateway.
+- **`monitor.sh`** — Quick status script: checks S3 files, Lambda logs, and triggers a processing run.
+- **IoT connection docs** — `docs/iot-conexion-siemens.md` and PDF with endpoint, port, topic, and certificate references.
+
+### Changed
+- **IoT Rule `powercenter_to_s3`** — Updated to target new bucket `energy-monitor-iot-ingest`. IAM role policy updated accordingly.
+- **`serverless.yml`** — Bucket name updated. Lambda deployed as `iot-ingest-prod-ingest` with VPC, EventBridge 15min schedule.
+
+### Deploy (prod)
+- Lambda `iot-ingest-prod-ingest` deployed (Node 20, 256MB, 120s timeout).
+- Pipeline verified end-to-end: IoT Core → S3 → Lambda → RDS (6 EAV rows inserted from test message).
+- Thing `siemens-poc3000` active with original certificates.
+
+### Notes
+- Old bucket `energy-monitor-ingest-058310292956` no longer exists (prior AWS cleanup). New bucket replaces it.
+- Credentials (cert, key, CA) sent to Siemens for reconnection.
+
+---
+
 ## [2.26.0-alpha.0] - 2026-06-24 — IOT INGEST V2 (EAV FORMAT)
 
 ### Changed

@@ -26,8 +26,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-26)
+- **2.27.0:** IoT pipeline reactivado. Bucket S3 `energy-monitor-iot-ingest` (lifecycle Glacier 30d). VPC endpoint S3 Gateway (gratis). Lambda `iot-ingest-prod-ingest` desplegada. IoT Rule actualizada. Pipeline verificado E2E (IoT Core → S3 → Lambda → RDS). Certs enviados a Siemens. [CHANGELOG — 2.27.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-24)
-- **2.26.0:** IoT ingest Lambda reescrita para formato EAV v2. Parser chain (POC3000 + genérico flat). Device map configurable por env var. 26 tests. No desplegada — lista para cuando se reactive IoT Core. [CHANGELOG — 2.26.0-alpha.0](CHANGELOG.md)
+- **2.26.0:** IoT ingest Lambda reescrita para formato EAV v2. Parser chain (POC3000 + genérico flat). Device map configurable por env var. 26 tests. [CHANGELOG — 2.26.0-alpha.0](CHANGELOG.md)
 - **2.25.0:** Profile-based sidebar + 25 pantallas nuevas según spec `docs/roles-ems.md`. 5 perfiles: Gerencial (6 pantallas), Operacional (6), Técnico (6), Auditor (4 nuevas + 2 existentes), Súper-admin (3 nuevas + 3 existentes). Sidebar usa `PROFILE_NAV[profile]` lookup (zero ifs). `UserProfile` type, `ROLE_TO_PROFILE` mapping, `EnergyStatus` system. 777 frontend tests. [CHANGELOG — 2.25.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-06-22)
@@ -240,6 +243,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **SSO Azure AD PASA** — credenciales App Registration del cliente.
 - **UAT Anexo 07** — checklist formal post-SSO.
 - **Timescale prod** — migr. `22`, `23` (requiere extensión en RDS).
+- **IoT monitoreo** — pipeline activo, esperando datos reales de Siemens. Verificar con `infra/iot-ingest/monitor.sh`.
 - Salida sandbox SES, billing AWS, DNS opcional `plataforma.globepower.cl` (prod usa `power-monitor.cloud`).
 
 ### Prompt de retoma
@@ -249,7 +253,8 @@ Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 apli
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
 Perfiles: 5 perfiles EMS implementados (gerencial/operacional/tecnico/auditor/super_admin). 25 pantallas nuevas. 777 frontend tests.
 IoT ingest: Lambda reescrita para EAV v2 (no desplegada). Parser chain POC3000 + genérico. 26 tests.
-Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23, deploy iot-ingest cuando se reactive IoT Core.
+IoT pipeline: activo (Lambda `iot-ingest-prod-ingest`, bucket `energy-monitor-iot-ingest`, EventBridge 15min). Certs enviados a Siemens, esperando datos reales.
+Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
 ```
 
 ## Prioridad Actual de Acceso

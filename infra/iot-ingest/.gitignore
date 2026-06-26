@@ -1,0 +1,6 @@
+*.js
+*.js.map
+!handler.js
+!handler.js.map
+!rds-ssl.js
+!rds-ssl.js.map

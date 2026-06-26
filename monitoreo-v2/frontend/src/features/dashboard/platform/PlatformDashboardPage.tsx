@@ -21,7 +21,7 @@ function KpiCard({ title, value, loading }: { title: string; value: string | num
 export function PlatformDashboardPage(): ReactElement {
   const query = usePlatformKpisQuery();
   const { data: kpis, isPending } = query;
-  const qs = useQueryState(query, { isEmpty: (d) => !d || d.tenantSummaries.length === 0 });
+  const qs = useQueryState(query, { isEmpty: (d) => !d || !d.tenantSummaries || d.tenantSummaries.length === 0 });
 
   return (
     <div className="space-y-6">

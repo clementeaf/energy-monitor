@@ -26,6 +26,7 @@ const CONNECT_SRC_DEFAULT = [
   'https://www.googleapis.com',
   'https://oauth2.googleapis.com',
   'https://www.google.com',
+  'https://basemaps.cartocdn.com',
 ] as const;
 
 const FRAME_SRC = [

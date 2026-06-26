@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 
 /* ── Options ── */
 
@@ -21,22 +21,73 @@ const FORMAT_OPTIONS = [
 
 /* ── Page ── */
 
+const INTERVAL_MAP: Record<string, string> = {
+  '15min': '15min',
+  '1h': 'hourly',
+  '1d': 'daily',
+};
+
+function defaultDateRange() {
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - 30);
+  return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+}
+
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function DatosCrudosPage() {
   const [selectedMeterId, setSelectedMeterId] = useState('');
   const [resolution, setResolution] = useState('1h');
   const [format, setFormat] = useState('csv');
+  const [dateRange] = useState(defaultDateRange);
 
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const aggQuery = useAggregatedReadingsQuery(
+    { meterId: selectedMeterId, from: dateRange.from, to: dateRange.to, interval: INTERVAL_MAP[resolution] ?? 'hourly' },
+    !!selectedMeterId,
+  );
 
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
+  const aggData = aggQuery.data ?? [];
 
   // Preview: show readings for selected meter
   const preview = useMemo(
     () => selectedMeterId ? readings.filter((r) => r.meter_id === selectedMeterId).slice(0, 10) : [],
     [readings, selectedMeterId],
   );
+
+  const meterName = meters.find((m) => m.id === selectedMeterId)?.name ?? 'meter';
+
+  const handleExport = useCallback(() => {
+    const rows = aggData.length > 0 ? aggData : preview;
+    if (rows.length === 0) return;
+
+    const now = new Date().toISOString().slice(0, 19).replace(/:/g, '');
+    const filename = `${meterName}_${resolution}_${now}`;
+
+    if (format === 'json') {
+      const meta = { exportedAt: new Date().toISOString(), meterId: selectedMeterId, meterName, resolution, period: dateRange };
+      downloadFile(JSON.stringify({ meta, data: rows }, null, 2), `${filename}.json`, 'application/json');
+    } else {
+      // CSV
+      const keys = Object.keys(rows[0]);
+      const header = keys.join(',');
+      const csvRows = rows.map((r) => keys.map((k) => (r as Record<string, unknown>)[k] ?? '').join(','));
+      const csv = [header, ...csvRows].join('\n');
+      downloadFile(csv, `${filename}.csv`, 'text/csv');
+    }
+  }, [aggData, preview, format, resolution, selectedMeterId, meterName, dateRange]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
@@ -77,8 +128,8 @@ export function DatosCrudosPage() {
           />
         </div>
 
-        <Button disabled={!selectedMeterId} className="shrink-0">
-          Exportar datos
+        <Button disabled={!selectedMeterId} className="shrink-0" onClick={handleExport}>
+          Exportar {format.toUpperCase()}
         </Button>
       </div>
 

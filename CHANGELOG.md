@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.29.0-alpha.0] - 2026-06-26 — PARTIAL PAGES COMPLETED (4 OF 4)
+
+### Changed
+- **TicketsSlaPage** — Added 3 SLA KPIs (cumplimiento %, tiempo medio resolución, disponibilidad datos) and 12-week SLA evolution stacked bar chart (dentro/fuera SLA). Layout now table + chart side-by-side. 6 KPI cards (from 4). 19 tests (from 10).
+- **CnrPendientesPage** — Replaced mock data with real gap detection from `useLatestReadingsQuery`. Meters with last reading > 4h = CNR pendiente, > 24h = crítica. Sorted by gap descending. New filters: Todas / Pendientes / >24h. 18 tests (from 13).
+- **MisOrdenesPage** — Added quick filter pills (Todos / Pendientes / Vencidas / En curso). Detail panel now shows "Historial del medidor" (resolved alerts for same meter). 11 tests (from 5).
+- **DatosCrudosPage** — Export button now functional: generates CSV or JSON client-side from `useAggregatedReadingsQuery`. Includes metadata header (meter, period, resolution). Button label shows selected format. 11 tests (from 7).
+
+### Stats
+- 59 tests across 4 pages. Zero new backend endpoints — all derived from existing data.
+
+---
+
 ## [2.28.0-alpha.0] - 2026-06-26 — IOT FRONTEND INTEGRATION
 
 ### Added

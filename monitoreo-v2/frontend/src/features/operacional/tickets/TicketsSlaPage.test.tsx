@@ -13,6 +13,22 @@ vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
   }),
 }));
 
+vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
+  useLatestReadingsQuery: () => ({
+    data: [
+      { meterId: 'm1', timestamp: new Date(Date.now() - 30 * 60_000).toISOString(), activePowerKw: 10 },
+      { meterId: 'm2', timestamp: new Date(Date.now() - 2 * 3_600_000).toISOString(), activePowerKw: 5 },
+    ],
+    isLoading: false,
+    isSuccess: true,
+    isPending: false,
+  }),
+  useReadingsQuery: () => ({ data: [], isLoading: false }),
+  useLatestReadingAnchorQuery: () => ({ data: null, isLoading: false }),
+  useCompareBuildingsQuery: () => ({ data: null, isLoading: false }),
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false }),
+}));
+
 const NOW = Date.now();
 const HOURS_AGO = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
 
@@ -75,9 +91,9 @@ describe('TicketsSlaPage', () => {
       expect(screen.getByText('Resueltos período')).toBeInTheDocument();
     });
 
-    it('renders total tickets', () => {
+    it('renders resueltos período', () => {
       renderPage();
-      expect(screen.getByText('Total tickets')).toBeInTheDocument();
+      expect(screen.getByText('Resueltos período')).toBeInTheDocument();
     });
   });
 
@@ -113,6 +129,48 @@ describe('TicketsSlaPage', () => {
       renderPage();
       expect(screen.getAllByText('abierto').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('resuelto').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('new SLA KPIs', () => {
+    it('renders cumplimiento SLA', () => {
+      renderPage();
+      expect(screen.getByText('Cumplimiento SLA')).toBeInTheDocument();
+    });
+
+    it('renders tiempo medio resolución', () => {
+      renderPage();
+      expect(screen.getByText('Tiempo medio resolución')).toBeInTheDocument();
+    });
+
+    it('shows resolution time in hours for resolved alerts', () => {
+      renderPage();
+      // resolved alert: created 10h ago, resolved 1h ago → 9h
+      expect(screen.getByText('9h')).toBeInTheDocument();
+    });
+
+    it('renders disponibilidad datos', () => {
+      renderPage();
+      expect(screen.getByText('Disponibilidad datos')).toBeInTheDocument();
+    });
+
+    it('shows uptime percentage from latest readings', () => {
+      renderPage();
+      // 1 of 2 meters online (< 1h) → 50%
+      expect(screen.getByText('50%')).toBeInTheDocument();
+    });
+  });
+
+  describe('SLA chart', () => {
+    it('renders SLA evolution heading', () => {
+      renderPage();
+      expect(screen.getByText(/Evolución SLA/)).toBeInTheDocument();
+    });
+
+    it('renders chart legend', () => {
+      renderPage();
+      expect(screen.getByText('Dentro SLA')).toBeInTheDocument();
+      expect(screen.getByText('Fuera SLA')).toBeInTheDocument();
     });
   });
 

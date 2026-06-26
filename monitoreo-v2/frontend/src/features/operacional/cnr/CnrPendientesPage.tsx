@@ -2,12 +2,11 @@ import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
+import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 
 /* ── CNR types ── */
 
-type CnrType = 'manual' | 'automático';
-type CnrStatus = 'pendiente' | 'en revisión' | 'aprobada' | 'rechazada';
+type CnrStatus = 'pendiente' | 'en revisión';
 
 interface CnrRecord {
   id: string;
@@ -15,14 +14,9 @@ interface CnrRecord {
   meterName: string;
   buildingId: string;
   buildingName: string;
-  periodStart: string;
-  periodEnd: string;
-  type: CnrType;
-  responsible: string | null;
-  entryDate: string;
+  lastReading: string;
+  gapHours: number;
   status: CnrStatus;
-  estimatedKwh: number;
-  justification: string;
 }
 
 /* ── Status styling ── */
@@ -30,47 +24,44 @@ interface CnrRecord {
 const STATUS_BADGE: Record<CnrStatus, string> = {
   pendiente: 'bg-amber-100 text-amber-700',
   'en revisión': 'bg-blue-100 text-blue-700',
-  aprobada: 'bg-emerald-100 text-emerald-700',
-  rechazada: 'bg-red-100 text-red-700',
 };
 
 const FILTER_OPTIONS = [
   { key: 'all', label: 'Todas' },
   { key: 'pendiente', label: 'Pendientes' },
-  { key: 'en revisión', label: 'En revisión' },
+  { key: 'critical', label: '>24h' },
 ];
 
-const FILTER_PREDICATES: Record<string, (r: CnrRecord) => boolean> = {
-  all: () => true,
-  pendiente: (r) => r.status === 'pendiente',
-  'en revisión': (r) => r.status === 'en revisión',
-};
+/* ── Gap thresholds ── */
 
-/* ── Demo data generator (from meters — placeholder until CNR backend module exists) ── */
-// ponytail: replace with useCnrQuery when backend CNR module ships
+const GAP_THRESHOLD_H = 4;
+const CRITICAL_GAP_H = 24;
 
-function generateCnrRecords(
-  meters: Array<{ id: string; name: string; buildingId: string }>,
+/* ── Derive CNR from stale meters ── */
+
+function deriveCnrRecords(
+  latestReadings: Array<{ meter_id: string; meter_name: string; building_id: string; timestamp: string }>,
   buildingMap: Map<string, string>,
 ): CnrRecord[] {
-  const TYPES: CnrType[] = ['manual', 'automático'];
-  const STATUSES: CnrStatus[] = ['pendiente', 'en revisión', 'aprobada', 'rechazada'];
-
-  return meters.slice(0, 8).map((meter, i) => ({
-    id: `CNR-${String(i + 1).padStart(4, '0')}`,
-    meterId: meter.id,
-    meterName: meter.name,
-    buildingId: meter.buildingId,
-    buildingName: buildingMap.get(meter.buildingId) ?? '—',
-    periodStart: '2026-06-20',
-    periodEnd: '2026-06-22',
-    type: TYPES[i % TYPES.length],
-    responsible: i % 3 === 0 ? 'Técnico A' : null,
-    entryDate: new Date(Date.now() - i * 86_400_000).toISOString(),
-    status: STATUSES[i % STATUSES.length],
-    estimatedKwh: 50 + i * 25,
-    justification: `Falla comunicación medidor ${meter.name} durante período indicado.`,
-  }));
+  const now = Date.now();
+  return latestReadings
+    .map((r) => {
+      const gapMs = now - new Date(r.timestamp).getTime();
+      const gapHours = Math.round(gapMs / 3_600_000 * 10) / 10;
+      return { ...r, gapHours };
+    })
+    .filter((r) => r.gapHours >= GAP_THRESHOLD_H)
+    .sort((a, b) => b.gapHours - a.gapHours)
+    .map((r, i) => ({
+      id: `CNR-${String(i + 1).padStart(4, '0')}`,
+      meterId: r.meter_id,
+      meterName: r.meter_name,
+      buildingId: r.building_id,
+      buildingName: buildingMap.get(r.building_id) ?? '—',
+      lastReading: r.timestamp,
+      gapHours: r.gapHours,
+      status: (r.gapHours >= CRITICAL_GAP_H ? 'pendiente' : 'en revisión') as CnrStatus,
+    }));
 }
 
 /* ── Page ── */
@@ -80,33 +71,30 @@ export function CnrPendientesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
-  const metersQuery = useMetersQuery();
+  const latestQuery = useLatestReadingsQuery();
 
   const buildings = buildingsQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
+  const latestReadings = latestQuery.data ?? [];
 
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
-  const cnrRecords = useMemo(() => generateCnrRecords(meters, buildingMap), [meters, buildingMap]);
+  const cnrRecords = useMemo(() => deriveCnrRecords(latestReadings, buildingMap), [latestReadings, buildingMap]);
 
   // Filter
-  const predicate = FILTER_PREDICATES[statusFilter] ?? FILTER_PREDICATES.all;
-  const filtered = useMemo(() => cnrRecords.filter(predicate), [cnrRecords, predicate]);
+  const filtered = useMemo(() => {
+    if (statusFilter === 'pendiente') return cnrRecords.filter((r) => r.status === 'pendiente');
+    if (statusFilter === 'critical') return cnrRecords.filter((r) => r.gapHours >= CRITICAL_GAP_H);
+    return cnrRecords;
+  }, [cnrRecords, statusFilter]);
 
   // KPIs
-  const totalOpen = cnrRecords.filter((r) => r.status === 'pendiente' || r.status === 'en revisión').length;
-  const olderThan7d = cnrRecords.filter((r) => {
-    const age = Date.now() - new Date(r.entryDate).getTime();
-    return (r.status === 'pendiente' || r.status === 'en revisión') && age > 7 * 86_400_000;
-  }).length;
-  const todayCount = cnrRecords.filter((r) => {
-    const today = new Date().toISOString().slice(0, 10);
-    return r.entryDate.slice(0, 10) === today;
-  }).length;
+  const totalOpen = cnrRecords.length;
+  const criticalCount = cnrRecords.filter((r) => r.gapHours >= CRITICAL_GAP_H).length;
+  const over7d = cnrRecords.filter((r) => r.gapHours >= 168).length;
 
   const kpis = [
-    { title: 'CNR abiertas', value: String(totalOpen), color: totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600' },
-    { title: '>7 días sin resolución', value: String(olderThan7d), color: olderThan7d > 0 ? 'text-red-600' : 'text-foreground' },
-    { title: 'Ingresadas hoy', value: String(todayCount), color: 'text-foreground' },
+    { title: 'CNR detectadas', value: String(totalOpen), color: totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600' },
+    { title: '>24h sin datos', value: String(criticalCount), color: criticalCount > 0 ? 'text-red-600' : 'text-foreground' },
+    { title: '>7 días sin datos', value: String(over7d), color: over7d > 0 ? 'text-red-600' : 'text-foreground' },
   ];
 
   return (
@@ -143,21 +131,18 @@ export function CnrPendientesPage() {
                 <th className="px-3 py-2">ID</th>
                 <th className="px-3 py-2">Medidor</th>
                 <th className="px-3 py-2">Centro</th>
-                <th className="px-3 py-2">Período</th>
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2 text-right">kWh est.</th>
+                <th className="px-3 py-2">Última lectura</th>
+                <th className="px-3 py-2 text-right">Gap (h)</th>
                 <th className="px-3 py-2 text-center">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((cnr) => {
                 const isExpanded = expandedId === cnr.id;
-                const badge = STATUS_BADGE[cnr.status];
                 return (
                   <CnrRow
                     key={cnr.id}
                     cnr={cnr}
-                    badge={badge}
                     isExpanded={isExpanded}
                     onToggle={() => setExpandedId(isExpanded ? null : cnr.id)}
                   />
@@ -165,8 +150,8 @@ export function CnrPendientesPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-muted">
-                    Sin CNR para el filtro seleccionado.
+                  <td colSpan={6} className="px-3 py-8 text-center text-muted">
+                    Sin CNR pendientes — todos los medidores reportando.
                   </td>
                 </tr>
               )}
@@ -182,12 +167,13 @@ export function CnrPendientesPage() {
 
 interface CnrRowProps {
   cnr: CnrRecord;
-  badge: string;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
-function CnrRow({ cnr, badge, isExpanded, onToggle }: Readonly<CnrRowProps>) {
+function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
+  const gapClass = cnr.gapHours >= CRITICAL_GAP_H ? 'text-red-600 font-medium' : cnr.gapHours >= 8 ? 'text-amber-600' : 'text-foreground';
+
   return (
     <>
       <tr
@@ -198,32 +184,37 @@ function CnrRow({ cnr, badge, isExpanded, onToggle }: Readonly<CnrRowProps>) {
         <td className="px-3 py-2 font-medium text-foreground">{cnr.meterName}</td>
         <td className="px-3 py-2 text-muted">{cnr.buildingName}</td>
         <td className="px-3 py-2 text-[11px] text-muted">
-          {cnr.periodStart} — {cnr.periodEnd}
+          {new Date(cnr.lastReading).toLocaleString('es-CL')}
         </td>
-        <td className="px-3 py-2 capitalize text-muted">{cnr.type}</td>
-        <td className="px-3 py-2 text-right text-foreground">{cnr.estimatedKwh}</td>
+        <td className={`px-3 py-2 text-right ${gapClass}`}>
+          {cnr.gapHours}
+        </td>
         <td className="px-3 py-2 text-center">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${badge}`}>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[cnr.status]}`}>
             {cnr.status}
           </span>
         </td>
       </tr>
       {isExpanded && (
         <tr className="bg-surface/50">
-          <td colSpan={7} className="px-6 py-3">
-            <div className="space-y-2 text-[12px]">
+          <td colSpan={6} className="px-6 py-3">
+            <div className="space-y-1 text-[12px]">
               <div>
-                <span className="font-medium text-muted">Justificación:</span>
-                <span className="ml-2 text-foreground">{cnr.justification}</span>
+                <span className="font-medium text-muted">Meter ID:</span>
+                <span className="ml-2 font-mono text-foreground">{cnr.meterId}</span>
               </div>
               <div>
-                <span className="font-medium text-muted">Responsable:</span>
-                <span className="ml-2 text-foreground">{cnr.responsible ?? 'Sin asignar'}</span>
+                <span className="font-medium text-muted">Edificio:</span>
+                <span className="ml-2 text-foreground">{cnr.buildingName}</span>
               </div>
               <div>
-                <span className="font-medium text-muted">Fecha ingreso:</span>
+                <span className="font-medium text-muted">Sin datos desde:</span>
+                <span className="ml-2 text-foreground">{new Date(cnr.lastReading).toLocaleString('es-CL')}</span>
+              </div>
+              <div>
+                <span className="font-medium text-muted">Acción sugerida:</span>
                 <span className="ml-2 text-foreground">
-                  {new Date(cnr.entryDate).toLocaleDateString('es-CL')}
+                  {cnr.gapHours >= CRITICAL_GAP_H ? 'Verificar comunicación del medidor' : 'Monitorear — gap menor'}
                 </span>
               </div>
             </div>

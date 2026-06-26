@@ -90,8 +90,16 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
 
 /* ── Page ── */
 
+const QUICK_FILTERS = [
+  { key: 'all', label: 'Todos' },
+  { key: 'pendiente', label: 'Pendientes' },
+  { key: 'overdue', label: 'Vencidas' },
+  { key: 'en curso', label: 'En curso' },
+];
+
 export function MisOrdenesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [quickFilter, setQuickFilter] = useState('all');
 
   const buildingsQuery = useBuildingsQuery();
   const activeQuery = useAlertsQuery({ status: 'active' });
@@ -116,7 +124,21 @@ export function MisOrdenesPage() {
     [allAlerts],
   );
 
+  const filteredOrders = useMemo(() => {
+    if (quickFilter === 'all') return orders;
+    if (quickFilter === 'overdue') return orders.filter((o) => o.status === 'vencida');
+    return orders.filter((o) => o.status === quickFilter);
+  }, [orders, quickFilter]);
+
   const selected = orders.find((o) => o.id === selectedId) ?? null;
+
+  // History: resolved alerts for the same meter as the selected order
+  const selectedHistory = useMemo(() => {
+    if (!selected?.meterId) return [];
+    return allAlerts
+      .filter((a) => a.meterId === selected.meterId && a.status === 'resolved' && a.id !== selected.alertId)
+      .slice(0, 5);
+  }, [allAlerts, selected]);
 
   // KPIs
   const pending = orders.filter((o) => o.status === 'pendiente').length;
@@ -136,7 +158,28 @@ export function MisOrdenesPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Mis Órdenes" eyebrow="Órdenes" />
+      <PageHeader
+        title="Mis Órdenes"
+        eyebrow="Órdenes"
+        actions={
+          <div className="flex gap-1">
+            {QUICK_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setQuickFilter(f.key)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  quickFilter === f.key
+                    ? 'bg-brand text-brand-fg'
+                    : 'border border-border text-muted hover:bg-surface'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* KPIs */}
       <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4">
@@ -164,7 +207,7 @@ export function MisOrdenesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr
                     key={order.id}
                     className={`cursor-pointer transition-colors hover:bg-surface ${selectedId === order.id ? 'bg-surface' : ''}`}
@@ -188,7 +231,7 @@ export function MisOrdenesPage() {
                     </td>
                   </tr>
                 ))}
-                {orders.length === 0 && (
+                {filteredOrders.length === 0 && (
                   <tr><td colSpan={6} className="px-3 py-8 text-center text-muted">Sin órdenes asignadas.</td></tr>
                 )}
               </tbody>
@@ -206,6 +249,7 @@ export function MisOrdenesPage() {
               onClose={() => resolveAlert.mutate({ id: selected.alertId })}
               starting={acknowledgeAlert.isPending}
               closing={resolveAlert.isPending}
+              history={selectedHistory}
             />
           ) : (
             <div className="panel flex flex-1 items-center justify-center p-4">
@@ -227,9 +271,10 @@ interface OrderDetailProps {
   onClose: () => void;
   starting: boolean;
   closing: boolean;
+  history: Alert[];
 }
 
-function OrderDetail({ order, buildingName, onStart, onClose, starting, closing }: Readonly<OrderDetailProps>) {
+function OrderDetail({ order, buildingName, onStart, onClose, starting, closing, history }: Readonly<OrderDetailProps>) {
   const details = [
     { label: 'Tipo', value: order.type },
     { label: 'Centro', value: buildingName },
@@ -264,6 +309,20 @@ function OrderDetail({ order, buildingName, onStart, onClose, starting, closing 
           <Button size="sm" variant="secondary" onClick={onClose} loading={closing}>Cerrar</Button>
         </div>
       </div>
+
+      {history.length > 0 && (
+        <div className="panel px-3 py-3">
+          <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Historial del medidor</h4>
+          <ul className="space-y-1.5">
+            {history.map((a) => (
+              <li key={a.id} className="flex justify-between text-[12px]">
+                <span className="text-foreground">{a.message}</span>
+                <span className="text-muted">{new Date(a.resolvedAt!).toLocaleDateString('es-CL')}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 }

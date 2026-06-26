@@ -206,17 +206,39 @@ export function AlarmasEventosPage() {
             </table>
           </div>
 
-          {/* SLA summary bar */}
-          <div className="panel mt-3 shrink-0 px-4 py-3">
-            <h4 className="text-[12px] font-medium text-foreground">Resumen SLA</h4>
-            <div className="mt-2 flex flex-wrap gap-4 text-[12px]">
-              <span className="text-muted">Total: {sorted.length}</span>
-              <span className="text-muted">Resueltas período: {totalResolved}</span>
-              <span className="text-red-600">Críticas: {sorted.filter((a) => a.severity === 'critical').length}</span>
-              <span className="text-orange-600">Altas: {sorted.filter((a) => a.severity === 'high').length}</span>
-              <span className="text-amber-600">Medias: {sorted.filter((a) => a.severity === 'medium').length}</span>
-              <span className="text-blue-600">Bajas: {sorted.filter((a) => a.severity === 'low').length}</span>
-            </div>
+          {/* SLA visual widgets */}
+          <div className="mt-3 grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4">
+            {(() => {
+              const total = sorted.length || 1;
+              const critCount = sorted.filter((a) => a.severity === 'critical').length;
+              const highCount = sorted.filter((a) => a.severity === 'high').length;
+              const medCount = sorted.filter((a) => a.severity === 'medium').length;
+              const lowCount = sorted.filter((a) => a.severity === 'low').length;
+              // ponytail: SLA within/outside derived from resolved alerts with resolvedAt
+              const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
+              const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
+              const withinSla = resolvedWithTs.filter((a) => {
+                const resolveMs = new Date(a.resolvedAt!).getTime() - new Date(a.createdAt).getTime();
+                return resolveMs <= (SLA_H[a.severity] ?? 72) * 3_600_000;
+              }).length;
+              const withinPct = resolvedWithTs.length > 0 ? Math.round((withinSla / resolvedWithTs.length) * 100) : 100;
+              const outsidePct = 100 - withinPct;
+              const widgets = [
+                { label: '% dentro SLA', value: `${withinPct}%`, pct: withinPct, color: 'bg-emerald-400' },
+                { label: '% fuera SLA', value: `${outsidePct}%`, pct: outsidePct, color: 'bg-red-400' },
+                { label: 'Por severidad', value: `${critCount}C ${highCount}A ${medCount}M ${lowCount}B`, pct: total > 0 ? ((critCount + highCount) / total) * 100 : 0, color: 'bg-red-400' },
+                { label: 'Resueltas período', value: String(totalResolved), pct: total > 0 ? (totalResolved / (totalResolved + sorted.length)) * 100 : 0, color: 'bg-blue-400' },
+              ];
+              return widgets.map((w) => (
+                <div key={w.label} className="panel px-3 py-2">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{w.label}</p>
+                  <p className="mt-0.5 text-[13px] font-semibold text-foreground">{w.value}</p>
+                  <div className="mt-1 h-1.5 rounded-full bg-gray-200">
+                    <div className={`h-full rounded-full ${w.color}`} style={{ width: `${Math.min(100, w.pct)}%` }} />
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
+import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Building } from '../../../types/building';
@@ -186,6 +187,29 @@ export function AlarmasAgregadasPage() {
     [filteredBuildings, filteredActive, filteredResolved],
   );
 
+  // Geo buildings for map
+  const geoBuildings = useMemo(
+    () => filteredBuildings.filter((b): b is Building & { latitude: number; longitude: number } =>
+      b.latitude != null && b.longitude != null,
+    ),
+    [filteredBuildings],
+  );
+
+  // Map markers colored by alarm state
+  const buildingMeta = useMemo(() => {
+    const map = new Map<string, BuildingMarkerMeta>();
+    mallRows.forEach((r) => {
+      const color = r.criticalCount > 0 ? '#ef4444' : r.warningCount > 0 ? '#f59e0b' : r.totalActive > 0 ? '#f97316' : '#22c55e';
+      const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
+        <strong style="font-size:13px">${r.buildingName}</strong>
+        <p style="margin:3px 0 0;font-size:12px">${r.criticalCount} críticas · ${r.warningCount} warnings</p>
+        ${r.totalActive > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.totalActive} activas</p>` : '<p style="margin:2px 0 0;font-size:11px;color:#22c55e">Sin alarmas</p>'}
+      </div>`;
+      map.set(r.buildingId, { color, popupHtml });
+    });
+    return map;
+  }, [mallRows]);
+
   const displayRows = useMemo(
     () => search ? mallRows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase())) : mallRows,
     [mallRows, search],
@@ -256,8 +280,13 @@ export function AlarmasAgregadasPage() {
       </div>
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
+        {/* Map */}
+        <div className="hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
+          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
+        </div>
+
         {/* Top 5 + full table */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden lg:max-w-[55%]">
           {/* Top 5 */}
           <div className="panel shrink-0">
             <h3 className="px-4 py-3 text-[13px] font-medium text-foreground">

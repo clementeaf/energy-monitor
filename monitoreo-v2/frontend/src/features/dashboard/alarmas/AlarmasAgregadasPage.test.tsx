@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
+vi.mock('../../../components/ui/MapView', () => ({ MapView: () => <div data-testid="map-view" /> }));
+
 vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
   useBuildingsQuery: () => ({
     data: [

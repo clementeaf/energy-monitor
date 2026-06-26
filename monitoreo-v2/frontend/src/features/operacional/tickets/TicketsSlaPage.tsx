@@ -325,6 +325,45 @@ export function TicketsSlaPage() {
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Dentro SLA</span>
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-400" /> Fuera SLA</span>
           </div>
+        {/* SLA penalties history */}
+        <div className="panel flex flex-col gap-2 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Historial penalizaciones SLA</h3>
+          {(() => {
+            // Derive penalty periods from weeks with outsideSla > 0
+            const penalties = slaWeekly.filter((w) => w.outsideSla > 0);
+            if (penalties.length === 0) return <p className="text-[12px] text-muted">Sin penalizaciones en el período.</p>;
+            return (
+              <table className="w-full text-[12px]">
+                <thead>
+                  <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                    <th className="pb-1">Semana</th>
+                    <th className="pb-1 text-right">Fuera SLA</th>
+                    <th className="pb-1 text-right">Dentro SLA</th>
+                    <th className="pb-1 text-center">Cumplimiento</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {penalties.map((w) => {
+                    const total = w.withinSla + w.outsideSla;
+                    const pct = total > 0 ? Math.round((w.withinSla / total) * 100) : 0;
+                    return (
+                      <tr key={w.label}>
+                        <td className="py-1 text-muted">{w.label}</td>
+                        <td className="py-1 text-right text-red-600">{w.outsideSla}</td>
+                        <td className="py-1 text-right text-emerald-600">{w.withinSla}</td>
+                        <td className="py-1 text-center">
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pct >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            {pct}%
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            );
+          })()}
+        </div>
         </div>
       </div>
     </div>

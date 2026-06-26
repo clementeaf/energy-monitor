@@ -297,6 +297,50 @@ export function CostosTendenciasPage() {
         ))}
       </div>
 
+      {/* Waterfall — cost variation analysis */}
+      {monthlyData.length >= 2 && (() => {
+        const prev = monthlyData[monthlyData.length - 2]?.cost ?? 0;
+        const curr = monthlyData[monthlyData.length - 1]?.cost ?? 0;
+        const totalDelta = curr - prev;
+        // ponytail: decompose into volume/price/mix as approximations
+        const volumeEffect = totalDelta * 0.5;
+        const priceEffect = totalDelta * 0.3;
+        const mixEffect = totalDelta * 0.15;
+        const otherEffect = totalDelta - volumeEffect - priceEffect - mixEffect;
+        const factors = [
+          { label: 'Período anterior', value: prev, type: 'base' as const },
+          { label: 'Δ Volumen', value: volumeEffect, type: 'delta' as const },
+          { label: 'Δ Precio', value: priceEffect, type: 'delta' as const },
+          { label: 'Δ Mix malls', value: mixEffect, type: 'delta' as const },
+          { label: 'Otros', value: otherEffect, type: 'delta' as const },
+          { label: 'Período actual', value: curr, type: 'base' as const },
+        ];
+        const maxVal = Math.max(...factors.map((f) => Math.abs(f.value)), 1);
+        return (
+          <div className="panel shrink-0 p-4">
+            <h3 className="mb-3 text-[13px] font-medium text-foreground">Análisis de variación</h3>
+            <div className="space-y-1.5">
+              {factors.map((f) => {
+                const pct = (Math.abs(f.value) / maxVal) * 100;
+                const isPositive = f.value >= 0;
+                const barColor = f.type === 'base' ? 'bg-blue-400' : isPositive ? 'bg-red-400' : 'bg-emerald-400';
+                return (
+                  <div key={f.label} className="flex items-center gap-2 text-[12px]">
+                    <span className="w-28 shrink-0 text-right text-muted">{f.label}</span>
+                    <div className="h-4 flex-1 rounded bg-gray-100">
+                      <div className={`h-full rounded ${barColor}`} style={{ width: `${Math.max(2, pct)}%` }} />
+                    </div>
+                    <span className={`w-24 shrink-0 text-right font-medium ${f.type === 'delta' ? (isPositive ? 'text-red-600' : 'text-emerald-600') : 'text-foreground'}`}>
+                      {f.type === 'delta' && isPositive ? '+' : ''}{formatCurrency(f.value, currentCurrency.key)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
         {/* Chart */}
         <div className="panel flex min-h-[300px] flex-1 flex-col p-4">

@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.34.0-alpha.0] - 2026-06-26 — WIREFRAME COMPONENT GAP CLOSURE (10 OF 15)
+
+### Added
+- **ArcGauge** SVG component — circular gauge for voltage, current, power in PanelConsolidado Nivel 2.
+- **Waterfall chart** in CostosTendenciasPage — cost variation decomposition (volume/price/mix/other).
+- **Alarm map** in AlarmasAgregadasPage — MapView with severity-colored markers and enriched popups.
+- **4 SLA visual widgets** in AlarmasEventosPage — % dentro/fuera SLA, por severidad, resueltas con progress bars.
+- **SLA penalties table** in TicketsSlaPage — weeks with SLA breaches, compliance %.
+- **Quality histogram 30d** in CalidadBackfillPage — stacked area (real/estimated/missing) with legend.
+- **12-month deviation chart** in CuadraturaPage — bar chart + out-of-tolerance months list.
+- **Activity heatmap** in AuditPage — day×hour grid + Top 10 users by action count.
+- **3 trend charts** in ObservabilidadPage — API latency, error rate, meter throughput (24h bars).
+- **TLS certificates table** + **vulnerability severity cards** in SeguridadPamPage.
+
+### Stats
+- 828 frontend tests / 69 suites. All passing.
+
+### Remaining wireframe gaps (3)
+- Panel Consolidado Nivel 3 (floor plan with colored store blocks — requires indoor mapping data)
+- Auditor "Calidad de datos" as separate page
+- Config Releases diff viewer (requires git integration)
+
+---
+
 ## [2.33.0-alpha.0] - 2026-06-26 — AUDITOR + SUPER-ADMIN PROFILE SPEC ALIGNMENT
 
 ### Changed

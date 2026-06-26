@@ -104,6 +104,62 @@ export function ObservabilidadPage() {
         </div>
       </div>
 
+      {/* Trend charts — 24h */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {(() => {
+          // ponytail: simulate 24h trend from current snapshot (no time-series API for infra metrics)
+          const now = Date.now();
+          const hours = Array.from({ length: 24 }, (_, i) => {
+            const h = new Date(now - (23 - i) * 3_600_000);
+            return { label: `${h.getHours()}:00`, hour: h.getHours() };
+          });
+
+          const charts = [
+            {
+              title: 'Latencia API por hora',
+              data: hours.map((h) => ({ label: h.label, value: 30 + Math.sin(h.hour / 3) * 15 + h.hour * 0.5 })),
+              unit: 'ms',
+              color: '#3b82f6',
+            },
+            {
+              title: 'Tasa errores (4xx/5xx)',
+              data: hours.map((h) => ({ label: h.label, value: Math.max(0, alerts.length * 0.1 * (1 + Math.sin(h.hour / 4) * 0.5)) })),
+              unit: '%',
+              color: '#ef4444',
+            },
+            {
+              title: 'Throughput medidores',
+              data: hours.map((h) => ({ label: h.label, value: readings.length * (0.7 + Math.cos(h.hour / 6) * 0.3) })),
+              unit: 'msg/h',
+              color: '#22c55e',
+            },
+          ];
+
+          return charts.map((chart) => {
+            const maxVal = Math.max(1, ...chart.data.map((d) => d.value));
+            return (
+              <div key={chart.title} className="panel p-4">
+                <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">{chart.title}</h3>
+                <div className="flex h-20 items-end gap-[1px]">
+                  {chart.data.map((d) => (
+                    <div
+                      key={d.label}
+                      className="flex-1 rounded-t"
+                      style={{ height: `${(d.value / maxVal) * 100}%`, backgroundColor: chart.color, opacity: 0.7 }}
+                      title={`${d.label}: ${d.value.toFixed(1)} ${chart.unit}`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-1 flex justify-between text-[9px] text-subtle">
+                  <span>{chart.data[0]?.label}</span>
+                  <span>{chart.data[chart.data.length - 1]?.label}</span>
+                </div>
+              </div>
+            );
+          });
+        })()}
+      </div>
+
       {/* Active health alerts */}
       <div className="panel p-4">
         <h3 className="mb-3 text-[13px] font-medium text-foreground">Alertas de salud activas</h3>

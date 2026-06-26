@@ -351,8 +351,6 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
   const buildingReadings = readings.filter((r) => r.building_id === building.id);
   const voltages = buildingReadings.map((r) => Number(r.voltage_l1)).filter((v) => v > 0);
   const avgVoltage = voltages.length > 0 ? voltages.reduce((s, v) => s + v, 0) / voltages.length : null;
-  const minVoltage = voltages.length > 0 ? Math.min(...voltages) : null;
-  const maxVoltage = voltages.length > 0 ? Math.max(...voltages) : null;
 
   const metrics = [
     { title: 'Carga total', value: `${powerKw.toFixed(1)} kW` },
@@ -390,26 +388,31 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
         ))}
       </div>
 
-      {/* Voltage range */}
-      {avgVoltage && minVoltage && maxVoltage && (
-        <div className="panel px-3 py-2">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Rango voltaje</p>
-          <div className="mt-1 flex items-center gap-2 text-[12px]">
-            <span className="text-muted">{minVoltage.toFixed(0)}V</span>
-            <div className="h-1.5 flex-1 rounded-full bg-gray-200">
-              <div
-                className="h-full rounded-full bg-emerald-400"
-                style={{ width: `${Math.min(100, ((avgVoltage - 200) / 60) * 100)}%` }}
-              />
-            </div>
-            <span className="text-muted">{maxVoltage.toFixed(0)}V</span>
+      {/* Gauges */}
+      {buildingReadings.length > 0 && (() => {
+        const currents = buildingReadings.map((r) => Number(r.current_l1)).filter((v) => v > 0);
+        const avgCurrent = currents.length > 0 ? currents.reduce((s, v) => s + v, 0) / currents.length : null;
+        const gauges = [
+          { label: 'Voltaje', value: avgVoltage, unit: 'V', min: 200, max: 260, normalMin: 210, normalMax: 240, color: '#22c55e' },
+          { label: 'Corriente', value: avgCurrent, unit: 'A', min: 0, max: 100, normalMin: 0, normalMax: 80, color: '#3b82f6' },
+          { label: 'Potencia', value: powerKw, unit: 'kW', min: 0, max: Math.max(powerKw * 1.5, 100), normalMin: 0, normalMax: powerKw * 1.2, color: '#f59e0b' },
+        ];
+        return (
+          <div className="grid grid-cols-3 gap-2">
+            {gauges.map((g) => (
+              <div key={g.label} className="panel flex flex-col items-center px-2 py-2">
+                <ArcGauge value={g.value ?? 0} min={g.min} max={g.max} color={g.color} size={64} />
+                <p className="mt-1 text-[12px] font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(1)} ${g.unit}` : '—'}</p>
+                <p className="text-[9px] text-muted">{g.label}</p>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Alert feed */}
       <div className="panel flex flex-col">
-        <h4 className="px-3 py-2 text-[12px] font-medium text-foreground">Alertas en vivo</h4>
+        <h4 className="px-3 py-2 text-[12px] font-medium text-foreground">Alertas en vivo ({activeAlerts.length})</h4>
         <DataWidget
           phase={activeAlerts.length === 0 ? 'empty' : 'ready'}
           error={null}
@@ -434,5 +437,39 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
         </DataWidget>
       </div>
     </>
+  );
+}
+
+/* ── Arc Gauge (SVG) ── */
+
+function ArcGauge({ value, min, max, color, size = 64 }: Readonly<{ value: number; min: number; max: number; color: string; size?: number }>) {
+  const r = size / 2 - 6;
+  const cx = size / 2;
+  const cy = size / 2;
+  const startAngle = -225;
+  const endAngle = 45;
+  const range = endAngle - startAngle; // 270 degrees
+  const pct = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  const valueAngle = startAngle + range * pct;
+
+  const toXY = (angle: number) => {
+    const rad = (angle * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  };
+
+  const describeArc = (start: number, end: number) => {
+    const s = toXY(start);
+    const e = toXY(end);
+    const largeArc = end - start > 180 ? 1 : 0;
+    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 1 ${e.x} ${e.y}`;
+  };
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <path d={describeArc(startAngle, endAngle)} fill="none" stroke="#e5e7eb" strokeWidth={5} strokeLinecap="round" />
+      {pct > 0.01 && (
+        <path d={describeArc(startAngle, valueAngle)} fill="none" stroke={color} strokeWidth={5} strokeLinecap="round" />
+      )}
+    </svg>
   );
 }

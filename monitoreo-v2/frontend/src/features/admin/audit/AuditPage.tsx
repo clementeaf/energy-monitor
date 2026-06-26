@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
@@ -122,6 +122,72 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
           </TableStateBody>
         </table>
       </div>
+
+      {/* Activity summary: heatmap + top 10 */}
+      {(() => {
+        const logs = query.data?.data ?? [];
+        // Heatmap: actions per day of week × hour
+        const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+        const heatmap: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+        logs.forEach((l) => {
+          const d = new Date(l.createdAt);
+          const day = (d.getDay() + 6) % 7; // Mon=0
+          const hour = d.getHours();
+          heatmap[day][hour]++;
+        });
+        const maxHeat = Math.max(1, ...heatmap.flat());
+
+        // Top 10 users
+        const userCounts = new Map<string, number>();
+        logs.forEach((l) => {
+          const user = l.userEmail ?? l.userId ?? 'unknown';
+          userCounts.set(user, (userCounts.get(user) ?? 0) + 1);
+        });
+        const top10 = Array.from(userCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        return (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="panel p-4">
+              <h3 className="mb-3 text-[13px] font-medium text-foreground">Actividad por día y hora</h3>
+              <div className="overflow-x-auto">
+                <div className="inline-grid gap-[2px]" style={{ gridTemplateColumns: `auto repeat(24, 1fr)` }}>
+                  <div />
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <div key={h} className="text-center text-[8px] text-subtle">{h}</div>
+                  ))}
+                  {DAYS.map((day, di) => (
+                    <React.Fragment key={day}>
+                      <div className="pr-1 text-right text-[9px] text-muted">{day}</div>
+                      {heatmap[di].map((count, hi) => {
+                        const intensity = count / maxHeat;
+                        const bg = count === 0 ? '#f3f4f6' : `rgba(59, 130, 246, ${0.15 + intensity * 0.85})`;
+                        return <div key={hi} className="h-3 w-3 rounded-sm" style={{ backgroundColor: bg }} title={`${day} ${hi}:00 — ${count} acciones`} />;
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="panel p-4">
+              <h3 className="mb-3 text-[13px] font-medium text-foreground">Top 10 usuarios por actividad</h3>
+              {top10.length > 0 ? (
+                <ul className="space-y-1.5">
+                  {top10.map(([user, count], i) => (
+                    <li key={user} className="flex items-center justify-between text-[12px]">
+                      <span className="text-foreground"><span className="mr-2 text-muted">{i + 1}.</span>{user}</span>
+                      <span className="font-medium text-foreground">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[12px] text-muted">Sin datos de actividad.</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-3">

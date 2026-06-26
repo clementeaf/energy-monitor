@@ -145,7 +145,9 @@ describe('AlarmasEventosPage', () => {
   describe('SLA summary', () => {
     it('renders SLA summary section', () => {
       renderPage();
-      expect(screen.getByText('Resumen SLA')).toBeInTheDocument();
+      expect(screen.getByText(/% dentro SLA/)).toBeInTheDocument();
+      expect(screen.getByText(/% fuera SLA/)).toBeInTheDocument();
+      expect(screen.getByText(/Por severidad/)).toBeInTheDocument();
     });
   });
 });

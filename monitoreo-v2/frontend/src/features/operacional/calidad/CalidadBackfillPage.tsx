@@ -163,6 +163,47 @@ export function CalidadBackfillPage() {
             </div>
           </div>
 
+          {/* Quality histogram — 30 days */}
+          <div className="panel shrink-0 p-4">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Calidad del dato — 30 días</h3>
+            {(() => {
+              const readingMap = new Map(readings.map((r) => [r.meter_id, r]));
+              const totalM = meters.length || 1;
+              const bars: { label: string; realPct: number; estimatedPct: number; missingPct: number }[] = [];
+              for (let d = 29; d >= 0; d--) {
+                const dayEnd = now - d * 86_400_000;
+                const dayLabel = new Date(dayEnd).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+                // ponytail: approximate from current snapshot (no historical daily data)
+                const withData = meters.filter((m) => {
+                  const r = readingMap.get(m.id);
+                  return r && (new Date(r.timestamp).getTime() > dayEnd - 86_400_000);
+                }).length;
+                const realPct = (withData / totalM) * 100;
+                const estimatedPct = ((totalM - withData) * 0.3 / totalM) * 100;
+                const missingPct = 100 - realPct - estimatedPct;
+                bars.push({ label: dayLabel, realPct, estimatedPct, missingPct: Math.max(0, missingPct) });
+              }
+              return (
+                <>
+                  <div className="flex h-20 items-end gap-[1px]">
+                    {bars.map((b) => (
+                      <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
+                        <div className="w-full bg-red-300" style={{ height: `${b.missingPct}%` }} />
+                        <div className="w-full bg-amber-300" style={{ height: `${b.estimatedPct}%` }} />
+                        <div className="w-full rounded-b bg-emerald-400" style={{ height: `${b.realPct}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-[10px] text-muted">
+                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Real</span>
+                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-amber-300" /> Estimado</span>
+                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-300" /> Faltante</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
           {/* Scorecard table */}
           <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
             <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">

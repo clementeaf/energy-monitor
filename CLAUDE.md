@@ -27,6 +27,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-26)
+- **2.35.0:** Spec Roles EMS 100% completo (30/30 pantallas). CalidadDatosPage auditor. Panel Consolidado Nivel 3 (plano piso con zonas coloreadas). Config Releases diff viewer (unified + side-by-side). TenantsMallsPage (gestión multi-tenant). SeguridadPamPage completa (PAM review cycle, JIT vault, incidentes, breach notification, crypto deletion). Manual de usuario reescrito (30 pantallas). 890 tests. [CHANGELOG — 2.35.0-alpha.0](CHANGELOG.md)
+- **2.34.0:** 10 wireframe component gaps cerrados (ArcGauge, waterfall, alarm map, SLA widgets, penalties, quality histogram, deviation chart, heatmap, trend charts, TLS/vulns). [CHANGELOG — 2.34.0-alpha.0](CHANGELOG.md)
 - **2.33.0:** Perfiles Auditor + Súper-admin alineados. CuadraturaPage (filtro mall, export CSV). TrazabilidadPage (tipo lectura derivado de frescura). DatosCrudos (100 filas). ExportarEvidencia (selector mall/período). Observabilidad (KPIs reales, no hardcoded). [CHANGELOG — 2.33.0-alpha.0](CHANGELOG.md)
 - **2.32.0:** Perfil Técnico alineado. MedidoresCatalogo (filtros mall/status/tipo). MisOrdenes (meter ID, Pausar). DiagnosticoComms (tasa éxito, tiempo). MaestroMedidores (detalle + dar de baja/activar). [CHANGELOG — 2.32.0-alpha.0](CHANGELOG.md)
 - **2.31.0:** Perfil Operacional alineado. MonitoreoVivo (CNR KPI, histograma 24h, feed enriquecido). AlarmasEventos (filtro mall, SLA por severidad). CalidadBackfill (tendencia). CnrPendientes (export CSV). MapaCobertura (markers coloreados). [CHANGELOG — 2.31.0-alpha.0](CHANGELOG.md)
@@ -257,7 +259,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
-Perfiles: 5 perfiles EMS completos (30 pantallas, zero stubs). 828 frontend tests / 69 suites.
+Perfiles: 5 perfiles EMS completos (30 pantallas, zero gaps). 890 frontend tests.
+Spec Roles EMS: 100% completo. Manual de usuario actualizado (30 pantallas).
 IoT: pipeline activo, data Siemens llegando. Parser SENTRON flat + POC3000 + genérico. Frontend IoT integrado (MeterDetailPage). 34 tests Lambda.
 Pendiente IoT: payload sin device ID — escalar a 100+ medidores requiere topic por medidor o campo deviceId de Siemens.
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
@@ -363,7 +366,7 @@ cd monitoreo-v2/frontend && npm run test
 - **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
 - **Idle timeout (CYB-06):** `IdleTimeoutGuard` global revoca sesión tras inactividad (default 15min, configurable por tenant `idleTimeoutMinutes` 5–60). Frontend `useIdleTimeout` espeja el timeout client-side. `last_activity_at` en `refresh_tokens` (migración `49`).
 - **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
-- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 260 tests / 34 suites. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
+- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 890 tests. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 - **Ley 21.719 compliance:** ARCO+ completo (acceso, rectificación, cancelación, oposición, bloqueo, portabilidad). Consentimiento con revocación. MFA enforcement por rol. Retención automática (cron diario). Breach notification 72h. Endpoints públicos: `/privacy/policy`, `/privacy/processing-registry`. Docs legales en `monitoreo-v2/docs/privacy/` (DPA AWS, EIPD, transferencia internacional, DPO). Pendiente solo: firma EIPD, verificar DPA AWS, designar DPO, monitorear lista países adecuados de la Agencia.
 

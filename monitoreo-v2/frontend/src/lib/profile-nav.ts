@@ -222,6 +222,7 @@ const AUDITOR_NAV: ProfileNavEntry[] = [
       { to: APP_ROUTES.trazabilidad, label: 'Trazabilidad' },
       { to: APP_ROUTES.datosCrudos, label: 'Datos Crudos' },
       { to: APP_ROUTES.exportarEvidencia, label: 'Exportar Evidencia' },
+      { to: APP_ROUTES.calidadDatos, label: 'Calidad de Datos' },
     ],
   },
 ];
@@ -275,6 +276,7 @@ const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
     icon: 'admin',
     basePath: '/admin',
     children: [
+      { to: APP_ROUTES.tenantsMalls, label: 'Tenants y Malls' },
       { to: '/admin/companies', label: 'Empresas' },
       { to: '/admin/users', label: 'Usuarios' },
       { to: '/admin/tenants', label: 'Locatarios' },

@@ -15,7 +15,6 @@ import { useAppStore } from '../store/useAppStore';
  */
 const PROFILE_DASHBOARD: Record<string, string> = {
   gerencial: '/dashboard/consolidado',
-  super_admin: '/dashboard/platform',
 };
 
 function DashboardIndex() {
@@ -54,6 +53,8 @@ import {
   LazyTrazabilidadPage,
   LazyDatosCrudosPage,
   LazyExportarEvidenciaPage,
+  LazyCalidadDatosPage,
+  LazyTenantsMallsPage,
   LazyBuildingsPage,
   LazyMetersUnifiedPage,
   LazyAlertsPage,
@@ -281,11 +282,13 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.observabilidad, element: <P any={DASH_EXEC}><LazyObservabilidadPage /></P> },
                   { path: APP_ROUTES.configReleases, element: <P any={DASH_EXEC}><LazyConfigReleasesPage /></P> },
                   { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
+                  { path: APP_ROUTES.tenantsMalls, element: <P any={DASH_EXEC}><LazyTenantsMallsPage /></P> },
               /* Auditor — 4 pages */
               { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
               { path: APP_ROUTES.trazabilidad, element: <P any={AUDIT}><LazyTrazabilidadPage /></P> },
               { path: APP_ROUTES.datosCrudos, element: <P any={AUDIT}><LazyDatosCrudosPage /></P> },
               { path: APP_ROUTES.exportarEvidencia, element: <P any={AUDIT}><LazyExportarEvidenciaPage /></P> },
+              { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
               { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },

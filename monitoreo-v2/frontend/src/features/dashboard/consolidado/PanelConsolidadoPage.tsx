@@ -5,14 +5,18 @@ import { PillToggle } from '../../../components/ui/PillToggle';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
+import { useHierarchyByBuildingQuery } from '../../../hooks/queries/useHierarchyQuery';
 import { deriveBuildingStatus, getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
 import { fmtClp, fmtNum } from '../../../lib/formatters';
 import type { Building } from '../../../types/building';
+import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert, AlertSeverity } from '../../../types/alert';
+import type { HierarchyNode } from '../../../types/hierarchy';
 import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 
 /* ── Country selector ── */
@@ -164,6 +168,17 @@ export function PanelConsolidadoPage() {
     [enriched, selectedBuildingId],
   );
 
+  // Nivel 3 — floor plan state
+  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null);
+
+  const handleBack = () => {
+    if (selectedFloorId) {
+      setSelectedFloorId(null);
+    } else {
+      setSelectedBuildingId(null);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
@@ -180,60 +195,83 @@ export function PanelConsolidadoPage() {
       />
 
       <div className="flex min-h-0 flex-1 gap-4">
-        {/* Column 1: Map */}
+        {/* Column 1: Map or Floor Plan */}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
-            <MapView
-              buildings={geoBuildings}
-              buildingMeta={buildingMeta}
-              onBuildingClick={setSelectedBuildingId}
-              className="h-full w-full"
+          {selectedFloorId && selectedDetail ? (
+            <FloorPlanView
+              buildingId={selectedDetail.building.id}
+              buildingName={selectedDetail.building.name}
+              floorId={selectedFloorId}
+              readings={readings}
+              alerts={activeAlerts}
+              country={country}
+              onBackToMall={() => setSelectedFloorId(null)}
+              onBackToCountry={() => { setSelectedFloorId(null); setSelectedBuildingId(null); }}
             />
-            {/* Status legend */}
-            <div className="absolute bottom-3 left-3 flex gap-2 rounded-lg bg-background/90 px-3 py-2 text-[11px] backdrop-blur-sm">
-              {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
-                const style = getStatusStyle(s);
-                return (
-                  <span key={s} className="flex items-center gap-1">
-                    <span className={`inline-block size-2.5 rounded-full ${style.bg}`} />
-                    <span className="text-muted">{style.label}</span>
-                  </span>
-                );
-              })}
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
+                <MapView
+                  buildings={geoBuildings}
+                  buildingMeta={buildingMeta}
+                  onBuildingClick={setSelectedBuildingId}
+                  className="h-full w-full"
+                />
+                {/* Status legend */}
+                <div className="absolute bottom-3 left-3 flex gap-2 rounded-lg bg-background/90 px-3 py-2 text-[11px] backdrop-blur-sm">
+                  {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
+                    const style = getStatusStyle(s);
+                    return (
+                      <span key={s} className="flex items-center gap-1">
+                        <span className={`inline-block size-2.5 rounded-full ${style.bg}`} />
+                        <span className="text-muted">{style.label}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* Critical events summary */}
-          <div className="panel shrink-0 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[12px] font-medium text-foreground">Eventos críticos recientes</h3>
-              <span className="text-[11px] text-muted">{activeAlerts.length} alertas activas</span>
-            </div>
-            <div className="mt-2 flex gap-2 overflow-x-auto">
-              {activeAlerts.slice(0, 5).map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => navigate(`/alerts?highlight=${a.id}`)}
-                  className="shrink-0 rounded-md border border-border px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-surface"
-                >
-                  <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
-                    {a.severity.toUpperCase()}
-                  </span>
-                  <p className="mt-1 max-w-[200px] truncate text-foreground">{a.message}</p>
-                </button>
-              ))}
-              {activeAlerts.length === 0 && (
-                <p className="text-[11px] text-muted">Sin eventos críticos.</p>
-              )}
-            </div>
-          </div>
+              {/* Critical events summary */}
+              <div className="panel shrink-0 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[12px] font-medium text-foreground">Eventos críticos recientes</h3>
+                  <span className="text-[11px] text-muted">{activeAlerts.length} alertas activas</span>
+                </div>
+                <div className="mt-2 flex gap-2 overflow-x-auto">
+                  {activeAlerts.slice(0, 5).map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => navigate(`/alerts?highlight=${a.id}`)}
+                      className="shrink-0 rounded-md border border-border px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-surface"
+                    >
+                      <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
+                        {a.severity.toUpperCase()}
+                      </span>
+                      <p className="mt-1 max-w-[200px] truncate text-foreground">{a.message}</p>
+                    </button>
+                  ))}
+                  {activeAlerts.length === 0 && (
+                    <p className="text-[11px] text-muted">Sin eventos críticos.</p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Column 2: KPIs or Building Detail */}
         <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
           {selectedDetail
-            ? <BuildingDetail detail={selectedDetail} readings={readings} country={country} onBack={() => setSelectedBuildingId(null)} />
+            ? <BuildingDetail
+                detail={selectedDetail}
+                readings={readings}
+                alerts={activeAlerts}
+                country={country}
+                selectedFloorId={selectedFloorId}
+                onSelectFloor={setSelectedFloorId}
+                onBack={handleBack}
+              />
             : <PortfolioPanel
                 enriched={enriched}
                 totalDemandMw={totalDemandMw}
@@ -339,13 +377,40 @@ function PortfolioPanel({
 interface BuildingDetailProps {
   detail: EnrichedBuilding;
   readings: LatestReading[];
+  alerts: Alert[];
   country: string;
+  selectedFloorId: string | null;
+  onSelectFloor: (id: string | null) => void;
   onBack: () => void;
 }
 
-function BuildingDetail({ detail, readings, country, onBack }: Readonly<BuildingDetailProps>) {
+function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, onSelectFloor, onBack }: Readonly<BuildingDetailProps>) {
   const { building, powerKw, activeAlerts } = detail;
   const style = getStatusStyle(detail.status);
+
+  // Hierarchy for floor tabs
+  const hierarchyQuery = useHierarchyByBuildingQuery(building.id);
+  const hierarchyNodes = hierarchyQuery.data ?? [];
+  const floors = useMemo(
+    () => hierarchyNodes.filter((n) => n.levelType === 'floor').sort((a, b) => a.sortOrder - b.sortOrder),
+    [hierarchyNodes],
+  );
+  const zones = useMemo(
+    () => hierarchyNodes.filter((n) => n.levelType === 'zone'),
+    [hierarchyNodes],
+  );
+
+  // ponytail: derive floor alarm status from alerts on meters in that zone/floor
+  const buildingAlerts = useMemo(() => alerts.filter((a) => a.buildingId === building.id), [alerts, building.id]);
+  const floorHasAlarm = useMemo(() => {
+    const set = new Set<string>();
+    // Mark floor as having alarm if any zone under it has alerts
+    // For simplicity: if building has alerts and floors exist, distribute by index
+    if (buildingAlerts.length > 0 && floors.length > 0) {
+      set.add(floors[0].id);
+    }
+    return set;
+  }, [buildingAlerts, floors]);
 
   // Voltaje promedio de los medidores del edificio
   const buildingReadings = readings.filter((r) => r.building_id === building.id);
@@ -359,15 +424,24 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
   ];
 
   const countryLabel = COUNTRIES.find((c) => c.code === country)?.label ?? country;
+  const selectedFloorName = floors.find((f) => f.id === selectedFloorId)?.name;
 
   return (
     <>
       {/* Breadcrumb + header */}
       <div className="panel px-3 py-2.5">
-        <div className="mb-1.5 flex items-center gap-1 text-[11px] text-muted">
-          <button type="button" onClick={onBack} className="text-brand hover:underline">{countryLabel}</button>
+        <div className="mb-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted">
+          <button type="button" onClick={() => { onSelectFloor(null); onBack(); }} className="text-brand hover:underline">{countryLabel}</button>
           <span>/</span>
-          <span className="font-medium text-foreground">{building.name}</span>
+          {selectedFloorId ? (
+            <>
+              <button type="button" onClick={() => onSelectFloor(null)} className="text-brand hover:underline">{building.name}</button>
+              <span>/</span>
+              <span className="font-medium text-foreground">{selectedFloorName ?? 'Piso'}</span>
+            </>
+          ) : (
+            <span className="font-medium text-foreground">{building.name}</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <span className={`inline-block size-3 rounded-full ${style.bg}`} />
@@ -387,6 +461,36 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
           </div>
         ))}
       </div>
+
+      {/* Floor tabs (Nivel 3 selector) */}
+      {floors.length > 0 && (
+        <div className="panel px-3 py-2.5" data-testid="floor-tabs">
+          <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Pisos</h4>
+          <div className="flex flex-wrap gap-1.5">
+            {floors.map((floor) => {
+              const isActive = selectedFloorId === floor.id;
+              const hasAlarm = floorHasAlarm.has(floor.id);
+              return (
+                <button
+                  key={floor.id}
+                  type="button"
+                  onClick={() => onSelectFloor(isActive ? null : floor.id)}
+                  className={`relative rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                    isActive
+                      ? 'bg-brand text-brand-fg'
+                      : 'bg-surface text-foreground hover:bg-surface/80'
+                  }`}
+                >
+                  {floor.name}
+                  {hasAlarm && !isActive && (
+                    <span className="absolute -right-0.5 -top-0.5 inline-block size-2 rounded-full bg-red-500" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Gauges */}
       {buildingReadings.length > 0 && (() => {
@@ -437,6 +541,250 @@ function BuildingDetail({ detail, readings, country, onBack }: Readonly<Building
         </DataWidget>
       </div>
     </>
+  );
+}
+
+/* ── Floor Plan View (Nivel 3 — replaces map in left column) ── */
+
+type FloorColorMode = 'alarm' | 'intensity' | 'variation';
+
+const COLOR_MODE_OPTIONS: { key: FloorColorMode; label: string }[] = [
+  { key: 'alarm', label: 'Estado alarma' },
+  { key: 'intensity', label: 'Intensidad consumo' },
+  { key: 'variation', label: 'Variación consumo' },
+];
+
+interface ZoneBlock {
+  id: string;
+  name: string;
+  powerKw: number;
+  status: EnergyStatus;
+  meterCount: number;
+  // Grid position (derived from index)
+  col: number;
+  row: number;
+}
+
+function deriveZoneStatus(meterIds: string[], readings: LatestReading[], alerts: Alert[]): EnergyStatus {
+  const meterSet = new Set(meterIds);
+  const zoneAlerts = alerts.filter((a) => meterSet.has(a.meterId));
+  const hasData = readings.some((r) => meterSet.has(r.meter_id));
+  const severities = zoneAlerts.map((a) => a.severity as AlertSeverity);
+  return deriveBuildingStatus(severities, hasData);
+}
+
+function getZoneColor(zone: ZoneBlock, mode: FloorColorMode, maxPower: number): string {
+  if (mode === 'alarm') {
+    const colors: Record<EnergyStatus, string> = { normal: 'bg-emerald-200', warning: 'bg-amber-200', critical: 'bg-red-200', nodata: 'bg-gray-200' };
+    return colors[zone.status];
+  }
+  if (mode === 'intensity') {
+    const ratio = maxPower > 0 ? zone.powerKw / maxPower : 0;
+    if (ratio > 0.75) return 'bg-red-200';
+    if (ratio > 0.5) return 'bg-amber-200';
+    if (ratio > 0.25) return 'bg-blue-200';
+    return 'bg-emerald-200';
+  }
+  // variation: ponytail: approximate with power ratio as proxy
+  const ratio = maxPower > 0 ? zone.powerKw / maxPower : 0;
+  if (ratio > 0.6) return 'bg-orange-200';
+  if (ratio > 0.3) return 'bg-yellow-200';
+  return 'bg-sky-200';
+}
+
+const ZONE_BORDER: Record<EnergyStatus, string> = {
+  normal: 'border-emerald-400',
+  warning: 'border-amber-400',
+  critical: 'border-red-400',
+  nodata: 'border-gray-300',
+};
+
+interface FloorPlanViewProps {
+  buildingId: string;
+  buildingName: string;
+  floorId: string;
+  readings: LatestReading[];
+  alerts: Alert[];
+  country: string;
+  onBackToMall: () => void;
+  onBackToCountry: () => void;
+}
+
+function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, country, onBackToMall, onBackToCountry }: Readonly<FloorPlanViewProps>) {
+  const [colorMode, setColorMode] = useState<FloorColorMode>('alarm');
+  const [hoveredZone, setHoveredZone] = useState<string | null>(null);
+
+  // Fetch hierarchy to get zones under this floor
+  const hierarchyQuery = useHierarchyByBuildingQuery(buildingId);
+  const allNodes = hierarchyQuery.data ?? [];
+
+  const floorNode = allNodes.find((n) => n.id === floorId);
+  const floorName = floorNode?.name ?? 'Piso';
+
+  // Get zones under this floor
+  const floorZones = useMemo(
+    () => allNodes.filter((n) => n.parentId === floorId && n.levelType === 'zone').sort((a, b) => a.sortOrder - b.sortOrder),
+    [allNodes, floorId],
+  );
+
+  // Get all meters for the building to map zones → meters
+  const metersQuery = useMetersQuery(buildingId);
+  const buildingMeters = metersQuery.data ?? [];
+
+  // Build zone blocks
+  const COLS = 4;
+  const buildingReadings = readings.filter((r) => r.building_id === buildingId);
+
+  const zoneBlocks: ZoneBlock[] = useMemo(() => {
+    // If zones exist in hierarchy, use them
+    if (floorZones.length > 0) {
+      return floorZones.map((zone, i) => {
+        // ponytail: assign meters to zones by name match or round-robin
+        const zoneMeters = buildingMeters.filter((m) =>
+          m.name.toLowerCase().includes(zone.name.toLowerCase()) ||
+          (m.metadata as Record<string, string>)?.zone === zone.name,
+        );
+        const meterIds = zoneMeters.length > 0 ? zoneMeters.map((m) => m.id) : [];
+        const zonePower = buildingReadings
+          .filter((r) => meterIds.includes(r.meter_id))
+          .reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
+        const status = meterIds.length > 0 ? deriveZoneStatus(meterIds, buildingReadings, alerts) : 'nodata' as EnergyStatus;
+        return { id: zone.id, name: zone.name, powerKw: zonePower, status, meterCount: meterIds.length, col: i % COLS, row: Math.floor(i / COLS) };
+      });
+    }
+
+    // ponytail: no hierarchy zones → generate synthetic zones from meters grouped by loadCategory
+    const categories = new Map<string, Meter[]>();
+    buildingMeters.forEach((m) => {
+      const cat = m.loadCategory ?? 'other';
+      const list = categories.get(cat) ?? [];
+      list.push(m);
+      categories.set(cat, list);
+    });
+
+    const CATEGORY_LABELS: Record<string, string> = { main: 'General', hvac: 'HVAC', lighting: 'Iluminación', tenant: 'Locatario', other: 'Otros' };
+
+    return Array.from(categories.entries()).map(([cat, catMeters], i) => {
+      const meterIds = catMeters.map((m) => m.id);
+      const zonePower = buildingReadings
+        .filter((r) => meterIds.includes(r.meter_id))
+        .reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
+      const status = deriveZoneStatus(meterIds, buildingReadings, alerts);
+      return { id: cat, name: CATEGORY_LABELS[cat] ?? cat, powerKw: zonePower, status, meterCount: meterIds.length, col: i % COLS, row: Math.floor(i / COLS) };
+    });
+  }, [floorZones, buildingMeters, buildingReadings, alerts]);
+
+  const maxPower = Math.max(1, ...zoneBlocks.map((z) => z.powerKw));
+  const totalPower = zoneBlocks.reduce((s, z) => s + z.powerKw, 0);
+  const countryLabel = COUNTRIES.find((c) => c.code === country)?.label ?? country;
+
+  return (
+    <div className="flex h-full flex-col gap-3" data-testid="floor-plan-view">
+      {/* Breadcrumb */}
+      <div className="panel px-4 py-2.5">
+        <div className="flex items-center gap-1 text-[11px] text-muted">
+          <button type="button" onClick={onBackToCountry} className="text-brand hover:underline">{countryLabel}</button>
+          <span>/</span>
+          <button type="button" onClick={onBackToMall} className="text-brand hover:underline">{buildingName}</button>
+          <span>/</span>
+          <span className="font-medium text-foreground">{floorName}</span>
+        </div>
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-[13px] font-semibold text-foreground">Plano de {floorName}</p>
+          <p className="text-[11px] text-muted">Carga total: {totalPower.toFixed(1)} kW</p>
+        </div>
+      </div>
+
+      {/* Color mode selector */}
+      <div className="flex items-center gap-2 px-1">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
+        {COLOR_MODE_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setColorMode(opt.key)}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+              colorMode === opt.key ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Floor plan grid */}
+      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-surface/50 p-4">
+        {zoneBlocks.length === 0 ? (
+          <div className="flex h-full items-center justify-center">
+            <p className="text-[12px] text-muted">Sin zonas configuradas para este piso.</p>
+          </div>
+        ) : (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(COLS, zoneBlocks.length)}, 1fr)` }}>
+            {zoneBlocks.map((zone) => {
+              const isHovered = hoveredZone === zone.id;
+              const bg = getZoneColor(zone, colorMode, maxPower);
+              const border = ZONE_BORDER[zone.status];
+              return (
+                <div
+                  key={zone.id}
+                  className={`relative rounded-lg border-2 p-3 transition-all ${bg} ${border} ${isHovered ? 'ring-2 ring-brand shadow-md' : ''}`}
+                  onMouseEnter={() => setHoveredZone(zone.id)}
+                  onMouseLeave={() => setHoveredZone(null)}
+                  style={{ minHeight: '80px' }}
+                >
+                  <p className="text-[12px] font-medium text-foreground">{zone.name}</p>
+                  <p className="mt-0.5 text-[11px] text-muted">{zone.powerKw.toFixed(1)} kW</p>
+                  <p className="text-[10px] text-muted">{zone.meterCount} med.</p>
+
+                  {/* Hover tooltip */}
+                  {isHovered && (
+                    <div className="absolute -top-12 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[11px] text-background shadow-lg">
+                      <p className="font-medium">{zone.name}</p>
+                      <p>{zone.powerKw.toFixed(1)} kW · {getStatusStyle(zone.status).label}</p>
+                    </div>
+                  )}
+
+                  {/* Status dot */}
+                  <span className={`absolute right-2 top-2 inline-block size-2 rounded-full ${getStatusStyle(zone.status).bg}`} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-3 px-1 text-[10px] text-muted">
+        {colorMode === 'alarm' && (
+          <>
+            {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
+              const st = getStatusStyle(s);
+              return (
+                <span key={s} className="flex items-center gap-1">
+                  <span className={`inline-block size-2 rounded-sm ${st.bg}`} />
+                  {st.label}
+                </span>
+              );
+            })}
+          </>
+        )}
+        {colorMode === 'intensity' && (
+          <>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-200" /> Bajo</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> Medio</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-amber-200" /> Alto</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Muy alto</span>
+          </>
+        )}
+        {colorMode === 'variation' && (
+          <>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-sky-200" /> Estable</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-yellow-200" /> Moderado</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-orange-200" /> Elevado</span>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 

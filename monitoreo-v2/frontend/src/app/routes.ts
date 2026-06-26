@@ -27,6 +27,8 @@ export const APP_ROUTES = {
   trazabilidad: '/auditor/trazabilidad',
   datosCrudos: '/auditor/datos-crudos',
   exportarEvidencia: '/auditor/evidencia',
+  calidadDatos: '/auditor/calidad-datos',
+  tenantsMalls: '/admin/tenants-malls',
   platform: '/dashboard/platform',
   executive: '/dashboard/executive',
   executiveSite: '/dashboard/executive/:siteId',

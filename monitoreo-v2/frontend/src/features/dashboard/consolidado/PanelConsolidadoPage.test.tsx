@@ -82,6 +82,32 @@ vi.mock('../../../hooks/queries/useInvoicesQuery', () => ({
   }),
 }));
 
+vi.mock('../../../hooks/queries/useMetersQuery', () => ({
+  useMetersQuery: () => ({
+    data: [
+      { id: 'm1', buildingId: 'b1', name: 'HVAC Main', code: 'M1', meterType: 'main', isActive: true, metadata: {}, externalId: null, model: null, serialNumber: null, ipAddress: null, modbusAddress: null, busId: null, phaseType: 'three_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: 'hvac', parentMeterId: null, createdAt: '', updatedAt: '' },
+      { id: 'm2', buildingId: 'b1', name: 'Lighting A', code: 'M2', meterType: 'sub', isActive: true, metadata: {}, externalId: null, model: null, serialNumber: null, ipAddress: null, modbusAddress: null, busId: null, phaseType: 'three_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: 'lighting', parentMeterId: null, createdAt: '', updatedAt: '' },
+      { id: 'm3', buildingId: 'b2', name: 'Tenant 1', code: 'M3', meterType: 'sub', isActive: true, metadata: {}, externalId: null, model: null, serialNumber: null, ipAddress: null, modbusAddress: null, busId: null, phaseType: 'three_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: 'tenant', parentMeterId: null, createdAt: '', updatedAt: '' },
+    ],
+    isLoading: false,
+    isSuccess: true,
+  }),
+}));
+
+vi.mock('../../../hooks/queries/useHierarchyQuery', () => ({
+  useHierarchyByBuildingQuery: () => ({
+    data: [
+      { id: 'f1', buildingId: 'b1', parentId: null, name: 'Piso 1', levelType: 'floor', sortOrder: 1, metadata: {}, createdAt: '', updatedAt: '' },
+      { id: 'f2', buildingId: 'b1', parentId: null, name: 'Piso 2', levelType: 'floor', sortOrder: 2, metadata: {}, createdAt: '', updatedAt: '' },
+      { id: 'z1', buildingId: 'b1', parentId: 'f1', name: 'Zona Norte', levelType: 'zone', sortOrder: 1, metadata: {}, createdAt: '', updatedAt: '' },
+      { id: 'z2', buildingId: 'b1', parentId: 'f1', name: 'Zona Sur', levelType: 'zone', sortOrder: 2, metadata: {}, createdAt: '', updatedAt: '' },
+      { id: 'z3', buildingId: 'b1', parentId: 'f2', name: 'Zona Este', levelType: 'zone', sortOrder: 1, metadata: {}, createdAt: '', updatedAt: '' },
+    ],
+    isLoading: false,
+    isSuccess: true,
+  }),
+}));
+
 // MapView mock (avoids maplibre-gl in jsdom)
 vi.mock('../../../components/ui/MapView', () => ({
   MapView: ({ className }: { className?: string }) => (
@@ -227,6 +253,112 @@ describe('PanelConsolidadoPage', () => {
       renderPage();
       expect(screen.getByText('CRITICAL')).toBeInTheDocument();
       expect(screen.getByText('MEDIUM')).toBeInTheDocument();
+    });
+  });
+
+  describe('floor tabs (Nivel 3 selector)', () => {
+    it('shows floor tabs when building is selected', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      expect(screen.getByTestId('floor-tabs')).toBeInTheDocument();
+      expect(screen.getByText('Piso 1')).toBeInTheDocument();
+      expect(screen.getByText('Piso 2')).toBeInTheDocument();
+    });
+
+    it('shows floor plan view when floor tab is clicked', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      expect(screen.getByTestId('floor-plan-view')).toBeInTheDocument();
+      expect(screen.getByText(/Plano de Piso 1/)).toBeInTheDocument();
+    });
+
+    it('shows zones for the selected floor', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      expect(screen.getByText('Zona Norte')).toBeInTheDocument();
+      expect(screen.getByText('Zona Sur')).toBeInTheDocument();
+    });
+
+    it('does not show zones from other floors', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      expect(screen.queryByText('Zona Este')).not.toBeInTheDocument();
+    });
+
+    it('shows breadcrumb with country > mall > floor', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      // Floor plan breadcrumb
+      const floorPlan = screen.getByTestId('floor-plan-view');
+      expect(within(floorPlan).getByText('Chile')).toBeInTheDocument();
+      expect(within(floorPlan).getByText('Mall Norte')).toBeInTheDocument();
+      expect(within(floorPlan).getByText('Piso 1')).toBeInTheDocument();
+    });
+
+    it('returns to mall detail when clicking mall in breadcrumb', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      // Click mall name in floor plan breadcrumb
+      const floorPlan = screen.getByTestId('floor-plan-view');
+      await user.click(within(floorPlan).getByText('Mall Norte'));
+      expect(screen.queryByTestId('floor-plan-view')).not.toBeInTheDocument();
+      expect(screen.getByTestId('map-view')).toBeInTheDocument();
+    });
+
+    it('shows color mode selector with 3 options', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      expect(screen.getByText('Estado alarma')).toBeInTheDocument();
+      expect(screen.getByText('Intensidad consumo')).toBeInTheDocument();
+      expect(screen.getByText('Variación consumo')).toBeInTheDocument();
+    });
+
+    it('switches color mode on click', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      await user.click(screen.getByText('Intensidad consumo'));
+      // Legend should change
+      expect(screen.getByText('Bajo')).toBeInTheDocument();
+      expect(screen.getByText('Muy alto')).toBeInTheDocument();
+    });
+
+    it('deselects floor when clicking active floor tab again', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      expect(screen.getByTestId('floor-plan-view')).toBeInTheDocument();
+      // Click Piso 1 again to deselect (in sidebar floor tabs)
+      const floorTabs = screen.getByTestId('floor-tabs');
+      await user.click(within(floorTabs).getByText('Piso 1'));
+      expect(screen.queryByTestId('floor-plan-view')).not.toBeInTheDocument();
+    });
+
+    it('updates detail breadcrumb to show floor level', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByText('Mall Norte'));
+      await user.click(screen.getByText('Piso 1'));
+      // The building detail panel breadcrumb should show floor
+      // Chile / Mall Norte / Piso 1
+      const allPiso1 = screen.getAllByText('Piso 1');
+      // At least 2: one in floor tabs, one in floor plan breadcrumb (and possibly detail breadcrumb)
+      expect(allPiso1.length).toBeGreaterThanOrEqual(2);
     });
   });
 });

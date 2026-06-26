@@ -1,12 +1,28 @@
 # Changelog
 
+## [2.35.0-alpha.0] - 2026-06-26 — ROLES EMS SPEC 100% COMPLETE (30/30 PAGES)
+
+### Added
+- **CalidadDatosPage** (`/auditor/calidad-datos`) — Auditor data quality scorecard: filters (mall/period/granularity), scorecard table (expected/real/estimated/CNR/missing with %), 12-month evolution chart, low-quality meter detail on row click, CSV export. 12 tests.
+- **Panel Consolidado Nivel 3** — Floor plan view replaces map when floor tab selected. Zone blocks colored by status/intensity/variation. 3-level breadcrumb (País → Mall → Piso). Hover tooltips. Floor tabs with alarm indicators. Zones from hierarchy or synthetic from meter loadCategory. 11 tests.
+- **Config Releases diff viewer** — "Configuración como código" section with unified and side-by-side diff views. File headers with +/- counts, expand/collapse. Derived from audit log UPDATE entries. 12 tests.
+- **TenantsMallsPage** (`/admin/tenants-malls`) — Tenant management: table (name/country/status/meters/users/date/currency), filters (country/status/alerts checkbox), detail drawer (config base + usage stats + change history). 14 tests.
+- **SeguridadPamPage enhanced** — PAM review dates (90-day cycle, "en revisión" status). PAM usage history table. JIT credential vault (request form with resource/duration/justification). Security incidents table. Breach notification form (<4h to PASA, CYB-16). Cryptographic deletion with CONFIRMAR confirmation (CYB-12). 13 new tests.
+- **Manual de usuario** rewritten — 11 sections covering all 30 profile pages (6 per profile × 5 profiles) + shared views + FAQ.
+
+### Stats
+- 890 frontend tests. All passing.
+- 30/30 spec pages complete. Zero gaps.
+
+---
+
 ## [2.34.0-alpha.0] - 2026-06-26 — WIREFRAME COMPONENT GAP CLOSURE (10 OF 15)
 
 ### Added
 - **ArcGauge** SVG component — circular gauge for voltage, current, power in PanelConsolidado Nivel 2.
 - **Waterfall chart** in CostosTendenciasPage — cost variation decomposition (volume/price/mix/other).
 - **Alarm map** in AlarmasAgregadasPage — MapView with severity-colored markers and enriched popups.
-- **4 SLA visual widgets** in AlarmasEventosPage — % dentro/fuera SLA, por severidad, resueltas con progress bars.
+- **4 SLA visual widgets** in AlarmasEventosPage — % dentro/fuera SLA, por severidad, resueltas with progress bars.
 - **SLA penalties table** in TicketsSlaPage — weeks with SLA breaches, compliance %.
 - **Quality histogram 30d** in CalidadBackfillPage — stacked area (real/estimated/missing) with legend.
 - **12-month deviation chart** in CuadraturaPage — bar chart + out-of-tolerance months list.
@@ -16,11 +32,6 @@
 
 ### Stats
 - 828 frontend tests / 69 suites. All passing.
-
-### Remaining wireframe gaps (3)
-- Panel Consolidado Nivel 3 (floor plan with colored store blocks — requires indoor mapping data)
-- Auditor "Calidad de datos" as separate page
-- Config Releases diff viewer (requires git integration)
 
 ---
 

@@ -64,6 +64,14 @@ export const LazyExportarEvidenciaPage = lazy(async () => {
   const m = await import('../features/auditor/evidencia/ExportarEvidenciaPage');
   return { default: m.ExportarEvidenciaPage };
 });
+export const LazyCalidadDatosPage = lazy(async () => {
+  const m = await import('../features/auditor/calidad-datos/CalidadDatosPage');
+  return { default: m.CalidadDatosPage };
+});
+export const LazyTenantsMallsPage = lazy(async () => {
+  const m = await import('../features/admin/tenants-malls/TenantsMallsPage');
+  return { default: m.TenantsMallsPage };
+});
 
 export const LazySeguridadPamPage = lazy(async () => {
   const m = await import('../features/admin/seguridad-pam/SeguridadPamPage');

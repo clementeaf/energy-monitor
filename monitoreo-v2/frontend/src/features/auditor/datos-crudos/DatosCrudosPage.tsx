@@ -4,6 +4,7 @@ import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import type { AggregationInterval } from '../../../types/reading';
 
 /* ── Options ── */
 
@@ -21,8 +22,8 @@ const FORMAT_OPTIONS = [
 
 /* ── Page ── */
 
-const INTERVAL_MAP: Record<string, string> = {
-  '15min': '15min',
+const INTERVAL_MAP: Record<string, AggregationInterval> = {
+  '15min': 'hourly',
   '1h': 'hourly',
   '1d': 'daily',
 };
@@ -83,7 +84,7 @@ export function DatosCrudosPage() {
       // CSV
       const keys = Object.keys(rows[0]);
       const header = keys.join(',');
-      const csvRows = rows.map((r) => keys.map((k) => (r as Record<string, unknown>)[k] ?? '').join(','));
+      const csvRows = rows.map((r) => keys.map((k) => (r as unknown as Record<string, unknown>)[k] ?? '').join(','));
       const csv = [header, ...csvRows].join('\n');
       downloadFile(csv, `${filename}.csv`, 'text/csv');
     }

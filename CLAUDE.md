@@ -27,6 +27,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-06-26)
+- **2.29.0:** 9 gaps de spec Roles EMS cerrados (4 parciales + 5 stubs → todos con datos reales). 828 frontend tests / 69 suites. Zero stubs. Las 30 pantallas del spec ahora usan datos de API o derivados. [CHANGELOG — 2.29.0-alpha.0](CHANGELOG.md)
 - **2.28.0:** IoT frontend integrado. Parser para formato SENTRON flat (keys español). Migración 54 (building + meter Siemens en DB). Frontend: rutas, endpoints, hook y panel IoT en MeterDetailPage (lectura en vivo, auto-refresh 30s). 9 errores TS build preexistentes corregidos. Data real de Siemens confirmada. Pendiente: Siemens debe agregar ID por medidor para escalar a 100+. [CHANGELOG — 2.28.0-alpha.0](CHANGELOG.md)
 - **2.27.0:** IoT pipeline reactivado. Bucket S3 `energy-monitor-iot-ingest` (lifecycle Glacier 30d). VPC endpoint S3 Gateway (gratis). Lambda `iot-ingest-prod-ingest` desplegada. IoT Rule actualizada. Pipeline verificado E2E (IoT Core → S3 → Lambda → RDS). Certs enviados a Siemens. [CHANGELOG — 2.27.0-alpha.0](CHANGELOG.md)
 
@@ -252,7 +253,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
-Perfiles: 5 perfiles EMS implementados (gerencial/operacional/tecnico/auditor/super_admin). 25 pantallas nuevas. 777 frontend tests.
+Perfiles: 5 perfiles EMS completos (30 pantallas, zero stubs). 828 frontend tests / 69 suites.
 IoT: pipeline activo, data Siemens llegando. Parser SENTRON flat + POC3000 + genérico. Frontend IoT integrado (MeterDetailPage). 34 tests Lambda.
 Pendiente IoT: payload sin device ID — escalar a 100+ medidores requiere topic por medidor o campo deviceId de Siemens.
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
@@ -275,7 +276,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 1294 tests / 142 suites). Frontend: Vitest + @testing-library/react (295 tests / 40 suites).
+- **Testing:** Jest 30 (backend, 1294 tests / 142 suites). Frontend: Vitest + @testing-library/react (828 tests / 69 suites).
 
 ## Architecture
 ```
@@ -373,4 +374,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.28.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.29.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

@@ -1,15 +1,23 @@
 # Changelog
 
-## [2.29.0-alpha.0] - 2026-06-26 — PARTIAL PAGES COMPLETED (4 OF 4)
+## [2.29.0-alpha.0] - 2026-06-26 — ALL SPEC PAGES COMPLETED (9 GAPS CLOSED)
 
-### Changed
-- **TicketsSlaPage** — Added 3 SLA KPIs (cumplimiento %, tiempo medio resolución, disponibilidad datos) and 12-week SLA evolution stacked bar chart (dentro/fuera SLA). Layout now table + chart side-by-side. 6 KPI cards (from 4). 19 tests (from 10).
-- **CnrPendientesPage** — Replaced mock data with real gap detection from `useLatestReadingsQuery`. Meters with last reading > 4h = CNR pendiente, > 24h = crítica. Sorted by gap descending. New filters: Todas / Pendientes / >24h. 18 tests (from 13).
-- **MisOrdenesPage** — Added quick filter pills (Todos / Pendientes / Vencidas / En curso). Detail panel now shows "Historial del medidor" (resolved alerts for same meter). 11 tests (from 5).
-- **DatosCrudosPage** — Export button now functional: generates CSV or JSON client-side from `useAggregatedReadingsQuery`. Includes metadata header (meter, period, resolution). Button label shows selected format. 11 tests (from 7).
+### Changed (partial → real)
+- **TicketsSlaPage** — 3 SLA KPIs (cumplimiento %, resolución media, disponibilidad datos) + 12-week evolution chart. 19 tests.
+- **CnrPendientesPage** — Real gap detection from `useLatestReadingsQuery` (>4h = CNR, >24h = crítica). 18 tests.
+- **MisOrdenesPage** — Quick filter pills + meter history in detail panel. 11 tests.
+- **DatosCrudosPage** — CSV/JSON export functional from `useAggregatedReadingsQuery`. 11 tests.
+
+### Changed (stub → real)
+- **RegIntervencionPage** — Real meter selector (`useMetersQuery`), localStorage persistence, history panel. 15 tests.
+- **IngresoCnrPage** — Real meter selector, 20-char justification validation, localStorage persistence, history panel. 16 tests.
+- **ExportarEvidenciaPage** — Real data (buildings/meters/readings/alerts), JSON export with SHA-256 hash, download, history. 11 tests.
+- **ConfigReleasesPage** — Current version display + real audit log activity (replaces hardcoded releases). 8 tests.
+- **SeguridadPamPage** — PAM accounts from real users (privileged roles), breach reports, audit activity. 13 tests.
 
 ### Stats
-- 59 tests across 4 pages. Zero new backend endpoints — all derived from existing data.
+- 828 frontend tests / 69 suites. Zero new backend endpoints.
+- All 30 pages from Roles EMS spec now have real data sources. Zero stubs remaining.
 
 ---
 

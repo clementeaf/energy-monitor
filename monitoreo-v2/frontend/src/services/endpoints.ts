@@ -6,6 +6,7 @@ import type { ApiKey, ApiKeyCreationResult, ApiKeyScopeMeta, CreateApiKeyPayload
 import type { Role, Permission, CreateRolePayload, UpdateRolePayload } from '../types/role';
 import type { Building, CreateBuildingPayload, UpdateBuildingPayload } from '../types/building';
 import type { Meter, CreateMeterPayload, UpdateMeterPayload } from '../types/meter';
+import type { IotDevice } from '../types/iot-device';
 import type {
   Alert, AlertQueryParams, ResolveAlertPayload,
   AlertRule, CreateAlertRulePayload, UpdateAlertRulePayload,
@@ -900,4 +901,11 @@ export const mapvxEndpoints = {
     api.get<import('../types/mapvx').MapvxGeometry>(API_ROUTES.mapvx.geometry(mallId), {
       params: { floor_key: floorKey, layer },
     }),
+};
+
+export const iotDevicesEndpoints = {
+  list: () => api.get<IotDevice[]>(API_ROUTES.iotDevices.list),
+  get: (id: string) => api.get<IotDevice>(API_ROUTES.iotDevices.get(id)),
+  assign: (id: string, meterId: string) => api.patch<IotDevice>(API_ROUTES.iotDevices.assign(id), { meterId }),
+  unassign: (id: string) => api.patch<IotDevice>(API_ROUTES.iotDevices.unassign(id), {}),
 };

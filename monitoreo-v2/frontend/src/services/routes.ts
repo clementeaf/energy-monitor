@@ -107,4 +107,10 @@ export const API_ROUTES = {
     stores: (mallId: string) => `/mapvx/malls/${mallId}/stores`,
     geometry: (mallId: string) => `/mapvx/malls/${mallId}/geometry`,
   },
+  iotDevices: {
+    list: '/iot-devices',
+    get: (id: string) => `/iot-devices/${id}`,
+    assign: (id: string) => `/iot-devices/${id}/assign`,
+    unassign: (id: string) => `/iot-devices/${id}/unassign`,
+  },
 } as const;

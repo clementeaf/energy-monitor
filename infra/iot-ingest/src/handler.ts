@@ -2,7 +2,7 @@ import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/clien
 import { Client } from 'pg';
 import { getPgSslOptionsForRds } from './rds-ssl';
 import { parsePayload } from './parsers';
-import { resolveDevice } from './device-map';
+import { resolveDevice, refreshDeviceMap } from './device-map';
 import { toEavRows } from './eav';
 import type { EavRow } from './types';
 
@@ -83,6 +83,21 @@ const getLastTimestamp = async (db: Client): Promise<string | null> => {
   return result.rows[0]?.last_ts ?? null;
 };
 
+const UPSERT_IOT_DEVICE = `
+  INSERT INTO iot_devices (device_client_id, first_seen, last_seen, payload_sample)
+  VALUES ($1, NOW(), NOW(), $2::jsonb)
+  ON CONFLICT (device_client_id) DO UPDATE SET last_seen = NOW(), payload_sample = $2::jsonb
+`;
+
+export const registerUnknownDevice = async (
+  db: Client,
+  deviceId: string,
+  rawPayload: unknown,
+): Promise<void> => {
+  const sample = typeof rawPayload === 'object' && rawPayload !== null ? JSON.stringify(rawPayload) : '{}';
+  await db.query(UPSERT_IOT_DEVICE, [deviceId, sample]);
+};
+
 // ── Main handler ────────────────────────────────────────
 
 export const handler = async () => {
@@ -92,6 +107,9 @@ export const handler = async () => {
   try {
     await db.connect();
     log.push('Connected to DB');
+
+    await refreshDeviceMap(db);
+    log.push('Device map loaded from DB');
 
     const lastTs = await getLastTimestamp(db);
     log.push(`Last processed: ${lastTs ?? 'none'}`);
@@ -128,7 +146,8 @@ export const handler = async () => {
 
         const identity = resolveDevice(parsed.deviceId);
         if (!identity) {
-          log.push(`Unknown device: ${parsed.deviceId} in ${key}`);
+          await registerUnknownDevice(db, parsed.deviceId, raw);
+          log.push(`Auto-registered unknown device: ${parsed.deviceId}`);
           continue;
         }
 

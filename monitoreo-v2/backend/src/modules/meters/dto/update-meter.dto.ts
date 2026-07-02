@@ -92,4 +92,9 @@ export class UpdateMeterDto {
   @IsOptional()
   @IsUUID()
   parentMeterId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  iotDeviceId?: string | null;
 }

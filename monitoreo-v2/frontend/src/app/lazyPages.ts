@@ -417,3 +417,8 @@ export const LazyMapPage = lazy(async () => {
   const m = await import('../features/map/MapPage');
   return { default: m.MapPage };
 });
+
+export const LazyIotDevicesPage = lazy(async () => {
+  const m = await import('../features/admin/iot-devices/IotDevicesPage');
+  return { default: m.IotDevicesPage };
+});

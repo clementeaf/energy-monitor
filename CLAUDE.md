@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-06-30)
+- **2.36.0:** IoT device auto-discovery + asignación libre. Lambda auto-registra dispositivos desconocidos en `iot_devices`. IoT Rule inyecta `clientid()` para identificar por certificado TLS. IotDevicesPage (`/admin/iot-devices`) con tabla, filtros, panel detalle con payload sample, drawer asignación (edificio→medidor). Campo `iot_device_id` en meters. Device map dinámico desde DB (zero hardcoding). Migraciones 12–13. 43 Lambda / 1307 backend / 903 frontend tests. [CHANGELOG — 2.36.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-26)
 - **2.35.0:** Spec Roles EMS 100% completo (30/30 pantallas). CalidadDatosPage auditor. Panel Consolidado Nivel 3 (plano piso con zonas coloreadas). Config Releases diff viewer (unified + side-by-side). TenantsMallsPage (gestión multi-tenant). SeguridadPamPage completa (PAM review cycle, JIT vault, incidentes, breach notification, crypto deletion). Manual de usuario reescrito (30 pantallas). 890 tests. [CHANGELOG — 2.35.0-alpha.0](CHANGELOG.md)
 - **2.34.0:** 10 wireframe component gaps cerrados (ArcGauge, waterfall, alarm map, SLA widgets, penalties, quality histogram, deviation chart, heatmap, trend charts, TLS/vulns). [CHANGELOG — 2.34.0-alpha.0](CHANGELOG.md)
@@ -251,7 +254,7 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - **SSO Azure AD PASA** — credenciales App Registration del cliente.
 - **UAT Anexo 07** — checklist formal post-SSO.
 - **Timescale prod** — migr. `22`, `23` (requiere extensión en RDS).
-- **IoT escalamiento** — payload actual sin ID de dispositivo. Siemens debe usar topic por medidor (`powercenter/<id>/data`) o agregar campo `deviceId` para distinguir 100+ medidores. Lambda tiene auto-registro pendiente.
+- **IoT escalamiento** — resuelto: `clientid()` en IoT Rule identifica dispositivos por certificado TLS. Lambda auto-registra desconocidos en `iot_devices`. Asignación libre desde UI (`/admin/iot-devices`). Pendiente: coordinación logística para saber qué Thing va a qué locación.
 - Salida sandbox SES, billing AWS, DNS opcional `plataforma.globepower.cl` (prod usa `power-monitor.cloud`).
 
 ### Prompt de retoma
@@ -259,10 +262,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 Read CLAUDE.md. Retomando monitoreo-v2.
 Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
-Perfiles: 5 perfiles EMS completos (30 pantallas, zero gaps). 890 frontend tests.
+Perfiles: 5 perfiles EMS completos (30 pantallas, zero gaps). 903 frontend / 1307 backend tests.
 Spec Roles EMS: 100% completo. Manual de usuario actualizado (30 pantallas).
-IoT: pipeline activo, data Siemens llegando. Parser SENTRON flat + POC3000 + genérico. Frontend IoT integrado (MeterDetailPage). 34 tests Lambda.
-Pendiente IoT: payload sin device ID — escalar a 100+ medidores requiere topic por medidor o campo deviceId de Siemens.
+IoT: auto-discovery activo. clientid() en IoT Rule. Lambda auto-registra dispositivos en iot_devices. Asignación libre desde /admin/iot-devices. 43 tests Lambda. Migr. local 12–13.
+Pendiente IoT: coordinación logística (qué Thing va a qué locación).
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
 ```
 
@@ -283,7 +286,7 @@ Rewrite multi-tenant de la plataforma. Vive en `monitoreo-v2/`.
 - **Backend:** NestJS 11, TypeORM 0.3, PostgreSQL 16, @vendia/serverless-express, jose (JWT/JWKS)
 - **Infra:** AWS Lambda (Node 20, Serverless v3), ECS Fargate, API Gateway HTTP, RDS PostgreSQL, S3+CloudFront, EventBridge, AWS IoT Core (MQTT)
 - **Auth:** MSAL v5 (Microsoft), @react-oauth/google
-- **Testing:** Jest 30 (backend, 1294 tests / 142 suites). Frontend: Vitest + @testing-library/react (828 tests / 69 suites).
+- **Testing:** Jest 30 (backend, 1307 tests / 144 suites). Frontend: Vitest + @testing-library/react (903 tests / 69 suites).
 
 ## Architecture
 ```
@@ -322,6 +325,7 @@ EventBridge (15 min) → Lambda iot-ingest → S3 → RDS (iot_readings)
 - **Swagger:** `/api/docs` — OpenAPI (dev only, disabled in production). Configurado via `@nestjs/swagger` en main.ts.
 - **Error handling:** service null → controller NotFoundException; auth null on failure
 - **IoT module:** `IotReadingsModule` — 9 endpoints read-only desde tabla `iot_readings`. Endpoints PASA-compatibles (`buildings`, `meters-latest`, `monthly`, `meter-readings`, `alerts`) devuelven misma interfaz que módulos PASA con conversión de unidades (W→kW, Wh→kWh). Alertas generadas on-the-fly desde anomalías (voltaje, PF, potencia, THD)
+- **IoT devices module:** `IotDevicesModule` — CRUD + assign/unassign dispositivos IoT descubiertos. Lambda auto-registra en `iot_devices`. Asignación libre a cualquier meter desde UI. Device map dinámico desde `meters.iot_device_id`.
 
 ## Data Flow (end-to-end)
 ```
@@ -366,7 +370,7 @@ cd monitoreo-v2/frontend && npm run test
 - **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
 - **Idle timeout (CYB-06):** `IdleTimeoutGuard` global revoca sesión tras inactividad (default 15min, configurable por tenant `idleTimeoutMinutes` 5–60). Frontend `useIdleTimeout` espeja el timeout client-side. `last_activity_at` en `refresh_tokens` (migración `49`).
 - **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
-- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 890 tests. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
+- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 903 tests. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 - **Ley 21.719 compliance:** ARCO+ completo (acceso, rectificación, cancelación, oposición, bloqueo, portabilidad). Consentimiento con revocación. MFA enforcement por rol. Retención automática (cron diario). Breach notification 72h. Endpoints públicos: `/privacy/policy`, `/privacy/processing-registry`. Docs legales en `monitoreo-v2/docs/privacy/` (DPA AWS, EIPD, transferencia internacional, DPO). Pendiente solo: firma EIPD, verificar DPA AWS, designar DPO, monitorear lista países adecuados de la Agencia.
 
@@ -381,4 +385,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.33.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.36.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

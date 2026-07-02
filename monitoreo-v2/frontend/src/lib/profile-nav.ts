@@ -293,6 +293,7 @@ const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
       { to: APP_ROUTES.observabilidad, label: 'Observabilidad' },
       { to: APP_ROUTES.configReleases, label: 'Config y Releases' },
       { to: APP_ROUTES.seguridadPam, label: 'Seguridad y PAM' },
+      { to: APP_ROUTES.admin.iotDevices, label: 'Dispositivos IoT' },
     ],
   },
 ];

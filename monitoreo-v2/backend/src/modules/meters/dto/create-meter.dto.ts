@@ -99,6 +99,11 @@ export class CreateMeterDto {
   @IsUUID()
   parentMeterId?: string | null;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  iotDeviceId?: string;
+
   /** Only used by super_admin in cross-tenant mode. */
   @IsOptional()
   @IsUUID()

@@ -99,6 +99,9 @@ export class Meter {
   @Column({ name: 'parent_meter_id', type: 'uuid', nullable: true })
   parentMeterId!: string | null;
 
+  @Column({ name: 'iot_device_id', type: 'varchar', length: 255, nullable: true, unique: true })
+  iotDeviceId!: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

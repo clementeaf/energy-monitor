@@ -38,6 +38,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
   const [model, setModel] = useState('');
   const [loadCategory, setLoadCategory] = useState<LoadCategory | ''>('');
   const [parentMeterId, setParentMeterId] = useState('');
+  const [iotDeviceId, setIotDeviceId] = useState('');
 
   useEffect(() => {
     if (!meter) {
@@ -49,6 +50,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
       setModel('');
       setLoadCategory('');
       setParentMeterId('');
+      setIotDeviceId('');
       return;
     }
     setBuildingId(meter.buildingId);
@@ -59,6 +61,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
     setModel(meter.model ?? '');
     setLoadCategory(meter.loadCategory ?? '');
     setParentMeterId(meter.parentMeterId ?? '');
+    setIotDeviceId(meter.iotDeviceId ?? '');
   }, [meter, defaultBuildingId, open]);
 
   const parentMeterOptions = useMemo(() => {
@@ -81,6 +84,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
       if (model !== (meter.model ?? '')) payload.model = model || undefined;
       if (loadCategory !== (meter.loadCategory ?? '')) payload.loadCategory = loadCategory || null;
       if (parentMeterId !== (meter.parentMeterId ?? '')) payload.parentMeterId = parentMeterId || null;
+      if (iotDeviceId !== (meter.iotDeviceId ?? '')) payload.iotDeviceId = iotDeviceId || null;
       onSubmit(payload);
     } else {
       onSubmit({
@@ -92,6 +96,7 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
         ...(model ? { model } : {}),
         ...(loadCategory ? { loadCategory } : {}),
         ...(parentMeterId ? { parentMeterId } : {}),
+        ...(iotDeviceId ? { iotDeviceId } : {}),
         ...(needsTenantSelect && tenantId ? { tenantId } : {}),
       });
     }
@@ -188,6 +193,16 @@ export function MeterForm({ open, onClose, onSubmit, isPending, meter, defaultBu
             value={loadCategory}
             onChange={(val) => { setLoadCategory(val as LoadCategory | ''); }}
             className="w-full"
+          />
+        </Field>
+
+        <Field label="ID dispositivo IoT">
+          <input
+            value={iotDeviceId}
+            onChange={(e) => { setIotDeviceId(e.target.value); }}
+            maxLength={255}
+            placeholder="Ej: siemens-poc3000"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm font-mono"
           />
         </Field>
 

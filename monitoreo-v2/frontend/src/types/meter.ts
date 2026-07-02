@@ -23,6 +23,7 @@ export interface Meter {
   contractedDemandKw: string | null;
   loadCategory: LoadCategory | null;
   parentMeterId: string | null;
+  iotDeviceId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +48,7 @@ export interface CreateMeterPayload {
   contractedDemandKw?: number;
   loadCategory?: LoadCategory;
   parentMeterId?: string;
+  iotDeviceId?: string;
   tenantId?: string;
 }
 
@@ -68,4 +70,5 @@ export interface UpdateMeterPayload {
   contractedDemandKw?: number;
   loadCategory?: LoadCategory | null;
   parentMeterId?: string | null;
+  iotDeviceId?: string | null;
 }

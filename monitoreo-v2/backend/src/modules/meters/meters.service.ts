@@ -87,6 +87,7 @@ export class MetersService {
       contractedDemandKw: dto.contractedDemandKw != null ? String(dto.contractedDemandKw) : null,
       loadCategory: dto.loadCategory ?? null,
       parentMeterId: dto.parentMeterId ?? null,
+      iotDeviceId: dto.iotDeviceId ?? null,
     });
     return this.repo.save(meter);
   }
@@ -122,8 +123,18 @@ export class MetersService {
     }
     if (dto.loadCategory !== undefined) meter.loadCategory = dto.loadCategory;
     if (dto.parentMeterId !== undefined) meter.parentMeterId = dto.parentMeterId;
+    if (dto.iotDeviceId !== undefined) meter.iotDeviceId = dto.iotDeviceId ?? null;
 
     return this.repo.save(meter);
+  }
+
+  async findIotDeviceMap(): Promise<Array<{ iotDeviceId: string; meterId: string; tenantId: string }>> {
+    const rows = await this.repo
+      .createQueryBuilder('m')
+      .select(['m.iot_device_id AS "iotDeviceId"', 'm.id AS "meterId"', 'm.tenant_id AS "tenantId"'])
+      .where('m.iot_device_id IS NOT NULL')
+      .getRawMany();
+    return rows;
   }
 
   async remove(id: string, tenantId: string): Promise<boolean> {

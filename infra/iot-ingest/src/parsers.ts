@@ -153,11 +153,14 @@ export const parseIotRuleDirect: PayloadParser = (raw) => {
   const receivedAt = toFiniteNumber(raw.received_at);
   if (receivedAt === null) return null;
 
-  const topic = isString(raw.mqtt_topic) ? raw.mqtt_topic : 'powercenter/data';
+  // ponytail: prefer device_client_id (injected by IoT Rule via clientid()) over mqtt_topic
+  const deviceId = isString(raw.device_client_id)
+    ? raw.device_client_id
+    : isString(raw.mqtt_topic) ? raw.mqtt_topic : 'unknown';
   const variables = extractVariables(Object.entries(raw), IOTRULE_DIRECT_MAP);
 
   return {
-    deviceId: topic,
+    deviceId,
     timestamp: new Date(receivedAt).toISOString(),
     variables,
   };

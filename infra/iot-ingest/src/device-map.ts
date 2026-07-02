@@ -1,45 +1,49 @@
+import type { Client } from 'pg';
 import type { DeviceIdentity } from './types';
 
 /**
- * Maps external device IDs to internal tenant + meter UUIDs.
+ * Builds device map from DB (meters.iot_device_id).
+ * Falls back to DEVICE_MAP env var if DB query fails.
  *
- * Update this map when new devices are provisioned.
- * Keys: device_id as reported by the IoT device (e.g. POC3000 item_id).
- * Values: { tenantId, meterId } from monitoreo-v2 DB.
- *
- * ponytail: env-var override available for runtime patching without redeploy.
- * Format: JSON string of Record<string, { tenantId, meterId }>.
+ * ponytail: DB is source of truth, env var is emergency fallback only.
  */
-const DEFAULT_MAP: Readonly<Record<string, DeviceIdentity>> = {
-  // Siemens POC3000 — Siemens tenant
-  '6ab27db7-0a61-40c2-8a93-35e9e2376683': {
-    tenantId: '84adf8d4-830d-46e1-bef5-e2eac6a19014',
-    meterId: '6ab27db7-0a61-40c2-8a93-35e9e2376683',
-  },
-  // IoT Rule direct format — mqtt_topic as key
-  'powercenter/data': {
-    tenantId: '84adf8d4-830d-46e1-bef5-e2eac6a19014',
-    meterId: '6ab27db7-0a61-40c2-8a93-35e9e2376683',
-  },
-};
-
-const loadDeviceMap = (): Readonly<Record<string, DeviceIdentity>> => {
-  const envOverride = process.env.DEVICE_MAP;
-  if (!envOverride) return DEFAULT_MAP;
-
-  try {
-    const parsed = JSON.parse(envOverride) as Record<string, DeviceIdentity>;
-    return { ...DEFAULT_MAP, ...parsed };
-  } catch {
-    return DEFAULT_MAP;
-  }
-};
 
 let cached: Readonly<Record<string, DeviceIdentity>> | undefined;
 
+const loadFromEnv = (): Record<string, DeviceIdentity> => {
+  const raw = process.env.DEVICE_MAP;
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, DeviceIdentity>;
+  } catch {
+    return {};
+  }
+};
+
+export const loadDeviceMapFromDb = async (db: Client): Promise<Record<string, DeviceIdentity>> => {
+  const result = await db.query(
+    `SELECT iot_device_id, id AS meter_id, tenant_id FROM meters WHERE iot_device_id IS NOT NULL`,
+  );
+  const map: Record<string, DeviceIdentity> = {};
+  for (const row of result.rows) {
+    map[row.iot_device_id] = { tenantId: row.tenant_id, meterId: row.meter_id };
+  }
+  return map;
+};
+
+export const refreshDeviceMap = async (db: Client): Promise<void> => {
+  try {
+    const dbMap = await loadDeviceMapFromDb(db);
+    const envMap = loadFromEnv();
+    cached = { ...dbMap, ...envMap };
+  } catch {
+    // ponytail: DB unreachable → fall back to env var
+    cached = loadFromEnv();
+  }
+};
+
 export const getDeviceMap = (): Readonly<Record<string, DeviceIdentity>> => {
-  cached ??= loadDeviceMap();
-  return cached;
+  return cached ?? loadFromEnv();
 };
 
 export const resolveDevice = (deviceId: string): DeviceIdentity | null =>

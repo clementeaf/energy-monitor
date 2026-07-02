@@ -213,6 +213,7 @@ describe('MetersService', () => {
         contractedDemandKw: null,
         loadCategory: null,
         parentMeterId: null,
+        iotDeviceId: null,
       });
       expect(result).toEqual(meter);
     });

@@ -1,5 +1,46 @@
 # Changelog
 
+## [2.37.0-alpha.0] - 2026-07-02 — IOT PROD ACTIVATION + TREND CHART
+
+### Added
+- **IoT trend chart** — MeterDetailPage muestra StockChart "Tendencia IoT (7 días)" con 4 series (potencia, voltaje L1, corriente L1, factor potencia) vía `useIotTimeSeriesQuery` (resolución horaria). Medidores normales mantienen gráfica mensual sin cambios.
+
+### Fixed
+- **Migraciones 12, 13, 54 aplicadas en prod** — columna `iot_device_id` en meters, tabla `iot_devices`, y seed building/meter Siemens POC3000.
+- **Tenant Siemens** — building y meter Siemens movidos al tenant correcto (`b2a7c3d4...`). 5561 rows en `iot_readings` migrados de Globe Power → Siemens.
+- **IoT timeseries resolution** — frontend pedía `15min` (no soportado por backend); corregido a `hour`.
+- **IoT variables** — `voltage_avg`/`current_avg` no existen en `ALLOWED_VARIABLES`; corregido a `voltage_l1`/`current_l1`.
+- **MeterDetailPage overflow** — `overflow-hidden` cortaba la gráfica IoT; cambiado a `overflow-auto`.
+- **Lecturas en vivo compactas** — grid 6 columnas (era 4), tarjetas reducidas para no dominar la página.
+
+### Deploy (prod)
+- Migraciones 12, 13, 54 vía ECS Exec.
+- UPDATE tenant_id en buildings, meters, iot_readings.
+- Frontend deployed a S3 + CloudFront invalidado.
+
+---
+
+## [2.36.0-alpha.0] - 2026-06-30 — IOT DEVICE AUTO-DISCOVERY + ASSIGN
+
+### Added
+- **IoT device auto-discovery** — Lambda auto-registra dispositivos desconocidos en tabla `iot_devices` con `device_client_id`, `first_seen`, `last_seen`, `payload_sample`. Zero dependencia del contenido del payload para identificar dispositivos.
+- **IoT Rule `clientid()`** — Regla AWS IoT Core inyecta `device_client_id` via `clientid()` en cada mensaje. Identificación por certificado TLS, no por payload.
+- **IotDevicesModule** backend — `GET /iot-devices` (lista), `GET /iot-devices/:id`, `PATCH /iot-devices/:id/assign` (asignar a medidor), `PATCH /iot-devices/:id/unassign`.
+- **IotDevicesPage** (`/admin/iot-devices`) — Maestro dispositivos IoT descubiertos. Tabla con device ID, primera/última lectura, estado (asignado/sin asignar), medidor asignado. Filtros (todos/sin asignar/asignados). Panel detalle con muestra payload. Drawer asignación: seleccionar edificio → medidor. Desasignar con un click.
+- **Campo `iot_device_id`** en meters — columna nullable unique. Visible en MeterForm y MaestroMedidoresPage panel detalle.
+- **Lambda device map dinámico** — `refreshDeviceMap(db)` lee `meters.iot_device_id` desde DB en cada ejecución. Env var `DEVICE_MAP` como fallback de emergencia. Zero hardcoding.
+- **Endpoint `GET /meters/iot-device-map`** — para consulta Lambda del mapeo device→meter.
+- **Migraciones 12–13** — `iot_device_id` en meters + tabla `iot_devices`.
+
+### Changed
+- Parser `parseIotRuleDirect` prefiere `device_client_id` > `mqtt_topic` > `'unknown'`.
+- Sidebar super_admin: nueva entrada "Dispositivos IoT" en Administración.
+
+### Stats
+- 43 Lambda tests, 1307 backend tests, 903 frontend tests. All passing.
+
+---
+
 ## [2.35.0-alpha.0] - 2026-06-26 — ROLES EMS SPEC 100% COMPLETE (30/30 PAGES)
 
 ### Added

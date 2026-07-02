@@ -107,6 +107,7 @@ import {
   LazyRegionsPage,
   LazyBreachReportsPage,
   LazyPrivacyPolicyPage,
+  LazyIotDevicesPage,
 } from './lazyPages';
 import { APP_ROUTES } from './routes';
 
@@ -282,6 +283,7 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.observabilidad, element: <P any={DASH_EXEC}><LazyObservabilidadPage /></P> },
                   { path: APP_ROUTES.configReleases, element: <P any={DASH_EXEC}><LazyConfigReleasesPage /></P> },
                   { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
+                  { path: APP_ROUTES.admin.iotDevices, element: <P any={DASH_EXEC}><LazyIotDevicesPage /></P> },
                   { path: APP_ROUTES.tenantsMalls, element: <P any={DASH_EXEC}><LazyTenantsMallsPage /></P> },
               /* Auditor — 4 pages */
               { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },

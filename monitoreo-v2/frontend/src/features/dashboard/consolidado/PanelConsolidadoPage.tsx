@@ -183,7 +183,6 @@ export function PanelConsolidadoPage() {
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
         title="Panel Consolidado"
-        eyebrow="Panel Consolidado"
         actions={
           <PillToggle
             options={COUNTRIES.map((c) => ({ key: c.code, label: c.label }))}

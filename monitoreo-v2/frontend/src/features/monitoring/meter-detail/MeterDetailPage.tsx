@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
+import type Highcharts from 'highcharts';
 import { useParams, useNavigate, Link } from 'react-router';
 import { Card } from '../../../components/ui/Card';
 import { MonthlyChart } from '../../../components/charts/MonthlyChart';
+import { StockChart } from '../../../components/charts/StockChart';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { useQueryState } from '../../../hooks/useQueryState';
@@ -9,7 +11,7 @@ import { useMeterQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import { useIotLatestQuery, useIotAlertsQuery } from '../../../hooks/queries/useIotReadingsQuery';
+import { useIotLatestQuery, useIotAlertsQuery, useIotTimeSeriesQuery } from '../../../hooks/queries/useIotReadingsQuery';
 import { fmtNum, MONTH_NAMES_SHORT } from '../../../lib/formatters';
 
 /* ── Metric definitions ── */
@@ -64,6 +66,18 @@ export function MeterDetailPage() {
   const alertCount = alertsQuery.data?.length ?? 0;
   const iotLatest = useIotLatestQuery(meterId, isIot);
   const iotAlerts = useIotAlertsQuery(meterId, isIot);
+
+  // IoT time series — last 7 days, main variables
+  const iotTsRange = useMemo(() => {
+    const to = new Date();
+    const fr = new Date(to.getTime() - 7 * 24 * 3600_000);
+    return { from: fr.toISOString(), to: to.toISOString() };
+  }, []);
+  const iotTs = useIotTimeSeriesQuery(
+    { meterId: meterId!, from: iotTsRange.from, to: iotTsRange.to, variables: 'active_power_w,voltage_l1,current_l1,power_factor', resolution: 'hour' },
+    isIot,
+  );
+
   const meta = METRICS[selectedMetric];
   const isLoading = meterQuery.isPending || (isIot ? iotLatest.isPending : aggQuery.isPending);
 
@@ -91,7 +105,7 @@ export function MeterDetailPage() {
   }, [rows, meta.field]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-4 overflow-auto">
       {/* Breadcrumb */}
       <div className="flex shrink-0 flex-wrap items-center gap-2 px-1">
         <button
@@ -147,13 +161,12 @@ export function MeterDetailPage() {
       {/* IoT live readings */}
       {isIot && iotLatest.data && iotLatest.data.length > 0 && (
         <Card className="shrink-0">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Lectura en vivo (IoT)</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Lectura en vivo (IoT)</h2>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {iotLatest.data.map((r) => (
-              <div key={r.variable_name} className="rounded-lg border border-border p-3">
-                <div className="text-[11px] font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
-                <div className="mt-1 text-lg font-semibold text-foreground">{fmtNum(r.value, 2)}</div>
-                <div className="mt-0.5 text-[10px] text-subtle">{new Date(r.time).toLocaleString('es-CL')}</div>
+              <div key={r.variable_name} className="rounded border border-border px-2 py-1.5">
+                <div className="truncate text-[10px] font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
+                <div className="text-sm font-semibold text-foreground">{fmtNum(r.value, 2)}</div>
               </div>
             ))}
           </div>
@@ -161,15 +174,19 @@ export function MeterDetailPage() {
       )}
 
       {/* Chart */}
-      {chartData.length > 0 && (
-        <Card className="shrink-0">
-          <MonthlyChart
-            data={chartData}
-            seriesName={meta.label}
-            unit={meta.unit}
-            modes={['column', 'line', 'area']}
-          />
-        </Card>
+      {isIot ? (
+        <IotChart data={iotTs.data} loading={iotTs.isPending} />
+      ) : (
+        chartData.length > 0 && (
+          <Card className="shrink-0">
+            <MonthlyChart
+              data={chartData}
+              seriesName={meta.label}
+              unit={meta.unit}
+              modes={['column', 'line', 'area']}
+            />
+          </Card>
+        )
       )}
 
       {/* Monthly table */}
@@ -257,6 +274,81 @@ export function MeterDetailPage() {
         </DataWidget>
       </Card>
     </div>
+  );
+}
+
+/* ── IoT time-series chart ── */
+
+const IOT_SERIES_CONFIG: Record<string, { label: string; unit: string; yAxis: number; color: string }> = {
+  active_power_w: { label: 'Potencia (W)', unit: 'W', yAxis: 0, color: '#3D3BF3' },
+  voltage_l1: { label: 'Voltaje L1 (V)', unit: 'V', yAxis: 1, color: '#10B981' },
+  current_l1: { label: 'Corriente L1 (A)', unit: 'A', yAxis: 2, color: '#F59E0B' },
+  power_factor: { label: 'Factor Potencia', unit: '', yAxis: 3, color: '#EF4444' },
+};
+
+interface IotTimeSeriesPoint { time: string; variable_name: string; value: number }
+
+function IotChart({ data, loading }: Readonly<{ data?: IotTimeSeriesPoint[]; loading: boolean }>) {
+  const options = useMemo<Highcharts.Options>(() => {
+    const seriesMap = new Map<string, [number, number][]>();
+    for (const p of data ?? []) {
+      if (!IOT_SERIES_CONFIG[p.variable_name]) continue;
+      let arr = seriesMap.get(p.variable_name);
+      if (!arr) { arr = []; seriesMap.set(p.variable_name, arr); }
+      arr.push([new Date(p.time).getTime(), p.value]);
+    }
+
+    const series: Highcharts.SeriesOptionsType[] = [];
+    const yAxes: Highcharts.YAxisOptions[] = [];
+    let axisIdx = 0;
+
+    for (const [varName, points] of seriesMap) {
+      const cfg = IOT_SERIES_CONFIG[varName];
+      yAxes.push({
+        title: { text: cfg.label, style: { color: cfg.color, fontSize: '11px' } },
+        labels: { style: { color: cfg.color, fontSize: '10px' } },
+        opposite: axisIdx % 2 === 1,
+        visible: axisIdx < 2, // ponytail: show only first 2 axes, rest hidden to avoid clutter
+      });
+      series.push({
+        type: 'line',
+        name: cfg.label,
+        data: points.sort((a, b) => a[0] - b[0]),
+        yAxis: axisIdx,
+        color: cfg.color,
+        tooltip: { valueSuffix: cfg.unit ? ` ${cfg.unit}` : undefined },
+      });
+      axisIdx++;
+    }
+
+    return {
+      chart: { height: 350, backgroundColor: 'transparent' },
+      title: { text: undefined },
+      xAxis: { type: 'datetime' },
+      yAxis: yAxes.length > 0 ? yAxes : [{ title: { text: '' } }],
+      series,
+      legend: { enabled: true },
+      credits: { enabled: false },
+      rangeSelector: { selected: 1, buttons: [
+        { type: 'day', count: 1, text: '1d' },
+        { type: 'day', count: 3, text: '3d' },
+        { type: 'all', text: '7d' },
+      ]},
+    };
+  }, [data]);
+
+  if (loading) {
+    return <Card className="shrink-0"><div className="h-[350px] animate-pulse rounded bg-surface" /></Card>;
+  }
+  if (!data || data.length === 0) {
+    return <Card className="shrink-0"><p className="py-8 text-center text-sm text-muted">Sin datos IoT para graficar</p></Card>;
+  }
+
+  return (
+    <Card className="shrink-0">
+      <h2 className="mb-2 text-sm font-semibold text-foreground">Tendencia IoT (7 días)</h2>
+      <StockChart options={options} />
+    </Card>
   );
 }
 

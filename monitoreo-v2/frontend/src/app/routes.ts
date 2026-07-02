@@ -100,5 +100,6 @@ export const APP_ROUTES = {
     registerMappings: '/admin/register-mappings',
     regions: '/admin/regions',
     breachReports: '/admin/breach-reports',
+    iotDevices: '/admin/iot-devices',
   },
 } as const;

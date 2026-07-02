@@ -180,6 +180,17 @@ describe('parseIotRuleDirect', () => {
     expect(result.variables.get('reactive_power_var')).toBe(-183.69);
   });
 
+  it('prefers device_client_id over mqtt_topic', () => {
+    const payload = { ...iotRulePayload, device_client_id: 'siemens-poc3000' };
+    const result = parseIotRuleDirect(payload)!;
+    expect(result.deviceId).toBe('siemens-poc3000');
+  });
+
+  it('falls back to mqtt_topic when device_client_id absent', () => {
+    const result = parseIotRuleDirect(iotRulePayload)!;
+    expect(result.deviceId).toBe('powercenter/data');
+  });
+
   it('uses received_at as ISO timestamp', () => {
     const result = parseIotRuleDirect(iotRulePayload)!;
     expect(result.timestamp).toBe(new Date(1782485212587).toISOString());
@@ -190,10 +201,10 @@ describe('parseIotRuleDirect', () => {
     expect(result.variables.size).toBe(11);
   });
 
-  it('defaults deviceId to powercenter/data when mqtt_topic missing', () => {
+  it('defaults deviceId to unknown when both client_id and topic missing', () => {
     const { mqtt_topic, ...noTopic } = iotRulePayload;
     const result = parseIotRuleDirect(noTopic)!;
-    expect(result.deviceId).toBe('powercenter/data');
+    expect(result.deviceId).toBe('unknown');
   });
 
   it('returns null without received_at', () => {
@@ -226,10 +237,15 @@ describe('parsePayload', () => {
     expect(result.deviceId).toBe('device-abc-123');
   });
 
-  it('matches IoT Rule direct format', () => {
+  it('matches IoT Rule direct format with mqtt_topic fallback', () => {
     const result = parsePayload(iotRulePayload)!;
     expect(result.deviceId).toBe('powercenter/data');
     expect(result.variables.get('voltage_l1')).toBe(218.024);
+  });
+
+  it('matches IoT Rule direct format with device_client_id', () => {
+    const result = parsePayload({ ...iotRulePayload, device_client_id: 'thing-001' })!;
+    expect(result.deviceId).toBe('thing-001');
   });
 
   it('returns null for unrecognized payloads', () => {

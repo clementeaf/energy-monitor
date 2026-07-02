@@ -50,6 +50,14 @@ export class MetersController {
     }, loadCategory);
   }
 
+  @Get('iot-device-map')
+  @ApiOperation({ summary: 'Get IoT device-to-meter mapping (for Lambda ingest)' })
+  @ApiResponse({ status: 200, description: 'Device map entries' })
+  @RequireAnyPermission('admin_meters:read', 'admin_integrations:read')
+  async getIotDeviceMap() {
+    return this.metersService.findIotDeviceMap();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a meter by ID' })
   @ApiResponse({ status: 200, description: 'Meter found' })

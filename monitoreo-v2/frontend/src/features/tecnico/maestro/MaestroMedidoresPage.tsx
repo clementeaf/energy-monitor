@@ -138,6 +138,7 @@ export function MaestroMedidoresPage() {
                   <div className="flex justify-between"><dt className="text-muted">Fase</dt><dd className="text-foreground">{sel.phaseType}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Centro</dt><dd className="text-foreground">{buildingMap.get(sel.buildingId) ?? '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">IoT Device</dt><dd className="font-mono text-foreground">{sel.iotDeviceId ?? '—'}</dd></div>
                 </dl>
               </div>
               <div className="panel space-y-2 px-3 py-3">

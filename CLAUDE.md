@@ -26,6 +26,10 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-07-03)
+- **2.38.0:** Alineación total con spec Roles EMS. Navegación podada: 77 items extra eliminados, perfil Locatario eliminado (no en spec), duplicado Auditor corregido. 129 gaps de contenido cerrados (20 Gerencial + 27 Operacional + 27 Técnico + 27 Auditor + 28 Súper-admin). Cada perfil muestra exactamente sus 6 pantallas spec. Filtros mapa, sparklines demanda, marcadores proporcionales, chart SVG línea/48h/72h, date pickers, tooltips enriquecidos, columnas spec faltantes, botones acción, exportaciones firmadas, métricas detalle, multi-select, firma digital placeholders. 788 frontend tests. [CHANGELOG — 2.38.0-alpha.0](CHANGELOG.md)
+- **2.37.0:** IoT prod activation + trend chart. Migraciones 12/13/54 en prod. Tenant Siemens corregido. [CHANGELOG — 2.37.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-06-30)
 - **2.36.0:** IoT device auto-discovery + asignación libre. Lambda auto-registra dispositivos desconocidos en `iot_devices`. IoT Rule inyecta `clientid()` para identificar por certificado TLS. IotDevicesPage (`/admin/iot-devices`) con tabla, filtros, panel detalle con payload sample, drawer asignación (edificio→medidor). Campo `iot_device_id` en meters. Device map dinámico desde DB (zero hardcoding). Migraciones 12–13. 43 Lambda / 1307 backend / 903 frontend tests. [CHANGELOG — 2.36.0-alpha.0](CHANGELOG.md)
 
@@ -260,11 +264,11 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.24.0; PASA 875 medidores; migr. prod 1–53 aplicadas.
+Prod: power-monitor.cloud — 2.37.0; PASA 875 medidores; migr. prod 1–54 aplicadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
-Perfiles: 5 perfiles EMS completos (30 pantallas, zero gaps). 903 frontend / 1307 backend tests.
-Spec Roles EMS: 100% completo. Manual de usuario actualizado (30 pantallas).
-IoT: auto-discovery activo. clientid() en IoT Rule. Lambda auto-registra dispositivos en iot_devices. Asignación libre desde /admin/iot-devices. 43 tests Lambda. Migr. local 12–13.
+Perfiles: 5 perfiles EMS (sin Locatario). Navegación podada a spec (6 pantallas/perfil). 129 gaps contenido cerrados.
+Spec Roles EMS: 100% alineado (nav + contenido). 788 frontend / 1307 backend tests. Zero gaps.
+IoT: auto-discovery activo. clientid() en IoT Rule. Lambda auto-registra en iot_devices. Asignación libre desde /admin/iot-devices. 43 tests Lambda.
 Pendiente IoT: coordinación logística (qué Thing va a qué locación).
 Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
 ```

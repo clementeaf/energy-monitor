@@ -88,7 +88,6 @@ export function CnrPendientesPage() {
 
   // KPIs
   const totalOpen = cnrRecords.length;
-  const criticalCount = cnrRecords.filter((r) => r.gapHours >= CRITICAL_GAP_H).length;
   const over7d = cnrRecords.filter((r) => r.gapHours >= 168).length;
 
   // ponytail: "ingresadas hoy" approximated from gap < 24h (no ingestion timestamp without backend)

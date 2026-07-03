@@ -464,7 +464,7 @@ function TreeRow({
 
 /* ── Trend Sparkline (current vs year prior) ── */
 
-function TrendSparkline({ metricVal, label }: Readonly<{ metricVal: number; label: string }>) {
+function TrendSparkline({ metricVal }: Readonly<{ metricVal: number; label: string }>) {
   // ponytail: synthetic 12-month trend from current value — replace with real aggregated API
   const months = useMemo(() => {
     const result: { month: string; current: number; prior: number }[] = [];

@@ -20,32 +20,6 @@ export interface ProfileNavEntry {
   children?: ProfileSubItem[];
 }
 
-/* ── Shared entry fragments (reused across profiles) ── */
-
-const DASHBOARD_GENERAL: ProfileSubItem = { to: '/', label: 'General', end: true };
-const DASHBOARD_EJECUTIVO: ProfileSubItem = { to: APP_ROUTES.executive, label: 'Ejecutivo' };
-const DASHBOARD_COMPARATIVO: ProfileSubItem = { to: APP_ROUTES.compare, label: 'Comparativo' };
-
-const MONITOREO_MEDIDORES: ProfileSubItem = { to: '/meters', label: 'Medidores' };
-const MONITOREO_EDIFICIOS: ProfileSubItem = { to: '/buildings', label: 'Edificios' };
-const MONITOREO_MAPA: ProfileSubItem = { to: '/map', label: 'Mapa' };
-
-const ALERTAS_MAIN: ProfileSubItem = { to: '/alerts', label: 'Alertas', end: true };
-const ALERTAS_HISTORIAL: ProfileSubItem = { to: '/alerts/history', label: 'Historial / SLA' };
-const ALERTAS_REGLAS: ProfileSubItem = { to: '/alerts/rules', label: 'Reglas' };
-const ALERTAS_ESCALAMIENTO: ProfileSubItem = { to: '/alerts/escalation', label: 'Escalamiento' };
-const ALERTAS_NOTIFICACIONES: ProfileSubItem = { to: '/alerts/notifications', label: 'Notificaciones' };
-
-const FACTURACION_FACTURAS: ProfileSubItem = { to: '/billing', label: 'Facturas', end: true };
-const FACTURACION_TARIFAS: ProfileSubItem = { to: '/billing/rates', label: 'Tarifas' };
-const FACTURACION_APROBACION: ProfileSubItem = { to: '/billing/approve', label: 'Aprobación' };
-const FACTURACION_HISTORIAL: ProfileSubItem = { to: '/billing/history', label: 'Historial' };
-
-const REPORTES_MAIN: ProfileSubItem = { to: '/reports', label: 'Reportes', end: true };
-const REPORTES_BENCHMARK: ProfileSubItem = { to: '/analytics/benchmark', label: 'Benchmarking' };
-const REPORTES_TENDENCIAS: ProfileSubItem = { to: '/analytics/trends', label: 'Tendencias' };
-const REPORTES_PATRONES: ProfileSubItem = { to: '/analytics/patterns', label: 'Patrones' };
-
 /* ── Profile-specific nav definitions ── */
 
 const DASHBOARD_CONSOLIDADO: ProfileSubItem = { to: APP_ROUTES.consolidado, label: 'Consolidado' };

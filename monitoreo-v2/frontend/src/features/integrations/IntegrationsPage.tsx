@@ -480,7 +480,7 @@ export function IntegrationsPage() {
                 </div>
                 {/* Contrato interfaz */}
                 <div className="border-b border-border px-4 py-2 text-[11px] text-muted">
-                  <span className="font-medium text-foreground">Contrato:</span> API {logsFor.type} · Esquema datos: propietario
+                  <span className="font-medium text-foreground">Contrato:</span> API {logsFor.integrationType} · Esquema datos: propietario
                 </div>
                 <SyncLogsPanel
                   query={syncLogsQuery}

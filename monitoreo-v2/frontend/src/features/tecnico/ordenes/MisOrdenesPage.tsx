@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -99,7 +98,6 @@ const QUICK_FILTERS = [
 ];
 
 export function MisOrdenesPage() {
-  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState('all');
 

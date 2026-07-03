@@ -57,7 +57,7 @@ export function SeguridadPamPage() {
     const lastReview = new Date(created.getTime() + cyclesPassed * reviewCycleDays * 86_400_000);
     const nextReview = new Date(lastReview.getTime() + reviewCycleDays * 86_400_000);
     const daysUntilReview = Math.ceil((nextReview.getTime() - now.getTime()) / 86_400_000);
-    const pamStatus: PamStatus = !acc.isActive ? 'inactivo' : daysUntilReview <= 0 ? 'en revisión' : 'activo';
+    const pamStatus: PamStatus = !acc.isActive ? 'inactivo' : daysUntilReview <= 0 ? 'en revisión' : daysUntilReview <= -30 ? 'suspendido' : 'activo';
     return { ...acc, lastReview, nextReview, daysUntilReview, pamStatus };
   }), [pamAccounts]);
 
@@ -108,7 +108,6 @@ export function SeguridadPamPage() {
   // Security KPIs derived from real data
   const activeBreaches = breachReports.filter((b) => b.status !== 'resolved').length;
   const totalPam = pamAccounts.length;
-  const inactivePam = pamAccounts.filter((u) => !u.isActive).length;
   const openIncidents = incidents.filter((i) => i.status !== 'resuelto').length;
 
   const securityKpis = [

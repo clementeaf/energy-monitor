@@ -154,7 +154,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
                   {log.resourceId ? log.resourceId.slice(0, 8) + '...' : '—'}
                 </Td>
                 <Td className="max-w-[150px] truncate text-[11px]">
-                  {(log as Record<string, unknown>).changes ? String((log as Record<string, unknown>).changes) : '—'}
+                  {(log as unknown as Record<string, unknown>).changes ? String((log as unknown as Record<string, unknown>).changes) : '—'}
                 </Td>
                 <Td>{log.ipAddress ?? '—'}</Td>
               </tr>

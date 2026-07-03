@@ -288,7 +288,7 @@ export function CalidadBackfillPage() {
                       <p className="mt-0.5 text-[11px] text-muted">
                         {/* ponytail: gap type from job.gapType when available */}
                         <span className="rounded bg-gray-100 px-1 py-0.5 text-[9px] font-medium text-gray-600">
-                          {(job as Record<string, unknown>).gapType as string ?? 'comunicación'}
+                          {(job as unknown as Record<string, unknown>).gapType as string ?? 'comunicación'}
                         </span>
                         {' '}{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}
                       </p>

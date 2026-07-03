@@ -22,7 +22,7 @@ const user = {
   authProvider: 'google',
   authProviderId: 'g-123',
   roleId: 'r-2',
-  role: { id: 'r-2', name: 'Analyst', slug: 'analyst' },
+  role: { id: 'r-2', name: 'Gerencial', slug: 'corp_admin' },
   isActive: true,
   lastLoginAt: null,
   createdAt: new Date(),

@@ -19,7 +19,7 @@ import globeLogo from '../../assets/globe-logo.png';
 
 type SidebarFlyoutId = number | 'admin' | 'support';
 
-const VIEW_AS_ROLES: RoleSlug[] = ['super_admin', 'corp_admin', 'site_admin', 'operator', 'tenant_user', 'analyst', 'auditor'];
+const VIEW_AS_ROLES: RoleSlug[] = ['super_admin', 'corp_admin', 'site_admin', 'operator', 'auditor'];
 
 /**
  * Returns shared nav button classes for expanded or icon-rail mode.

@@ -21,7 +21,7 @@ export function useOperatorFilter() {
   const isMultiOp = roleSlug === 'corp_admin';
   const isOperadorMode = roleSlug === 'site_admin';
   const isTecnico = roleSlug === 'operator';
-  const isLocatario = roleSlug === 'tenant_user';
+  const isLocatario = false; // ponytail: tenant_user consolidated into site_admin
   const isFilteredMode = isMultiOp || isOperadorMode;
 
   const hasOperator = isMultiOp && !!selectedOperator;

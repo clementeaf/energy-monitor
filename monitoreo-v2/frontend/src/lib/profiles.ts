@@ -20,8 +20,6 @@ export const ROLE_TO_PROFILE: Record<RoleSlug, UserProfile> = {
   corp_admin: 'gerencial',
   site_admin: 'operacional',
   operator: 'tecnico',
-  tenant_user: 'operacional',
-  analyst: 'gerencial',
   auditor: 'auditor',
 };
 
@@ -40,7 +38,7 @@ export const PROFILE_LABELS: Record<UserProfile, string> = {
   operacional: 'Operacional',
   tecnico: 'Técnico',
   auditor: 'Auditor',
-  super_admin: 'Súper Administrador',
+  super_admin: 'Súper-administrador',
 };
 
 /**

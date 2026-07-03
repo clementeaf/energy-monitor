@@ -97,18 +97,13 @@ describe('usePermissions', () => {
       expect(result.current.isAdmin).toBe(false);
     });
 
-    it('returns false for tenant_user', () => {
-      setUser({ role: { id: 'r-1', slug: 'tenant_user', name: 'Tenant User' } });
-      const { result } = renderHook(() => usePermissions());
-      expect(result.current.isAdmin).toBe(false);
-    });
   });
 
   describe('roleSlug', () => {
     it('returns user role slug', () => {
-      setUser({ role: { id: 'r-1', slug: 'analyst', name: 'Analyst' } });
+      setUser({ role: { id: 'r-1', slug: 'auditor', name: 'Auditor' } });
       const { result } = renderHook(() => usePermissions());
-      expect(result.current.roleSlug).toBe('analyst');
+      expect(result.current.roleSlug).toBe('auditor');
     });
   });
 });

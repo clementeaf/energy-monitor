@@ -13,8 +13,6 @@ const ALL_ROLE_SLUGS: RoleSlug[] = [
   'corp_admin',
   'site_admin',
   'operator',
-  'tenant_user',
-  'analyst',
   'auditor',
 ];
 
@@ -26,9 +24,8 @@ describe('profiles', () => {
       expect(ALL_PROFILES).toContain(profile);
     });
 
-    it('maps corp_admin and analyst to gerencial', () => {
+    it('maps corp_admin to gerencial', () => {
       expect(ROLE_TO_PROFILE.corp_admin).toBe('gerencial');
-      expect(ROLE_TO_PROFILE.analyst).toBe('gerencial');
     });
 
     it('maps site_admin to operacional', () => {
@@ -47,9 +44,6 @@ describe('profiles', () => {
       expect(ROLE_TO_PROFILE.super_admin).toBe('super_admin');
     });
 
-    it('maps tenant_user to operacional', () => {
-      expect(ROLE_TO_PROFILE.tenant_user).toBe('operacional');
-    });
   });
 
   describe('ALL_PROFILES', () => {

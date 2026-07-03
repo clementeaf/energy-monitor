@@ -5,8 +5,6 @@ export type RoleSlug =
   | 'corp_admin'
   | 'site_admin'
   | 'operator'
-  | 'analyst'
-  | 'tenant_user'
   | 'auditor';
 
 export interface UserRole {

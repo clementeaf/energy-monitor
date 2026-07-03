@@ -9,7 +9,7 @@ const user: JwtPayload = {
   email: 'test@test.com',
   tenantId: 't-1',
   roleId: 'r-1',
-  roleSlug: 'analyst',
+  roleSlug: 'corp_admin',
   permissions: ['reports:read', 'reports:create', 'reports:update'],
   buildingIds: [],
 };

@@ -153,7 +153,7 @@ describe('PanelConsolidadoPage', () => {
       expect(screen.getByText('Normal')).toBeInTheDocument();
       expect(screen.getByText('Alerta')).toBeInTheDocument();
       expect(screen.getByText('Crítico')).toBeInTheDocument();
-      expect(screen.getByText('Sin datos')).toBeInTheDocument();
+      expect(screen.getAllByText('Sin datos').length).toBeGreaterThanOrEqual(1);
     });
   });
 

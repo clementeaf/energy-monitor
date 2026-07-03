@@ -52,7 +52,7 @@ describe('DatosCrudosPage', () => {
 
     it('renders meter selector', () => {
       renderPage();
-      expect(screen.getByText('Seleccionar medidor')).toBeInTheDocument();
+      expect(screen.getByText('Principal (P1)')).toBeInTheDocument();
     });
 
     it('renders resolution pills', () => {
@@ -66,7 +66,7 @@ describe('DatosCrudosPage', () => {
       renderPage();
       expect(screen.getByText('CSV')).toBeInTheDocument();
       expect(screen.getByText('JSON')).toBeInTheDocument();
-      expect(screen.getByText('Parquet')).toBeInTheDocument();
+      expect(screen.getByText(/Parquet/)).toBeInTheDocument();
     });
 
     it('renders DAT-30 notice', () => {
@@ -91,14 +91,14 @@ describe('DatosCrudosPage', () => {
     it('enables after meter selection', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
+      await user.selectOptions(screen.getByRole('listbox'), 'm1');
       expect(screen.getByRole('button', { name: /Exportar/ })).not.toBeDisabled();
     });
 
     it('calls createObjectURL on export click', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
+      await user.selectOptions(screen.getByRole('listbox'), 'm1');
       await user.click(screen.getByRole('button', { name: /Exportar/ }));
       expect(globalThis.URL.createObjectURL).toHaveBeenCalled();
     });
@@ -113,7 +113,7 @@ describe('DatosCrudosPage', () => {
     it('shows preview data on meter select', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
+      await user.selectOptions(screen.getByRole('listbox'), 'm1');
       expect(screen.getByText('2026-06-24T12:00:00Z')).toBeInTheDocument();
     });
   });

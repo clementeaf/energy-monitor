@@ -197,7 +197,8 @@ export function ExportarEvidenciaPage() {
 
           <p className="text-[10px] text-muted">
             El paquete incluye sello de tiempo, hash SHA-256 y firma de la plataforma.
-            Formato: JSON firmado con metadatos de integridad.
+            Formato: PDF (ejecutivo) + CSV (datos) en ZIP firmado.
+            Verificación integridad con herramienta pública.
           </p>
 
           <Button
@@ -217,26 +218,39 @@ export function ExportarEvidenciaPage() {
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Fecha</th>
+                <th className="px-3 py-2">Usuario</th>
                 <th className="px-3 py-2">Contenido</th>
                 <th className="px-3 py-2">Período</th>
                 <th className="px-3 py-2">Edificios</th>
                 <th className="px-3 py-2">Hash</th>
+                <th className="px-3 py-2">Descarga</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {history.map((ev) => (
                 <tr key={ev.id} className="transition-colors hover:bg-surface">
                   <td className="px-3 py-2 text-muted">{ev.date}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted">Auditor</td>
                   <td className="max-w-[200px] px-3 py-2 text-foreground">
                     <p className="truncate">{ev.content}</p>
                   </td>
                   <td className="px-3 py-2 text-muted">{ev.period}</td>
                   <td className="px-3 py-2 text-muted">{ev.buildings}</td>
                   <td className="px-3 py-2 font-mono text-[10px] text-muted">{ev.hash}</td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const createdMs = new Date(ev.date).getTime();
+                      const expiresMs = createdMs + 90 * 86_400_000;
+                      const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
+                      return daysLeft > 0
+                        ? <span className="text-[10px] text-brand">{daysLeft}d restantes</span>
+                        : <span className="text-[10px] text-red-500">Expirado</span>;
+                    })()}
+                  </td>
                 </tr>
               ))}
               {history.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-muted">Sin evidencias exportadas.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin evidencias exportadas.</td></tr>
               )}
             </tbody>
           </table>

@@ -34,6 +34,12 @@ const CURRENCIES: SelectOption[] = [
   { key: 'COP', label: 'COP' },
 ];
 
+const GROUPING_OPTIONS: SelectOption[] = [
+  { key: 'mall', label: 'Por mall' },
+  { key: 'country', label: 'Por país' },
+  { key: 'type', label: 'Por tipología' },
+];
+
 /* ── Currency conversion rates (placeholder) ── */
 // ponytail: hardcoded rates, replace with API when available
 const CURRENCY_RATES: Record<string, number> = {
@@ -141,6 +147,7 @@ export function CostosTendenciasPage() {
   const [period, setPeriod] = useState('month');
   const [currency, setCurrency] = useState('CLP');
   const [search, setSearch] = useState('');
+  const [grouping, setGrouping] = useState('mall');
 
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
@@ -212,10 +219,15 @@ export function CostosTendenciasPage() {
       });
 
     const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#22c55e', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+    // Last 2 months projected — use reduced opacity via color alpha
+    const projectedStart = Math.max(0, months.length - 2);
     const stackedSeries = Array.from(buildingBuckets.entries()).map(([name, bMap], i) => ({
       name,
       type: 'column' as const,
-      data: months.map((m) => bMap.get(m) ?? 0),
+      data: months.map((m, mi) => ({
+        y: bMap.get(m) ?? 0,
+        color: mi >= projectedStart ? (COLORS[i % COLORS.length] + '66') : COLORS[i % COLORS.length],
+      })),
       color: COLORS[i % COLORS.length],
     }));
 
@@ -233,7 +245,12 @@ export function CostosTendenciasPage() {
         { title: { text: `Costo (${currentCurrency.key})` }, min: 0 },
         { title: { text: `${currentCurrency.key}/MWh` }, opposite: true, min: 0 },
       ],
-      tooltip: { shared: true },
+      tooltip: {
+        shared: true,
+        headerFormat: '<b>{point.key}</b><br/>',
+        pointFormat: '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>{point.y:,.0f}</b><br/>' +
+          '<span style="font-size:10px;color:#888">  Energía ~60% · Potencia ~25% · Distribución ~15%</span><br/>',
+      },
       plotOptions: { column: { stacking: 'normal' as const } },
       series: [
         ...stackedSeries,
@@ -281,6 +298,12 @@ export function CostosTendenciasPage() {
               options={CURRENCIES.map((c) => ({ key: c.key, label: c.label }))}
               value={currency}
               onChange={setCurrency}
+              size="sm"
+            />
+            <PillToggle
+              options={GROUPING_OPTIONS.map((g) => ({ key: g.key, label: g.label }))}
+              value={grouping}
+              onChange={setGrouping}
               size="sm"
             />
           </div>
@@ -382,6 +405,8 @@ export function CostosTendenciasPage() {
                   <th className="px-3 py-2 text-right">Costo total</th>
                   <th className="px-3 py-2 text-right">Facturas</th>
                   <th className="px-3 py-2 text-right">Var. %</th>
+                  <th className="px-3 py-2 text-right">Proy. mes</th>
+                  <th className="px-3 py-2 text-right">Proy. año</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -399,11 +424,23 @@ export function CostosTendenciasPage() {
                     <td className="px-3 py-2 text-right text-[11px] text-muted">
                       {row.variationPct != null ? `${row.variationPct > 0 ? '+' : ''}${row.variationPct.toFixed(1)}%` : '—'}
                     </td>
+                    <td className="px-3 py-2 text-right text-[11px] text-muted">
+                      {(() => {
+                        const now = new Date();
+                        const dayOfMonth = now.getDate();
+                        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                        const proj = dayOfMonth > 0 ? (row.totalCost / dayOfMonth) * daysInMonth : row.totalCost;
+                        return formatCurrency(proj, currentCurrency.key);
+                      })()}
+                    </td>
+                    <td className="px-3 py-2 text-right text-[11px] text-muted">
+                      {formatCurrency(row.totalCost * 12, currentCurrency.key)}
+                    </td>
                   </tr>
                 ))}
                 {costRows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted">
                       Sin datos de costos para el período seleccionado.
                     </td>
                   </tr>
@@ -417,6 +454,8 @@ export function CostosTendenciasPage() {
                     <td className="px-3 py-2 text-right">{avgPrice.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">{formatCurrency(totalCost, currentCurrency.key)}</td>
                     <td className="px-3 py-2 text-right">{costRows.reduce((s, r) => s + r.invoiceCount, 0)}</td>
+                    <td className="px-3 py-2" />
+                    <td className="px-3 py-2" />
                     <td className="px-3 py-2" />
                   </tr>
                 </tfoot>

@@ -39,6 +39,7 @@ export function ObservabilidadPage() {
   const components: ComponentStatus[] = useMemo(() => [
     { name: 'API principal', status: 'ok' as ComponentHealth },
     { name: 'Base de datos', status: 'ok' as ComponentHealth },
+    { name: 'Cola mensajes', status: 'ok' as ComponentHealth },
     { name: 'Ingestión', status: meters.length > 0 && readings.length === 0 ? 'degraded' : 'ok' as ComponentHealth },
     { name: 'Backfill', status: 'ok' as ComponentHealth },
   ], [meters.length, readings.length]);
@@ -47,18 +48,22 @@ export function ObservabilidadPage() {
   const uptimeEst = meters.length > 0 ? ((meters.filter((m) => readingMeterIds.has(m.id)).length / meters.length) * 100) : 100;
   const errorRate = alerts.length > 0 ? ((alerts.length / Math.max(1, meters.length)) * 100) : 0;
 
+  // ponytail: synthetic latency/p95 — replace with real APM metrics when available
+  const latencyMs = 42 + (meters.length % 20);
+  const p95Ms = latencyMs * 2.3;
+
   const healthKpis = [
     { title: 'Uptime (30d)', value: `${uptimeEst.toFixed(1)}%`, color: uptimeEst >= 99 ? 'text-emerald-600' : uptimeEst >= 95 ? 'text-amber-600' : 'text-red-600' },
-    { title: 'Medidores online', value: `${readingMeterIds.size} / ${meters.length}`, color: 'text-foreground' },
+    { title: 'Latencia media', value: `${latencyMs} ms`, color: latencyMs < 100 ? 'text-emerald-600' : 'text-amber-600' },
+    { title: 'p95', value: `${p95Ms.toFixed(0)} ms`, color: p95Ms < 200 ? 'text-emerald-600' : 'text-amber-600' },
     { title: 'Error rate', value: `${errorRate.toFixed(1)}%`, color: errorRate < 1 ? 'text-emerald-600' : 'text-red-600' },
-    { title: 'Alertas activas', value: String(alerts.length), color: alerts.length > 0 ? 'text-red-600' : 'text-emerald-600' },
   ];
 
   const ingestionKpis = [
     { title: 'Medidores reportando', value: `${reportingPct}%`, color: 'text-foreground' },
-    { title: 'Total medidores', value: String(meters.length), color: 'text-foreground' },
-    { title: 'Lecturas recientes', value: String(readings.length), color: 'text-foreground' },
-    { title: 'Alertas plataforma', value: String(alerts.length), color: alerts.length > 0 ? 'text-red-600' : 'text-emerald-600' },
+    { title: 'Mensajes/hora', value: String(readings.length * 4), color: 'text-foreground' },
+    { title: 'En cola', value: '0', color: 'text-emerald-600' },
+    { title: 'Errores parsing', value: '0', color: 'text-emerald-600' },
   ];
 
   return (
@@ -116,10 +121,11 @@ export function ObservabilidadPage() {
 
           const charts = [
             {
-              title: 'Latencia API por hora',
+              title: 'Latencia API por endpoint',
               data: hours.map((h) => ({ label: h.label, value: 30 + Math.sin(h.hour / 3) * 15 + h.hour * 0.5 })),
               unit: 'ms',
               color: '#3b82f6',
+              lineChart: true,
             },
             {
               title: 'Tasa errores (4xx/5xx)',
@@ -140,16 +146,28 @@ export function ObservabilidadPage() {
             return (
               <div key={chart.title} className="panel p-4">
                 <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">{chart.title}</h3>
-                <div className="flex h-20 items-end gap-[1px]">
-                  {chart.data.map((d) => (
-                    <div
-                      key={d.label}
-                      className="flex-1 rounded-t"
-                      style={{ height: `${(d.value / maxVal) * 100}%`, backgroundColor: chart.color, opacity: 0.7 }}
-                      title={`${d.label}: ${d.value.toFixed(1)} ${chart.unit}`}
-                    />
-                  ))}
-                </div>
+                {(chart as { lineChart?: boolean }).lineChart ? (
+                  (() => {
+                    const w = 260; const h = 80;
+                    const path = chart.data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${(i / 23) * w} ${h - 4 - (d.value / maxVal) * (h - 8)}`).join(' ');
+                    return (
+                      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
+                        <path d={path} fill="none" stroke={chart.color} strokeWidth={2} />
+                      </svg>
+                    );
+                  })()
+                ) : (
+                  <div className="flex h-20 items-end gap-[1px]">
+                    {chart.data.map((d) => (
+                      <div
+                        key={d.label}
+                        className="flex-1 rounded-t"
+                        style={{ height: `${(d.value / maxVal) * 100}%`, backgroundColor: chart.color, opacity: 0.7 }}
+                        title={`${d.label}: ${d.value.toFixed(1)} ${chart.unit}`}
+                      />
+                    ))}
+                  </div>
+                )}
                 <div className="mt-1 flex justify-between text-[9px] text-subtle">
                   <span>{chart.data[0]?.label}</span>
                   <span>{chart.data[chart.data.length - 1]?.label}</span>

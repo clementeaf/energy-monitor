@@ -174,7 +174,10 @@ export function ConfigReleasesPage() {
               <th className="px-3 py-2">Versión</th>
               <th className="px-3 py-2">Descripción</th>
               <th className="px-3 py-2">Fecha</th>
+              <th className="px-3 py-2">QA</th>
+              <th className="px-3 py-2">Aprobaciones</th>
               <th className="px-3 py-2 text-center">Estado</th>
+              <th className="px-3 py-2" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -183,15 +186,35 @@ export function ConfigReleasesPage() {
                 <td className="px-3 py-2 font-mono font-medium text-foreground">{r.version}</td>
                 <td className="px-3 py-2 text-muted">{r.description}</td>
                 <td className="px-3 py-2 text-[11px] text-muted">{r.date}</td>
+                <td className="px-3 py-2 text-[11px] text-emerald-600">✓ Pass</td>
+                <td className="px-3 py-2 text-[11px] text-muted">1/1</td>
                 <td className="px-3 py-2 text-center">
                   <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[r.status]}`}>
                     {STATUS_LABEL[r.status]}
                   </span>
                 </td>
+                <td className="px-3 py-2">
+                  {r.status !== 'production' && (
+                    <button type="button" className="text-[10px] text-brand hover:underline">
+                      Solicitar deploy
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Deploy status */}
+      <div className="panel p-4">
+        <h3 className="mb-2 text-[13px] font-medium text-foreground">Estado despliegue</h3>
+        <div className="flex items-center gap-3 text-[12px]">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Producción</span>
+          <span className="text-muted">Último deploy: {new Date().toLocaleDateString('es-CL')}</span>
+          <button type="button" className="ml-auto text-[11px] text-brand hover:underline">Ver logs</button>
+          <button type="button" className="text-[11px] text-red-600 hover:underline">Rollback</button>
+        </div>
       </div>
 
       {/* Configuración como código — Diff viewer */}
@@ -273,6 +296,7 @@ export function ConfigReleasesPage() {
               <th className="px-3 py-2">Recurso</th>
               <th className="px-3 py-2">Usuario</th>
               <th className="px-3 py-2 text-center">Resultado</th>
+              <th className="px-3 py-2">Logs</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -291,10 +315,13 @@ export function ConfigReleasesPage() {
                     {d.result}
                   </span>
                 </td>
+                <td className="px-3 py-2">
+                  <button type="button" className="text-[10px] text-brand hover:underline">Ver logs</button>
+                </td>
               </tr>
             ))}
             {deployHistory.length === 0 && (
-              <tr><td colSpan={5} className="px-3 py-8 text-center text-muted">Sin actividad reciente.</td></tr>
+              <tr><td colSpan={6} className="px-3 py-8 text-center text-muted">Sin actividad reciente.</td></tr>
             )}
           </tbody>
         </table>

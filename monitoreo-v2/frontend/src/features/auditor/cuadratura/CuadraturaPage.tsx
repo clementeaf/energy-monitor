@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -63,7 +64,9 @@ const TOLERANCE_BADGE: Record<string, string> = {
 /* ── Page ── */
 
 export function CuadraturaPage() {
+  const navigate = useNavigate();
   const [mallFilter, setMallFilter] = useState('all');
+  const [periodFilter, setPeriodFilter] = useState('month');
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -86,6 +89,11 @@ export function CuadraturaPage() {
         eyebrow="Auditoría"
         actions={
           <div className="flex items-center gap-2">
+            <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
+              <option value="month">Mes actual</option>
+              <option value="quarter">Trimestre</option>
+              <option value="year">Año</option>
+            </select>
             <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
               <option value="all">Todos los centros</option>
               {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -93,7 +101,8 @@ export function CuadraturaPage() {
             <button
               type="button"
               onClick={() => {
-                const header = 'Centro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia';
+                const now = new Date().toISOString();
+                const header = `# Exportado: ${now} | Hash: ${Date.now().toString(16)}\nCentro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia`;
                 const csv = [header, ...rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`)].join('\n');
                 const blob = new Blob([csv], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
@@ -185,7 +194,10 @@ export function CuadraturaPage() {
                       {outOfTolerance.map((m) => (
                         <li key={m.label} className="flex items-center justify-between">
                           <span className="text-foreground">{m.label}</span>
-                          <span className={`font-medium ${m.diff > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{m.diff.toFixed(1)} kWh</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-medium ${m.diff > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{m.diff.toFixed(1)} kWh</span>
+                            <button type="button" onClick={() => navigate('/auditor/datos-crudos')} className="text-[10px] text-brand hover:underline">Ver raw</button>
+                          </div>
                         </li>
                       ))}
                     </ul>

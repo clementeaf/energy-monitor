@@ -47,14 +47,14 @@ describe('profiles', () => {
       expect(ROLE_TO_PROFILE.super_admin).toBe('super_admin');
     });
 
-    it('maps tenant_user to locatario', () => {
-      expect(ROLE_TO_PROFILE.tenant_user).toBe('locatario');
+    it('maps tenant_user to operacional', () => {
+      expect(ROLE_TO_PROFILE.tenant_user).toBe('operacional');
     });
   });
 
   describe('ALL_PROFILES', () => {
-    it('contains exactly 6 profiles', () => {
-      expect(ALL_PROFILES).toHaveLength(6);
+    it('contains exactly 5 profiles (spec-aligned)', () => {
+      expect(ALL_PROFILES).toHaveLength(5);
     });
 
     it('covers all profiles produced by ROLE_TO_PROFILE', () => {
@@ -79,8 +79,8 @@ describe('profiles', () => {
       expect(ALL_PROFILES).toContain(profile);
     });
 
-    it('returns locatario for null', () => {
-      expect(resolveProfile(null)).toBe('locatario');
+    it('returns operacional for null (fallback)', () => {
+      expect(resolveProfile(null)).toBe('operacional');
     });
   });
 });

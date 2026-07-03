@@ -95,6 +95,7 @@ const METRIC_OPTIONS: MetricOption[] = [
   { key: 'online', label: '% Online' },
   { key: 'alerts', label: 'Alertas' },
   { key: 'last', label: 'Última lectura' },
+  { key: 'quality', label: 'Calidad dato' },
 ];
 
 /* ── Page ── */

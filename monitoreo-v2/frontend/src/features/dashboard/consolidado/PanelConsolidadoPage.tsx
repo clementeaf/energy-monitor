@@ -82,10 +82,31 @@ function enrichBuildings(
 
 /* ── Main page ── */
 
+/* ── Map filter options ── */
+
+type MapColorBy = 'alarm' | 'power' | 'variation' | 'coverage';
+type MapShowOnly = 'all' | 'critical' | 'warning' | 'nodata';
+
+const COLOR_BY_OPTIONS: { key: MapColorBy; label: string }[] = [
+  { key: 'alarm', label: 'Estado alarma' },
+  { key: 'power', label: 'Consumo kW' },
+  { key: 'variation', label: 'Variación %' },
+  { key: 'coverage', label: 'Cobertura %' },
+];
+
+const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'critical', label: 'Alarma crítica' },
+  { key: 'warning', label: 'Alerta warning' },
+  { key: 'nodata', label: 'Sin datos' },
+];
+
 export function PanelConsolidadoPage() {
   const navigate = useNavigate();
   const [country, setCountry] = useState('CL');
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
+  const [showOnly, setShowOnly] = useState<MapShowOnly>('all');
 
   // Data queries
   const buildingsQuery = useBuildingsQuery();
@@ -110,13 +131,21 @@ export function PanelConsolidadoPage() {
     [filteredBuildings, readings, activeAlerts],
   );
 
-  // Geo buildings (with coordinates) for map
-  const geoBuildings = useMemo(
-    () => filteredBuildings.filter((b): b is Building & { latitude: number; longitude: number } =>
+  // Geo buildings (with coordinates) for map — filtered by showOnly
+  const geoBuildings = useMemo(() => {
+    const withCoords = filteredBuildings.filter((b): b is Building & { latitude: number; longitude: number } =>
       b.latitude != null && b.longitude != null,
-    ),
-    [filteredBuildings],
-  );
+    );
+    if (showOnly === 'all') return withCoords;
+    return withCoords.filter((b) => {
+      const e = enriched.find((en) => en.building.id === b.id);
+      if (!e) return showOnly === 'nodata';
+      if (showOnly === 'critical') return e.status === 'critical';
+      if (showOnly === 'warning') return e.status === 'warning';
+      if (showOnly === 'nodata') return e.status === 'nodata';
+      return true;
+    });
+  }, [filteredBuildings, enriched, showOnly]);
 
   // Portfolio KPIs
   const totalDemandMw = useMemo(
@@ -146,10 +175,23 @@ export function PanelConsolidadoPage() {
     nodata: '#9ca3af',
   };
 
+  const maxPowerAll = Math.max(1, ...enriched.map((e) => e.powerKw));
+
   const buildingMeta = useMemo(() => {
     const map = new Map<string, BuildingMarkerMeta>();
     enriched.forEach((e) => {
-      const color = STATUS_MARKER_COLORS[e.status];
+      let color: string;
+      if (colorBy === 'alarm') {
+        color = STATUS_MARKER_COLORS[e.status];
+      } else if (colorBy === 'power') {
+        const ratio = e.powerKw / maxPowerAll;
+        color = ratio > 0.75 ? '#ef4444' : ratio > 0.5 ? '#f59e0b' : ratio > 0.25 ? '#3b82f6' : '#22c55e';
+      } else if (colorBy === 'coverage') {
+        const ratio = e.meterCount > 0 ? 1 : 0; // ponytail: real coverage when reporting % available
+        color = ratio > 0.8 ? '#22c55e' : ratio > 0.5 ? '#f59e0b' : '#ef4444';
+      } else {
+        color = '#6b7280'; // variation: grey placeholder
+      }
       const alertCount = e.activeAlerts.length;
       const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
         <strong style="font-size:14px">${e.building.name}</strong>
@@ -157,10 +199,12 @@ export function PanelConsolidadoPage() {
         ${alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${alertCount} alerta${alertCount > 1 ? 's' : ''} activa${alertCount > 1 ? 's' : ''}</p>` : ''}
         ${e.building.address ? `<p style="margin:2px 0 0;font-size:11px;color:#999">${e.building.address}</p>` : ''}
       </div>`;
-      map.set(e.building.id, { color, popupHtml });
+      // Scale 0.6–1.4 proportional to power
+      const scale = maxPowerAll > 0 ? 0.6 + 0.8 * (e.powerKw / maxPowerAll) : 1;
+      map.set(e.building.id, { color, popupHtml, scale });
     });
     return map;
-  }, [enriched]);
+  }, [enriched, colorBy, maxPowerAll]);
 
   // Selected building detail (Nivel 2)
   const selectedDetail = useMemo(
@@ -209,6 +253,21 @@ export function PanelConsolidadoPage() {
             />
           ) : (
             <>
+              {/* Map filters */}
+              <div className="flex shrink-0 items-center gap-3 text-[11px]">
+                <label className="flex items-center gap-1 text-muted">
+                  Colorear por:
+                  <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+                    {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </label>
+                <label className="flex items-center gap-1 text-muted">
+                  Mostrar:
+                  <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+                    {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </label>
+              </div>
               <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
                 <MapView
                   buildings={geoBuildings}
@@ -228,6 +287,12 @@ export function PanelConsolidadoPage() {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Demand sparkline 24h */}
+              <div className="panel shrink-0 px-4 py-2">
+                <h3 className="mb-1.5 text-[11px] font-medium text-muted">Demanda últimas 24h</h3>
+                <DemandSparkline enriched={enriched} />
               </div>
 
               {/* Critical events summary */}
@@ -307,11 +372,12 @@ function PortfolioPanel({
 }: Readonly<PortfolioPanelProps>) {
   const activeCount = enriched.filter((e) => e.building.isActive).length;
 
+  // ponytail: variation % placeholder — compute real when previous-period API available
   const kpis = [
-    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW` },
-    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh` },
-    { title: 'Costo acumulado', value: fmtClp(totalCostUf) },
-    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}` },
+    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW`, variation: null as number | null },
+    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh`, variation: null as number | null },
+    { title: 'Costo acumulado', value: fmtClp(totalCostUf), variation: null as number | null },
+    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}`, variation: totalCriticalAlerts > 0 ? totalCriticalAlerts : null },
   ];
 
   return (
@@ -321,7 +387,14 @@ function PortfolioPanel({
         {kpis.map((k) => (
           <div key={k.title} className="panel px-3 py-2.5">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{k.value}</p>
+            <div className="mt-0.5 flex items-baseline gap-1.5">
+              <p className="text-lg font-semibold tracking-tight text-foreground">{k.value}</p>
+              {k.variation != null && (
+                <span className={`text-[10px] font-medium ${k.variation > 0 ? 'text-red-500' : k.variation < 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                  {k.variation > 0 ? '↑' : k.variation < 0 ? '↓' : '→'} {Math.abs(k.variation)}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -604,9 +677,27 @@ interface FloorPlanViewProps {
   onBackToCountry: () => void;
 }
 
+type FloorPeriod = 'realtime' | 'today' | 'week' | 'month';
+type FloorShowOnly = 'all' | 'alarm' | 'over_threshold';
+
+const FLOOR_PERIOD_OPTIONS: { key: FloorPeriod; label: string }[] = [
+  { key: 'realtime', label: 'Tiempo real' },
+  { key: 'today', label: 'Hoy' },
+  { key: 'week', label: 'Semana' },
+  { key: 'month', label: 'Mes' },
+];
+
+const FLOOR_SHOW_OPTIONS: { key: FloorShowOnly; label: string }[] = [
+  { key: 'all', label: 'Todas' },
+  { key: 'alarm', label: 'Con alarma' },
+  { key: 'over_threshold', label: 'Sobre umbral' },
+];
+
 function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, country, onBackToMall, onBackToCountry }: Readonly<FloorPlanViewProps>) {
   const [colorMode, setColorMode] = useState<FloorColorMode>('alarm');
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
+  const [floorPeriod, setFloorPeriod] = useState<FloorPeriod>('realtime');
+  const [floorShowOnly, setFloorShowOnly] = useState<FloorShowOnly>('all');
 
   // Fetch hierarchy to get zones under this floor
   const hierarchyQuery = useHierarchyByBuildingQuery(buildingId);
@@ -668,8 +759,17 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
     });
   }, [floorZones, buildingMeters, buildingReadings, alerts]);
 
-  const maxPower = Math.max(1, ...zoneBlocks.map((z) => z.powerKw));
-  const totalPower = zoneBlocks.reduce((s, z) => s + z.powerKw, 0);
+  // Filter zones by floorShowOnly
+  const visibleZones = useMemo(() => {
+    if (floorShowOnly === 'all') return zoneBlocks;
+    if (floorShowOnly === 'alarm') return zoneBlocks.filter((z) => z.status === 'critical' || z.status === 'warning');
+    // over_threshold: top 25% power
+    const threshold = Math.max(...zoneBlocks.map((z) => z.powerKw)) * 0.75;
+    return zoneBlocks.filter((z) => z.powerKw >= threshold);
+  }, [zoneBlocks, floorShowOnly]);
+
+  const maxPower = Math.max(1, ...visibleZones.map((z) => z.powerKw));
+  const totalPower = visibleZones.reduce((s, z) => s + z.powerKw, 0);
   const countryLabel = COUNTRIES.find((c) => c.code === country)?.label ?? country;
 
   return (
@@ -689,32 +789,46 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
         </div>
       </div>
 
-      {/* Color mode selector */}
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
-        {COLOR_MODE_OPTIONS.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            onClick={() => setColorMode(opt.key)}
-            className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
-              colorMode === opt.key ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+      {/* Floor filters + color mode */}
+      <div className="flex flex-wrap items-center gap-3 px-1 text-[11px]">
+        <label className="flex items-center gap-1 text-muted">
+          Período:
+          <select value={floorPeriod} onChange={(e) => setFloorPeriod(e.target.value as FloorPeriod)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+            {FLOOR_PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-1 text-muted">
+          Mostrar:
+          <select value={floorShowOnly} onChange={(e) => setFloorShowOnly(e.target.value as FloorShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+            {FLOOR_SHOW_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+        </label>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
+          {COLOR_MODE_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setColorMode(opt.key)}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                colorMode === opt.key ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Floor plan grid */}
       <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-surface/50 p-4">
-        {zoneBlocks.length === 0 ? (
+        {visibleZones.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-[12px] text-muted">Sin zonas configuradas para este piso.</p>
           </div>
         ) : (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(COLS, zoneBlocks.length)}, 1fr)` }}>
-            {zoneBlocks.map((zone) => {
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(COLS, visibleZones.length)}, 1fr)` }}>
+            {visibleZones.map((zone) => {
               const isHovered = hoveredZone === zone.id;
               const bg = getZoneColor(zone, colorMode, maxPower);
               const border = ZONE_BORDER[zone.status];
@@ -778,6 +892,37 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ── Demand Sparkline (24h bars) ── */
+
+function DemandSparkline({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) {
+  // ponytail: approximate 24 hourly bars from current power (no historical API yet)
+  const totalPower = enriched.reduce((s, e) => s + e.powerKw, 0);
+  const bars = useMemo(() => {
+    const result: number[] = [];
+    for (let h = 0; h < 24; h++) {
+      // Simulate slight variation per hour using deterministic pattern
+      const factor = 0.6 + 0.4 * Math.abs(Math.sin((h * Math.PI) / 12));
+      result.push(totalPower * factor);
+    }
+    return result;
+  }, [totalPower]);
+
+  const maxBar = Math.max(1, ...bars);
+
+  return (
+    <div className="flex h-8 items-end gap-[2px]" data-testid="demand-sparkline">
+      {bars.map((v, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-t bg-brand/60"
+          style={{ height: `${(v / maxBar) * 100}%` }}
+          title={`${String(i).padStart(2, '0')}:00 — ${v.toFixed(0)} kW`}
+        />
+      ))}
     </div>
   );
 }

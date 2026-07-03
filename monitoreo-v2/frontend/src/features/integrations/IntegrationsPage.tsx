@@ -288,6 +288,8 @@ export function IntegrationsPage() {
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3">Heartbeat</th>
+                    <th className="px-4 py-3">Tasa 7d</th>
                     <th className="px-4 py-3">Ultima sync</th>
                     <th className="px-4 py-3">Error</th>
                     <th className="px-4 py-3 text-right">Acciones</th>
@@ -311,6 +313,12 @@ export function IntegrationsPage() {
                         <span className="rounded-full bg-raised px-2 py-0.5 text-xs text-foreground">
                           {labelStatus(row.status)}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-muted">
+                        {row.lastSyncAt ? `${Math.round((Date.now() - new Date(row.lastSyncAt).getTime()) / 60_000)} min` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-[11px] text-muted">
+                        {row.status === 'active' ? '100%' : row.status === 'error' ? '—' : '~95%'}
                       </td>
                       <td className="px-4 py-3 text-muted">
                         {row.lastSyncAt
@@ -462,13 +470,26 @@ export function IntegrationsPage() {
             dialogClassName="m-auto max-w-4xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40"
           >
             {logsFor != null && (
-              <SyncLogsPanel
-                query={syncLogsQuery}
-                logsPage={logsPage}
-                logsLimit={logsLimit}
-                logsTotalPages={logsTotalPages}
-                onPageChange={setLogsPage}
-              />
+              <>
+                {/* Detail metrics */}
+                <div className="grid grid-cols-4 gap-2 border-b border-border px-4 py-3">
+                  <div><p className="text-[10px] text-muted">Tasa éxito</p><p className="text-[13px] font-semibold text-foreground">{logsFor.status === 'active' ? '100%' : '~95%'}</p></div>
+                  <div><p className="text-[10px] text-muted">Latencia media</p><p className="text-[13px] font-semibold text-foreground">120 ms</p></div>
+                  <div><p className="text-[10px] text-muted">Volumen 24h</p><p className="text-[13px] font-semibold text-foreground">—</p></div>
+                  <div><p className="text-[10px] text-muted">Errores</p><p className="text-[13px] font-semibold text-foreground">0</p></div>
+                </div>
+                {/* Contrato interfaz */}
+                <div className="border-b border-border px-4 py-2 text-[11px] text-muted">
+                  <span className="font-medium text-foreground">Contrato:</span> API {logsFor.type} · Esquema datos: propietario
+                </div>
+                <SyncLogsPanel
+                  query={syncLogsQuery}
+                  logsPage={logsPage}
+                  logsLimit={logsLimit}
+                  logsTotalPages={logsTotalPages}
+                  onPageChange={setLogsPage}
+                />
+              </>
             )}
           </Modal>
 

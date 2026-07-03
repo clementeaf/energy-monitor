@@ -127,7 +127,7 @@ describe('CalidadBackfillPage', () => {
 
     it('shows rows processed', () => {
       renderPage();
-      expect(screen.getByText('150 filas procesadas')).toBeInTheDocument();
+      expect(screen.getByText('150 filas')).toBeInTheDocument();
     });
   });
 
@@ -142,7 +142,7 @@ describe('CalidadBackfillPage', () => {
       // m2 (HVAC) and m3 (General) have no readings
       // HVAC appears in both backfill and degradation
       expect(screen.getByText('General')).toBeInTheDocument();
-      expect(screen.getAllByText(/Sin dato reciente/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Sin lecturas|Dato estancado|Comunicación perdida/).length).toBeGreaterThanOrEqual(1);
     });
   });
 });

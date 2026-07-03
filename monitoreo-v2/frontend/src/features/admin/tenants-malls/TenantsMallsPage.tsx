@@ -168,6 +168,7 @@ export function TenantsMallsPage() {
                 <th className="px-3 py-2 text-right">Usuarios</th>
                 <th className="px-3 py-2">Fecha alta</th>
                 <th className="px-3 py-2">Moneda</th>
+                <th className="px-3 py-2">Contrato</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -188,10 +189,11 @@ export function TenantsMallsPage() {
                   <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
                   <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
                   <td className="px-3 py-2 text-muted">{row.tenant.defaultCurrency ?? '—'}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
+                <tr><td colSpan={8} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
               )}
             </tbody>
           </table>
@@ -216,6 +218,23 @@ export function TenantsMallsPage() {
               <ConfigRow label="Zona horaria" value={selectedTenant.tenant.timezone} />
               <ConfigRow label="Estado" value={selectedTenant.status} />
               <ConfigRow label="Slug" value={selectedTenant.tenant.slug} mono />
+            </Section>
+
+            {/* Config calidad + facturación */}
+            <Section title="Parámetros">
+              <ConfigRow label="Umbral calidad dato" value="95%" />
+              <ConfigRow label="Integración facturación" value="API REST" />
+              <ConfigRow label="Contrato" value="v1.0" />
+            </Section>
+
+            {/* Actions */}
+            <Section title="Acciones">
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Crear tenant</button>
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Activar</button>
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-red-600 hover:bg-red-50">Desactivar</button>
+              </div>
+              <p className="mt-1 text-[9px] text-muted">Requiere aprobación PASA. Todo en pista de auditoría.</p>
             </Section>
 
             {/* Usage stats */}

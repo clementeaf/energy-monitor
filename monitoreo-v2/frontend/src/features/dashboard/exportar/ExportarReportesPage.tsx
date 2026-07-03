@@ -30,6 +30,7 @@ const PERIOD_OPTIONS: SelectOption[] = [
   { key: 'quarter', label: 'Trimestre' },
   { key: 'year', label: 'Año' },
   { key: '12m', label: 'Últimos 12m' },
+  { key: 'custom', label: 'Personalizado' },
 ];
 
 const GRANULARITY_OPTIONS: SelectOption[] = [
@@ -41,6 +42,7 @@ const FORMAT_OPTIONS: SelectOption[] = [
   { key: 'pdf', label: 'PDF ejecutivo' },
   { key: 'excel', label: 'Excel' },
   { key: 'csv', label: 'CSV' },
+  { key: 'zip', label: 'ZIP (multi-contenido)' },
 ];
 
 const CURRENCY_OPTIONS: SelectOption[] = [
@@ -69,6 +71,10 @@ export function ExportarReportesPage() {
   const [granularity, setGranularity] = useState('monthly');
   const [format, setFormat] = useState('excel');
   const [currency, setCurrency] = useState('CLP');
+  // Custom date range (max 5 years back)
+  const fiveYearsAgo = new Date(new Date().getFullYear() - 5, 0, 1).toISOString().slice(0, 10);
+  const [customStart, setCustomStart] = useState(fiveYearsAgo);
+  const [customEnd, setCustomEnd] = useState(new Date().toISOString().slice(0, 10));
 
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
@@ -150,6 +156,13 @@ export function ExportarReportesPage() {
               onChange={setPeriod}
               size="sm"
             />
+            {period === 'custom' && (
+              <div className="mt-2 flex items-center gap-2">
+                <input type="date" value={customStart} min={fiveYearsAgo} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} className="rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                <span className="text-[11px] text-muted">—</span>
+                <input type="date" value={customEnd} min={customStart} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setCustomEnd(e.target.value)} className="rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+              </div>
+            )}
           </ConfigSection>
 
           <ConfigSection title="Granularidad">
@@ -268,16 +281,24 @@ export function ExportarReportesPage() {
                           </span>
                         </td>
                         <td className="px-3 py-2">
-                          {report.fileUrl && (
-                            <a
-                              href={report.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[11px] text-brand hover:underline"
-                            >
-                              Descargar
-                            </a>
-                          )}
+                          {report.fileUrl && (() => {
+                            const createdMs = new Date(report.createdAt).getTime();
+                            const expiresMs = createdMs + 30 * 86_400_000;
+                            const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
+                            const expired = daysLeft === 0;
+                            return (
+                              <div className="flex items-center gap-1.5">
+                                {expired ? (
+                                  <span className="text-[10px] text-red-500">Expirado</span>
+                                ) : (
+                                  <>
+                                    <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline">Descargar</a>
+                                    <span className="text-[9px] text-muted">({daysLeft}d)</span>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );

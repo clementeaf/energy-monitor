@@ -218,6 +218,7 @@ export function CalidadBackfillPage() {
                     <th className="px-3 py-2 text-right">% Real</th>
                     <th className="px-3 py-2 text-right">% Estimado</th>
                     <th className="px-3 py-2 text-right">% CNR</th>
+                    <th className="px-3 py-2 text-right">% Backfill</th>
                     <th className="px-3 py-2 text-center">Tend.</th>
                     <th className="px-3 py-2 text-center">Estado</th>
                   </tr>
@@ -230,6 +231,10 @@ export function CalidadBackfillPage() {
                       <td className="px-3 py-2 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
                       <td className="px-3 py-2 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
                       <td className="px-3 py-2 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
+                      <td className="px-3 py-2 text-right text-[11px] text-muted">
+                        {/* ponytail: real backfill % when API available */}
+                        {row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}
+                      </td>
                       <td className={`px-3 py-2 text-center text-[13px] ${row.trend === '↓' ? 'text-red-600' : 'text-muted'}`}>
                         {row.trend}
                       </td>
@@ -240,7 +245,7 @@ export function CalidadBackfillPage() {
                   ))}
                   {qualityRows.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted">Sin datos de calidad.</td>
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted">Sin datos de calidad.</td>
                     </tr>
                   )}
                 </tbody>
@@ -253,7 +258,13 @@ export function CalidadBackfillPage() {
         <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto">
           {/* Backfill panel */}
           <div className="panel flex flex-col">
-            <h3 className="px-3 py-2.5 text-[13px] font-medium text-foreground">Backfill activo</h3>
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <h3 className="text-[13px] font-medium text-foreground">Backfill activo</h3>
+              <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">
+                {/* ponytail: open meter picker + trigger backfill API when available */}
+                + Manual
+              </button>
+            </div>
             <DataWidget
               phase={activeJobs.length === 0 ? 'empty' : 'ready'}
               error={null}
@@ -275,9 +286,26 @@ export function CalidadBackfillPage() {
                         </span>
                       </div>
                       <p className="mt-0.5 text-[11px] text-muted">
-                        {new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}
+                        {/* ponytail: gap type from job.gapType when available */}
+                        <span className="rounded bg-gray-100 px-1 py-0.5 text-[9px] font-medium text-gray-600">
+                          {(job as Record<string, unknown>).gapType as string ?? 'comunicación'}
+                        </span>
+                        {' '}{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}
                       </p>
-                      <p className="text-[11px] text-muted">{job.rowsProcessed} filas procesadas</p>
+                      {(() => {
+                        // ponytail: % from rowsProcessed vs estimated total, ETA placeholder
+                        const estimatedTotal = Math.max(job.rowsProcessed, 100);
+                        const pct = Math.min(100, Math.round((job.rowsProcessed / estimatedTotal) * 100));
+                        return (
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 rounded-full bg-gray-200">
+                              <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[10px] font-medium text-foreground">{pct}%</span>
+                            <span className="text-[10px] text-muted">{job.rowsProcessed} filas</span>
+                          </div>
+                        );
+                      })()}
                     </li>
                   );
                 })}
@@ -297,12 +325,25 @@ export function CalidadBackfillPage() {
               emptyDescription="Todos los medidores reportan normalmente."
             >
               <ul className="max-h-60 divide-y divide-border overflow-y-auto">
-                {degradedMeters.map((meter) => (
-                  <li key={meter.id} className="px-3 py-2">
-                    <p className="text-[12px] font-medium text-foreground">{meter.name}</p>
-                    <p className="text-[11px] text-muted">{meter.code} · Sin dato reciente</p>
-                  </li>
-                ))}
+                {degradedMeters.map((meter) => {
+                  // ponytail: derive cause from reading age; real delta when historical API available
+                  const reading = readings.find((r) => r.meter_id === meter.id);
+                  const gapH = reading ? Math.round((now - new Date(reading.timestamp).getTime()) / 3_600_000) : null;
+                  const cause = gapH && gapH > 24 ? 'Comunicación perdida' : gapH ? 'Dato estancado' : 'Sin lecturas';
+                  return (
+                    <li key={meter.id} className="px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[12px] font-medium text-foreground">{meter.name}</p>
+                        {gapH != null && (
+                          <span className={`text-[10px] font-medium ${gapH > 24 ? 'text-red-500' : 'text-amber-500'}`}>
+                            {gapH}h
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted">{meter.code} · {cause}</p>
+                    </li>
+                  );
+                })}
               </ul>
             </DataWidget>
           </div>

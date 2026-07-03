@@ -52,6 +52,14 @@ vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
   }),
 }));
 
+vi.mock('../../../hooks/queries/useBackfillJobsQuery', () => ({
+  useBackfillJobsQuery: () => ({
+    data: [],
+    isLoading: false,
+    isSuccess: true,
+  }),
+}));
+
 import { MonitoreoVivoPage } from './MonitoreoVivoPage';
 
 function renderPage() {

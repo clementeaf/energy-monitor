@@ -59,56 +59,50 @@ describe('profile-nav', () => {
     });
   });
 
-  describe('profile-specific assertions', () => {
-    it('gerencial has "Panel Consolidado" as first entry', () => {
-      expect(PROFILE_NAV.gerencial[0].label).toBe('Panel Consolidado');
-    });
-
-    it('gerencial does not have Integraciones or Administración', () => {
+  describe('spec-aligned profile assertions (6 screens each)', () => {
+    it('gerencial has exactly 3 nav groups: Panel Consolidado, Alarmas, Reportes', () => {
       const labels = PROFILE_NAV.gerencial.map((e) => e.label);
-      expect(labels).not.toContain('Integraciones');
-      expect(labels).not.toContain('Administración');
+      expect(labels).toEqual(['Panel Consolidado', 'Alarmas', 'Reportes']);
     });
 
-    it('operacional has Alertas with 7 sub-items (gestión, tickets, main, rules, escalation, notifications, history)', () => {
+    it('gerencial Panel Consolidado has 3 sub-items: Consolidado, Consumo, Costos', () => {
+      const panel = PROFILE_NAV.gerencial[0];
+      expect(panel.children).toHaveLength(3);
+    });
+
+    it('operacional has exactly 3 nav groups: Monitoreo, Alertas, Calidad', () => {
+      const labels = PROFILE_NAV.operacional.map((e) => e.label);
+      expect(labels).toEqual(['Monitoreo', 'Alertas', 'Calidad']);
+    });
+
+    it('operacional Alertas has 2 sub-items: Gestión, Tickets y SLA', () => {
       const alertas = PROFILE_NAV.operacional.find((e) => e.label === 'Alertas');
-      expect(alertas?.children).toHaveLength(7);
+      expect(alertas?.children).toHaveLength(2);
     });
 
-    it('tecnico has Órdenes, Medidores, Registro, and Alertas', () => {
+    it('tecnico has exactly 3 nav groups: Órdenes, Medidores, Registro', () => {
       const labels = PROFILE_NAV.tecnico.map((e) => e.label);
-      expect(labels).toEqual(['Órdenes', 'Medidores', 'Registro', 'Alertas']);
+      expect(labels).toEqual(['Órdenes', 'Medidores', 'Registro']);
     });
 
-    it('auditor has "Auditoría" section with audit-related sub-items', () => {
-      const auditoria = PROFILE_NAV.auditor.find((e) => e.label === 'Auditoría');
-      expect(auditoria).toBeDefined();
-      const subRoutes = auditoria!.children!.map((c) => c.to);
-      expect(subRoutes).toContain('/admin/audit');
-      expect(subRoutes).toContain('/admin/data-quality');
+    it('auditor has exactly 1 nav group: Auditoría with 6 sub-items', () => {
+      expect(PROFILE_NAV.auditor).toHaveLength(1);
+      expect(PROFILE_NAV.auditor[0].label).toBe('Auditoría');
+      expect(PROFILE_NAV.auditor[0].children).toHaveLength(6);
     });
 
-    it('super_admin has all major sections', () => {
+    it('super_admin has exactly 2 nav groups: Administración, Integraciones', () => {
       const labels = PROFILE_NAV.super_admin.map((e) => e.label);
-      expect(labels).toContain('Dashboard');
-      expect(labels).toContain('Monitoreo');
-      expect(labels).toContain('Alertas');
-      expect(labels).toContain('Facturación');
-      expect(labels).toContain('Reportes y Analítica');
-      expect(labels).toContain('Integraciones');
-      expect(labels).toContain('Administración');
+      expect(labels).toEqual(['Administración', 'Integraciones']);
     });
 
-    it('super_admin Administración has Empresas sub-item', () => {
+    it('super_admin Administración has 5 sub-items (spec screens minus Integraciones)', () => {
       const admin = PROFILE_NAV.super_admin.find((e) => e.label === 'Administración');
-      const subLabels = admin!.children!.map((c) => c.label);
-      expect(subLabels).toContain('Empresas');
+      expect(admin?.children).toHaveLength(5);
     });
 
-    it('locatario has only Facturación with one sub-item', () => {
-      expect(PROFILE_NAV.locatario).toHaveLength(1);
-      expect(PROFILE_NAV.locatario[0].label).toBe('Facturación');
-      expect(PROFILE_NAV.locatario[0].children).toHaveLength(1);
+    it('no locatario profile exists (not in spec)', () => {
+      expect('locatario' in PROFILE_NAV).toBe(false);
     });
   });
 });

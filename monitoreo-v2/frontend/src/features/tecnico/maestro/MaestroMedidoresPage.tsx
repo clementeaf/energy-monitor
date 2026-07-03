@@ -27,6 +27,7 @@ function deriveAssetStatus(meter: Meter): AssetStatus {
 const FILTER_OPTIONS = [
   { key: 'all', label: 'Todos' },
   { key: 'activo', label: 'Activos' },
+  { key: 'en mantención', label: 'En mantención' },
   { key: 'baja', label: 'Baja' },
 ];
 
@@ -89,8 +90,10 @@ export function MaestroMedidoresPage() {
                 <th className="px-3 py-2">Serial</th>
                 <th className="px-3 py-2">Centro</th>
                 <th className="px-3 py-2">Protocolo</th>
+                <th className="px-3 py-2">Gateway</th>
                 <th className="px-3 py-2">Tipo</th>
                 <th className="px-3 py-2">Fase</th>
+                <th className="px-3 py-2">Fecha alta</th>
                 <th className="px-3 py-2 text-center">Estado activo</th>
               </tr>
             </thead>
@@ -101,8 +104,10 @@ export function MaestroMedidoresPage() {
                   <td className="px-3 py-2 font-mono text-[11px] text-muted">{meter.serialNumber ?? '—'}</td>
                   <td className="px-3 py-2 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
                   <td className="px-3 py-2 text-muted">{meter.ipAddress ? 'TCP/IP' : meter.modbusAddress ? 'Modbus' : '—'}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted">{meter.busId ?? '—'}</td>
                   <td className="px-3 py-2 text-muted">{meter.meterType}</td>
                   <td className="px-3 py-2 text-muted">{meter.phaseType}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted">{meter.createdAt ? new Date(meter.createdAt).toLocaleDateString('es-CL') : '—'}</td>
                   <td className="px-3 py-2 text-center">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${ASSET_BADGE[assetStatus]}`}>
                       {assetStatus}
@@ -111,7 +116,7 @@ export function MaestroMedidoresPage() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin medidores.</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-center text-muted">Sin medidores.</td></tr>
               )}
             </tbody>
           </table>
@@ -143,15 +148,32 @@ export function MaestroMedidoresPage() {
               </div>
               <div className="panel space-y-2 px-3 py-3">
                 <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Cambio de estado</h4>
-                {status === 'activo' ? (
-                  <Button size="sm" variant="danger" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: false } })}>
-                    Dar de baja
-                  </Button>
-                ) : (
-                  <Button size="sm" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: true } })}>
-                    Activar
-                  </Button>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {status === 'activo' && (
+                    <>
+                      <Button size="sm" variant="secondary" loading={updateMeter.isPending} onClick={() => {
+                        // ponytail: set metadata.maintenance=true when backend supports it
+                        updateMeter.mutate({ id: sel.id, payload: { metadata: { ...sel.metadata as Record<string, unknown>, maintenance: true } } });
+                      }}>
+                        En mantención
+                      </Button>
+                      <Button size="sm" variant="danger" loading={updateMeter.isPending} onClick={() => {
+                        const motivo = prompt('Motivo de baja:');
+                        if (motivo) updateMeter.mutate({ id: sel.id, payload: { isActive: false } });
+                      }}>
+                        Dar de baja
+                      </Button>
+                    </>
+                  )}
+                  {status !== 'activo' && (
+                    <Button size="sm" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: true } })}>
+                      Activar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted">
+                  Toda modificación queda registrada: campo, valor anterior/nuevo, usuario, timestamp.
+                </p>
               </div>
             </>
           );

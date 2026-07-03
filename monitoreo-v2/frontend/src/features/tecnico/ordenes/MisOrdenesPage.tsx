@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -98,6 +99,7 @@ const QUICK_FILTERS = [
 ];
 
 export function MisOrdenesPage() {
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState('all');
 
@@ -201,8 +203,11 @@ export function MisOrdenesPage() {
                   <th className="px-3 py-2">ID</th>
                   <th className="px-3 py-2">Descripción</th>
                   <th className="px-3 py-2">Tipo</th>
-                  <th className="px-3 py-2">Prioridad</th>
                   <th className="px-3 py-2">Centro</th>
+                  <th className="px-3 py-2">Zona</th>
+                  <th className="px-3 py-2">Prioridad</th>
+                  <th className="px-3 py-2">Asignada</th>
+                  <th className="px-3 py-2">Plazo</th>
                   <th className="px-3 py-2 text-center">Estado</th>
                 </tr>
               </thead>
@@ -218,12 +223,15 @@ export function MisOrdenesPage() {
                       <p className="truncate text-foreground">{order.description}</p>
                     </td>
                     <td className="px-3 py-2 capitalize text-muted">{order.type}</td>
+                    <td className="px-3 py-2 text-muted">{buildingMap.get(order.buildingId) ?? '—'}</td>
+                    <td className="px-3 py-2 text-[11px] text-muted">{order.meterId?.slice(0, 8) ?? '—'}</td>
                     <td className="px-3 py-2">
                       <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_BADGE[order.priority]}`}>
                         {order.priority.toUpperCase()}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-muted">{buildingMap.get(order.buildingId) ?? '—'}</td>
+                    <td className="px-3 py-2 text-[11px] text-muted">{new Date(order.assignedDate).toLocaleDateString('es-CL')}</td>
+                    <td className="px-3 py-2 text-[11px] text-muted">{new Date(order.deadline).toLocaleDateString('es-CL')}</td>
                     <td className="px-3 py-2 text-center">
                       <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[order.status]}`}>
                         {order.status}
@@ -232,7 +240,7 @@ export function MisOrdenesPage() {
                   </tr>
                 ))}
                 {filteredOrders.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-8 text-center text-muted">Sin órdenes asignadas.</td></tr>
+                  <tr><td colSpan={9} className="px-3 py-8 text-center text-muted">Sin órdenes asignadas.</td></tr>
                 )}
               </tbody>
             </table>
@@ -309,6 +317,7 @@ function OrderDetail({ order, buildingName, onStart, onClose, starting, closing,
           <Button size="sm" onClick={onStart} loading={starting}>Iniciar</Button>
           <Button size="sm" variant="secondary" disabled>Pausar</Button>
           <Button size="sm" variant="secondary" onClick={onClose} loading={closing}>Cerrar</Button>
+          <Button size="sm" variant="secondary" onClick={() => { /* ponytail: navigate to RegIntervencion with meter context */ }}>Registrar intervención</Button>
         </div>
       </div>
 

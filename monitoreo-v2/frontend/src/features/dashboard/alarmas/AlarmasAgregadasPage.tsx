@@ -30,6 +30,13 @@ const STATUS_OPTIONS: SelectOption[] = [
   { key: 'all', label: 'Todas' },
 ];
 
+const PERIOD_OPTIONS: { key: string; label: string; hours: number }[] = [
+  { key: 'today', label: 'Hoy', hours: 24 },
+  { key: '24h', label: '24h', hours: 24 },
+  { key: '7d', label: '7 días', hours: 168 },
+  { key: '30d', label: '30 días', hours: 720 },
+];
+
 /* ── Severity filter predicate ── */
 
 const SEVERITY_FILTERS: Record<string, (s: AlertSeverity) => boolean> = {
@@ -47,6 +54,7 @@ interface MallAlertRow {
   warningCount: number;
   resolvedCount: number;
   totalActive: number;
+  meanResolutionH: number | null;
   lastAlertAt: string | null;
   lastAlertMessage: string | null;
 }
@@ -63,24 +71,37 @@ function aggregateByMall(
     activeByBuilding.set(a.buildingId, list);
   });
 
-  const resolvedByBuilding = new Map<string, number>();
+  const resolvedByBuilding = new Map<string, Alert[]>();
   resolvedAlerts.forEach((a) => {
-    resolvedByBuilding.set(a.buildingId, (resolvedByBuilding.get(a.buildingId) ?? 0) + 1);
+    const list = resolvedByBuilding.get(a.buildingId) ?? [];
+    list.push(a);
+    resolvedByBuilding.set(a.buildingId, list);
   });
 
   return buildings.map((building) => {
     const bActive = activeByBuilding.get(building.id) ?? [];
+    const bResolved = resolvedByBuilding.get(building.id) ?? [];
     const criticalCount = bActive.filter((a) => a.severity === 'critical' || a.severity === 'high').length;
     const warningCount = bActive.filter((a) => a.severity === 'medium' || a.severity === 'low').length;
     const lastAlert = bActive.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
+
+    // Mean time to resolution
+    const withResolvedAt = bResolved.filter((a) => a.resolvedAt);
+    let meanResolutionH: number | null = null;
+    if (withResolvedAt.length > 0) {
+      const totalMs = withResolvedAt.reduce((sum, a) =>
+        sum + Math.max(0, new Date(a.resolvedAt!).getTime() - new Date(a.createdAt).getTime()), 0);
+      meanResolutionH = Math.round((totalMs / withResolvedAt.length / 3_600_000) * 10) / 10;
+    }
 
     return {
       buildingId: building.id,
       buildingName: building.name,
       criticalCount,
       warningCount,
-      resolvedCount: resolvedByBuilding.get(building.id) ?? 0,
+      resolvedCount: bResolved.length,
       totalActive: bActive.length,
+      meanResolutionH,
       lastAlertAt: lastAlert?.createdAt ?? null,
       lastAlertMessage: lastAlert?.message ?? null,
     };
@@ -94,6 +115,7 @@ export function AlarmasAgregadasPage() {
   const [country, setCountry] = useState('CL');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('active');
+  const [periodFilter, setPeriodFilter] = useState('30d');
   const [search, setSearch] = useState('');
 
   const buildingsQuery = useBuildingsQuery();
@@ -242,6 +264,12 @@ export function AlarmasAgregadasPage() {
               onChange={setStatusFilter}
               size="sm"
             />
+            <PillToggle
+              options={PERIOD_OPTIONS.map((p) => ({ key: p.key, label: p.label }))}
+              value={periodFilter}
+              onChange={setPeriodFilter}
+              size="sm"
+            />
           </div>
         }
       />
@@ -264,10 +292,16 @@ export function AlarmasAgregadasPage() {
             const activeH = (d.active / maxEvoValue) * 100;
             const resolvedH = (d.resolved / maxEvoValue) * 100;
             return (
-              <div key={d.label} className="flex flex-1 flex-col items-center" title={`${d.label}: ${d.active} abiertas, ${d.resolved} resueltas`}>
+              <div key={d.label} className="group relative flex flex-1 flex-col items-center">
                 <div className="flex w-full flex-col justify-end" style={{ height: 96 }}>
                   {activeH > 0 && <div className="w-full rounded-t bg-red-400" style={{ height: `${activeH}%` }} />}
                   {resolvedH > 0 && <div className={`w-full bg-emerald-400 ${activeH > 0 ? '' : 'rounded-t'}`} style={{ height: `${resolvedH}%` }} />}
+                </div>
+                {/* Rich tooltip */}
+                <div className="pointer-events-none absolute -top-16 left-1/2 z-30 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[10px] text-background shadow-lg group-hover:block">
+                  <p className="font-medium">{d.label}</p>
+                  <p>🔴 Abiertas: {d.active}</p>
+                  <p>🟢 Resueltas: {d.resolved}</p>
                 </div>
               </div>
             );
@@ -302,6 +336,10 @@ export function AlarmasAgregadasPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
+                    {/* ponytail: trend placeholder — compute real when previous-week data available */}
+                    <span className={`text-[12px] font-medium ${row.totalActive > 2 ? 'text-red-500' : row.totalActive === 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                      {row.totalActive > 2 ? '↑' : row.totalActive === 0 ? '↓' : '→'}
+                    </span>
                     <span className="text-[15px] font-semibold text-foreground">{row.totalActive}</span>
                     <button
                       type="button"
@@ -354,6 +392,7 @@ export function AlarmasAgregadasPage() {
                     <th className="px-3 py-2 text-right">Warnings</th>
                     <th className="px-3 py-2 text-right">Resueltas</th>
                     <th className="px-3 py-2 text-right">Total activas</th>
+                    <th className="px-3 py-2 text-right">T. resolución</th>
                     <th className="px-3 py-2">Última alarma</th>
                   </tr>
                 </thead>
@@ -369,6 +408,9 @@ export function AlarmasAgregadasPage() {
                       </td>
                       <td className="px-3 py-2 text-right text-muted">{row.resolvedCount}</td>
                       <td className="px-3 py-2 text-right font-medium text-foreground">{row.totalActive}</td>
+                      <td className="px-3 py-2 text-right text-[11px] text-muted">
+                        {row.meanResolutionH != null ? `${row.meanResolutionH}h` : '—'}
+                      </td>
                       <td className="max-w-[200px] px-3 py-2">
                         {row.lastAlertMessage
                           ? (

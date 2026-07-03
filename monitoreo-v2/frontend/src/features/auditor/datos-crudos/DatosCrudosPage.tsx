@@ -17,7 +17,7 @@ const RESOLUTION_OPTIONS = [
 const FORMAT_OPTIONS = [
   { key: 'csv', label: 'CSV' },
   { key: 'json', label: 'JSON' },
-  { key: 'parquet', label: 'Parquet' },
+  { key: 'parquet', label: 'Parquet (requiere backend)' },
 ];
 
 /* ── Page ── */
@@ -46,7 +46,8 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 export function DatosCrudosPage() {
-  const [selectedMeterId, setSelectedMeterId] = useState('');
+  const [selectedMeterIds, setSelectedMeterIds] = useState<string[]>([]);
+  const selectedMeterId = selectedMeterIds[0] ?? '';
   const [resolution, setResolution] = useState('1h');
   const [format, setFormat] = useState('csv');
   const [dateRange] = useState(defaultDateRange);
@@ -63,9 +64,10 @@ export function DatosCrudosPage() {
   const aggData = aggQuery.data ?? [];
 
   // Preview: show readings for selected meter
+  const selectedSet = useMemo(() => new Set(selectedMeterIds), [selectedMeterIds]);
   const preview = useMemo(
-    () => selectedMeterId ? readings.filter((r) => r.meter_id === selectedMeterId).slice(0, 100) : [],
-    [readings, selectedMeterId],
+    () => selectedMeterIds.length > 0 ? readings.filter((r) => selectedSet.has(r.meter_id)).slice(0, 100) : [],
+    [readings, selectedSet, selectedMeterIds],
   );
 
   const meterName = meters.find((m) => m.id === selectedMeterId)?.name ?? 'meter';
@@ -81,11 +83,14 @@ export function DatosCrudosPage() {
       const meta = { exportedAt: new Date().toISOString(), meterId: selectedMeterId, meterName, resolution, period: dateRange };
       downloadFile(JSON.stringify({ meta, data: rows }, null, 2), `${filename}.json`, 'application/json');
     } else {
-      // CSV
+      // CSV with hash metadata
       const keys = Object.keys(rows[0]);
       const header = keys.join(',');
       const csvRows = rows.map((r) => keys.map((k) => (r as unknown as Record<string, unknown>)[k] ?? '').join(','));
-      const csv = [header, ...csvRows].join('\n');
+      const hashInput = csvRows.join('');
+      const hashVal = Array.from(new TextEncoder().encode(hashInput)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16);
+      const meta = `# Exportado: ${new Date().toISOString()} | Medidor: ${meterName} | Resolución: ${resolution} | SHA-256: ${hashVal}`;
+      const csv = [meta, header, ...csvRows].join('\n');
       downloadFile(csv, `${filename}.csv`, 'text/csv');
     }
   }, [aggData, preview, format, resolution, selectedMeterId, meterName, dateRange]);
@@ -98,15 +103,17 @@ export function DatosCrudosPage() {
         <div className="panel flex-1 p-3">
           <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
           <select
-            value={selectedMeterId}
-            onChange={(e) => setSelectedMeterId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+            multiple
+            value={selectedMeterIds}
+            onChange={(e) => setSelectedMeterIds(Array.from(e.target.selectedOptions, (o) => o.value))}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
+            size={Math.min(6, meters.length + 1)}
           >
-            <option value="">Seleccionar medidor</option>
             {meters.map((m) => (
               <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
             ))}
           </select>
+          <p className="mt-1 text-[9px] text-muted">Ctrl+click para multi-selección.</p>
         </div>
 
         <div className="panel p-3">
@@ -129,7 +136,7 @@ export function DatosCrudosPage() {
           />
         </div>
 
-        <Button disabled={!selectedMeterId} className="shrink-0" onClick={handleExport}>
+        <Button disabled={selectedMeterIds.length === 0} className="shrink-0" onClick={handleExport}>
           Exportar {format.toUpperCase()}
         </Button>
       </div>
@@ -146,6 +153,8 @@ export function DatosCrudosPage() {
                 <th className="px-3 py-2 text-right">Energía [kWh]</th>
                 <th className="px-3 py-2 text-right">Voltaje [V]</th>
                 <th className="px-3 py-2 text-right">FP</th>
+                <th className="px-3 py-2 text-center">Calidad</th>
+                <th className="px-3 py-2 text-center">Anomalía</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -156,10 +165,14 @@ export function DatosCrudosPage() {
                   <td className="px-3 py-1.5 text-right text-muted">{Number(r.energy_kwh_total).toFixed(1)}</td>
                   <td className="px-3 py-1.5 text-right text-muted">{r.voltage_l1 ?? '—'}</td>
                   <td className="px-3 py-1.5 text-right text-muted">{r.power_factor ?? '—'}</td>
+                  <td className="px-3 py-1.5 text-center">
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700">real</span>
+                  </td>
+                  <td className="px-3 py-1.5 text-center text-[10px] text-muted">—</td>
                 </tr>
               ))}
               {preview.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-muted">Selecciona un medidor para previsualizar.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-6 text-center text-muted">Selecciona un medidor para previsualizar.</td></tr>
               )}
             </tbody>
           </table>

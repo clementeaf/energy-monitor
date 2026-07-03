@@ -112,14 +112,50 @@ export function DiagnosticoCommsPage() {
                   <div className="flex justify-between"><dt className="text-muted">Potencia</dt><dd className="text-foreground">{selectedReading ? `${Number(selectedReading.power_kw).toFixed(1)} kW` : '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Tiempo transcurrido</dt><dd className="text-foreground">{selectedReading ? `${Math.round((Date.now() - new Date(selectedReading.timestamp).getTime()) / 60_000)} min` : '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Tasa éxito (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '100%' : selectedState === 'intermitente' ? '~70%' : '0%'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Reintentos (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '0' : selectedState === 'intermitente' ? '~12' : '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Timeouts (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '0' : selectedState === 'intermitente' ? '~8' : '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{selected.ipAddress ? 'TCP/IP' : selected.modbusAddress ? 'Modbus' : '—'}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Dirección</dt><dd className="font-mono text-foreground">{selected.ipAddress ?? selected.modbusAddress?.toString() ?? '—'}</dd></div>
                 </dl>
               </div>
 
+              {/* Histograma disponibilidad 72h */}
+              <div className="panel px-4 py-3">
+                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h (resolución horaria)</h4>
+                <div className="flex h-6 gap-[1px]">
+                  {Array.from({ length: 72 }, (_, i) => {
+                    // ponytail: synthetic — replace with real hourly availability API
+                    const ok = selectedState === 'online' || (selectedState === 'intermitente' && i % 3 !== 0);
+                    return <div key={i} className={`flex-1 rounded-sm ${ok ? 'bg-emerald-400' : 'bg-red-300'}`} title={`-${72 - i}h: ${ok ? 'OK' : 'fallo'}`} />;
+                  })}
+                </div>
+                <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
+              </div>
+
+              {/* Últimos 10 eventos comunicación */}
+              <div className="panel px-4 py-3">
+                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Últimos eventos comunicación</h4>
+                <div className="max-h-32 overflow-y-auto text-[11px]">
+                  {/* ponytail: synthetic events — replace with real comm log API */}
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const ts = new Date(now - i * 900_000);
+                    const success = selectedState === 'online' || i % 3 !== 0;
+                    return (
+                      <div key={i} className="flex items-center justify-between border-b border-border py-1 last:border-0">
+                        <span className="text-muted">{ts.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className={success ? 'text-emerald-600' : 'text-red-600'}>{success ? 'éxito' : 'timeout'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="panel px-4 py-3">
                 <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Herramientas</h4>
                 <div className="space-y-2">
+                  <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
+                    Ping / test conexión gateway
+                  </button>
                   <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
                     Forzar re-intento de lectura
                   </button>

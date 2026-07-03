@@ -50,6 +50,13 @@ const FILTER_OPTIONS = [
   { key: 'nodata', label: 'Sin datos' },
 ];
 
+const COMPARE_OPTIONS = [
+  { key: 'none', label: 'Sin comparación' },
+  { key: 'previous', label: 'Período anterior' },
+  { key: 'yoy', label: 'Año anterior' },
+  { key: 'avg', label: 'Promedio portafolio' },
+];
+
 /* ── Building row enrichment ── */
 
 interface BuildingRow {
@@ -124,6 +131,7 @@ export function ConsumoJerarquicoPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('metric');
   const [filterBy, setFilterBy] = useState('all');
+  const [compareWith, setCompareWith] = useState('none');
 
   // Queries
   const buildingsQuery = useBuildingsQuery();
@@ -249,6 +257,13 @@ export function ConsumoJerarquicoPage() {
             >
               {FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
             </select>
+            <select
+              value={compareWith}
+              onChange={(e) => setCompareWith(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              {COMPARE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
           </div>
         }
       />
@@ -312,6 +327,7 @@ export function ConsumoJerarquicoPage() {
                       expandedMeters={isExpanded ? expandedMeters : []}
                       expandedReadings={isExpanded ? expandedReadings : []}
                       onMeterClick={(meterId) => navigate(`/monitoring/meter/${meterId}`)}
+                      onViewPlant={(buildingId) => navigate(`/dashboard/consolidado?building=${buildingId}`)}
                     />
                   );
                 })}
@@ -337,6 +353,7 @@ interface TreeRowProps {
   expandedMeters: Meter[];
   expandedReadings: LatestReading[];
   onMeterClick: (meterId: string) => void;
+  onViewPlant: (buildingId: string) => void;
 }
 
 function TreeRow({
@@ -350,6 +367,7 @@ function TreeRow({
   expandedMeters,
   expandedReadings,
   onMeterClick,
+  onViewPlant,
 }: Readonly<TreeRowProps>) {
   const readingMap = useMemo(() => {
     const map = new Map<string, LatestReading>();
@@ -385,6 +403,23 @@ function TreeRow({
           <span className={`inline-block size-2.5 rounded-full ${statusStyle.bg}`} title={statusStyle.label} />
         </td>
       </tr>
+      {/* Trend sparkline + "Ver planta" when expanded */}
+      {isExpanded && (
+        <tr className="bg-surface/30">
+          <td colSpan={5} className="px-10 py-2">
+            <div className="flex items-center justify-between">
+              <TrendSparkline metricVal={metricVal} label={metricUnit} />
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onViewPlant(row.building.id); }}
+                className="shrink-0 rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface"
+              >
+                Ver planta →
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
       {isExpanded && expandedMeters.map((meter) => {
         const reading = readingMap.get(meter.id);
         const powerKw = Number(reading?.power_kw ?? 0);
@@ -424,6 +459,43 @@ function TreeRow({
         );
       })}
     </>
+  );
+}
+
+/* ── Trend Sparkline (current vs year prior) ── */
+
+function TrendSparkline({ metricVal, label }: Readonly<{ metricVal: number; label: string }>) {
+  // ponytail: synthetic 12-month trend from current value — replace with real aggregated API
+  const months = useMemo(() => {
+    const result: { month: string; current: number; prior: number }[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = d.toLocaleDateString('es-CL', { month: 'short' });
+      const factor = 0.7 + 0.3 * Math.abs(Math.sin(((d.getMonth() + 1) * Math.PI) / 6));
+      const priorFactor = 0.65 + 0.35 * Math.abs(Math.sin(((d.getMonth() + 2) * Math.PI) / 6));
+      result.push({ month: monthLabel, current: metricVal * factor, prior: metricVal * priorFactor });
+    }
+    return result;
+  }, [metricVal]);
+
+  const maxVal = Math.max(1, ...months.flatMap((m) => [m.current, m.prior]));
+  const w = 320;
+  const h = 48;
+  const toPath = (values: number[]) =>
+    values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / (values.length - 1)) * w} ${h - (v / maxVal) * (h - 4)}`).join(' ');
+
+  return (
+    <div className="flex items-center gap-3">
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0">
+        <path d={toPath(months.map((m) => m.prior))} fill="none" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="4 2" />
+        <path d={toPath(months.map((m) => m.current))} fill="none" stroke="#3b82f6" strokeWidth={2} />
+      </svg>
+      <div className="flex gap-3 text-[10px] text-muted">
+        <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 bg-blue-500" /> Actual</span>
+        <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 border-t border-dashed border-gray-400" /> Año ant.</span>
+      </div>
+    </div>
   );
 }
 

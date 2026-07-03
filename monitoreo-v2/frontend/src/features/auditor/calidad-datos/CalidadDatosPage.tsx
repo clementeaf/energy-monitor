@@ -105,12 +105,15 @@ const PERIOD_OPTIONS = [
   { value: '7', label: 'Últimos 7 días' },
   { value: '30', label: 'Últimos 30 días' },
   { value: '90', label: 'Últimos 90 días' },
+  { value: '365', label: 'Último año' },
+  { value: '1825', label: 'Últimos 5 años' },
 ];
 
 /* ── Page ── */
 
 export function CalidadDatosPage() {
   const [mallFilter, setMallFilter] = useState('all');
+  const [countryFilter, setCountryFilter] = useState('all');
   const [period, setPeriod] = useState('30');
   const [granularity, setGranularity] = useState<Granularity>('hourly');
   const [selectedMall, setSelectedMall] = useState<string | null>(null);
@@ -125,9 +128,14 @@ export function CalidadDatosPage() {
 
   const days = Number(period);
 
+  const filteredBuildings = useMemo(
+    () => countryFilter === 'all' ? buildings : buildings.filter((b) => (b.countryCode ?? 'CL') === countryFilter),
+    [buildings, countryFilter],
+  );
+
   const allRows = useMemo(
-    () => buildScorecard(buildings, meters, readings, days, granularity),
-    [buildings, meters, readings, days, granularity],
+    () => buildScorecard(filteredBuildings, meters, readings, days, granularity),
+    [filteredBuildings, meters, readings, days, granularity],
   );
   const rows = mallFilter === 'all' ? allRows : allRows.filter((r) => r.buildingId === mallFilter);
 
@@ -160,7 +168,8 @@ export function CalidadDatosPage() {
         const r = readingMap.get(m.id);
         const hasRecent = r && (now - new Date(r.timestamp).getTime()) < STALE_MS;
         const pct = hasRecent ? 95 + (m.id.charCodeAt(0) % 6) : 40 + (m.id.charCodeAt(0) % 40);
-        return { id: m.id, name: m.name, code: m.code, realPct: pct };
+        const causa = pct < 50 ? 'Comunicación perdida' : pct < 80 ? 'Dato estancado' : 'Intermitencia';
+        return { id: m.id, name: m.name, code: m.code, realPct: pct, causa };
       })
       .filter((m) => m.realPct < LOW_QUALITY_THRESHOLD)
       .sort((a, b) => a.realPct - b.realPct);
@@ -187,6 +196,12 @@ export function CalidadDatosPage() {
         eyebrow="Auditoría"
         actions={
           <div className="flex items-center gap-2">
+            <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
+              <option value="all">Todo país</option>
+              <option value="CL">Chile</option>
+              <option value="PE">Perú</option>
+              <option value="CO">Colombia</option>
+            </select>
             <select value={mallFilter} onChange={(e) => { setMallFilter(e.target.value); setSelectedMall(null); }} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
               <option value="all">Todos los centros</option>
               {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -201,6 +216,9 @@ export function CalidadDatosPage() {
             </select>
             <button type="button" onClick={exportCsv} className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface">
               Exportar CSV
+            </button>
+            <button type="button" onClick={() => window.print()} className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface">
+              Exportar PDF
             </button>
           </div>
         }
@@ -270,18 +288,23 @@ export function CalidadDatosPage() {
               </span>
             )}
           </h3>
-          <div className="flex h-32 items-end gap-[2px]">
-            {evolutionData.map((m) => {
-              const h = m.realPct;
-              const color = h >= 95 ? 'bg-emerald-400' : h >= 85 ? 'bg-amber-400' : 'bg-red-400';
-              return (
-                <div key={m.label} className="flex flex-1 flex-col items-center gap-0.5" title={`${m.label}: ${m.realPct.toFixed(1)}%`}>
-                  <div className={`w-full rounded-t ${color}`} style={{ height: `${Math.max(3, h)}%` }} />
-                  <span className="text-[8px] text-subtle">{m.label}</span>
-                </div>
-              );
-            })}
-          </div>
+          {(() => {
+            const w = 300;
+            const h = 120;
+            const minY = Math.min(70, ...evolutionData.map((m) => m.realPct));
+            const toY = (v: number) => h - 8 - ((v - minY) / (100 - minY)) * (h - 16);
+            const linePath = evolutionData.map((m, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(m.realPct)}`).join(' ');
+            return (
+              <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
+                <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
+                {evolutionData.map((m, i) => (
+                  <circle key={m.label} cx={(i / 11) * w} cy={toY(m.realPct)} r={3} fill={m.realPct >= 95 ? '#22c55e' : m.realPct >= 85 ? '#f59e0b' : '#ef4444'}>
+                    <title>{`${m.label}: ${m.realPct.toFixed(1)}%`}</title>
+                  </circle>
+                ))}
+              </svg>
+            );
+          })()}
           <p className="mt-2 text-[10px] text-muted">% lecturas reales por mes. Click en fila para filtrar.</p>
         </div>
 
@@ -307,6 +330,7 @@ export function CalidadDatosPage() {
                     <th className="px-2 py-1">Medidor</th>
                     <th className="px-2 py-1">Código</th>
                     <th className="px-2 py-1 text-right">% Real</th>
+                    <th className="px-2 py-1">Causa</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -317,6 +341,7 @@ export function CalidadDatosPage() {
                       <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-red-600' : 'text-amber-600'}`}>
                         {m.realPct.toFixed(1)}%
                       </td>
+                      <td className="px-2 py-1.5 text-[11px] text-muted">{m.causa}</td>
                     </tr>
                   ))}
                 </tbody>

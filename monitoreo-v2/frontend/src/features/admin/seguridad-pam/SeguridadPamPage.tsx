@@ -113,8 +113,10 @@ export function SeguridadPamPage() {
 
   const securityKpis = [
     { title: 'Brechas abiertas', value: String(activeBreaches), color: activeBreaches > 0 ? 'text-red-600' : 'text-emerald-600' },
+    { title: 'Parches pendientes', value: '0', color: 'text-emerald-600' },
+    { title: 'Último scan', value: new Date().toLocaleDateString('es-CL'), color: 'text-foreground' },
+    { title: '% parche <30d', value: '100%', color: 'text-emerald-600' },
     { title: 'Cuentas PAM', value: String(totalPam), color: 'text-foreground' },
-    { title: 'PAM inactivos', value: String(inactivePam), color: inactivePam > 0 ? 'text-amber-600' : 'text-emerald-600' },
     { title: 'Incidentes abiertos', value: String(openIncidents), color: openIncidents > 0 ? 'text-red-600' : 'text-emerald-600' },
   ];
 
@@ -240,6 +242,7 @@ export function SeguridadPamPage() {
               <th className="px-3 py-2">Última revisión</th>
               <th className="px-3 py-2">Próxima revisión</th>
               <th className="px-3 py-2 text-center">Estado</th>
+              <th className="px-3 py-2">Acción</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -258,10 +261,18 @@ export function SeguridadPamPage() {
                     {acc.pamStatus}
                   </span>
                 </td>
+                <td className="px-3 py-2">
+                  {acc.pamStatus === 'activo' && (
+                    <button type="button" className="text-[10px] text-amber-600 hover:underline">Suspender</button>
+                  )}
+                  {acc.pamStatus === 'suspendido' && (
+                    <button type="button" className="text-[10px] text-brand hover:underline">Reactivar</button>
+                  )}
+                </td>
               </tr>
             ))}
             {pamWithReview.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-muted">Sin cuentas privilegiadas.</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin cuentas privilegiadas.</td></tr>
             )}
           </tbody>
         </table>

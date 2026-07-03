@@ -9,8 +9,7 @@ export type UserProfile =
   | 'operacional'
   | 'tecnico'
   | 'auditor'
-  | 'super_admin'
-  | 'locatario';
+  | 'super_admin';
 
 /**
  * Maps every RoleSlug to its corresponding UserProfile.
@@ -21,7 +20,7 @@ export const ROLE_TO_PROFILE: Record<RoleSlug, UserProfile> = {
   corp_admin: 'gerencial',
   site_admin: 'operacional',
   operator: 'tecnico',
-  tenant_user: 'locatario',
+  tenant_user: 'operacional',
   analyst: 'gerencial',
   auditor: 'auditor',
 };
@@ -33,7 +32,6 @@ export const ALL_PROFILES: readonly UserProfile[] = [
   'tecnico',
   'auditor',
   'super_admin',
-  'locatario',
 ] as const;
 
 /** Human-readable labels for each profile (Spanish UI). */
@@ -43,7 +41,6 @@ export const PROFILE_LABELS: Record<UserProfile, string> = {
   tecnico: 'Técnico',
   auditor: 'Auditor',
   super_admin: 'Súper Administrador',
-  locatario: 'Locatario',
 };
 
 /**
@@ -51,5 +48,5 @@ export const PROFILE_LABELS: Record<UserProfile, string> = {
  * Returns 'locatario' as fallback for unknown slugs (most restrictive).
  */
 export function resolveProfile(roleSlug: RoleSlug | null): UserProfile {
-  return (roleSlug && ROLE_TO_PROFILE[roleSlug]) ?? 'locatario';
+  return (roleSlug && ROLE_TO_PROFILE[roleSlug]) ?? 'operacional';
 }

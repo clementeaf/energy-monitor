@@ -1,5 +1,60 @@
 # Changelog
 
+## [2.38.0-alpha.0] - 2026-07-03 — ROLES EMS SPEC FULL ALIGNMENT (129 GAPS CLOSED)
+
+### Changed — Navigation pruning (spec compliance)
+- **Sidebar podado a spec** — cada perfil muestra SOLO sus 6 pantallas según `docs/roles-ems.md`. 77 items extra eliminados.
+- **Perfil Locatario eliminado** — no existe en spec. `tenant_user` redirigido a perfil Operacional.
+- **Duplicado "Calidad de Datos" en Auditor** — eliminado.
+- **Tests profile-nav y profiles** — reescritos para validar estructura spec-aligned.
+
+### Changed — Gerencial (20 gaps cerrados)
+- **Panel Consolidado** — filtros mapa (colorear por estado/consumo/variación/cobertura + mostrar solo), sparkline demanda 24h, tamaño marcador proporcional a consumo, filtros Nivel 3 piso (período + mostrar zonas), variación % en KPIs.
+- **Consumo Jerárquico** — gráfico tendencia SVG línea vs año anterior al expandir, botón "Ver planta", selector comparación (período anterior/año/promedio).
+- **Costos y Tendencias** — tooltip desglose componente (energía/potencia/distribución), últimos 2 meses proyectados (opacity reducida), columnas proyección cierre mes/año, selector agrupación (mall/país/tipología).
+- **Alarmas Agregadas** — filtro período (hoy/24h/7d/30d), tooltip rico conteo severidad en chart, tendencia Top5 (↑↓→), columna resolución media en tabla.
+- **Exportar Reportes** — date picker rango personalizado (máx 5 años), formato ZIP multi-contenido, link descarga con expiración 30 días.
+
+### Changed — Operacional (27 gaps cerrados)
+- **Monitoreo en Vivo** — columna variación vs día anterior, país en tarjeta mall, backfill completado como tipo evento en feed.
+- **Alarmas y Eventos** — filtro rango fecha, fila expandible con historial acciones, gráfico serie temporal 48h con threshold SVG, botones Escalar/Asignar otro/Backfill, columnas responsable + zona/medidor.
+- **Tickets y SLA** — filtro "Mis tickets", línea uptime SVG vs umbral con puntos incidente, columna crédito aplicado en penalizaciones.
+- **Calidad y Backfill** — tipo gap en backfill, % completado + progress bar, botón backfill manual, degradación con delta + causa, columna % backfill en scorecard.
+- **CNR Pendientes** — KPI "ingresadas hoy", columnas período/tipo/responsable/valor estimado kWh, acciones asignar/cambiar/comentar, fila expandible con justificación + historial.
+- **Mapa Cobertura** — métrica "Calidad dato" en selector.
+
+### Changed — Técnico (27 gaps cerrados)
+- **Mis Órdenes** — columnas zona/dirección + fecha asignación/plazo en tabla, botón "Registrar intervención".
+- **Medidores/Remarcador** — filtro país + alarma activa, columna gateway, ficha ubicación física (tipo sala/rack/posición), disponibilidad 72h barras, serie temporal 48h SVG, historial fallas.
+- **Diagnóstico Comms** — histograma disponibilidad 72h resolución horaria, últimos 10 eventos comunicación, botón ping/test gateway, reintentos + timeouts reales.
+- **Reg. Intervención** — input adjuntos (JPG/PNG/PDF), firma digital placeholder, hash integridad al guardar.
+- **Ingreso CNR** — input evidencia, firma digital placeholder, nota retroedición + pista auditoría.
+- **Maestro Medidores** — filtro gateway, columnas gateway + fecha alta, estado "en mantención", confirmación baja con motivo (prompt), nota pista cambios.
+
+### Changed — Auditor (27 gaps cerrados)
+- **Calidad de Datos** — filtro país, período hasta 5 años, export PDF (print), evolución como línea SVG (no barras), columna causa en detalle baja calidad.
+- **Cuadratura** — selector período, link "Ver raw" desde meses fuera tolerancia, hash en CSV export.
+- **Pista de Auditoría** — filtro tipo acción (select), filtro recurso, filtro rango fechas, columna "Cambio" (valor anterior/posterior), botón export CSV.
+- **Trazabilidad** — selector fecha/hora lectura, detalle tipo-específico (real/estimado/CNR/backfill), columna transformación en raw vs mostrado.
+- **Datos Crudos** — multi-selección medidores (listbox), nota Parquet backend-required, columnas calidad + anomalía, hash SHA-256 en header CSV.
+- **Exportar Evidencia** — nota formato ZIP firmado, columna usuario + link descarga con expiración 90 días.
+
+### Changed — Súper-admin (28 gaps cerrados)
+- **Tenants y Malls** — botones crear/activar/desactivar, columna versión contrato, sección parámetros calidad + integración facturación en drawer.
+- **Config y Releases** — botón "Solicitar deploy", sección estado despliegue (logs + rollback), columnas QA + aprobaciones en pipeline, link logs en actividad.
+- **Usuarios y Roles** — filtros perfil/estado/>90 días, panel "permisos sin uso >90d" con revocación masiva, referencia precio FIN-01, notas off-boarding + auditoría trimestral.
+- **Observabilidad** — KPIs latencia ms + p95, componente "Cola mensajes" en semáforo, métricas en cola + errores parsing, chart latencia como línea SVG.
+- **Integraciones** — columnas heartbeat + tasa éxito 7d, métricas detalle (tasa/latencia/volumen/errores), sección contrato interfaz.
+- **Seguridad y PAM** — KPIs parches pendientes + último scan + % componentes <30d, botón suspender/reactivar en PAM.
+
+### Stats
+- 788 frontend tests. All passing.
+- 129 spec gaps cerrados (20 Gerencial + 27 Operacional + 27 Técnico + 27 Auditor + 28 Súper-admin).
+- Navegación: 77 items extra eliminados, 1 perfil eliminado, 1 duplicado corregido.
+- 30/30 pantallas spec-aligned con contenido completo.
+
+---
+
 ## [2.37.0-alpha.0] - 2026-07-02 — IOT PROD ACTIVATION + TREND CHART
 
 ### Added

@@ -182,6 +182,26 @@ export function IngresoCnrPage() {
               <p className="mt-1 text-[10px] text-muted">{justification.length}/20 caracteres mínimo</p>
             </FormField>
 
+            <FormField label="Evidencia (foto o documento)">
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="w-full text-[12px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[11px] file:text-foreground"
+                onChange={() => { /* ponytail: handle upload when backend available */ }}
+              />
+            </FormField>
+
+            <label className="flex items-center gap-2 text-[13px] text-foreground">
+              <input type="checkbox" checked={false} disabled className="rounded border-border" />
+              Firma digital del técnico
+              <span className="text-[10px] text-muted">(requiere backend)</span>
+            </label>
+
+            <p className="text-[10px] text-muted">
+              Una vez firmado, el registro no podrá ser retroeditado — solo "en revisión" por perfil operacional.
+              Pista auditoría: usuario, timestamp y valor anterior quedan registrados.
+            </p>
+
             {submitted && (
               <div className="rounded-md bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
                 CNR registrado. Valor marcado como "dato manual — CNR".

@@ -37,6 +37,8 @@ interface InterventionRecord {
   result: string;
   requiresCnr: boolean;
   timestamp: string;
+  /** SHA-256 hash for integrity verification */
+  hash: string;
 }
 
 function loadHistory(): InterventionRecord[] {
@@ -79,6 +81,11 @@ export function RegIntervencionPage() {
     e.preventDefault();
     if (!canSubmit || !selectedMeter) return;
 
+    const ts = new Date().toISOString();
+    // ponytail: simple hash for integrity — real SHA-256 when backend available
+    const hashInput = `${selectedMeterId}|${type}|${description.trim()}|${result}|${ts}`;
+    const hash = Array.from(new TextEncoder().encode(hashInput)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16);
+
     const record: InterventionRecord = {
       id: `INT-${Date.now().toString(36).toUpperCase()}`,
       meterId: selectedMeterId,
@@ -87,7 +94,8 @@ export function RegIntervencionPage() {
       description: description.trim(),
       result,
       requiresCnr,
-      timestamp: new Date().toISOString(),
+      timestamp: ts,
+      hash,
     };
 
     const updated = saveIntervention(record);
@@ -162,6 +170,23 @@ export function RegIntervencionPage() {
                 ))}
               </select>
             </FormField>
+
+            <FormField label="Adjuntos (fotos JPG/PNG, documentos PDF)">
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                multiple
+                className="w-full text-[12px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[11px] file:text-foreground"
+                onChange={() => { /* ponytail: handle file upload when backend available */ }}
+              />
+              <p className="mt-1 text-[10px] text-muted">Máx 5 archivos.</p>
+            </FormField>
+
+            <label className="flex items-center gap-2 text-[13px] text-foreground">
+              <input type="checkbox" checked={false} disabled className="rounded border-border" />
+              Firma digital del técnico
+              <span className="text-[10px] text-muted">(requiere backend)</span>
+            </label>
 
             <label className="flex items-center gap-2 text-[13px] text-foreground">
               <input

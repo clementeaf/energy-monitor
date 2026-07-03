@@ -9,6 +9,7 @@ import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert } from '../../../types/alert';
+import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuery';
 
 /* ── Meter status derivation ── */
 
@@ -122,7 +123,7 @@ function buildMallCards(
 
 interface FeedEvent {
   id: string;
-  type: 'alert' | 'offline' | 'stale';
+  type: 'alert' | 'offline' | 'stale' | 'backfill';
   message: string;
   building: string;
   timestamp: string;
@@ -132,6 +133,7 @@ const EVENT_BADGE: Record<string, string> = {
   alert: 'bg-red-100 text-red-700',
   offline: 'bg-gray-100 text-gray-700',
   stale: 'bg-amber-100 text-amber-700',
+  backfill: 'bg-emerald-100 text-emerald-700',
 };
 
 /* ── Page ── */
@@ -144,6 +146,7 @@ export function MonitoreoVivoPage() {
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
+  const backfillQuery = useBackfillJobsQuery();
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
@@ -243,8 +246,18 @@ export function MonitoreoVivoPage() {
       }, [])
       .slice(0, 4);
 
-    return [...alertEvents, ...meterEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 10);
-  }, [alerts, meters, buildings, readingByMeter, now]);
+    // Backfill completed events
+    const completedJobs = (backfillQuery.data ?? []).filter((j) => j.status === 'completed');
+    const backfillEvents: FeedEvent[] = completedJobs.slice(0, 3).map((j) => ({
+      id: `bf-${j.id}`,
+      type: 'backfill' as const,
+      message: `Backfill completado — ${j.rowsProcessed} filas`,
+      building: '',
+      timestamp: j.updatedAt ?? j.createdAt,
+    }));
+
+    return [...alertEvents, ...meterEvents, ...backfillEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 10);
+  }, [alerts, meters, buildings, readingByMeter, now, backfillQuery.data]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -285,6 +298,7 @@ export function MonitoreoVivoPage() {
                         )}
                       </div>
                       <div className="mt-1.5 flex items-center gap-3 text-[11px] text-muted">
+                        <span>{card.building.countryCode ?? 'CL'}</span>
                         <span>{card.onlinePct.toFixed(0)}% online</span>
                         <span>{card.totalMeters} med.</span>
                         {card.lastReading && <span>Últ: {card.lastReading}</span>}
@@ -297,6 +311,7 @@ export function MonitoreoVivoPage() {
                             <tr className="text-left text-[10px] font-medium uppercase tracking-wider text-muted">
                               <th className="pb-1 pl-2">Medidor</th>
                               <th className="pb-1 text-right">kW</th>
+                              <th className="pb-1 text-right">Var.</th>
                               <th className="pb-1 text-right">Última lectura</th>
                               <th className="pb-1 text-center">Estado</th>
                             </tr>
@@ -315,6 +330,10 @@ export function MonitoreoVivoPage() {
                                   <td className="py-1 pl-2 text-foreground">{meter.name}</td>
                                   <td className="py-1 text-right text-muted">
                                     {reading ? Number(reading.power_kw).toFixed(1) : '—'}
+                                  </td>
+                                  <td className="py-1 text-right text-[10px] text-muted">
+                                    {/* ponytail: variation placeholder — compute when previous-day API available */}
+                                    —
                                   </td>
                                   <td className="py-1 text-right text-muted">
                                     {reading

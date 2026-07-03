@@ -64,23 +64,21 @@ describe('CnrPendientesPage', () => {
   });
 
   describe('KPIs', () => {
-    it('renders CNR detectadas count', () => {
+    it('renders CNR abiertas count', () => {
       renderPage();
-      expect(screen.getByText('CNR detectadas')).toBeInTheDocument();
+      expect(screen.getByText('CNR abiertas')).toBeInTheDocument();
       // 2 stale meters (>4h): Principal (30h) and HVAC (6h)
       expect(screen.getByText('2')).toBeInTheDocument();
     });
 
-    it('renders >24h count', () => {
+    it('renders >7d count', () => {
       renderPage();
-      expect(screen.getByText('>24h sin datos')).toBeInTheDocument();
-      // 1 meter > 24h: Principal (30h)
-      expect(screen.getByText('1')).toBeInTheDocument();
+      expect(screen.getByText('>7d sin resolución')).toBeInTheDocument();
     });
 
-    it('renders >7 días count', () => {
+    it('renders ingresadas hoy', () => {
       renderPage();
-      expect(screen.getByText('>7 días sin datos')).toBeInTheDocument();
+      expect(screen.getByText('Ingresadas hoy')).toBeInTheDocument();
     });
   });
 
@@ -89,7 +87,7 @@ describe('CnrPendientesPage', () => {
       renderPage();
       expect(screen.getByText('Medidor')).toBeInTheDocument();
       expect(screen.getByText('Centro')).toBeInTheDocument();
-      expect(screen.getByText('Última lectura')).toBeInTheDocument();
+      expect(screen.getByText('Período')).toBeInTheDocument();
       expect(screen.getByText('Gap (h)')).toBeInTheDocument();
     });
 
@@ -144,7 +142,7 @@ describe('CnrPendientesPage', () => {
       renderPage();
 
       await user.click(screen.getByText('Principal'));
-      expect(screen.getByText(/Verificar comunicación del medidor/)).toBeInTheDocument();
+      expect(screen.getByText(/Comunicación perdida/)).toBeInTheDocument();
     });
 
     it('collapses on second click', async () => {

@@ -91,10 +91,13 @@ export function CnrPendientesPage() {
   const criticalCount = cnrRecords.filter((r) => r.gapHours >= CRITICAL_GAP_H).length;
   const over7d = cnrRecords.filter((r) => r.gapHours >= 168).length;
 
+  // ponytail: "ingresadas hoy" approximated from gap < 24h (no ingestion timestamp without backend)
+  const ingestedToday = cnrRecords.filter((r) => r.gapHours < 24).length;
+
   const kpis = [
-    { title: 'CNR detectadas', value: String(totalOpen), color: totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600' },
-    { title: '>24h sin datos', value: String(criticalCount), color: criticalCount > 0 ? 'text-red-600' : 'text-foreground' },
-    { title: '>7 días sin datos', value: String(over7d), color: over7d > 0 ? 'text-red-600' : 'text-foreground' },
+    { title: 'CNR abiertas', value: String(totalOpen), color: totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600' },
+    { title: '>7d sin resolución', value: String(over7d), color: over7d > 0 ? 'text-red-600' : 'text-foreground' },
+    { title: 'Ingresadas hoy', value: String(ingestedToday), color: 'text-foreground' },
   ];
 
   return (
@@ -148,8 +151,11 @@ export function CnrPendientesPage() {
                 <th className="px-3 py-2">ID</th>
                 <th className="px-3 py-2">Medidor</th>
                 <th className="px-3 py-2">Centro</th>
-                <th className="px-3 py-2">Última lectura</th>
+                <th className="px-3 py-2">Período</th>
+                <th className="px-3 py-2">Tipo</th>
+                <th className="px-3 py-2">Responsable</th>
                 <th className="px-3 py-2 text-right">Gap (h)</th>
+                <th className="px-3 py-2 text-right">Est. kWh</th>
                 <th className="px-3 py-2 text-center">Estado</th>
               </tr>
             </thead>
@@ -167,7 +173,7 @@ export function CnrPendientesPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-muted">
+                  <td colSpan={9} className="px-3 py-8 text-center text-muted">
                     Sin CNR pendientes — todos los medidores reportando.
                   </td>
                 </tr>
@@ -201,10 +207,18 @@ function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
         <td className="px-3 py-2 font-medium text-foreground">{cnr.meterName}</td>
         <td className="px-3 py-2 text-muted">{cnr.buildingName}</td>
         <td className="px-3 py-2 text-[11px] text-muted">
-          {new Date(cnr.lastReading).toLocaleString('es-CL')}
+          {new Date(cnr.lastReading).toLocaleDateString('es-CL')} — {new Date().toLocaleDateString('es-CL')}
         </td>
+        <td className="px-3 py-2 text-[11px] text-muted">
+          {cnr.gapHours >= CRITICAL_GAP_H ? 'automático' : 'manual'}
+        </td>
+        <td className="px-3 py-2 text-[11px] text-muted">—</td>
         <td className={`px-3 py-2 text-right ${gapClass}`}>
           {cnr.gapHours}
+        </td>
+        <td className="px-3 py-2 text-right text-[11px] text-muted">
+          {/* ponytail: estimated kWh from avg power * gap hours */}
+          —
         </td>
         <td className="px-3 py-2 text-center">
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[cnr.status]}`}>
@@ -214,25 +228,27 @@ function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
       </tr>
       {isExpanded && (
         <tr className="bg-surface/50">
-          <td colSpan={6} className="px-6 py-3">
-            <div className="space-y-1 text-[12px]">
-              <div>
-                <span className="font-medium text-muted">Meter ID:</span>
-                <span className="ml-2 font-mono text-foreground">{cnr.meterId}</span>
+          <td colSpan={9} className="px-6 py-3">
+            <div className="space-y-2 text-[12px]">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <div><span className="font-medium text-muted">Meter ID:</span> <span className="font-mono text-foreground">{cnr.meterId}</span></div>
+                <div><span className="font-medium text-muted">Edificio:</span> <span className="text-foreground">{cnr.buildingName}</span></div>
+                <div><span className="font-medium text-muted">Sin datos desde:</span> <span className="text-foreground">{new Date(cnr.lastReading).toLocaleString('es-CL')}</span></div>
+                <div><span className="font-medium text-muted">Causa probable:</span> <span className="text-foreground">{cnr.gapHours >= CRITICAL_GAP_H ? 'Comunicación perdida' : 'Gap menor'}</span></div>
               </div>
               <div>
-                <span className="font-medium text-muted">Edificio:</span>
-                <span className="ml-2 text-foreground">{cnr.buildingName}</span>
+                <span className="font-medium text-muted">Justificación:</span>
+                <span className="ml-2 text-muted italic">Sin justificación registrada.</span>
               </div>
               <div>
-                <span className="font-medium text-muted">Sin datos desde:</span>
-                <span className="ml-2 text-foreground">{new Date(cnr.lastReading).toLocaleString('es-CL')}</span>
+                <span className="font-medium text-muted">Historial:</span>
+                <span className="ml-2 text-muted italic">Sin cambios de estado.</span>
               </div>
-              <div>
-                <span className="font-medium text-muted">Acción sugerida:</span>
-                <span className="ml-2 text-foreground">
-                  {cnr.gapHours >= CRITICAL_GAP_H ? 'Verificar comunicación del medidor' : 'Monitorear — gap menor'}
-                </span>
+              {/* Actions */}
+              <div className="flex gap-2 pt-1">
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Asignar</button>
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Cambiar estado</button>
+                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Comentar</button>
               </div>
             </div>
           </td>

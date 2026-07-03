@@ -30,6 +30,9 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
   });
   const [actionFilter, setActionFilter] = useState(config.defaultAction ?? '');
   const [userFilter, setUserFilter] = useState('');
+  const [resourceFilter, setResourceFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const query = useAuditLogsQuery(filters);
   const qs = useQueryState(query, {
@@ -46,7 +49,19 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
       offset: 0,
       action: actionFilter || undefined,
       userId: userFilter || undefined,
+      resourceType: resourceFilter || undefined,
     });
+  };
+
+  const exportCsv = () => {
+    const logs = query.data?.data ?? [];
+    const header = 'Fecha,Usuario,Acción,Recurso,ID Recurso,IP';
+    const csv = [header, ...logs.map((l) => `${l.createdAt},${l.userEmail ?? l.userId ?? ''},${l.action},${l.resourceType ?? ''},${l.resourceId ?? ''},${l.ipAddress ?? ''}`)].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `audit_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
   };
 
   const goToPage = (page: number) => {
@@ -57,15 +72,29 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
     <div className="space-y-6">
       <PageHeader title={config.title} eyebrow="Administración" />
 
-      <div className="flex items-end gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs font-medium text-muted">Accion</label>
-          <input
-            value={actionFilter}
-            onChange={(e) => { setActionFilter(e.target.value); }}
-            placeholder="POST, DELETE..."
-            className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
-          />
+          <label className="block text-xs font-medium text-muted">Tipo acción</label>
+          <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm">
+            <option value="">Todas</option>
+            <option value="GET">Consulta</option>
+            <option value="POST">Creación</option>
+            <option value="PATCH">Modificación</option>
+            <option value="DELETE">Eliminación</option>
+            <option value="LOGIN">Login</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted">Recurso</label>
+          <select value={resourceFilter} onChange={(e) => setResourceFilter(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm">
+            <option value="">Todos</option>
+            <option value="meters">Medidores</option>
+            <option value="readings">Lecturas</option>
+            <option value="alerts">Alarmas</option>
+            <option value="users">Usuarios</option>
+            <option value="cnr">CNR</option>
+            <option value="config">Configuración</option>
+          </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-muted">User ID</label>
@@ -76,12 +105,19 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
             className="mt-1 rounded-md border border-border px-3 py-2 text-sm"
           />
         </div>
-        <button
-          type="button"
-          onClick={applyFilters}
-          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
-        >
+        <div>
+          <label className="block text-xs font-medium text-muted">Desde</label>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted">Hasta</label>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm" />
+        </div>
+        <button type="button" onClick={applyFilters} className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90">
           Filtrar
+        </button>
+        <button type="button" onClick={exportCsv} className="rounded-md border border-border px-3 py-2 text-sm text-muted hover:bg-surface">
+          Exportar CSV
         </button>
       </div>
 
@@ -94,16 +130,17 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
               <Th>Accion</Th>
               <Th>Recurso</Th>
               <Th>ID Recurso</Th>
+              <Th>Cambio</Th>
               <Th>IP</Th>
             </tr>
           </thead>
           <TableStateBody
             phase={qs.phase}
-            colSpan={6}
+            colSpan={7}
             error={qs.error}
             onRetry={() => { query.refetch(); }}
             emptyMessage="No hay registros de auditoria."
-            skeletonWidths={['w-28', 'w-32', 'w-20', 'w-24', 'w-20', 'w-24']}
+            skeletonWidths={['w-28', 'w-32', 'w-20', 'w-24', 'w-20', 'w-20', 'w-24']}
           >
             {(query.data?.data ?? []).map((log) => (
               <tr key={log.id} className="hover:bg-surface">
@@ -115,6 +152,9 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
                 <Td>{log.resourceType ?? '—'}</Td>
                 <Td className="max-w-[120px] truncate" title={log.resourceId ?? undefined}>
                   {log.resourceId ? log.resourceId.slice(0, 8) + '...' : '—'}
+                </Td>
+                <Td className="max-w-[150px] truncate text-[11px]">
+                  {(log as Record<string, unknown>).changes ? String((log as Record<string, unknown>).changes) : '—'}
                 </Td>
                 <Td>{log.ipAddress ?? '—'}</Td>
               </tr>

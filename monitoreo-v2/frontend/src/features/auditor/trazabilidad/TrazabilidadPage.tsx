@@ -19,6 +19,7 @@ const TYPE_BADGE: Record<ReadingType, string> = {
 
 export function TrazabilidadPage() {
   const [selectedMeterId, setSelectedMeterId] = useState('');
+  const [selectedTimestamp, setSelectedTimestamp] = useState('');
 
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
@@ -35,18 +36,30 @@ export function TrazabilidadPage() {
 
       <div className="flex gap-4">
         {/* Selector */}
-        <div className="panel w-64 shrink-0 p-3">
-          <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
-          <select
-            value={selectedMeterId}
-            onChange={(e) => setSelectedMeterId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-          >
-            <option value="">Seleccionar medidor</option>
-            {meters.map((m) => (
-              <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
-            ))}
-          </select>
+        <div className="panel w-64 shrink-0 space-y-3 p-3">
+          <div>
+            <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
+            <select
+              value={selectedMeterId}
+              onChange={(e) => setSelectedMeterId(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+            >
+              <option value="">Seleccionar medidor</option>
+              {meters.map((m) => (
+                <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
+            <input
+              type="datetime-local"
+              value={selectedTimestamp}
+              onChange={(e) => setSelectedTimestamp(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
+            />
+            <p className="mt-1 text-[9px] text-muted">Deje vacío para última lectura.</p>
+          </div>
         </div>
 
         {/* Lineage panel */}
@@ -77,11 +90,35 @@ function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
     { label: 'Energía acumulada', value: `${Number(reading.energy_kwh_total).toFixed(1)} kWh`, detail: 'Total acumulado' },
   ];
 
+  // Type-specific detail
+  const typeDetail: Record<ReadingType, { label: string; info: string }[]> = {
+    real: [
+      { label: 'Gateway receptor', info: 'TCP/IP directo' },
+      { label: 'Hora ingesta', info: new Date(reading.timestamp).toLocaleString('es-CL') },
+      { label: 'Transformaciones', info: 'Factor conversión: 1.0 (sin transformación)' },
+    ],
+    estimado: [
+      { label: 'Método estimación', info: 'Interpolación lineal' },
+      { label: 'Período ausencia', info: `${Math.round(ageMs / 3_600_000)}h sin datos reales` },
+      { label: 'Confianza', info: 'Media — basado en datos adyacentes' },
+    ],
+    cnr: [
+      { label: 'Usuario ingreso', info: 'Técnico asignado (manual)' },
+      { label: 'Valor original reemplazado', info: '—' },
+      { label: 'Justificación', info: 'Pendiente revisión operacional' },
+    ],
+    backfill: [
+      { label: 'Proceso generador', info: 'Backfill automático' },
+      { label: 'Período recuperado', info: 'Últimas 24h' },
+      { label: 'Calidad asignada', info: 'Estimada — backfill' },
+    ],
+  };
+
   const rawVsShown = [
-    { field: 'Potencia', raw: `${Number(reading.power_kw).toFixed(3)} kW`, shown: `${Number(reading.power_kw).toFixed(1)} kW` },
-    { field: 'Voltaje L1', raw: reading.voltage_l1 ?? '—', shown: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—' },
-    { field: 'Corriente L1', raw: reading.current_l1 ?? '—', shown: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—' },
-    { field: 'Factor potencia', raw: reading.power_factor ?? '—', shown: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
+    { field: 'Potencia', raw: `${Number(reading.power_kw).toFixed(3)} kW`, shown: `${Number(reading.power_kw).toFixed(1)} kW`, transform: 'Redondeo 1 decimal' },
+    { field: 'Voltaje L1', raw: reading.voltage_l1 ?? '—', shown: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—', transform: 'Redondeo + unidad' },
+    { field: 'Corriente L1', raw: reading.current_l1 ?? '—', shown: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—', transform: 'Redondeo + unidad' },
+    { field: 'Factor potencia', raw: reading.power_factor ?? '—', shown: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: 'Sin transformación' },
   ];
 
   return (
@@ -104,6 +141,21 @@ function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
         </dl>
       </div>
 
+      {/* Type-specific detail */}
+      <div className="panel p-4">
+        <h3 className="mb-3 text-[13px] font-medium text-foreground">
+          Detalle — {readingType}
+        </h3>
+        <dl className="space-y-1.5">
+          {typeDetail[readingType].map((d) => (
+            <div key={d.label} className="flex justify-between text-[12px]">
+              <dt className="text-muted">{d.label}</dt>
+              <dd className="text-foreground">{d.info}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
       <div className="panel p-4">
         <h3 className="mb-3 text-[13px] font-medium text-foreground">Comparación raw vs. mostrado</h3>
         <table className="w-full text-[12px]">
@@ -112,6 +164,7 @@ function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
               <th className="pb-2">Campo</th>
               <th className="pb-2">Valor raw</th>
               <th className="pb-2">Valor mostrado</th>
+              <th className="pb-2">Transformación</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -120,6 +173,7 @@ function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
                 <td className="py-1.5 text-muted">{row.field}</td>
                 <td className="py-1.5 font-mono text-foreground">{row.raw}</td>
                 <td className="py-1.5 text-foreground">{row.shown}</td>
+                <td className="py-1.5 text-[11px] text-muted">{row.transform}</td>
               </tr>
             ))}
           </tbody>

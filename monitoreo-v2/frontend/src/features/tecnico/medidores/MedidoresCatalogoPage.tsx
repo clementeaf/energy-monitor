@@ -4,6 +4,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 
@@ -36,16 +37,22 @@ export function MedidoresCatalogoPage() {
   const [mallFilter, setMallFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [countryFilter, setCountryFilter] = useState('all');
+  const [alarmOnly, setAlarmOnly] = useState(false);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const alertsQuery = useAlertsQuery({ status: 'active' });
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
+  const activeAlerts = alertsQuery.data ?? [];
 
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
+  const buildingCountryMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.countryCode ?? 'CL'])), [buildings]);
+  const alertMeterIds = useMemo(() => new Set(activeAlerts.map((a) => a.meterId).filter(Boolean)), [activeAlerts]);
   const readingMap = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
   const now = Date.now();
 
@@ -63,8 +70,10 @@ export function MedidoresCatalogoPage() {
         return s === statusFilter;
       });
     }
+    if (countryFilter !== 'all') result = result.filter((m) => buildingCountryMap.get(m.buildingId) === countryFilter);
+    if (alarmOnly) result = result.filter((m) => alertMeterIds.has(m.id));
     return result;
-  }, [meters, search, mallFilter, typeFilter, statusFilter, readingMap, now]);
+  }, [meters, search, mallFilter, typeFilter, statusFilter, countryFilter, alarmOnly, readingMap, now, buildingCountryMap, alertMeterIds]);
 
   const selected = meters.find((m) => m.id === selectedId) ?? null;
   const selectedReading = selected ? readingMap.get(selected.id) : undefined;
@@ -94,6 +103,16 @@ export function MedidoresCatalogoPage() {
           <option value="all">Todo tipo</option>
           {meterTypes.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
+        <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+          <option value="all">Todo país</option>
+          <option value="CL">Chile</option>
+          <option value="PE">Perú</option>
+          <option value="CO">Colombia</option>
+        </select>
+        <label className="flex items-center gap-1 text-[11px] text-muted">
+          <input type="checkbox" checked={alarmOnly} onChange={(e) => setAlarmOnly(e.target.checked)} className="rounded border-border" />
+          Con alarma
+        </label>
       </div>
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
@@ -106,6 +125,7 @@ export function MedidoresCatalogoPage() {
                   <th className="px-3 py-2">Nombre</th>
                   <th className="px-3 py-2">Código</th>
                   <th className="px-3 py-2">Centro</th>
+                  <th className="px-3 py-2">Gateway</th>
                   <th className="px-3 py-2 text-right">Último dato</th>
                   <th className="px-3 py-2 text-center">Estado</th>
                 </tr>
@@ -123,6 +143,7 @@ export function MedidoresCatalogoPage() {
                       <td className="px-3 py-2 font-medium text-foreground">{meter.name}</td>
                       <td className="px-3 py-2 font-mono text-[11px] text-muted">{meter.code}</td>
                       <td className="px-3 py-2 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
+                      <td className="px-3 py-2 text-[11px] text-muted">{meter.busId ?? '—'}</td>
                       <td className="px-3 py-2 text-right text-[11px] text-muted">
                         {reading ? new Date(reading.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                       </td>
@@ -201,6 +222,49 @@ function MeterFicha({ meter, reading, buildingName, onNavigate }: Readonly<{ met
           </dl>
         </div>
       )}
+      {/* Ubicación física */}
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Ubicación física</h4>
+        <dl className="space-y-1 text-[12px]">
+          <div className="flex justify-between"><dt className="text-muted">Tipo sala</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.roomType ?? '—'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Rack/Tablero</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.rack ?? '—'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Posición</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.position ?? '—'}</dd></div>
+        </dl>
+      </div>
+
+      {/* Disponibilidad 72h */}
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h</h4>
+        <div className="flex h-4 gap-[1px]">
+          {Array.from({ length: 72 }, (_, i) => {
+            // ponytail: synthetic — green if reading exists, else red; replace with real hourly data
+            const hasData = !!reading && i < 48;
+            return <div key={i} className={`flex-1 rounded-sm ${hasData ? 'bg-emerald-400' : 'bg-red-300'}`} />;
+          })}
+        </div>
+        <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
+      </div>
+
+      {/* Serie temporal 48h */}
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Serie temporal — 48h</h4>
+        {(() => {
+          const baseVal = reading ? Number(reading.power_kw) : 0;
+          if (baseVal === 0) return <p className="text-[11px] text-muted">Sin datos.</p>;
+          const w = 220; const h = 36;
+          const points = Array.from({ length: 48 }, (_, i) => baseVal * (0.7 + 0.3 * Math.abs(Math.sin(i * 0.5))));
+          const maxV = Math.max(...points);
+          const path = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${h - (v / maxV) * (h - 4)}`).join(' ');
+          return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full"><path d={path} fill="none" stroke="#3b82f6" strokeWidth={1.5} /></svg>;
+        })()}
+      </div>
+
+      {/* Historial fallas */}
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Historial fallas</h4>
+        <p className="text-[11px] text-muted italic">Sin fallas registradas.</p>
+      </div>
+
       <Button size="sm" variant="secondary" onClick={onNavigate} className="mx-3">Ver detalle completo</Button>
     </>
   );

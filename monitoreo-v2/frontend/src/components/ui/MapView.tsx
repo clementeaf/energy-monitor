@@ -49,6 +49,8 @@ export interface SelectedPoint {
 export interface BuildingMarkerMeta {
   color: string;
   popupHtml?: string;
+  /** Marker scale (default 1). Use 0.6–1.4 for proportional sizing. */
+  scale?: number;
 }
 
 interface MapViewProps {
@@ -271,7 +273,8 @@ export function MapView({
       const popup = new maplibregl.Popup({ offset: 25 }).setHTML(popupContent);
       const markerColor = meta?.color ?? '#22c55e';
 
-      const marker = new maplibregl.Marker({ color: markerColor })
+      const markerScale = meta?.scale ?? 1;
+      const marker = new maplibregl.Marker({ color: markerColor, scale: markerScale })
         .setLngLat([b.longitude, b.latitude])
         .setPopup(popup)
         .addTo(map);

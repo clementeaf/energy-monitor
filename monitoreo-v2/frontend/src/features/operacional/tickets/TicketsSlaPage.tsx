@@ -71,12 +71,14 @@ interface SelectOption { key: string; label: string }
 
 const QUICK_FILTERS: SelectOption[] = [
   { key: 'all', label: 'Todos' },
+  { key: 'mine', label: 'Mis tickets' },
   { key: 'due_soon', label: 'Por vencer' },
   { key: 'overdue', label: 'Vencidos' },
 ];
 
 const QUICK_PREDICATES: Record<string, (t: Ticket) => boolean> = {
   all: () => true,
+  mine: () => true, // ponytail: filter by current user when auth context available
   due_soon: (t) => t.daysRemaining > 0 && t.daysRemaining <= 1,
   overdue: (t) => t.daysRemaining <= 0,
 };
@@ -325,6 +327,35 @@ export function TicketsSlaPage() {
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Dentro SLA</span>
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-400" /> Fuera SLA</span>
           </div>
+
+          {/* Uptime line vs threshold */}
+          <div className="mt-3">
+            <h4 className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted">Uptime real vs umbral contratado</h4>
+            {(() => {
+              const w = 280;
+              const h = 48;
+              const threshold = 95; // SLA contractual %
+              const uptimeByWeek = slaWeekly.map((wk) => {
+                const total = wk.withinSla + wk.outsideSla;
+                return total > 0 ? (wk.withinSla / total) * 100 : 100;
+              });
+              const minY = Math.min(80, ...uptimeByWeek);
+              const toY = (v: number) => h - 4 - ((v - minY) / (100 - minY)) * (h - 8);
+              const linePath = uptimeByWeek.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(v)}`).join(' ');
+              const threshY = toY(threshold);
+              return (
+                <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
+                  <line x1={0} y1={threshY} x2={w} y2={threshY} stroke="#ef4444" strokeWidth={1} strokeDasharray="4 2" />
+                  <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
+                  {uptimeByWeek.map((v, i) => v < threshold ? (
+                    <circle key={i} cx={(i / 11) * w} cy={toY(v)} r={3} fill="#ef4444" />
+                  ) : null)}
+                  <text x={w - 2} y={threshY - 3} fontSize={8} fill="#ef4444" textAnchor="end">{threshold}%</text>
+                </svg>
+              );
+            })()}
+          </div>
+
         {/* SLA penalties history */}
         <div className="panel flex flex-col gap-2 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Historial penalizaciones SLA</h3>
@@ -340,6 +371,7 @@ export function TicketsSlaPage() {
                     <th className="pb-1 text-right">Fuera SLA</th>
                     <th className="pb-1 text-right">Dentro SLA</th>
                     <th className="pb-1 text-center">Cumplimiento</th>
+                    <th className="pb-1 text-right">Crédito</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -355,6 +387,10 @@ export function TicketsSlaPage() {
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pct >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                             {pct}%
                           </span>
+                        </td>
+                        <td className="py-1 text-right text-muted">
+                          {/* ponytail: placeholder — real credit from billing when available */}
+                          {w.outsideSla > 0 ? `${(w.outsideSla * 0.5).toFixed(1)} UF` : '—'}
                         </td>
                       </tr>
                     );

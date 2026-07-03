@@ -4,12 +4,10 @@ import type { RoleSlug } from '../types/auth';
 export type ViewAsRole = RoleSlug | null; // null = natural role (no impersonation)
 
 export const VIEW_AS_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  corp_admin: 'Multi Operador',
-  site_admin: 'Operador',
+  super_admin: 'Súper-administrador',
+  corp_admin: 'Gerencial',
+  site_admin: 'Operacional',
   operator: 'Técnico',
-  tenant_user: 'Locatario',
-  analyst: 'Analista',
   auditor: 'Auditor',
 };
 

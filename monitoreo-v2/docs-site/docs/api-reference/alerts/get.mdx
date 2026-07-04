@@ -1,0 +1,67 @@
+---
+title: "Obtener alerta"
+description: "Obtiene el detalle de una alerta por su ID."
+sidebar_position: 2
+---
+
+# Obtener alerta
+
+<span className="api-method api-method--get">GET</span> `/alerts/{id}`
+
+Obtiene el detalle de una alerta por su ID.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la alerta. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la alerta. |
+| `buildingId` | string | UUID del edificio asociado. |
+| `meterId` | string | UUID del medidor asociado. |
+| `severity` | string | Severidad: `critical`, `high`, `medium`, `low`. |
+| `status` | string | Estado: `active`, `acknowledged`, `resolved`. |
+| `message` | string | Mensaje descriptivo de la alerta. |
+| `alertType` | string | Tipo de alerta. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `acknowledgedAt` | string | Fecha de reconocimiento (ISO 8601). |
+| `resolvedAt` | string | Fecha de resolucion (ISO 8601). |
+| `resolutionNotes` | string | Notas de resolucion. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/alerts/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+  "severity": "high",
+  "status": "active",
+  "message": "Factor de potencia bajo en medidor M-005",
+  "alertType": "low_power_factor",
+  "createdAt": "2026-07-04T08:15:00.000Z",
+  "acknowledgedAt": null,
+  "resolvedAt": null,
+  "resolutionNotes": null
+}
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Alerta no encontrada"
+}
+```

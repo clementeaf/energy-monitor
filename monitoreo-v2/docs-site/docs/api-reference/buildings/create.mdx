@@ -1,0 +1,77 @@
+---
+title: "Crear edificio"
+description: "Crea un nuevo edificio en el tenant actual."
+sidebar_position: 3
+---
+
+# Crear edificio
+
+<span className="api-method api-method--post">POST</span> `/buildings`
+
+Crea un nuevo edificio en el tenant actual.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `buildings:create`.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `name` | string | Si | Nombre del edificio. |
+| `address` | string | Si | Direccion del edificio. |
+| `totalArea` | number | No | Superficie total en m2. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID generado para el edificio. |
+| `name` | string | Nombre del edificio. |
+| `address` | string | Direccion del edificio. |
+| `code` | string | Codigo interno del edificio. |
+| `totalArea` | number | Superficie total en m2. |
+| `isActive` | boolean | Estado activo/inactivo (true por defecto). |
+| `latitude` | number | Latitud geografica. |
+| `longitude` | number | Longitud geografica. |
+| `countryCode` | string | Codigo de pais. |
+| `timezone` | string | Zona horaria. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `updatedAt` | string | Fecha de ultima actualizacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/buildings \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mall Costanera Center",
+    "address": "Av. Andres Bello 2425, Providencia",
+    "totalArea": 280000
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "name": "Mall Costanera Center",
+  "address": "Av. Andres Bello 2425, Providencia",
+  "code": null,
+  "totalArea": 280000,
+  "isActive": true,
+  "latitude": null,
+  "longitude": null,
+  "countryCode": null,
+  "timezone": null,
+  "createdAt": "2026-07-04T10:00:00.000Z",
+  "updatedAt": "2026-07-04T10:00:00.000Z"
+}
+```
+
+```json title="400 Bad Request"
+{
+  "statusCode": 400,
+  "message": ["name must be a string", "address must be a string"]
+}
+```

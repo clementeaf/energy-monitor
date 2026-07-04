@@ -1,0 +1,70 @@
+---
+title: "API Reference"
+description: "Referencia completa de todos los endpoints de la API de Energy Monitor."
+sidebar_position: 1
+---
+
+La URL base de la API es:
+
+```
+https://power-monitor.cloud/api
+```
+
+Todos los endpoints requieren autenticacion via cookie JWT httpOnly, excepto los endpoints de login y refresh que son publicos.
+
+## Grupos de endpoints
+
+**[Auth](/api-reference/auth/login)** -- Login OAuth, refresh de tokens, logout y perfil del usuario autenticado.
+
+**[Buildings](/api-reference/buildings/list)** -- CRUD de edificios y centros comerciales del tenant.
+
+**[Meters](/api-reference/meters/list)** -- CRUD de medidores electricos con metadata y estado.
+
+**[Readings](/api-reference/readings/timeseries)** -- Series de tiempo, ultimas lecturas y agregados por periodo.
+
+**[Alerts](/api-reference/alerts/list)** -- Alertas activas con severidad, reconocimiento y resolucion.
+
+**[Invoices](/api-reference/invoices/list)** -- Facturas generadas con line items, aprobacion y PDF.
+
+**[Tariffs](/api-reference/tariffs/list)** -- Tarifas electricas y bloques horarios.
+
+**[Users](/api-reference/users/list)** -- Gestion de usuarios, roles e importacion masiva.
+
+**[Hierarchy](/api-reference/hierarchy/list)** -- Estructura jerarquica de edificios (pisos, zonas, nodos).
+
+**[IoT](/api-reference/iot/devices)** -- Dispositivos IoT, lecturas en vivo y alertas automaticas.
+
+## Autenticacion
+
+La API usa cookies httpOnly con JWT. El flujo es:
+
+1. **Login** -- `POST /auth/login` con token OAuth de Google o Microsoft. Establece cookies automaticamente.
+2. **Requests** -- Las cookies se envian automaticamente en cada request.
+3. **Refresh** -- `POST /auth/refresh` rota ambos tokens usando la cookie de refresh.
+4. **Logout** -- `POST /auth/logout` revoca tokens y limpia cookies.
+
+## Formato de respuesta
+
+Todas las respuestas son JSON. Los endpoints de listado incluyen paginacion:
+
+```json
+{
+  "data": [...],
+  "total": 150,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+## Codigos de estado
+
+| Codigo | Descripcion |
+|--------|-------------|
+| `200`  | Operacion exitosa |
+| `201`  | Recurso creado |
+| `204`  | Eliminado sin contenido |
+| `400`  | Request invalido (validacion) |
+| `401`  | No autenticado |
+| `403`  | Sin permisos |
+| `404`  | Recurso no encontrado |
+| `429`  | Rate limit excedido |

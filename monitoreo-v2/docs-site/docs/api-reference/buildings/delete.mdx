@@ -1,0 +1,40 @@
+---
+title: "Eliminar edificio"
+description: "Elimina un edificio por su ID. Retorna 204 sin contenido."
+sidebar_position: 5
+---
+
+# Eliminar edificio
+
+<span className="api-method api-method--delete">DELETE</span> `/buildings/{id}`
+
+Elimina un edificio por su ID. Retorna 204 sin contenido.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `buildings:delete`.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del edificio a eliminar. |
+
+## Respuesta
+
+Retorna `204 No Content` sin body.
+
+## Ejemplo
+
+```bash
+curl -X DELETE https://power-monitor.cloud/api/buildings/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  --cookie "access_token=eyJhbGciOi..." \
+  -v
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Building not found"
+}
+```

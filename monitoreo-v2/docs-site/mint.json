@@ -1,0 +1,173 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Energy Monitor API",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#16a34a",
+    "light": "#22c55e",
+    "dark": "#15803d",
+    "anchors": {
+      "from": "#16a34a",
+      "to": "#0d9488"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Plataforma",
+      "url": "https://power-monitor.cloud"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Iniciar sesion",
+    "url": "https://power-monitor.cloud"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Plataforma",
+      "icon": "chart-mixed",
+      "url": "https://power-monitor.cloud"
+    },
+    {
+      "name": "Soporte",
+      "icon": "envelope",
+      "url": "mailto:soporte@power-monitor.cloud"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "",
+      "pages": [
+        "introduction",
+        "quickstart"
+      ]
+    },
+    {
+      "group": "Autenticacion",
+      "pages": [
+        "autenticacion/oauth",
+        "autenticacion/permisos",
+        "autenticacion/versionado"
+      ]
+    },
+    {
+      "group": "Guias",
+      "pages": [
+        "guias/arquitectura",
+        "guias/multi-tenant",
+        "guias/iot"
+      ]
+    },
+    {
+      "group": "Endpoints",
+      "pages": [
+        "api-reference/overview"
+      ]
+    },
+    {
+      "group": "Auth",
+      "pages": [
+        "api-reference/auth/login",
+        "api-reference/auth/refresh",
+        "api-reference/auth/logout",
+        "api-reference/auth/me"
+      ]
+    },
+    {
+      "group": "Buildings",
+      "pages": [
+        "api-reference/buildings/list",
+        "api-reference/buildings/get",
+        "api-reference/buildings/create",
+        "api-reference/buildings/update",
+        "api-reference/buildings/delete"
+      ]
+    },
+    {
+      "group": "Meters",
+      "pages": [
+        "api-reference/meters/list",
+        "api-reference/meters/get",
+        "api-reference/meters/create",
+        "api-reference/meters/update",
+        "api-reference/meters/delete"
+      ]
+    },
+    {
+      "group": "Readings",
+      "pages": [
+        "api-reference/readings/timeseries",
+        "api-reference/readings/latest",
+        "api-reference/readings/aggregated"
+      ]
+    },
+    {
+      "group": "Alerts",
+      "pages": [
+        "api-reference/alerts/list",
+        "api-reference/alerts/get",
+        "api-reference/alerts/acknowledge",
+        "api-reference/alerts/resolve"
+      ]
+    },
+    {
+      "group": "Invoices",
+      "pages": [
+        "api-reference/invoices/list",
+        "api-reference/invoices/get",
+        "api-reference/invoices/create",
+        "api-reference/invoices/generate",
+        "api-reference/invoices/approve",
+        "api-reference/invoices/pdf"
+      ]
+    },
+    {
+      "group": "Tariffs",
+      "pages": [
+        "api-reference/tariffs/list",
+        "api-reference/tariffs/get",
+        "api-reference/tariffs/create",
+        "api-reference/tariffs/blocks"
+      ]
+    },
+    {
+      "group": "Users",
+      "pages": [
+        "api-reference/users/list",
+        "api-reference/users/create",
+        "api-reference/users/import"
+      ]
+    },
+    {
+      "group": "Hierarchy",
+      "pages": [
+        "api-reference/hierarchy/list",
+        "api-reference/hierarchy/create",
+        "api-reference/hierarchy/meters"
+      ]
+    },
+    {
+      "group": "IoT",
+      "pages": [
+        "api-reference/iot/devices",
+        "api-reference/iot/readings",
+        "api-reference/iot/alerts"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "website": "https://power-monitor.cloud"
+  },
+  "api": {
+    "baseUrl": "https://power-monitor.cloud/api"
+  }
+}

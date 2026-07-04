@@ -1,0 +1,69 @@
+---
+title: "Reconocer alerta"
+description: "Marca una alerta como reconocida. Requiere permiso alerts:manage."
+sidebar_position: 3
+---
+
+# Reconocer alerta
+
+<span className="api-method api-method--patch">PATCH</span> `/alerts/{id}/acknowledge`
+
+Marca una alerta como reconocida. Requiere permiso `alerts:manage`.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa. Permiso requerido: `alerts:manage`.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la alerta a reconocer. |
+
+## Respuesta
+
+Retorna la alerta con `status=acknowledged` y `acknowledgedAt` actualizado.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la alerta. |
+| `buildingId` | string | UUID del edificio asociado. |
+| `meterId` | string | UUID del medidor asociado. |
+| `severity` | string | Severidad: `critical`, `high`, `medium`, `low`. |
+| `status` | string | Siempre `acknowledged` en respuesta exitosa. |
+| `message` | string | Mensaje descriptivo de la alerta. |
+| `alertType` | string | Tipo de alerta. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `acknowledgedAt` | string | Fecha de reconocimiento (ISO 8601). |
+| `resolvedAt` | string | Null hasta que se resuelva. |
+| `resolutionNotes` | string | Null hasta que se resuelva. |
+
+## Ejemplo
+
+```bash
+curl -X PATCH "https://power-monitor.cloud/api/alerts/a1b2c3d4-e5f6-7890-abcd-ef1234567890/acknowledge" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+  "severity": "critical",
+  "status": "acknowledged",
+  "message": "Voltaje fuera de rango en medidor M-001",
+  "alertType": "voltage_out_of_range",
+  "createdAt": "2026-07-04T10:30:00.000Z",
+  "acknowledgedAt": "2026-07-04T11:00:00.000Z",
+  "resolvedAt": null,
+  "resolutionNotes": null
+}
+```
+
+```json title="403 Forbidden"
+{
+  "statusCode": 403,
+  "message": "Permiso insuficiente: alerts:manage requerido"
+}
+```

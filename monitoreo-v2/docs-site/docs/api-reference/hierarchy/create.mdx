@@ -1,0 +1,68 @@
+---
+title: "Crear nodo de jerarquia"
+description: "Crea un nodo en el arbol jerarquico de un edificio (piso, zona)."
+sidebar_position: 2
+---
+
+# Crear nodo de jerarquia
+
+<span className="api-method api-method--post">POST</span> `/hierarchy`
+
+Crea un nodo en el arbol jerarquico de un edificio (piso, zona).
+
+## Autenticacion
+
+Requiere cookie JWT valida. El edificio debe pertenecer al tenant del usuario.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio al que pertenece el nodo. |
+| `name` | string | Si | Nombre del nodo (ej. "Piso 2", "Zona Norte"). |
+| `levelType` | string | Si | Tipo de nodo: `building`, `floor` o `zone`. |
+| `parentId` | string | No | UUID del nodo padre. Requerido para nodos tipo `floor` y `zone`. |
+| `sortOrder` | number | No | Orden de visualizacion. Default: 0. |
+| `metadata` | object | No | Metadatos adicionales (superficie, codigo, etc.). |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del nodo creado. |
+| `buildingId` | string | UUID del edificio. |
+| `name` | string | Nombre del nodo. |
+| `levelType` | string | Tipo de nodo. |
+| `parentId` | string | UUID del nodo padre. |
+| `sortOrder` | number | Orden de visualizacion. |
+| `metadata` | object | Metadatos del nodo. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/hierarchy \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Piso 2",
+    "levelType": "floor",
+    "parentId": "f6a7b8c9-d0e1-2345-fabC-456789012345",
+    "sortOrder": 2,
+    "metadata": { "area": 3200 }
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+  "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Piso 2",
+  "levelType": "floor",
+  "parentId": "f6a7b8c9-d0e1-2345-fabC-456789012345",
+  "sortOrder": 2,
+  "metadata": { "area": 3200 },
+  "createdAt": "2026-07-04T15:00:00.000Z"
+}
+```

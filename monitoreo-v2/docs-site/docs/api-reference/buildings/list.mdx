@@ -1,0 +1,58 @@
+---
+title: "Listar edificios"
+description: "Retorna todos los edificios del tenant actual. El scoping por tenant y permisos de edificios es automatico."
+sidebar_position: 1
+---
+
+# Listar edificios
+
+<span className="api-method api-method--get">GET</span> `/buildings`
+
+Retorna todos los edificios del tenant actual. El scoping por tenant y permisos de edificios es automatico.
+
+## Autenticacion
+
+Requiere cookie JWT valida. El tenant se determina automaticamente desde el token.
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del edificio. |
+| `name` | string | Nombre del edificio. |
+| `address` | string | Direccion del edificio. |
+| `code` | string | Codigo interno del edificio. |
+| `totalArea` | number | Superficie total en m2. |
+| `isActive` | boolean | Estado activo/inactivo. |
+| `latitude` | number | Latitud geografica. |
+| `longitude` | number | Longitud geografica. |
+| `countryCode` | string | Codigo de pais (CL, CO, PE). |
+| `timezone` | string | Zona horaria (ej. America/Santiago). |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `updatedAt` | string | Fecha de ultima actualizacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET https://power-monitor.cloud/api/buildings \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Mall Plaza Vespucio",
+    "address": "Av. Vicuna Mackenna 7110, La Florida",
+    "code": "MPV-001",
+    "totalArea": 125000,
+    "isActive": true,
+    "latitude": -33.5205,
+    "longitude": -70.5977,
+    "countryCode": "CL",
+    "timezone": "America/Santiago",
+    "createdAt": "2026-01-15T12:00:00.000Z",
+    "updatedAt": "2026-06-01T08:30:00.000Z"
+  }
+]
+```

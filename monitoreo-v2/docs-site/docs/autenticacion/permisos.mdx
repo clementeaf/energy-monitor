@@ -1,0 +1,60 @@
+---
+title: Permisos y RBAC
+description: "Sistema de roles, permisos y scoping multi-tenant."
+sidebar_position: 2
+---
+
+## Perfiles
+
+La plataforma define 5 perfiles con acceso diferenciado:
+
+| Perfil | Descripcion | Pantallas |
+|--------|-------------|-----------|
+| **Gerencial** | Vision ejecutiva del portafolio | Panel Consolidado, Consumo, Costos, Alarmas Agregadas, Reportes, Exportar |
+| **Operacional** | Control diario del parque | Monitoreo en Vivo, Alarmas, Tickets SLA, Calidad, CNR, Mapa Cobertura |
+| **Tecnico** | Mantenimiento y diagnostico | Mis Ordenes, Medidores, Diagnostico Comms, Intervencion, CNR, Maestro |
+| **Auditor** | Certificacion y compliance | Calidad Datos, Cuadratura, Pista Auditoria, Trazabilidad, Datos Crudos, Evidencia |
+| **Super-admin** | Administracion total | Tenants, Config, Usuarios, Observabilidad, Integraciones, Seguridad PAM |
+
+## Permisos
+
+Cada endpoint requiere un permiso especifico en formato `modulo:accion`:
+
+```
+buildings:read      — Listar y ver edificios
+buildings:create    — Crear edificios
+buildings:update    — Modificar edificios
+buildings:delete    — Eliminar edificios
+meters:read         — Listar y ver medidores
+alerts:read         — Ver alertas
+alerts:manage       — Acknowledge/resolve alertas
+billing:view_own    — Ver facturas propias
+admin_users:read    — Listar usuarios
+admin_users:create  — Crear usuarios
+```
+
+## Scoping multi-tenant
+
+Todos los endpoints filtran automaticamente por el tenant del usuario autenticado.
+No necesitas pasar `tenantId` -- se deriva del JWT.
+
+```
+Usuario con tenant "PASA"
+  → GET /buildings
+  → Solo ve edificios de PASA (scoping automatico)
+```
+
+### Cross-tenant (super_admin)
+
+Usuarios `super_admin` sin tenant asignado pueden consultar datos de todos los tenants
+usando el header `x-tenant-id`:
+
+```bash
+GET /buildings
+x-tenant-id: <tenant-uuid>
+```
+
+## Building scoping
+
+Ademas del tenant, los usuarios pueden tener acceso restringido a edificios especificos
+via `buildingIds` en su perfil. El backend filtra automaticamente.

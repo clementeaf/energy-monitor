@@ -1,0 +1,61 @@
+---
+title: "Listar facturas"
+description: "Obtiene la lista de facturas filtradas por edificio, estado o periodo."
+sidebar_position: 1
+---
+
+# Listar facturas
+
+<span className="api-method api-method--get">GET</span> `/invoices`
+
+Obtiene la lista de facturas filtradas por edificio, estado o periodo.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | No | UUID del edificio para filtrar facturas. |
+| `status` | string | No | Estado de la factura. Valores: `draft`, `pending`, `approved`, `voided`. |
+| `periodStart` | string | No | Inicio del periodo (ISO 8601). Filtra facturas cuyo periodo comience desde esta fecha. |
+| `periodEnd` | string | No | Fin del periodo (ISO 8601). Filtra facturas cuyo periodo termine antes de esta fecha. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la factura. |
+| `buildingId` | string | UUID del edificio. |
+| `invoiceNumber` | string | Numero de factura. |
+| `status` | string | Estado: `draft`, `pending`, `approved`, `voided`. |
+| `periodStart` | string | Inicio del periodo facturado (ISO 8601). |
+| `periodEnd` | string | Fin del periodo facturado (ISO 8601). |
+| `totalAmount` | number | Monto total de la factura. |
+| `notes` | string | Notas adicionales. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/invoices?status=pending&buildingId=b1234567-89ab-cdef-0123-456789abcdef" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "f1234567-89ab-cdef-0123-456789abcdef",
+    "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+    "invoiceNumber": "INV-2026-0042",
+    "status": "pending",
+    "periodStart": "2026-06-01T00:00:00.000Z",
+    "periodEnd": "2026-06-30T23:59:59.000Z",
+    "totalAmount": 1250000.50,
+    "notes": null,
+    "createdAt": "2026-07-01T08:00:00.000Z"
+  }
+]
+```

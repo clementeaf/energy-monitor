@@ -1,0 +1,72 @@
+---
+title: "Ultimas lecturas"
+description: "Retorna la lectura mas reciente por cada medidor. Util para monitoreo en tiempo real y dashboards."
+sidebar_position: 2
+---
+
+# Ultimas lecturas
+
+<span className="api-method api-method--get">GET</span> `/readings/latest`
+
+Retorna la lectura mas reciente por cada medidor. Util para monitoreo en tiempo real y dashboards.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Scoping automatico por tenant y permisos de edificios.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | No | UUID del edificio para filtrar medidores. |
+| `meterId` | string | No | UUID de un medidor especifico. |
+
+## Respuesta
+
+Array con la ultima lectura de cada medidor que cumple los filtros.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `meter_id` | string | UUID del medidor. |
+| `building_id` | string | UUID del edificio. |
+| `timestamp` | string | Marca de tiempo de la lectura (ISO 8601). |
+| `power_kw` | number | Potencia activa en kW. |
+| `voltage_l1` | number | Voltaje fase L1 en V. |
+| `current_l1` | number | Corriente fase L1 en A. |
+| `power_factor` | number | Factor de potencia (0-1). |
+| `energy_kwh` | number | Energia acumulada en kWh. |
+| `frequency` | number | Frecuencia en Hz. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/readings/latest?buildingId=a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "meter_id": "d4e5f6a7-b8c9-0123-defa-456789012345",
+    "building_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timestamp": "2026-07-04T14:55:00.000Z",
+    "power_kw": 152.8,
+    "voltage_l1": 219.8,
+    "current_l1": 44.2,
+    "power_factor": 0.91,
+    "energy_kwh": 12540.5,
+    "frequency": 50.02
+  },
+  {
+    "meter_id": "e5f6a7b8-c9d0-1234-efab-567890123456",
+    "building_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timestamp": "2026-07-04T14:50:00.000Z",
+    "power_kw": 23.4,
+    "voltage_l1": 220.1,
+    "current_l1": 6.8,
+    "power_factor": 0.95,
+    "energy_kwh": 1890.2,
+    "frequency": 50.00
+  }
+]
+```

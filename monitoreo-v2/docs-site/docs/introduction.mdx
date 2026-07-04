@@ -1,0 +1,61 @@
+---
+title: Informacion General
+description: "Documentacion de la API de EMS, plataforma de monitoreo energetico multi-tenant."
+sidebar_position: 1
+slug: /
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="Energy Monitor"
+/>
+
+Energy Monitor es una plataforma de monitoreo energetico multi-cliente. Esta documentacion
+describe la API publica con la que puedes consultar la informacion de tus
+edificios, medidores, lecturas, alertas, facturas, reportes e integraciones IoT
+directamente desde tu cuenta.
+
+:::note
+Es tu primera vez? Comienza por **Primeros Pasos** para crear tu cuenta y generar tu token de integracion.
+La URL base de la API es `https://power-monitor.cloud/api`.
+:::
+
+```bash
+https://power-monitor.cloud/api
+```
+
+## Esenciales de implementacion
+
+**API REST** -- Trabajamos con una API REST que utiliza el metodo GET con query params. Toda la informacion se entrega en formato JSON.
+
+**Autenticacion por cookie** -- La autenticacion usa cookies httpOnly con JWT. Login via OAuth (Microsoft o Google) que identifica a tu empresa y acota los resultados a tu propio tenant.
+
+**Respuestas en JSON** -- Las respuestas usan snake_case, con una estructura clara y consistente en todos los endpoints.
+
+## Que puedes consultar
+
+| Recurso | Descripcion |
+|---------|-------------|
+| **Buildings** | Edificios y centros comerciales de tu tenant |
+| **Meters** | Medidores electricos con metadata y estado |
+| **Readings** | Series de tiempo, ultimas lecturas y agregados |
+| **Alerts** | Alertas activas con severidad y estado |
+| **Invoices** | Facturas generadas con line items |
+| **Tariffs** | Tarifas y bloques horarios |
+| **Hierarchy** | Estructura jerarquica de edificios (pisos, zonas) |
+| **IoT** | Dispositivos IoT, lecturas en vivo y alertas |
+| **Users** | Gestion de usuarios y roles |
+| **Reports** | Generacion y exportacion de reportes |
+
+## Referencia
+
+**[API Reference](/api-reference/overview)** -- Documentacion completa de todos los endpoints con ejemplos.
+
+**[Autenticacion](/autenticacion/oauth)** -- Flujo OAuth, cookies, permisos y RBAC.
+
+## Siguientes pasos
+
+**[Primeros Pasos](/quickstart)** -- Configura tu acceso y haz tu primera llamada a la API.
+
+**[Arquitectura](/guias/arquitectura)** -- Entiende la arquitectura de la plataforma.

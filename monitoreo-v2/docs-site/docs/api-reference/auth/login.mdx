@@ -1,0 +1,93 @@
+---
+title: "Login"
+description: "Autenticacion via OAuth (Microsoft o Google)."
+sidebar_position: 1
+---
+
+# Login
+
+<span className="api-method api-method--post">POST</span> `/auth/login`
+
+Autentica al usuario con un token OAuth de Microsoft o Google. Si las credenciales son validas, establece cookies httpOnly con los tokens JWT de acceso y refresh.
+
+:::note
+Este endpoint es publico y no requiere autenticacion previa.
+:::
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `provider` | string | Si | Proveedor OAuth. Valores permitidos: `"microsoft"` o `"google"`. |
+| `idToken` | string | Si | Token de identidad (id_token JWT) obtenido del proveedor OAuth. Maximo 8192 caracteres. Para Google, tambien se acepta un access_token del flujo implicito. |
+
+## Respuesta
+
+Login exitoso sin MFA:
+
+```json
+{
+  "success": true
+}
+```
+
+Si el usuario tiene MFA habilitado, se requiere un paso adicional:
+
+```json
+{
+  "mfaRequired": true,
+  "userId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Si el rol requiere MFA pero el usuario no lo ha configurado, se devuelve el QR para setup:
+
+```json
+{
+  "success": true,
+  "mfaSetupRequired": true,
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "secret": "JBSWY3DPEHPK3PXP",
+  "qrDataUrl": "data:image/png;base64,...",
+  "otpauthUrl": "otpauth://totp/EMS:user@example.com?secret=..."
+}
+```
+
+## Cookies establecidas
+
+| Cookie | Duracion | Descripcion |
+|--------|----------|-------------|
+| `__Host-access_token` | 24 horas | JWT de acceso (httpOnly, Secure, SameSite=Strict) |
+| `__Host-refresh_token` | 7 dias | Token de refresh (httpOnly, Secure, path=/api/auth/refresh) |
+
+:::note
+En desarrollo local los nombres de cookie no llevan el prefijo `__Host-` y `Secure` esta deshabilitado.
+:::
+
+## Ejemplo
+
+```bash title="curl (Google)"
+curl -X POST https://power-monitor.cloud/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "idToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6..."
+  }' \
+  -c cookies.txt
+```
+
+```bash title="curl (Microsoft)"
+curl -X POST https://power-monitor.cloud/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "idToken": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+  }' \
+  -c cookies.txt
+```
+
+## Errores
+
+| Codigo | Descripcion |
+|--------|-------------|
+| `401` | Token OAuth invalido o expirado. |

@@ -1,0 +1,118 @@
+---
+title: "Importacion masiva de usuarios"
+description: "Flujo de importacion masiva: descargar template, validar archivo, consultar estado y confirmar."
+sidebar_position: 3
+---
+
+# Importacion masiva de usuarios
+
+Flujo de importacion masiva: descargar template, validar archivo, consultar estado y confirmar.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso: `admin_users:create`.
+
+## Flujo de importacion
+
+La importacion masiva sigue 4 pasos secuenciales:
+
+### 1. Descargar template CSV
+
+<span className="api-method api-method--get">GET</span> `/users/import/template`
+
+Retorna un archivo CSV con las columnas esperadas: `email`, `displayName`, `roleSlug`, `buildingIds`, `phone`.
+
+```bash
+curl -X GET https://power-monitor.cloud/api/users/import/template \
+  --cookie "access_token=eyJhbGciOi..." \
+  -o template.csv
+```
+
+### 2. Validar archivo
+
+<span className="api-method api-method--post">POST</span> `/users/import/validate`
+
+Sube un archivo CSV o XLSX para validacion. Retorna preview con errores por fila.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `file` | file | Si | Archivo CSV o XLSX con los usuarios a importar (multipart/form-data). |
+
+```bash
+curl -X POST https://power-monitor.cloud/api/users/import/validate \
+  --cookie "access_token=eyJhbGciOi..." \
+  -F "file=@usuarios.csv"
+```
+
+```json title="200 OK"
+{
+  "jobId": "e5f6a7b8-c9d0-1234-efab-345678901234",
+  "totalRows": 25,
+  "validRows": 23,
+  "errors": [
+    { "row": 3, "field": "email", "message": "Email duplicado" },
+    { "row": 18, "field": "roleSlug", "message": "Rol no encontrado: viewer" }
+  ],
+  "preview": [
+    {
+      "email": "usuario1@empresa.cl",
+      "displayName": "Usuario Uno",
+      "roleSlug": "operator",
+      "buildingIds": "uuid1,uuid2",
+      "phone": "+56912345678",
+      "status": "valid"
+    }
+  ]
+}
+```
+
+### 3. Consultar estado del job
+
+<span className="api-method api-method--get">GET</span> `/users/import/{jobId}`
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `jobId` | string | Si | UUID del job retornado en el paso de validacion. |
+
+```bash
+curl -X GET https://power-monitor.cloud/api/users/import/e5f6a7b8-c9d0-1234-efab-345678901234 \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+{
+  "jobId": "e5f6a7b8-c9d0-1234-efab-345678901234",
+  "status": "validated",
+  "totalRows": 25,
+  "validRows": 23,
+  "createdAt": "2026-07-04T14:00:00.000Z"
+}
+```
+
+### 4. Confirmar importacion
+
+<span className="api-method api-method--post">POST</span> `/users/import/{jobId}/commit`
+
+Confirma la importacion. Solo filas validas se crean. Se envian invitaciones por email/SMS.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `jobId` | string | Si | UUID del job validado. |
+
+```bash
+curl -X POST https://power-monitor.cloud/api/users/import/e5f6a7b8-c9d0-1234-efab-345678901234/commit \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+{
+  "jobId": "e5f6a7b8-c9d0-1234-efab-345678901234",
+  "status": "completed",
+  "created": 23,
+  "skipped": 2,
+  "errors": [
+    { "row": 3, "message": "Email duplicado" },
+    { "row": 18, "message": "Rol no encontrado: viewer" }
+  ]
+}
+```

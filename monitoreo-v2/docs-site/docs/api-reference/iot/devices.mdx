@@ -1,0 +1,145 @@
+---
+title: "Dispositivos IoT"
+description: "Gestion de dispositivos IoT descubiertos automaticamente. Listar, consultar, asignar y desasignar a medidores."
+sidebar_position: 1
+---
+
+# Dispositivos IoT
+
+Gestion de dispositivos IoT descubiertos automaticamente. Listar, consultar, asignar y desasignar a medidores.
+
+## Autenticacion
+
+Requiere cookie JWT valida en todos los endpoints.
+
+---
+
+## Listar dispositivos
+
+<span className="api-method api-method--get">GET</span> `/iot-devices`
+
+Retorna todos los dispositivos IoT descubiertos por la Lambda de ingesta.
+
+```bash
+curl -X GET https://power-monitor.cloud/api/iot-devices \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "e1f2a3b4-c5d6-7890-efab-012345678901",
+    "deviceClientId": "siemens-poc3000-mz01",
+    "firstSeen": "2026-06-15T08:00:00.000Z",
+    "lastSeen": "2026-07-04T14:45:00.000Z",
+    "payloadSample": { "voltaje_l1": 220.5, "corriente_l1": 15.3 },
+    "meterId": null,
+    "status": "unassigned"
+  },
+  {
+    "id": "f2a3b4c5-d6e7-8901-fabc-123456789012",
+    "deviceClientId": "siemens-poc3000-mz02",
+    "firstSeen": "2026-06-15T08:00:00.000Z",
+    "lastSeen": "2026-07-04T14:45:00.000Z",
+    "payloadSample": { "voltaje_l1": 221.1, "potencia_activa": 12400 },
+    "meterId": "d0e1f2a3-b4c5-6789-defa-890123456789",
+    "status": "assigned"
+  }
+]
+```
+
+---
+
+## Obtener dispositivo por ID
+
+<span className="api-method api-method--get">GET</span> `/iot-devices/{id}`
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del dispositivo IoT. |
+
+```bash
+curl -X GET https://power-monitor.cloud/api/iot-devices/e1f2a3b4-c5d6-7890-efab-012345678901 \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+{
+  "id": "e1f2a3b4-c5d6-7890-efab-012345678901",
+  "deviceClientId": "siemens-poc3000-mz01",
+  "firstSeen": "2026-06-15T08:00:00.000Z",
+  "lastSeen": "2026-07-04T14:45:00.000Z",
+  "payloadSample": { "voltaje_l1": 220.5, "corriente_l1": 15.3, "potencia_activa": 8500 },
+  "meterId": null,
+  "status": "unassigned"
+}
+```
+
+---
+
+## Asignar dispositivo a medidor
+
+<span className="api-method api-method--patch">PATCH</span> `/iot-devices/{id}/assign`
+
+Vincula un dispositivo IoT descubierto a un medidor existente. Actualiza `meters.iot_device_id`.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` (ruta) | string | Si | UUID del dispositivo IoT. |
+| `meterId` (body) | string | Si | UUID del medidor al que se asigna el dispositivo. |
+
+```bash
+curl -X PATCH https://power-monitor.cloud/api/iot-devices/e1f2a3b4-c5d6-7890-efab-012345678901/assign \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{ "meterId": "d0e1f2a3-b4c5-6789-defa-890123456789" }'
+```
+
+```json title="200 OK"
+{
+  "id": "e1f2a3b4-c5d6-7890-efab-012345678901",
+  "deviceClientId": "siemens-poc3000-mz01",
+  "meterId": "d0e1f2a3-b4c5-6789-defa-890123456789",
+  "status": "assigned"
+}
+```
+
+---
+
+## Desasignar dispositivo
+
+<span className="api-method api-method--patch">PATCH</span> `/iot-devices/{id}/unassign`
+
+Desvincula el dispositivo del medidor. Limpia `meters.iot_device_id`.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del dispositivo IoT. |
+
+```bash
+curl -X PATCH https://power-monitor.cloud/api/iot-devices/e1f2a3b4-c5d6-7890-efab-012345678901/unassign \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+{
+  "id": "e1f2a3b4-c5d6-7890-efab-012345678901",
+  "deviceClientId": "siemens-poc3000-mz01",
+  "meterId": null,
+  "status": "unassigned"
+}
+```
+
+---
+
+## Campos del dispositivo
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del dispositivo. |
+| `deviceClientId` | string | Identificador del cliente MQTT (inyectado via `clientid()` en IoT Rule). |
+| `firstSeen` | string | Primera vez que la Lambda registro el dispositivo (ISO 8601). |
+| `lastSeen` | string | Ultima vez que se recibio un payload del dispositivo (ISO 8601). |
+| `payloadSample` | object | Muestra del ultimo payload recibido (variables electricas). |
+| `meterId` | string | UUID del medidor asignado. `null` si no esta asignado. |
+| `status` | string | Estado: `assigned` o `unassigned`. |

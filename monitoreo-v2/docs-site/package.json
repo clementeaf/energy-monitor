@@ -1,0 +1,25 @@
+{
+  "name": "docs-site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "deploy": "npm run build && aws s3 sync build/ s3://power-monitor-frontend/docs/ --region us-east-1 --cache-control 'public,max-age=3600' --delete && aws cloudfront create-invalidation --distribution-id E1SNFETXON2VSI --paths '/docs/*' --region us-east-1",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@docusaurus/core": "^3.10.1",
+    "@docusaurus/preset-classic": "^3.10.1",
+    "@mdx-js/react": "^3.1.1",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  }
+}

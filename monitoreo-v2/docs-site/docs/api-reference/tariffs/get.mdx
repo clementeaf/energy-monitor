@@ -1,0 +1,59 @@
+---
+title: "Obtener tarifa"
+description: "Obtiene el detalle de una tarifa por su ID."
+sidebar_position: 2
+---
+
+# Obtener tarifa
+
+<span className="api-method api-method--get">GET</span> `/tariffs/{id}`
+
+Obtiene el detalle de una tarifa por su ID.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la tarifa. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la tarifa. |
+| `buildingId` | string | UUID del edificio asociado. |
+| `name` | string | Nombre de la tarifa. |
+| `effectiveFrom` | string | Fecha de inicio de vigencia (ISO 8601). |
+| `effectiveTo` | string | Fecha de fin de vigencia (ISO 8601). |
+| `isActive` | boolean | Indica si la tarifa esta activa. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/tariffs/t1234567-89ab-cdef-0123-456789abcdef" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+{
+  "id": "t1234567-89ab-cdef-0123-456789abcdef",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "name": "BT4.3 - Tarifa regulada",
+  "effectiveFrom": "2026-01-01T00:00:00.000Z",
+  "effectiveTo": null,
+  "isActive": true,
+  "createdAt": "2026-01-01T00:00:00.000Z"
+}
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Tarifa no encontrada"
+}
+```

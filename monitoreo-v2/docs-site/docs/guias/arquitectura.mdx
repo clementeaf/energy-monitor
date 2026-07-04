@@ -1,0 +1,53 @@
+---
+title: Arquitectura
+description: "Arquitectura de la plataforma Energy Monitor."
+sidebar_position: 1
+---
+
+## Vision general
+
+```
+CloudFront (power-monitor.cloud)
+  |-- /* -----------> S3 (frontend SPA React)
+  |-- /api/* -------> ALB -> ECS Fargate (NestJS backend)
+                              |-> RDS PostgreSQL 16 (TimescaleDB)
+
+IoT Core (MQTT)
+  |-- Siemens POC3000 -> Rule -> S3
+  |-- EventBridge (15 min) -> Lambda iot-ingest -> RDS
+```
+
+## Componentes
+
+**Frontend** -- React 19 + Vite 8 + Tailwind v4. SPA desplegada en S3 + CloudFront. Auth cookie-based. Theming dinamico por tenant.
+
+**Backend** -- NestJS 11 + TypeORM sobre PostgreSQL 16 con TimescaleDB. Auth OAuth (Microsoft/Google) con JWT httpOnly cookies. Multi-tenant con scoping automatico.
+
+**Base de datos** -- RDS PostgreSQL 16 con extension TimescaleDB. Hypertables para readings y audit logs. Continuous aggregates para dashboards.
+
+**IoT Pipeline** -- AWS IoT Core recibe datos MQTT de dispositivos Siemens. Lambda procesa y almacena en tabla iot_readings. Auto-discovery de dispositivos.
+
+## Seguridad
+
+- **Helmet** -- HSTS 1yr, Referrer-Policy, COOP
+- **Rate limiting** -- 3 tiers (general/auth/export), Redis-backed
+- **CORS** -- whitelist de origenes
+- **PII encryption** -- AES-256-GCM para datos personales (Ley 21.719)
+- **Cookies** -- `__Host-` prefix, httpOnly, Secure, SameSite=Strict
+- **SSRF blocker** -- validacion de URLs en conectores
+- **Audit trail** -- hypertable con registro de todas las acciones
+
+## Infraestructura AWS
+
+| Servicio | Uso |
+|----------|-----|
+| **CloudFront** | CDN para frontend y API |
+| **S3** | Frontend SPA + IoT raw data |
+| **ECS Fargate** | Backend NestJS containerizado |
+| **ECR** | Registro de imagenes Docker |
+| **RDS** | PostgreSQL 16 + TimescaleDB |
+| **IoT Core** | MQTT broker para dispositivos |
+| **Lambda** | IoT ingest + cron jobs |
+| **SES** | Email transaccional |
+| **Secrets Manager** | Secrets de produccion |
+| **CloudWatch** | Logs, metricas y alarmas |

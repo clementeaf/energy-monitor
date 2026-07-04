@@ -1,0 +1,47 @@
+:root {
+  --ifm-color-primary: #000000;
+  --ifm-color-primary-dark: #000000;
+  --ifm-color-primary-darker: #000000;
+  --ifm-color-primary-darkest: #000000;
+  --ifm-color-primary-light: #333333;
+  --ifm-color-primary-lighter: #555555;
+  --ifm-color-primary-lightest: #777777;
+  --ifm-font-family-base: Inter, system-ui, -apple-system, sans-serif;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #ffffff;
+  --ifm-color-primary-dark: #e0e0e0;
+  --ifm-color-primary-darker: #cccccc;
+  --ifm-color-primary-darkest: #aaaaaa;
+  --ifm-color-primary-light: #ffffff;
+  --ifm-color-primary-lighter: #ffffff;
+  --ifm-color-primary-lightest: #ffffff;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* API method badges */
+.api-method {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: monospace;
+  margin-right: 8px;
+}
+.api-method--get { background: #dbeafe; color: #1d4ed8; }
+.api-method--post { background: #dcfce7; color: #16a34a; }
+.api-method--patch { background: #fef3c7; color: #d97706; }
+.api-method--delete { background: #fee2e2; color: #dc2626; }
+.api-method--put { background: #e0e7ff; color: #4f46e5; }
+
+/* Param table */
+.param-table { width: 100%; font-size: 14px; }
+.param-table th { text-align: left; padding: 8px; border-bottom: 2px solid var(--ifm-color-emphasis-300); }
+.param-table td { padding: 8px; border-bottom: 1px solid var(--ifm-color-emphasis-200); vertical-align: top; }
+.param-name { font-family: monospace; font-weight: 600; }
+.param-type { font-family: monospace; font-size: 12px; color: var(--ifm-color-emphasis-600); }
+.param-required { color: #dc2626; font-size: 11px; font-weight: 600; }

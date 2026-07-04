@@ -1,0 +1,80 @@
+---
+title: "Actualizar medidor"
+description: "Actualiza campos parciales de un medidor existente."
+sidebar_position: 4
+---
+
+# Actualizar medidor
+
+<span className="api-method api-method--patch">PATCH</span> `/meters/{id}`
+
+Actualiza campos parciales de un medidor existente.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `meters:update`.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del medidor. |
+
+## Body
+
+Todos los campos son opcionales. Solo se actualizan los campos enviados.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `name` | string | No | Nombre del medidor. |
+| `code` | string | No | Codigo interno. |
+| `meterType` | string | No | Tipo: `main`, `submeter` o `check`. |
+| `phaseType` | string | No | Fase: `single` o `three`. |
+| `serialNumber` | string | No | Numero de serie. |
+| `manufacturer` | string | No | Fabricante. |
+| `model` | string | No | Modelo. |
+| `loadCategory` | string | No | Categoria de carga. |
+| `isActive` | boolean | No | Estado activo/inactivo. |
+
+## Respuesta
+
+Retorna el medidor actualizado con todos sus campos.
+
+## Ejemplo
+
+```bash
+curl -X PATCH https://power-monitor.cloud/api/meters/d4e5f6a7-b8c9-0123-defa-456789012345 \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "serialNumber": "SN-2024-00456",
+    "manufacturer": "Siemens",
+    "model": "SENTRON PAC3220"
+  }'
+```
+
+```json title="200 OK"
+{
+  "id": "d4e5f6a7-b8c9-0123-defa-456789012345",
+  "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Medidor Principal Piso 1",
+  "code": "MED-001",
+  "meterType": "main",
+  "phaseType": "three",
+  "serialNumber": "SN-2024-00456",
+  "manufacturer": "Siemens",
+  "model": "SENTRON PAC3220",
+  "loadCategory": "iluminacion",
+  "isActive": true,
+  "iotDeviceId": null,
+  "createdAt": "2026-02-01T09:00:00.000Z",
+  "updatedAt": "2026-07-04T11:30:00.000Z"
+}
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Meter not found"
+}
+```

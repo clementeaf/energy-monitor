@@ -1,0 +1,63 @@
+---
+title: "Crear tarifa"
+description: "Crea una nueva tarifa para un edificio."
+sidebar_position: 3
+---
+
+# Crear tarifa
+
+<span className="api-method api-method--post">POST</span> `/tariffs`
+
+Crea una nueva tarifa para un edificio.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio al que se asocia la tarifa. |
+| `name` | string | Si | Nombre de la tarifa (ej. "BT4.3 - Tarifa regulada"). |
+| `effectiveFrom` | string | Si | Fecha de inicio de vigencia (ISO 8601). |
+| `effectiveTo` | string | No | Fecha de fin de vigencia (ISO 8601). Si se omite, la tarifa es vigente indefinidamente. |
+| `isActive` | boolean | No | Indica si la tarifa esta activa. Por defecto `true`. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la tarifa creada. |
+| `buildingId` | string | UUID del edificio. |
+| `name` | string | Nombre de la tarifa. |
+| `effectiveFrom` | string | Fecha de inicio de vigencia (ISO 8601). |
+| `effectiveTo` | string | Fecha de fin de vigencia. |
+| `isActive` | boolean | Estado activo de la tarifa. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X POST "https://power-monitor.cloud/api/tariffs" \
+  -H "Content-Type: application/json" \
+  --cookie "access_token=<JWT>" \
+  -d '{
+    "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+    "name": "AT4 - Tarifa alta tension",
+    "effectiveFrom": "2026-07-01T00:00:00.000Z",
+    "isActive": true
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "t2345678-9abc-def0-1234-567890abcdef",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "name": "AT4 - Tarifa alta tension",
+  "effectiveFrom": "2026-07-01T00:00:00.000Z",
+  "effectiveTo": null,
+  "isActive": true,
+  "createdAt": "2026-07-04T12:00:00.000Z"
+}
+```

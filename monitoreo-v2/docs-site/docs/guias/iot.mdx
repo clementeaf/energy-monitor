@@ -1,0 +1,76 @@
+---
+title: Integracion IoT
+description: "Pipeline IoT para dispositivos Siemens y otros."
+sidebar_position: 3
+---
+
+## Pipeline
+
+```
+Dispositivo (Siemens POC3000)
+  |-- MQTT (TLS mutual auth)
+  |-> AWS IoT Core
+      |-> Rule: inyecta clientid()
+      |-> S3 (raw backup, Glacier 30d)
+      |-> EventBridge (15 min)
+          |-> Lambda iot-ingest
+              |-> Parser (POC3000 + generico)
+              |-> RDS tabla iot_readings (EAV)
+```
+
+## Auto-discovery
+
+La Lambda detecta automaticamente dispositivos nuevos:
+
+1. `clientid()` de IoT Rule identifica el dispositivo por certificado TLS
+2. Si el device no existe en `iot_devices`, se crea automaticamente
+3. Se guarda `first_seen`, `last_seen`, `payload_sample`
+4. Desde la UI (`/admin/iot-devices`) se asigna el dispositivo a un medidor
+
+## Asignacion
+
+```bash
+# Asignar dispositivo a medidor
+PATCH /iot-devices/:id/assign
+{
+  "meterId": "<uuid-del-medidor>"
+}
+
+# Desasignar
+PATCH /iot-devices/:id/unassign
+```
+
+## Lecturas IoT
+
+Las lecturas IoT se almacenan en formato EAV (Entity-Attribute-Value):
+
+```json
+{
+  "device_id": "siemens-poc3000",
+  "variable_name": "active_power",
+  "value": 42.5,
+  "unit": "kW",
+  "timestamp": "2026-07-04T10:30:00Z"
+}
+```
+
+Variables disponibles:
+- `active_power` (kW)
+- `voltage_l1`, `voltage_l2`, `voltage_l3` (V)
+- `current_l1`, `current_l2`, `current_l3` (A)
+- `power_factor` (ratio)
+- `frequency` (Hz)
+- `energy_total` (kWh)
+- `thd_voltage`, `thd_current` (%)
+
+## Alertas IoT
+
+Las alertas se generan on-the-fly desde anomalias en las lecturas:
+
+| Condicion | Severidad |
+|-----------|-----------|
+| Voltaje < 200V o > 250V | HIGH |
+| Factor potencia < 0.85 | MEDIUM |
+| Potencia > 50 kW | MEDIUM |
+| THD voltaje > 8% | LOW |
+| THD corriente > 20% | LOW |

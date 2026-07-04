@@ -1,0 +1,82 @@
+---
+title: "Lecturas time-series"
+description: "Retorna lecturas de un medidor con downsampling via time_bucket de TimescaleDB. Ideal para graficos de tendencia."
+sidebar_position: 1
+---
+
+# Lecturas time-series
+
+<span className="api-method api-method--get">GET</span> `/readings`
+
+Retorna lecturas de un medidor con downsampling via time_bucket de TimescaleDB. Ideal para graficos de tendencia.
+
+## Autenticacion
+
+Requiere cookie JWT valida. El medidor debe pertenecer a un edificio del tenant del usuario.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `meterId` | string | Si | UUID del medidor. |
+| `from` | string | Si | Fecha de inicio (ISO 8601). Ejemplo: `2026-07-01T00:00:00Z`. |
+| `to` | string | Si | Fecha de fin (ISO 8601). Ejemplo: `2026-07-04T23:59:59Z`. |
+| `resolution` | string | No | Resolucion del downsampling: `raw`, `5min`, `15min`, `1h` o `1d`. Default: `raw`. |
+| `limit` | number | No | Cantidad maxima de filas a retornar (1-10000). Default: 1000. |
+
+## Respuesta
+
+Array de objetos con los valores promediados segun la resolucion seleccionada.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `meter_id` | string | UUID del medidor. |
+| `building_id` | string | UUID del edificio. |
+| `timestamp` | string | Marca de tiempo del bucket (ISO 8601). |
+| `power_kw` | number | Potencia activa en kW. |
+| `voltage_l1` | number | Voltaje fase L1 en V. |
+| `current_l1` | number | Corriente fase L1 en A. |
+| `power_factor` | number | Factor de potencia (0-1). |
+| `energy_kwh` | number | Energia acumulada en kWh. |
+| `frequency` | number | Frecuencia en Hz. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/readings?meterId=d4e5f6a7-b8c9-0123-defa-456789012345&from=2026-07-01T00:00:00Z&to=2026-07-04T23:59:59Z&resolution=1h&limit=100" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "meter_id": "d4e5f6a7-b8c9-0123-defa-456789012345",
+    "building_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timestamp": "2026-07-01T00:00:00.000Z",
+    "power_kw": 145.3,
+    "voltage_l1": 220.5,
+    "current_l1": 42.1,
+    "power_factor": 0.92,
+    "energy_kwh": 145.3,
+    "frequency": 50.01
+  },
+  {
+    "meter_id": "d4e5f6a7-b8c9-0123-defa-456789012345",
+    "building_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "timestamp": "2026-07-01T01:00:00.000Z",
+    "power_kw": 138.7,
+    "voltage_l1": 221.0,
+    "current_l1": 40.5,
+    "power_factor": 0.93,
+    "energy_kwh": 284.0,
+    "frequency": 50.00
+  }
+]
+```
+
+```json title="400 Bad Request"
+{
+  "statusCode": 400,
+  "message": ["meterId must be a UUID"]
+}
+```

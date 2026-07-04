@@ -1,0 +1,148 @@
+---
+title: "Lecturas IoT"
+description: "Endpoints de lecturas IoT. Formato EAV (variable_name, value, unit). Compatible con la interfaz de datos PASA."
+sidebar_position: 2
+---
+
+# Lecturas IoT
+
+Endpoints de lecturas IoT. Formato EAV (variable_name, value, unit). Compatible con la interfaz de datos PASA.
+
+## Autenticacion
+
+Requiere cookie JWT valida en todos los endpoints.
+
+---
+
+## Edificios con datos IoT
+
+<span className="api-method api-method--get">GET</span> `/iot-readings/buildings`
+
+Retorna edificios que tienen medidores con dispositivos IoT asignados.
+
+```bash
+curl -X GET https://power-monitor.cloud/api/iot-readings/buildings \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Mall Plaza Vespucio",
+    "meterCount": 3
+  }
+]
+```
+
+---
+
+## Ultimas lecturas por medidor
+
+<span className="api-method api-method--get">GET</span> `/iot-readings/meters-latest`
+
+Retorna la lectura mas reciente de cada medidor IoT.
+
+```bash
+curl -X GET https://power-monitor.cloud/api/iot-readings/meters-latest \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "meterId": "d0e1f2a3-b4c5-6789-defa-890123456789",
+    "meterName": "Medidor Foodcourt",
+    "timestamp": "2026-07-04T14:45:00.000Z",
+    "readings": [
+      { "variable_name": "voltaje_l1", "value": 220.5, "unit": "V" },
+      { "variable_name": "corriente_l1", "value": 15.3, "unit": "A" },
+      { "variable_name": "potencia_activa", "value": 8.5, "unit": "kW" },
+      { "variable_name": "factor_potencia", "value": 0.92, "unit": "" },
+      { "variable_name": "energia_activa", "value": 1245.7, "unit": "kWh" }
+    ]
+  }
+]
+```
+
+---
+
+## Lecturas mensuales
+
+<span className="api-method api-method--get">GET</span> `/iot-readings/monthly`
+
+Retorna lecturas agregadas por mes.
+
+```bash
+curl -X GET https://power-monitor.cloud/api/iot-readings/monthly \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "month": "2026-06",
+    "totalEnergy": 45230.5,
+    "unit": "kWh",
+    "meterCount": 3
+  },
+  {
+    "month": "2026-07",
+    "totalEnergy": 12100.2,
+    "unit": "kWh",
+    "meterCount": 3
+  }
+]
+```
+
+---
+
+## Lecturas de un medidor (rango)
+
+<span className="api-method api-method--get">GET</span> `/iot-readings/meter-readings`
+
+Retorna lecturas de un medidor en un rango de tiempo. Formato EAV.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `meterId` | string | Si | UUID del medidor. |
+| `from` | string | Si | Inicio del rango (ISO 8601). |
+| `to` | string | Si | Fin del rango (ISO 8601). |
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/iot-readings/meter-readings?meterId=d0e1f2a3-b4c5-6789-defa-890123456789&from=2026-07-01T00:00:00Z&to=2026-07-04T23:59:59Z" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "timestamp": "2026-07-04T14:30:00.000Z",
+    "variable_name": "voltaje_l1",
+    "value": 220.5,
+    "unit": "V"
+  },
+  {
+    "timestamp": "2026-07-04T14:30:00.000Z",
+    "variable_name": "potencia_activa",
+    "value": 8.5,
+    "unit": "kW"
+  },
+  {
+    "timestamp": "2026-07-04T14:45:00.000Z",
+    "variable_name": "voltaje_l1",
+    "value": 221.1,
+    "unit": "V"
+  },
+  {
+    "timestamp": "2026-07-04T14:45:00.000Z",
+    "variable_name": "potencia_activa",
+    "value": 8.7,
+    "unit": "kW"
+  }
+]
+```
+
+## Nota sobre unidades
+
+Las lecturas IoT se almacenan en unidades base (W, Wh) y se convierten automaticamente a unidades legibles (kW, kWh) en la respuesta, manteniendo compatibilidad con la interfaz de datos PASA.

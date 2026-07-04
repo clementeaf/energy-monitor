@@ -1,0 +1,57 @@
+---
+title: "Descargar PDF factura"
+description: "Retorna la factura en formato HTML con line items y totales, lista para imprimir o convertir a PDF."
+sidebar_position: 6
+---
+
+# Descargar PDF factura
+
+<span className="api-method api-method--get">GET</span> `/invoices/{id}/pdf`
+
+Retorna la factura en formato HTML con line items y totales, lista para imprimir o convertir a PDF.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la factura. |
+
+## Respuesta
+
+Retorna un documento HTML (`Content-Type: text/html`) con el detalle de la factura, line items y totales. Puede ser renderizado en el navegador o convertido a PDF.
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/invoices/f1234567-89ab-cdef-0123-456789abcdef/pdf" \
+  --cookie "access_token=<JWT>" \
+  -o factura.html
+```
+
+```html title="200 OK"
+<!DOCTYPE html>
+<html>
+<head><title>Factura INV-2026-0042</title></head>
+<body>
+  <h1>Factura INV-2026-0042</h1>
+  <p>Periodo: 2026-06-01 - 2026-06-30</p>
+  <table>
+    <tr><th>Descripcion</th><th>Cantidad</th><th>Precio</th><th>Total</th></tr>
+    <tr><td>Energia activa - Punta</td><td>4,500.25 kWh</td><td>$120.50</td><td>$542,280.13</td></tr>
+    <tr><td>Energia activa - Fuera de punta</td><td>8,200.00 kWh</td><td>$86.30</td><td>$707,660.00</td></tr>
+  </table>
+  <p><strong>Total: $1,250,000.50</strong></p>
+</body>
+</html>
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Factura no encontrada"
+}
+```

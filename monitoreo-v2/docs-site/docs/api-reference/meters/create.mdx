@@ -1,0 +1,70 @@
+---
+title: "Crear medidor"
+description: "Crea un nuevo medidor asociado a un edificio del tenant actual."
+sidebar_position: 3
+---
+
+# Crear medidor
+
+<span className="api-method api-method--post">POST</span> `/meters`
+
+Crea un nuevo medidor asociado a un edificio del tenant actual.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `meters:create`.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio al que se asocia el medidor. |
+| `name` | string | Si | Nombre del medidor. |
+| `code` | string | Si | Codigo interno del medidor. |
+| `meterType` | string | No | Tipo de medidor: `main`, `submeter` o `check`. Por defecto `submeter`. |
+| `phaseType` | string | No | Tipo de fase: `single` o `three`. Por defecto `three`. |
+
+## Respuesta
+
+Retorna el medidor creado con todos sus campos.
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/meters \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Submedidor Aire Acondicionado",
+    "code": "MED-AC-005",
+    "meterType": "submeter",
+    "phaseType": "three"
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "e5f6a7b8-c9d0-1234-efab-567890123456",
+  "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Submedidor Aire Acondicionado",
+  "code": "MED-AC-005",
+  "meterType": "submeter",
+  "phaseType": "three",
+  "serialNumber": null,
+  "manufacturer": null,
+  "model": null,
+  "loadCategory": null,
+  "isActive": true,
+  "iotDeviceId": null,
+  "createdAt": "2026-07-04T11:00:00.000Z",
+  "updatedAt": "2026-07-04T11:00:00.000Z"
+}
+```
+
+```json title="400 Bad Request"
+{
+  "statusCode": 400,
+  "message": ["buildingId must be a UUID", "name must be a string"]
+}
+```

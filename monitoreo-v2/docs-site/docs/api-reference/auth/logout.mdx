@@ -1,0 +1,40 @@
+---
+title: "Logout"
+description: "Cierra la sesion y revoca todos los tokens."
+sidebar_position: 3
+---
+
+# Logout
+
+<span className="api-method api-method--post">POST</span> `/auth/logout`
+
+Cierra la sesion del usuario autenticado. Revoca todos los refresh tokens del usuario en la base de datos y limpia las cookies de autenticacion.
+
+## Respuesta
+
+```json
+{
+  "success": true
+}
+```
+
+## Cookies eliminadas
+
+| Cookie | Accion |
+|--------|--------|
+| `__Host-access_token` | Eliminada |
+| `__Host-refresh_token` | Eliminada |
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/auth/logout \
+  -H "Content-Type: application/json" \
+  -b cookies.txt
+```
+
+## Errores
+
+| Codigo | Descripcion |
+|--------|-------------|
+| `401` | No autenticado. La cookie de acceso no existe o el token expiro. |

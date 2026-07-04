@@ -1,0 +1,72 @@
+---
+title: "Perfil actual"
+description: "Obtiene el perfil del usuario autenticado con su tenant y permisos."
+sidebar_position: 4
+---
+
+# Perfil actual
+
+<span className="api-method api-method--get">GET</span> `/auth/me`
+
+Retorna la informacion del usuario autenticado, incluyendo su perfil, datos del tenant (tema, logo) y configuracion de sesion.
+
+## Respuesta
+
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "usuario@empresa.com",
+    "displayName": "Juan Perez",
+    "roleId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "roleName": "operator",
+    "authProvider": "google",
+    "mfaEnabled": true,
+    "dataProcessingBlocked": false,
+    "privacyAcceptedAt": "2026-01-15T10:30:00Z",
+    "privacyPolicyVersion": "1.0",
+    "lastLoginAt": "2026-07-04T08:00:00Z",
+    "permissions": ["buildings:read", "meters:read", "readings:read", "alerts:read"]
+  },
+  "tenant": {
+    "id": "t1-uuid",
+    "name": "PASA",
+    "slug": "pasa",
+    "theme": "pasa",
+    "logoUrl": "/logos/pasa.svg",
+    "primaryColor": "#1e40af"
+  },
+  "idleTimeoutMinutes": 15
+}
+```
+
+### Campos del usuario
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `user.id` | string | UUID del usuario. |
+| `user.email` | string | Email del usuario (descifrado desde PII encriptado). |
+| `user.displayName` | string | Nombre para mostrar. |
+| `user.roleName` | string | Slug del rol asignado (ej: `super_admin`, `operator`, `technician`). |
+| `user.permissions` | string[] | Lista de permisos del rol en formato `modulo:accion`. |
+| `user.mfaEnabled` | boolean | Indica si el usuario tiene MFA habilitado. |
+
+### Campos del tenant
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `tenant.theme` | string | Tema visual del tenant (`pasa`, `siemens`, etc.). Usado por el frontend para aplicar estilos. |
+| `idleTimeoutMinutes` | number | Minutos de inactividad antes de cerrar la sesion automaticamente (configurable por tenant, 5-60 min). |
+
+## Ejemplo
+
+```bash
+curl -X GET https://power-monitor.cloud/api/auth/me \
+  -b cookies.txt
+```
+
+## Errores
+
+| Codigo | Descripcion |
+|--------|-------------|
+| `401` | No autenticado. La cookie de acceso no existe o el token expiro. |

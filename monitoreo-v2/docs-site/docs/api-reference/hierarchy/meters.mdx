@@ -1,0 +1,52 @@
+---
+title: "Medidores de un nodo"
+description: "Retorna los medidores asignados a un nodo de jerarquia."
+sidebar_position: 3
+---
+
+# Medidores de un nodo
+
+<span className="api-method api-method--get">GET</span> `/hierarchy/{id}/meters`
+
+Retorna los medidores asignados a un nodo de jerarquia.
+
+## Autenticacion
+
+Requiere cookie JWT valida. El edificio del nodo debe pertenecer al tenant del usuario.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del nodo de jerarquia. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del medidor. |
+| `serialNumber` | string | Numero de serie del medidor. |
+| `name` | string | Nombre del medidor. |
+| `type` | string | Tipo de medidor (ej. PAC, IoT). |
+| `isActive` | boolean | Estado activo/inactivo. |
+| `buildingId` | string | UUID del edificio al que pertenece. |
+
+## Ejemplo
+
+```bash
+curl -X GET https://power-monitor.cloud/api/hierarchy/b8c9d0e1-f2a3-4567-bcde-678901234567/meters \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "d0e1f2a3-b4c5-6789-defa-890123456789",
+    "serialNumber": "PAC-3200-001",
+    "name": "Medidor Foodcourt Principal",
+    "type": "PAC",
+    "isActive": true,
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+]
+```

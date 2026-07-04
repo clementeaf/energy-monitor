@@ -1,0 +1,109 @@
+---
+title: "Generar factura"
+description: "Genera automaticamente una factura con line items calculados desde lecturas y bloques tarifarios."
+sidebar_position: 4
+---
+
+# Generar factura
+
+<span className="api-method api-method--post">POST</span> `/invoices/generate`
+
+Genera automaticamente una factura con line items calculados desde lecturas y bloques tarifarios. Este endpoint calcula los line items automaticamente a partir de las lecturas (`readings`) del periodo y los bloques horarios de la tarifa seleccionada. La operacion es transaccional.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio. |
+| `tariffId` | string | Si | UUID de la tarifa a aplicar para el calculo. |
+| `periodStart` | string | Si | Inicio del periodo a facturar (ISO 8601). |
+| `periodEnd` | string | Si | Fin del periodo a facturar (ISO 8601). |
+| `meterIds` | string[] | No | Lista de UUIDs de medidores. Si se omite, se incluyen todos los medidores del edificio. |
+| `tenantUnitIds` | string[] | No | Lista de UUIDs de unidades de locatario. Filtra medidores por locatario. |
+
+## Respuesta
+
+Retorna la factura generada con line items calculados.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la factura. |
+| `buildingId` | string | UUID del edificio. |
+| `invoiceNumber` | string | Numero de factura auto-generado. |
+| `status` | string | Estado inicial de la factura generada. |
+| `periodStart` | string | Inicio del periodo (ISO 8601). |
+| `periodEnd` | string | Fin del periodo (ISO 8601). |
+| `totalAmount` | number | Monto total calculado. |
+| `lineItems` | array | Line items generados automaticamente. |
+
+**Propiedades de line item:**
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del line item. |
+| `meterId` | string | UUID del medidor. |
+| `description` | string | Descripcion del cargo. |
+| `quantity` | number | Cantidad consumida. |
+| `unitPrice` | number | Precio unitario del bloque tarifario. |
+| `amount` | number | Monto total del item. |
+| `blockName` | string | Nombre del bloque tarifario. |
+
+## Ejemplo
+
+```bash
+curl -X POST "https://power-monitor.cloud/api/invoices/generate" \
+  -H "Content-Type: application/json" \
+  --cookie "access_token=<JWT>" \
+  -d '{
+    "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+    "tariffId": "t1234567-89ab-cdef-0123-456789abcdef",
+    "periodStart": "2026-06-01T00:00:00.000Z",
+    "periodEnd": "2026-06-30T23:59:59.000Z",
+    "meterIds": ["m1234567-89ab-cdef-0123-456789abcdef"]
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "f3456789-abcd-ef01-2345-6789abcdef01",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "invoiceNumber": "INV-2026-0044",
+  "status": "draft",
+  "periodStart": "2026-06-01T00:00:00.000Z",
+  "periodEnd": "2026-06-30T23:59:59.000Z",
+  "totalAmount": 1850320.75,
+  "lineItems": [
+    {
+      "id": "li-010",
+      "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+      "description": "Energia activa - Punta",
+      "quantity": 5200.50,
+      "unitPrice": 120.50,
+      "amount": 626660.25,
+      "blockName": "Punta"
+    },
+    {
+      "id": "li-011",
+      "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+      "description": "Energia activa - Fuera de punta",
+      "quantity": 12500.00,
+      "unitPrice": 86.30,
+      "amount": 1078750.00,
+      "blockName": "Fuera de punta"
+    },
+    {
+      "id": "li-012",
+      "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+      "description": "Demanda maxima",
+      "quantity": 350.00,
+      "unitPrice": 413.46,
+      "amount": 144710.50,
+      "blockName": "Punta"
+    }
+  ]
+}
+```

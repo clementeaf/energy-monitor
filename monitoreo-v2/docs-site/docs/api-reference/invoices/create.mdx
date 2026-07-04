@@ -1,0 +1,69 @@
+---
+title: "Crear factura"
+description: "Crea una factura manual en estado draft."
+sidebar_position: 3
+---
+
+# Crear factura
+
+<span className="api-method api-method--post">POST</span> `/invoices`
+
+Crea una factura manual en estado draft.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio al que se asocia la factura. |
+| `invoiceNumber` | string | Si | Numero de factura. |
+| `periodStart` | string | Si | Inicio del periodo a facturar (ISO 8601). |
+| `periodEnd` | string | Si | Fin del periodo a facturar (ISO 8601). |
+| `tariffId` | string | No | UUID de la tarifa a aplicar. |
+| `notes` | string | No | Notas adicionales para la factura. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la factura creada. |
+| `buildingId` | string | UUID del edificio. |
+| `invoiceNumber` | string | Numero de factura. |
+| `status` | string | Siempre `draft` al crear. |
+| `periodStart` | string | Inicio del periodo (ISO 8601). |
+| `periodEnd` | string | Fin del periodo (ISO 8601). |
+| `totalAmount` | number | Monto total (0 al crear manualmente). |
+| `notes` | string | Notas adicionales. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X POST "https://power-monitor.cloud/api/invoices" \
+  -H "Content-Type: application/json" \
+  --cookie "access_token=<JWT>" \
+  -d '{
+    "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+    "invoiceNumber": "INV-2026-0043",
+    "periodStart": "2026-07-01T00:00:00.000Z",
+    "periodEnd": "2026-07-31T23:59:59.000Z",
+    "notes": "Factura julio 2026"
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "f2345678-9abc-def0-1234-567890abcdef",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "invoiceNumber": "INV-2026-0043",
+  "status": "draft",
+  "periodStart": "2026-07-01T00:00:00.000Z",
+  "periodEnd": "2026-07-31T23:59:59.000Z",
+  "totalAmount": 0,
+  "notes": "Factura julio 2026",
+  "createdAt": "2026-07-04T12:00:00.000Z"
+}
+```

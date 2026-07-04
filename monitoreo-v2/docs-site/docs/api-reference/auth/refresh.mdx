@@ -1,0 +1,50 @@
+---
+title: "Refresh"
+description: "Rota los tokens de acceso y refresh."
+sidebar_position: 2
+---
+
+# Refresh
+
+<span className="api-method api-method--post">POST</span> `/auth/refresh`
+
+Renueva los tokens JWT usando el refresh token. El token se lee automaticamente de la cookie httpOnly `__Host-refresh_token`. Ambos tokens (acceso y refresh) son rotados en cada llamada.
+
+:::note
+Este endpoint es publico. No requiere el token de acceso, solo la cookie de refresh.
+:::
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `refreshToken` | string | No | Opcional. Token de refresh como alternativa a la cookie. Si no se envia, se usa la cookie `__Host-refresh_token` automaticamente. |
+
+## Respuesta
+
+```json
+{
+  "success": true
+}
+```
+
+Las cookies `__Host-access_token` y `__Host-refresh_token` se actualizan automaticamente con los nuevos tokens.
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -c cookies.txt
+```
+
+## Errores
+
+| Codigo | Descripcion |
+|--------|-------------|
+| `401` | Refresh token invalido, expirado o revocado. El usuario debe volver a iniciar sesion con `POST /auth/login`. |
+
+:::warning
+El refresh token es de uso unico. Si se detecta reutilizacion de un token ya rotado, todos los tokens del usuario son revocados automaticamente como medida de seguridad (deteccion de robo de token).
+:::

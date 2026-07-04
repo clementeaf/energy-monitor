@@ -1,0 +1,68 @@
+---
+title: "Listar usuarios"
+description: "Retorna todos los usuarios del tenant actual. Super admins pueden consultar cross-tenant."
+sidebar_position: 1
+---
+
+# Listar usuarios
+
+<span className="api-method api-method--get">GET</span> `/users`
+
+Retorna todos los usuarios del tenant actual. Super admins pueden consultar cross-tenant.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso: `admin_users:read`.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `crossTenant` | boolean | No | Solo para `super_admin`. Si `true`, retorna usuarios de todos los tenants. Default: `false`. |
+| `buildingIds` | string | No | IDs de edificios separados por coma. Filtra usuarios asignados a esos edificios. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del usuario. |
+| `email` | string | Email del usuario (PII descifrado). |
+| `displayName` | string | Nombre visible del usuario. |
+| `isActive` | boolean | Estado activo/inactivo. |
+| `phone` | string | Telefono del usuario. |
+| `role` | object | Rol asignado: `id` (UUID), `name` (string), `slug` (string). |
+| `buildingIds` | string[] | IDs de edificios asignados al usuario. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET https://power-monitor.cloud/api/users \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```bash title="cross-tenant"
+curl -X GET "https://power-monitor.cloud/api/users?crossTenant=true&buildingIds=uuid1,uuid2" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "email": "operador@pasa.cl",
+    "displayName": "Juan Perez",
+    "isActive": true,
+    "phone": "+56912345678",
+    "role": {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Operador",
+      "slug": "operator"
+    },
+    "buildingIds": [
+      "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    ],
+    "createdAt": "2026-03-15T10:00:00.000Z"
+  }
+]
+```

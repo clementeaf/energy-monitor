@@ -1,0 +1,80 @@
+---
+title: Primeros Pasos
+description: "Configura tu acceso a la API de Energy Monitor en minutos."
+sidebar_position: 2
+---
+
+## 1. Obtener acceso
+
+Un administrador de tu organizacion debe crear tu usuario desde la plataforma en
+**Administracion > Usuarios**. Recibiras un email de invitacion con instrucciones.
+
+1. **Aceptar invitacion** -- Haz click en el link de invitacion recibido por email. Se te redirigira a la plataforma.
+2. **Login via OAuth** -- Inicia sesion con tu cuenta Microsoft o Google corporativa. El sistema te autenticara y asignara los permisos de tu rol.
+3. **Configurar MFA** -- Si tu rol requiere MFA, se te mostrara un codigo QR para configurar tu app authenticator (Google Authenticator, Microsoft Authenticator, etc.).
+
+## 2. Autenticacion API
+
+La API usa cookies httpOnly. Para autenticarte programaticamente:
+
+```bash
+# Login con token OAuth
+curl -X POST https://power-monitor.cloud/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "google", "token": "<tu-id-token>"}'
+
+# La respuesta setea cookies httpOnly automaticamente
+# Usa -b y -c para mantener la sesion:
+curl -b cookies.txt -c cookies.txt \
+  https://power-monitor.cloud/api/auth/me
+```
+
+## 3. Tu primera llamada
+
+```bash
+# Listar edificios de tu tenant
+curl -b cookies.txt https://power-monitor.cloud/api/buildings
+```
+
+```json title="Respuesta"
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Mall Plaza Vespucio",
+    "address": "Av. Vicuna Mackenna 6100, La Florida",
+    "totalArea": 85000,
+    "isActive": true,
+    "latitude": -33.5205,
+    "longitude": -70.5968,
+    "countryCode": "CL"
+  }
+]
+```
+
+## 4. Consultar lecturas
+
+```bash
+# Ultimas lecturas de un edificio
+curl -b cookies.txt \
+  "https://power-monitor.cloud/api/readings/latest?buildingId=550e8400-..."
+```
+
+```json title="Respuesta"
+[
+  {
+    "meter_id": "...",
+    "building_id": "...",
+    "power_kw": 45.2,
+    "voltage_l1": 223.1,
+    "current_l1": 67.8,
+    "power_factor": 0.92,
+    "timestamp": "2026-07-04T10:30:00Z"
+  }
+]
+```
+
+## Siguiente
+
+**[Autenticacion OAuth](/autenticacion/oauth)** -- Detalle completo del flujo de autenticacion.
+
+**[API Reference](/api-reference/overview)** -- Todos los endpoints disponibles.

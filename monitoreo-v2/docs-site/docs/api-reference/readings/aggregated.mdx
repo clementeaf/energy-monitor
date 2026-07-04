@@ -1,0 +1,85 @@
+---
+title: "Lecturas agregadas"
+description: "Retorna lecturas agregadas (promedio, maximo, minimo) por intervalo. Ideal para reportes y analisis de consumo."
+sidebar_position: 3
+---
+
+# Lecturas agregadas
+
+<span className="api-method api-method--get">GET</span> `/readings/aggregated`
+
+Retorna lecturas agregadas (promedio, maximo, minimo) por intervalo. Ideal para reportes y analisis de consumo.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Scoping automatico por tenant y permisos de edificios.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `from` | string | Si | Fecha de inicio (ISO 8601). |
+| `to` | string | Si | Fecha de fin (ISO 8601). |
+| `interval` | string | Si | Intervalo de agregacion: `hourly`, `daily` o `monthly`. |
+| `buildingId` | string | No | UUID del edificio para filtrar. |
+| `meterId` | string | No | UUID del medidor para filtrar. |
+
+## Respuesta
+
+Array de filas agregadas por el intervalo seleccionado.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `time_bucket` | string | Inicio del intervalo (ISO 8601). |
+| `avg_power` | number | Potencia promedio en kW. |
+| `max_power` | number | Potencia maxima en kW. |
+| `min_power` | number | Potencia minima en kW. |
+| `avg_energy` | number | Energia promedio en kWh. |
+| `avg_power_factor` | number | Factor de potencia promedio. |
+| `count` | number | Cantidad de lecturas en el intervalo. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/readings/aggregated?from=2026-07-01T00:00:00Z&to=2026-07-04T23:59:59Z&interval=daily&buildingId=a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "time_bucket": "2026-07-01T00:00:00.000Z",
+    "avg_power": 142.5,
+    "max_power": 285.3,
+    "min_power": 45.2,
+    "avg_energy": 3420.0,
+    "avg_power_factor": 0.92,
+    "count": 96
+  },
+  {
+    "time_bucket": "2026-07-02T00:00:00.000Z",
+    "avg_power": 138.9,
+    "max_power": 278.1,
+    "min_power": 42.8,
+    "avg_energy": 3333.6,
+    "avg_power_factor": 0.93,
+    "count": 96
+  },
+  {
+    "time_bucket": "2026-07-03T00:00:00.000Z",
+    "avg_power": 145.1,
+    "max_power": 290.0,
+    "min_power": 48.5,
+    "avg_energy": 3482.4,
+    "avg_power_factor": 0.91,
+    "count": 96
+  }
+]
+```
+
+```json title="400 Bad Request"
+{
+  "statusCode": 400,
+  "message": ["interval must be one of: hourly, daily, monthly"]
+}
+```

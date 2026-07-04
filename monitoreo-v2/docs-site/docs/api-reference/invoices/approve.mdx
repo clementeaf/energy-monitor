@@ -1,0 +1,61 @@
+---
+title: "Aprobar factura"
+description: "Aprueba una factura. Solo facturas en estado pending pueden ser aprobadas."
+sidebar_position: 5
+---
+
+# Aprobar factura
+
+<span className="api-method api-method--patch">PATCH</span> `/invoices/{id}/approve`
+
+Aprueba una factura. Solo facturas en estado pending pueden ser aprobadas.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la factura a aprobar. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la factura. |
+| `buildingId` | string | UUID del edificio. |
+| `invoiceNumber` | string | Numero de factura. |
+| `status` | string | Siempre `approved` en respuesta exitosa. |
+| `periodStart` | string | Inicio del periodo (ISO 8601). |
+| `periodEnd` | string | Fin del periodo (ISO 8601). |
+| `totalAmount` | number | Monto total. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X PATCH "https://power-monitor.cloud/api/invoices/f1234567-89ab-cdef-0123-456789abcdef/approve" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+{
+  "id": "f1234567-89ab-cdef-0123-456789abcdef",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "invoiceNumber": "INV-2026-0042",
+  "status": "approved",
+  "periodStart": "2026-06-01T00:00:00.000Z",
+  "periodEnd": "2026-06-30T23:59:59.000Z",
+  "totalAmount": 1250000.50,
+  "createdAt": "2026-07-01T08:00:00.000Z"
+}
+```
+
+```json title="400 Bad Request"
+{
+  "statusCode": 400,
+  "message": "Solo facturas en estado pending pueden ser aprobadas"
+}
+```

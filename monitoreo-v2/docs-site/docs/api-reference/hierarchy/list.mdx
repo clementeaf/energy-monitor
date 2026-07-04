@@ -1,0 +1,78 @@
+---
+title: "Listar jerarquia de edificio"
+description: "Retorna el arbol de nodos jerarquicos de un edificio (pisos, zonas)."
+sidebar_position: 1
+---
+
+# Listar jerarquia de edificio
+
+<span className="api-method api-method--get">GET</span> `/hierarchy/buildings/{buildingId}`
+
+Retorna el arbol de nodos jerarquicos de un edificio (pisos, zonas).
+
+## Autenticacion
+
+Requiere cookie JWT valida. El edificio debe pertenecer al tenant del usuario.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `buildingId` | string | Si | UUID del edificio. |
+
+## Respuesta
+
+Retorna un array de `HierarchyNode`. La estructura de arbol se reconstruye via `parentId`.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del nodo. |
+| `buildingId` | string | UUID del edificio al que pertenece. |
+| `name` | string | Nombre del nodo (ej. "Piso 3", "Zona Foodcourt"). |
+| `levelType` | string | Tipo de nodo: `building`, `floor` o `zone`. |
+| `parentId` | string | UUID del nodo padre. `null` para nodos raiz. |
+| `sortOrder` | number | Orden de visualizacion dentro del mismo nivel. |
+| `metadata` | object | Metadatos adicionales del nodo (superficie, codigo, etc.). |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET https://power-monitor.cloud/api/hierarchy/buildings/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "f6a7b8c9-d0e1-2345-fabC-456789012345",
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Mall Plaza Vespucio",
+    "levelType": "building",
+    "parentId": null,
+    "sortOrder": 0,
+    "metadata": { "totalArea": 125000 },
+    "createdAt": "2026-01-15T12:00:00.000Z"
+  },
+  {
+    "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Piso 1",
+    "levelType": "floor",
+    "parentId": "f6a7b8c9-d0e1-2345-fabC-456789012345",
+    "sortOrder": 1,
+    "metadata": null,
+    "createdAt": "2026-01-15T12:00:00.000Z"
+  },
+  {
+    "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+    "buildingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Zona Foodcourt",
+    "levelType": "zone",
+    "parentId": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+    "sortOrder": 1,
+    "metadata": { "area": 2500 },
+    "createdAt": "2026-02-01T09:00:00.000Z"
+  }
+]
+```

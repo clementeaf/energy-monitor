@@ -1,0 +1,40 @@
+---
+title: "Eliminar medidor"
+description: "Elimina un medidor por su ID. Retorna 204 sin contenido."
+sidebar_position: 5
+---
+
+# Eliminar medidor
+
+<span className="api-method api-method--delete">DELETE</span> `/meters/{id}`
+
+Elimina un medidor por su ID. Retorna 204 sin contenido.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `meters:delete`.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del medidor a eliminar. |
+
+## Respuesta
+
+Retorna `204 No Content` sin body.
+
+## Ejemplo
+
+```bash
+curl -X DELETE https://power-monitor.cloud/api/meters/d4e5f6a7-b8c9-0123-defa-456789012345 \
+  --cookie "access_token=eyJhbGciOi..." \
+  -v
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Meter not found"
+}
+```

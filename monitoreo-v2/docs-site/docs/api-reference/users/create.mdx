@@ -1,0 +1,69 @@
+---
+title: "Crear usuario"
+description: "Crea un usuario nuevo y envia invitacion por email si SES esta configurado."
+sidebar_position: 2
+---
+
+# Crear usuario
+
+<span className="api-method api-method--post">POST</span> `/users`
+
+Crea un usuario nuevo y envia invitacion por email si SES esta configurado.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso: `admin_users:create`.
+
+## Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `email` | string | Si | Email del usuario. Debe ser unico en el tenant. |
+| `displayName` | string | Si | Nombre visible del usuario. |
+| `roleId` | string | Si | UUID del rol a asignar. Solo roles de nivel inferior al del creador (hierarchy_level). |
+| `buildingIds` | string[] | No | IDs de edificios a asignar. Deben pertenecer al tenant actual. |
+| `phone` | string | No | Telefono del usuario. Si se proporciona, se envia SMS de invitacion via SNS. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `user` | object | Objeto usuario creado con todos los campos (id, email, displayName, isActive, phone, role, buildingIds, createdAt). |
+| `invitationToken` | string | Token de invitacion para el primer login del usuario. |
+
+## Ejemplo
+
+```bash
+curl -X POST https://power-monitor.cloud/api/users \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "nuevo@empresa.cl",
+    "displayName": "Maria Lopez",
+    "roleId": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "buildingIds": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"],
+    "phone": "+56987654321"
+  }'
+```
+
+```json title="201 Created"
+{
+  "user": {
+    "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+    "email": "nuevo@empresa.cl",
+    "displayName": "Maria Lopez",
+    "isActive": true,
+    "phone": "+56987654321",
+    "role": {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Operador",
+      "slug": "operator"
+    },
+    "buildingIds": [
+      "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    ],
+    "createdAt": "2026-07-04T14:30:00.000Z"
+  },
+  "invitationToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```

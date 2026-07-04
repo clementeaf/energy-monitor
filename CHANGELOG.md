@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.39.0-alpha.0] - 2026-07-04 — UX OVERHAUL + PII FIX + DOCS SITE
+
+### Added — Documentation Site
+- **Docs site** desplegado en `power-monitor.cloud/docs/`. Docusaurus 3, blanco y negro, 49 paginas.
+- **Estructura:** Informacion General, Primeros Pasos, Autenticacion (OAuth, Permisos, Versionado), Guias (Arquitectura, Multi-tenant, IoT), API Reference (10 grupos, 40+ endpoints).
+- **API Reference:** Auth, Buildings, Meters, Readings, Alerts, Invoices, Tariffs, Users, Hierarchy, IoT — cada endpoint con parametros, respuestas, ejemplos curl y JSON.
+- **Infra:** CloudFront behavior `/docs/*` con Function `docs-index-rewrite` (agrega index.html). S3 subfolder `docs/` en bucket existente.
+- **Deploy script:** `npm run deploy` en `monitoreo-v2/docs-site/` (build + S3 sync + CF invalidation).
+
+---
+
 ## [2.39.0-alpha.0] - 2026-07-04 — UX OVERHAUL + PII FIX + PROD PROXY
 
 ### Fixed

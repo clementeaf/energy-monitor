@@ -1,0 +1,76 @@
+---
+title: "Actualizar edificio"
+description: "Actualiza campos parciales de un edificio existente."
+sidebar_position: 4
+---
+
+# Actualizar edificio
+
+<span className="api-method api-method--patch">PATCH</span> `/buildings/{id}`
+
+Actualiza campos parciales de un edificio existente.
+
+## Autenticacion
+
+Requiere cookie JWT valida. Permiso `buildings:update`.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID del edificio. |
+
+## Body
+
+Todos los campos son opcionales. Solo se actualizan los campos enviados.
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `name` | string | No | Nombre del edificio. |
+| `address` | string | No | Direccion del edificio. |
+| `totalArea` | number | No | Superficie total en m2. |
+| `isActive` | boolean | No | Estado activo/inactivo. |
+| `latitude` | number | No | Latitud geografica. |
+| `longitude` | number | No | Longitud geografica. |
+| `countryCode` | string | No | Codigo de pais (CL, CO, PE). |
+| `timezone` | string | No | Zona horaria (ej. America/Santiago). |
+
+## Respuesta
+
+Retorna el edificio actualizado con todos sus campos.
+
+## Ejemplo
+
+```bash
+curl -X PATCH https://power-monitor.cloud/api/buildings/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  --cookie "access_token=eyJhbGciOi..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "totalArea": 130000,
+    "isActive": false
+  }'
+```
+
+```json title="200 OK"
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Mall Plaza Vespucio",
+  "address": "Av. Vicuna Mackenna 7110, La Florida",
+  "code": "MPV-001",
+  "totalArea": 130000,
+  "isActive": false,
+  "latitude": -33.5205,
+  "longitude": -70.5977,
+  "countryCode": "CL",
+  "timezone": "America/Santiago",
+  "createdAt": "2026-01-15T12:00:00.000Z",
+  "updatedAt": "2026-07-04T10:15:00.000Z"
+}
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Building not found"
+}
+```

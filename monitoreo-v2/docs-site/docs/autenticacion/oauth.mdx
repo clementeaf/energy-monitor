@@ -1,0 +1,96 @@
+---
+title: Autenticacion OAuth
+description: "Flujo de autenticacion OAuth con Microsoft y Google."
+sidebar_position: 1
+---
+
+## Flujo de autenticacion
+
+Energy Monitor soporta dos proveedores OAuth:
+
+- **Microsoft** (MSAL redirect)
+- **Google** (credential/One Tap)
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant F as Frontend
+    participant A as API
+    participant O as OAuth Provider
+
+    U->>F: Click "Iniciar sesion"
+    F->>O: Redirect OAuth (Microsoft/Google)
+    O->>F: id_token JWT
+    F->>A: POST /auth/login {provider, token}
+    A->>O: Verificar JWT (JWKS RS256)
+    A->>A: Resolver usuario por email
+    A->>F: Set-Cookie httpOnly (access + refresh)
+    F->>A: GET /auth/me
+    A->>F: {user, tenant, permissions}
+```
+
+## Login
+
+```bash
+POST /auth/login
+Content-Type: application/json
+
+{
+  "provider": "google",    // "google" | "microsoft"
+  "token": "<id_token>"   // JWT del proveedor OAuth
+}
+```
+
+La respuesta setea dos cookies httpOnly:
+- `access_token` -- JWT de sesion (15 min en prod)
+- `refresh_token` -- token de rotacion (24h)
+
+:::warning
+En produccion las cookies usan prefijo `__Host-` (requieren HTTPS + same-origin).
+No intentes leer estas cookies desde JavaScript.
+:::
+
+## Refresh
+
+```bash
+POST /auth/refresh
+# Cookie refresh_token se envia automaticamente
+# Respuesta: nuevas cookies access + refresh (rotacion)
+```
+
+## Logout
+
+```bash
+POST /auth/logout
+# Limpia cookies y revoca refresh token
+```
+
+## Verificar sesion
+
+```bash
+GET /auth/me
+# Respuesta: usuario, tenant, permisos
+```
+
+```json title="Respuesta"
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@company.com",
+    "displayName": "Juan Perez",
+    "isActive": true
+  },
+  "tenant": {
+    "id": "uuid",
+    "name": "PASA",
+    "slug": "pasa"
+  },
+  "permissions": ["buildings:read", "meters:read", "alerts:read"]
+}
+```
+
+## MFA
+
+Si el rol del usuario requiere MFA (`require_mfa: true`), despues del primer login OAuth
+se muestra un codigo QR para configurar TOTP. Las sesiones posteriores requieren
+el codigo de 6 digitos del authenticator.

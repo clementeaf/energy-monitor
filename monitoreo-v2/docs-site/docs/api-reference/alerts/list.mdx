@@ -1,0 +1,65 @@
+---
+title: "Listar alertas"
+description: "Obtiene la lista de alertas filtradas por estado, severidad, edificio o medidor."
+sidebar_position: 1
+---
+
+# Listar alertas
+
+<span className="api-method api-method--get">GET</span> `/alerts`
+
+Obtiene la lista de alertas filtradas por estado, severidad, edificio o medidor.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `status` | string | No | Estado de la alerta. Valores: `active`, `acknowledged`, `resolved`. |
+| `severity` | string | No | Severidad. Valores: `critical`, `high`, `medium`, `low`. |
+| `buildingId` | string | No | UUID del edificio para filtrar alertas. |
+| `meterId` | string | No | UUID del medidor para filtrar alertas. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la alerta. |
+| `buildingId` | string | UUID del edificio asociado. |
+| `meterId` | string | UUID del medidor asociado. |
+| `severity` | string | Severidad: `critical`, `high`, `medium`, `low`. |
+| `status` | string | Estado: `active`, `acknowledged`, `resolved`. |
+| `message` | string | Mensaje descriptivo de la alerta. |
+| `alertType` | string | Tipo de alerta. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `acknowledgedAt` | string | Fecha de reconocimiento (ISO 8601). |
+| `resolvedAt` | string | Fecha de resolucion (ISO 8601). |
+| `resolutionNotes` | string | Notas de resolucion. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/alerts?status=active&severity=critical" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+    "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+    "severity": "critical",
+    "status": "active",
+    "message": "Voltaje fuera de rango en medidor M-001",
+    "alertType": "voltage_out_of_range",
+    "createdAt": "2026-07-04T10:30:00.000Z",
+    "acknowledgedAt": null,
+    "resolvedAt": null,
+    "resolutionNotes": null
+  }
+]
+```

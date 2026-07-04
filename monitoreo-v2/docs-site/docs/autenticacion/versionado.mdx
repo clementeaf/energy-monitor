@@ -1,0 +1,47 @@
+---
+title: Versionado de la API
+description: "Politica de versionado y compatibilidad."
+sidebar_position: 3
+---
+
+## Version actual
+
+La API actual es **v1** (implicita en la URL base). No hay prefijo de version en las rutas.
+
+```
+https://power-monitor.cloud/api/buildings
+```
+
+## Compatibilidad
+
+- Los campos existentes no se eliminan sin aviso previo
+- Campos nuevos pueden agregarse a las respuestas en cualquier momento
+- Tu cliente debe ignorar campos desconocidos (forward-compatible)
+- Cambios breaking se comunicaran con al menos 30 dias de anticipacion
+
+## Rate limiting
+
+La API aplica rate limiting por IP y por usuario:
+
+| Tier | Limite | Ventana |
+|------|--------|---------|
+| General | 100 req | 1 min |
+| Auth | 10 req | 1 min |
+| Export | 5 req | 1 min |
+
+Cuando excedes el limite, la API responde `429 Too Many Requests` con el header
+`Retry-After` indicando los segundos a esperar.
+
+## Codigos de respuesta
+
+| Codigo | Significado |
+|--------|-------------|
+| `200` | OK |
+| `201` | Creado |
+| `204` | Sin contenido (delete exitoso) |
+| `400` | Request invalido (validacion) |
+| `401` | No autenticado |
+| `403` | Sin permisos |
+| `404` | No encontrado |
+| `429` | Rate limit excedido |
+| `500` | Error interno |

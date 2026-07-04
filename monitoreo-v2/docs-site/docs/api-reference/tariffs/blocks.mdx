@@ -1,0 +1,145 @@
+---
+title: "Bloques tarifarios"
+description: "CRUD de bloques horarios de una tarifa: listar, crear y eliminar."
+sidebar_position: 4
+---
+
+# Bloques tarifarios
+
+CRUD de bloques horarios de una tarifa: listar, crear y eliminar.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+---
+
+## Listar bloques
+
+<span className="api-method api-method--get">GET</span> `/tariffs/{id}/blocks`
+
+Retorna todos los bloques horarios de la tarifa.
+
+### Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la tarifa. |
+
+### Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/tariffs/t1234567-89ab-cdef-0123-456789abcdef/blocks" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "blk-001",
+    "blockName": "Punta",
+    "hourStart": 18,
+    "hourEnd": 23,
+    "energyRate": 120.50,
+    "demandRate": 413.46,
+    "reactiveRate": 15.20,
+    "fixedCharge": 0
+  },
+  {
+    "id": "blk-002",
+    "blockName": "Fuera de punta",
+    "hourStart": 23,
+    "hourEnd": 18,
+    "energyRate": 86.30,
+    "demandRate": 280.00,
+    "reactiveRate": 10.50,
+    "fixedCharge": 25000
+  }
+]
+```
+
+---
+
+## Crear bloque
+
+<span className="api-method api-method--post">POST</span> `/tariffs/{id}/blocks`
+
+Agrega un nuevo bloque horario a la tarifa.
+
+### Body
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `blockName` | string | Si | Nombre del bloque (ej. "Punta", "Fuera de punta", "Noche"). |
+| `hourStart` | number | Si | Hora de inicio del bloque (0-23). |
+| `hourEnd` | number | Si | Hora de fin del bloque (0-23). |
+| `energyRate` | number | Si | Tarifa de energia ($/kWh). |
+| `demandRate` | number | No | Tarifa de demanda ($/kW). |
+| `reactiveRate` | number | No | Tarifa de energia reactiva ($/kVArh). |
+| `fixedCharge` | number | No | Cargo fijo del bloque. |
+
+### Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del bloque creado. |
+| `blockName` | string | Nombre del bloque. |
+| `hourStart` | number | Hora de inicio (0-23). |
+| `hourEnd` | number | Hora de fin (0-23). |
+| `energyRate` | number | Tarifa de energia ($/kWh). |
+| `demandRate` | number | Tarifa de demanda ($/kW). |
+| `reactiveRate` | number | Tarifa de energia reactiva ($/kVArh). |
+| `fixedCharge` | number | Cargo fijo. |
+
+### Ejemplo
+
+```bash
+curl -X POST "https://power-monitor.cloud/api/tariffs/t1234567-89ab-cdef-0123-456789abcdef/blocks" \
+  -H "Content-Type: application/json" \
+  --cookie "access_token=<JWT>" \
+  -d '{
+    "blockName": "Noche",
+    "hourStart": 0,
+    "hourEnd": 6,
+    "energyRate": 55.80,
+    "demandRate": 150.00,
+    "fixedCharge": 0
+  }'
+```
+
+```json title="201 Created"
+{
+  "id": "blk-003",
+  "blockName": "Noche",
+  "hourStart": 0,
+  "hourEnd": 6,
+  "energyRate": 55.80,
+  "demandRate": 150.00,
+  "reactiveRate": null,
+  "fixedCharge": 0
+}
+```
+
+---
+
+## Eliminar bloque
+
+<span className="api-method api-method--delete">DELETE</span> `/tariffs/{id}/blocks/{blockId}`
+
+Elimina un bloque horario de la tarifa.
+
+### Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la tarifa. |
+| `blockId` | string | Si | UUID del bloque a eliminar. |
+
+### Ejemplo
+
+```bash
+curl -X DELETE "https://power-monitor.cloud/api/tariffs/t1234567-89ab-cdef-0123-456789abcdef/blocks/blk-003" \
+  --cookie "access_token=<JWT>"
+```
+
+Retorna `204 No Content`.

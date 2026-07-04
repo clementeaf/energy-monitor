@@ -1,0 +1,53 @@
+---
+title: Multi-tenant
+description: "Arquitectura multi-tenant y aislamiento de datos."
+sidebar_position: 2
+---
+
+## Modelo
+
+Cada organizacion (PASA, Siemens, etc.) es un **tenant** con datos completamente aislados.
+El tenant se determina automaticamente desde el JWT del usuario autenticado.
+
+```
+Tenant PASA
+  |-- Building: Mall Plaza Vespucio
+  |     |-- Meter: MP-001, MP-002, ...
+  |     |-- Alerts, Readings, Invoices
+  |-- Building: Mall Arauco Maipu
+        |-- Meter: MA-001, ...
+```
+
+## Scoping automatico
+
+No necesitas filtrar por tenant manualmente. El backend inyecta el filtro:
+
+```sql
+-- Lo que ejecuta el backend internamente:
+SELECT * FROM buildings
+WHERE tenant_id = '<tenant-del-jwt>'
+  AND id = ANY('<building-ids-del-usuario>')
+```
+
+## Theming
+
+Cada tenant puede personalizar la apariencia de la plataforma:
+
+| Campo | Descripcion |
+|-------|-------------|
+| `primaryColor` | Color principal de la marca |
+| `secondaryColor` | Color secundario |
+| `sidebarColor` | Color del sidebar |
+| `accentColor` | Color de acentos |
+| `logoUrl` | Logo personalizado |
+| `faviconUrl` | Favicon personalizado |
+| `appTitle` | Titulo de la aplicacion |
+
+## Cross-tenant
+
+Solo usuarios `super_admin` pueden acceder a datos de multiples tenants
+usando el header `x-tenant-id`. Esto es util para:
+
+- Dashboards de portafolio global
+- Administracion centralizada
+- Reportes consolidados

@@ -1,0 +1,96 @@
+---
+title: "Obtener factura"
+description: "Obtiene el detalle de una factura incluyendo sus line items."
+sidebar_position: 2
+---
+
+# Obtener factura
+
+<span className="api-method api-method--get">GET</span> `/invoices/{id}`
+
+Obtiene el detalle de una factura incluyendo sus line items.
+
+## Autenticacion
+
+Requiere cookie JWT de sesion activa.
+
+## Parametros de ruta
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `id` | string | Si | UUID de la factura. |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID de la factura. |
+| `buildingId` | string | UUID del edificio. |
+| `invoiceNumber` | string | Numero de factura. |
+| `status` | string | Estado: `draft`, `pending`, `approved`, `voided`. |
+| `periodStart` | string | Inicio del periodo facturado (ISO 8601). |
+| `periodEnd` | string | Fin del periodo facturado (ISO 8601). |
+| `totalAmount` | number | Monto total de la factura. |
+| `notes` | string | Notas adicionales. |
+| `createdAt` | string | Fecha de creacion (ISO 8601). |
+| `lineItems` | array | Lista de items de la factura. |
+
+**Propiedades de line item:**
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | UUID del line item. |
+| `meterId` | string | UUID del medidor. |
+| `description` | string | Descripcion del cargo. |
+| `quantity` | number | Cantidad (kWh, kW, etc.). |
+| `unitPrice` | number | Precio unitario. |
+| `amount` | number | Monto total del item. |
+| `blockName` | string | Nombre del bloque tarifario aplicado. |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/invoices/f1234567-89ab-cdef-0123-456789abcdef" \
+  --cookie "access_token=<JWT>"
+```
+
+```json title="200 OK"
+{
+  "id": "f1234567-89ab-cdef-0123-456789abcdef",
+  "buildingId": "b1234567-89ab-cdef-0123-456789abcdef",
+  "invoiceNumber": "INV-2026-0042",
+  "status": "pending",
+  "periodStart": "2026-06-01T00:00:00.000Z",
+  "periodEnd": "2026-06-30T23:59:59.000Z",
+  "totalAmount": 1250000.50,
+  "notes": null,
+  "createdAt": "2026-07-01T08:00:00.000Z",
+  "lineItems": [
+    {
+      "id": "li-001",
+      "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+      "description": "Energia activa - Punta",
+      "quantity": 4500.25,
+      "unitPrice": 120.50,
+      "amount": 542280.13,
+      "blockName": "Punta"
+    },
+    {
+      "id": "li-002",
+      "meterId": "m1234567-89ab-cdef-0123-456789abcdef",
+      "description": "Energia activa - Fuera de punta",
+      "quantity": 8200.00,
+      "unitPrice": 86.30,
+      "amount": 707660.00,
+      "blockName": "Fuera de punta"
+    }
+  ]
+}
+```
+
+```json title="404 Not Found"
+{
+  "statusCode": 404,
+  "message": "Factura no encontrada"
+}
+```

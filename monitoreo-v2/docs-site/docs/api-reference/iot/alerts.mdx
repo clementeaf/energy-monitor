@@ -1,0 +1,76 @@
+---
+title: "Alertas IoT"
+description: "Alertas generadas on-the-fly desde anomalias en lecturas IoT (voltaje, factor de potencia, potencia, THD)."
+sidebar_position: 3
+---
+
+# Alertas IoT
+
+<span className="api-method api-method--get">GET</span> `/iot-readings/alerts`
+
+Alertas generadas on-the-fly desde anomalias en lecturas IoT (voltaje, factor de potencia, potencia, THD).
+
+## Autenticacion
+
+Requiere cookie JWT valida.
+
+## Parametros
+
+| Nombre | Tipo | Requerido | Descripcion |
+|--------|------|-----------|-------------|
+| `severity` | string | No | Filtrar por severidad: `critical`, `warning`, `info`. |
+| `device_id` | string | No | UUID del dispositivo IoT para filtrar alertas. |
+
+## Umbrales de deteccion
+
+Las alertas se generan automaticamente cuando las lecturas exceden estos umbrales:
+
+| Variable | Condicion | Severidad |
+|----------|-----------|-----------|
+| Voltaje | < 200V o > 250V | `critical` |
+| Factor de potencia | < 0.85 | `warning` |
+| Potencia activa | > 50 kW | `warning` |
+| THD voltaje | > 8% | `warning` |
+| THD corriente | > 20% | `critical` |
+
+## Respuesta
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `id` | string | Identificador unico de la alerta (generado). |
+| `deviceClientId` | string | Identificador MQTT del dispositivo que genero la anomalia. |
+| `variable` | string | Variable que excedio el umbral (ej. `voltaje_l1`, `factor_potencia`). |
+| `value` | number | Valor medido que disparo la alerta. |
+| `threshold` | string | Descripcion del umbral violado (ej. "> 250V", "< 0.85"). |
+| `severity` | string | Severidad: `critical`, `warning` o `info`. |
+| `timestamp` | string | Momento de la lectura anomala (ISO 8601). |
+
+## Ejemplo
+
+```bash
+curl -X GET "https://power-monitor.cloud/api/iot-readings/alerts?severity=critical" \
+  --cookie "access_token=eyJhbGciOi..."
+```
+
+```json title="200 OK"
+[
+  {
+    "id": "alert-v1-2026-07-04T14:30:00Z-mz01",
+    "deviceClientId": "siemens-poc3000-mz01",
+    "variable": "voltaje_l1",
+    "value": 195.3,
+    "threshold": "< 200V",
+    "severity": "critical",
+    "timestamp": "2026-07-04T14:30:00.000Z"
+  },
+  {
+    "id": "alert-thd-2026-07-04T14:45:00Z-mz02",
+    "deviceClientId": "siemens-poc3000-mz02",
+    "variable": "thd_corriente",
+    "value": 22.1,
+    "threshold": "> 20%",
+    "severity": "critical",
+    "timestamp": "2026-07-04T14:45:00.000Z"
+  }
+]
+```

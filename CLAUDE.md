@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-07-04)
+- **2.39.0:** UX overhaul + PII fix + docs site. Panel Consolidado: layout compacto (mapa 65%/panel 35%), sparkline+eventos eliminados (datos falsos), alertas infinite scroll 20 en 20. Seguridad PAM: 5 paneles en una fila, todo clickeable con Drawer, vulnerabilidades como pills. MapView: fix markers desaparecían al click (referencia inestable `polygons=[]`). Audit logs: PII decrypt (`pii:...` → email real). Proxy prod: `VITE_API_TARGET=https://power-monitor.cloud npm run dev` (zero Docker). Docs site Docusaurus desplegado en `power-monitor.cloud/docs/` (49 páginas API Reference + guías + auth + API Keys). Backend deployed (`pii-fix-20260704`). [CHANGELOG — 2.39.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-07-03)
 - **2.38.0:** Alineación total con spec Roles EMS. Navegación podada: 77 items extra eliminados, perfil Locatario eliminado (no en spec), duplicado Auditor corregido. 129 gaps de contenido cerrados (20 Gerencial + 27 Operacional + 27 Técnico + 27 Auditor + 28 Súper-admin). Cada perfil muestra exactamente sus 6 pantallas spec. Filtros mapa, sparklines demanda, marcadores proporcionales, chart SVG línea/48h/72h, date pickers, tooltips enriquecidos, columnas spec faltantes, botones acción, exportaciones firmadas, métricas detalle, multi-select, firma digital placeholders. 788 frontend tests. [CHANGELOG — 2.38.0-alpha.0](CHANGELOG.md)
 - **2.37.0:** IoT prod activation + trend chart. Migraciones 12/13/54 en prod. Tenant Siemens corregido. [CHANGELOG — 2.37.0-alpha.0](CHANGELOG.md)
@@ -264,7 +267,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.37.0; PASA 875 medidores; migr. prod 1–54 aplicadas.
+Prod: power-monitor.cloud — 2.39.0; PASA 875 medidores; migr. prod 1–54 aplicadas.
+Docs: power-monitor.cloud/docs/ — Docusaurus, 50 páginas, API Keys documentadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
 Perfiles: 5 perfiles EMS (sin Locatario). Navegación podada a spec (6 pantallas/perfil). 129 gaps contenido cerrados.
 Spec Roles EMS: 100% alineado (nav + contenido). 788 frontend / 1307 backend tests. Zero gaps.
@@ -350,7 +354,18 @@ cd monitoreo-v2/frontend && npm ci && npm run dev
 cd monitoreo-v2/frontend && npm run test
 ```
 
+**Flujo sin Docker (frontend contra prod):** no requiere Docker ni backend local.
+
+```bash
+cd monitoreo-v2/frontend
+VITE_API_TARGET=https://power-monitor.cloud npm run dev
+```
+
+Proxy reescribe cookies `__Host-` + `Secure` para funcionar en localhost HTTP. Login OAuth funciona.
+
 **Flujo opcional:** `docker compose up --build` levanta DB + API en contenedores (imagen prod, sin watch).
+
+**Docs site:** Docusaurus en `monitoreo-v2/docs-site/`. Deploy: `npm run deploy` (build + S3 sync + CF invalidation). Vive en `power-monitor.cloud/docs/`.
 
 **DB local (compose):** `DB_HOST=127.0.0.1 DB_PORT=5434 DB_NAME=monitoreo_v2 DB_PASSWORD=monitoreo2026` — contenedor `monitoreo-v2-db`. Legacy `pg-arauco`: `DB_NAME=arauco DB_PASSWORD=arauco`.
 
@@ -389,4 +404,4 @@ cd monitoreo-v2/frontend && npm run test
 - Documento externo complementario: `/Users/clementefalcone/Desktop/personal/Proyectos/Proyectos/energy-monitor.md`
 
 ## References
-[CHANGELOG](CHANGELOG.md) (último: 2.36.0-alpha.0) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)
+[CHANGELOG](CHANGELOG.md) (último: 2.39.0-alpha.0) | [Docs Site](https://power-monitor.cloud/docs/) | [MapVX Cache](monitoreo-v2/backend/scripts/seed-mapvx-tiles.mjs) | [Issues & Fixes](docs/ISSUES_&_FIXES.md) | [Auth Microsoft](docs/auth-microsoft-data-scope.md) | [AWS Runbook](docs/aws-runbook.md)

@@ -1,0 +1,1 @@
+SELECT json_agg(json_build_object('slug', slug, 'name', name, 'tid', LEFT(tenant_id::text, 8))) FROM roles ORDER BY slug;

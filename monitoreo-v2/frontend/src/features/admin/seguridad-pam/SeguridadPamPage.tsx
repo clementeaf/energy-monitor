@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { Drawer } from '../../../components/ui/Drawer';
 import { useUsersQuery } from '../../../hooks/queries/useUsersQuery';
 import { useBreachReportsQuery } from '../../../hooks/queries/useBreachReportsQuery';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
@@ -105,10 +106,18 @@ export function SeguridadPamPage() {
   const [jitJustification, setJitJustification] = useState('');
   const [jitSubmitted, setJitSubmitted] = useState(false);
 
+  // Detail drawer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [drawer, setDrawer] = useState<{ type: string; data: any } | null>(null);
+  const closeDrawer = () => setDrawer(null);
+
   // Security KPIs derived from real data
   const activeBreaches = breachReports.filter((b) => b.status !== 'resolved').length;
   const totalPam = pamAccounts.length;
   const openIncidents = incidents.filter((i) => i.status !== 'resuelto').length;
+
+  const vulnMedium = breachReports.filter((b) => b.status !== 'resolved').length;
+  const vulnLow = breachReports.filter((b) => b.status === 'resolved').length;
 
   const securityKpis = [
     { title: 'Brechas abiertas', value: String(activeBreaches), color: activeBreaches > 0 ? 'text-red-600' : 'text-emerald-600' },
@@ -117,6 +126,10 @@ export function SeguridadPamPage() {
     { title: '% parche <30d', value: '100%', color: 'text-emerald-600' },
     { title: 'Cuentas PAM', value: String(totalPam), color: 'text-foreground' },
     { title: 'Incidentes abiertos', value: String(openIncidents), color: openIncidents > 0 ? 'text-red-600' : 'text-emerald-600' },
+    { title: 'Vuln. críticas', value: '0', color: 'text-emerald-600' },
+    { title: 'Vuln. altas', value: '0', color: 'text-emerald-600' },
+    { title: 'Vuln. medias', value: String(vulnMedium), color: vulnMedium > 0 ? 'text-amber-600' : 'text-emerald-600' },
+    { title: 'Vuln. bajas', value: String(vulnLow), color: 'text-blue-600' },
   ];
 
   return (
@@ -124,112 +137,115 @@ export function SeguridadPamPage() {
       <PageHeader title="Seguridad y PAM" eyebrow="Seguridad" />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="flex flex-wrap gap-2">
         {securityKpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
+          <div key={k.title} className="panel px-3 py-1.5">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
+            <p className={`text-base font-semibold leading-tight ${k.color}`}>{k.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Main panels row — 6 panels, same height */}
+      <div className="flex gap-3 overflow-x-auto">
         {/* Breach reports */}
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">Reportes de brecha</h3>
+        <div className="panel min-w-[180px] flex-1 p-3">
+          <h3 className="mb-2 text-[12px] font-medium text-foreground">Reportes de brecha</h3>
           {breachReports.length === 0 ? (
-            <p className="text-[12px] text-muted">Sin reportes de brecha registrados.</p>
-          ) : (
-            <div className="space-y-2">
-              {breachReports.slice(0, 5).map((b) => (
-                <div key={b.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <div>
-                    <p className="text-[12px] font-medium text-foreground">{b.description}</p>
-                    <p className="text-[10px] text-muted">{new Date(b.createdAt).toLocaleDateString('es-CL')}</p>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                    b.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {b.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent security-relevant audit actions */}
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">Actividad de seguridad</h3>
-          {auditLogs.length === 0 ? (
-            <p className="text-[12px] text-muted">Sin actividad reciente.</p>
+            <p className="text-[11px] text-muted">Sin reportes.</p>
           ) : (
             <div className="space-y-1.5">
-              {auditLogs.slice(0, 8).map((log) => (
-                <div key={log.id} className="flex items-center justify-between text-[12px]">
-                  <div className="flex items-center gap-2">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                      SEVERITY_BADGE[log.action.toLowerCase()] ?? 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {log.action}
-                    </span>
-                    <span className="text-muted">{log.resourceType}</span>
-                  </div>
-                  <span className="text-[10px] text-muted">{new Date(log.createdAt).toLocaleDateString('es-CL')}</span>
-                </div>
+              {breachReports.slice(0, 5).map((b) => (
+                <button key={b.id} type="button" onClick={() => setDrawer({ type: 'breach', data: b })} className="flex w-full items-center justify-between rounded px-1 py-0.5 text-[11px] transition-colors hover:bg-surface">
+                  <span className="truncate text-foreground">{b.description}</span>
+                  <span className={`ml-2 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
+                    b.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                  }`}>{b.status}</span>
+                </button>
               ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Vulnerabilities + TLS */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">Vulnerabilidades por severidad</h3>
-          <div className="space-y-2">
-            {([
-              { severity: 'CRITICAL', count: 0, color: 'bg-red-100 text-red-700' },
-              { severity: 'HIGH', count: 0, color: 'bg-orange-100 text-orange-700' },
-              { severity: 'MEDIUM', count: breachReports.filter((b) => b.status !== 'resolved').length, color: 'bg-amber-100 text-amber-700' },
-              { severity: 'LOW', count: breachReports.filter((b) => b.status === 'resolved').length, color: 'bg-blue-100 text-blue-700' },
-            ] as const).map((v) => (
-              <div key={v.severity} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${v.color}`}>{v.severity}</span>
-                <span className="text-[13px] font-semibold text-foreground">{v.count}</span>
-              </div>
+        {/* Audit activity */}
+        <div className="panel min-w-[200px] flex-1 p-3">
+          <h3 className="mb-2 text-[12px] font-medium text-foreground">Actividad de seguridad</h3>
+          {auditLogs.length === 0 ? (
+            <p className="text-[11px] text-muted">Sin actividad.</p>
+          ) : (
+            <div className="space-y-1">
+              {auditLogs.slice(0, 8).map((log) => (
+                <button key={log.id} type="button" onClick={() => setDrawer({ type: 'audit', data: log })} className="flex w-full items-center justify-between rounded px-1 py-0.5 text-[11px] transition-colors hover:bg-surface">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`rounded px-1 py-0.5 text-[9px] font-medium ${SEVERITY_BADGE[log.action.toLowerCase()] ?? 'bg-gray-100 text-gray-700'}`}>{log.action}</span>
+                    <span className="text-muted">{log.resourceType}</span>
+                  </div>
+                  <span className="text-[9px] text-muted">{new Date(log.createdAt).toLocaleDateString('es-CL')}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* TLS */}
+        <div className="panel min-w-[160px] shrink-0 p-3">
+          <h3 className="mb-2 text-[12px] font-medium text-foreground">Certificados TLS</h3>
+          <div className="space-y-1">
+            {[
+              { service: 'API Gateway', days: 245, issuer: 'ACM', algorithm: 'RSA-2048', autoRenew: true },
+              { service: 'CloudFront CDN', days: 312, issuer: 'ACM', algorithm: 'RSA-2048', autoRenew: true },
+              { service: 'RDS PostgreSQL', days: 180, issuer: 'Amazon RDS', algorithm: 'RSA-2048', autoRenew: false },
+            ].map((c) => (
+              <button key={c.service} type="button" onClick={() => setDrawer({ type: 'tls', data: c })} className="flex w-full items-center justify-between rounded px-1 py-0.5 text-[11px] transition-colors hover:bg-surface">
+                <span className="text-foreground">{c.service}</span>
+                <span className={c.days <= 30 ? 'font-medium text-red-600' : c.days <= 90 ? 'text-amber-600' : 'text-muted'}>{c.days}d</span>
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">Certificados TLS</h3>
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="pb-2">Servicio</th>
-                <th className="pb-2 text-right">Días restantes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {[
-                { service: 'API Gateway', daysRemaining: 245 },
-                { service: 'CloudFront CDN', daysRemaining: 312 },
-                { service: 'RDS PostgreSQL', daysRemaining: 180 },
-              ].map((cert) => (
-                <tr key={cert.service}>
-                  <td className="py-2 text-foreground">{cert.service}</td>
-                  <td className={`py-2 text-right ${cert.daysRemaining <= 30 ? 'text-red-600 font-medium' : cert.daysRemaining <= 90 ? 'text-amber-600' : 'text-foreground'}`}>
-                    {cert.daysRemaining}d
-                  </td>
-                </tr>
+        {/* PAM Usage History */}
+        <div className="panel min-w-[200px] flex-1 p-3" data-testid="pam-usage-history">
+          <h3 className="mb-2 text-[12px] font-medium text-foreground">Historial uso PAM</h3>
+          {pamUsageHistory.length === 0 ? (
+            <p className="text-[11px] text-muted">Sin actividad.</p>
+          ) : (
+            <div className="space-y-1">
+              {pamUsageHistory.map((h) => (
+                <button key={h.id} type="button" onClick={() => setDrawer({ type: 'pamUsage', data: h })} className="flex w-full items-center justify-between rounded px-1 py-0.5 text-[11px] transition-colors hover:bg-surface">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-foreground">{h.user}</span>
+                    <span className={`rounded px-1 py-0.5 text-[9px] font-medium ${SEVERITY_BADGE[h.action.toLowerCase()] ?? 'bg-gray-100 text-gray-700'}`}>{h.action}</span>
+                  </div>
+                  <span className="text-[9px] text-muted">{h.date}</span>
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
+        </div>
+
+        {/* Incidents */}
+        <div className="panel min-w-[200px] flex-1 p-3" data-testid="security-incidents">
+          <h3 className="mb-2 text-[12px] font-medium text-foreground">Incidentes</h3>
+          {incidents.length === 0 ? (
+            <p className="text-[11px] text-muted">Sin incidentes.</p>
+          ) : (
+            <div className="space-y-1">
+              {incidents.map((inc) => (
+                <button key={inc.id} type="button" onClick={() => setDrawer({ type: 'incident', data: inc })} className="flex w-full items-center justify-between rounded px-1 py-0.5 text-[11px] transition-colors hover:bg-surface">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`rounded px-1 py-0.5 text-[9px] font-medium ${SEVERITY_BADGE[inc.severity] ?? ''}`}>{inc.severity}</span>
+                    <span className="truncate text-foreground">{inc.description}</span>
+                  </div>
+                  <span className={`ml-2 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${INCIDENT_STATUS_BADGE[inc.status] ?? 'bg-gray-100 text-gray-700'}`}>{inc.status}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* PAM Accounts — enhanced with review dates + status */}
+      {/* PAM Accounts */}
       <div className="panel p-4">
         <h3 className="mb-3 text-[13px] font-medium text-foreground">Cuentas privilegiadas (PAM)</h3>
         <table className="w-full text-[13px]">
@@ -246,7 +262,7 @@ export function SeguridadPamPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {pamWithReview.map((acc) => (
-              <tr key={acc.id} className="transition-colors hover:bg-surface">
+              <tr key={acc.id} className="cursor-pointer transition-colors hover:bg-surface" onClick={() => setDrawer({ type: 'pam', data: acc })}>
                 <td className="px-3 py-2 font-medium text-foreground">{acc.displayName}</td>
                 <td className="px-3 py-2 text-muted">{acc.email}</td>
                 <td className="px-3 py-2 font-mono text-[11px] text-muted">{acc.role?.name ?? acc.role?.slug}</td>
@@ -256,17 +272,11 @@ export function SeguridadPamPage() {
                   {acc.daysUntilReview <= 7 && <span className="ml-1">({acc.daysUntilReview}d)</span>}
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${PAM_BADGE[acc.pamStatus]}`}>
-                    {acc.pamStatus}
-                  </span>
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${PAM_BADGE[acc.pamStatus]}`}>{acc.pamStatus}</span>
                 </td>
                 <td className="px-3 py-2">
-                  {acc.pamStatus === 'activo' && (
-                    <button type="button" className="text-[10px] text-amber-600 hover:underline">Suspender</button>
-                  )}
-                  {acc.pamStatus === 'suspendido' && (
-                    <button type="button" className="text-[10px] text-brand hover:underline">Reactivar</button>
-                  )}
+                  {acc.pamStatus === 'activo' && <button type="button" className="text-[10px] text-amber-600 hover:underline">Suspender</button>}
+                  {acc.pamStatus === 'suspendido' && <button type="button" className="text-[10px] text-brand hover:underline">Reactivar</button>}
                 </td>
               </tr>
             ))}
@@ -277,131 +287,46 @@ export function SeguridadPamPage() {
         </table>
       </div>
 
-      {/* PAM Usage History */}
-      <div className="panel p-4" data-testid="pam-usage-history">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Historial de uso PAM</h3>
-        {pamUsageHistory.length === 0 ? (
-          <p className="text-[12px] text-muted">Sin actividad de cuentas privilegiadas.</p>
-        ) : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Usuario</th>
-                <th className="px-3 py-2">Recurso</th>
-                <th className="px-3 py-2">Acción</th>
-                <th className="px-3 py-2">Fecha</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {pamUsageHistory.map((h) => (
-                <tr key={h.id} className="hover:bg-surface">
-                  <td className="px-3 py-2 text-foreground">{h.user}</td>
-                  <td className="px-3 py-2 text-muted">{h.resource}</td>
-                  <td className="px-3 py-2">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_BADGE[h.action.toLowerCase()] ?? 'bg-gray-100 text-gray-700'}`}>{h.action}</span>
-                  </td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{h.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* JIT Credential Vault */}
-      <div className="panel p-4" data-testid="jit-vault">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-[13px] font-medium text-foreground">Bóveda de credenciales (JIT)</h3>
-          <button type="button" onClick={() => { setJitRequestOpen(true); setJitSubmitted(false); }} className="rounded-md bg-brand px-3 py-1.5 text-[11px] font-medium text-brand-fg hover:bg-brand-hover">
-            Solicitar acceso
-          </button>
-        </div>
-        <p className="text-[12px] text-muted">Acceso just-in-time a credenciales privilegiadas con aprobación y registro de sesión completo.</p>
-
-        {jitRequestOpen && (
-          <div className="mt-3 space-y-3 rounded-lg border border-border p-3" data-testid="jit-form">
-            {jitSubmitted ? (
-              <div className="rounded-lg bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
-                Solicitud enviada. Pendiente de aprobación.
-              </div>
-            ) : (
-              <>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-muted">Recurso</label>
-                  <select value={jitResource} onChange={(e) => setJitResource(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
-                    <option value="">Seleccionar...</option>
+      {/* Breach notification + Crypto deletion */}
+      <div className="flex gap-3">
+        {/* JIT Vault */}
+        <div className="panel min-w-0 flex-1 p-4" data-testid="jit-vault">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-[13px] font-medium text-foreground">Bóveda de credenciales (JIT)</h3>
+            <button type="button" onClick={() => { setJitRequestOpen(true); setJitSubmitted(false); }} className="rounded-md bg-brand px-3 py-1.5 text-[10px] font-medium text-brand-fg hover:bg-brand-hover">
+              Solicitar acceso
+            </button>
+          </div>
+          <p className="text-[11px] text-muted">Acceso just-in-time con aprobación y registro de sesión.</p>
+          {jitRequestOpen && (
+            <div className="mt-3 space-y-2 rounded-lg border border-border p-3" data-testid="jit-form">
+              {jitSubmitted ? (
+                <p className="text-[11px] text-emerald-700">Solicitud enviada. Pendiente de aprobación.</p>
+              ) : (
+                <>
+                  <select value={jitResource} onChange={(e) => setJitResource(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none">
+                    <option value="">Recurso...</option>
                     <option value="rds-prod">RDS Producción</option>
                     <option value="ecs-exec">ECS Exec</option>
                     <option value="s3-admin">S3 Admin</option>
                     <option value="iam-console">IAM Console</option>
                   </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-muted">Duración (minutos)</label>
-                  <select value={jitDuration} onChange={(e) => setJitDuration(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
+                  <select value={jitDuration} onChange={(e) => setJitDuration(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none">
                     <option value="15">15 min</option>
                     <option value="30">30 min</option>
                     <option value="60">1 hora</option>
                     <option value="120">2 horas</option>
                   </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-muted">Justificación</label>
-                  <textarea value={jitJustification} onChange={(e) => setJitJustification(e.target.value)} rows={2} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none" placeholder="Motivo del acceso..." />
-                </div>
-                <button
-                  type="button"
-                  disabled={!jitResource || !jitJustification.trim()}
-                  onClick={() => setJitSubmitted(true)}
-                  className="w-full rounded-md bg-brand px-3 py-1.5 text-[11px] font-medium text-brand-fg hover:bg-brand-hover disabled:opacity-50"
-                >
-                  Enviar solicitud
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+                  <textarea value={jitJustification} onChange={(e) => setJitJustification(e.target.value)} rows={2} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none" placeholder="Justificación..." />
+                  <button type="button" disabled={!jitResource || !jitJustification.trim()} onClick={() => setJitSubmitted(true)} className="w-full rounded-md bg-brand px-3 py-1.5 text-[10px] font-medium text-brand-fg disabled:opacity-50">Enviar solicitud</button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
-      {/* Security Incidents */}
-      <div className="panel p-4" data-testid="security-incidents">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Incidentes de seguridad</h3>
-        {incidents.length === 0 ? (
-          <p className="text-[12px] text-muted">Sin incidentes registrados.</p>
-        ) : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Fecha</th>
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2">Descripción</th>
-                <th className="px-3 py-2 text-center">Severidad</th>
-                <th className="px-3 py-2 text-center">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {incidents.map((inc) => (
-                <tr key={inc.id} className="hover:bg-surface">
-                  <td className="px-3 py-2 text-[11px] text-muted">{inc.date}</td>
-                  <td className="px-3 py-2 text-muted">{inc.type}</td>
-                  <td className="px-3 py-2 text-foreground">{inc.description}</td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_BADGE[inc.severity] ?? ''}`}>{inc.severity}</span>
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${INCIDENT_STATUS_BADGE[inc.status] ?? 'bg-gray-100 text-gray-700'}`}>{inc.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Breach notification + Crypto deletion */}
-      <div className="grid gap-4 lg:grid-cols-2">
         {/* Breach notification flow (<4h) */}
-        <div className="panel p-4" data-testid="breach-notification">
+        <div className="panel min-w-0 flex-1 p-4" data-testid="breach-notification">
           <h3 className="mb-3 text-[13px] font-medium text-foreground">Notificación de brecha (&lt;4h)</h3>
           <p className="mb-3 text-[11px] text-muted">CYB-16, PRI-02 — Envío automático a PASA dentro de 4 horas de detección.</p>
           {breachSent ? (
@@ -439,7 +364,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Cryptographic deletion */}
-        <div className="panel p-4" data-testid="crypto-deletion">
+        <div className="panel min-w-0 flex-1 p-4" data-testid="crypto-deletion">
           <h3 className="mb-3 text-[13px] font-medium text-foreground">Borrado criptográfico</h3>
           <p className="mb-3 text-[11px] text-muted">CYB-12 — Destrucción certificada de datos al término de contrato.</p>
           {cryptoExecuted ? (
@@ -477,6 +402,114 @@ export function SeguridadPamPage() {
           )}
         </div>
       </div>
+
+      {/* Detail Drawer */}
+      <Drawer open={drawer !== null} onClose={closeDrawer} title={drawerTitle(drawer?.type)} side="right" size="md">
+        {drawer && <DrawerContent type={drawer.type} data={drawer.data} />}
+      </Drawer>
+    </div>
+  );
+}
+
+/* ── Drawer helpers ── */
+
+function drawerTitle(type?: string): string {
+  const titles: Record<string, string> = {
+    breach: 'Reporte de brecha',
+    audit: 'Registro de auditoría',
+    tls: 'Certificado TLS',
+    pamUsage: 'Actividad PAM',
+    incident: 'Incidente de seguridad',
+    pam: 'Cuenta privilegiada',
+  };
+  return titles[type ?? ''] ?? 'Detalle';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function DrawerContent({ type, data }: Readonly<{ type: string; data: any }>) {
+  if (type === 'breach') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Descripción" value={data.description} />
+        <Row label="Estado" value={data.status} />
+        <Row label="Fecha" value={new Date(data.createdAt).toLocaleString('es-CL')} />
+        <Row label="Reportado por" value={data.reportedBy ?? '—'} />
+        <Row label="ID" value={data.id} mono />
+      </dl>
+    );
+  }
+  if (type === 'audit') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Acción" value={data.action} />
+        <Row label="Recurso" value={data.resourceType} />
+        <Row label="ID recurso" value={data.resourceId ?? '—'} mono />
+        <Row label="Usuario" value={data.userEmail ?? data.userId ?? '—'} />
+        <Row label="Fecha" value={new Date(data.createdAt).toLocaleString('es-CL')} />
+        {data.changes && <Row label="Cambios" value={JSON.stringify(data.changes, null, 2)} mono />}
+        <Row label="ID" value={data.id} mono />
+      </dl>
+    );
+  }
+  if (type === 'tls') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Servicio" value={data.service} />
+        <Row label="Días restantes" value={`${data.days}d`} />
+        <Row label="Emisor" value={data.issuer} />
+        <Row label="Algoritmo" value={data.algorithm} />
+        <Row label="Renovación automática" value={data.autoRenew ? 'Sí' : 'No'} />
+      </dl>
+    );
+  }
+  if (type === 'pamUsage') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Usuario" value={data.user} />
+        <Row label="Recurso" value={data.resource} />
+        <Row label="Acción" value={data.action} />
+        <Row label="Fecha" value={data.date} />
+        <Row label="ID" value={data.id} mono />
+      </dl>
+    );
+  }
+  if (type === 'incident') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Descripción" value={data.description} />
+        <Row label="Tipo" value={data.type} />
+        <Row label="Severidad" value={data.severity} />
+        <Row label="Estado" value={data.status} />
+        <Row label="Fecha" value={data.date} />
+        <Row label="Responsable" value={data.responsible} />
+        <Row label="ID" value={data.id} mono />
+      </dl>
+    );
+  }
+  if (type === 'pam') {
+    return (
+      <dl className="space-y-3 text-[13px]">
+        <Row label="Nombre" value={data.displayName} />
+        <Row label="Email" value={data.email} />
+        <Row label="Rol" value={data.role?.name ?? data.role?.slug ?? '—'} />
+        <Row label="Estado PAM" value={data.pamStatus} />
+        <Row label="Última revisión" value={data.lastReview?.toLocaleDateString('es-CL') ?? '—'} />
+        <Row label="Próxima revisión" value={data.nextReview?.toLocaleDateString('es-CL') ?? '—'} />
+        <Row label="Días hasta revisión" value={String(data.daysUntilReview ?? '—')} />
+        <Row label="Activo" value={data.isActive ? 'Sí' : 'No'} />
+        <Row label="Creado" value={new Date(data.createdAt).toLocaleString('es-CL')} />
+        <Row label="ID" value={data.id} mono />
+      </dl>
+    );
+  }
+  return <p className="text-[12px] text-muted">Sin detalle disponible.</p>;
+}
+
+function Row({ label, value, mono }: Readonly<{ label: string; value: string; mono?: boolean }>) {
+  return (
+    <div>
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">{label}</dt>
+      <dd className={`mt-0.5 text-foreground ${mono ? 'font-mono text-[12px]' : ''}`}>{value}</dd>
     </div>
   );
 }

@@ -167,7 +167,6 @@ export function TenantsMallsPage() {
                 <th className="px-3 py-2 text-right">Medidores</th>
                 <th className="px-3 py-2 text-right">Usuarios</th>
                 <th className="px-3 py-2">Fecha alta</th>
-                <th className="px-3 py-2">Moneda</th>
                 <th className="px-3 py-2">Contrato</th>
               </tr>
             </thead>
@@ -188,12 +187,11 @@ export function TenantsMallsPage() {
                   <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
                   <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
                   <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
-                  <td className="px-3 py-2 text-muted">{row.tenant.defaultCurrency ?? '—'}</td>
                   <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
+                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
               )}
             </tbody>
           </table>

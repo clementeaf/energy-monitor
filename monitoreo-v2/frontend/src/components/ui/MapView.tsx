@@ -13,6 +13,9 @@ const INDOOR_TILES_URL = import.meta.env.DEV
   ? 'http://localhost:4000/api/mapvx/tiles/{z}/{x}/{y}.pbf'
   : `${window.location.origin}/api/mapvx/tiles/{z}/{x}/{y}.pbf`;
 
+const EMPTY_POLYGONS: MapPolygon[] = [];
+const EMPTY_MALL_MARKERS: MapvxMall[] = [];
+
 const HIGHLIGHT_SOURCE = 'highlight-area';
 const HIGHLIGHT_FILL = 'highlight-area-fill';
 const HIGHLIGHT_LINE = 'highlight-area-line';
@@ -211,8 +214,8 @@ function buildStyle(
 
 export function MapView({
   buildings,
-  mallMarkers = [],
-  polygons = [],
+  mallMarkers = EMPTY_MALL_MARKERS,
+  polygons = EMPTY_POLYGONS,
   indoor,
   selectedPoint,
   center = SANTIAGO_CENTER,

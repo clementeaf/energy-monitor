@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { QueryAuditLogsDto } from './dto/query-audit-logs.dto';
+import { decryptPii } from '../../common/crypto/pii-encryption';
 
 export interface AuditLogEntry {
   id: string;
@@ -78,7 +79,7 @@ export class AuditLogsService {
         id: r.id as string,
         tenantId: r.tenant_id as string | null,
         userId: r.user_id as string | null,
-        userEmail: r.user_email as string | null,
+        userEmail: r.user_email ? decryptPii(r.user_email as string) : null,
         action: r.action as string,
         resourceType: r.resource_type as string | null,
         resourceId: r.resource_id as string | null,

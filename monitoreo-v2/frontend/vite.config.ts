@@ -5,14 +5,35 @@ import tailwindcss from '@tailwindcss/vite';
 import { cspMetaPlugin } from './vite/csp-meta-plugin.ts';
 
 /**
- * Reenvía /api al backend Nest local (puerto 4000). Mismo mapa en dev y preview para evitar 404 en /api/*.
- * Prod: usar VITE_API_BASE_URL=https://power-monitor.cloud/api o proxy staging en deploy.
+ * Proxy /api requests.
+ * Default: localhost:4000 (local backend).
+ * To use prod backend without Docker: VITE_API_TARGET=https://power-monitor.cloud npm run dev
  */
+const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:4000';
+const isRemoteTarget = apiTarget.startsWith('https://');
+
 const apiProxy: Record<string, string | ProxyOptions> = {
   '/api': {
-    target: 'http://localhost:4000',
+    target: apiTarget,
     changeOrigin: true,
-    // Auth cookies are host-scoped: use http://localhost:5173 in dev (not 127.0.0.1).
+    secure: true,
+    // When proxying to prod, rewrite Set-Cookie headers so they work on localhost HTTP.
+    // Prod sets __Host- prefix (requires Secure + no Domain) which browsers reject on HTTP.
+    ...(isRemoteTarget && {
+      cookieDomainRewrite: { '*': '' },
+      configure: (proxy) => {
+        proxy.on('proxyRes', (proxyRes) => {
+          const setCookie = proxyRes.headers['set-cookie'];
+          if (!setCookie) return;
+          proxyRes.headers['set-cookie'] = setCookie.map((c) =>
+            c
+              .replace(/__Host-/g, '')      // strip __Host- prefix
+              .replace(/;\s*Secure/gi, '')   // strip Secure flag (localhost is HTTP)
+              .replace(/;\s*SameSite=\w+/gi, '; SameSite=Lax') // relax for cross-origin proxy
+          );
+        });
+      },
+    }),
   },
 };
 

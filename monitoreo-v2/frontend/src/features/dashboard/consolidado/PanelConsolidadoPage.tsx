@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
-import { DataWidget } from '../../../components/ui/DataWidget';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -224,22 +223,39 @@ export function PanelConsolidadoPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader
-        title="Panel Consolidado"
-        actions={
-          <PillToggle
-            options={COUNTRIES.map((c) => ({ key: c.code, label: c.label }))}
-            value={country}
-            onChange={setCountry}
-            size="sm"
-          />
-        }
-      />
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      {/* Header row: title + filters + country toggle */}
+      <div className="flex shrink-0 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <PageHeader title="Panel Consolidado" />
+          {!selectedFloorId && (
+            <div className="flex items-center gap-3 text-[11px]">
+              <label className="flex items-center gap-1 text-muted">
+                Colorear:
+                <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+                  {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </label>
+              <label className="flex items-center gap-1 text-muted">
+                Mostrar:
+                <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+                  {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </label>
+            </div>
+          )}
+        </div>
+        <PillToggle
+          options={COUNTRIES.map((c) => ({ key: c.code, label: c.label }))}
+          value={country}
+          onChange={setCountry}
+          size="sm"
+        />
+      </div>
 
       <div className="flex min-h-0 flex-1 gap-4">
         {/* Column 1: Map or Floor Plan */}
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           {selectedFloorId && selectedDetail ? (
             <FloorPlanView
               buildingId={selectedDetail.building.id}
@@ -253,21 +269,6 @@ export function PanelConsolidadoPage() {
             />
           ) : (
             <>
-              {/* Map filters */}
-              <div className="flex shrink-0 items-center gap-3 text-[11px]">
-                <label className="flex items-center gap-1 text-muted">
-                  Colorear por:
-                  <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-                    {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                  </select>
-                </label>
-                <label className="flex items-center gap-1 text-muted">
-                  Mostrar:
-                  <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-                    {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                  </select>
-                </label>
-              </div>
               <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
                 <MapView
                   buildings={geoBuildings}
@@ -289,43 +290,12 @@ export function PanelConsolidadoPage() {
                 </div>
               </div>
 
-              {/* Demand sparkline 24h */}
-              <div className="panel shrink-0 px-4 py-2">
-                <h3 className="mb-1.5 text-[11px] font-medium text-muted">Demanda últimas 24h</h3>
-                <DemandSparkline enriched={enriched} />
-              </div>
-
-              {/* Critical events summary */}
-              <div className="panel shrink-0 px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[12px] font-medium text-foreground">Eventos críticos recientes</h3>
-                  <span className="text-[11px] text-muted">{activeAlerts.length} alertas activas</span>
-                </div>
-                <div className="mt-2 flex gap-2 overflow-x-auto">
-                  {activeAlerts.slice(0, 5).map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => navigate(`/alerts?highlight=${a.id}`)}
-                      className="shrink-0 rounded-md border border-border px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-surface"
-                    >
-                      <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
-                        {a.severity.toUpperCase()}
-                      </span>
-                      <p className="mt-1 max-w-[200px] truncate text-foreground">{a.message}</p>
-                    </button>
-                  ))}
-                  {activeAlerts.length === 0 && (
-                    <p className="text-[11px] text-muted">Sin eventos críticos.</p>
-                  )}
-                </div>
-              </div>
             </>
           )}
         </div>
 
         {/* Column 2: KPIs or Building Detail */}
-        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
+        <div className="flex w-[35%] shrink-0 flex-col gap-3 overflow-y-auto">
           {selectedDetail
             ? <BuildingDetail
                 detail={selectedDetail}
@@ -581,33 +551,65 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
         );
       })()}
 
-      {/* Alert feed */}
-      <div className="panel flex flex-col">
-        <h4 className="px-3 py-2 text-[12px] font-medium text-foreground">Alertas en vivo ({activeAlerts.length})</h4>
-        <DataWidget
-          phase={activeAlerts.length === 0 ? 'empty' : 'ready'}
-          error={null}
-          emptyTitle="Sin alertas"
-          emptyDescription="Operación normal."
-        >
-          <ul className="max-h-60 divide-y divide-border overflow-y-auto">
-            {activeAlerts.slice(0, 5).map((a) => (
-              <li key={a.id} className="flex items-start gap-2 px-3 py-2">
-                <span className={`mt-0.5 inline-block shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
-                  {a.severity.toUpperCase()}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12px] text-foreground">{a.message}</p>
-                  <p className="text-[10px] text-muted">
-                    {new Date(a.createdAt).toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </DataWidget>
-      </div>
+      {/* Alert feed — infinite scroll 20 at a time */}
+      <AlertFeed alerts={activeAlerts} />
     </>
+  );
+}
+
+/* ── Alert Feed (infinite scroll, 20 at a time) ── */
+
+const PAGE_SIZE = 20;
+
+function AlertFeed({ alerts }: Readonly<{ alerts: Alert[] }>) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, alerts.length));
+      }
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [alerts.length]);
+
+  // Reset when alerts change
+  useEffect(() => setVisibleCount(PAGE_SIZE), [alerts]);
+
+  const visible = alerts.slice(0, visibleCount);
+
+  return (
+    <div className="panel flex min-h-0 flex-1 flex-col">
+      <h4 className="shrink-0 px-3 py-2 text-[12px] font-medium text-foreground">
+        Alertas en vivo ({alerts.length})
+      </h4>
+      {alerts.length === 0 ? (
+        <p className="px-3 py-4 text-[11px] text-muted">Sin alertas — operación normal.</p>
+      ) : (
+        <ul ref={listRef} className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
+          {visible.map((a) => (
+            <li key={a.id} className="flex items-start gap-2 px-3 py-2">
+              <span className={`mt-0.5 inline-block shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
+                {a.severity.toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] text-foreground">{a.message}</p>
+                <p className="text-[10px] text-muted">
+                  {new Date(a.createdAt).toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                </p>
+              </div>
+            </li>
+          ))}
+          {visibleCount < alerts.length && (
+            <li className="px-3 py-2 text-center text-[10px] text-muted">Cargando más...</li>
+          )}
+        </ul>
+      )}
+    </div>
   );
 }
 

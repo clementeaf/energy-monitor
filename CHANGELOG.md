@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.39.0-alpha.0] - 2026-07-04 — UX OVERHAUL + PII FIX + PROD PROXY
+
+### Fixed
+- **PII decrypt in audit logs** — `userEmail` en audit logs se devolvía encriptado (`pii:...`). Ahora se descifra con `decryptPii()` antes de enviar al frontend.
+- **MapView markers disappearing on click** — `polygons = []` default creaba nueva referencia en cada render, destruyendo y recreando el mapa. Fix: constantes estables `EMPTY_POLYGONS` / `EMPTY_MALL_MARKERS`.
+
+### Changed — Panel Consolidado
+- **Layout** — Título, filtros mapa y country toggle en una sola fila. Mapa y panel derecho alineados al mismo nivel.
+- **Mapa 65% / panel 35%** — antes mapa 80% con panel comprimido a 320px fijo.
+- **Sparkline + eventos críticos eliminados** — datos simulados sin valor informativo.
+- **Alertas en vivo** — infinite scroll 20 en 20 (antes limitado a 5 con max-height fijo). Ocupa toda la altura disponible.
+
+### Changed — Seguridad y PAM
+- **KPIs + vulnerabilidades en una fila flex** — 10 pills compactas (antes 6 KPIs en grid + 4 vulnerabilidades en cards separadas con progress bars).
+- **6 paneles en una fila** — Brechas, Actividad, TLS, Historial PAM, Incidentes en flex row con misma altura (antes 3 filas separadas con espacios muertos).
+- **Bóveda JIT movida** — a fila de Notificación brecha + Borrado criptográfico.
+- **Todo clickeable con Drawer** — cada item de card y fila de tabla PAM abre Drawer con detalle completo.
+- **Columna Moneda eliminada** de Tenants y Malls (redundante cuando todos los tenants del mismo país usan la misma moneda).
+
+### Added
+- **Proxy a prod sin Docker** — `VITE_API_TARGET=https://power-monitor.cloud npm run dev`. Reescribe cookies `__Host-` + `Secure` para funcionar en localhost HTTP.
+
+### Deploy
+- Backend desplegado a ECS (`pii-fix-20260704-104519`). Service levantado de 0→1 task.
+
+---
+
 ## [2.38.0-alpha.0] - 2026-07-03 — ROLES EMS SPEC FULL ALIGNMENT (129 GAPS CLOSED)
 
 ### Changed — Navigation pruning (spec compliance)

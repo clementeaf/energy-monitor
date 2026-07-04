@@ -7,7 +7,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Autenticacion',
-      items: ['autenticacion/oauth', 'autenticacion/permisos', 'autenticacion/versionado'],
+      items: ['autenticacion/oauth', 'autenticacion/api-keys', 'autenticacion/permisos', 'autenticacion/versionado'],
     },
     {
       type: 'category',

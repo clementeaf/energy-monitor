@@ -1,0 +1,150 @@
+---
+title: API Keys
+description: "Genera tokens para consumir la API de forma programatica sin OAuth."
+sidebar_position: 4
+---
+
+# API Keys
+
+Las API Keys permiten consumir la API de Energy Monitor de forma programatica, sin necesidad de login OAuth. Ideal para integraciones, scripts, y sistemas externos que necesitan acceder a datos de medidores, lecturas IoT y alertas.
+
+## Crear una API Key
+
+Un administrador puede crear API Keys desde la plataforma en **Administracion > API Keys**, o via API:
+
+```bash
+curl -X POST https://power-monitor.cloud/api/api-keys \
+  -H "Cookie: access_token=<tu-sesion>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Integracion Siemens",
+    "permissions": ["buildings:read", "meters:read", "readings:read"],
+    "rateLimitPerMinute": 60
+  }'
+```
+
+```json title="Respuesta (el token se muestra UNA sola vez)"
+{
+  "key": "emk_a1b2c3d4e5f6g7h8i9j0...",
+  "apiKey": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Integracion Siemens",
+    "keyPrefix": "emk_a1b2",
+    "permissions": ["buildings:read", "meters:read", "readings:read"],
+    "rateLimitPerMinute": 60,
+    "isActive": true,
+    "expiresAt": null
+  }
+}
+```
+
+:::warning
+El token `emk_...` se muestra **una sola vez** al momento de la creacion. Guardalo de forma segura. Si lo pierdes, puedes rotarlo desde la plataforma o via `POST /api-keys/:id/rotate`.
+:::
+
+## Usar la API Key
+
+Incluye el token en el header `x-api-key` en cada request:
+
+```bash
+curl -H "x-api-key: emk_a1b2c3d4e5f6g7h8i9j0..." \
+  https://power-monitor.cloud/api/v1/buildings
+```
+
+Todos los endpoints de la API externa (`/api/v1/*`) aceptan autenticacion via `x-api-key`.
+
+## Permisos disponibles
+
+Cada API Key se crea con permisos especificos que limitan que endpoints puede consumir:
+
+| Permiso | Descripcion | Endpoints |
+|---------|-------------|-----------|
+| `buildings:read` | Edificios | `GET /v1/buildings` |
+| `meters:read` | Medidores | `GET /v1/meters`, `/v1/meters/:id/status` |
+| `readings:read` | Lecturas + IoT | `GET /v1/readings*`, `/v1/iot-readings*` |
+| `readings:export` | Export ETL | `GET /v1/readings/export`, `POST/GET /v1/exports` |
+| `readings:create` | Ingesta | `POST /v1/measurements` |
+| `alerts:read` | Alertas | `GET /v1/alerts` |
+| `billing:read` | Facturacion | `GET /v1/invoices`, `/v1/tariffs` |
+| `tenant_units:read` | Locatarios | `GET /v1/tenant-units` |
+| `hierarchy:read` | Jerarquia | `GET /v1/hierarchy/buildings/:id` |
+| `concentrators:read` | Concentradores | `GET /v1/concentrators` |
+| `fault_events:read` | Eventos de fallo | `GET /v1/fault-events` |
+| `integrations:read` | Integraciones | `GET /v1/integrations/health` |
+
+## Scoping por edificio
+
+Opcionalmente puedes restringir una API Key a edificios especificos:
+
+```json
+{
+  "name": "Solo Mall Vespucio",
+  "permissions": ["readings:read"],
+  "buildingIds": ["550e8400-e29b-41d4-a716-446655440000"]
+}
+```
+
+Si `buildingIds` esta vacio o no se incluye, la key tiene acceso a todos los edificios del tenant.
+
+## Rate limiting
+
+Cada API Key tiene un limite de requests por minuto (default: 60). Si lo excedes, la API responde `429 Too Many Requests`:
+
+```json
+{
+  "statusCode": 429,
+  "message": "API key rate limit exceeded (60/min)"
+}
+```
+
+Para endpoints de ingesta (`POST /v1/measurements`), el limite es mas alto: `rateLimitPerMinute × 5` (minimo 300/min). Puedes configurarlo con `ingressRateLimitPerMinute`.
+
+## Expiracion
+
+Las keys pueden tener fecha de expiracion:
+
+```json
+{
+  "name": "Temporal para pruebas",
+  "permissions": ["readings:read"],
+  "expiresAt": "2026-12-31T23:59:59Z"
+}
+```
+
+Keys expiradas se rechazan automaticamente con `401 Unauthorized`.
+
+## Rotar una key
+
+```bash
+curl -X POST https://power-monitor.cloud/api/api-keys/:id/rotate \
+  -H "Cookie: access_token=<tu-sesion>"
+```
+
+Genera un nuevo token `emk_...` e invalida el anterior inmediatamente.
+
+## Ejemplo completo: consumir datos IoT
+
+```bash
+# 1. Crear key con permiso de lecturas
+# (desde la plataforma o POST /api-keys)
+
+# 2. Consultar ultimas lecturas IoT
+curl -H "x-api-key: emk_tu_token_aqui" \
+  "https://power-monitor.cloud/api/v1/iot-readings/latest"
+
+# 3. Consultar serie de tiempo de un medidor
+curl -H "x-api-key: emk_tu_token_aqui" \
+  "https://power-monitor.cloud/api/v1/iot-readings/timeseries?meterId=UUID&from=2026-07-01&to=2026-07-04&resolution=hour"
+
+# 4. Consultar alertas IoT
+curl -H "x-api-key: emk_tu_token_aqui" \
+  "https://power-monitor.cloud/api/v1/iot-readings/alerts"
+```
+
+## Seguridad
+
+- Los tokens se almacenan como hash SHA-256 (nunca en texto plano)
+- Validacion con `timingSafeEqual` para prevenir timing attacks
+- Rate limiting per-key en memoria
+- Audit trail: cada uso se registra con `lastUsedAt`
+- Revocacion inmediata al eliminar o desactivar la key

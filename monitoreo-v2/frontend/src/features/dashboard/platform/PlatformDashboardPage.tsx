@@ -1,7 +1,9 @@
 import { type ReactElement } from 'react';
+import { Navigate } from 'react-router';
 import { TableStateBody } from '../../../components/ui/TableStateBody';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { usePlatformKpisQuery } from '../../../hooks/queries/usePlatformDashboardQuery';
+import { useAppStore } from '../../../store/useAppStore';
 import type { TenantSummary } from '../../../types/platform-dashboard';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
@@ -19,9 +21,12 @@ function KpiCard({ title, value, loading }: { title: string; value: string | num
 }
 
 export function PlatformDashboardPage(): ReactElement {
+  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
   const query = usePlatformKpisQuery();
   const { data: kpis, isPending } = query;
   const qs = useQueryState(query, { isEmpty: (d) => !d || !d.tenantSummaries || d.tenantSummaries.length === 0 });
+
+  if (selectedTenantId) return <Navigate to="/" replace />;
 
   return (
     <div className="space-y-6">

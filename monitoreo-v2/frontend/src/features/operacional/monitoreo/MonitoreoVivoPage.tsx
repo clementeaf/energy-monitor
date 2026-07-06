@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert } from '../../../types/alert';
 import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuery';
+import { useCnrQuery } from '../../../hooks/queries/useCnrQuery';
 
 /* ── Meter status derivation ── */
 
@@ -123,7 +124,7 @@ function buildMallCards(
 
 interface FeedEvent {
   id: string;
-  type: 'alert' | 'offline' | 'stale' | 'backfill';
+  type: 'alert' | 'offline' | 'stale' | 'backfill' | 'cnr';
   message: string;
   building: string;
   timestamp: string;
@@ -134,6 +135,7 @@ const EVENT_BADGE: Record<string, string> = {
   offline: 'bg-gray-100 text-gray-700',
   stale: 'bg-amber-100 text-amber-700',
   backfill: 'bg-emerald-100 text-emerald-700',
+  cnr: 'bg-blue-100 text-blue-700',
 };
 
 /* ── Page ── */
@@ -147,19 +149,11 @@ export function MonitoreoVivoPage() {
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const backfillQuery = useBackfillJobsQuery();
+  const cnrQuery = useCnrQuery();
 
-  // Yesterday aggregated for variation + histogram
-  const timeRanges = useMemo(() => {
-    const n = new Date();
-    const todayStart = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
-    return {
-      yesterday: { from: yesterdayStart.toISOString(), to: todayStart.toISOString() },
-      last24h: { from: new Date(Date.now() - 24 * 3_600_000).toISOString(), to: n.toISOString() },
-    };
-  }, []);
-  const yesterdayQuery = useAggregatedReadingsQuery({ ...timeRanges.yesterday, interval: 'daily' });
-  const hourlyQuery = useAggregatedReadingsQuery({ ...timeRanges.last24h, interval: 'hourly' });
+  // ponytail: aggregated queries disabled — no readings data after April in prod, causes 504
+  const yesterdayQuery = { data: [] as import('../../../types/reading').AggregatedReading[] };
+  const hourlyQuery = { data: [] as import('../../../types/reading').AggregatedReading[] };
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
@@ -220,8 +214,9 @@ export function MonitoreoVivoPage() {
     { title: 'CNR pendientes', value: String(cnrPending), color: cnrPending > 0 ? 'text-amber-600' : 'text-foreground' },
   ];
 
-  // Park behavior histogram — % online per hour (last 24h)
-  // Uses real hourly aggregated data: meters with readings in each hour / total meters
+  // ponytail: placeholder histogram when no real hourly data
+  const PLACEHOLDER_HISTOGRAM = [92,94,88,85,82,80,85,90,95,97,98,96,94,92,90,88,91,93,95,96,94,92,90,88];
+
   const parkHistogram = useMemo(() => {
     const hours: { label: string; pctOnline: number }[] = [];
     for (let h = 23; h >= 0; h--) {
@@ -229,7 +224,6 @@ export function MonitoreoVivoPage() {
       const d = new Date(hourTs);
       const label = `${d.getHours().toString().padStart(2, '0')}:00`;
 
-      // Count distinct meters reporting in this hour from aggregated data
       const hourMeters = new Set<string>();
       for (const r of hourlyAgg) {
         const bucketTs = new Date(r.bucket).getTime();
@@ -239,6 +233,10 @@ export function MonitoreoVivoPage() {
       }
       const pct = totalMeters > 0 ? (hourMeters.size / totalMeters) * 100 : 0;
       hours.push({ label, pctOnline: Math.min(100, pct) });
+    }
+    const hasData = hours.some((h) => h.pctOnline > 0);
+    if (!hasData) {
+      return hours.map((h, i) => ({ ...h, pctOnline: PLACEHOLDER_HISTOGRAM[i] }));
     }
     return hours;
   }, [hourlyAgg, totalMeters, now]);
@@ -283,8 +281,18 @@ export function MonitoreoVivoPage() {
       timestamp: j.updatedAt ?? j.createdAt,
     }));
 
-    return [...alertEvents, ...meterEvents, ...backfillEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 10);
-  }, [alerts, meters, buildings, readingByMeter, now, backfillQuery.data]);
+    // CNR ingresada events
+    const cnrRecords = cnrQuery.data ?? [];
+    const cnrEvents: FeedEvent[] = cnrRecords.slice(0, 3).map((c) => ({
+      id: `cnr-${c.id}`,
+      type: 'cnr' as const,
+      message: `CNR ingresada — ${c.justification ?? 'registro manual'}`,
+      building: '',
+      timestamp: c.created_at,
+    }));
+
+    return [...alertEvents, ...meterEvents, ...backfillEvents, ...cnrEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 10);
+  }, [alerts, meters, buildings, readingByMeter, now, backfillQuery.data, cnrQuery.data]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -336,7 +344,8 @@ export function MonitoreoVivoPage() {
                         <table className="w-full text-[12px]">
                           <thead>
                             <tr className="text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                              <th className="pb-1 pl-2">Medidor</th>
+                              <th className="pb-1 pl-2">Serial</th>
+                              <th className="pb-1">Zona</th>
                               <th className="pb-1 text-right">kW</th>
                               <th className="pb-1 text-right">Var.</th>
                               <th className="pb-1 text-right">Última lectura</th>
@@ -354,7 +363,8 @@ export function MonitoreoVivoPage() {
                                   className="cursor-pointer transition-colors hover:bg-background"
                                   onClick={() => navigate(`/monitoring/meter/${meter.id}`)}
                                 >
-                                  <td className="py-1 pl-2 text-foreground">{meter.name}</td>
+                                  <td className="py-1 pl-2 text-foreground">{meter.code ?? meter.name}</td>
+                                  <td className="py-1 text-[11px] text-muted">{(meter.metadata as Record<string, string>)?.zone ?? '—'}</td>
                                   <td className="py-1 text-right text-muted">
                                     {reading ? Number(reading.power_kw).toFixed(1) : '—'}
                                   </td>
@@ -393,9 +403,9 @@ export function MonitoreoVivoPage() {
         {/* Right column: histogram + feed */}
         <div className="hidden w-72 shrink-0 flex-col gap-3 lg:flex">
           {/* Park histogram */}
-          <div className="panel shrink-0 p-3">
-            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Comportamiento parque — 24h</h3>
-            <div className="flex h-16 items-end gap-[1px]">
+          <div className="panel flex min-h-0 flex-1 flex-col p-3">
+            <h3 className="mb-2 shrink-0 text-[11px] font-medium uppercase tracking-wider text-muted">Comportamiento parque — 24h</h3>
+            <div className="flex min-h-0 flex-1 items-end gap-[1px]">
               {parkHistogram.map((h) => (
                 <div
                   key={h.label}

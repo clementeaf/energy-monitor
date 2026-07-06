@@ -13,6 +13,7 @@ import { PROFILE_NAV, type ProfileNavEntry } from '../../lib/profile-nav';
 import { NavModuleIcon } from './sidebar-icons';
 import { SidebarFlyout } from './SidebarFlyout';
 import { SidebarCollapsible, SidebarDropdownPanel, SidebarReveal } from './sidebar-motion';
+import { ROLE_TO_PROFILE, PROFILE_LANDING } from '../../lib/profiles';
 import type { RoleSlug, TenantTheme } from '../../types/auth';
 import type { Tenant } from '../../types/tenant';
 import globeLogo from '../../assets/globe-logo.png';
@@ -65,8 +66,11 @@ export function Sidebar() {
 
   const expanded = sidebarOpen;
 
-  // Profile-based nav entries — pure lookup, no filtering
-  const navEntries = PROFILE_NAV[profile];
+  // Profile-based nav entries — hide platformOnly entries when tenant is selected
+  const navEntries = useMemo(() => {
+    const entries = PROFILE_NAV[profile];
+    return selectedTenantId ? entries.filter((e) => !e.platformOnly) : entries;
+  }, [profile, selectedTenantId]);
   const activeIdx = findActiveIndex(navEntries, location.pathname);
 
   useEffect(() => {
@@ -87,9 +91,14 @@ export function Sidebar() {
     <>
       <RoleSwitcher
         value={viewAsRole ?? 'super_admin'}
-        onChange={(val) => { setViewAsRole(val === 'super_admin' ? null : val); navigate('/'); }}
+        onChange={(val) => {
+          const role = val === 'super_admin' ? null : val;
+          setViewAsRole(role);
+          const profile = role ? ROLE_TO_PROFILE[role] ?? 'operacional' : 'super_admin';
+          navigate(PROFILE_LANDING[profile] ?? '/');
+        }}
         isImpersonating={isImpersonating}
-        onReset={() => { setViewAsRole(null); navigate('/'); }}
+        onReset={() => { setViewAsRole(null); navigate(PROFILE_LANDING.super_admin); }}
       />
       <TenantSwitcher
         selectedId={selectedTenantId}

@@ -21,6 +21,8 @@ const ROLE_PERMISSIONS: Record<string, Set<string>> = {
     'billing:read', 'billing:update',
     'admin_users:read', 'admin_tenants_units:read',
     'admin_hierarchy:read', 'reports:read',
+    'data_quality:read', 'readings:read',
+    'diagnostics:read', 'monitoring_faults:read',
   ]),
   operator: new Set([
     'dashboard_technical:read', 'readings:read',

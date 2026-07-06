@@ -74,8 +74,8 @@ export function IngresoCnrPage() {
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         {/* Form */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <form onSubmit={handleSubmit} className="panel max-w-xl space-y-4 p-4">
+        <div className="flex w-full max-w-xl shrink-0 flex-col overflow-y-auto">
+          <form onSubmit={handleSubmit} className="panel space-y-4 p-4">
             <FormField label="Medidor">
               <select
                 value={selectedMeterId}
@@ -183,7 +183,7 @@ export function IngresoCnrPage() {
         </div>
 
         {/* History panel */}
-        <div className="hidden w-80 shrink-0 flex-col overflow-hidden lg:flex">
+        <div className="hidden w-full max-w-sm shrink-0 flex-col overflow-hidden lg:flex">
           <div className="panel flex min-h-0 flex-1 flex-col p-4">
             <h3 className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">
               Historial CNR ({history.length})

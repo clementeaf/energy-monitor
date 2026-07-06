@@ -15,6 +15,9 @@ import { useAppStore } from '../store/useAppStore';
  */
 const PROFILE_DASHBOARD: Record<string, string> = {
   gerencial: '/dashboard/consolidado',
+  operacional: '/operacional/monitoreo',
+  tecnico: '/tecnico/ordenes',
+  auditor: '/auditor/calidad',
 };
 
 function DashboardIndex() {

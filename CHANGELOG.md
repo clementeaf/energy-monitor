@@ -1,5 +1,107 @@
 # Changelog
 
+## [2.42.0-alpha.0] - 2026-07-06 — WIREFRAME ALIGNMENT PASS 2 + NAV FIXES
+
+### Changed — Alarmas Agregadas
+- **Layout reestructurado** — Fila 1: 4 KPI cards. Fila 2 (2x alto): mapa + evolución 30 días. Fila 3: Top 5 + tabla alarmas por mall.
+- **Evolución 30 días** — barras usan alto completo del panel. Placeholder data cuando no hay alertas recientes.
+
+### Changed — Tickets y SLA
+- **Columna derecha** — Evolución SLA e Historial Penalizaciones como panels separados (estaban anidados).
+- **Historial Penalizaciones** — rediseñado como cards compactas (era tabla de 5 columnas en 320px).
+
+### Changed — Exportar Reportes
+- **7 gaps cerrados vs wireframe:** Mall multi-selección con buscador, período "Año en curso", granularidad nota perfil, formato descriptivo, aviso limitaciones del perfil (card amber), columna "Configuración" en cola, nota exports.
+- **Overflow corregido** — Período y Formato cambiados a `<select>` (PillToggle desbordaba 320px). Date pickers apilados verticalmente.
+
+### Changed — Reportes Ejecutivos
+- **Vista previa** — Cards con visuales reales: mini bar chart (KPIs), line chart (tendencia/costos), ranking horizontal (malls), donut SVG (calidad), lista alertas, mini mapa (cobertura). Aspect ratio 4/3. Scroll interno.
+
+### Changed — Costos y Tendencias
+- **Chart usa alto completo** — `height: '100%'` en vez de 280px fijo.
+
+### Changed — Monitoreo en Vivo
+- **Histograma más alto** — `flex-1` ocupa espacio vertical disponible.
+- **Grilla expandida** — columnas Serial + Zona agregadas.
+- **Aggregated queries deshabilitadas** — no hay datos julio en prod (última lectura: 25 abril). Placeholder histograma.
+- **Feed CNR** — eventos CNR ingresada integrados con badge azul.
+
+### Changed — Mapa de Cobertura
+- **Popup enriquecido** — país, % online, alertas activas, último dato, link "Ver grilla de medidores →".
+
+### Changed — Registro Intervención / Ingreso CNR
+- **Layout** — formulario `max-w-xl` + historial `max-w-sm`, alineados al margen izquierdo. Sin espacio perdido.
+
+### Fixed — Navigation
+- **Profile landing** — cada perfil aterriza en su pantalla principal: Gerencial → Consolidado, Operacional → Monitoreo, Técnico → Mis Órdenes, Auditor → Calidad. Elimina loop de navegación.
+- **`RequirePerms`** — ya no redirige a `/` (causaba loops). Muestra "Acceso restringido" estático.
+- **`site_admin` permisos** — agregados `data_quality:read`, `readings:read`, `diagnostics:read`, `monitoring_faults:read`. Calidad/Backfill y Cobertura accesibles en perfil operacional.
+- **`PlatformDashboardPage`** — hooks antes del return condicional (fix "fewer hooks" error).
+
+### Fixed — Build
+- Unused imports/vars limpiados: `fmtClp`, `setCountry`, `COUNTRIES`, `EnergyStatus`, `useAggregatedReadingsQuery`, `timeRanges`, `metrics`, `detail`.
+- CnrRecord: `created_at` (snake_case), `justification` (no `description`).
+
+### Infra
+- Frontend deployed to S3 + CloudFront `E1SNFETXON2VSI` invalidated.
+- Timescale migration plan documentado en `docs/ops/timescale-migration-plan.md`.
+
+### Diagnóstico prod
+- `portfolio_summary` matview tiene datos solo hasta 25 abril 2026 (32 rows).
+- `readings` tabla: 2.6M rows, última lectura 25 abril 2026.
+- Pipeline de ingestión PASA inexistente en prod (no hay Lambda ni ECS task activa para Drive→S3→RDS).
+- IoT ingest Lambda activa pero escribe a `iot_readings`, no a `readings`.
+- 504 en aggregated queries es por ausencia de datos recientes, no por falta de TimescaleDB.
+
+---
+
+## [2.41.0-alpha.0] - 2026-07-06 — WIREFRAME V1 ALIGNMENT + TENANT SCOPING
+
+### Changed — Sidebar / Navigation
+- **Tenant scoping** — Super-admin sidebar hides platform-only entries (Tenants y Malls, Observabilidad, Config y Releases) when a tenant is selected. Only tenant-relevant views remain visible.
+- **PlatformDashboardPage** — Redirects to `/dashboard` when tenant is selected (no cross-tenant data leaking via direct URL).
+- **`platformOnly` flag** — New `ProfileNavEntry` field; entries marked `platformOnly` are filtered from nav when `selectedTenantId` is set.
+
+### Changed — Panel Consolidado (Nivel 1)
+- **Filtros debajo del título** — "Colorear marcadores por" + "Mostrar" moved below title per wireframe spec (were inline with title).
+- **País PillToggle eliminado** — Already in navbar header.
+- **KPIs en 4 cards separadas** — Malls activos/total, Demanda [MW], Consumo [MWh], Costo [UF]. Each in its own `panel` card (was 2×2 grid).
+- **Sparkline + Eventos en cards** — "Demanda últimas 24h" and "Eventos críticos recientes" each in separate `panel` cards.
+- **Eventos** — Now show building name + elapsed time + description (message).
+- **Placeholder sparkline** — Realistic 24h curve when aggregated data unavailable.
+- **504 fix** — `yesterdayQuery` and `todayHourlyQuery` now pass `groupBy: 'portfolio'` to use `portfolio_summary` matview (~5ms, was full scan timeout).
+- **Tooltip marker** — Added variación % vs ayer (portfolio-level).
+
+### Changed — Panel Consolidado (Nivel 2)
+- **Hora local del mall** — Timestamp shown below header.
+- **Mini sparkline in "Carga total"** — 24h bars inside the metric card.
+- **Gauge "Factor potencia"** — Replaces "Potencia kW" (0–1 range, 2 decimals).
+- **Voltaje rango** — 300–420V (was 200–260V).
+- **Severity labels** — URGENTE / ADVERTENCIA / MEDIO / INFO (was raw English).
+
+### Changed — Panel Consolidado (Nivel 3)
+- **Zone tooltip** — Shows last alarm type, time, and message on hover.
+- **Gauges** — Voltaje/Corriente/Potencia activa kW (Nivel 2 keeps Factor potencia).
+- **AlertFeed** — Filtered to building alerts when floor selected (was all alerts).
+
+### Changed — Consumo Jerárquico
+- **País PillToggle eliminado** — Already in navbar.
+- **Períodos** — Added "Año en curso", "Últimos 12 meses", "Rango personalizado" (date pickers). Changed from PillToggle to select.
+- **Filtro variación > X%** — New filter with configurable numeric threshold.
+- **3-level tree** — Mall → Zona/piso → Medidores. Zones grouped by `metadata.zone` or `loadCategory`, expandable to show meters underneath.
+- **Map markers** — Color by metric intensity (heat scale blue→yellow→red, was status semaphore). Size proportional to value (`scale` 0.6–1.4).
+- **Comparar con** — `TrendSparkline` now uses `compareWith` prop: período anterior, año anterior, or promedio portafolio. Comparison line rendered as dashed with dynamic legend.
+- **504 fix** — `yesterdayQuery` uses `groupBy: 'building'` for fast path.
+- **Meter columns** — Zone, MWh, % of mall total, last reading timestamp, status.
+- **Table panel** — Added `panel` wrapper (white bg + border).
+
+### Stats
+- 0 new backend changes.
+- Sidebar nav adapts to tenant selection.
+- 2 wireframe specs fully covered (Panel Consolidado Nivel 1/2/3, Consumo Jerárquico).
+
+---
+
 ## [2.40.0-alpha.0] - 2026-07-06 — SPEC AUDIT: 30/30 SCREENS ALIGNED
 
 ### Added — Backend Modules

@@ -43,8 +43,17 @@ export const PROFILE_LABELS: Record<UserProfile, string> = {
 
 /**
  * Resolves a role slug to its profile.
- * Returns 'locatario' as fallback for unknown slugs (most restrictive).
+ * Returns 'operacional' as fallback for unknown slugs (most restrictive).
  */
 export function resolveProfile(roleSlug: RoleSlug | null): UserProfile {
   return (roleSlug && ROLE_TO_PROFILE[roleSlug]) ?? 'operacional';
 }
+
+/** Landing route per profile — used by role switcher to navigate directly. */
+export const PROFILE_LANDING: Record<UserProfile, string> = {
+  super_admin: '/',
+  gerencial: '/dashboard/consolidado',
+  operacional: '/operacional/monitoreo',
+  tecnico: '/tecnico/ordenes',
+  auditor: '/auditor/calidad',
+};

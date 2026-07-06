@@ -244,9 +244,9 @@ export function TicketsSlaPage() {
         ))}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-rows-[1fr_auto] gap-4 overflow-hidden lg:grid-cols-[1fr_320px] lg:grid-rows-1">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         {/* Ticket table */}
-        <div className="panel flex min-h-0 flex-col overflow-hidden">
+        <div className="panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-[13px]">
               <thead className="sticky top-0 z-10 bg-background">
@@ -302,6 +302,8 @@ export function TicketsSlaPage() {
           </div>
         </div>
 
+        {/* Right column: SLA evolution + penalties */}
+        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
         {/* SLA evolution chart */}
         <div className="panel flex flex-col gap-3 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Evolución SLA — 12 semanas</h3>
@@ -358,47 +360,35 @@ export function TicketsSlaPage() {
             })()}
           </div>
 
+        </div>
+
         {/* SLA penalties history */}
         <div className="panel flex flex-col gap-2 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Historial penalizaciones SLA</h3>
           {(() => {
-            // Derive penalty periods from weeks with outsideSla > 0
             const penalties = slaWeekly.filter((w) => w.outsideSla > 0);
             if (penalties.length === 0) return <p className="text-[12px] text-muted">Sin penalizaciones en el período.</p>;
             return (
-              <table className="w-full text-[12px]">
-                <thead>
-                  <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                    <th className="pb-1">Semana</th>
-                    <th className="pb-1 text-right">Fuera SLA</th>
-                    <th className="pb-1 text-right">Dentro SLA</th>
-                    <th className="pb-1 text-center">Cumplimiento</th>
-                    <th className="pb-1 text-right">Crédito</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {penalties.map((w) => {
-                    const total = w.withinSla + w.outsideSla;
-                    const pct = total > 0 ? Math.round((w.withinSla / total) * 100) : 0;
-                    return (
-                      <tr key={w.label}>
-                        <td className="py-1 text-muted">{w.label}</td>
-                        <td className="py-1 text-right text-red-600">{w.outsideSla}</td>
-                        <td className="py-1 text-right text-emerald-600">{w.withinSla}</td>
-                        <td className="py-1 text-center">
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pct >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                            {pct}%
-                          </span>
-                        </td>
-                        <td className="py-1 text-right text-muted">
-                          {/* ponytail: placeholder — real credit from billing when available */}
-                          {w.outsideSla > 0 ? `${(w.outsideSla * 0.5).toFixed(1)} UF` : '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <ul className="space-y-2">
+                {penalties.map((w) => {
+                  const total = w.withinSla + w.outsideSla;
+                  const pct = total > 0 ? Math.round((w.withinSla / total) * 100) : 0;
+                  return (
+                    <li key={w.label} className="rounded-md border border-border px-2.5 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-medium text-foreground">{w.label}</span>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pct >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                          {pct}%
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between text-[10px]">
+                        <span className="text-red-600">{w.outsideSla} fuera SLA</span>
+                        <span className="text-muted">{(w.outsideSla * 0.5).toFixed(1)} UF crédito</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             );
           })()}
         </div>

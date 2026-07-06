@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { Chart } from '../../../components/charts/Chart';
@@ -13,17 +13,14 @@ import type { LatestReading } from '../../../types/reading';
 
 interface SelectOption { key: string; label: string }
 
-const COUNTRIES: SelectOption[] = [
-  { key: 'CL', label: 'Chile' },
-  { key: 'PE', label: 'Perú' },
-  { key: 'CO', label: 'Colombia' },
-];
+const DEFAULT_COUNTRY = 'CL';
 
 const PERIODS: SelectOption[] = [
   { key: 'month', label: 'Mes actual' },
-  { key: 'quarter', label: 'Trimestre' },
-  { key: 'year', label: 'Año' },
-  { key: '12m', label: 'Últimos 12m' },
+  { key: 'quarter', label: 'Trimestre actual' },
+  { key: 'ytd', label: 'Año en curso' },
+  { key: '12m', label: 'Últimos 12 meses' },
+  { key: 'custom', label: 'Rango personalizado' },
 ];
 
 const CURRENCIES: SelectOption[] = [
@@ -55,6 +52,7 @@ const CURRENCY_RATES: Record<string, number> = {
 interface CostRow {
   buildingId: string;
   buildingName: string;
+  countryCode: string;
   consumptionMwh: number;
   totalCost: number;
   invoiceCount: number;
@@ -95,6 +93,7 @@ function buildCostRows(
     return {
       buildingId: building.id,
       buildingName: building.name,
+      countryCode: building.countryCode ?? 'CL',
       consumptionMwh,
       totalCost,
       invoiceCount: bInvoices.length,
@@ -146,11 +145,18 @@ function downloadCsv(rows: CostRow[], currency: string) {
 }
 
 export function CostosTendenciasPage() {
-  const [country, setCountry] = useState('CL');
+  const country = DEFAULT_COUNTRY;
   const [period, setPeriod] = useState('month');
   const [currency, setCurrency] = useState('CLP');
   const [search, setSearch] = useState('');
   const [grouping, setGrouping] = useState('mall');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+  const [selectedMallIds, setSelectedMallIds] = useState<Set<string>>(new Set());
+  const [mallSearch, setMallSearch] = useState('');
+  const [sortCol, setSortCol] = useState<string>('totalCost');
+  const [sortAsc, setSortAsc] = useState(false);
+  const [varThreshold, setVarThreshold] = useState<number | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
@@ -163,11 +169,12 @@ export function CostosTendenciasPage() {
   const currencyRate = CURRENCY_RATES[currency] ?? 1;
   const currentCurrency = CURRENCIES.find((c) => c.key === currency) ?? CURRENCIES[0];
 
-  // Filter buildings by country
-  const filteredBuildings = useMemo(
-    () => buildings.filter((b) => (b.countryCode ?? 'CL') === country),
-    [buildings, country],
-  );
+  // Filter buildings by country + mall selection
+  const filteredBuildings = useMemo(() => {
+    let filtered = buildings.filter((b) => (b.countryCode ?? 'CL') === country);
+    if (selectedMallIds.size > 0) filtered = filtered.filter((b) => selectedMallIds.has(b.id));
+    return filtered;
+  }, [buildings, country, selectedMallIds]);
 
   // Filter invoices to those buildings
   const buildingIds = useMemo(
@@ -183,16 +190,33 @@ export function CostosTendenciasPage() {
     [readings, buildingIds],
   );
 
-  // Cost rows
+  // Cost rows — sort + filter
   const allCostRows = useMemo(
-    () => buildCostRows(filteredBuildings, filteredInvoices, filteredReadings, currencyRate)
-      .sort((a, b) => b.totalCost - a.totalCost),
+    () => buildCostRows(filteredBuildings, filteredInvoices, filteredReadings, currencyRate),
     [filteredBuildings, filteredInvoices, filteredReadings, currencyRate],
   );
-  const costRows = useMemo(
-    () => search ? allCostRows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase())) : allCostRows,
-    [allCostRows, search],
-  );
+  const costRows = useMemo(() => {
+    let rows = allCostRows;
+    if (search) rows = rows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase()));
+    if (varThreshold != null) rows = rows.filter((r) => r.variationPct != null && Math.abs(r.variationPct) > varThreshold);
+    const sorted = [...rows];
+    const getSortVal = (r: CostRow): number | string => {
+      if (sortCol === 'buildingName') return r.buildingName;
+      if (sortCol === 'countryCode') return r.countryCode;
+      if (sortCol === 'consumptionMwh') return r.consumptionMwh;
+      if (sortCol === 'avgPricePerMwh') return r.avgPricePerMwh;
+      if (sortCol === 'invoiceCount') return r.invoiceCount;
+      if (sortCol === 'variationPct') return r.variationPct ?? 0;
+      return r.totalCost;
+    };
+    sorted.sort((a, b) => {
+      const va = getSortVal(a);
+      const vb = getSortVal(b);
+      const cmp = typeof va === 'string' ? (va as string).localeCompare(vb as string) : (va as number) - (vb as number);
+      return sortAsc ? cmp : -cmp;
+    });
+    return sorted;
+  }, [allCostRows, search, varThreshold, sortCol, sortAsc]);
 
   // Summary KPIs
   const totalCost = costRows.reduce((sum, r) => sum + r.totalCost, 0);
@@ -248,7 +272,7 @@ export function CostosTendenciasPage() {
     });
 
     return {
-      chart: { type: 'column' as const, height: 280 },
+      chart: { type: 'column' as const, height: '100%' as unknown as number },
       title: { text: '' },
       xAxis: { categories: months, crosshair: true },
       yAxis: [
@@ -292,18 +316,19 @@ export function CostosTendenciasPage() {
         eyebrow="Costos"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <PillToggle
-              options={COUNTRIES.map((c) => ({ key: c.key, label: c.label }))}
-              value={country}
-              onChange={setCountry}
-              size="sm"
-            />
-            <PillToggle
-              options={PERIODS.map((p) => ({ key: p.key, label: p.label }))}
+            <select
               value={period}
-              onChange={setPeriod}
-              size="sm"
-            />
+              onChange={(e) => setPeriod(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              {PERIODS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </select>
+            {period === 'custom' && (
+              <>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+              </>
+            )}
             <PillToggle
               options={CURRENCIES.map((c) => ({ key: c.key, label: c.label }))}
               value={currency}
@@ -315,6 +340,14 @@ export function CostosTendenciasPage() {
               value={grouping}
               onChange={setGrouping}
               size="sm"
+            />
+            <MallMultiSelect
+              buildings={filteredBuildings}
+              selected={selectedMallIds}
+              onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })}
+              onClear={() => setSelectedMallIds(new Set())}
+              search={mallSearch}
+              onSearch={setMallSearch}
             />
           </div>
         }
@@ -386,10 +419,10 @@ export function CostosTendenciasPage() {
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
         {/* Chart */}
-        <div className="panel flex min-h-[300px] flex-1 flex-col p-4">
-          <h3 className="mb-2 text-[13px] font-medium text-foreground">Costo mensual por período</h3>
+        <div className="panel flex min-h-0 flex-1 flex-col p-4">
+          <h3 className="mb-2 shrink-0 text-[13px] font-medium text-foreground">Costo mensual por período</h3>
           {monthlyData.length > 0 ? (
-            <Chart options={chartOptions} />
+            <Chart options={chartOptions} className="min-h-0 flex-1" />
           ) : (
             <div className="flex flex-1 items-center justify-center text-[13px] text-muted">
               Sin datos de facturación para el período.
@@ -401,6 +434,18 @@ export function CostosTendenciasPage() {
         <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="flex shrink-0 items-center gap-2 px-4 py-3">
             <h3 className="flex-1 text-[13px] font-medium text-foreground">Costos por centro comercial</h3>
+            <label className="flex items-center gap-1 text-[11px] text-muted">
+              Var &gt;
+              <input
+                type="number"
+                min={0}
+                value={varThreshold ?? ''}
+                onChange={(e) => setVarThreshold(e.target.value ? Number(e.target.value) : null)}
+                placeholder="—"
+                className="w-12 rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-foreground outline-none"
+              />
+              %
+            </label>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -419,12 +464,13 @@ export function CostosTendenciasPage() {
             <table className="w-full text-[13px]">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-4 py-2">Centro</th>
-                  <th className="px-3 py-2 text-right">MWh</th>
-                  <th className="px-3 py-2 text-right">Precio medio</th>
-                  <th className="px-3 py-2 text-right">Costo total</th>
-                  <th className="px-3 py-2 text-right">Facturas</th>
-                  <th className="px-3 py-2 text-right">Var. %</th>
+                  <SortTh col="buildingName" label="Centro" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
+                  <SortTh col="countryCode" label="País" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
+                  <SortTh col="consumptionMwh" label="MWh" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                  <SortTh col="avgPricePerMwh" label="Precio medio" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                  <SortTh col="totalCost" label="Costo total" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                  <SortTh col="invoiceCount" label="Facturas" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                  <SortTh col="variationPct" label="Var. %" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
                   <th className="px-3 py-2 text-right">Proy. mes</th>
                   <th className="px-3 py-2 text-right">Proy. año</th>
                 </tr>
@@ -433,6 +479,7 @@ export function CostosTendenciasPage() {
                 {costRows.map((row) => (
                   <tr key={row.buildingId} className="transition-colors hover:bg-surface">
                     <td className="px-4 py-2 font-medium text-foreground">{row.buildingName}</td>
+                    <td className="px-3 py-2 text-muted">{row.countryCode}</td>
                     <td className="px-3 py-2 text-right text-muted">{row.consumptionMwh.toFixed(1)}</td>
                     <td className="px-3 py-2 text-right text-muted">
                       {row.avgPricePerMwh.toFixed(2)}
@@ -460,7 +507,7 @@ export function CostosTendenciasPage() {
                 ))}
                 {costRows.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-muted">
+                    <td colSpan={9} className="px-4 py-8 text-center text-muted">
                       Sin datos de costos para el período seleccionado.
                     </td>
                   </tr>
@@ -470,6 +517,7 @@ export function CostosTendenciasPage() {
                 <tfoot className="border-t border-border bg-surface/50">
                   <tr className="font-medium text-foreground">
                     <td className="px-4 py-2">Total</td>
+                    <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-right">{totalMwh.toFixed(1)}</td>
                     <td className="px-3 py-2 text-right">{avgPrice.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">{formatCurrency(totalCost, currentCurrency.key)}</td>
@@ -484,6 +532,92 @@ export function CostosTendenciasPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Sortable table header ── */
+
+function SortTh({ col, label, sortCol, sortAsc, onSort, right }: Readonly<{
+  col: string; label: string; sortCol: string; sortAsc: boolean; onSort: (col: string) => void; right?: boolean;
+}>) {
+  const active = sortCol === col;
+  return (
+    <th
+      className={`cursor-pointer select-none px-3 py-2 transition-colors hover:text-foreground ${right ? 'text-right' : ''}`}
+      onClick={() => onSort(col)}
+    >
+      {label} {active ? (sortAsc ? '↑' : '↓') : ''}
+    </th>
+  );
+}
+
+/* ── Mall multi-select dropdown ── */
+
+function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSearch }: Readonly<{
+  buildings: Building[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onClear: () => void;
+  search: string;
+  onSearch: (v: string) => void;
+}>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => { ref.current && !ref.current.contains(e.target as Node) && setOpen(false); };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open]);
+
+  const filtered = search
+    ? buildings.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
+    : buildings;
+
+  const label = selected.size === 0 ? 'Todos los malls' : `${selected.size} mall${selected.size > 1 ? 's' : ''}`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground"
+      >
+        {label}
+        <svg className={`h-3 w-3 opacity-50 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5l3 3 3-3" /></svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-1 w-56 rounded-lg border border-border bg-background shadow-lg">
+          <div className="border-b border-border p-2">
+            <input
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="Buscar mall..."
+              className="w-full rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+              autoFocus
+            />
+          </div>
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {selected.size > 0 && (
+              <li>
+                <button type="button" onClick={onClear} className="w-full px-3 py-1.5 text-left text-[11px] text-brand hover:bg-surface">
+                  Limpiar selección
+                </button>
+              </li>
+            )}
+            {filtered.map((b) => (
+              <li key={b.id}>
+                <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[11px] text-foreground hover:bg-surface">
+                  <input type="checkbox" checked={selected.has(b.id)} onChange={() => onToggle(b.id)} className="size-3 rounded border-border" />
+                  {b.name}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,6 +18,8 @@ export interface ProfileNavEntry {
   /** Additional paths that also highlight this entry */
   extraPaths?: string[];
   children?: ProfileSubItem[];
+  /** Hide when a tenant is selected (platform-global views only) */
+  platformOnly?: boolean;
 }
 
 /* ── Profile-specific nav definitions ── */
@@ -128,17 +130,29 @@ const AUDITOR_NAV: ProfileNavEntry[] = [
   },
 ];
 
-const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
+const SUPER_ADMIN_PLATFORM_NAV: ProfileNavEntry[] = [
+  {
+    label: 'Plataforma',
+    icon: 'admin',
+    basePath: '/platform',
+    extraPaths: ['/super-admin', '/dashboard/platform', '/super-admin/tenants'],
+    platformOnly: true,
+    children: [
+      { to: APP_ROUTES.tenantsMalls, label: 'Tenants y Malls' },
+      { to: APP_ROUTES.observabilidad, label: 'Observabilidad' },
+      { to: APP_ROUTES.configReleases, label: 'Config y Releases' },
+    ],
+  },
+];
+
+const SUPER_ADMIN_TENANT_NAV: ProfileNavEntry[] = [
   {
     label: 'Administración',
     icon: 'admin',
     basePath: '/admin',
     extraPaths: ['/super-admin'],
     children: [
-      { to: APP_ROUTES.tenantsMalls, label: 'Tenants y Malls' },
-      { to: APP_ROUTES.configReleases, label: 'Config y Releases' },
       { to: '/admin/users', label: 'Usuarios y Roles' },
-      { to: APP_ROUTES.observabilidad, label: 'Observabilidad' },
       { to: APP_ROUTES.seguridadPam, label: 'Seguridad y PAM' },
     ],
   },
@@ -148,6 +162,11 @@ const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
     to: APP_ROUTES.integrations,
     basePath: '/integrations',
   },
+];
+
+const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
+  ...SUPER_ADMIN_PLATFORM_NAV,
+  ...SUPER_ADMIN_TENANT_NAV,
 ];
 
 /**

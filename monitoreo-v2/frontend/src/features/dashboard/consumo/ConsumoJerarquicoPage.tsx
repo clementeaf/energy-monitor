@@ -7,7 +7,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import { deriveBuildingStatus, getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
+import { deriveBuildingStatus, getStatusStyle } from '../../../lib/energy-status';
 import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 import type { Building } from '../../../types/building';
 import type { LatestReading } from '../../../types/reading';
@@ -16,18 +16,16 @@ import type { Alert, AlertSeverity } from '../../../types/alert';
 
 /* ── Filter options ── */
 
-interface Country { code: string; label: string }
-const COUNTRIES: Country[] = [
-  { code: 'CL', label: 'Chile' },
-  { code: 'PE', label: 'Perú' },
-  { code: 'CO', label: 'Colombia' },
-];
+// ponytail: country filter removed from UI (already in navbar); kept for building filter fallback
+const DEFAULT_COUNTRY = 'CL';
 
-interface PeriodOption { key: string; label: string; days: number }
+interface PeriodOption { key: string; label: string }
 const PERIODS: PeriodOption[] = [
-  { key: 'month', label: 'Mes', days: 30 },
-  { key: 'quarter', label: 'Trimestre', days: 90 },
-  { key: 'year', label: 'Año', days: 365 },
+  { key: 'month', label: 'Mes actual' },
+  { key: 'quarter', label: 'Trimestre actual' },
+  { key: 'ytd', label: 'Año en curso' },
+  { key: '12m', label: 'Últimos 12 meses' },
+  { key: 'custom', label: 'Rango personalizado' },
 ];
 
 interface MetricOption { key: string; label: string; unit: string }
@@ -47,7 +45,8 @@ const SORT_OPTIONS = [
 const FILTER_OPTIONS = [
   { key: 'all', label: 'Todos' },
   { key: 'critical', label: 'Con alarma crítica' },
-  { key: 'nodata', label: 'Sin datos' },
+  { key: 'variation', label: 'Con variación > X%' },
+  { key: 'nodata', label: 'Sin datos completos' },
 ];
 
 const COMPARE_OPTIONS = [
@@ -78,11 +77,13 @@ function buildRows(
   const readingsByBuilding = groupByFallback(readings, (r) => r.building_id);
   const alertsByBuilding = groupByFallback(alerts, (a) => a.buildingId);
 
-  // Yesterday's demand per meter → per building
-  const yesterdayByMeter = new Map<string, number>();
-  for (const r of yesterdayAgg) {
-    yesterdayByMeter.set(r.meter_id, (yesterdayByMeter.get(r.meter_id) ?? 0) + parseFloat(r.avg_power_kw ?? '0'));
-  }
+  // Portfolio-level yesterday demand (from matview)
+  const yesterdayPortfolioKw = yesterdayAgg.reduce((s, r) => s + parseFloat(r.avg_power_kw ?? '0'), 0);
+  const todayTotalKw = readings.reduce((s, r) => s + Number(r.power_kw || 0), 0);
+  // ponytail: portfolio-level variation applied to all buildings until per-building aggregated is fast
+  const portfolioVariationPct = yesterdayPortfolioKw > 0
+    ? Math.round(((todayTotalKw - yesterdayPortfolioKw) / yesterdayPortfolioKw) * 100)
+    : null;
 
   return buildings.map((building) => {
     const bReadings = readingsByBuilding.get(building.id) ?? [];
@@ -92,11 +93,7 @@ function buildRows(
     const severities = bAlerts.map((a) => a.severity as AlertSeverity);
     const status = deriveBuildingStatus(severities, bReadings.length > 0);
 
-    // Variation vs yesterday
-    const yesterdayKw = bReadings.reduce((sum, r) => sum + (yesterdayByMeter.get(r.meter_id) ?? 0), 0);
-    const variationPct = yesterdayKw > 0 ? Math.round(((demandKw - yesterdayKw) / yesterdayKw) * 100) : null;
-
-    return { building, energyMwh, demandKw, meterCount: bReadings.length, variationPct, status, alertCount: bAlerts.length };
+    return { building, energyMwh, demandKw, meterCount: bReadings.length, variationPct: portfolioVariationPct, status, alertCount: bAlerts.length };
   });
 }
 
@@ -128,7 +125,7 @@ const METRIC_ACCESSORS: Record<string, MetricAccessor> = {
 
 export function ConsumoJerarquicoPage() {
   const navigate = useNavigate();
-  const [country, setCountry] = useState('CL');
+  const country = DEFAULT_COUNTRY;
   const [period, setPeriod] = useState('month');
   const [metric, setMetric] = useState('energy');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -136,6 +133,9 @@ export function ConsumoJerarquicoPage() {
   const [filterBy, setFilterBy] = useState('all');
   const [compareWith, setCompareWith] = useState('none');
   const [granularity, setGranularity] = useState<'monthly' | 'weekly'>('monthly');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+  const [variationThreshold, setVariationThreshold] = useState(10);
 
   // Queries
   const buildingsQuery = useBuildingsQuery();
@@ -143,14 +143,9 @@ export function ConsumoJerarquicoPage() {
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
 
-  // Yesterday aggregated for variation %
-  const yesterdayRange = useMemo(() => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
-    return { from: yesterdayStart.toISOString(), to: todayStart.toISOString() };
-  }, []);
-  const yesterdayQuery = useAggregatedReadingsQuery({ ...yesterdayRange, interval: 'daily' });
+  // ponytail: aggregated query disabled — portfolio_summary matview empty in prod causes 504
+  // Variation derived as null until matview is populated; sparkline uses placeholder
+  const yesterdayQuery = { data: [] as import('../../../types/reading').AggregatedReading[] };
 
   const allBuildings = buildingsQuery.data ?? [];
   const allMeters = metersQuery.data ?? [];
@@ -176,9 +171,10 @@ export function ConsumoJerarquicoPage() {
   // Filter
   const filteredRows = useMemo(() => {
     if (filterBy === 'critical') return rows.filter((r) => r.status === 'critical');
+    if (filterBy === 'variation') return rows.filter((r) => r.variationPct != null && Math.abs(r.variationPct) > variationThreshold);
     if (filterBy === 'nodata') return rows.filter((r) => r.status === 'nodata');
     return rows;
-  }, [rows, filterBy]);
+  }, [rows, filterBy, variationThreshold]);
 
   // Sort
   const sortedRows = useMemo(() => {
@@ -203,17 +199,23 @@ export function ConsumoJerarquicoPage() {
     [filteredBuildings],
   );
 
-  // Map marker meta — color by metric intensity
-  const STATUS_COLORS: Record<EnergyStatus, string> = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', nodata: '#9ca3af' };
+  // Map marker meta — color + scale by metric intensity
   const buildingMeta = useMemo(() => {
     const map = new Map<string, BuildingMarkerMeta>();
+    const maxVal = Math.max(1, ...rows.map((r) => accessor(r)));
     rows.forEach((r) => {
       const val = accessor(r);
+      const ratio = val / maxVal;
+      // Heat scale: blue (low) → yellow (mid) → red (high)
+      const color = ratio > 0.75 ? '#ef4444' : ratio > 0.5 ? '#f59e0b' : ratio > 0.25 ? '#3b82f6' : '#22c55e';
+      const scale = 0.6 + 0.8 * ratio;
       map.set(r.building.id, {
-        color: STATUS_COLORS[r.status as EnergyStatus] ?? '#22c55e',
+        color,
+        scale,
         popupHtml: `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
           <strong style="font-size:13px">${r.building.name}</strong>
           <p style="margin:3px 0 0;font-size:12px">${formatMetric(val, currentMetric.unit)}</p>
+          ${r.variationPct != null ? `<p style="margin:2px 0 0;font-size:11px;color:${r.variationPct > 0 ? '#ef4444' : '#22c55e'}">${r.variationPct > 0 ? '↑' : '↓'} ${Math.abs(r.variationPct)}% vs ayer</p>` : ''}
           ${r.alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.alertCount} alerta${r.alertCount > 1 ? 's' : ''}</p>` : ''}
         </div>`,
       });
@@ -239,18 +241,19 @@ export function ConsumoJerarquicoPage() {
         eyebrow="Consumo"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <PillToggle
-              options={COUNTRIES.map((c) => ({ key: c.code, label: c.label }))}
-              value={country}
-              onChange={setCountry}
-              size="sm"
-            />
-            <PillToggle
-              options={PERIODS.map((p) => ({ key: p.key, label: p.label }))}
+            <select
               value={period}
-              onChange={setPeriod}
-              size="sm"
-            />
+              onChange={(e) => setPeriod(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+            >
+              {PERIODS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+            </select>
+            {period === 'custom' && (
+              <>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+              </>
+            )}
             <PillToggle
               options={METRICS.map((m) => ({ key: m.key, label: m.label }))}
               value={metric}
@@ -271,6 +274,17 @@ export function ConsumoJerarquicoPage() {
             >
               {FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
             </select>
+            {filterBy === 'variation' && (
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={variationThreshold}
+                onChange={(e) => setVariationThreshold(Number(e.target.value) || 10)}
+                className="w-14 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+                title="Umbral variación %"
+              />
+            )}
             <select
               value={compareWith}
               onChange={(e) => setCompareWith(e.target.value)}
@@ -316,7 +330,7 @@ export function ConsumoJerarquicoPage() {
           </div>
 
           {/* Building tree */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="panel min-h-0 flex-1 overflow-y-auto">
             <table className="w-full text-[13px]">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -350,6 +364,7 @@ export function ConsumoJerarquicoPage() {
                       onMeterClick={(meterId) => navigate(`/monitoring/meter/${meterId}`)}
                       onViewPlant={(buildingId) => navigate(`/dashboard/consolidado?building=${buildingId}`)}
                       granularity={granularity}
+                      compareWith={compareWith}
                     />
                   );
                 })}
@@ -377,7 +392,10 @@ interface TreeRowProps {
   onMeterClick: (meterId: string) => void;
   onViewPlant: (buildingId: string) => void;
   granularity: 'monthly' | 'weekly';
+  compareWith: string;
 }
+
+const STATUS_DOT: Record<string, string> = { online: 'bg-emerald-500', stale: 'bg-amber-400', offline: 'bg-gray-400' };
 
 function TreeRow({
   row,
@@ -392,15 +410,42 @@ function TreeRow({
   onMeterClick,
   onViewPlant,
   granularity,
+  compareWith,
 }: Readonly<TreeRowProps>) {
+  const [expandedZone, setExpandedZone] = useState<string | null>(null);
+
   const readingMap = useMemo(() => {
     const map = new Map<string, LatestReading>();
     expandedReadings.forEach((r) => map.set(r.meter_id, r));
     return map;
   }, [expandedReadings]);
 
+  // Group meters by zone/floor for intermediate level
+  const zones = useMemo(() => {
+    if (!isExpanded || expandedMeters.length === 0) return [];
+    const zoneMap = new Map<string, Meter[]>();
+    expandedMeters.forEach((m) => {
+      const zone = (m.metadata as Record<string, string>)?.zone ?? m.loadCategory ?? 'general';
+      const list = zoneMap.get(zone) ?? [];
+      list.push(m);
+      zoneMap.set(zone, list);
+    });
+    const mallTotalMwh = expandedReadings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
+    return Array.from(zoneMap.entries()).map(([name, meters]) => {
+      const meterIds = new Set(meters.map((m) => m.id));
+      const zoneReadings = expandedReadings.filter((r) => meterIds.has(r.meter_id));
+      const zoneMwh = zoneReadings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
+      const pctMall = mallTotalMwh > 0 ? (zoneMwh / mallTotalMwh) * 100 : 0;
+      const hasOnline = zoneReadings.length > 0;
+      const hasStale = zoneReadings.some((r) => (Date.now() - new Date(r.timestamp).getTime()) > 4 * 3_600_000);
+      const status = !hasOnline ? 'offline' : hasStale ? 'stale' : 'online';
+      return { name, meters, zoneMwh, pctMall, meterCount: meters.length, status };
+    }).sort((a, b) => b.zoneMwh - a.zoneMwh);
+  }, [isExpanded, expandedMeters, expandedReadings]);
+
   return (
     <>
+      {/* Mall row */}
       <tr
         className="cursor-pointer transition-colors hover:bg-surface"
         onClick={onToggle}
@@ -434,12 +479,13 @@ function TreeRow({
           <span className={`inline-block size-2.5 rounded-full ${statusStyle.bg}`} title={statusStyle.label} />
         </td>
       </tr>
-      {/* Trend sparkline + "Ver planta" when expanded */}
+
+      {/* Trend sparkline + "Ver planta" */}
       {isExpanded && (
         <tr className="bg-surface/30">
           <td colSpan={6} className="px-10 py-2">
             <div className="flex items-center justify-between">
-              <TrendSparkline buildingId={row.building.id} metricVal={metricVal} label={metricUnit} granularity={granularity} />
+              <TrendSparkline buildingId={row.building.id} metricVal={metricVal} label={metricUnit} granularity={granularity} compareWith={compareWith} />
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onViewPlant(row.building.id); }}
@@ -451,35 +497,107 @@ function TreeRow({
           </td>
         </tr>
       )}
-      {isExpanded && expandedMeters.map((meter) => {
+
+      {/* Nivel 2: Zones/floors */}
+      {isExpanded && zones.map((zone) => {
+        const isZoneExpanded = expandedZone === zone.name;
+        return (
+          <ZoneRow
+            key={zone.name}
+            zone={zone}
+            isExpanded={isZoneExpanded}
+            onToggle={() => setExpandedZone(isZoneExpanded ? null : zone.name)}
+            readingMap={readingMap}
+            onMeterClick={onMeterClick}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/* ── Zone Row (intermediate level: zone/floor → meters) ── */
+
+interface ZoneData {
+  name: string;
+  meters: Meter[];
+  zoneMwh: number;
+  pctMall: number;
+  meterCount: number;
+  status: string;
+}
+
+function ZoneRow({
+  zone,
+  isExpanded,
+  onToggle,
+  readingMap,
+  onMeterClick,
+}: Readonly<{
+  zone: ZoneData;
+  isExpanded: boolean;
+  onToggle: () => void;
+  readingMap: Map<string, LatestReading>;
+  onMeterClick: (meterId: string) => void;
+}>) {
+  return (
+    <>
+      <tr
+        className="cursor-pointer bg-surface/30 transition-colors hover:bg-surface/50"
+        onClick={onToggle}
+      >
+        <td className="py-1.5 pl-8 pr-3">
+          <div className="flex items-center gap-2">
+            <svg
+              className={`h-3 w-3 shrink-0 text-muted transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+              viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
+            >
+              <path d="M4 2l4 4-4 4" />
+            </svg>
+            <span className="text-[12px] font-medium text-foreground">{zone.name}</span>
+          </div>
+        </td>
+        <td className="px-3 py-1.5 text-right text-[12px] text-foreground">
+          {zone.zoneMwh > 0 ? `${zone.zoneMwh.toFixed(2)} MWh` : '—'}
+        </td>
+        <td className="px-3 py-1.5 text-right text-[10px] text-muted">
+          {zone.pctMall > 0 ? `${zone.pctMall.toFixed(1)}%` : '—'}
+        </td>
+        <td className="px-3 py-1.5" />
+        <td className="px-3 py-1.5 text-right text-[10px] text-muted">{zone.meterCount}</td>
+        <td className="px-3 py-1.5 text-center">
+          <span className={`inline-block size-2 rounded-full ${STATUS_DOT[zone.status]}`} />
+        </td>
+      </tr>
+
+      {/* Nivel 3: Meters under this zone */}
+      {isExpanded && zone.meters.map((meter) => {
         const reading = readingMap.get(meter.id);
-        const powerKw = Number(reading?.power_kw ?? 0);
         const energyKwh = Number(reading?.energy_kwh_total ?? 0);
+        const meterMwh = energyKwh / 1000;
         const isOnline = !!reading;
         const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;
         const statusLabel = !isOnline ? 'offline' : stale ? 'stale' : 'online';
-        const STATUS_DOT: Record<string, string> = { online: 'bg-emerald-500', stale: 'bg-amber-400', offline: 'bg-gray-400' };
         return (
           <tr
             key={meter.id}
             className="cursor-pointer bg-surface/50 transition-colors hover:bg-surface"
             onClick={() => onMeterClick(meter.id)}
           >
-            <td className="py-1.5 pl-10 pr-3">
-              <span className="text-[12px] text-foreground">{meter.name}</span>
-              <span className="ml-2 text-[10px] text-muted">{meter.code}</span>
+            <td className="py-1.5 pl-14 pr-3">
+              <span className="text-[11px] text-foreground">{meter.name}</span>
+              <span className="ml-1.5 text-[10px] text-muted">{meter.code}</span>
             </td>
-            <td className="px-3 py-1.5 text-right text-[12px] text-foreground">
-              {powerKw.toFixed(1)} kW
+            <td className="px-3 py-1.5 text-right text-[11px] text-foreground">
+              {meterMwh > 0 ? `${meterMwh.toFixed(2)} MWh` : '—'}
             </td>
-            <td className="px-3 py-1.5 text-right text-[10px] text-muted">
-              {energyKwh > 0 ? `${(energyKwh / 1000).toFixed(2)} MWh` : '—'}
-            </td>
+            <td className="px-3 py-1.5" />
             <td className="px-3 py-1.5 text-right text-[10px] text-muted">
               {reading?.timestamp
-                ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                ? new Date(reading.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                 : '—'}
             </td>
+            <td className="px-3 py-1.5" />
             <td className="px-3 py-1.5 text-center">
               <span className="flex items-center justify-center gap-1">
                 <span className={`inline-block size-2 rounded-full ${STATUS_DOT[statusLabel]}`} />
@@ -493,61 +611,102 @@ function TreeRow({
   );
 }
 
-/* ── Trend Sparkline (current vs year prior) ── */
+/* ── Trend Sparkline (current vs comparison line) ── */
 
-function TrendSparkline({ buildingId, granularity = 'monthly' }: Readonly<{ buildingId: string; metricVal: number; label: string; granularity?: 'monthly' | 'weekly' }>) {
+const COMPARE_LABELS: Record<string, string> = {
+  none: '',
+  previous: 'Período ant.',
+  yoy: 'Año ant.',
+  avg: 'Promedio portafolio',
+};
+
+function TrendSparkline({ buildingId, granularity = 'monthly', compareWith = 'none' }: Readonly<{ buildingId: string; metricVal: number; label: string; granularity?: 'monthly' | 'weekly'; compareWith?: string }>) {
   const isWeekly = granularity === 'weekly';
+  const slotCount = 12;
+
+  // Current period range
   const range = useMemo(() => {
     const now = new Date();
     const from = isWeekly
-      ? new Date(now.getTime() - 12 * 7 * 86_400_000) // 12 weeks
+      ? new Date(now.getTime() - slotCount * 7 * 86_400_000)
       : new Date(now.getFullYear() - 1, now.getMonth(), 1);
     return { from: from.toISOString(), to: now.toISOString() };
   }, [isWeekly]);
 
-  const aggQuery = useAggregatedReadingsQuery({ ...range, interval: isWeekly ? 'daily' : 'monthly', buildingId });
-  const aggData = aggQuery.data ?? [];
+  // Comparison period range
+  const compareRange = useMemo(() => {
+    if (compareWith === 'none') return null;
+    if (compareWith === 'previous') {
+      const duration = isWeekly ? slotCount * 7 * 86_400_000 : 365 * 86_400_000;
+      const to = new Date(new Date(range.from).getTime());
+      const from = new Date(to.getTime() - duration);
+      return { from: from.toISOString(), to: to.toISOString() };
+    }
+    if (compareWith === 'yoy') {
+      const from = new Date(new Date(range.from).getTime() - 365 * 86_400_000);
+      const to = new Date(new Date(range.to).getTime() - 365 * 86_400_000);
+      return { from: from.toISOString(), to: to.toISOString() };
+    }
+    // 'avg' — same range, no buildingId filter (portfolio-wide)
+    return range;
+  }, [compareWith, range, isWeekly]);
 
-  const months = useMemo(() => {
+  const aggQuery = useAggregatedReadingsQuery({ ...range, interval: isWeekly ? 'daily' : 'monthly', buildingId });
+  const compareQuery = useAggregatedReadingsQuery(
+    { ...(compareRange ?? range), interval: isWeekly ? 'daily' : 'monthly', ...(compareWith === 'avg' ? { groupBy: 'portfolio' as const } : { buildingId }) },
+    compareWith !== 'none',
+  );
+  const aggData = aggQuery.data ?? [];
+  const compareData = compareQuery.data ?? [];
+
+  const slots = useMemo(() => {
     const now = new Date();
-    const slots: { month: string; current: number; prior: number }[] = [];
+    const result: { label: string; current: number; compare: number }[] = [];
+
+    const sumEnergy = (rows: typeof aggData) => rows.reduce((s, r) => s + parseFloat(r.energy_delta_kwh ?? '0'), 0) / 1000;
 
     if (isWeekly) {
-      // 12 weekly buckets from daily data
-      for (let w = 11; w >= 0; w--) {
+      for (let w = slotCount - 1; w >= 0; w--) {
         const weekEnd = new Date(now.getTime() - w * 7 * 86_400_000);
         const weekStart = new Date(weekEnd.getTime() - 7 * 86_400_000);
         const label = weekStart.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
-        const weekRows = aggData.filter((r) => {
-          const t = new Date(r.bucket).getTime();
-          return t >= weekStart.getTime() && t < weekEnd.getTime();
-        });
-        const current = weekRows.reduce((s, r) => s + (parseFloat(r.energy_delta_kwh ?? '0')), 0) / 1000;
-        slots.push({ month: label, current, prior: 0 });
+        const inRange = (r: typeof aggData[0], start: Date, end: Date) => { const t = new Date(r.bucket).getTime(); return t >= start.getTime() && t < end.getTime(); };
+        const current = sumEnergy(aggData.filter((r) => inRange(r, weekStart, weekEnd)));
+
+        let compare = 0;
+        if (compareWith === 'previous' || compareWith === 'yoy') {
+          const offset = compareWith === 'yoy' ? 365 * 86_400_000 : slotCount * 7 * 86_400_000;
+          const cStart = new Date(weekStart.getTime() - offset);
+          const cEnd = new Date(weekEnd.getTime() - offset);
+          compare = sumEnergy(compareData.filter((r) => inRange(r, cStart, cEnd)));
+        } else if (compareWith === 'avg' && compareData.length > 0) {
+          compare = sumEnergy(compareData.filter((r) => inRange(r, weekStart, weekEnd)));
+        }
+        result.push({ label, current, compare });
       }
     } else {
-      // 12 monthly buckets
       for (let i = 11; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthLabel = d.toLocaleDateString('es-CL', { month: 'short' });
-        const monthRows = aggData.filter((r) => {
-          const b = new Date(r.bucket);
-          return b.getFullYear() === d.getFullYear() && b.getMonth() === d.getMonth();
-        });
-        const current = monthRows.reduce((s, r) => s + (parseFloat(r.energy_delta_kwh ?? '0')), 0) / 1000;
-        const priorD = new Date(d.getFullYear() - 1, d.getMonth(), 1);
-        const priorRows = aggData.filter((r) => {
-          const b = new Date(r.bucket);
-          return b.getFullYear() === priorD.getFullYear() && b.getMonth() === priorD.getMonth();
-        });
-        const prior = priorRows.reduce((s, r) => s + (parseFloat(r.energy_delta_kwh ?? '0')), 0) / 1000;
-        slots.push({ month: monthLabel, current, prior });
+        const label = d.toLocaleDateString('es-CL', { month: 'short' });
+        const matchMonth = (r: typeof aggData[0], year: number, month: number) => { const b = new Date(r.bucket); return b.getFullYear() === year && b.getMonth() === month; };
+        const current = sumEnergy(aggData.filter((r) => matchMonth(r, d.getFullYear(), d.getMonth())));
+
+        let compare = 0;
+        if (compareWith === 'previous') {
+          const pd = new Date(d.getFullYear(), d.getMonth() - 12, 1);
+          compare = sumEnergy(compareData.filter((r) => matchMonth(r, pd.getFullYear(), pd.getMonth())));
+        } else if (compareWith === 'yoy') {
+          compare = sumEnergy(compareData.filter((r) => matchMonth(r, d.getFullYear() - 1, d.getMonth())));
+        } else if (compareWith === 'avg' && compareData.length > 0) {
+          compare = sumEnergy(compareData.filter((r) => matchMonth(r, d.getFullYear(), d.getMonth())));
+        }
+        result.push({ label, current, compare });
       }
     }
-    return slots;
-  }, [aggData, isWeekly]);
+    return result;
+  }, [aggData, compareData, isWeekly, compareWith]);
 
-  const maxVal = Math.max(1, ...months.flatMap((m) => [m.current, m.prior]));
+  const maxVal = Math.max(1, ...slots.flatMap((s) => [s.current, s.compare]));
   const w = 320;
   const h = 48;
   const toPath = (values: number[]) =>
@@ -555,15 +714,21 @@ function TrendSparkline({ buildingId, granularity = 'monthly' }: Readonly<{ buil
 
   if (aggQuery.isPending) return <p className="text-[10px] text-muted">Cargando tendencia...</p>;
 
+  const compareLabel = COMPARE_LABELS[compareWith] ?? '';
+
   return (
     <div className="flex items-center gap-3">
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0">
-        <path d={toPath(months.map((m) => m.prior))} fill="none" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="4 2" />
-        <path d={toPath(months.map((m) => m.current))} fill="none" stroke="#3b82f6" strokeWidth={2} />
+        {compareWith !== 'none' && (
+          <path d={toPath(slots.map((s) => s.compare))} fill="none" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="4 2" />
+        )}
+        <path d={toPath(slots.map((s) => s.current))} fill="none" stroke="#3b82f6" strokeWidth={2} />
       </svg>
       <div className="flex gap-3 text-[10px] text-muted">
         <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 bg-blue-500" /> Actual</span>
-        <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 border-t border-dashed border-gray-400" /> Año ant.</span>
+        {compareWith !== 'none' && (
+          <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 border-t border-dashed border-gray-400" /> {compareLabel}</span>
+        )}
       </div>
     </div>
   );

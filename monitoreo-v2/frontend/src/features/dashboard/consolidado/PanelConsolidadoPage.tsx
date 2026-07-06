@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -9,7 +8,7 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
 import { useHierarchyByBuildingQuery } from '../../../hooks/queries/useHierarchyQuery';
 import { deriveBuildingStatus, getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
-import { fmtClp, fmtNum } from '../../../lib/formatters';
+import { fmtNum } from '../../../lib/formatters';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
@@ -37,6 +36,13 @@ const SEVERITY_COLORS: Record<string, string> = {
   high: 'bg-orange-100 text-orange-700',
   medium: 'bg-amber-100 text-amber-700',
   low: 'bg-blue-100 text-blue-700',
+};
+
+const SEVERITY_LABELS: Record<string, string> = {
+  critical: 'URGENTE',
+  high: 'ADVERTENCIA',
+  medium: 'MEDIO',
+  low: 'INFO',
 };
 
 /* ── Building enrichment ── */
@@ -100,7 +106,7 @@ const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
 ];
 
 export function PanelConsolidadoPage() {
-  const [country, setCountry] = useState('CL');
+  const country = 'CL';
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
   const [showOnly, setShowOnly] = useState<MapShowOnly>('all');
@@ -119,7 +125,7 @@ export function PanelConsolidadoPage() {
     return { from: yesterdayStart.toISOString(), to: todayStart.toISOString() };
   }, []);
   const yesterdayQuery = useAggregatedReadingsQuery(
-    { ...yesterdayRange, interval: 'daily' },
+    { ...yesterdayRange, interval: 'daily', groupBy: 'portfolio' },
   );
   const todayHourlyRange = useMemo(() => {
     const now = new Date();
@@ -127,7 +133,7 @@ export function PanelConsolidadoPage() {
     return { from: todayStart.toISOString(), to: now.toISOString() };
   }, []);
   const todayHourlyQuery = useAggregatedReadingsQuery(
-    { ...todayHourlyRange, interval: 'hourly' },
+    { ...todayHourlyRange, interval: 'hourly', groupBy: 'portfolio' },
   );
 
   const allBuildings = buildingsQuery.data ?? [];
@@ -231,11 +237,15 @@ export function PanelConsolidadoPage() {
         color = '#6b7280'; // variation: grey placeholder
       }
       const alertCount = e.activeAlerts.length;
+      // ponytail: portfolio-level variation until per-building aggregated endpoint exists
+      const varLabel = demandVariationPct != null
+        ? `<p style="margin:2px 0 0;font-size:11px;color:${demandVariationPct > 0 ? '#ef4444' : demandVariationPct < 0 ? '#22c55e' : '#666'}">${demandVariationPct > 0 ? '↑' : demandVariationPct < 0 ? '↓' : '→'} ${Math.abs(demandVariationPct)}% vs ayer</p>`
+        : '';
       const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
         <strong style="font-size:14px">${e.building.name}</strong>
         <p style="margin:4px 0 0;font-size:12px;color:#666">${e.powerKw.toFixed(1)} kW</p>
+        ${varLabel}
         ${alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${alertCount} alerta${alertCount > 1 ? 's' : ''} activa${alertCount > 1 ? 's' : ''}</p>` : ''}
-        ${e.building.address ? `<p style="margin:2px 0 0;font-size:11px;color:#999">${e.building.address}</p>` : ''}
       </div>`;
       // Scale 0.6–1.4 proportional to power
       const scale = maxPowerAll > 0 ? 0.6 + 0.8 * (e.powerKw / maxPowerAll) : 1;
@@ -263,34 +273,25 @@ export function PanelConsolidadoPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      {/* Header row: title + filters + country toggle */}
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-4">
-          <PageHeader title="Panel Consolidado" />
-          {!selectedFloorId && (
-            <div className="flex items-center gap-3 text-[11px]">
-              <label className="flex items-center gap-1 text-muted">
-                Colorear:
-                <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-                  {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                </select>
-              </label>
-              <label className="flex items-center gap-1 text-muted">
-                Mostrar:
-                <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-                  {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-                </select>
-              </label>
-            </div>
-          )}
+      {/* Header */}
+      <PageHeader title="Panel Consolidado" />
+      {/* Map filters below title */}
+      {!selectedFloorId && (
+        <div className="flex shrink-0 items-center gap-3 text-[11px]">
+          <label className="flex items-center gap-1 text-muted">
+            Colorear marcadores por:
+            <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+              {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
+          </label>
+          <label className="flex items-center gap-1 text-muted">
+            Mostrar:
+            <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
+              {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
+          </label>
         </div>
-        <PillToggle
-          options={COUNTRIES.map((c) => ({ key: c.code, label: c.label }))}
-          value={country}
-          onChange={setCountry}
-          size="sm"
-        />
-      </div>
+      )}
 
       <div className="flex min-h-0 flex-1 gap-4">
         {/* Column 1: Map or Floor Plan */}
@@ -330,11 +331,11 @@ export function PanelConsolidadoPage() {
               </div>
               {/* Demand sparkline 24h + recent critical events */}
               <div className="mt-2 flex gap-3">
-                <div className="flex-1">
+                <div className="panel flex-1 px-3 py-2.5">
                   <p className="mb-1 text-[10px] font-medium uppercase text-muted">Demanda últimas 24h</p>
                   <DemandSparkline data={todayHourlyQuery.data ?? []} />
                 </div>
-                <div className="flex-1">
+                <div className="panel flex-1 px-3 py-2.5">
                   <p className="mb-1 text-[10px] font-medium uppercase text-muted">Eventos críticos recientes</p>
                   <RecentCriticalEvents alerts={activeAlerts} buildings={allBuildings} />
                 </div>
@@ -397,34 +398,51 @@ function PortfolioPanel({
 }: Readonly<PortfolioPanelProps>) {
   const activeCount = enriched.filter((e) => e.building.isActive).length;
 
-  const kpis = [
-    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW`, variation: demandVariationPct, pct: true },
-    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh`, variation: consumptionVariationPct, pct: true },
-    { title: 'Costo acumulado', value: fmtClp(totalCostUf), variation: null as number | null, pct: true },
-    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}`, variation: totalCriticalAlerts > 0 ? totalCriticalAlerts : null, pct: false },
-  ];
-
   return (
     <>
-      {/* KPI cards 2×2 */}
-      <div className="grid grid-cols-2 gap-2">
-        {kpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <div className="mt-0.5 flex items-baseline gap-1.5">
-              <p className="text-lg font-semibold tracking-tight text-foreground">{k.value}</p>
-              {k.variation != null && (
-                <span className={`text-[10px] font-medium ${k.variation > 0 ? 'text-red-500' : k.variation < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                  {k.variation > 0 ? '↑' : k.variation < 0 ? '↓' : '→'} {Math.abs(k.variation)}{k.pct ? '%' : ''}
-                </span>
-              )}
-            </div>
+      {/* KPI stack — 4 separate cards */}
+      <div className="flex flex-col gap-2">
+        <div className="panel flex items-center justify-between px-3 py-2.5">
+          <p className="text-[12px] text-muted">Malls activos / total</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[14px] font-semibold text-foreground">{activeCount} / {enriched.length}</p>
+            {totalCriticalAlerts > 0 && (
+              <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                {totalCriticalAlerts} críticas
+              </span>
+            )}
           </div>
-        ))}
+        </div>
+        <div className="panel flex items-center justify-between px-3 py-2.5">
+          <p className="text-[12px] text-muted">Demanda agregada [MW]</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-[14px] font-semibold text-foreground">{totalDemandMw.toFixed(2)}</p>
+            {demandVariationPct != null && (
+              <span className={`text-[10px] font-medium ${demandVariationPct > 0 ? 'text-red-500' : demandVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                {demandVariationPct > 0 ? '↑' : demandVariationPct < 0 ? '↓' : '→'} {Math.abs(demandVariationPct)}%
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="panel flex items-center justify-between px-3 py-2.5">
+          <p className="text-[12px] text-muted">Consumo acumulado [MWh]</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-[14px] font-semibold text-foreground">{fmtNum(totalConsumptionMwh, 1)}</p>
+            {consumptionVariationPct != null && (
+              <span className={`text-[10px] font-medium ${consumptionVariationPct > 0 ? 'text-red-500' : consumptionVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                {consumptionVariationPct > 0 ? '↑' : consumptionVariationPct < 0 ? '↓' : '→'} {Math.abs(consumptionVariationPct)}%
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="panel flex items-center justify-between px-3 py-2.5">
+          <p className="text-[12px] text-muted">Costo acumulado [UF]</p>
+          <p className="text-[14px] font-semibold text-foreground">{fmtNum(totalCostUf, 1)}</p>
+        </div>
       </div>
 
       {/* Building list */}
-      <div className="panel flex flex-col">
+      <div className="panel flex min-h-0 flex-1 flex-col">
         <div className="flex items-center justify-between px-3 py-2.5">
           <h3 className="text-[12px] font-medium text-foreground">
             Centros comerciales
@@ -438,7 +456,7 @@ function PortfolioPanel({
             )}
           </div>
         </div>
-        <ul className="divide-y divide-border">
+        <ul className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
           {enriched.map((e) => {
             const style = getStatusStyle(e.status);
             return (
@@ -508,12 +526,6 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
   const voltages = buildingReadings.map((r) => Number(r.voltage_l1)).filter((v) => v > 0);
   const avgVoltage = voltages.length > 0 ? voltages.reduce((s, v) => s + v, 0) / voltages.length : null;
 
-  const metrics = [
-    { title: 'Carga total', value: `${powerKw.toFixed(1)} kW` },
-    { title: 'Voltaje prom.', value: avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—' },
-    { title: 'En alarma', value: String(activeAlerts.length), alert: activeAlerts.length > 0 },
-  ];
-
   const countryLabel = COUNTRIES.find((c) => c.code === country)?.label ?? country;
   const selectedFloorName = floors.find((f) => f.id === selectedFloorId)?.name;
 
@@ -541,16 +553,34 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
         <p className="mt-0.5 text-[11px] text-muted">
           {building.address ?? 'Sin dirección'} · {style.label}
         </p>
+        {/* Gap 1: Hora local del mall */}
+        <p className="mt-1 text-[10px] text-muted">
+          Hora local: {new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </p>
       </div>
 
-      {/* Metric cards */}
+      {/* Metric cards — Gap 2: mini sparkline in Carga total */}
       <div className="grid grid-cols-3 gap-2">
-        {metrics.map((m) => (
-          <div key={m.title} className="panel px-2.5 py-2 text-center">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{m.title}</p>
-            <p className={`mt-0.5 text-base font-semibold ${m.alert ? 'text-red-600' : 'text-foreground'}`}>{m.value}</p>
+        <div className="panel px-2.5 py-2 text-center">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Carga total</p>
+          <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
+          <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
+            {PLACEHOLDER_24H.map((v, i) => (
+              <div key={i} className="flex-1 rounded-t bg-brand/40" style={{ height: `${(v / 50) * 100}%` }} />
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="panel px-2.5 py-2 text-center">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
+          <p className="mt-0.5 text-base font-semibold text-foreground">{avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—'}</p>
+        </div>
+        <div className="panel px-2.5 py-2 text-center">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">En alarma</p>
+          <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
+            {activeAlerts.length > 0 && <span className="mr-1">⚠</span>}
+            {activeAlerts.length}
+          </p>
+        </div>
       </div>
 
       {/* Floor tabs (Nivel 3 selector) */}
@@ -583,21 +613,26 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
         </div>
       )}
 
-      {/* Gauges */}
+      {/* Gauges — Nivel 2: Voltaje/Corriente/Factor potencia, Nivel 3: Voltaje/Corriente/Potencia activa */}
       {buildingReadings.length > 0 && (() => {
         const currents = buildingReadings.map((r) => Number(r.current_l1)).filter((v) => v > 0);
         const avgCurrent = currents.length > 0 ? currents.reduce((s, v) => s + v, 0) / currents.length : null;
+        const powerFactors = buildingReadings.map((r) => Number(r.power_factor)).filter((v) => v > 0 && v <= 1);
+        const avgPf = powerFactors.length > 0 ? powerFactors.reduce((s, v) => s + v, 0) / powerFactors.length : null;
+        const thirdGauge = selectedFloorId
+          ? { label: 'Potencia activa', value: powerKw, unit: 'kW', min: 0, max: Math.max(powerKw * 1.5, 100), color: '#f59e0b' }
+          : { label: 'Factor potencia', value: avgPf, unit: '', min: 0, max: 1, color: '#f59e0b' };
         const gauges = [
-          { label: 'Voltaje', value: avgVoltage, unit: 'V', min: 200, max: 260, normalMin: 210, normalMax: 240, color: '#22c55e' },
-          { label: 'Corriente', value: avgCurrent, unit: 'A', min: 0, max: 100, normalMin: 0, normalMax: 80, color: '#3b82f6' },
-          { label: 'Potencia', value: powerKw, unit: 'kW', min: 0, max: Math.max(powerKw * 1.5, 100), normalMin: 0, normalMax: powerKw * 1.2, color: '#f59e0b' },
+          { label: 'Voltaje', value: avgVoltage, unit: 'V', min: 300, max: 420, color: '#22c55e' },
+          { label: 'Corriente', value: avgCurrent, unit: 'A', min: 0, max: 100, color: '#3b82f6' },
+          thirdGauge,
         ];
         return (
           <div className="grid grid-cols-3 gap-2">
             {gauges.map((g) => (
               <div key={g.label} className="panel flex flex-col items-center px-2 py-2">
                 <ArcGauge value={g.value ?? 0} min={g.min} max={g.max} color={g.color} size={64} />
-                <p className="mt-1 text-[12px] font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(1)} ${g.unit}` : '—'}</p>
+                <p className="mt-1 text-[12px] font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(g.unit ? 1 : 2)}${g.unit ? ` ${g.unit}` : ''}` : '—'}</p>
                 <p className="text-[9px] text-muted">{g.label}</p>
               </div>
             ))}
@@ -605,8 +640,8 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
         );
       })()}
 
-      {/* Alert feed — infinite scroll 20 at a time */}
-      <AlertFeed alerts={activeAlerts} />
+      {/* Alert feed — filtered to floor zones in Nivel 3 */}
+      <AlertFeed alerts={selectedFloorId ? buildingAlerts : activeAlerts} />
     </>
   );
 }
@@ -648,7 +683,7 @@ function AlertFeed({ alerts }: Readonly<{ alerts: Alert[] }>) {
           {visible.map((a) => (
             <li key={a.id} className="flex items-start gap-2 px-3 py-2">
               <span className={`mt-0.5 inline-block shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_COLORS[a.severity] ?? ''}`}>
-                {a.severity.toUpperCase()}
+                {SEVERITY_LABELS[a.severity] ?? a.severity.toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[12px] text-foreground">{a.message}</p>
@@ -683,7 +718,7 @@ interface ZoneBlock {
   powerKw: number;
   status: EnergyStatus;
   meterCount: number;
-  // Grid position (derived from index)
+  lastAlarm: { severity: string; message: string; time: string } | null;
   col: number;
   row: number;
 }
@@ -805,7 +840,10 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
           .filter((r) => meterIds.includes(r.meter_id))
           .reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
         const status = meterIds.length > 0 ? deriveZoneStatus(meterIds, buildingReadings, alerts) : 'nodata' as EnergyStatus;
-        return { id: zone.id, name: zone.name, powerKw: zonePower, status, meterCount: meterIds.length, col: i % COLS, row: Math.floor(i / COLS) };
+        const meterSet = new Set(meterIds);
+        const zoneAlerts = alerts.filter((a) => a.meterId && meterSet.has(a.meterId)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const lastAlarm = zoneAlerts.length > 0 ? { severity: SEVERITY_LABELS[zoneAlerts[0].severity] ?? zoneAlerts[0].severity, message: zoneAlerts[0].message, time: new Date(zoneAlerts[0].createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) } : null;
+        return { id: zone.id, name: zone.name, powerKw: zonePower, status, meterCount: meterIds.length, lastAlarm, col: i % COLS, row: Math.floor(i / COLS) };
       });
     }
 
@@ -826,7 +864,10 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
         .filter((r) => meterIds.includes(r.meter_id))
         .reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
       const status = deriveZoneStatus(meterIds, buildingReadings, alerts);
-      return { id: cat, name: CATEGORY_LABELS[cat] ?? cat, powerKw: zonePower, status, meterCount: meterIds.length, col: i % COLS, row: Math.floor(i / COLS) };
+      const meterSet = new Set(meterIds);
+      const catAlerts = alerts.filter((a) => a.meterId && meterSet.has(a.meterId)).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const lastAlarm = catAlerts.length > 0 ? { severity: SEVERITY_LABELS[catAlerts[0].severity] ?? catAlerts[0].severity, message: catAlerts[0].message, time: new Date(catAlerts[0].createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) } : null;
+      return { id: cat, name: CATEGORY_LABELS[cat] ?? cat, powerKw: zonePower, status, meterCount: meterIds.length, lastAlarm, col: i % COLS, row: Math.floor(i / COLS) };
     });
   }, [floorZones, buildingMeters, buildingReadings, alerts]);
 
@@ -917,9 +958,12 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
 
                   {/* Hover tooltip */}
                   {isHovered && (
-                    <div className="absolute -top-12 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[11px] text-background shadow-lg">
+                    <div className="absolute -top-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[11px] text-background shadow-lg">
                       <p className="font-medium">{zone.name}</p>
                       <p>{zone.powerKw.toFixed(1)} kW · {getStatusStyle(zone.status).label}</p>
+                      {zone.lastAlarm && (
+                        <p className="text-[10px] opacity-80">{zone.lastAlarm.severity} · {zone.lastAlarm.time} · {zone.lastAlarm.message}</p>
+                      )}
                     </div>
                   )}
 
@@ -987,16 +1031,24 @@ function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[];
         const ago = Math.round((Date.now() - new Date(a.createdAt).getTime()) / 60_000);
         const agoLabel = ago < 60 ? `${ago}m` : `${Math.round(ago / 60)}h`;
         return (
-          <li key={a.id} className="flex items-center gap-1.5 truncate">
-            <span className={`inline-block size-1.5 shrink-0 rounded-full ${a.severity === 'critical' ? 'bg-red-500' : 'bg-orange-400'}`} />
-            <span className="truncate text-foreground">{buildingMap.get(a.buildingId) ?? '—'}</span>
-            <span className="shrink-0 text-muted">· {agoLabel}</span>
+          <li key={a.id} className="flex items-start gap-1.5">
+            <span className={`mt-0.5 inline-block size-1.5 shrink-0 rounded-full ${a.severity === 'critical' ? 'bg-red-500' : 'bg-orange-400'}`} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 text-foreground">
+                <span className="truncate font-medium">{buildingMap.get(a.buildingId) ?? '—'}</span>
+                <span className="shrink-0 text-muted">· {agoLabel}</span>
+              </div>
+              <p className="truncate text-muted">{a.message}</p>
+            </div>
           </li>
         );
       })}
     </ul>
   );
 }
+
+// ponytail: placeholder curve until aggregated hourly endpoint is fast enough
+const PLACEHOLDER_24H = [12, 10, 8, 7, 6, 7, 14, 22, 35, 42, 48, 50, 47, 44, 40, 38, 42, 46, 44, 38, 30, 24, 18, 14];
 
 function DemandSparkline({ data }: Readonly<{ data: import('../../../types/reading').AggregatedReading[] }>) {
   const bars = useMemo(() => {
@@ -1006,7 +1058,9 @@ function DemandSparkline({ data }: Readonly<{ data: import('../../../types/readi
       const hour = new Date(row.bucket).getHours();
       slots[hour] += parseFloat(row.avg_power_kw ?? '0');
     }
-    return slots;
+    // Use placeholder if no real data available
+    const hasData = slots.some((v) => v > 0);
+    return hasData ? slots : PLACEHOLDER_24H;
   }, [data]);
 
   const maxBar = Math.max(1, ...bars);

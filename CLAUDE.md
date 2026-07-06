@@ -27,6 +27,8 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ## Próxima Sesión
 
 ### Completado (2026-07-06)
+- **2.42.0:** Wireframe alignment pass 2. Sidebar tenant scoping (entries `platformOnly` ocultas cuando tenant seleccionado). Panel Consolidado: filtros debajo del título, KPIs 4 cards separadas, sparkline+eventos en cards, placeholder 24h, tooltip variación %, gauges Nivel 2 (Factor potencia) y Nivel 3 (Potencia activa), severity labels español. Consumo Jerárquico: árbol 3 niveles (mall→zona→medidor), mall multi-select, períodos completos, filtro variación > X%, markers intensidad métrica, TrendSparkline con comparación funcional. Costos y Tendencias: mall multi-select, sort columnas, filtro variación umbral, columna país. Alarmas Agregadas: layout 3 filas (KPIs / mapa+evolución / top5+tabla). Exportar Reportes: 7 gaps wireframe cerrados. Reportes Ejecutivos: preview cards con visuals. Monitoreo en Vivo: histograma flex, serial+zona en grilla, feed CNR. Mapa Cobertura: popup enriquecido con link grilla. Reg. Intervención / Ingreso CNR: layout compacto. Nav: profile landing directo, RequirePerms sin redirect (fix loop), permisos site_admin ampliados. Aggregated queries deshabilitadas (no hay datos julio en prod). [CHANGELOG — 2.42.0-alpha.0](CHANGELOG.md)
+- **2.41.0:** Wireframe alignment pass 1. Tenant scoping sidebar, Panel Consolidado Nivel 1/2/3 alineado, Consumo Jerárquico alineado. [CHANGELOG — 2.41.0-alpha.0](CHANGELOG.md)
 - **2.40.0:** Spec audit 30/30 pantallas alineadas con `docs/roles-ems.md`. Todos los datos `Math.sin/cos` reemplazados por queries reales (`useAggregatedReadingsQuery`). KPI variación % real (yesterday vs today). Sparklines, histogramas, charts de evolución — todos reales. Filtros desconectados wired a API (fecha audit, período alarmas, date range datos crudos). Dos módulos backend nuevos: `CnrModule` (tabla `cnr_records`, migración 14) y `InterventionsModule` (tabla `interventions`, migración 15). Frontend: localStorage eliminado de Ingreso CNR y Reg. Intervención (ahora POST a API). CNR Pendientes: híbrido API + auto-detectados. Mapa Cobertura: 4 métricas funcionales. Alarmas Agregadas: sortable, escaladas bar, map click-through. Maestro Medidores: "en mantención" alcanzable. Tenants: activate/deactivate wired. Observabilidad: APM endpoint. Proxy default → prod. Backend desplegado ECS rev 17 (`spec-audit-20260706`). Migraciones 14–15 aplicadas. [CHANGELOG — 2.40.0-alpha.0](CHANGELOG.md)
 
 ### Completado (2026-07-04)
@@ -261,23 +263,25 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 - Globe Landing desplegado en globepower.cl (CF `EHRW4X3FSU1YQ`)
 
 ### Pendiente
+- **Pipeline ingestión PASA** — no existe en prod. Última lectura en `readings`: 25 abril 2026. 2.6M rows históricas. Necesita: Lambda o ECS scheduled task para Drive→S3→RDS diario. Sin esto, todas las vistas con datos agregados muestran placeholders.
+- **Timescale Cloud** — plan de migración en `docs/ops/timescale-migration-plan.md`. RDS PostgreSQL no soporta CAGGs nativos. `readings_daily`/`readings_hourly` son vistas SQL regulares (no CAGGs). `portfolio_summary` matview tiene datos solo hasta abril (depende de datos frescos en `readings`).
 - **SSO Azure AD PASA** — credenciales App Registration del cliente.
 - **UAT Anexo 07** — checklist formal post-SSO.
-- **Timescale prod** — migr. `22`, `23` (requiere extensión en RDS).
 - **IoT escalamiento** — resuelto: `clientid()` en IoT Rule identifica dispositivos por certificado TLS. Lambda auto-registra desconocidos en `iot_devices`. Asignación libre desde UI (`/admin/iot-devices`). Pendiente: coordinación logística para saber qué Thing va a qué locación.
 - Salida sandbox SES, billing AWS, DNS opcional `plataforma.globepower.cl` (prod usa `power-monitor.cloud`).
 
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.40.0; PASA 875 medidores; migr. prod 1–55 (incl. 14 cnr_records, 15 interventions).
+Prod: power-monitor.cloud — 2.42.0; PASA 875 medidores; migr. prod 1–55 (incl. 14 cnr_records, 15 interventions).
 Docs: power-monitor.cloud/docs/ — Docusaurus, 50 páginas, API Keys documentadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
+IMPORTANTE: última lectura en readings es 25 abril 2026. No hay pipeline de ingestión PASA activo. Aggregated queries deshabilitadas en frontend (placeholder data). Plan Timescale en docs/ops/timescale-migration-plan.md.
 Spec audit: 30/30 pantallas auditadas contra docs/roles-ems.md. Zero Math.sin/cos. Datos reales en KPIs, sparklines, histogramas.
 Backend: CnrModule + InterventionsModule nuevos. ECS rev 17 (spec-audit-20260706).
 Perfiles: 5 perfiles EMS. Navegación + contenido + datos alineados a spec.
 IoT: auto-discovery activo. clientid() en IoT Rule. Asignación libre desde /admin/iot-devices.
-Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23, firma digital (técnico), Parquet export (auditor).
+Pendiente: pipeline ingestión PASA (no hay datos desde abril), Timescale Cloud (plan en docs/ops/), SSO Azure PASA, firma digital (técnico), Parquet export (auditor).
 ```
 
 ## Prioridad Actual de Acceso

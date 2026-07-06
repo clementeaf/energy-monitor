@@ -143,30 +143,24 @@ export function MapaCoberturaPage() {
 
     coverageRows.forEach((r) => {
       let color: string;
-      let detail: string;
 
       if (metric === 'alerts') {
         color = r.alertCount === 0 ? '#22c55e' : r.alertCount <= 2 ? '#f59e0b' : '#ef4444';
-        detail = `${r.alertCount} alertas activas`;
       } else if (metric === 'last') {
-        const hasRecent = r.lastReading != null;
-        color = hasRecent ? '#22c55e' : '#ef4444';
-        detail = r.lastReading ? `Últ: ${r.lastReading}` : 'Sin lectura reciente';
+        color = r.lastReading != null ? '#22c55e' : '#ef4444';
       } else if (metric === 'quality') {
-        // ponytail: quality ≈ % online as proxy until quality field in DB
-        const qualityPct = r.onlinePct;
-        color = qualityPct >= 95 ? '#22c55e' : qualityPct >= 85 ? '#f59e0b' : '#ef4444';
-        detail = `Calidad: ${qualityPct.toFixed(0)}%`;
-      } else {
-        // 'online' default
         color = r.onlinePct >= 95 ? '#22c55e' : r.onlinePct >= 85 ? '#f59e0b' : '#ef4444';
-        detail = `${r.onlinePct.toFixed(0)}% online (${r.onlineCount}/${r.totalMeters})`;
+      } else {
+        color = r.onlinePct >= 95 ? '#22c55e' : r.onlinePct >= 85 ? '#f59e0b' : '#ef4444';
       }
 
+      const country = r.building.countryCode ?? 'CL';
       const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
         <strong style="font-size:13px">${r.building.name}</strong>
-        <p style="margin:3px 0 0;font-size:12px">${detail}</p>
-        ${r.alertCount > 0 && metric !== 'alerts' ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.alertCount} alertas</p>` : ''}
+        <p style="margin:3px 0 0;font-size:11px;color:#666">${country} · ${r.onlinePct.toFixed(0)}% online (${r.onlineCount}/${r.totalMeters})</p>
+        ${r.alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${r.alertCount} alerta${r.alertCount > 1 ? 's' : ''} activa${r.alertCount > 1 ? 's' : ''}</p>` : ''}
+        ${r.lastReading ? `<p style="margin:2px 0 0;font-size:10px;color:#999">Últ. dato: ${r.lastReading}</p>` : ''}
+        <p style="margin:4px 0 0;font-size:11px;color:#3b82f6;cursor:pointer" onclick="window.location.href='/meters?building=${r.building.id}'">Ver grilla de medidores →</p>
       </div>`;
       map.set(r.building.id, { color, popupHtml });
     });

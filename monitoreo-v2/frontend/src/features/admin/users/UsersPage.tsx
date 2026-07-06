@@ -196,7 +196,17 @@ export function UsersPage() {
                         </li>
                       ))}
                     </ul>
-                    <button type="button" className="mt-2 rounded-md border border-red-300 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50">
+                    <button
+                      type="button"
+                      disabled={updateMutation.isPending}
+                      onClick={() => {
+                        if (!window.confirm(`Revocar acceso a ${stale.length} usuario(s) sin login en >90 dias?`)) return;
+                        stale.forEach((u) => {
+                          updateMutation.mutate({ id: u.id, payload: { isActive: false } });
+                        });
+                      }}
+                      className="mt-2 rounded-md border border-red-300 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
                       Revocar acceso masivo ({stale.length})
                     </button>
                   </>

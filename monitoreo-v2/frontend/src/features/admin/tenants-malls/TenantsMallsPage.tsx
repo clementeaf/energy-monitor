@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Drawer } from '../../../components/ui/Drawer';
-import { useTenantsAdminQuery } from '../../../hooks/queries/useTenantsQuery';
+import { useTenantsAdminQuery, useUpdateTenant } from '../../../hooks/queries/useTenantsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useUsersQuery } from '../../../hooks/queries/useUsersQuery';
@@ -29,7 +30,9 @@ const STATUS_BADGE: Record<string, string> = {
 /* ── Page ── */
 
 export function TenantsMallsPage() {
+  const navigate = useNavigate();
   const tenantsQuery = useTenantsAdminQuery();
+  const updateTenantMutation = useUpdateTenant();
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const usersQuery = useUsersQuery();
@@ -68,8 +71,9 @@ export function TenantsMallsPage() {
       if (tenantId) activeMetersByTenant.set(tenantId, (activeMetersByTenant.get(tenantId) ?? 0) + 1);
     });
 
-    // Active users count (no tenantId on UserListItem — use total as proxy)
+    // Active users count — distribute proportionally by tenant building count
     const totalActiveUsers = users.filter((u) => u.isActive).length;
+    const totalBuildings = buildings.length || 1;
 
     // Alerts per tenant (via building)
     const alertTenants = new Set<string>();
@@ -86,8 +90,8 @@ export function TenantsMallsPage() {
         tenant: t,
         country,
         activeMeters: activeMetersByTenant.get(t.id) ?? 0,
-        // ponytail: no tenantId on UserListItem — distribute users proportionally
-      activeUsers: tenants.length > 0 ? Math.round(totalActiveUsers / tenants.length) : 0,
+        // ponytail: approximate users per tenant by building proportion
+        activeUsers: Math.round(totalActiveUsers * ((buildingsByTenant.get(t.id)?.length ?? 0) / totalBuildings)),
         hasActiveAlerts: alertTenants.has(t.id),
         status,
       };
@@ -119,14 +123,14 @@ export function TenantsMallsPage() {
       }));
   }, [selectedTenant, auditLogs]);
 
-  // Usage stats for selected tenant (derived)
+  // Usage stats for selected tenant (derived from real data where possible)
   const usageStats = useMemo(() => {
     if (!selectedTenant) return null;
     const tenantAuditCount = auditLogs.filter((l) => l.userId).length;
     return {
       activeUsers30d: selectedTenant.activeUsers,
-      apiQueries: tenantAuditCount * 12, // ponytail: approximate from audit log volume
-      storageMb: selectedTenant.activeMeters * 2.5, // ponytail: ~2.5 MB per meter
+      apiQueries: tenantAuditCount,
+      storageMb: selectedTenant.activeMeters * 2.5, // approx. ~2.5 MB per meter
     };
   }, [selectedTenant, auditLogs]);
 
@@ -228,9 +232,22 @@ export function TenantsMallsPage() {
             {/* Actions */}
             <Section title="Acciones">
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Crear tenant</button>
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Activar</button>
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[11px] text-red-600 hover:bg-red-50">Desactivar</button>
+                <button type="button" onClick={() => navigate('/admin/companies')} className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Crear tenant</button>
+                <button
+                  type="button"
+                  disabled={updateTenantMutation.isPending || selectedTenant.status === 'activo'}
+                  onClick={() => updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } })}
+                  className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface disabled:opacity-50"
+                >Activar</button>
+                <button
+                  type="button"
+                  disabled={updateTenantMutation.isPending || selectedTenant.status === 'inactivo'}
+                  onClick={() => {
+                    if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
+                    updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
+                  }}
+                  className="rounded-md border border-border px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >Desactivar</button>
               </div>
               <p className="mt-1 text-[9px] text-muted">Requiere aprobación PASA. Todo en pista de auditoría.</p>
             </Section>
@@ -240,8 +257,8 @@ export function TenantsMallsPage() {
               <Section title="Estadísticas de uso">
                 <div className="grid grid-cols-3 gap-2">
                   <StatCard label="Usuarios activos (30d)" value={String(usageStats.activeUsers30d)} />
-                  <StatCard label="Consultas API" value={usageStats.apiQueries.toLocaleString()} />
-                  <StatCard label="Volumen datos" value={`${usageStats.storageMb.toFixed(1)} MB`} />
+                  <StatCard label="Acciones audit log" value={usageStats.apiQueries.toLocaleString()} />
+                  <StatCard label="Volumen datos (aprox.)" value={`${usageStats.storageMb.toFixed(1)} MB`} />
                 </div>
               </Section>
             )}

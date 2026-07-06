@@ -3,7 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { DataWidget } from '../../../components/ui/DataWidget';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuery';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
@@ -43,6 +43,7 @@ function buildQualityRows(
   buildings: Building[],
   meters: Meter[],
   readings: LatestReading[],
+  yesterdayMeterIds: Set<string>,
 ): QualityRow[] {
   const metersByBuilding = new Map<string, Meter[]>();
   meters.forEach((m) => {
@@ -58,9 +59,16 @@ function buildQualityRows(
     const totalMeters = bMeters.length;
     const metersWithData = bMeters.filter((m) => readingMeterIds.has(m.id)).length;
     const realPct = totalMeters > 0 ? (metersWithData / totalMeters) * 100 : 0;
-    // ponytail: estimated/CNR percentages derived from quality field when available
-    const estimatedPct = totalMeters > 0 ? ((totalMeters - metersWithData) / totalMeters) * 100 * 0.3 : 0;
-    const cnrPct = totalMeters > 0 ? ((totalMeters - metersWithData) / totalMeters) * 100 * 0.1 : 0;
+    // ponytail: estimated/CNR split is approximate — no quality column in DB
+    const missingPct = 100 - realPct;
+    const estimatedPct = missingPct * 0.3;
+    const cnrPct = missingPct * 0.1;
+
+    // Trend: compare today's reporting % vs yesterday's
+    const yesterdayWithData = bMeters.filter((m) => yesterdayMeterIds.has(m.id)).length;
+    const yesterdayPct = totalMeters > 0 ? (yesterdayWithData / totalMeters) * 100 : 0;
+    const delta = realPct - yesterdayPct;
+    const trend: QualityRow['trend'] = delta > 2 ? '↑' : delta < -2 ? '↓' : '→';
 
     return {
       buildingId: building.id,
@@ -71,8 +79,7 @@ function buildQualityRows(
       estimatedPct,
       cnrPct,
       semaphore: deriveSemaphore(realPct),
-      // ponytail: trend proxy — green=stable, yellow=declining, red=declining
-      trend: realPct >= 95 ? '→' : realPct >= 85 ? '↓' : '↓',
+      trend,
     };
   });
 }
@@ -101,17 +108,30 @@ export function CalidadBackfillPage() {
   const latestQuery = useLatestReadingsQuery();
   const backfillQuery = useBackfillJobsQuery();
 
+  // Yesterday aggregated for trend comparison
+  const yesterdayRange = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+    return { from: yesterdayStart.toISOString(), to: todayStart.toISOString() };
+  }, []);
+  const yesterdayQuery = useAggregatedReadingsQuery({ ...yesterdayRange, interval: 'daily' });
+
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const backfillJobs = backfillQuery.data ?? [];
+  const yesterdayMeterIds = useMemo(
+    () => new Set((yesterdayQuery.data ?? []).map((r) => r.meter_id)),
+    [yesterdayQuery.data],
+  );
 
   const meterMap = useMemo(() => new Map(meters.map((m) => [m.id, m.name])), [meters]);
 
   // Quality scorecard
   const qualityRows = useMemo(
-    () => buildQualityRows(buildings, meters, readings).sort((a, b) => a.realPct - b.realPct),
-    [buildings, meters, readings],
+    () => buildQualityRows(buildings, meters, readings, yesterdayMeterIds).sort((a, b) => a.realPct - b.realPct),
+    [buildings, meters, readings, yesterdayMeterIds],
   );
 
   // Active backfill jobs

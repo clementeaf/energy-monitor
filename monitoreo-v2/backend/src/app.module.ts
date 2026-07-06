@@ -50,6 +50,8 @@ import { OAuthClientsModule } from './modules/oauth-clients/oauth-clients.module
 import { AdminModule } from './modules/admin/admin.module';
 import { MapvxModule } from './modules/mapvx/mapvx.module';
 import { IotDevicesModule } from './modules/iot-devices/iot-devices.module';
+import { CnrModule } from './modules/cnr/cnr.module';
+import { InterventionsModule } from './modules/interventions/interventions.module';
 import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
@@ -136,6 +138,8 @@ import { HealthController } from './health.controller';
     AdminModule,
     MapvxModule,
     IotDevicesModule,
+    CnrModule,
+    InterventionsModule,
   ],
   controllers: [HealthController],
   providers: [

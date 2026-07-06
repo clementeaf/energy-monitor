@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 
@@ -72,9 +72,17 @@ export function CuadraturaPage() {
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
 
+  // 12-month aggregated for deviation chart
+  const evoRange = useMemo(() => {
+    const now = new Date();
+    return { from: new Date(now.getFullYear() - 1, now.getMonth(), 1).toISOString(), to: now.toISOString() };
+  }, []);
+  const evoQuery = useAggregatedReadingsQuery({ ...evoRange, interval: 'monthly' });
+
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
+  const evoAgg = evoQuery.data ?? [];
 
   const allRows = useMemo(
     () => buildReconciliation(buildings, meters, readings),
@@ -102,7 +110,10 @@ export function CuadraturaPage() {
               type="button"
               onClick={() => {
                 const now = new Date().toISOString();
-                const header = `# Exportado: ${now} | Hash: ${Date.now().toString(16)}\nCentro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia`;
+                const csvBody = rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`).join('\n');
+                // ponytail: sync SHA-256 via SubtleCrypto not available in sync context; use simple hash
+                const hashVal = Array.from(new TextEncoder().encode(csvBody)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16).replace('-', '');
+                const header = `# Exportado: ${now} | Hash: ${hashVal}\nCentro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia`;
                 const csv = [header, ...rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`)].join('\n');
                 const blob = new Blob([csv], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
@@ -154,21 +165,34 @@ export function CuadraturaPage() {
         </table>
       </div>
 
-      {/* Deviation bar chart — 12 months (approximation from current snapshot) */}
+      {/* Deviation bar chart — 12 months from real aggregated data */}
       {rows.length > 0 && (
         <div className="panel p-4">
           <h3 className="mb-3 text-[13px] font-medium text-foreground">Análisis de desviaciones — 12 meses</h3>
           {(() => {
-            // ponytail: simulate 12-month deviation from current data with random variance
+            // Build per-month main vs sub difference from aggregated data
+            const meterTypeMap = new Map(meters.map((m) => [m.id, m.loadCategory ?? m.meterType]));
+            const filteredMeterIds = mallFilter === 'all'
+              ? new Set(meters.map((m) => m.id))
+              : new Set(meters.filter((m) => m.buildingId === mallFilter).map((m) => m.id));
+
             const months: { label: string; diff: number }[] = [];
+            const now = new Date();
             for (let m = 11; m >= 0; m--) {
-              const d = new Date();
-              d.setMonth(d.getMonth() - m);
+              const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
               const label = d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' });
-              // Use current aggregate difference as base, add slight variation per month
-              const baseDiff = rows.reduce((s, r) => s + r.differenceKwh, 0) / rows.length;
-              const diff = baseDiff * (0.8 + (m % 3) * 0.2); // ponytail: deterministic variance
-              months.push({ label, diff });
+              let mainKwh = 0;
+              let subKwh = 0;
+              for (const r of evoAgg) {
+                const b = new Date(r.bucket);
+                if (b.getFullYear() !== d.getFullYear() || b.getMonth() !== d.getMonth()) continue;
+                if (!filteredMeterIds.has(r.meter_id)) continue;
+                const energy = parseFloat(r.energy_delta_kwh ?? '0');
+                const cat = meterTypeMap.get(r.meter_id);
+                if (cat === 'main') mainKwh += energy;
+                else subKwh += energy;
+              }
+              months.push({ label, diff: mainKwh - subKwh });
             }
             const maxDiff = Math.max(1, ...months.map((m) => Math.abs(m.diff)));
             const outOfTolerance = months.filter((m) => Math.abs(m.diff) > maxDiff * (TOLERANCE_PCT / 100));

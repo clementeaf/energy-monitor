@@ -8,7 +8,8 @@ export type PlatformReportType =
   | 'esg'
   | 'benchmark'
   | 'inventory'
-  | 'alerts_compliance';
+  | 'alerts_compliance'
+  | 'evidence';
 
 export type ReportFormat = 'pdf' | 'excel' | 'csv';
 

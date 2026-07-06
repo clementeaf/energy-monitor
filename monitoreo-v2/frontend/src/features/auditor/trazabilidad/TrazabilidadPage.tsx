@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import type { LatestReading } from '../../../types/reading';
 
 /* ── Reading quality types ── */
@@ -23,12 +24,28 @@ export function TrazabilidadPage() {
 
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const buildingsQuery = useBuildingsQuery();
 
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
+  const buildings = buildingsQuery.data ?? [];
+  const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
   const readingMap = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
 
-  const selectedReading = readingMap.get(selectedMeterId);
+  // When selectedTimestamp is set, find the reading closest to that timestamp for the selected meter
+  const selectedReading = useMemo(() => {
+    const meterReadings = readings.filter((r) => r.meter_id === selectedMeterId);
+    if (meterReadings.length === 0) return undefined;
+    if (!selectedTimestamp) return readingMap.get(selectedMeterId);
+    const targetMs = new Date(selectedTimestamp).getTime();
+    let closest = meterReadings[0];
+    let closestDiff = Math.abs(new Date(closest.timestamp).getTime() - targetMs);
+    for (const r of meterReadings) {
+      const diff = Math.abs(new Date(r.timestamp).getTime() - targetMs);
+      if (diff < closestDiff) { closest = r; closestDiff = diff; }
+    }
+    return closest;
+  }, [readings, selectedMeterId, selectedTimestamp, readingMap]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
@@ -65,7 +82,7 @@ export function TrazabilidadPage() {
         {/* Lineage panel */}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {selectedReading ? (
-            <LineagePanel reading={selectedReading} />
+            <LineagePanel reading={selectedReading} buildingName={buildingMap.get(selectedReading.building_id) ?? 'Desconocido'} />
           ) : (
             <div className="panel flex flex-1 items-center justify-center p-4">
               <p className="text-[13px] text-muted">Selecciona un medidor para ver el linaje.</p>
@@ -79,7 +96,7 @@ export function TrazabilidadPage() {
 
 /* ── Lineage Panel ── */
 
-function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
+function LineagePanel({ reading, buildingName }: Readonly<{ reading: LatestReading; buildingName: string }>) {
   // ponytail: derive type from data freshness — stale > 4h = estimated, no data = CNR
   const ageMs = Date.now() - new Date(reading.timestamp).getTime();
   const readingType: ReadingType = ageMs > 24 * 3_600_000 ? 'cnr' : ageMs > 4 * 3_600_000 ? 'estimado' : 'real';
@@ -90,26 +107,28 @@ function LineagePanel({ reading }: Readonly<{ reading: LatestReading }>) {
     { label: 'Energía acumulada', value: `${Number(reading.energy_kwh_total).toFixed(1)} kWh`, detail: 'Total acumulado' },
   ];
 
-  // Type-specific detail
+  // Type-specific detail — derived from actual reading data
+  const readingDate = new Date(reading.timestamp);
+  const ageHours = Math.round(ageMs / 3_600_000);
   const typeDetail: Record<ReadingType, { label: string; info: string }[]> = {
     real: [
-      { label: 'Gateway receptor', info: 'TCP/IP directo' },
-      { label: 'Hora ingesta', info: new Date(reading.timestamp).toLocaleString('es-CL') },
+      { label: 'Gateway receptor', info: `${buildingName} — TCP/IP directo` },
+      { label: 'Hora ingesta', info: readingDate.toLocaleString('es-CL') },
       { label: 'Transformaciones', info: 'Factor conversión: 1.0 (sin transformación)' },
     ],
     estimado: [
       { label: 'Método estimación', info: 'Interpolación lineal' },
-      { label: 'Período ausencia', info: `${Math.round(ageMs / 3_600_000)}h sin datos reales` },
-      { label: 'Confianza', info: 'Media — basado en datos adyacentes' },
+      { label: 'Período ausencia', info: `${ageHours}h sin datos reales (desde ${readingDate.toLocaleString('es-CL')})` },
+      { label: 'Confianza', info: ageHours < 12 ? 'Alta — brecha corta' : ageHours < 48 ? 'Media — basado en datos adyacentes' : 'Baja — brecha prolongada' },
     ],
     cnr: [
-      { label: 'Usuario ingreso', info: 'Técnico asignado (manual)' },
-      { label: 'Valor original reemplazado', info: '—' },
-      { label: 'Justificación', info: 'Pendiente revisión operacional' },
+      { label: 'Edificio afectado', info: buildingName },
+      { label: 'Última lectura válida', info: readingDate.toLocaleString('es-CL') },
+      { label: 'Justificación', info: `${ageHours}h sin comunicación — pendiente revisión operacional` },
     ],
     backfill: [
       { label: 'Proceso generador', info: 'Backfill automático' },
-      { label: 'Período recuperado', info: 'Últimas 24h' },
+      { label: 'Período recuperado', info: `Desde ${readingDate.toLocaleString('es-CL')}` },
       { label: 'Calidad asignada', info: 'Estimada — backfill' },
     ],
   };

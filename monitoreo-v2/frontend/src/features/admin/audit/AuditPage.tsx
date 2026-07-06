@@ -50,6 +50,8 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
       action: actionFilter || undefined,
       userId: userFilter || undefined,
       resourceType: resourceFilter || undefined,
+      from: dateFrom || undefined,
+      to: dateTo || undefined,
     });
   };
 

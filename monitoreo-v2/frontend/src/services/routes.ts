@@ -87,6 +87,7 @@ export const API_ROUTES = {
   backfillJobProcess: (id: string) => `/admin/backfill-jobs/${id}/process`,
   webhookDeliveryLogs: '/webhook-delivery-logs',
   regions: '/regions',
+  apiObservability: '/admin/api-observability',
   breachReports: '/admin/breach-reports',
   tenants: '/tenants',
   apiKeys: '/api-keys',
@@ -113,4 +114,6 @@ export const API_ROUTES = {
     assign: (id: string) => `/iot-devices/${id}/assign`,
     unassign: (id: string) => `/iot-devices/${id}/unassign`,
   },
+  cnr: '/cnr',
+  interventions: '/interventions',
 } as const;

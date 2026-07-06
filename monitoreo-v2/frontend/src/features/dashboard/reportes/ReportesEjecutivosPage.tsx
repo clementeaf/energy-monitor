@@ -3,6 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import type { Report, ReportFormat, PlatformReportType } from '../../../types/report';
 
 /* ── Config options (pure data) ── */
@@ -112,7 +113,10 @@ export function ReportesEjecutivosPage() {
     () => new Set(REPORT_SECTIONS.filter((s) => s.defaultChecked).map((s) => s.key)),
   );
   const [historySearch, setHistorySearch] = useState('');
+  const [selectedBuildingId, setSelectedBuildingId] = useState('');
 
+  const buildingsQuery = useBuildingsQuery();
+  const buildings = buildingsQuery.data ?? [];
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
 
@@ -174,6 +178,16 @@ export function ReportesEjecutivosPage() {
               onChange={setScope}
               size="sm"
             />
+            {scope === 'building' && (
+              <select
+                value={selectedBuildingId}
+                onChange={(e) => setSelectedBuildingId(e.target.value)}
+                className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none"
+              >
+                <option value="">Seleccionar centro...</option>
+                {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            )}
           </ConfigSection>
 
           <ConfigSection title="Período">
@@ -288,6 +302,7 @@ export function ReportesEjecutivosPage() {
                     <th className="px-3 py-2">Alcance</th>
                     <th className="px-3 py-2">Período</th>
                     <th className="px-3 py-2">Formato</th>
+                    <th className="px-3 py-2">Usuario</th>
                     <th className="px-3 py-2 text-center">Estado</th>
                     <th className="px-3 py-2" />
                   </tr>
@@ -298,7 +313,7 @@ export function ReportesEjecutivosPage() {
                   ))}
                   {sortedReports.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted">
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted">
                         No hay reportes generados aún.
                       </td>
                     </tr>
@@ -337,11 +352,12 @@ function ReportRow({ report }: Readonly<{ report: Report }>) {
         {new Date(report.createdAt).toLocaleDateString('es-CL')}
       </td>
       <td className="px-3 py-2 capitalize text-foreground">{report.reportType}</td>
-      <td className="px-3 py-2 text-muted">Portafolio</td>
+      <td className="px-3 py-2 text-muted">{(report as unknown as Record<string, unknown>).scope as string ?? 'Portafolio'}</td>
       <td className="px-3 py-2 text-muted">
         {report.periodStart.slice(0, 7)} — {report.periodEnd.slice(0, 7)}
       </td>
       <td className="px-3 py-2 uppercase text-muted">{report.format}</td>
+      <td className="px-3 py-2 text-muted">{(report as unknown as Record<string, unknown>).userEmail as string ?? '—'}</td>
       <td className="px-3 py-2 text-center">
         <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>
           {badgeLabel}

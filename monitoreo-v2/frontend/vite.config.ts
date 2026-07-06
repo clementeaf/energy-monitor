@@ -6,10 +6,10 @@ import { cspMetaPlugin } from './vite/csp-meta-plugin.ts';
 
 /**
  * Proxy /api requests.
- * Default: localhost:4000 (local backend).
- * To use prod backend without Docker: VITE_API_TARGET=https://power-monitor.cloud npm run dev
+ * Default: prod backend (power-monitor.cloud).
+ * To use local backend: VITE_API_TARGET=http://localhost:4000 npm run dev
  */
-const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:4000';
+const apiTarget = process.env.VITE_API_TARGET || 'https://power-monitor.cloud';
 const isRemoteTarget = apiTarget.startsWith('https://');
 
 const apiProxy: Record<string, string | ProxyOptions> = {

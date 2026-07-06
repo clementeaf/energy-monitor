@@ -281,7 +281,7 @@ export function IntegrationsPage() {
               </div>
             </div>
 
-            <div className="overflow-auto rounded-lg border border-border">
+            <div className="panel overflow-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
@@ -318,7 +318,13 @@ export function IntegrationsPage() {
                         {row.lastSyncAt ? `${Math.round((Date.now() - new Date(row.lastSyncAt).getTime()) / 60_000)} min` : '—'}
                       </td>
                       <td className="px-4 py-3 text-[11px] text-muted">
-                        {row.status === 'active' ? '100%' : row.status === 'error' ? '—' : '~95%'}
+                        {(() => {
+                          if (!row.lastSyncAt) return '—';
+                          const daysSinceSync = (Date.now() - new Date(row.lastSyncAt).getTime()) / 86_400_000;
+                          if (daysSinceSync <= 1) return '100%';
+                          if (daysSinceSync >= 7) return '0%';
+                          return `${Math.round(((7 - daysSinceSync) / 7) * 100)}%`;
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-muted">
                         {row.lastSyncAt
@@ -471,12 +477,24 @@ export function IntegrationsPage() {
           >
             {logsFor != null && (
               <>
-                {/* Detail metrics */}
+                {/* Detail metrics — derived from sync log data */}
                 <div className="grid grid-cols-4 gap-2 border-b border-border px-4 py-3">
-                  <div><p className="text-[10px] text-muted">Tasa éxito</p><p className="text-[13px] font-semibold text-foreground">{logsFor.status === 'active' ? '100%' : '~95%'}</p></div>
-                  <div><p className="text-[10px] text-muted">Latencia media</p><p className="text-[13px] font-semibold text-foreground">120 ms</p></div>
-                  <div><p className="text-[10px] text-muted">Volumen 24h</p><p className="text-[13px] font-semibold text-foreground">—</p></div>
-                  <div><p className="text-[10px] text-muted">Errores</p><p className="text-[13px] font-semibold text-foreground">0</p></div>
+                  {(() => {
+                    const logs = syncLogsQuery.data?.items ?? [];
+                    const successCount = logs.filter((l) => l.status === 'success').length;
+                    const failedCount = logs.filter((l) => l.status === 'failed').length;
+                    const totalLogs = logs.length;
+                    const successRate = totalLogs > 0 ? `${Math.round((successCount / totalLogs) * 100)}%` : '—';
+                    const totalRecords = logs.reduce((sum, l) => sum + (l.recordsSynced ?? 0), 0);
+                    return (
+                      <>
+                        <div><p className="text-[10px] text-muted">Tasa exito</p><p className="text-[13px] font-semibold text-foreground">{successRate}</p></div>
+                        <div><p className="text-[10px] text-muted">Syncs totales</p><p className="text-[13px] font-semibold text-foreground">{totalLogs}</p></div>
+                        <div><p className="text-[10px] text-muted">Registros sincronizados</p><p className="text-[13px] font-semibold text-foreground">{totalRecords.toLocaleString()}</p></div>
+                        <div><p className="text-[10px] text-muted">Errores</p><p className="text-[13px] font-semibold text-foreground">{failedCount}</p></div>
+                      </>
+                    );
+                  })()}
                 </div>
                 {/* Contrato interfaz */}
                 <div className="border-b border-border px-4 py-2 text-[11px] text-muted">

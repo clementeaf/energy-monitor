@@ -850,6 +850,20 @@ export const regionsEndpoints = {
   remove: (id: string) => api.delete(`${API_ROUTES.regions}/${id}`),
 };
 
+export interface ApiObservabilityReport {
+  from: string;
+  to: string;
+  granularity: string;
+  periods: { period: string; totalRequests: number; errorCount: number; errorRate: number; p50Ms: number; p95Ms: number; p99Ms: number }[];
+  topEndpoints: { action: string; count: number; avgMs: number; errorCount: number }[];
+  summary: { totalRequests: number; errorCount: number; errorRate: number; p95Ms: number };
+}
+
+export const apiObservabilityEndpoints = {
+  report: (params?: { from?: string; to?: string; granularity?: string }) =>
+    api.get<ApiObservabilityReport>(API_ROUTES.apiObservability, { params }),
+};
+
 export const breachReportsEndpoints = {
   list: () => api.get<BreachReport[]>(API_ROUTES.breachReports),
   create: (payload: CreateBreachReportPayload) =>
@@ -908,4 +922,18 @@ export const iotDevicesEndpoints = {
   get: (id: string) => api.get<IotDevice>(API_ROUTES.iotDevices.get(id)),
   assign: (id: string, meterId: string) => api.patch<IotDevice>(API_ROUTES.iotDevices.assign(id), { meterId }),
   unassign: (id: string) => api.patch<IotDevice>(API_ROUTES.iotDevices.unassign(id), {}),
+};
+
+import type { CnrRecord, CreateCnrPayload, UpdateCnrStatusPayload } from '../types/cnr';
+import type { InterventionRecord, CreateInterventionPayload } from '../types/intervention';
+
+export const cnrEndpoints = {
+  list: () => api.get<CnrRecord[]>(API_ROUTES.cnr),
+  create: (payload: CreateCnrPayload) => api.post<CnrRecord>(API_ROUTES.cnr, payload),
+  updateStatus: (id: string, payload: UpdateCnrStatusPayload) => api.patch<CnrRecord>(`${API_ROUTES.cnr}/${id}/status`, payload),
+};
+
+export const interventionsEndpoints = {
+  list: () => api.get<InterventionRecord[]>(API_ROUTES.interventions),
+  create: (payload: CreateInterventionPayload) => api.post<InterventionRecord>(API_ROUTES.interventions, payload),
 };

@@ -3,6 +3,8 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useInterventionsQuery, useCreateIntervention } from '../../../hooks/queries/useInterventionsQuery';
+import type { InterventionType, InterventionResult } from '../../../types/intervention';
 
 /* ── Types ── */
 
@@ -23,40 +25,6 @@ const RESULT_OPTIONS: SelectOption[] = [
   { key: 'escalacion', label: 'Requiere escalación' },
 ];
 
-/* ── LocalStorage persistence ── */
-// ponytail: localStorage until backend intervention module ships
-
-const STORAGE_KEY = 'interventions';
-
-interface InterventionRecord {
-  id: string;
-  meterId: string;
-  meterName: string;
-  type: string;
-  description: string;
-  result: string;
-  requiresCnr: boolean;
-  timestamp: string;
-  /** SHA-256 hash for integrity verification */
-  hash: string;
-}
-
-function loadHistory(): InterventionRecord[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveIntervention(record: InterventionRecord): InterventionRecord[] {
-  const history = loadHistory();
-  history.unshift(record);
-  const trimmed = history.slice(0, 30);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed)); } catch { /* noop in test env */ }
-  return trimmed;
-}
-
 /* ── Page ── */
 
 export function RegIntervencionPage() {
@@ -66,10 +34,12 @@ export function RegIntervencionPage() {
   const [result, setResult] = useState('solucionado');
   const [requiresCnr, setRequiresCnr] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [history, setHistory] = useState(loadHistory);
 
   const metersQuery = useMetersQuery();
   const buildingsQuery = useBuildingsQuery();
+  const interventionsQuery = useInterventionsQuery();
+  const createIntervention = useCreateIntervention();
+  const history = interventionsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const buildings = buildingsQuery.data ?? [];
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
@@ -81,32 +51,23 @@ export function RegIntervencionPage() {
     e.preventDefault();
     if (!canSubmit || !selectedMeter) return;
 
-    const ts = new Date().toISOString();
-    // ponytail: simple hash for integrity — real SHA-256 when backend available
-    const hashInput = `${selectedMeterId}|${type}|${description.trim()}|${result}|${ts}`;
-    const hash = Array.from(new TextEncoder().encode(hashInput)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16);
-
-    const record: InterventionRecord = {
-      id: `INT-${Date.now().toString(36).toUpperCase()}`,
+    createIntervention.mutate({
       meterId: selectedMeterId,
-      meterName: selectedMeter.name,
-      type,
+      buildingId: selectedMeter.buildingId,
+      interventionType: type as InterventionType,
       description: description.trim(),
-      result,
+      result: result as InterventionResult,
       requiresCnr,
-      timestamp: ts,
-      hash,
-    };
-
-    const updated = saveIntervention(record);
-    setHistory(updated);
-    setSubmitted(true);
-    setDescription('');
-    setSelectedMeterId('');
-    setRequiresCnr(false);
-
-    setTimeout(() => setSubmitted(false), 3000);
-  }, [canSubmit, selectedMeter, selectedMeterId, type, description, result, requiresCnr]);
+    }, {
+      onSuccess: () => {
+        setSubmitted(true);
+        setDescription('');
+        setSelectedMeterId('');
+        setRequiresCnr(false);
+        setTimeout(() => setSubmitted(false), 3000);
+      },
+    });
+  }, [canSubmit, selectedMeter, selectedMeterId, type, description, result, requiresCnr, createIntervention]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -220,17 +181,20 @@ export function RegIntervencionPage() {
               {history.length === 0 && (
                 <p className="text-[12px] text-muted">Sin intervenciones registradas.</p>
               )}
-              {history.map((h) => (
+              {history.slice(0, 30).map((h) => (
                 <div key={h.id} className="rounded-md border border-border p-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-muted">{h.id}</span>
-                    <span className="text-[10px] text-muted">{new Date(h.timestamp).toLocaleDateString('es-CL')}</span>
+                    <span className="font-mono text-[10px] text-muted">{h.id.slice(0, 8)}</span>
+                    <span className="text-[10px] text-muted">{new Date(h.created_at).toLocaleDateString('es-CL')}</span>
                   </div>
-                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meterName}</p>
-                  <p className="text-[11px] text-muted">{h.type} · {h.result}</p>
+                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meter_id.slice(0, 8)}</p>
+                  <p className="text-[11px] text-muted">{h.intervention_type} · {h.result}</p>
                   <p className="mt-1 line-clamp-2 text-[11px] text-muted">{h.description}</p>
-                  {h.requiresCnr && (
+                  {h.requires_cnr && (
                     <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-medium text-amber-700">CNR</span>
+                  )}
+                  {h.integrity_hash && (
+                    <span className="mt-1 block font-mono text-[9px] text-muted">hash: {h.integrity_hash}</span>
                   )}
                 </div>
               ))}

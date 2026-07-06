@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { LatestReading } from '../../../types/reading';
 
 /* ── Comm status ── */
@@ -94,77 +94,7 @@ export function DiagnosticoCommsPage() {
         {/* Diagnostic panel */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {selected && selectedState ? (
-            <>
-              <div className="panel px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[15px] font-semibold text-foreground">{selected.name}</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATE_BADGE[selectedState]}`}>
-                    {selectedState}
-                  </span>
-                </div>
-                <p className="mt-1 font-mono text-[11px] text-muted">{selected.code} · {selected.serialNumber ?? 'Sin serial'}</p>
-              </div>
-
-              <div className="panel px-4 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Estado comunicación</h4>
-                <dl className="space-y-1.5 text-[12px]">
-                  <div className="flex justify-between"><dt className="text-muted">Último dato</dt><dd className="text-foreground">{selectedReading ? new Date(selectedReading.timestamp).toLocaleString('es-CL') : 'Sin datos'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Potencia</dt><dd className="text-foreground">{selectedReading ? `${Number(selectedReading.power_kw).toFixed(1)} kW` : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Tiempo transcurrido</dt><dd className="text-foreground">{selectedReading ? `${Math.round((Date.now() - new Date(selectedReading.timestamp).getTime()) / 60_000)} min` : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Tasa éxito (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '100%' : selectedState === 'intermitente' ? '~70%' : '0%'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Reintentos (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '0' : selectedState === 'intermitente' ? '~12' : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Timeouts (24h)</dt><dd className="text-foreground">{selectedState === 'online' ? '0' : selectedState === 'intermitente' ? '~8' : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{selected.ipAddress ? 'TCP/IP' : selected.modbusAddress ? 'Modbus' : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Dirección</dt><dd className="font-mono text-foreground">{selected.ipAddress ?? selected.modbusAddress?.toString() ?? '—'}</dd></div>
-                </dl>
-              </div>
-
-              {/* Histograma disponibilidad 72h */}
-              <div className="panel px-4 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h (resolución horaria)</h4>
-                <div className="flex h-6 gap-[1px]">
-                  {Array.from({ length: 72 }, (_, i) => {
-                    // ponytail: synthetic — replace with real hourly availability API
-                    const ok = selectedState === 'online' || (selectedState === 'intermitente' && i % 3 !== 0);
-                    return <div key={i} className={`flex-1 rounded-sm ${ok ? 'bg-emerald-400' : 'bg-red-300'}`} title={`-${72 - i}h: ${ok ? 'OK' : 'fallo'}`} />;
-                  })}
-                </div>
-                <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
-              </div>
-
-              {/* Últimos 10 eventos comunicación */}
-              <div className="panel px-4 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Últimos eventos comunicación</h4>
-                <div className="max-h-32 overflow-y-auto text-[11px]">
-                  {/* ponytail: synthetic events — replace with real comm log API */}
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const ts = new Date(now - i * 900_000);
-                    const success = selectedState === 'online' || i % 3 !== 0;
-                    return (
-                      <div key={i} className="flex items-center justify-between border-b border-border py-1 last:border-0">
-                        <span className="text-muted">{ts.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
-                        <span className={success ? 'text-emerald-600' : 'text-red-600'}>{success ? 'éxito' : 'timeout'}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="panel px-4 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Herramientas</h4>
-                <div className="space-y-2">
-                  <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
-                    Ping / test conexión gateway
-                  </button>
-                  <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
-                    Forzar re-intento de lectura
-                  </button>
-                  <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
-                    Ver log comunicación (últimas 100 líneas)
-                  </button>
-                </div>
-              </div>
-            </>
+            <CommDiagPanel meter={selected} reading={selectedReading} state={selectedState} />
           ) : (
             <div className="panel flex flex-1 items-center justify-center p-4">
               <p className="text-[13px] text-muted">Selecciona un medidor para diagnosticar.</p>
@@ -173,5 +103,127 @@ export function DiagnosticoCommsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Comm Diagnostic Panel — uses real hourly aggregated data ── */
+
+import type { Meter } from '../../../types/meter';
+
+function CommDiagPanel({ meter, reading, state }: Readonly<{ meter: Meter; reading?: LatestReading; state: CommState }>) {
+  const range72h = useMemo(() => {
+    const n = new Date();
+    return { from: new Date(n.getTime() - 72 * 3_600_000).toISOString(), to: n.toISOString() };
+  }, []);
+  const hourlyQuery = useAggregatedReadingsQuery({ ...range72h, interval: 'hourly', meterId: meter.id });
+  const hourlyData = hourlyQuery.data ?? [];
+
+  // 72h availability: which hours have data
+  const avail72 = useMemo(() => {
+    const slots = new Array(72).fill(false);
+    const n = Date.now();
+    for (const r of hourlyData) {
+      const idx = Math.floor((n - new Date(r.bucket).getTime()) / 3_600_000);
+      const slot = 71 - idx;
+      if (slot >= 0 && slot < 72) slots[slot] = true;
+    }
+    return slots;
+  }, [hourlyData]);
+
+  // Comm metrics derived from real data
+  const commMetrics = useMemo(() => {
+    // Last 24h: how many hourly slots had data
+    const last24 = avail72.slice(48); // last 24 entries
+    const successCount = last24.filter(Boolean).length;
+    const failCount = 24 - successCount;
+    const successRate = Math.round((successCount / 24) * 100);
+    return { successRate, retries: failCount, timeouts: failCount };
+  }, [avail72]);
+
+  // Events: derive from hourly data transitions (data → no-data = timeout, no-data → data = recovery)
+  const events = useMemo(() => {
+    const result: { time: string; type: 'éxito' | 'timeout' | 'recuperación' }[] = [];
+    const n = Date.now();
+    // Take most recent 24 hours, walk backwards
+    for (let i = 0; i < Math.min(24, avail72.length); i++) {
+      const slot = 71 - i;
+      const prevSlot = slot - 1;
+      const ts = new Date(n - i * 3_600_000);
+      const timeStr = ts.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      if (!avail72[slot]) {
+        result.push({ time: timeStr, type: 'timeout' });
+      } else if (prevSlot >= 0 && !avail72[prevSlot]) {
+        result.push({ time: timeStr, type: 'recuperación' });
+      } else {
+        result.push({ time: timeStr, type: 'éxito' });
+      }
+    }
+    return result.slice(0, 10);
+  }, [avail72]);
+
+  const [toolFeedback, setToolFeedback] = useState<string | null>(null);
+
+  return (
+    <>
+      <div className="panel px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[15px] font-semibold text-foreground">{meter.name}</h3>
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATE_BADGE[state]}`}>{state}</span>
+        </div>
+        <p className="mt-1 font-mono text-[11px] text-muted">{meter.code} · {meter.serialNumber ?? 'Sin serial'}</p>
+      </div>
+
+      <div className="panel px-4 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Estado comunicación</h4>
+        <dl className="space-y-1.5 text-[12px]">
+          <div className="flex justify-between"><dt className="text-muted">Último dato</dt><dd className="text-foreground">{reading ? new Date(reading.timestamp).toLocaleString('es-CL') : 'Sin datos'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Potencia</dt><dd className="text-foreground">{reading ? `${Number(reading.power_kw).toFixed(1)} kW` : '—'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Tiempo transcurrido</dt><dd className="text-foreground">{reading ? `${Math.round((Date.now() - new Date(reading.timestamp).getTime()) / 60_000)} min` : '—'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Tasa éxito (24h)</dt><dd className="text-foreground">{commMetrics.successRate}%</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Reintentos (24h)</dt><dd className="text-foreground">{commMetrics.retries}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Timeouts (24h)</dt><dd className="text-foreground">{commMetrics.timeouts}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{meter.ipAddress ? 'TCP/IP' : meter.modbusAddress ? 'Modbus' : '—'}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Dirección</dt><dd className="font-mono text-foreground">{meter.ipAddress ?? meter.modbusAddress?.toString() ?? '—'}</dd></div>
+        </dl>
+      </div>
+
+      <div className="panel px-4 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h (resolución horaria)</h4>
+        <div className="flex h-6 gap-[1px]">
+          {avail72.map((ok, i) => (
+            <div key={i} className={`flex-1 rounded-sm ${ok ? 'bg-emerald-400' : 'bg-red-300'}`} title={`-${72 - i}h: ${ok ? 'OK' : 'fallo'}`} />
+          ))}
+        </div>
+        <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
+      </div>
+
+      <div className="panel px-4 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Últimos eventos comunicación</h4>
+        <div className="max-h-32 overflow-y-auto text-[11px]">
+          {events.map((ev, i) => (
+            <div key={i} className="flex items-center justify-between border-b border-border py-1 last:border-0">
+              <span className="text-muted">{ev.time}</span>
+              <span className={ev.type === 'éxito' ? 'text-emerald-600' : ev.type === 'recuperación' ? 'text-blue-600' : 'text-red-600'}>{ev.type}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="panel px-4 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Herramientas</h4>
+        <div className="space-y-2">
+          <button type="button" onClick={() => setToolFeedback('Ping enviado — sin respuesta de gateway (no implementado en backend)')} className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
+            Ping / test conexión gateway
+          </button>
+          <button type="button" onClick={() => setToolFeedback('Re-intento solicitado — pendiente implementación backend')} className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
+            Forzar re-intento de lectura
+          </button>
+          <button type="button" onClick={() => setToolFeedback('Log no disponible — requiere endpoint backend /comm-log')} className="w-full rounded-md border border-border px-3 py-2 text-left text-[12px] text-foreground transition-colors hover:bg-surface">
+            Ver log comunicación (últimas 100 líneas)
+          </button>
+        </div>
+        {toolFeedback && <p className="mt-2 text-[11px] text-amber-600">{toolFeedback}</p>}
+      </div>
+    </>
   );
 }

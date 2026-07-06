@@ -117,6 +117,9 @@ export function AlarmasAgregadasPage() {
   const [statusFilter, setStatusFilter] = useState('active');
   const [periodFilter, setPeriodFilter] = useState('30d');
   const [search, setSearch] = useState('');
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<'critical' | 'warning' | 'resolved' | 'total' | 'resolution' | 'last'>('total');
+  const [sortAsc, setSortAsc] = useState(false);
 
   const buildingsQuery = useBuildingsQuery();
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
@@ -140,16 +143,24 @@ export function AlarmasAgregadasPage() {
   // Filter alerts by country and severity
   const severityPredicate = SEVERITY_FILTERS[severityFilter] ?? SEVERITY_FILTERS.all;
 
+  const periodCutoff = useMemo(() => {
+    const hours = PERIOD_OPTIONS.find((p) => p.key === periodFilter)?.hours ?? 720;
+    return Date.now() - hours * 3_600_000;
+  }, [periodFilter]);
+
   const filteredActive = useMemo(
     () => activeAlerts
       .filter((a) => buildingIds.has(a.buildingId))
-      .filter((a) => severityPredicate(a.severity)),
-    [activeAlerts, buildingIds, severityPredicate],
+      .filter((a) => severityPredicate(a.severity))
+      .filter((a) => new Date(a.createdAt).getTime() >= periodCutoff),
+    [activeAlerts, buildingIds, severityPredicate, periodCutoff],
   );
 
   const filteredResolved = useMemo(
-    () => resolvedAlerts.filter((a) => buildingIds.has(a.buildingId)),
-    [resolvedAlerts, buildingIds],
+    () => resolvedAlerts
+      .filter((a) => buildingIds.has(a.buildingId))
+      .filter((a) => new Date(a.createdAt).getTime() >= periodCutoff),
+    [resolvedAlerts, buildingIds, periodCutoff],
   );
 
   // KPIs
@@ -177,30 +188,32 @@ export function AlarmasAgregadasPage() {
     { title: 'Resolución media', value: meanResolutionH != null ? `${meanResolutionH}h` : '—', color: (meanResolutionH ?? 0) <= 24 ? 'text-emerald-600' : 'text-red-600' },
   ];
 
-  // Evolution chart: daily bars (last 30 days)
+  // Evolution chart: daily bars (last 30 days) — open / escalated / resolved
   const evolutionData = useMemo(() => {
     const allAlerts = [...filteredActive, ...filteredResolved];
-    const days: { label: string; active: number; resolved: number }[] = [];
+    const days: { label: string; active: number; escalated: number; resolved: number }[] = [];
     const now = Date.now();
     for (let d = 29; d >= 0; d--) {
       const dayStart = now - (d + 1) * 86_400_000;
       const dayEnd = now - d * 86_400_000;
       const dayLabel = new Date(dayEnd).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
-      const opened = allAlerts.filter((a) => {
+      const dayAlerts = allAlerts.filter((a) => {
         const t = new Date(a.createdAt).getTime();
         return t >= dayStart && t < dayEnd;
-      }).length;
+      });
+      const escalated = dayAlerts.filter((a) => a.acknowledgedAt && !a.resolvedAt).length;
+      const opened = dayAlerts.length - escalated;
       const closed = filteredResolved.filter((a) => {
         if (!a.resolvedAt) return false;
         const t = new Date(a.resolvedAt).getTime();
         return t >= dayStart && t < dayEnd;
       }).length;
-      days.push({ label: dayLabel, active: opened, resolved: closed });
+      days.push({ label: dayLabel, active: opened, escalated, resolved: closed });
     }
     return days;
   }, [filteredActive, filteredResolved]);
 
-  const maxEvoValue = Math.max(1, ...evolutionData.map((d) => d.active + d.resolved));
+  const maxEvoValue = Math.max(1, ...evolutionData.map((d) => d.active + d.escalated + d.resolved));
 
   // Mall aggregation
   const mallRows = useMemo(
@@ -232,10 +245,20 @@ export function AlarmasAgregadasPage() {
     return map;
   }, [mallRows]);
 
-  const displayRows = useMemo(
-    () => search ? mallRows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase())) : mallRows,
-    [mallRows, search],
-  );
+  const displayRows = useMemo(() => {
+    const filtered = search ? mallRows.filter((r) => r.buildingName.toLowerCase().includes(search.toLowerCase())) : mallRows;
+    const sortFns: Record<string, (a: MallAlertRow, b: MallAlertRow) => number> = {
+      critical: (a, b) => a.criticalCount - b.criticalCount,
+      warning: (a, b) => a.warningCount - b.warningCount,
+      resolved: (a, b) => a.resolvedCount - b.resolvedCount,
+      total: (a, b) => a.totalActive - b.totalActive,
+      resolution: (a, b) => (a.meanResolutionH ?? 999) - (b.meanResolutionH ?? 999),
+      last: (a, b) => (a.lastAlertAt ?? '').localeCompare(b.lastAlertAt ?? ''),
+    };
+    const fn = sortFns[sortCol] ?? sortFns.total;
+    const sorted = [...filtered].sort(fn);
+    return sortAsc ? sorted : sorted.reverse();
+  }, [mallRows, search, sortCol, sortAsc]);
 
   const top5 = mallRows.slice(0, 5);
 
@@ -290,17 +313,20 @@ export function AlarmasAgregadasPage() {
         <div className="flex h-28 items-end gap-[2px]">
           {evolutionData.map((d) => {
             const activeH = (d.active / maxEvoValue) * 100;
+            const escalatedH = (d.escalated / maxEvoValue) * 100;
             const resolvedH = (d.resolved / maxEvoValue) * 100;
             return (
               <div key={d.label} className="group relative flex flex-1 flex-col items-center">
                 <div className="flex w-full flex-col justify-end" style={{ height: 96 }}>
                   {activeH > 0 && <div className="w-full rounded-t bg-red-400" style={{ height: `${activeH}%` }} />}
-                  {resolvedH > 0 && <div className={`w-full bg-emerald-400 ${activeH > 0 ? '' : 'rounded-t'}`} style={{ height: `${resolvedH}%` }} />}
+                  {escalatedH > 0 && <div className={`w-full bg-orange-400 ${activeH > 0 ? '' : 'rounded-t'}`} style={{ height: `${escalatedH}%` }} />}
+                  {resolvedH > 0 && <div className={`w-full bg-emerald-400 ${activeH + escalatedH > 0 ? '' : 'rounded-t'}`} style={{ height: `${resolvedH}%` }} />}
                 </div>
                 {/* Rich tooltip */}
                 <div className="pointer-events-none absolute -top-16 left-1/2 z-30 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[10px] text-background shadow-lg group-hover:block">
                   <p className="font-medium">{d.label}</p>
                   <p>🔴 Abiertas: {d.active}</p>
+                  <p>🟠 Escaladas: {d.escalated}</p>
                   <p>🟢 Resueltas: {d.resolved}</p>
                 </div>
               </div>
@@ -309,14 +335,34 @@ export function AlarmasAgregadasPage() {
         </div>
         <div className="mt-2 flex items-center gap-3 text-[10px] text-muted">
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-400" /> Abiertas</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-orange-400" /> Escaladas</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Resueltas</span>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         {/* Map */}
-        <div className="hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
-          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
+        <div className="relative hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
+          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
+          {/* Selected mall detail overlay */}
+          {selectedBuildingId && (() => {
+            const row = mallRows.find((r) => r.buildingId === selectedBuildingId);
+            if (!row) return null;
+            return (
+              <div className="absolute bottom-3 left-3 right-3 z-20 rounded-lg border border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[13px] font-semibold text-foreground">{row.buildingName}</h4>
+                  <button type="button" onClick={() => setSelectedBuildingId(null)} className="text-[11px] text-muted hover:text-foreground">✕</button>
+                </div>
+                <div className="mt-1.5 flex gap-4 text-[11px]">
+                  <span className="text-red-600">{row.criticalCount} críticas</span>
+                  <span className="text-amber-600">{row.warningCount} warnings</span>
+                  <span className="text-emerald-600">{row.resolvedCount} resueltas</span>
+                  <span className="text-muted">Resolución: {row.meanResolutionH != null ? `${row.meanResolutionH}h` : '—'}</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Top 5 + full table */}
@@ -388,12 +434,15 @@ export function AlarmasAgregadasPage() {
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                     <th className="px-4 py-2">Centro</th>
-                    <th className="px-3 py-2 text-right">Críticas</th>
-                    <th className="px-3 py-2 text-right">Warnings</th>
-                    <th className="px-3 py-2 text-right">Resueltas</th>
-                    <th className="px-3 py-2 text-right">Total activas</th>
-                    <th className="px-3 py-2 text-right">T. resolución</th>
-                    <th className="px-3 py-2">Última alarma</th>
+                    {([['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['total', 'Total activas'], ['resolution', 'T. resolución'], ['last', 'Última alarma']] as const).map(([col, label]) => (
+                      <th
+                        key={col}
+                        className={`cursor-pointer px-3 py-2 ${col === 'last' ? '' : 'text-right'} hover:text-foreground`}
+                        onClick={() => { if (sortCol === col) { setSortAsc(!sortAsc); } else { setSortCol(col); setSortAsc(false); } }}
+                      >
+                        {label} {sortCol === col ? (sortAsc ? '▲' : '▼') : ''}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">

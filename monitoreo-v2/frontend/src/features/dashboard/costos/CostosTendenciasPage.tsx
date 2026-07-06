@@ -109,20 +109,23 @@ function buildCostRows(
 interface MonthlyBucket {
   month: string; // YYYY-MM
   cost: number;
+  mwh: number;
 }
 
 function aggregateMonthlyCosts(invoices: Invoice[], currencyRate: number): MonthlyBucket[] {
-  const buckets = new Map<string, number>();
+  const buckets = new Map<string, { cost: number; mwh: number }>();
   invoices
     .filter((inv) => inv.status !== 'voided')
     .forEach((inv) => {
       const month = inv.periodStart.slice(0, 7);
       const cost = (parseFloat(inv.total) || 0) * currencyRate;
-      buckets.set(month, (buckets.get(month) ?? 0) + cost);
+      const mwh = parseFloat((inv as unknown as Record<string, unknown>).consumptionKwh as string ?? '0') / 1000;
+      const prev = buckets.get(month) ?? { cost: 0, mwh: 0 };
+      buckets.set(month, { cost: prev.cost + cost, mwh: prev.mwh + mwh });
     });
 
   return Array.from(buckets.entries())
-    .map(([month, cost]) => ({ month, cost }))
+    .map(([month, v]) => ({ month, cost: v.cost, mwh: v.mwh }))
     .sort((a, b) => a.month.localeCompare(b.month));
 }
 
@@ -206,13 +209,20 @@ export function CostosTendenciasPage() {
   const chartOptions = useMemo(() => {
     const months = monthlyData.map((d) => d.month);
 
-    // Per-building monthly buckets
+    // Per-group monthly buckets (mall / country / type)
     const buildingBuckets = new Map<string, Map<string, number>>();
+    const groupKey = (buildingId: string): string => {
+      const b = filteredBuildings.find((x) => x.id === buildingId);
+      if (!b) return buildingId;
+      if (grouping === 'country') return b.countryCode ?? 'CL';
+      if (grouping === 'type') return (b as unknown as Record<string, unknown>).buildingType as string ?? 'General';
+      return b.name;
+    };
     filteredInvoices
       .filter((inv) => inv.status !== 'voided')
       .forEach((inv) => {
         const month = inv.periodStart.slice(0, 7);
-        const name = filteredBuildings.find((b) => b.id === inv.buildingId)?.name ?? inv.buildingId;
+        const name = groupKey(inv.buildingId);
         if (!buildingBuckets.has(name)) buildingBuckets.set(name, new Map());
         const bMap = buildingBuckets.get(name)!;
         bMap.set(month, (bMap.get(month) ?? 0) + (parseFloat(inv.total) || 0) * currencyRate);
@@ -266,7 +276,7 @@ export function CostosTendenciasPage() {
       ],
       legend: { enabled: stackedSeries.length > 1 },
     };
-  }, [monthlyData, filteredInvoices, filteredBuildings, currencyRate, currentCurrency.key, totalMwh]);
+  }, [monthlyData, filteredInvoices, filteredBuildings, currencyRate, currentCurrency.key, totalMwh, grouping]);
 
   const summaryCards = [
     { title: 'Costo total', value: formatCurrency(totalCost, currentCurrency.key) },
@@ -322,19 +332,29 @@ export function CostosTendenciasPage() {
 
       {/* Waterfall — cost variation analysis */}
       {monthlyData.length >= 2 && (() => {
-        const prev = monthlyData[monthlyData.length - 2]?.cost ?? 0;
-        const curr = monthlyData[monthlyData.length - 1]?.cost ?? 0;
+        const prevBucket = monthlyData[monthlyData.length - 2]!;
+        const currBucket = monthlyData[monthlyData.length - 1]!;
+        const prev = prevBucket.cost;
+        const curr = currBucket.cost;
         const totalDelta = curr - prev;
-        // ponytail: decompose into volume/price/mix as approximations
-        const volumeEffect = totalDelta * 0.5;
-        const priceEffect = totalDelta * 0.3;
-        const mixEffect = totalDelta * 0.15;
-        const otherEffect = totalDelta - volumeEffect - priceEffect - mixEffect;
+
+        // Real decomposition when MWh data available, else proportional fallback
+        const prevMwh = prevBucket.mwh;
+        const currMwh = currBucket.mwh;
+        const prevPrice = prevMwh > 0 ? prev / prevMwh : 0;
+        const currPrice = currMwh > 0 ? curr / currMwh : 0;
+        const hasRealMwh = prevMwh > 0 && currMwh > 0;
+
+        // Δ Volume = (MWh_curr - MWh_prev) × price_prev
+        // Δ Price  = (price_curr - price_prev) × MWh_curr
+        // Δ Other  = residual
+        const volumeEffect = hasRealMwh ? (currMwh - prevMwh) * prevPrice : totalDelta * 0.5;
+        const priceEffect = hasRealMwh ? (currPrice - prevPrice) * currMwh : totalDelta * 0.3;
+        const otherEffect = totalDelta - volumeEffect - priceEffect;
         const factors = [
           { label: 'Período anterior', value: prev, type: 'base' as const },
           { label: 'Δ Volumen', value: volumeEffect, type: 'delta' as const },
           { label: 'Δ Precio', value: priceEffect, type: 'delta' as const },
-          { label: 'Δ Mix malls', value: mixEffect, type: 'delta' as const },
           { label: 'Otros', value: otherEffect, type: 'delta' as const },
           { label: 'Período actual', value: curr, type: 'base' as const },
         ];

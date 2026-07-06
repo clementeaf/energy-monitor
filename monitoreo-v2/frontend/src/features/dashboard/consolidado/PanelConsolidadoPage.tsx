@@ -1,11 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
 import { useHierarchyByBuildingQuery } from '../../../hooks/queries/useHierarchyQuery';
@@ -101,7 +100,6 @@ const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
 ];
 
 export function PanelConsolidadoPage() {
-  const navigate = useNavigate();
   const [country, setCountry] = useState('CL');
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
@@ -113,10 +111,30 @@ export function PanelConsolidadoPage() {
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const invoicesQuery = useInvoicesQuery();
 
+  // Yesterday's aggregated readings for variation %
+  const yesterdayRange = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+    return { from: yesterdayStart.toISOString(), to: todayStart.toISOString() };
+  }, []);
+  const yesterdayQuery = useAggregatedReadingsQuery(
+    { ...yesterdayRange, interval: 'daily' },
+  );
+  const todayHourlyRange = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return { from: todayStart.toISOString(), to: now.toISOString() };
+  }, []);
+  const todayHourlyQuery = useAggregatedReadingsQuery(
+    { ...todayHourlyRange, interval: 'hourly' },
+  );
+
   const allBuildings = buildingsQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const activeAlerts = alertsQuery.data ?? [];
   const invoices = invoicesQuery.data ?? [];
+  const yesterdayReadings = yesterdayQuery.data ?? [];
 
   // Filter by country
   const filteredBuildings = useMemo(
@@ -165,6 +183,27 @@ export function PanelConsolidadoPage() {
       .reduce((sum, inv) => sum + (parseFloat(inv.total) || 0), 0);
     return paid;
   }, [invoices]);
+
+  // Yesterday's demand for variation %
+  const yesterdayDemandMw = useMemo(() => {
+    if (yesterdayReadings.length === 0) return null;
+    return yesterdayReadings.reduce((sum, r) => sum + (parseFloat(r.avg_power_kw ?? '0')), 0) / 1000;
+  }, [yesterdayReadings]);
+
+  const demandVariationPct = useMemo(() => {
+    if (yesterdayDemandMw == null || yesterdayDemandMw === 0) return null;
+    return Math.round(((totalDemandMw - yesterdayDemandMw) / yesterdayDemandMw) * 100);
+  }, [totalDemandMw, yesterdayDemandMw]);
+
+  const yesterdayConsumptionMwh = useMemo(() => {
+    if (yesterdayReadings.length === 0) return null;
+    return yesterdayReadings.reduce((sum, r) => sum + (parseFloat(r.energy_delta_kwh ?? '0')), 0) / 1000;
+  }, [yesterdayReadings]);
+
+  const consumptionVariationPct = useMemo(() => {
+    if (yesterdayConsumptionMwh == null || yesterdayConsumptionMwh === 0) return null;
+    return Math.round(((totalConsumptionMwh - yesterdayConsumptionMwh) / yesterdayConsumptionMwh) * 100);
+  }, [totalConsumptionMwh, yesterdayConsumptionMwh]);
 
   // Build marker meta (color + enriched popup)
   const STATUS_MARKER_COLORS: Record<EnergyStatus, string> = {
@@ -289,7 +328,17 @@ export function PanelConsolidadoPage() {
                   })}
                 </div>
               </div>
-
+              {/* Demand sparkline 24h + recent critical events */}
+              <div className="mt-2 flex gap-3">
+                <div className="flex-1">
+                  <p className="mb-1 text-[10px] font-medium uppercase text-muted">Demanda últimas 24h</p>
+                  <DemandSparkline data={todayHourlyQuery.data ?? []} />
+                </div>
+                <div className="flex-1">
+                  <p className="mb-1 text-[10px] font-medium uppercase text-muted">Eventos críticos recientes</p>
+                  <RecentCriticalEvents alerts={activeAlerts} buildings={allBuildings} />
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -312,6 +361,8 @@ export function PanelConsolidadoPage() {
                 totalCostUf={totalCostUf}
                 totalCriticalAlerts={totalCriticalAlerts}
                 totalConsumptionMwh={totalConsumptionMwh}
+                demandVariationPct={demandVariationPct}
+                consumptionVariationPct={consumptionVariationPct}
                 onSelectBuilding={setSelectedBuildingId}
               />
           }
@@ -329,6 +380,8 @@ interface PortfolioPanelProps {
   totalCostUf: number;
   totalCriticalAlerts: number;
   totalConsumptionMwh: number;
+  demandVariationPct: number | null;
+  consumptionVariationPct: number | null;
   onSelectBuilding: (id: string) => void;
 }
 
@@ -338,16 +391,17 @@ function PortfolioPanel({
   totalCostUf,
   totalCriticalAlerts,
   totalConsumptionMwh,
+  demandVariationPct,
+  consumptionVariationPct,
   onSelectBuilding,
 }: Readonly<PortfolioPanelProps>) {
   const activeCount = enriched.filter((e) => e.building.isActive).length;
 
-  // ponytail: variation % placeholder — compute real when previous-period API available
   const kpis = [
-    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW`, variation: null as number | null },
-    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh`, variation: null as number | null },
-    { title: 'Costo acumulado', value: fmtClp(totalCostUf), variation: null as number | null },
-    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}`, variation: totalCriticalAlerts > 0 ? totalCriticalAlerts : null },
+    { title: 'Demanda agregada', value: `${totalDemandMw.toFixed(2)} MW`, variation: demandVariationPct, pct: true },
+    { title: 'Consumo acumulado', value: `${fmtNum(totalConsumptionMwh, 1)} MWh`, variation: consumptionVariationPct, pct: true },
+    { title: 'Costo acumulado', value: fmtClp(totalCostUf), variation: null as number | null, pct: true },
+    { title: `Malls activos`, value: `${activeCount} / ${enriched.length}`, variation: totalCriticalAlerts > 0 ? totalCriticalAlerts : null, pct: false },
   ];
 
   return (
@@ -361,7 +415,7 @@ function PortfolioPanel({
               <p className="text-lg font-semibold tracking-tight text-foreground">{k.value}</p>
               {k.variation != null && (
                 <span className={`text-[10px] font-medium ${k.variation > 0 ? 'text-red-500' : k.variation < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                  {k.variation > 0 ? '↑' : k.variation < 0 ? '↓' : '→'} {Math.abs(k.variation)}
+                  {k.variation > 0 ? '↑' : k.variation < 0 ? '↓' : '→'} {Math.abs(k.variation)}{k.pct ? '%' : ''}
                 </span>
               )}
             </div>
@@ -700,6 +754,21 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
   const [floorPeriod, setFloorPeriod] = useState<FloorPeriod>('realtime');
   const [floorShowOnly, setFloorShowOnly] = useState<FloorShowOnly>('all');
+  const [zoom, setZoom] = useState(1);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Zoom via mouse wheel
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      setZoom((prev) => Math.min(2, Math.max(0.5, prev - e.deltaY * 0.002)));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   // Fetch hierarchy to get zones under this floor
   const hierarchyQuery = useHierarchyByBuildingQuery(buildingId);
@@ -822,8 +891,8 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
         </div>
       </div>
 
-      {/* Floor plan grid */}
-      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-surface/50 p-4">
+      {/* Floor plan grid — Ctrl+scroll to zoom */}
+      <div ref={gridRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-surface/50 p-4" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
         {visibleZones.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-[12px] text-muted">Sin zonas configuradas para este piso.</p>
@@ -900,18 +969,45 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
 
 /* ── Demand Sparkline (24h bars) ── */
 
-function DemandSparkline({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) {
-  // ponytail: approximate 24 hourly bars from current power (no historical API yet)
-  const totalPower = enriched.reduce((s, e) => s + e.powerKw, 0);
+function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[]; buildings: Building[] }>) {
+  const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
+  const recent = useMemo(() =>
+    [...alerts]
+      .filter((a) => a.severity === 'critical' || a.severity === 'high')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5),
+    [alerts],
+  );
+
+  if (recent.length === 0) return <p className="text-[11px] text-muted">Sin eventos críticos.</p>;
+
+  return (
+    <ul className="max-h-20 space-y-0.5 overflow-y-auto text-[11px]">
+      {recent.map((a) => {
+        const ago = Math.round((Date.now() - new Date(a.createdAt).getTime()) / 60_000);
+        const agoLabel = ago < 60 ? `${ago}m` : `${Math.round(ago / 60)}h`;
+        return (
+          <li key={a.id} className="flex items-center gap-1.5 truncate">
+            <span className={`inline-block size-1.5 shrink-0 rounded-full ${a.severity === 'critical' ? 'bg-red-500' : 'bg-orange-400'}`} />
+            <span className="truncate text-foreground">{buildingMap.get(a.buildingId) ?? '—'}</span>
+            <span className="shrink-0 text-muted">· {agoLabel}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function DemandSparkline({ data }: Readonly<{ data: import('../../../types/reading').AggregatedReading[] }>) {
   const bars = useMemo(() => {
-    const result: number[] = [];
-    for (let h = 0; h < 24; h++) {
-      // Simulate slight variation per hour using deterministic pattern
-      const factor = 0.6 + 0.4 * Math.abs(Math.sin((h * Math.PI) / 12));
-      result.push(totalPower * factor);
+    // Build 24-slot array from aggregated hourly data
+    const slots = new Array(24).fill(0);
+    for (const row of data) {
+      const hour = new Date(row.bucket).getHours();
+      slots[hour] += parseFloat(row.avg_power_kw ?? '0');
     }
-    return result;
-  }, [totalPower]);
+    return slots;
+  }, [data]);
 
   const maxBar = Math.max(1, ...bars);
 

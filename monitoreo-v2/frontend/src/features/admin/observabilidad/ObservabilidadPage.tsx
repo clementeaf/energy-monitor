@@ -3,6 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useApiObservabilityQuery } from '../../../hooks/queries/useApiObservabilityQuery';
 
 /* ── Component status ── */
 
@@ -25,45 +26,49 @@ export function ObservabilidadPage() {
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
+  const obsQuery = useApiObservabilityQuery({ granularity: 'hour' });
 
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const alerts = alertsQuery.data ?? [];
+  const obsReport = obsQuery.data;
+  const hasApmData = obsReport != null && obsReport.summary.totalRequests > 0;
 
   const readingMeterIds = useMemo(() => new Set(readings.map((r) => r.meter_id)), [readings]);
   const reportingPct = meters.length > 0
     ? ((meters.filter((m) => readingMeterIds.has(m.id)).length / meters.length) * 100).toFixed(1)
     : '0';
 
-  // Derive component health from data availability
+  // Derive component health from data availability + APM
+  const apiErrorRate = obsReport?.summary.errorRate ?? 0;
   const components: ComponentStatus[] = useMemo(() => [
-    { name: 'API principal', status: 'ok' as ComponentHealth },
-    { name: 'Base de datos', status: 'ok' as ComponentHealth },
+    { name: 'API principal', status: (hasApmData ? (apiErrorRate > 5 ? 'degraded' : 'ok') : 'ok') as ComponentHealth },
+    { name: 'Base de datos', status: (hasApmData ? (obsReport.summary.p95Ms > 2000 ? 'degraded' : 'ok') : 'ok') as ComponentHealth },
     { name: 'Cola mensajes', status: 'ok' as ComponentHealth },
     { name: 'Ingestión', status: meters.length > 0 && readings.length === 0 ? 'degraded' : 'ok' as ComponentHealth },
     { name: 'Backfill', status: 'ok' as ComponentHealth },
-  ], [meters.length, readings.length]);
+  ], [meters.length, readings.length, hasApmData, apiErrorRate, obsReport]);
 
   // Derive uptime from % meters reporting
   const uptimeEst = meters.length > 0 ? ((meters.filter((m) => readingMeterIds.has(m.id)).length / meters.length) * 100) : 100;
-  const errorRate = alerts.length > 0 ? ((alerts.length / Math.max(1, meters.length)) * 100) : 0;
+  const errorRate = hasApmData ? obsReport.summary.errorRate : (alerts.length > 0 ? ((alerts.length / Math.max(1, meters.length)) * 100) : 0);
 
-  // ponytail: synthetic latency/p95 — replace with real APM metrics when available
-  const latencyMs = 42 + (meters.length % 20);
-  const p95Ms = latencyMs * 2.3;
+  // Use real APM latency when available, otherwise show "Sin datos APM"
+  const latencyMs = hasApmData ? obsReport.summary.p95Ms : null;
+  const p95Ms = hasApmData ? obsReport.summary.p95Ms : null;
 
   const healthKpis = [
     { title: 'Uptime (30d)', value: `${uptimeEst.toFixed(1)}%`, color: uptimeEst >= 99 ? 'text-emerald-600' : uptimeEst >= 95 ? 'text-amber-600' : 'text-red-600' },
-    { title: 'Latencia media', value: `${latencyMs} ms`, color: latencyMs < 100 ? 'text-emerald-600' : 'text-amber-600' },
-    { title: 'p95', value: `${p95Ms.toFixed(0)} ms`, color: p95Ms < 200 ? 'text-emerald-600' : 'text-amber-600' },
+    { title: 'Latencia p95', value: latencyMs != null ? `${latencyMs} ms` : 'Sin datos APM', color: latencyMs != null ? (latencyMs < 100 ? 'text-emerald-600' : 'text-amber-600') : 'text-muted' },
+    { title: 'p95', value: p95Ms != null ? `${p95Ms} ms` : 'Sin datos APM', color: p95Ms != null ? (p95Ms < 200 ? 'text-emerald-600' : 'text-amber-600') : 'text-muted' },
     { title: 'Error rate', value: `${errorRate.toFixed(1)}%`, color: errorRate < 1 ? 'text-emerald-600' : 'text-red-600' },
   ];
 
   const ingestionKpis = [
     { title: 'Medidores reportando', value: `${reportingPct}%`, color: 'text-foreground' },
     { title: 'Mensajes/hora', value: String(readings.length * 4), color: 'text-foreground' },
-    { title: 'En cola', value: '0', color: 'text-emerald-600' },
-    { title: 'Errores parsing', value: '0', color: 'text-emerald-600' },
+    { title: 'En cola', value: 'Sin datos APM', color: 'text-muted' },
+    { title: 'Errores parsing', value: 'Sin datos APM', color: 'text-muted' },
   ];
 
   return (

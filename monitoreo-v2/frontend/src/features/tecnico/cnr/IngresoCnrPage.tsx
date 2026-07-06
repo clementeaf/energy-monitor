@@ -3,48 +3,17 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useCnrQuery, useCreateCnr } from '../../../hooks/queries/useCnrQuery';
+import type { CnrMotivo } from '../../../types/cnr';
 
 /* ── CNR motives ── */
 
-const CNR_MOTIVES = [
-  { key: 'falla_com', label: 'Falla de comunicación' },
-  { key: 'mantencion', label: 'Mantenimiento programado' },
-  { key: 'reemplazo', label: 'Reemplazo de medidor' },
-  { key: 'otro', label: 'Otro' },
+const CNR_MOTIVES: { key: CnrMotivo; label: string }[] = [
+  { key: 'comm_failure', label: 'Falla de comunicación' },
+  { key: 'maintenance', label: 'Mantenimiento programado' },
+  { key: 'replacement', label: 'Reemplazo de medidor' },
+  { key: 'other', label: 'Otro' },
 ];
-
-/* ── LocalStorage persistence ── */
-// ponytail: localStorage until backend CNR module ships
-
-const STORAGE_KEY = 'cnr_entries';
-
-interface CnrEntry {
-  id: string;
-  meterId: string;
-  meterName: string;
-  periodStart: string;
-  periodEnd: string;
-  valueKwh: number;
-  motive: string;
-  justification: string;
-  timestamp: string;
-}
-
-function loadHistory(): CnrEntry[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveCnrEntry(entry: CnrEntry): CnrEntry[] {
-  const history = loadHistory();
-  history.unshift(entry);
-  const trimmed = history.slice(0, 30);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed)); } catch { /* noop in test env */ }
-  return trimmed;
-}
 
 /* ── Page ── */
 
@@ -56,10 +25,12 @@ export function IngresoCnrPage() {
   const [motive, setMotive] = useState('falla_com');
   const [justification, setJustification] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [history, setHistory] = useState(loadHistory);
 
   const metersQuery = useMetersQuery();
   const buildingsQuery = useBuildingsQuery();
+  const cnrQuery = useCnrQuery();
+  const createCnr = useCreateCnr();
+  const history = cnrQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const buildings = buildingsQuery.data ?? [];
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
@@ -76,29 +47,26 @@ export function IngresoCnrPage() {
     e.preventDefault();
     if (!canSubmit || !selectedMeter) return;
 
-    const entry: CnrEntry = {
-      id: `CNR-${Date.now().toString(36).toUpperCase()}`,
+    createCnr.mutate({
       meterId: selectedMeterId,
-      meterName: selectedMeter.name,
-      periodStart,
-      periodEnd,
+      buildingId: selectedMeter.buildingId,
+      periodStart: new Date(periodStart).toISOString(),
+      periodEnd: new Date(periodEnd).toISOString(),
       valueKwh: parseFloat(valueKwh),
-      motive: CNR_MOTIVES.find((m) => m.key === motive)?.label ?? motive,
+      motivo: motive as CnrMotivo,
       justification: justification.trim(),
-      timestamp: new Date().toISOString(),
-    };
-
-    const updated = saveCnrEntry(entry);
-    setHistory(updated);
-    setSubmitted(true);
-    setSelectedMeterId('');
-    setPeriodStart('');
-    setPeriodEnd('');
-    setValueKwh('');
-    setJustification('');
-
-    setTimeout(() => setSubmitted(false), 3000);
-  }, [canSubmit, selectedMeter, selectedMeterId, periodStart, periodEnd, valueKwh, motive, justification]);
+    }, {
+      onSuccess: () => {
+        setSubmitted(true);
+        setSelectedMeterId('');
+        setPeriodStart('');
+        setPeriodEnd('');
+        setValueKwh('');
+        setJustification('');
+        setTimeout(() => setSubmitted(false), 3000);
+      },
+    });
+  }, [canSubmit, selectedMeter, selectedMeterId, periodStart, periodEnd, valueKwh, motive, justification, createCnr]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -224,15 +192,15 @@ export function IngresoCnrPage() {
               {history.length === 0 && (
                 <p className="text-[12px] text-muted">Sin CNR registrados.</p>
               )}
-              {history.map((h) => (
+              {history.slice(0, 30).map((h) => (
                 <div key={h.id} className="rounded-md border border-border p-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-muted">{h.id}</span>
-                    <span className="text-[10px] text-muted">{new Date(h.timestamp).toLocaleDateString('es-CL')}</span>
+                    <span className="font-mono text-[10px] text-muted">{h.id.slice(0, 8)}</span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${h.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : h.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{h.status}</span>
                   </div>
-                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meterName}</p>
-                  <p className="text-[11px] text-muted">{h.motive} · {h.valueKwh} kWh</p>
-                  <p className="mt-1 line-clamp-2 text-[11px] text-muted">{h.justification}</p>
+                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meter_id.slice(0, 8)}</p>
+                  <p className="text-[11px] text-muted">{h.motivo} · {h.value_kwh != null ? `${h.value_kwh} kWh` : '—'}</p>
+                  <p className="mt-0.5 text-[10px] text-muted">{new Date(h.created_at).toLocaleDateString('es-CL')}</p>
                 </div>
               ))}
             </div>

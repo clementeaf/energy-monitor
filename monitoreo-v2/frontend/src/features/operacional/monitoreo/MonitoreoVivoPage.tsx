@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
@@ -148,10 +148,34 @@ export function MonitoreoVivoPage() {
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const backfillQuery = useBackfillJobsQuery();
 
+  // Yesterday aggregated for variation + histogram
+  const timeRanges = useMemo(() => {
+    const n = new Date();
+    const todayStart = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+    return {
+      yesterday: { from: yesterdayStart.toISOString(), to: todayStart.toISOString() },
+      last24h: { from: new Date(Date.now() - 24 * 3_600_000).toISOString(), to: n.toISOString() },
+    };
+  }, []);
+  const yesterdayQuery = useAggregatedReadingsQuery({ ...timeRanges.yesterday, interval: 'daily' });
+  const hourlyQuery = useAggregatedReadingsQuery({ ...timeRanges.last24h, interval: 'hourly' });
+
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const alerts = alertsQuery.data ?? [];
+  const yesterdayAgg = yesterdayQuery.data ?? [];
+  const hourlyAgg = hourlyQuery.data ?? [];
+
+  // Yesterday power per meter for variation %
+  const yesterdayPowerByMeter = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of yesterdayAgg) {
+      map.set(r.meter_id, parseFloat(r.avg_power_kw ?? '0'));
+    }
+    return map;
+  }, [yesterdayAgg]);
 
   const now = Date.now();
 
@@ -197,24 +221,27 @@ export function MonitoreoVivoPage() {
   ];
 
   // Park behavior histogram — % online per hour (last 24h)
-  // ponytail: derived from current snapshot only (no historical hourly data without backend)
-  // Shows current status as a single bar per building as proxy
+  // Uses real hourly aggregated data: meters with readings in each hour / total meters
   const parkHistogram = useMemo(() => {
     const hours: { label: string; pctOnline: number }[] = [];
     for (let h = 23; h >= 0; h--) {
       const hourTs = now - h * 3_600_000;
       const d = new Date(hourTs);
       const label = `${d.getHours().toString().padStart(2, '0')}:00`;
-      // ponytail: approximate — count meters with reading in that hour window
-      const inHour = readings.filter((r) => {
-        const t = new Date(r.timestamp).getTime();
-        return t >= hourTs - 3_600_000 && t < hourTs;
-      }).length;
-      const pct = totalMeters > 0 ? (inHour / totalMeters) * 100 : 0;
+
+      // Count distinct meters reporting in this hour from aggregated data
+      const hourMeters = new Set<string>();
+      for (const r of hourlyAgg) {
+        const bucketTs = new Date(r.bucket).getTime();
+        if (bucketTs >= hourTs - 3_600_000 && bucketTs < hourTs) {
+          hourMeters.add(r.meter_id);
+        }
+      }
+      const pct = totalMeters > 0 ? (hourMeters.size / totalMeters) * 100 : 0;
       hours.push({ label, pctOnline: Math.min(100, pct) });
     }
     return hours;
-  }, [readings, totalMeters, now]);
+  }, [hourlyAgg, totalMeters, now]);
 
   // Enriched feed: alerts + offline/stale meter events
   const enrichedFeed: FeedEvent[] = useMemo(() => {
@@ -331,9 +358,15 @@ export function MonitoreoVivoPage() {
                                   <td className="py-1 text-right text-muted">
                                     {reading ? Number(reading.power_kw).toFixed(1) : '—'}
                                   </td>
-                                  <td className="py-1 text-right text-[10px] text-muted">
-                                    {/* ponytail: variation placeholder — compute when previous-day API available */}
-                                    —
+                                  <td className="py-1 text-right text-[10px]">
+                                    {(() => {
+                                      const currentKw = reading ? Number(reading.power_kw) : 0;
+                                      const yesterdayKw = yesterdayPowerByMeter.get(meter.id);
+                                      if (!yesterdayKw || yesterdayKw === 0 || !reading) return <span className="text-muted">—</span>;
+                                      const pct = Math.round(((currentKw - yesterdayKw) / yesterdayKw) * 100);
+                                      const color = pct > 0 ? 'text-red-500' : pct < 0 ? 'text-emerald-500' : 'text-muted';
+                                      return <span className={`font-medium ${color}`}>{pct > 0 ? '↑' : pct < 0 ? '↓' : '→'} {Math.abs(pct)}%</span>;
+                                    })()}
                                   </td>
                                   <td className="py-1 text-right text-muted">
                                     {reading

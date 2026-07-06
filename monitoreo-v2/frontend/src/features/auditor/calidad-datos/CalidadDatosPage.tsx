@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
@@ -133,27 +133,47 @@ export function CalidadDatosPage() {
     [buildings, countryFilter],
   );
 
+  // 12-month aggregated for evolution chart
+  const evoRange = useMemo(() => {
+    const now = new Date();
+    const from = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+    return { from: from.toISOString(), to: now.toISOString() };
+  }, []);
+  const evoQuery = useAggregatedReadingsQuery({ ...evoRange, interval: 'monthly' });
+  const evoAgg = evoQuery.data ?? [];
+
   const allRows = useMemo(
     () => buildScorecard(filteredBuildings, meters, readings, days, granularity),
     [filteredBuildings, meters, readings, days, granularity],
   );
   const rows = mallFilter === 'all' ? allRows : allRows.filter((r) => r.buildingId === mallFilter);
 
-  // Evolution chart data: % real per month for selected mall (or average)
+  // Evolution chart: distinct meters reporting per month / total meters
+  const totalMeterCount = meters.length;
   const evolutionData = useMemo(() => {
     const months: { label: string; realPct: number }[] = [];
+    const now = new Date();
     for (let m = 11; m >= 0; m--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - m);
+      const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
       const label = d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' });
-      // ponytail: approximate from current data with deterministic variance
-      const baseRow = selectedMall ? allRows.find((r) => r.buildingId === selectedMall) : null;
-      const basePct = baseRow ? baseRow.realPct : (allRows.length > 0 ? allRows.reduce((s, r) => s + r.realPct, 0) / allRows.length : 0);
-      const realPct = Math.min(100, Math.max(0, basePct + (m % 3 - 1) * 2));
+      // Count distinct meters with data in this month
+      const monthMeters = new Set<string>();
+      for (const r of evoAgg) {
+        const b = new Date(r.bucket);
+        if (b.getFullYear() === d.getFullYear() && b.getMonth() === d.getMonth()) {
+          if (!selectedMall || meters.find((mt) => mt.id === r.meter_id)?.buildingId === selectedMall) {
+            monthMeters.add(r.meter_id);
+          }
+        }
+      }
+      const expected = selectedMall
+        ? meters.filter((mt) => mt.buildingId === selectedMall).length
+        : totalMeterCount;
+      const realPct = expected > 0 ? Math.min(100, (monthMeters.size / expected) * 100) : 0;
       months.push({ label, realPct });
     }
     return months;
-  }, [allRows, selectedMall]);
+  }, [evoAgg, selectedMall, meters, totalMeterCount]);
 
   // Low-quality meters for selected mall
   const LOW_QUALITY_THRESHOLD = 90;

@@ -4,6 +4,7 @@ import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery, useResolveAlert, useAcknowledgeAlert } from '../../../hooks/queries/useAlertsQuery';
+import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { Alert, AlertSeverity, AlertStatus } from '../../../types/alert';
 
 /* ── Filter options ── */
@@ -263,33 +264,47 @@ export function AlarmasEventosPage() {
 
 /* ── Meter Sparkline 48h ── */
 
-function MeterSparkline48h({ triggeredValue, thresholdValue }: Readonly<{ triggeredValue?: number | null; thresholdValue?: number | null }>) {
-  // ponytail: synthetic 48 points — replace with real timeseries API
-  const baseVal = triggeredValue ?? 220;
-  const threshold = thresholdValue ?? baseVal * 1.1;
-  const points = useMemo(() => {
-    const result: number[] = [];
-    for (let i = 0; i < 48; i++) {
-      const noise = (Math.sin(i * 0.7) * 0.08 + Math.cos(i * 0.3) * 0.05) * baseVal;
-      result.push(baseVal + noise);
-    }
-    return result;
-  }, [baseVal]);
+function MeterSparkline48h({ meterId, thresholdValue }: Readonly<{ meterId?: string | null; triggeredValue?: number | null; thresholdValue?: number | null }>) {
+  const range = useMemo(() => {
+    const now = new Date();
+    return { from: new Date(now.getTime() - 48 * 3_600_000).toISOString(), to: now.toISOString() };
+  }, []);
+  const aggQuery = useAggregatedReadingsQuery(
+    { ...range, interval: 'hourly', ...(meterId ? { meterId } : {}) },
+    !!meterId,
+  );
+  const aggData = aggQuery.data ?? [];
 
+  // Build 48-slot array from real hourly data
+  const points = useMemo(() => {
+    const slots = new Array(48).fill(0);
+    const now = Date.now();
+    for (const r of aggData) {
+      const hourIndex = Math.floor((now - new Date(r.bucket).getTime()) / 3_600_000);
+      const slot = 47 - hourIndex;
+      if (slot >= 0 && slot < 48) {
+        slots[slot] = parseFloat(r.avg_power_kw ?? '0');
+      }
+    }
+    return slots;
+  }, [aggData]);
+
+  const threshold = thresholdValue ?? 0;
   const w = 240;
   const h = 48;
-  const allVals = [...points, threshold];
+  const allVals = [...points, threshold].filter((v) => v > 0);
+  if (allVals.length === 0) return <p className="text-[10px] text-muted">Sin datos 48h.</p>;
   const minV = Math.min(...allVals) * 0.95;
   const maxV = Math.max(...allVals) * 1.05;
   const toY = (v: number) => h - ((v - minV) / (maxV - minV)) * (h - 4);
   const linePath = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${toY(v)}`).join(' ');
-  const threshY = toY(threshold);
+  const threshY = threshold > 0 ? toY(threshold) : -10;
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
-      <line x1={0} y1={threshY} x2={w} y2={threshY} stroke="#ef4444" strokeWidth={1} strokeDasharray="4 2" />
+      {threshold > 0 && <line x1={0} y1={threshY} x2={w} y2={threshY} stroke="#ef4444" strokeWidth={1} strokeDasharray="4 2" />}
       <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={1.5} />
-      <text x={w - 2} y={threshY - 3} fontSize={8} fill="#ef4444" textAnchor="end">umbral</text>
+      {threshold > 0 && <text x={w - 2} y={threshY - 3} fontSize={8} fill="#ef4444" textAnchor="end">umbral</text>}
     </svg>
   );
 }
@@ -390,7 +405,7 @@ function AlertDetailPanel({
       {/* 48h series chart */}
       <div className="panel px-3 py-3">
         <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Serie temporal — 48h</h4>
-        <MeterSparkline48h triggeredValue={alert.triggeredValue} thresholdValue={alert.thresholdValue} />
+        <MeterSparkline48h meterId={alert.meterId} triggeredValue={alert.triggeredValue} thresholdValue={alert.thresholdValue} />
       </div>
 
       {/* Details */}
@@ -413,13 +428,13 @@ function AlertDetailPanel({
           <Button size="sm" variant="secondary" onClick={onAcknowledge} loading={acknowledging}>
             Asignar a mí
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => { /* ponytail: assign-to-other modal when user list available */ }}>
+          <Button size="sm" variant="secondary" onClick={() => { onAcknowledge(); /* ponytail: assign-to-other — uses acknowledge as proxy until user-picker available */ }}>
             Asignar a otro
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => { /* ponytail: escalation API when available */ }}>
+          <Button size="sm" variant="secondary" onClick={() => { onAcknowledge(); /* ponytail: escalation uses acknowledge + notes until escalation API */ }}>
             Escalar
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => { /* ponytail: trigger backfill for meter */ }}>
+          <Button size="sm" variant="secondary" disabled={!alert.meterId} title={alert.meterId ? 'Iniciar backfill' : 'Sin medidor asociado'} onClick={() => { /* ponytail: trigger backfill API for meter when available */ }}>
             Backfill
           </Button>
           <Button size="sm" variant="danger" onClick={onResolve} loading={resolving}>

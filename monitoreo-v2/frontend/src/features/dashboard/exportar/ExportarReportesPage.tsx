@@ -3,6 +3,9 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
+import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Report, ReportFormat } from '../../../types/report';
 
 /* ── Config options (pure data) ── */
@@ -78,8 +81,14 @@ export function ExportarReportesPage() {
 
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
+  const buildingsQuery = useBuildingsQuery();
+  const metersQuery = useMetersQuery();
+  const alertsQuery = useAlertsQuery({ status: 'active' });
 
   const reports = reportsQuery.data ?? [];
+  const buildingCount = buildingsQuery.data?.length ?? 0;
+  const meterCount = metersQuery.data?.length ?? 0;
+  const alertCount = alertsQuery.data?.length ?? 0;
 
   // Queue (recent exports, newest first)
   const queue = useMemo(
@@ -87,10 +96,17 @@ export function ExportarReportesPage() {
     [reports],
   );
 
-  // Preview summary
+  // Preview summary — derive estimates from real entity counts
   const selectedTypes = CONTENT_TYPES.filter((t) => selectedContent.has(t.key));
-  const totalRows = selectedTypes.reduce((sum, t) => sum + t.estimatedRows, 0);
-  const totalSizeKb = selectedTypes.reduce((sum, t) => sum + t.estimatedSizeKb, 0);
+  const rowEstimates: Record<string, number> = {
+    consumption: buildingCount * (granularity === 'weekly' ? 12 : 12), // per building per period
+    billing: buildingCount * 3, // invoices per building
+    quality: meterCount,
+    coverage: buildingCount,
+    alerts_compliance: Math.max(alertCount, 10),
+  };
+  const totalRows = selectedTypes.reduce((sum, t) => sum + (rowEstimates[t.key] ?? t.estimatedRows), 0);
+  const totalSizeKb = Math.round(totalRows * 2.5); // ~2.5 KB per row estimate
 
   const toggleContent = (key: string) => {
     setSelectedContent((prev) => {
@@ -102,14 +118,32 @@ export function ExportarReportesPage() {
 
   const handleExport = () => {
     const now = new Date();
-    const periodStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-    const periodEnd = now.toISOString().slice(0, 10);
+    let periodStart: string;
+    let periodEnd: string;
+
+    if (period === 'custom') {
+      periodStart = customStart;
+      periodEnd = customEnd;
+    } else {
+      const yr = now.getFullYear();
+      const mo = now.getMonth();
+      const ranges: Record<string, [string, string]> = {
+        month: [`${yr}-${String(mo + 1).padStart(2, '0')}-01`, now.toISOString().slice(0, 10)],
+        quarter: [new Date(yr, Math.floor(mo / 3) * 3, 1).toISOString().slice(0, 10), now.toISOString().slice(0, 10)],
+        year: [`${yr}-01-01`, now.toISOString().slice(0, 10)],
+        '12m': [new Date(yr - 1, mo, 1).toISOString().slice(0, 10), now.toISOString().slice(0, 10)],
+      };
+      [periodStart, periodEnd] = ranges[period] ?? ranges.month;
+    }
+
     selectedTypes.forEach((ct) => {
       generateReport.mutate({
         reportType: ct.key as Report['reportType'],
         format: format as ReportFormat,
         periodStart,
         periodEnd,
+        // ponytail: backend may ignore these — but we send them for when it supports them
+        ...({ granularity, currency } as Record<string, string>),
       });
     });
   };
@@ -221,13 +255,16 @@ export function ExportarReportesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {selectedTypes.map((ct) => (
-                  <tr key={ct.key}>
-                    <td className="py-1.5 text-foreground">{ct.label}</td>
-                    <td className="py-1.5 text-right text-muted">{ct.estimatedRows}</td>
-                    <td className="py-1.5 text-right text-muted">{ct.estimatedSizeKb} KB</td>
-                  </tr>
-                ))}
+                {selectedTypes.map((ct) => {
+                  const rows = rowEstimates[ct.key] ?? ct.estimatedRows;
+                  return (
+                    <tr key={ct.key}>
+                      <td className="py-1.5 text-foreground">{ct.label}</td>
+                      <td className="py-1.5 text-right text-muted">{rows}</td>
+                      <td className="py-1.5 text-right text-muted">{Math.round(rows * 2.5)} KB</td>
+                    </tr>
+                  );
+                })}
                 {selectedTypes.length === 0 && (
                   <tr>
                     <td colSpan={3} className="py-4 text-center text-muted">

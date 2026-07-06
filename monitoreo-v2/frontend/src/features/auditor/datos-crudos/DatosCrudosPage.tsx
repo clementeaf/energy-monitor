@@ -50,7 +50,7 @@ export function DatosCrudosPage() {
   const selectedMeterId = selectedMeterIds[0] ?? '';
   const [resolution, setResolution] = useState('1h');
   const [format, setFormat] = useState('csv');
-  const [dateRange] = useState(defaultDateRange);
+  const [dateRange, setDateRange] = useState(defaultDateRange);
 
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
@@ -69,6 +69,13 @@ export function DatosCrudosPage() {
     () => selectedMeterIds.length > 0 ? readings.filter((r) => selectedSet.has(r.meter_id)).slice(0, 100) : [],
     [readings, selectedSet, selectedMeterIds],
   );
+
+  // Compute average power for anomaly detection
+  const avgPower = useMemo(() => {
+    if (preview.length === 0) return 0;
+    const sum = preview.reduce((acc, r) => acc + Number(r.power_kw), 0);
+    return sum / preview.length;
+  }, [preview]);
 
   const meterName = meters.find((m) => m.id === selectedMeterId)?.name ?? 'meter';
 
@@ -127,6 +134,28 @@ export function DatosCrudosPage() {
         </div>
 
         <div className="panel p-3">
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Rango fechas</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={dateRange.from}
+              max={dateRange.to}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+            />
+            <span className="text-[11px] text-muted">—</span>
+            <input
+              type="date"
+              value={dateRange.to}
+              min={dateRange.from}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, to: e.target.value }))}
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+            />
+          </div>
+        </div>
+
+        <div className="panel p-3">
           <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Formato exportación</label>
           <PillToggle
             options={FORMAT_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
@@ -166,9 +195,23 @@ export function DatosCrudosPage() {
                   <td className="px-3 py-1.5 text-right text-muted">{r.voltage_l1 ?? '—'}</td>
                   <td className="px-3 py-1.5 text-right text-muted">{r.power_factor ?? '—'}</td>
                   <td className="px-3 py-1.5 text-center">
-                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700">real</span>
+                    {(() => {
+                      const ageMs = Date.now() - new Date(r.timestamp).getTime();
+                      const stale = ageMs > 4 * 3_600_000;
+                      return stale
+                        ? <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-medium text-blue-700">estimado</span>
+                        : <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700">real</span>;
+                    })()}
                   </td>
-                  <td className="px-3 py-1.5 text-center text-[10px] text-muted">—</td>
+                  <td className="px-3 py-1.5 text-center text-[10px]">
+                    {(() => {
+                      const pw = Number(r.power_kw);
+                      if (avgPower <= 0) return <span className="text-muted">—</span>;
+                      if (pw > avgPower * 2) return <span className="text-amber-600 font-medium">Alto (&gt;2x avg)</span>;
+                      if (pw < avgPower * 0.5) return <span className="text-amber-600 font-medium">Bajo (&lt;0.5x avg)</span>;
+                      return <span className="text-muted">—</span>;
+                    })()}
+                  </td>
                 </tr>
               ))}
               {preview.length === 0 && (

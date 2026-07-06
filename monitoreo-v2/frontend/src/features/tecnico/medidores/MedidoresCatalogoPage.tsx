@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
@@ -232,32 +232,8 @@ function MeterFicha({ meter, reading, buildingName, onNavigate }: Readonly<{ met
         </dl>
       </div>
 
-      {/* Disponibilidad 72h */}
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h</h4>
-        <div className="flex h-4 gap-[1px]">
-          {Array.from({ length: 72 }, (_, i) => {
-            // ponytail: synthetic — green if reading exists, else red; replace with real hourly data
-            const hasData = !!reading && i < 48;
-            return <div key={i} className={`flex-1 rounded-sm ${hasData ? 'bg-emerald-400' : 'bg-red-300'}`} />;
-          })}
-        </div>
-        <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
-      </div>
-
-      {/* Serie temporal 48h */}
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Serie temporal — 48h</h4>
-        {(() => {
-          const baseVal = reading ? Number(reading.power_kw) : 0;
-          if (baseVal === 0) return <p className="text-[11px] text-muted">Sin datos.</p>;
-          const w = 220; const h = 36;
-          const points = Array.from({ length: 48 }, (_, i) => baseVal * (0.7 + 0.3 * Math.abs(Math.sin(i * 0.5))));
-          const maxV = Math.max(...points);
-          const path = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${h - (v / maxV) * (h - 4)}`).join(' ');
-          return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full"><path d={path} fill="none" stroke="#3b82f6" strokeWidth={1.5} /></svg>;
-        })()}
-      </div>
+      {/* Disponibilidad 72h + Serie temporal 48h — real data */}
+      <MeterCharts72h meterId={meter.id} />
 
       {/* Historial fallas */}
       <div className="panel px-3 py-3">
@@ -266,6 +242,68 @@ function MeterFicha({ meter, reading, buildingName, onNavigate }: Readonly<{ met
       </div>
 
       <Button size="sm" variant="secondary" onClick={onNavigate} className="mx-3">Ver detalle completo</Button>
+    </>
+  );
+}
+
+function MeterCharts72h({ meterId }: Readonly<{ meterId: string }>) {
+  const range = useMemo(() => {
+    const now = new Date();
+    return { from: new Date(now.getTime() - 72 * 3_600_000).toISOString(), to: now.toISOString() };
+  }, []);
+  const aggQuery = useAggregatedReadingsQuery({ ...range, interval: 'hourly', meterId });
+  const data = aggQuery.data ?? [];
+
+  // 72h availability: which hours have data
+  const avail72 = useMemo(() => {
+    const slots = new Array(72).fill(false);
+    const now = Date.now();
+    for (const r of data) {
+      const hourIndex = Math.floor((now - new Date(r.bucket).getTime()) / 3_600_000);
+      const slot = 71 - hourIndex;
+      if (slot >= 0 && slot < 72) slots[slot] = true;
+    }
+    return slots;
+  }, [data]);
+
+  // 48h power series (last 48 slots)
+  const series48 = useMemo(() => {
+    const slots = new Array(48).fill(0);
+    const now = Date.now();
+    for (const r of data) {
+      const hourIndex = Math.floor((now - new Date(r.bucket).getTime()) / 3_600_000);
+      const slot = 47 - hourIndex;
+      if (slot >= 0 && slot < 48) slots[slot] = parseFloat(r.avg_power_kw ?? '0');
+    }
+    return slots;
+  }, [data]);
+
+  const maxV = Math.max(1, ...series48);
+  const w = 220; const h = 36;
+  const path = series48.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${h - (v / maxV) * (h - 4)}`).join(' ');
+
+  return (
+    <>
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h</h4>
+        <div className="flex h-4 gap-[1px]">
+          {avail72.map((has, i) => (
+            <div key={i} className={`flex-1 rounded-sm ${has ? 'bg-emerald-400' : 'bg-red-300'}`} />
+          ))}
+        </div>
+        <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
+      </div>
+
+      <div className="panel px-3 py-3">
+        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Serie temporal — 48h</h4>
+        {maxV <= 1 ? (
+          <p className="text-[11px] text-muted">Sin datos.</p>
+        ) : (
+          <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
+            <path d={path} fill="none" stroke="#3b82f6" strokeWidth={1.5} />
+          </svg>
+        )}
+      </div>
     </>
   );
 }

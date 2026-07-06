@@ -1,10 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
+import type { ReportFormat } from '../../../types/report';
 
 /* ── Content types ── */
 
@@ -18,53 +17,13 @@ const CONTENT_TYPES: ContentDef[] = [
   { key: 'lineage', label: 'Linaje de lecturas', defaultChecked: false },
 ];
 
-/* ── LocalStorage history ── */
-// ponytail: localStorage until backend evidence export ships
-
-const STORAGE_KEY = 'evidence_exports';
-
-interface EvidenceRecord {
-  id: string;
-  date: string;
-  content: string;
-  period: string;
-  buildings: number;
-  meters: number;
-  hash: string;
-}
-
-function loadHistory(): EvidenceRecord[] {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]'); } catch { return []; }
-}
-
-function saveExport(record: EvidenceRecord): EvidenceRecord[] {
-  const h = loadHistory();
-  h.unshift(record);
-  const trimmed = h.slice(0, 20);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed)); } catch { /* noop */ }
-  return trimmed;
-}
-
 /* ── Helpers ── */
 
-async function sha256(text: string): Promise<string> {
-  try {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
-  } catch {
-    // fallback for test env without crypto.subtle
-    return `sha256-${Date.now().toString(16)}`;
-  }
-}
-
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+function computePeriodRange(months: number): { from: string; to: string } {
+  const to = new Date();
+  const from = new Date(to);
+  from.setMonth(from.getMonth() - months);
+  return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
 }
 
 /* ── Page ── */
@@ -73,20 +32,22 @@ export function ExportarEvidenciaPage() {
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(CONTENT_TYPES.filter((c) => c.defaultChecked).map((c) => c.key)),
   );
-  const [generating, setGenerating] = useState(false);
-  const [history, setHistory] = useState(loadHistory);
   const [mallFilter, setMallFilter] = useState('all');
   const [periodMonths, setPeriodMonths] = useState('1');
 
+  const periodRange = useMemo(() => computePeriodRange(Number(periodMonths)), [periodMonths]);
+
   const buildingsQuery = useBuildingsQuery();
-  const metersQuery = useMetersQuery();
-  const latestQuery = useLatestReadingsQuery();
-  const alertsQuery = useAlertsQuery({});
+  const reportsQuery = useReportsQuery({ reportType: 'evidence' });
+  const generateReport = useGenerateReport();
 
   const buildings = buildingsQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
-  const readings = latestQuery.data ?? [];
-  const alerts = alertsQuery.data ?? [];
+
+  // History from reports backend
+  const history = useMemo(
+    () => [...(reportsQuery.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20),
+    [reportsQuery.data],
+  );
 
   const toggleContent = (key: string) => {
     setSelected((prev) => {
@@ -96,63 +57,16 @@ export function ExportarEvidenciaPage() {
     });
   };
 
-  const selectedLabels = useMemo(
-    () => CONTENT_TYPES.filter((c) => selected.has(c.key)).map((c) => c.label).join(', '),
-    [selected],
-  );
-
-  const handleGenerate = useCallback(async () => {
-    setGenerating(true);
-
-    const sections: Record<string, unknown> = {};
-    const now = new Date().toISOString();
-    const period = now.slice(0, 7);
-
-    if (selected.has('consumption')) {
-      sections.consumption = readings.map((r) => ({
-        meter: r.meter_name, building: r.building_id,
-        timestamp: r.timestamp, power_kw: r.power_kw, energy_kwh: r.energy_kwh_total,
-      }));
-    }
-    if (selected.has('reconciliation')) {
-      const byBuilding = buildings.map((b) => {
-        const bMeters = meters.filter((m) => m.buildingId === b.id);
-        const bReadings = readings.filter((r) => r.building_id === b.id);
-        return { building: b.name, meters: bMeters.length, readings: bReadings.length };
-      });
-      sections.reconciliation = byBuilding;
-    }
-    if (selected.has('audit')) {
-      sections.audit = { alertCount: alerts.length, buildingCount: buildings.length, meterCount: meters.length };
-    }
-    if (selected.has('quality')) {
-      const online = readings.filter((r) => Date.now() - new Date(r.timestamp).getTime() < 3_600_000).length;
-      sections.quality = { totalMeters: readings.length, online, pctOnline: readings.length > 0 ? Math.round((online / readings.length) * 100) : 0 };
-    }
-    if (selected.has('lineage')) {
-      sections.lineage = readings.slice(0, 20).map((r) => ({
-        meter: r.meter_name, timestamp: r.timestamp, type: 'real', quality: 'measured',
-      }));
-    }
-
-    const payload = JSON.stringify({ meta: { exportedAt: now, period, selectedContent: selectedLabels }, sections }, null, 2);
-    const hash = await sha256(payload);
-
-    const record: EvidenceRecord = {
-      id: `EV-${Date.now().toString(36).toUpperCase()}`,
-      date: now.slice(0, 10),
-      content: selectedLabels,
-      period,
-      buildings: buildings.length,
-      meters: meters.length,
-      hash: hash.slice(0, 16),
-    };
-
-    downloadFile(payload, `evidencia_${period}_${hash.slice(0, 8)}.json`, 'application/json');
-    const updated = saveExport(record);
-    setHistory(updated);
-    setGenerating(false);
-  }, [selected, selectedLabels, buildings, meters, readings, alerts]);
+  const handleGenerate = () => {
+    const buildingId = mallFilter === 'all' ? undefined : mallFilter;
+    generateReport.mutate({
+      reportType: 'evidence',
+      format: 'csv' as ReportFormat,
+      periodStart: periodRange.from,
+      periodEnd: periodRange.to,
+      buildingId,
+    });
+  };
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
@@ -203,7 +117,7 @@ export function ExportarEvidenciaPage() {
 
           <Button
             disabled={selected.size === 0}
-            loading={generating}
+            loading={generateReport.isPending}
             className="w-full"
             onClick={handleGenerate}
           >
@@ -218,39 +132,39 @@ export function ExportarEvidenciaPage() {
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Fecha</th>
-                <th className="px-3 py-2">Usuario</th>
-                <th className="px-3 py-2">Contenido</th>
+                <th className="px-3 py-2">Formato</th>
                 <th className="px-3 py-2">Período</th>
-                <th className="px-3 py-2">Edificios</th>
-                <th className="px-3 py-2">Hash</th>
+                <th className="px-3 py-2">Estado</th>
                 <th className="px-3 py-2">Descarga</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {history.map((ev) => (
-                <tr key={ev.id} className="transition-colors hover:bg-surface">
-                  <td className="px-3 py-2 text-muted">{ev.date}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">Auditor</td>
-                  <td className="max-w-[200px] px-3 py-2 text-foreground">
-                    <p className="truncate">{ev.content}</p>
-                  </td>
-                  <td className="px-3 py-2 text-muted">{ev.period}</td>
-                  <td className="px-3 py-2 text-muted">{ev.buildings}</td>
-                  <td className="px-3 py-2 font-mono text-[10px] text-muted">{ev.hash}</td>
+              {history.map((report) => (
+                <tr key={report.id} className="transition-colors hover:bg-surface">
+                  <td className="px-3 py-2 text-muted">{new Date(report.createdAt).toLocaleDateString('es-CL')}</td>
+                  <td className="px-3 py-2 text-[11px] uppercase text-muted">{report.format}</td>
+                  <td className="px-3 py-2 text-muted">{report.periodStart} — {report.periodEnd}</td>
                   <td className="px-3 py-2">
-                    {(() => {
-                      const createdMs = new Date(ev.date).getTime();
-                      const expiresMs = createdMs + 90 * 86_400_000;
-                      const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
-                      return daysLeft > 0
-                        ? <span className="text-[10px] text-brand">{daysLeft}d restantes</span>
-                        : <span className="text-[10px] text-red-500">Expirado</span>;
-                    })()}
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${report.fileUrl ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {report.fileUrl ? 'Listo' : 'Generando'}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {report.fileUrl ? (
+                      (() => {
+                        const createdMs = new Date(report.createdAt).getTime();
+                        const expiresMs = createdMs + 90 * 86_400_000;
+                        const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
+                        return daysLeft > 0
+                          ? <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand hover:underline">Descargar ({daysLeft}d)</a>
+                          : <span className="text-[10px] text-red-500">Expirado</span>;
+                      })()
+                    ) : <span className="text-[10px] text-muted">—</span>}
                   </td>
                 </tr>
               ))}
               {history.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin evidencias exportadas.</td></tr>
+                <tr><td colSpan={5} className="px-3 py-8 text-center text-muted">Sin evidencias exportadas.</td></tr>
               )}
             </tbody>
           </table>

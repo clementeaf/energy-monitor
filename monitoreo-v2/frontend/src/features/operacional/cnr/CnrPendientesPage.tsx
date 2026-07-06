@@ -3,6 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { PillToggle } from '../../../components/ui/PillToggle';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useCnrQuery, useUpdateCnrStatus } from '../../../hooks/queries/useCnrQuery';
 
 /* ── CNR types ── */
 
@@ -17,6 +18,11 @@ interface CnrRecord {
   lastReading: string;
   gapHours: number;
   status: CnrStatus;
+  realCnrId: string | null;
+  valueKwh: number | null;
+  motivo: string;
+  justification: string | null;
+  apiStatus: string | null;
 }
 
 /* ── Status styling ── */
@@ -61,10 +67,29 @@ function deriveCnrRecords(
       lastReading: r.timestamp,
       gapHours: r.gapHours,
       status: (r.gapHours >= CRITICAL_GAP_H ? 'pendiente' : 'en revisión') as CnrStatus,
+      realCnrId: null,
+      valueKwh: null,
+      motivo: 'auto-detectado',
+      justification: null,
+      apiStatus: null,
     }));
 }
 
 /* ── Page ── */
+
+const MOTIVO_LABELS: Record<string, string> = {
+  comm_failure: 'Falla comunicación',
+  maintenance: 'Mantenimiento',
+  replacement: 'Reemplazo',
+  other: 'Otro',
+};
+
+const API_STATUS_MAP: Record<string, CnrStatus> = {
+  pending: 'pendiente',
+  in_review: 'en revisión',
+  approved: 'pendiente', // ponytail: show approved as resolved filter later
+  rejected: 'pendiente',
+};
 
 export function CnrPendientesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -72,12 +97,42 @@ export function CnrPendientesPage() {
 
   const buildingsQuery = useBuildingsQuery();
   const latestQuery = useLatestReadingsQuery();
+  const cnrQuery = useCnrQuery();
+  const updateStatus = useUpdateCnrStatus();
 
   const buildings = buildingsQuery.data ?? [];
   const latestReadings = latestQuery.data ?? [];
+  const apiCnrRecords = cnrQuery.data ?? [];
 
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
-  const cnrRecords = useMemo(() => deriveCnrRecords(latestReadings, buildingMap), [latestReadings, buildingMap]);
+
+  // Merge: real CNR records from API + auto-detected from stale readings
+  const apiMeterIds = useMemo(() => new Set(apiCnrRecords.map((r) => r.meter_id)), [apiCnrRecords]);
+  const derivedRecords = useMemo(() => deriveCnrRecords(latestReadings, buildingMap), [latestReadings, buildingMap]);
+
+  const cnrRecords = useMemo(() => {
+    // Real CNR records first
+    const real: CnrRecord[] = apiCnrRecords.map((r) => ({
+      id: r.id.slice(0, 8),
+      meterId: r.meter_id,
+      meterName: r.meter_id.slice(0, 8),
+      buildingId: r.building_id,
+      buildingName: buildingMap.get(r.building_id) ?? '—',
+      lastReading: r.period_start,
+      gapHours: Math.round((new Date(r.period_end).getTime() - new Date(r.period_start).getTime()) / 3_600_000),
+      status: API_STATUS_MAP[r.status] ?? 'pendiente',
+      realCnrId: r.id,
+      valueKwh: r.value_kwh,
+      motivo: MOTIVO_LABELS[r.motivo] ?? r.motivo,
+      justification: r.justification,
+      apiStatus: r.status,
+    }));
+    // Derived stale meters (exclude those already in API)
+    const derived = derivedRecords
+      .filter((d) => !apiMeterIds.has(d.meterId))
+      .map((d) => ({ ...d, realCnrId: null as string | null, valueKwh: null as number | null, motivo: 'auto-detectado', justification: null as string | null, apiStatus: null as string | null }));
+    return [...real, ...derived];
+  }, [apiCnrRecords, derivedRecords, buildingMap, apiMeterIds]);
 
   // Filter
   const filtered = useMemo(() => {
@@ -167,6 +222,7 @@ export function CnrPendientesPage() {
                     cnr={cnr}
                     isExpanded={isExpanded}
                     onToggle={() => setExpandedId(isExpanded ? null : cnr.id)}
+                    onUpdateStatus={(id, status) => updateStatus.mutate({ id, payload: { status } })}
                   />
                 );
               })}
@@ -191,9 +247,10 @@ interface CnrRowProps {
   cnr: CnrRecord;
   isExpanded: boolean;
   onToggle: () => void;
+  onUpdateStatus?: (id: string, status: 'in_review' | 'approved' | 'rejected') => void;
 }
 
-function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
+function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus }: Readonly<CnrRowProps>) {
   const gapClass = cnr.gapHours >= CRITICAL_GAP_H ? 'text-red-600 font-medium' : cnr.gapHours >= 8 ? 'text-amber-600' : 'text-foreground';
 
   return (
@@ -208,16 +265,11 @@ function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
         <td className="px-3 py-2 text-[11px] text-muted">
           {new Date(cnr.lastReading).toLocaleDateString('es-CL')} — {new Date().toLocaleDateString('es-CL')}
         </td>
-        <td className="px-3 py-2 text-[11px] text-muted">
-          {cnr.gapHours >= CRITICAL_GAP_H ? 'automático' : 'manual'}
-        </td>
-        <td className="px-3 py-2 text-[11px] text-muted">—</td>
-        <td className={`px-3 py-2 text-right ${gapClass}`}>
-          {cnr.gapHours}
-        </td>
+        <td className="px-3 py-2 text-[11px] text-muted">{cnr.motivo}</td>
+        <td className="px-3 py-2 text-[11px] text-muted">{cnr.realCnrId ? '—' : 'auto'}</td>
+        <td className={`px-3 py-2 text-right ${gapClass}`}>{cnr.gapHours}</td>
         <td className="px-3 py-2 text-right text-[11px] text-muted">
-          {/* ponytail: estimated kWh from avg power * gap hours */}
-          —
+          {cnr.valueKwh != null ? `${cnr.valueKwh.toFixed(1)}` : '—'}
         </td>
         <td className="px-3 py-2 text-center">
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[cnr.status]}`}>
@@ -233,21 +285,27 @@ function CnrRow({ cnr, isExpanded, onToggle }: Readonly<CnrRowProps>) {
                 <div><span className="font-medium text-muted">Meter ID:</span> <span className="font-mono text-foreground">{cnr.meterId}</span></div>
                 <div><span className="font-medium text-muted">Edificio:</span> <span className="text-foreground">{cnr.buildingName}</span></div>
                 <div><span className="font-medium text-muted">Sin datos desde:</span> <span className="text-foreground">{new Date(cnr.lastReading).toLocaleString('es-CL')}</span></div>
-                <div><span className="font-medium text-muted">Causa probable:</span> <span className="text-foreground">{cnr.gapHours >= CRITICAL_GAP_H ? 'Comunicación perdida' : 'Gap menor'}</span></div>
+                <div><span className="font-medium text-muted">Motivo:</span> <span className="text-foreground">{cnr.motivo}</span></div>
               </div>
               <div>
                 <span className="font-medium text-muted">Justificación:</span>
-                <span className="ml-2 text-muted italic">Sin justificación registrada.</span>
+                <span className="ml-2 text-foreground">{cnr.justification ?? <span className="italic text-muted">Sin justificación registrada.</span>}</span>
               </div>
               <div>
-                <span className="font-medium text-muted">Historial:</span>
-                <span className="ml-2 text-muted italic">Sin cambios de estado.</span>
+                <span className="font-medium text-muted">Estado API:</span>
+                <span className="ml-2 text-foreground">{cnr.apiStatus ?? 'auto-detectado (sin registro CNR)'}</span>
               </div>
-              {/* Actions */}
+              {/* Actions — only for real CNR records */}
               <div className="flex gap-2 pt-1">
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Asignar</button>
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Cambiar estado</button>
-                <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">Comentar</button>
+                {cnr.realCnrId && onUpdateStatus ? (
+                  <>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'in_review'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">En revisión</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'approved'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-emerald-600 hover:bg-emerald-50">Aprobar</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'rejected'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-red-600 hover:bg-red-50">Rechazar</button>
+                  </>
+                ) : (
+                  <span className="text-[10px] italic text-muted">Auto-detectado — registrar vía Ingreso CNR para gestionar.</span>
+                )}
               </div>
             </div>
           </td>

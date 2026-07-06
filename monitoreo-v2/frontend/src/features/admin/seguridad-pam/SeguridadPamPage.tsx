@@ -190,6 +190,7 @@ export function SeguridadPamPage() {
         {/* TLS */}
         <div className="panel min-w-[160px] shrink-0 p-3">
           <h3 className="mb-2 text-[12px] font-medium text-foreground">Certificados TLS</h3>
+          <p className="mb-1.5 text-[9px] text-amber-600">Datos de referencia — conectar con scanner de seguridad</p>
           <div className="space-y-1">
             {[
               { service: 'API Gateway', days: 245, issuer: 'ACM', algorithm: 'RSA-2048', autoRenew: true },
@@ -301,7 +302,7 @@ export function SeguridadPamPage() {
           {jitRequestOpen && (
             <div className="mt-3 space-y-2 rounded-lg border border-border p-3" data-testid="jit-form">
               {jitSubmitted ? (
-                <p className="text-[11px] text-emerald-700">Solicitud enviada. Pendiente de aprobación.</p>
+                <p className="text-[11px] text-emerald-700">Accion registrada (pendiente integracion backend). Solicitud enviada. Pendiente de aprobacion.</p>
               ) : (
                 <>
                   <select value={jitResource} onChange={(e) => setJitResource(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none">
@@ -331,7 +332,7 @@ export function SeguridadPamPage() {
           <p className="mb-3 text-[11px] text-muted">CYB-16, PRI-02 — Envío automático a PASA dentro de 4 horas de detección.</p>
           {breachSent ? (
             <div className="rounded-lg bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
-              Notificación enviada a PASA exitosamente.
+              Accion registrada (pendiente integracion backend). Notificacion enviada a PASA exitosamente.
             </div>
           ) : breachFormOpen ? (
             <div className="space-y-2">
@@ -369,7 +370,7 @@ export function SeguridadPamPage() {
           <p className="mb-3 text-[11px] text-muted">CYB-12 — Destrucción certificada de datos al término de contrato.</p>
           {cryptoExecuted ? (
             <div className="rounded-lg bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
-              Borrado criptográfico ejecutado. Registro guardado en pista de auditoría.
+              Accion registrada (pendiente integracion backend). Borrado criptografico ejecutado. Registro guardado en pista de auditoria.
             </div>
           ) : cryptoDeleteOpen ? (
             <div className="space-y-2">

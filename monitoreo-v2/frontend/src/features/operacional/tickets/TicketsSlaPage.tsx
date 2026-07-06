@@ -22,6 +22,7 @@ interface Ticket {
   slaDeadline: string;
   status: TicketStatus;
   daysRemaining: number;
+  acknowledged: boolean;
 }
 
 /* ── Mapping alert → ticket ── */
@@ -62,6 +63,7 @@ function alertToTicket(alert: Alert): Ticket {
     slaDeadline: new Date(deadlineMs).toISOString(),
     status,
     daysRemaining,
+    acknowledged: !!alert.acknowledgedAt,
   };
 }
 
@@ -78,7 +80,7 @@ const QUICK_FILTERS: SelectOption[] = [
 
 const QUICK_PREDICATES: Record<string, (t: Ticket) => boolean> = {
   all: () => true,
-  mine: () => true, // ponytail: filter by current user when auth context available
+  mine: (t) => t.acknowledged, // ponytail: acknowledged ≈ "assigned to me" until user-specific assignment exists
   due_soon: (t) => t.daysRemaining > 0 && t.daysRemaining <= 1,
   overdue: (t) => t.daysRemaining <= 0,
 };

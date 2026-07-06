@@ -16,12 +16,10 @@ const ASSET_BADGE: Record<AssetStatus, string> = {
   baja: 'bg-red-100 text-red-700',
 };
 
-// ponytail: derive from meter.isActive + metadata until asset_status column exists
 function deriveAssetStatus(meter: Meter): AssetStatus {
-  const checks: [boolean, AssetStatus][] = [
-    [!meter.isActive, 'baja'],
-  ];
-  return checks.find(([c]) => c)?.[1] ?? 'activo';
+  if (!meter.isActive) return 'baja';
+  if ((meter.metadata as Record<string, unknown>)?.maintenance === true) return 'en mantención';
+  return 'activo';
 }
 
 const FILTER_OPTIONS = [
@@ -37,6 +35,8 @@ export function MaestroMedidoresPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [bajaMotivo, setBajaMotivo] = useState('');
+  const [showBajaInput, setShowBajaInput] = useState(false);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -152,20 +152,45 @@ export function MaestroMedidoresPage() {
                   {status === 'activo' && (
                     <>
                       <Button size="sm" variant="secondary" loading={updateMeter.isPending} onClick={() => {
-                        // ponytail: set metadata.maintenance=true when backend supports it
                         updateMeter.mutate({ id: sel.id, payload: { metadata: { ...sel.metadata as Record<string, unknown>, maintenance: true } } });
                       }}>
                         En mantención
                       </Button>
-                      <Button size="sm" variant="danger" loading={updateMeter.isPending} onClick={() => {
-                        const motivo = prompt('Motivo de baja:');
-                        if (motivo) updateMeter.mutate({ id: sel.id, payload: { isActive: false } });
-                      }}>
-                        Dar de baja
-                      </Button>
+                      {!showBajaInput ? (
+                        <Button size="sm" variant="danger" onClick={() => setShowBajaInput(true)}>
+                          Dar de baja
+                        </Button>
+                      ) : (
+                        <div className="flex w-full items-center gap-2">
+                          <input
+                            value={bajaMotivo}
+                            onChange={(e) => setBajaMotivo(e.target.value)}
+                            placeholder="Motivo de baja (requerido)"
+                            className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-[12px] text-foreground outline-none"
+                            autoFocus
+                          />
+                          <Button size="sm" variant="danger" loading={updateMeter.isPending} disabled={bajaMotivo.trim().length === 0} onClick={() => {
+                            updateMeter.mutate({ id: sel.id, payload: { isActive: false, metadata: { ...sel.metadata as Record<string, unknown>, bajaMotivo: bajaMotivo.trim(), bajaDate: new Date().toISOString() } } }, {
+                              onSuccess: () => { setShowBajaInput(false); setBajaMotivo(''); },
+                            });
+                          }}>
+                            Confirmar
+                          </Button>
+                          <Button size="sm" variant="secondary" onClick={() => { setShowBajaInput(false); setBajaMotivo(''); }}>
+                            Cancelar
+                          </Button>
+                        </div>
+                      )}
                     </>
                   )}
-                  {status !== 'activo' && (
+                  {status === 'en mantención' && (
+                    <Button size="sm" loading={updateMeter.isPending} onClick={() => {
+                      updateMeter.mutate({ id: sel.id, payload: { metadata: { ...sel.metadata as Record<string, unknown>, maintenance: false } } });
+                    }}>
+                      Salir de mantención
+                    </Button>
+                  )}
+                  {status === 'baja' && (
                     <Button size="sm" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: true } })}>
                       Activar
                     </Button>

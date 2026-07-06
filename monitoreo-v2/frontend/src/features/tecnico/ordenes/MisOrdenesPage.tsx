@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -98,6 +99,7 @@ const QUICK_FILTERS = [
 ];
 
 export function MisOrdenesPage() {
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState('all');
 
@@ -252,10 +254,13 @@ export function MisOrdenesPage() {
               order={selected}
               buildingName={buildingMap.get(selected.buildingId) ?? '—'}
               onStart={() => acknowledgeAlert.mutate(selected.alertId)}
+              onPause={() => acknowledgeAlert.mutate(selected.alertId)}
               onClose={() => resolveAlert.mutate({ id: selected.alertId })}
               starting={acknowledgeAlert.isPending}
+              pausing={acknowledgeAlert.isPending}
               closing={resolveAlert.isPending}
               history={selectedHistory}
+              onRegisterIntervention={() => navigate(`/tecnico/intervencion?meter=${selected.meterId ?? ''}`)}
             />
           ) : (
             <div className="panel flex flex-1 items-center justify-center p-4">
@@ -274,13 +279,16 @@ interface OrderDetailProps {
   order: WorkOrder;
   buildingName: string;
   onStart: () => void;
+  onPause: () => void;
   onClose: () => void;
   starting: boolean;
+  pausing: boolean;
   closing: boolean;
   history: Alert[];
+  onRegisterIntervention: () => void;
 }
 
-function OrderDetail({ order, buildingName, onStart, onClose, starting, closing, history }: Readonly<OrderDetailProps>) {
+function OrderDetail({ order, buildingName, onStart, onPause, onClose, starting, pausing, closing, history, onRegisterIntervention }: Readonly<OrderDetailProps>) {
   const details = [
     { label: 'Tipo', value: order.type },
     { label: 'Centro', value: buildingName },
@@ -313,9 +321,9 @@ function OrderDetail({ order, buildingName, onStart, onClose, starting, closing,
         <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Acciones</h4>
         <div className="flex gap-2">
           <Button size="sm" onClick={onStart} loading={starting}>Iniciar</Button>
-          <Button size="sm" variant="secondary" disabled>Pausar</Button>
+          <Button size="sm" variant="secondary" onClick={onPause} loading={pausing}>Pausar</Button>
           <Button size="sm" variant="secondary" onClick={onClose} loading={closing}>Cerrar</Button>
-          <Button size="sm" variant="secondary" onClick={() => { /* ponytail: navigate to RegIntervencion with meter context */ }}>Registrar intervención</Button>
+          <Button size="sm" variant="secondary" onClick={onRegisterIntervention}>Registrar intervención</Button>
         </div>
       </div>
 

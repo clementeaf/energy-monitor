@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-07-06)
+- **2.40.0:** Spec audit 30/30 pantallas alineadas con `docs/roles-ems.md`. Todos los datos `Math.sin/cos` reemplazados por queries reales (`useAggregatedReadingsQuery`). KPI variación % real (yesterday vs today). Sparklines, histogramas, charts de evolución — todos reales. Filtros desconectados wired a API (fecha audit, período alarmas, date range datos crudos). Dos módulos backend nuevos: `CnrModule` (tabla `cnr_records`, migración 14) y `InterventionsModule` (tabla `interventions`, migración 15). Frontend: localStorage eliminado de Ingreso CNR y Reg. Intervención (ahora POST a API). CNR Pendientes: híbrido API + auto-detectados. Mapa Cobertura: 4 métricas funcionales. Alarmas Agregadas: sortable, escaladas bar, map click-through. Maestro Medidores: "en mantención" alcanzable. Tenants: activate/deactivate wired. Observabilidad: APM endpoint. Proxy default → prod. Backend desplegado ECS rev 17 (`spec-audit-20260706`). Migraciones 14–15 aplicadas. [CHANGELOG — 2.40.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-07-04)
 - **2.39.0:** UX overhaul + PII fix + docs site. Panel Consolidado: layout compacto (mapa 65%/panel 35%), sparkline+eventos eliminados (datos falsos), alertas infinite scroll 20 en 20. Seguridad PAM: 5 paneles en una fila, todo clickeable con Drawer, vulnerabilidades como pills. MapView: fix markers desaparecían al click (referencia inestable `polygons=[]`). Audit logs: PII decrypt (`pii:...` → email real). Proxy prod: `VITE_API_TARGET=https://power-monitor.cloud npm run dev` (zero Docker). Docs site Docusaurus desplegado en `power-monitor.cloud/docs/` (49 páginas API Reference + guías + auth + API Keys). Backend deployed (`pii-fix-20260704`). [CHANGELOG — 2.39.0-alpha.0](CHANGELOG.md)
 
@@ -267,14 +270,14 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.39.0; PASA 875 medidores; migr. prod 1–54 aplicadas.
+Prod: power-monitor.cloud — 2.40.0; PASA 875 medidores; migr. prod 1–55 (incl. 14 cnr_records, 15 interventions).
 Docs: power-monitor.cloud/docs/ — Docusaurus, 50 páginas, API Keys documentadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
-Perfiles: 5 perfiles EMS (sin Locatario). Navegación podada a spec (6 pantallas/perfil). 129 gaps contenido cerrados.
-Spec Roles EMS: 100% alineado (nav + contenido). 788 frontend / 1307 backend tests. Zero gaps.
-IoT: auto-discovery activo. clientid() en IoT Rule. Lambda auto-registra en iot_devices. Asignación libre desde /admin/iot-devices. 43 tests Lambda.
-Pendiente IoT: coordinación logística (qué Thing va a qué locación).
-Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23.
+Spec audit: 30/30 pantallas auditadas contra docs/roles-ems.md. Zero Math.sin/cos. Datos reales en KPIs, sparklines, histogramas.
+Backend: CnrModule + InterventionsModule nuevos. ECS rev 17 (spec-audit-20260706).
+Perfiles: 5 perfiles EMS. Navegación + contenido + datos alineados a spec.
+IoT: auto-discovery activo. clientid() en IoT Rule. Asignación libre desde /admin/iot-devices.
+Pendiente: SSO Azure PASA, UAT Anexo 07, Timescale 22/23, firma digital (técnico), Parquet export (auditor).
 ```
 
 ## Prioridad Actual de Acceso

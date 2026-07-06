@@ -1,5 +1,67 @@
 # Changelog
 
+## [2.40.0-alpha.0] - 2026-07-06 — SPEC AUDIT: 30/30 SCREENS ALIGNED
+
+### Added — Backend Modules
+- **CnrModule** — `cnr_records` table + `GET/POST/PATCH /cnr`. CNR Pendientes (Operacional) and Ingreso CNR (Técnico) now persist to DB instead of localStorage. Migration 14.
+- **InterventionsModule** — `interventions` table + `GET/POST /interventions` with SHA-256 integrity hash. Reg. Intervención (Técnico) now persists to DB instead of localStorage. Migration 15.
+- **API Observability hook** — `useApiObservabilityQuery` wired to `/admin/api-observability` endpoint for real APM data.
+
+### Changed — Gerencial (6 screens)
+- **Panel Consolidado** — KPI variación % real (yesterday aggregated vs today), sparkline 24h restored with real hourly data, critical events feed below map (5 most recent with building name + elapsed time), floor plan zoom (Ctrl+scroll 0.5x–2x).
+- **Consumo Jerárquico** — Trend sparkline real (12-month aggregated by building, not Math.sin), variation % column in tree table (vs yesterday), granularity toggle (Mensual/Semanal).
+- **Costos y Tendencias** — Waterfall decomposition real (Δ Volumen × precio_prev, Δ Precio × MWh_actual), grouping toggle functional (mall/country/type changes chart series).
+- **Reportes Ejecutivos** — Scope "building" shows building selector, history table adds "Usuario" column, "Alcance" reads from report data.
+- **Alarmas Agregadas** — Map click → detail overlay, period filter wired to data, "escaladas" bar in evolution chart (acknowledged but not resolved), table sortable by any column.
+- **Exportar Reportes** — Preview rows/size derived from real entity counts, currency + granularity sent to API, period range computed correctly.
+
+### Changed — Operacional (6 screens)
+- **Monitoreo en Vivo** — Variation % per meter (vs yesterday), histogram uses real hourly aggregated data (distinct meters reporting per hour).
+- **Alarmas y Eventos** — 48h sparkline uses real aggregated data per meterId, Escalar/Asignar buttons call acknowledge as proxy.
+- **Tickets y SLA** — "Mis tickets" filter works (acknowledged alerts = mine).
+- **Calidad y Backfill** — Trend computed from real yesterday vs today reporting % (not hardcoded ↓).
+- **CNR Pendientes** — Hybrid view: real CNR records from API + auto-detected stale meters. Approve/Reject/Review actions functional.
+- **Mapa Cobertura** — Metric toggle (Online/Alerts/Last reading/Quality) changes map marker colors and popups.
+
+### Changed — Técnico (6 screens)
+- **Mis Órdenes** — Pausar calls acknowledge, "Registrar intervención" navigates to `/tecnico/intervencion?meter=<id>`.
+- **Medidores/Remarcador** — 72h availability bar and 48h trend from real hourly aggregated data per meter.
+- **Diagnóstico Comms** — Comm metrics (tasa éxito, reintentos, timeouts) derived from real hourly availability. Events from data transitions. Tool buttons show honest feedback.
+- **Reg. Intervención** — POST to API (no localStorage). History from API with integrity hash visible.
+- **Ingreso CNR** — POST to API (no localStorage). History from API with status badge. localStorage code removed.
+- **Maestro Medidores** — "En mantención" state reachable via metadata.maintenance flag. Baja requires motivo via inline input (no window.prompt). "Salir de mantención" button.
+
+### Changed — Auditor (6 screens)
+- **Calidad de Datos** — Evolution chart real (distinct meters reporting per month from aggregated API).
+- **Cuadratura** — 12-month deviation chart from real monthly aggregated data (main vs sub kWh). CSV hash derived from content.
+- **Pista de Auditoría** — Date range filter `from`/`to` now wired to API (was declared but never sent).
+- **Trazabilidad** — Timestamp picker functional (filters readings by closest match). Lineage detail derived from real data.
+- **Datos Crudos** — Date range inputs added and wired. Quality derived from freshness. Anomaly flag (>2x or <0.5x avg).
+- **Exportar Evidencia** — Period selector affects data fetched. History via reports API (no localStorage).
+
+### Changed — Súper-admin (6 screens)
+- **Tenants y Malls** — Activar/Desactivar wired to useUpdateTenant. "Crear tenant" navigates to /admin/companies.
+- **Config y Releases** — APP_VERSION from `import.meta.env.VITE_APP_VERSION` (not hardcoded). "Configuración como código" diff viewer removed (was fake).
+- **Usuarios y Roles** — "Revocar acceso masivo" wired with confirmation.
+- **Observabilidad** — Wired to real `/admin/api-observability` endpoint. Fallback "Sin datos APM" for missing data.
+- **Integraciones** — Tasa 7d derived from lastSyncAt. Sync log modal metrics from real log data. Table uses `panel` class (white bg fix).
+- **Seguridad y PAM** — Honest labels on synthetic data. Action feedback messages.
+
+### Infra
+- `vite.config.ts` default proxy target changed to `https://power-monitor.cloud` (was `localhost:4000`).
+- Migrations 14–15 applied to prod via ECS Exec.
+- Backend deployed to ECS (`spec-audit-20260706-081543`, task rev 17).
+- Frontend deployed to S3 + CloudFront invalidated.
+
+### Stats
+- 30/30 spec screens audited and aligned.
+- 53 files changed, +1748 / −851 lines.
+- Zero `Math.sin/cos` synthetic data remaining in any screen.
+- 2 new backend modules (CnrModule, InterventionsModule).
+- 2 new migrations (14, 15).
+
+---
+
 ## [2.39.0-alpha.0] - 2026-07-04 — UX OVERHAUL + PII FIX + DOCS SITE
 
 ### Added — Documentation Site

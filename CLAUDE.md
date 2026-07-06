@@ -390,6 +390,8 @@ Proxy reescribe cookies `__Host-` + `Secure` para funcionar en localhost HTTP. L
 
 ## Deploy
 - **Usar:** [AWS Runbook](docs/aws-runbook.md) + [Deploy Skill](skills/deploy.md)
+- **Frontend monitoreo-v2:** `cd monitoreo-v2/frontend && npm run build && aws s3 sync dist/ s3://power-monitor-frontend/ --exclude "docs/*" --region us-east-1 && aws cloudfront create-invalidation --distribution-id E1SNFETXON2VSI --paths "/*" --region us-east-1`
+- **NUNCA usar `--delete`** en el sync — borra la carpeta `docs/` (Docusaurus) que vive en el mismo bucket bajo `/docs/`.
 
 ## Known Issues & Tech Debt
 - **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.

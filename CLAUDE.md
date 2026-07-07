@@ -26,6 +26,9 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 
 ## Próxima Sesión
 
+### Completado (2026-07-07)
+- **2.43.0:** Security pentest + switcher fixes + test cleanup. **3 security fixes en prod (ECS rev 20):** refresh token 500→401 (double rollback), JWT TTL 24h→15min (reduce window de token robado), PII export step-up auth (`iat` check, rechaza si >5min). **11 switcher bugs corregidos:** auditor routes dentro de RequireTenantLayout, platform routes fuera, tenant change limpia operator/building + navega, role change preserva URL, deselect en operator/building switchers, cache invalidation selectiva, sessionStorage persistence (zustand persist). **188→0 test failures** en 20 archivos (mocks faltantes, UI text stale, nav structure). **Pentest framework:** 87 tests en 7 fases, zero deps, `scripts/pentest/runner.mjs`. Resultado final: 63 PASS, 0 FAIL, 24 WARN (rate limit sin Redis, JWT revocation by TTL, invoice PDF HTML). 3 API keys pentest creadas (PASA read, Siemens read, elevated). [CHANGELOG — 2.43.0-alpha.0](CHANGELOG.md)
+
 ### Completado (2026-07-06)
 - **2.42.0:** Wireframe alignment pass 2. Sidebar tenant scoping (entries `platformOnly` ocultas cuando tenant seleccionado). Panel Consolidado: filtros debajo del título, KPIs 4 cards separadas, sparkline+eventos en cards, placeholder 24h, tooltip variación %, gauges Nivel 2 (Factor potencia) y Nivel 3 (Potencia activa), severity labels español. Consumo Jerárquico: árbol 3 niveles (mall→zona→medidor), mall multi-select, períodos completos, filtro variación > X%, markers intensidad métrica, TrendSparkline con comparación funcional. Costos y Tendencias: mall multi-select, sort columnas, filtro variación umbral, columna país. Alarmas Agregadas: layout 3 filas (KPIs / mapa+evolución / top5+tabla). Exportar Reportes: 7 gaps wireframe cerrados. Reportes Ejecutivos: preview cards con visuals. Monitoreo en Vivo: histograma flex, serial+zona en grilla, feed CNR. Mapa Cobertura: popup enriquecido con link grilla. Reg. Intervención / Ingreso CNR: layout compacto. Nav: profile landing directo, RequirePerms sin redirect (fix loop), permisos site_admin ampliados. Aggregated queries deshabilitadas (no hay datos julio en prod). [CHANGELOG — 2.42.0-alpha.0](CHANGELOG.md)
 - **2.41.0:** Wireframe alignment pass 1. Tenant scoping sidebar, Panel Consolidado Nivel 1/2/3 alineado, Consumo Jerárquico alineado. [CHANGELOG — 2.41.0-alpha.0](CHANGELOG.md)
@@ -273,15 +276,16 @@ Fuente única de contexto operativo. Detalle extenso vive en `docs/context/`.
 ### Prompt de retoma
 ```
 Read CLAUDE.md. Retomando monitoreo-v2.
-Prod: power-monitor.cloud — 2.42.0; PASA 875 medidores; migr. prod 1–55 (incl. 14 cnr_records, 15 interventions).
+Prod: power-monitor.cloud — 2.43.0; PASA 875 medidores; migr. prod 1–55 (incl. 14 cnr_records, 15 interventions).
 Docs: power-monitor.cloud/docs/ — Docusaurus, 50 páginas, API Keys documentadas.
 Mapa: 47 malls (20 indoor + 27 markers), 5977 stores, 946 tiles.
 IMPORTANTE: última lectura en readings es 25 abril 2026. No hay pipeline de ingestión PASA activo. Aggregated queries deshabilitadas en frontend (placeholder data). Plan Timescale en docs/ops/timescale-migration-plan.md.
-Spec audit: 30/30 pantallas auditadas contra docs/roles-ems.md. Zero Math.sin/cos. Datos reales en KPIs, sparklines, histogramas.
-Backend: CnrModule + InterventionsModule nuevos. ECS rev 17 (spec-audit-20260706).
+Security: JWT TTL 15min (was 24h). Step-up auth en /me/export y /me/deletion-request (iat <5min). Refresh token theft detection. Pentest 87 tests: 63 PASS, 0 FAIL, 24 WARN. Framework en scripts/pentest/.
+Backend: ECS rev 20 (jwt-stepup-20260707). CnrModule + InterventionsModule.
+Frontend: 773/773 tests pass. Switcher bugs corregidos (11). sessionStorage persistence.
 Perfiles: 5 perfiles EMS. Navegación + contenido + datos alineados a spec.
 IoT: auto-discovery activo. clientid() en IoT Rule. Asignación libre desde /admin/iot-devices.
-Pendiente: pipeline ingestión PASA (no hay datos desde abril), Timescale Cloud (plan en docs/ops/), SSO Azure PASA, firma digital (técnico), Parquet export (auditor).
+Pendiente: Redis para rate limiting distribuido (sin REDIS_URL, throttle in-memory por instancia), pipeline ingestión PASA (no hay datos desde abril), Timescale Cloud (plan en docs/ops/), SSO Azure PASA, firma digital (técnico), Parquet export (auditor).
 ```
 
 ## Prioridad Actual de Acceso
@@ -395,10 +399,11 @@ Proxy reescribe cookies `__Host-` + `Secure` para funcionar en localhost HTTP. L
 
 ## Known Issues & Tech Debt
 - **DB TLS (RDS):** `rejectUnauthorized: true` con bundle CA `backend/certs/rds-global-bundle.pem` (o `RDS_CA_BUNDLE_PATH`). Legacy Nest (`backend/`), Lambdas (`offlineAlerts`, `dbVerify`, `iot-ingest`), monitoreo-v2 API y scripts `infra/**/*.mjs` / `scripts/*.mjs` alineados; override local: `DB_SSL` / sin PEM solo en dev según script.
-- **Tokens en el browser:** cookie httpOnly para JWT de app; MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos).
+- **Tokens en el browser:** cookie httpOnly para JWT de app (15min TTL, auto-refresh via interceptor 401→`/auth/refresh`); MSAL usa `sessionStorage` solo para el flujo OAuth Microsoft; flag `has_session` en `localStorage` evita `/me` redundante (no almacena secretos). Step-up auth en `/auth/me/export` y `/auth/me/deletion-request` (rechaza si JWT `iat` > 5 min).
 - **Idle timeout (CYB-06):** `IdleTimeoutGuard` global revoca sesión tras inactividad (default 15min, configurable por tenant `idleTimeoutMinutes` 5–60). Frontend `useIdleTimeout` espeja el timeout client-side. `last_activity_at` en `refresh_tokens` (migración `49`).
 - **API hardening:** Helmet (HSTS 1yr, Referrer-Policy, COOP), `ThrottlerGuard` (3 tiers, Redis-backed con `REDIS_URL`), CORS whitelist, `trust proxy` en prod, body size limit 1mb. API key: rate limiting per-key + constant-time hash (timingSafeEqual) + `__Host-` cookie prefix. Tenant cross-access guard, PII redaction, env validation (8 vars + JWT_SECRET min 32 chars), config encryption AES-256-GCM. SSRF blocker en connectors + re-validation at sync (DNS rebinding). HTML escape en PDFs. JWT strict payload validation. Refresh token theft detection. ReDoS-safe glob patterns. Swagger disabled in production. `forbidNonWhitelisted` en ValidationPipe. MFA validate solo para usuarios con MFA habilitado.
-- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 903 tests. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
+- **Pentest framework:** `scripts/pentest/runner.mjs` — 87 tests en 7 fases contra prod. Zero deps (native fetch). Setup: `scripts/pentest/setup-keys.mjs` crea API keys. Ejecutar: `PENTEST_KEY_A=... node scripts/pentest/runner.mjs`. Resultado 2.43.0: 63 PASS, 0 FAIL, 24 WARN. Pendiente: Redis para rate limiting distribuido.
+- **Tests frontend:** Vitest + @testing-library/react + jsdom (`npm run test` en `monitoreo-v2/frontend`). 773 tests. E2E: Playwright 23 tests contra prod (`E2E_TOKEN=<token> npx playwright test --workers=1`).
 - **Invitaciones / email:** alta de usuario desde admin emite traza `[USER_INVITE]`; con `SES_FROM_EMAIL` definido se envía también por SES al destinatario. Alertas usan `SES_FROM_EMAIL` + `ALERT_EMAIL_RECIPIENTS`. En sandbox SES solo destinatarios verificados hasta solicitar salida de sandbox en AWS.
 - **Ley 21.719 compliance:** ARCO+ completo (acceso, rectificación, cancelación, oposición, bloqueo, portabilidad). Consentimiento con revocación. MFA enforcement por rol. Retención automática (cron diario). Breach notification 72h. Endpoints públicos: `/privacy/policy`, `/privacy/processing-registry`. Docs legales en `monitoreo-v2/docs/privacy/` (DPA AWS, EIPD, transferencia internacional, DPO). Pendiente solo: firma EIPD, verificar DPA AWS, designar DPO, monitorear lista países adecuados de la Agencia.
 

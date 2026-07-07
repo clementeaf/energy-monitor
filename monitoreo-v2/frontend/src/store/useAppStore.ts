@@ -57,7 +57,7 @@ export const useAppStore = create<AppState>()(
         selectedTenantId: state.selectedTenantId,
         selectedOperator: state.selectedOperator,
         selectedBuildingId: state.selectedBuildingId,
-      }),
+      }) as unknown as AppState,
     },
   ),
 );

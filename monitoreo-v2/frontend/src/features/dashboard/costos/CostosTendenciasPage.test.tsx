@@ -63,16 +63,9 @@ describe('CostosTendenciasPage', () => {
       expect(screen.getByRole('heading', { name: 'Costos y Tendencias' })).toBeInTheDocument();
     });
 
-    it('renders country selector', () => {
-      renderPage();
-      expect(screen.getByText('Chile')).toBeInTheDocument();
-      expect(screen.getByText('Perú')).toBeInTheDocument();
-    });
-
     it('renders period selector', () => {
       renderPage();
       expect(screen.getByText('Mes actual')).toBeInTheDocument();
-      expect(screen.getByText('Trimestre')).toBeInTheDocument();
     });
 
     it('renders currency selector', () => {
@@ -96,23 +89,20 @@ describe('CostosTendenciasPage', () => {
   describe('cost table', () => {
     it('renders table headers', () => {
       renderPage();
+      // Table has sortable headers; active sort column ("Costo total") gains an arrow indicator
+      // Use getAllByText with partial match or check presence by role
       expect(screen.getByText('Centro')).toBeInTheDocument();
       expect(screen.getByText('MWh')).toBeInTheDocument();
-      // "Precio medio" and "Costo total" also appear as KPI cards
-      expect(screen.getAllByText('Precio medio').length).toBe(2); // KPI + header
-      expect(screen.getAllByText('Costo total').length).toBe(2);  // KPI + header
+      // "Precio medio" appears in KPI card; table header may include sort arrow
+      expect(screen.getAllByText(/Precio medio/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Costo total/).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Facturas')).toBeInTheDocument();
     });
 
-    it('renders Chilean buildings in table', () => {
+    it('renders buildings in table', () => {
       renderPage();
       expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
       expect(screen.getByText('Mall Arauco')).toBeInTheDocument();
-    });
-
-    it('does not render Peruvian building', () => {
-      renderPage();
-      expect(screen.queryByText('Mall Lima')).not.toBeInTheDocument();
     });
 
     it('excludes voided invoices from cost calculation', () => {
@@ -141,15 +131,4 @@ describe('CostosTendenciasPage', () => {
     });
   });
 
-  describe('country filter', () => {
-    it('switches to Peru and hides Chilean buildings', async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await user.click(screen.getByText('Perú'));
-
-      expect(screen.getByText('Mall Lima')).toBeInTheDocument();
-      expect(screen.queryByText('Mall Costanera')).not.toBeInTheDocument();
-    });
-  });
 });

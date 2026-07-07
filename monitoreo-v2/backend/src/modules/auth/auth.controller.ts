@@ -272,7 +272,9 @@ export class AuthController {
   @Get('me/export')
   @ApiOperation({ summary: 'Export personal data (ARCO+ portability right)' })
   @ApiResponse({ status: 200, description: 'Personal data export' })
+  @ApiResponse({ status: 403, description: 'Token too old — re-authenticate first' })
   async exportMyData(@CurrentUser() user: JwtPayload) {
+    this.requireRecentAuth(user);
     return this.authService.exportUserData(user.sub);
   }
 
@@ -280,10 +282,12 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Request account deletion (ARCO+ cancellation right)' })
   @ApiResponse({ status: 201, description: 'Deletion request created' })
+  @ApiResponse({ status: 403, description: 'Token too old — re-authenticate first' })
   async requestDeletion(
     @CurrentUser() user: JwtPayload,
     @Body() dto: DeletionRequestDto,
   ) {
+    this.requireRecentAuth(user);
     return this.authService.createDeletionRequest(user.sub, user.tenantId, dto.reason);
   }
 
@@ -351,6 +355,19 @@ export class AuthController {
   /**
    * Exposes JWT in JSON body for local dev when browsers drop large httpOnly cookies.
    */
+  /**
+   * Step-up auth: rejects if the JWT was issued more than 5 minutes ago.
+   * Forces re-authentication (via refresh → new short-lived JWT) before sensitive operations.
+   */
+  private requireRecentAuth(user: JwtPayload): void {
+    const STEP_UP_MAX_AGE_SECONDS = 5 * 60; // 5 minutes
+    if (!user.iat) throw new UnauthorizedException('Token missing iat claim');
+    const age = Math.floor(Date.now() / 1000) - user.iat;
+    if (age > STEP_UP_MAX_AGE_SECONDS) {
+      throw new UnauthorizedException('Session too old for this operation. Please re-authenticate.');
+    }
+  }
+
   private devTokenFields(accessToken: string): { accessToken?: string } {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
@@ -395,7 +412,7 @@ export class AuthController {
 
     res.cookie(accessName, accessToken, {
       ...cookieOptions,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours — matches JWT expiry
+      maxAge: 15 * 60 * 1000, // 15 minutes — matches short-lived access token
     });
 
     res.cookie(refreshName, refreshToken, {

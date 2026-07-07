@@ -80,18 +80,9 @@ describe('ConsumoJerarquicoPage', () => {
       expect(screen.getByRole('heading', { name: 'Consumo Jerárquico' })).toBeInTheDocument();
     });
 
-    it('renders country selector', () => {
-      renderPage();
-      expect(screen.getByText('Chile')).toBeInTheDocument();
-      expect(screen.getByText('Perú')).toBeInTheDocument();
-      expect(screen.getByText('Colombia')).toBeInTheDocument();
-    });
-
     it('renders period selector', () => {
       renderPage();
-      expect(screen.getByText('Mes')).toBeInTheDocument();
-      expect(screen.getByText('Trimestre')).toBeInTheDocument();
-      expect(screen.getByText('Año')).toBeInTheDocument();
+      expect(screen.getByText('Mes actual')).toBeInTheDocument();
     });
 
     it('renders metric selector', () => {
@@ -109,15 +100,10 @@ describe('ConsumoJerarquicoPage', () => {
   });
 
   describe('building tree', () => {
-    it('renders Chilean buildings by default', () => {
+    it('renders all buildings', () => {
       renderPage();
       expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
       expect(screen.getByText('Mall Plaza Oeste')).toBeInTheDocument();
-    });
-
-    it('does not render Peruvian building with Chile selected', () => {
-      renderPage();
-      expect(screen.queryByText('Mall Jockey')).not.toBeInTheDocument();
     });
 
     it('shows table headers', () => {
@@ -137,37 +123,35 @@ describe('ConsumoJerarquicoPage', () => {
   });
 
   describe('expand building', () => {
-    it('shows meters when building row is clicked', async () => {
+    it('shows sparkline row when building row is clicked', async () => {
       const user = userEvent.setup();
       renderPage();
 
       await user.click(screen.getByText('Mall Costanera'));
 
-      // Should show meters of b1
-      expect(screen.getByText('Principal')).toBeInTheDocument();
-      expect(screen.getByText('HVAC')).toBeInTheDocument();
+      // Expanded building shows "Ver planta →" button and trend sparkline row
+      expect(screen.getByText('Ver planta →')).toBeInTheDocument();
     });
 
-    it('collapses meters on second click', async () => {
+    it('collapses expanded row on second click', async () => {
       const user = userEvent.setup();
       renderPage();
 
       await user.click(screen.getByText('Mall Costanera'));
-      expect(screen.getByText('Principal')).toBeInTheDocument();
+      expect(screen.getByText('Ver planta →')).toBeInTheDocument();
 
       await user.click(screen.getByText('Mall Costanera'));
-      expect(screen.queryByText('Principal')).not.toBeInTheDocument();
+      expect(screen.queryByText('Ver planta →')).not.toBeInTheDocument();
     });
   });
 
-  describe('country filter', () => {
-    it('switches to Peru and shows Peruvian building', async () => {
-      const user = userEvent.setup();
+  describe('country filter (hardcoded to CL)', () => {
+    it('only shows CL buildings by default', () => {
       renderPage();
-
-      await user.click(screen.getByText('Perú'));
-      expect(screen.getByText('Mall Jockey')).toBeInTheDocument();
-      expect(screen.queryByText('Mall Costanera')).not.toBeInTheDocument();
+      // b1 and b2 are CL, b3 is PE — only CL shown
+      expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
+      expect(screen.getByText('Mall Plaza Oeste')).toBeInTheDocument();
+      expect(screen.queryByText('Mall Jockey')).not.toBeInTheDocument();
     });
   });
 });

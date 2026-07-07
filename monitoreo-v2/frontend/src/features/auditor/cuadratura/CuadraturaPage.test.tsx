@@ -10,7 +10,7 @@ vi.mock('../../../hooks/queries/useMetersQuery', () => ({ useMetersQuery: () => 
 vi.mock('../../../hooks/queries/useReadingsQuery', () => ({ useLatestReadingsQuery: () => ({ data: [
   { meter_id: 'm1', meter_name: 'Main', building_id: 'b1', timestamp: new Date().toISOString(), power_kw: '500', energy_kwh_total: '10000', voltage_l1: null, current_l1: null, power_factor: null, frequency_hz: null },
   { meter_id: 'm2', meter_name: 'Sub1', building_id: 'b1', timestamp: new Date().toISOString(), power_kw: '300', energy_kwh_total: '9500', voltage_l1: null, current_l1: null, power_factor: null, frequency_hz: null },
-], isLoading: false, isSuccess: true }) }));
+], isLoading: false, isSuccess: true }), useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }) }));
 
 import { CuadraturaPage } from './CuadraturaPage';
 function renderPage() { return render(<MemoryRouter><CuadraturaPage /></MemoryRouter>); }

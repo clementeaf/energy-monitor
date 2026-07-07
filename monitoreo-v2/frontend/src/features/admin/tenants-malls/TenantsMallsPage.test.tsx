@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
 vi.mock('../../../hooks/queries/useTenantsQuery', () => ({
+  useUpdateTenant: () => ({ mutate: vi.fn(), isPending: false }),
   useTenantsAdminQuery: () => ({
     data: [
       { id: 't1', name: 'PASA', slug: 'pasa', isActive: true, primaryColor: '#000', secondaryColor: '#fff', sidebarColor: '#000', accentColor: '#f00', address: null, addressDetail: null, phone: null, taxId: null, appTitle: 'PASA', logoUrl: null, faviconUrl: null, timezone: 'America/Santiago', settings: {}, defaultCountryCode: 'CL', defaultCurrency: 'CLP', createdAt: '2026-01-15T00:00:00Z', updatedAt: '' },
@@ -74,7 +75,7 @@ describe('TenantsMallsPage', () => {
     expect(screen.getByText('País')).toBeInTheDocument();
     expect(screen.getByText('Medidores')).toBeInTheDocument();
     expect(screen.getByText('Usuarios')).toBeInTheDocument();
-    expect(screen.getByText('Moneda')).toBeInTheDocument();
+    expect(screen.getByText('Contrato')).toBeInTheDocument();
   });
 
   it('renders tenant rows', () => {
@@ -96,10 +97,11 @@ describe('TenantsMallsPage', () => {
     expect(screen.getAllByText('PE').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows currency', () => {
+  it('shows currency in drawer', async () => {
+    const user = userEvent.setup();
     renderPage();
+    await user.click(screen.getByText('PASA'));
     expect(screen.getByText('CLP')).toBeInTheDocument();
-    expect(screen.getByText('PEN')).toBeInTheDocument();
   });
 
   it('renders country filter', () => {
@@ -148,7 +150,7 @@ describe('TenantsMallsPage', () => {
     renderPage();
     await user.click(screen.getByText('PASA'));
     expect(screen.getByText('Usuarios activos (30d)')).toBeInTheDocument();
-    expect(screen.getByText('Consultas API')).toBeInTheDocument();
-    expect(screen.getByText('Volumen datos')).toBeInTheDocument();
+    expect(screen.getByText('Acciones audit log')).toBeInTheDocument();
+    expect(screen.getByText('Volumen datos (aprox.)')).toBeInTheDocument();
   });
 });

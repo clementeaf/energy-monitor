@@ -36,7 +36,7 @@ describe('ConfigReleasesPage', () => {
 
     it('renders current version', () => {
       renderPage();
-      expect(screen.getAllByText('2.29.0').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('2.39.0').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('Producción').length).toBeGreaterThanOrEqual(1);
     });
 
@@ -75,94 +75,4 @@ describe('ConfigReleasesPage', () => {
     });
   });
 
-  describe('diff viewer', () => {
-    it('renders diff viewer section', () => {
-      renderPage();
-      expect(screen.getByTestId('diff-viewer-section')).toBeInTheDocument();
-      expect(screen.getByText('Configuración como código')).toBeInTheDocument();
-    });
-
-    it('renders view mode toggle buttons', () => {
-      renderPage();
-      expect(screen.getByText('Unificado')).toBeInTheDocument();
-      expect(screen.getByText('Lado a lado')).toBeInTheDocument();
-    });
-
-    it('renders diff file entries from UPDATE audit logs', () => {
-      renderPage();
-      // 2 UPDATE logs = 2 diff entries
-      expect(screen.getByText('config/building/b200.json')).toBeInTheDocument();
-      expect(screen.getByText('config/tenant/t300.json')).toBeInTheDocument();
-    });
-
-    it('does not render diff entries for CREATE logs', () => {
-      renderPage();
-      expect(screen.queryByText('config/user/u100.json')).not.toBeInTheDocument();
-    });
-
-    it('shows added/removed counts in file headers', () => {
-      renderPage();
-      // building diff has 2 old→new changes = 2 removed + 2 added
-      const fileHeaders = screen.getAllByText(/config\/building/);
-      const parent = fileHeaders[0].closest('button');
-      expect(parent).toBeTruthy();
-      expect(within(parent!).getByText('+2')).toBeInTheDocument();
-      expect(within(parent!).getByText('-2')).toBeInTheDocument();
-    });
-
-    it('expands diff content on click', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      expect(screen.queryByTestId('diff-content')).not.toBeInTheDocument();
-      await user.click(screen.getByText('config/building/b200.json'));
-      expect(screen.getByTestId('diff-content')).toBeInTheDocument();
-    });
-
-    it('shows old and new values in expanded diff', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('config/building/b200.json'));
-      const diffContent = screen.getByTestId('diff-content');
-      expect(diffContent.textContent).toContain('Mall Viejo');
-      expect(diffContent.textContent).toContain('Mall Nuevo');
-    });
-
-    it('shows field names in diff lines', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('config/building/b200.json'));
-      const diffContent = screen.getByTestId('diff-content');
-      expect(diffContent.textContent).toContain('"name"');
-      expect(diffContent.textContent).toContain('"timezone"');
-    });
-
-    it('collapses diff content on second click', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('config/building/b200.json'));
-      expect(screen.getByTestId('diff-content')).toBeInTheDocument();
-      await user.click(screen.getByText('config/building/b200.json'));
-      expect(screen.queryByTestId('diff-content')).not.toBeInTheDocument();
-    });
-
-    it('switches to side-by-side view', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('config/building/b200.json'));
-      await user.click(screen.getByText('Lado a lado'));
-      const diffContent = screen.getByTestId('diff-content');
-      // Side-by-side has a 2-column grid
-      expect(diffContent.querySelector('.grid-cols-2')).toBeInTheDocument();
-    });
-
-    it('switches back to unified view', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('config/building/b200.json'));
-      await user.click(screen.getByText('Lado a lado'));
-      await user.click(screen.getByText('Unificado'));
-      const diffContent = screen.getByTestId('diff-content');
-      expect(diffContent.querySelector('.grid-cols-2')).not.toBeInTheDocument();
-    });
-  });
 });

@@ -49,6 +49,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       permissions: payload.permissions as string[],
       buildingIds: (buildingIds as string[]) ?? [],
       crossTenant: false,
+      iat: typeof payload.iat === 'number' ? payload.iat : undefined,
     };
   }
 }

@@ -94,20 +94,42 @@ export function Sidebar() {
         onChange={(val) => {
           const role = val === 'super_admin' ? null : val;
           setViewAsRole(role);
-          const profile = role ? ROLE_TO_PROFILE[role] ?? 'operacional' : 'super_admin';
-          navigate(PROFILE_LANDING[profile] ?? '/');
+          const newProfile = role ? ROLE_TO_PROFILE[role] ?? 'operacional' : 'super_admin';
+          const newEntries = PROFILE_NAV[newProfile];
+          // Stay on current route if accessible in new profile
+          const currentAccessible = findActiveIndex(newEntries, location.pathname) >= 0;
+          if (!currentAccessible) navigate(PROFILE_LANDING[newProfile] ?? '/');
         }}
         isImpersonating={isImpersonating}
-        onReset={() => { setViewAsRole(null); navigate(PROFILE_LANDING.super_admin); }}
+        onReset={() => {
+          setViewAsRole(null);
+          const entries = PROFILE_NAV.super_admin;
+          const accessible = findActiveIndex(entries, location.pathname) >= 0;
+          if (!accessible) navigate(PROFILE_LANDING.super_admin);
+        }}
       />
       <TenantSwitcher
         selectedId={selectedTenantId}
-        excludeOwnerTenant
         onChange={(id, tenantTheme) => {
           setSelectedTenantId(id);
-          queryClient.clear();
+          queryClient.invalidateQueries({ predicate: (q) => {
+            const key = q.queryKey[0];
+            return typeof key === 'string' && !['user', 'session', 'auth'].includes(key);
+          }});
           const theme = tenantTheme ?? (tenant || undefined);
           theme && applyTenantTheme(theme);
+          // Navigate away from platformOnly routes when tenant selected,
+          // or back to platform dashboard when deselected
+          if (id) {
+            const platformPaths = ['/dashboard/platform', '/admin/observabilidad', '/admin/config-releases', '/admin/tenants-malls', '/admin/iot-devices'];
+            const onPlatformRoute = platformPaths.some((p) => location.pathname.startsWith(p));
+            if (onPlatformRoute) {
+              const profile = viewAsRole ? ROLE_TO_PROFILE[viewAsRole] ?? 'operacional' : 'super_admin';
+              navigate(PROFILE_LANDING[profile] ?? '/');
+            }
+          } else {
+            navigate('/dashboard/platform');
+          }
         }}
       />
       {(viewAsRole === 'corp_admin' || viewAsRole === 'site_admin') && (
@@ -668,7 +690,7 @@ function OperatorSwitcher({
             : 'border-border bg-surface text-foreground'
         }`}
       >
-        <span className="truncate">{selectedName ?? 'Seleccionar tienda'}</span>
+        <span className="truncate">{selectedName ?? 'Todas las tiendas'}</span>
         <svg
           className={`h-3 w-3 shrink-0 opacity-50 transition-transform duration-300 ease-in-out motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
           viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
@@ -690,6 +712,17 @@ function OperatorSwitcher({
           </div>
 
           <ul className="max-h-48 overflow-y-auto py-1">
+            <li>
+              <button
+                type="button"
+                onClick={() => { onChange(null); setOpen(false); }}
+                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
+                  !selectedName ? 'font-semibold text-brand' : 'text-foreground'
+                }`}
+              >
+                Todas las tiendas
+              </button>
+            </li>
             {filtered.map((name) => (
               <li key={name}>
                 <button
@@ -752,7 +785,7 @@ function BuildingSwitcher({
 
   const selectedName = selectedId
     ? buildings.find((b) => b.id === selectedId)?.name ?? 'Edificio'
-    : 'Seleccionar edificio';
+    : 'Todos los edificios';
 
   useEffect(() => {
     if (!open) return;
@@ -785,6 +818,17 @@ function BuildingSwitcher({
 
       <SidebarDropdownPanel open={open}>
         <ul className="py-1">
+          <li>
+            <button
+              type="button"
+              onClick={() => { onChange(null); setOpen(false); }}
+              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors duration-200 hover:bg-surface ${
+                !selectedId ? 'font-semibold text-brand' : 'text-foreground'
+              }`}
+            >
+              Todos los edificios
+            </button>
+          </li>
           {buildings.map((b) => (
             <li key={b.id}>
               <button

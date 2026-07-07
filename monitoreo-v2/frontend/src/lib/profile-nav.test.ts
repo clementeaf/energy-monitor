@@ -60,9 +60,9 @@ describe('profile-nav', () => {
   });
 
   describe('spec-aligned profile assertions (6 screens each)', () => {
-    it('gerencial has exactly 3 nav groups: Panel Consolidado, Alarmas, Reportes', () => {
+    it('gerencial has exactly 4 nav groups: Panel Consolidado, Alarmas, Reportes, Mapa Indoor', () => {
       const labels = PROFILE_NAV.gerencial.map((e) => e.label);
-      expect(labels).toEqual(['Panel Consolidado', 'Alarmas', 'Reportes']);
+      expect(labels).toEqual(['Panel Consolidado', 'Alarmas', 'Reportes', 'Mapa Indoor']);
     });
 
     it('gerencial Panel Consolidado has 3 sub-items: Consolidado, Consumo, Costos', () => {
@@ -91,14 +91,14 @@ describe('profile-nav', () => {
       expect(PROFILE_NAV.auditor[0].children).toHaveLength(6);
     });
 
-    it('super_admin has exactly 2 nav groups: Administración, Integraciones', () => {
+    it('super_admin has exactly 4 nav groups: Plataforma, Administración, Integraciones, Mapa Indoor', () => {
       const labels = PROFILE_NAV.super_admin.map((e) => e.label);
-      expect(labels).toEqual(['Administración', 'Integraciones']);
+      expect(labels).toEqual(['Plataforma', 'Administración', 'Integraciones', 'Mapa Indoor']);
     });
 
-    it('super_admin Administración has 5 sub-items (spec screens minus Integraciones)', () => {
+    it('super_admin Administración has 2 sub-items: Usuarios y Roles, Seguridad y PAM', () => {
       const admin = PROFILE_NAV.super_admin.find((e) => e.label === 'Administración');
-      expect(admin?.children).toHaveLength(5);
+      expect(admin?.children).toHaveLength(2);
     });
 
     it('no locatario profile exists (not in spec)', () => {

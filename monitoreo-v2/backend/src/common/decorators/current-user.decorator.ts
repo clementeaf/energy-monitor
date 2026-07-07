@@ -9,6 +9,7 @@ export interface JwtPayload {
   permissions: string[];  // ["dashboard_executive:read", "billing:create", ...]
   buildingIds: string[];  // UUIDs from user_building_access (empty = all buildings)
   crossTenant?: boolean;  // true when super_admin views all tenants (no tenant selected)
+  iat?: number;           // JWT issued-at (epoch seconds) — for step-up auth checks
 }
 
 export const CurrentUser = createParamDecorator(

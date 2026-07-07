@@ -53,6 +53,7 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
     isError: false,
     isSuccess: true,
   }),
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
 }));
 
 vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
@@ -125,6 +126,13 @@ function renderPage() {
   );
 }
 
+/** Find the <button> in the building list whose text contains `name`. */
+function getBuildingButton(name: string): HTMLElement {
+  return screen.getAllByRole('button').find(
+    (el) => el.textContent?.includes(name) && el.closest('li'),
+  ) as HTMLElement;
+}
+
 describe('PanelConsolidadoPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -136,11 +144,10 @@ describe('PanelConsolidadoPage', () => {
       expect(screen.getByRole('heading', { name: 'Panel Consolidado' })).toBeInTheDocument();
     });
 
-    it('renders country selector with Chile, Perú, Colombia', () => {
+    it('renders map filter controls', () => {
       renderPage();
-      expect(screen.getByText('Chile')).toBeInTheDocument();
-      expect(screen.getByText('Perú')).toBeInTheDocument();
-      expect(screen.getByText('Colombia')).toBeInTheDocument();
+      expect(screen.getByText('Colorear marcadores por:')).toBeInTheDocument();
+      expect(screen.getByText('Mostrar:')).toBeInTheDocument();
     });
 
     it('renders map area', () => {
@@ -160,27 +167,27 @@ describe('PanelConsolidadoPage', () => {
   describe('KPI cards', () => {
     it('renders demand KPI', () => {
       renderPage();
-      expect(screen.getByText('Demanda agregada')).toBeInTheDocument();
+      expect(screen.getByText('Demanda agregada [MW]')).toBeInTheDocument();
       // 150 + 200 + 100 = 450 kW = 0.45 MW (only CL buildings: b1 + b2)
-      expect(screen.getByText('0.45 MW')).toBeInTheDocument();
+      expect(screen.getByText('0.45')).toBeInTheDocument();
     });
 
     it('renders consumo acumulado KPI', () => {
       renderPage();
-      expect(screen.getByText('Consumo acumulado')).toBeInTheDocument();
+      expect(screen.getByText('Consumo acumulado [MWh]')).toBeInTheDocument();
     });
 
     it('renders malls activos KPI', () => {
       renderPage();
-      expect(screen.getByText('Malls activos')).toBeInTheDocument();
+      expect(screen.getByText('Malls activos / total')).toBeInTheDocument();
     });
   });
 
   describe('building list', () => {
     it('renders Chilean buildings (filtered by default country CL)', () => {
       renderPage();
-      expect(screen.getByText('Mall Norte')).toBeInTheDocument();
-      expect(screen.getByText('Mall Sur')).toBeInTheDocument();
+      expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Mall Sur').length).toBeGreaterThanOrEqual(1);
     });
 
     it('does not render Peruvian building when Chile is selected', () => {
@@ -201,15 +208,15 @@ describe('PanelConsolidadoPage', () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
 
-      // Breadcrumb + pill both show Chile
-      expect(screen.getAllByText('Chile').length).toBeGreaterThanOrEqual(2);
+      // Chile appears in the breadcrumb inside the detail panel
+      expect(screen.getByText('Chile')).toBeInTheDocument();
       // Building name appears in breadcrumb + detail header
       expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(2);
       // Should show metrics
       expect(screen.getByText('Carga total')).toBeInTheDocument();
-      // Should show alert feed (alert also appears in critical events — use within)
+      // Should show alert feed
       expect(screen.getByText(/Alertas en vivo/)).toBeInTheDocument();
       expect(screen.getAllByText('Sobrevoltaje detectado').length).toBeGreaterThanOrEqual(1);
     });
@@ -219,26 +226,24 @@ describe('PanelConsolidadoPage', () => {
       renderPage();
 
       // Go to detail
-      await user.click(screen.getByText('Mall Norte'));
-      // Breadcrumb has country as link — find the one inside the detail panel (last Chile is the breadcrumb)
-      const chiles = screen.getAllByText('Chile');
-      expect(chiles.length).toBeGreaterThanOrEqual(2);
+      await user.click(getBuildingButton('Mall Norte'));
+      // Breadcrumb has Chile as a link
+      const chileBtn = screen.getByText('Chile');
+      expect(chileBtn).toBeInTheDocument();
 
-      // Back to portfolio via breadcrumb (last Chile is in the breadcrumb inside the detail panel)
-      await user.click(chiles[chiles.length - 1]);
+      // Back to portfolio via breadcrumb Chile link
+      await user.click(chileBtn);
       expect(screen.getByText('Centros comerciales')).toBeInTheDocument();
-      expect(screen.getByText('Demanda agregada')).toBeInTheDocument();
+      expect(screen.getByText('Demanda agregada [MW]')).toBeInTheDocument();
     });
   });
 
   describe('country filter', () => {
-    it('switches to Peru and shows Peruvian building', async () => {
-      const user = userEvent.setup();
+    it('defaults to Chile and does not show Peruvian building', () => {
       renderPage();
-
-      await user.click(screen.getByText('Perú'));
-      expect(screen.getByText('Mall Lima')).toBeInTheDocument();
-      expect(screen.queryByText('Mall Norte')).not.toBeInTheDocument();
+      // Country is hardcoded to CL — Peruvian building must not appear
+      expect(screen.queryByText('Mall Lima')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -246,13 +251,13 @@ describe('PanelConsolidadoPage', () => {
     it('renders critical events section', () => {
       renderPage();
       expect(screen.getByText('Eventos críticos recientes')).toBeInTheDocument();
-      expect(screen.getByText(/2 alertas activas/)).toBeInTheDocument();
+      // Only critical/high alerts appear in critical events feed
+      expect(screen.getByText('Sobrevoltaje detectado')).toBeInTheDocument();
     });
 
-    it('renders alert severity badges', () => {
+    it('renders demand sparkline', () => {
       renderPage();
-      expect(screen.getByText('CRITICAL')).toBeInTheDocument();
-      expect(screen.getByText('MEDIUM')).toBeInTheDocument();
+      expect(screen.getByTestId('demand-sparkline')).toBeInTheDocument();
     });
   });
 
@@ -260,7 +265,7 @@ describe('PanelConsolidadoPage', () => {
     it('shows floor tabs when building is selected', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       expect(screen.getByTestId('floor-tabs')).toBeInTheDocument();
       expect(screen.getByText('Piso 1')).toBeInTheDocument();
       expect(screen.getByText('Piso 2')).toBeInTheDocument();
@@ -269,7 +274,7 @@ describe('PanelConsolidadoPage', () => {
     it('shows floor plan view when floor tab is clicked', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       expect(screen.getByTestId('floor-plan-view')).toBeInTheDocument();
       expect(screen.getByText(/Plano de Piso 1/)).toBeInTheDocument();
@@ -278,7 +283,7 @@ describe('PanelConsolidadoPage', () => {
     it('shows zones for the selected floor', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       expect(screen.getByText('Zona Norte')).toBeInTheDocument();
       expect(screen.getByText('Zona Sur')).toBeInTheDocument();
@@ -287,7 +292,7 @@ describe('PanelConsolidadoPage', () => {
     it('does not show zones from other floors', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       expect(screen.queryByText('Zona Este')).not.toBeInTheDocument();
     });
@@ -295,7 +300,7 @@ describe('PanelConsolidadoPage', () => {
     it('shows breadcrumb with country > mall > floor', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       // Floor plan breadcrumb
       const floorPlan = screen.getByTestId('floor-plan-view');
@@ -307,7 +312,7 @@ describe('PanelConsolidadoPage', () => {
     it('returns to mall detail when clicking mall in breadcrumb', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       // Click mall name in floor plan breadcrumb
       const floorPlan = screen.getByTestId('floor-plan-view');
@@ -319,7 +324,7 @@ describe('PanelConsolidadoPage', () => {
     it('shows color mode selector with 3 options', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       expect(screen.getByText('Estado alarma')).toBeInTheDocument();
       expect(screen.getByText('Intensidad consumo')).toBeInTheDocument();
@@ -329,7 +334,7 @@ describe('PanelConsolidadoPage', () => {
     it('switches color mode on click', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       await user.click(screen.getByText('Intensidad consumo'));
       // Legend should change
@@ -340,7 +345,7 @@ describe('PanelConsolidadoPage', () => {
     it('deselects floor when clicking active floor tab again', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       expect(screen.getByTestId('floor-plan-view')).toBeInTheDocument();
       // Click Piso 1 again to deselect (in sidebar floor tabs)
@@ -352,7 +357,7 @@ describe('PanelConsolidadoPage', () => {
     it('updates detail breadcrumb to show floor level', async () => {
       const user = userEvent.setup();
       renderPage();
-      await user.click(screen.getByText('Mall Norte'));
+      await user.click(getBuildingButton('Mall Norte'));
       await user.click(screen.getByText('Piso 1'));
       // The building detail panel breadcrumb should show floor
       // Chile / Mall Norte / Piso 1

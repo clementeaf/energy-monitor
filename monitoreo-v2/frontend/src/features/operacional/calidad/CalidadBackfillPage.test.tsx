@@ -36,6 +36,7 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
     isLoading: false,
     isSuccess: true,
   }),
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
 }));
 
 vi.mock('../../../hooks/queries/useBackfillJobsQuery', () => ({

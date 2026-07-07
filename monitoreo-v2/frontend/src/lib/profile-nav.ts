@@ -58,15 +58,23 @@ const GERENCIAL_NAV: ProfileNavEntry[] = [
     extraPaths: ['/gerencial/reportes'],
     children: [REPORTES_EJECUTIVOS, REPORTES_EXPORTAR],
   },
+  {
+    label: 'Mapa Indoor',
+    icon: 'monitoring',
+    to: APP_ROUTES.map,
+    basePath: '/map',
+  },
 ];
+
+const MAPA_INDOOR: ProfileSubItem = { to: APP_ROUTES.map, label: 'Mapa Indoor' };
 
 const OPERACIONAL_NAV: ProfileNavEntry[] = [
   {
     label: 'Monitoreo',
     icon: 'monitoring',
     basePath: '/monitoring',
-    extraPaths: ['/operacional'],
-    children: [MONITOREO_EN_VIVO, MAPA_COBERTURA],
+    extraPaths: ['/operacional', '/map'],
+    children: [MONITOREO_EN_VIVO, MAPA_COBERTURA, MAPA_INDOOR],
   },
   {
     label: 'Alertas',
@@ -161,6 +169,12 @@ const SUPER_ADMIN_TENANT_NAV: ProfileNavEntry[] = [
     icon: 'integrations',
     to: APP_ROUTES.integrations,
     basePath: '/integrations',
+  },
+  {
+    label: 'Mapa Indoor',
+    icon: 'monitoring',
+    to: APP_ROUTES.map,
+    basePath: '/map',
   },
 ];
 

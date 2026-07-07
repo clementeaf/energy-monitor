@@ -39,6 +39,7 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
     isLoading: false,
     isSuccess: true,
   }),
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
 }));
 
 vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
@@ -59,6 +60,7 @@ vi.mock('../../../hooks/queries/useBackfillJobsQuery', () => ({
     isSuccess: true,
   }),
 }));
+vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }) }));
 
 import { MonitoreoVivoPage } from './MonitoreoVivoPage';
 
@@ -142,8 +144,9 @@ describe('MonitoreoVivoPage', () => {
       const mallButtons = screen.getAllByText('Mall Arauco');
       const cardButton = mallButtons.find((el) => el.closest('button[type="button"]'))!;
       await user.click(cardButton);
-      expect(screen.getByText('Principal')).toBeInTheDocument();
-      expect(screen.getByText('HVAC')).toBeInTheDocument();
+      // Expanded row shows meter codes (meter.code ?? meter.name)
+      expect(screen.getByText('P1')).toBeInTheDocument();
+      expect(screen.getByText('H1')).toBeInTheDocument();
     });
 
     it('collapses on second click', async () => {
@@ -153,10 +156,10 @@ describe('MonitoreoVivoPage', () => {
       const mallButtons = screen.getAllByText('Mall Arauco');
       const cardButton = mallButtons.find((el) => el.closest('button[type="button"]'))!;
       await user.click(cardButton);
-      expect(screen.getByText('Principal')).toBeInTheDocument();
+      expect(screen.getByText('P1')).toBeInTheDocument();
 
       await user.click(cardButton);
-      expect(screen.queryByText('Principal')).not.toBeInTheDocument();
+      expect(screen.queryByText('P1')).not.toBeInTheDocument();
     });
   });
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { RoleSlug } from '../types/auth';
 
 export type ViewAsRole = RoleSlug | null; // null = natural role (no impersonation)
@@ -25,16 +26,38 @@ interface AppState {
   setSelectedOperator: (name: string | null) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  sidebarOpen: true,
-  selectedBuildingId: null,
-  viewAsRole: null,
-  selectedTenantId: null,
-  selectedOperator: null,
-  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
-  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-  setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId }),
-  setViewAsRole: (viewAsRole) => set({ viewAsRole, selectedOperator: null, selectedBuildingId: null }),
-  setSelectedTenantId: (selectedTenantId) => set({ selectedTenantId }),
-  setSelectedOperator: (selectedOperator) => set({ selectedOperator, selectedBuildingId: null }),
-}));
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      sidebarOpen: true,
+      selectedBuildingId: null,
+      viewAsRole: null,
+      selectedTenantId: null,
+      selectedOperator: null,
+      setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId }),
+      setViewAsRole: (viewAsRole) => set({ viewAsRole, selectedOperator: null, selectedBuildingId: null }),
+      setSelectedTenantId: (selectedTenantId) => set({ selectedTenantId, selectedOperator: null, selectedBuildingId: null }),
+      setSelectedOperator: (selectedOperator) => set({ selectedOperator, selectedBuildingId: null }),
+    }),
+    {
+      name: 'ems-app-state',
+      storage: {
+        getItem: (name) => {
+          const raw = sessionStorage.getItem(name);
+          return raw ? JSON.parse(raw) : null;
+        },
+        setItem: (name, value) => sessionStorage.setItem(name, JSON.stringify(value)),
+        removeItem: (name) => sessionStorage.removeItem(name),
+      },
+      partialize: (state) => ({
+        sidebarOpen: state.sidebarOpen,
+        viewAsRole: state.viewAsRole,
+        selectedTenantId: state.selectedTenantId,
+        selectedOperator: state.selectedOperator,
+        selectedBuildingId: state.selectedBuildingId,
+      }),
+    },
+  ),
+);

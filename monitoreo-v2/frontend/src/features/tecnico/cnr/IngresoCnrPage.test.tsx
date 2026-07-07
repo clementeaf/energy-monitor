@@ -21,6 +21,8 @@ vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
   }),
 }));
 
+vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }), useCreateCnr: () => ({ mutate: vi.fn((_, opts) => opts?.onSuccess?.()), isPending: false }) }));
+
 import { IngresoCnrPage } from './IngresoCnrPage';
 
 function renderPage() {
@@ -123,32 +125,25 @@ describe('IngresoCnrPage', () => {
       renderPage();
       await fillForm(user);
       await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
-      expect(screen.getByText(/CNR registrado/)).toBeInTheDocument();
+      expect(screen.getByText(/dato manual — CNR/)).toBeInTheDocument();
     });
 
-    it('adds entry to history panel', async () => {
+    it('clears form after submit (button disabled again)', async () => {
       const user = userEvent.setup();
       renderPage();
       await fillForm(user);
       await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
-      expect(screen.getByText('Principal')).toBeInTheDocument();
-      expect(screen.getByText(/150 kWh/)).toBeInTheDocument();
-    });
-
-    it('clears form after submit', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await fillForm(user);
-      await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
+      // onSuccess resets selectedMeterId → canSubmit false → button disabled
       expect(screen.getByRole('button', { name: 'Registrar CNR' })).toBeDisabled();
     });
 
-    it('updates history count', async () => {
+    it('history panel shows 0 entries (API returns empty)', async () => {
       const user = userEvent.setup();
       renderPage();
       await fillForm(user);
       await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
-      expect(screen.getByText('Historial CNR (1)')).toBeInTheDocument();
+      // History comes from cnrQuery.data which is mocked as [] — count stays 0
+      expect(screen.getByText('Historial CNR (0)')).toBeInTheDocument();
     });
   });
 

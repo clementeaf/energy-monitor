@@ -36,6 +36,8 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   useAggregatedReadingsQuery: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }), useUpdateCnrStatus: () => ({ mutate: vi.fn(), isPending: false }) }));
+
 import { CnrPendientesPage } from './CnrPendientesPage';
 
 function renderPage() {
@@ -137,12 +139,13 @@ describe('CnrPendientesPage', () => {
       expect(screen.getByText(/m1/)).toBeInTheDocument();
     });
 
-    it('shows suggested action for critical gap', async () => {
+    it('shows auto-detected action note for critical gap', async () => {
       const user = userEvent.setup();
       renderPage();
 
       await user.click(screen.getByText('Principal'));
-      expect(screen.getByText(/Comunicación perdida/)).toBeInTheDocument();
+      // Auto-detected records show this note instead of a suggested action
+      expect(screen.getByText(/Auto-detectado/)).toBeInTheDocument();
     });
 
     it('collapses on second click', async () => {

@@ -1,5 +1,49 @@
 # Changelog
 
+## [2.43.0-alpha.0] - 2026-07-07 — SECURITY PENTEST + SWITCHER FIXES + TEST CLEANUP
+
+### Security — Pentest findings fixed
+- **Refresh token 500** — Double rollback in `refreshTokens()` caused 500 instead of 401 on invalid tokens. Fix: `transactionEnded` flag prevents double rollback. Also fixes deactivated account case.
+- **JWT TTL 24h → 15 min** — Access token exposure window reduced from 24 hours to 15 minutes. Refresh token rotation (7 days) handles session continuity. Frontend 401→refresh interceptor already handles transparent renewal.
+- **PII export step-up auth** — `GET /auth/me/export` and `POST /auth/me/deletion-request` now require token issued within last 5 minutes (`iat` check). Stolen token cannot dump PII without re-authentication.
+- **JWT `iat` forwarded** — `JwtPayload` interface includes `iat` (epoch seconds). `jwt.strategy.ts` passes it through for step-up auth checks.
+- **Access token cookie TTL** — Cookie `maxAge` reduced from 24h to 15 min to match JWT TTL.
+
+### Security — Pentest framework
+- **71-test pentest suite** — `scripts/pentest/` with 7 phases: Auth & Session (16), Tenant Isolation (11), AuthZ Bypass (12), Input Validation (10), Rate Limiting (5), Data Exposure (12), Internal Endpoints (18). Zero dependencies, native `fetch`.
+- **Results:** 63 PASS, 0 FAIL, 24 WARN. No critical vulnerabilities. WARNs documented (rate limit needs Redis, JWT revocation is by TTL, invoice PDF is HTML).
+- **Setup script** — `scripts/pentest/setup-keys.mjs` creates 3 API keys (PASA read, Siemens read, elevated) via super_admin token.
+
+### Fixed — Frontend switcher bugs (11 issues)
+- **Auditor routes** — 5 routes (`cuadratura`, `trazabilidad`, `datosCrudos`, `exportarEvidencia`, `calidadDatos`) moved inside `RequireTenantLayout` (were outside, allowing unscoped access).
+- **Platform routes** — `observabilidad`, `configReleases`, `iotDevices`, `tenantsMalls` moved outside `RequireTenantLayout` (were inside but marked `platformOnly` — contradiction).
+- **Tenant change clears operator/building** — `setSelectedTenantId` now resets `selectedOperator` and `selectedBuildingId`.
+- **Tenant change navigates** — Selecting tenant redirects away from `platformOnly` routes. Deselecting → `/dashboard/platform`.
+- **Role change preserves URL** — Only navigates if current route is not accessible in new profile's nav entries.
+- **"Todas" option** — `OperatorSwitcher` and `BuildingSwitcher` now have deselect option ("Todas las tiendas", "Todos los edificios").
+- **Selective cache invalidation** — `queryClient.clear()` replaced with `invalidateQueries` that excludes user/session/auth queries.
+- **SessionStorage persistence** — `useAppStore` uses zustand `persist` middleware with `sessionStorage` (key `ems-app-state`). F5 preserves switcher state.
+
+### Fixed — 188 pre-existing test failures → 0
+- **Missing mock exports** — Added `useAggregatedReadingsQuery` to 7 test files, `useCnrQuery`/`useInterventionsQuery`/`useApiObservabilityQuery`/`useReportsQuery`/`useUpdateTenant` to 7 files.
+- **UI text assertions** — Updated 5 test files for wireframe v2 changes (country filter removed, labels renamed, diff viewer removed, version updated).
+- **profile-nav.test.ts** — Updated nav structure: gerencial 4 groups, super_admin 4 groups (Plataforma, Administración, Integraciones, Mapa Indoor).
+- **PanelConsolidadoPage** — Fixed click target (button vs p element) using `getAllByRole('button')` helper.
+
+### Infra
+- Backend deployed to ECS rev 20 (`jwt-stepup-20260707`).
+- 3 pentest API keys created (PASA read, Siemens read, elevated).
+- Frontend: 773/773 tests pass. Backend: 125/125 auth tests pass. TypeScript clean.
+
+### Stats
+- 0 security vulnerabilities (post-fix).
+- 87 pentest tests across 7 phases.
+- 188 test failures fixed across 20 frontend test files.
+- 11 frontend switcher bugs fixed.
+- 3 backend security fixes deployed to prod.
+
+---
+
 ## [2.42.0-alpha.0] - 2026-07-06 — WIREFRAME ALIGNMENT PASS 2 + NAV FIXES
 
 ### Changed — Alarmas Agregadas

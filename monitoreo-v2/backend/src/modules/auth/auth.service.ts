@@ -378,6 +378,12 @@ export class AuthService {
     return resolveSessionMinutes(tenant.settings, role?.maxSessionMinutes ?? 1440);
   }
 
+  /**
+   * Access token TTL — short-lived (15 min). Refresh token handles session duration.
+   * A stolen access token expires quickly; refresh endpoint checks is_active + theft detection.
+   */
+  private static readonly ACCESS_TOKEN_MINUTES = 15;
+
   async generateTokenPair(payload: JwtPayload, sessionMinutes = 1440, tenantId?: string): Promise<TokenPair> {
     if (tenantId) {
       const tenant = await this.tenantsService.findById(tenantId);
@@ -387,7 +393,7 @@ export class AuthService {
     }
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: `${sessionMinutes}m`,
+      expiresIn: `${AuthService.ACCESS_TOKEN_MINUTES}m`,
     });
 
     const refreshTokenRaw = randomBytes(64).toString('hex');
@@ -408,6 +414,8 @@ export class AuthService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    let transactionEnded = false;
 
     try {
       const rows = await queryRunner.query(
@@ -441,12 +449,14 @@ export class AuthService {
         } else {
           await queryRunner.rollbackTransaction();
         }
+        transactionEnded = true;
         throw new UnauthorizedException('Invalid or expired refresh token.');
       }
 
       const row = rows[0];
       if (!row.is_active) {
         await queryRunner.rollbackTransaction();
+        transactionEnded = true;
         throw new UnauthorizedException('Account is deactivated.');
       }
 
@@ -478,7 +488,7 @@ export class AuthService {
         row.tenant_id,
       );
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (!transactionEnded) await queryRunner.rollbackTransaction();
       throw err;
     } finally {
       await queryRunner.release();

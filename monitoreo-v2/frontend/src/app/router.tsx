@@ -283,24 +283,26 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.registerMappings, element: <P any={ADMIN_REGISTER_MAPPINGS}><LazyRegisterMappingsPage /></P> },
                   { path: APP_ROUTES.admin.regions, element: <P any={BUILDINGS}><LazyRegionsPage /></P> },
                   { path: APP_ROUTES.admin.breachReports, element: <P any={AUDIT}><LazyBreachReportsPage /></P> },
-                  { path: APP_ROUTES.observabilidad, element: <P any={DASH_EXEC}><LazyObservabilidadPage /></P> },
-                  { path: APP_ROUTES.configReleases, element: <P any={DASH_EXEC}><LazyConfigReleasesPage /></P> },
                   { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
-                  { path: APP_ROUTES.admin.iotDevices, element: <P any={DASH_EXEC}><LazyIotDevicesPage /></P> },
-                  { path: APP_ROUTES.tenantsMalls, element: <P any={DASH_EXEC}><LazyTenantsMallsPage /></P> },
-              /* Auditor — 4 pages */
-              { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
-              { path: APP_ROUTES.trazabilidad, element: <P any={AUDIT}><LazyTrazabilidadPage /></P> },
-              { path: APP_ROUTES.datosCrudos, element: <P any={AUDIT}><LazyDatosCrudosPage /></P> },
-              { path: APP_ROUTES.exportarEvidencia, element: <P any={AUDIT}><LazyExportarEvidenciaPage /></P> },
-              { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
+                  /* Auditor — 5 pages (tenant-scoped) */
+                  { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
+                  { path: APP_ROUTES.trazabilidad, element: <P any={AUDIT}><LazyTrazabilidadPage /></P> },
+                  { path: APP_ROUTES.datosCrudos, element: <P any={AUDIT}><LazyDatosCrudosPage /></P> },
+                  { path: APP_ROUTES.exportarEvidencia, element: <P any={AUDIT}><LazyExportarEvidenciaPage /></P> },
+                  { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
-              { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },
+                  { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },
                 ],
               },
 
               /* ── Cross-tenant routes (no tenant required) ── */
+
+              /* Platform-only (no tenant needed) */
+              { path: APP_ROUTES.observabilidad, element: <P any={DASH_EXEC}><LazyObservabilidadPage /></P> },
+              { path: APP_ROUTES.configReleases, element: <P any={DASH_EXEC}><LazyConfigReleasesPage /></P> },
+              { path: APP_ROUTES.admin.iotDevices, element: <P any={DASH_EXEC}><LazyIotDevicesPage /></P> },
+              { path: APP_ROUTES.tenantsMalls, element: <P any={DASH_EXEC}><LazyTenantsMallsPage /></P> },
 
               /* Edificios & Medidores (listas cross-tenant) */
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },

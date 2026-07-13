@@ -7,7 +7,6 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useMapVxMalls, useMapVxStoresQuery } from '../../hooks/queries/useMapVxQuery';
-import { useTenantUnitsQuery } from '../../hooks/queries/useTenantUnitsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import { useInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
@@ -71,20 +70,12 @@ export function MapPage() {
     [activeMall, buildings],
   );
 
-  const tenantUnitsQuery = useTenantUnitsQuery(matchedBuildingId);
-  const tenantUnits = tenantUnitsQuery.data ?? [];
   const metersQuery = useMetersQuery();
   const meters = metersQuery.data ?? [];
   const latestQuery = useLatestReadingsQuery();
   const readings = latestQuery.data ?? [];
   const invoicesQuery = useInvoicesQuery();
   const invoices = invoicesQuery.data ?? [];
-
-  // Map tenant unit name (lowercase) → tenant unit id for store matching
-  const tuByName = useMemo(
-    () => new Map(tenantUnits.map((tu) => [tu.name.toLowerCase(), tu])),
-    [tenantUnits],
-  );
 
   // Map meter id → latest reading
   const readingByMeter = useMemo(
@@ -118,49 +109,48 @@ export function MapPage() {
   const selectedPoint = useMemo<SelectedPoint | null>(() => {
     if (!selectedStore) return null;
 
-    // Try to match store → tenant unit by name
-    const tu = tuByName.get(selectedStore.title.toLowerCase());
-    let extraHtml = '';
+    const lines: string[] = [];
 
-    if (tu) {
-      // Find meters linked to this tenant unit's building that match the unit code or name
-      // ponytail: no direct store→meter FK, match by tenant unit name
-      const tuMeters = metersByBuilding.filter(
-        (m) => m.name.toLowerCase().includes(tu.name.toLowerCase()) ||
-               m.code.toLowerCase().includes(tu.unitCode.toLowerCase()),
-      );
+    // Building-level meter/reading summary (always show if data exists)
+    if (metersByBuilding.length > 0) {
+      const metersWithData = metersByBuilding.filter((m) => readingByMeter.has(m.id));
+      const totalKwh = metersWithData.reduce((sum, m) => {
+        const r = readingByMeter.get(m.id);
+        return sum + Number(r?.energy_kwh_total ?? 0);
+      }, 0);
 
-      if (tuMeters.length > 0) {
-        const lines: string[] = [];
-
-        // Latest reading summary
-        const metersWithData = tuMeters.filter((m) => readingByMeter.has(m.id));
-        if (metersWithData.length > 0) {
-          const totalKwh = metersWithData.reduce((sum, m) => {
-            const r = readingByMeter.get(m.id);
-            return sum + Number(r?.energy_kwh_total ?? 0);
-          }, 0);
-          lines.push(`<span style="color:#22c55e">⚡</span> ${fmtNum(totalKwh)} kWh · ${metersWithData.length} medidor${metersWithData.length > 1 ? 'es' : ''}`);
-        }
-
-        // Invoice summary (invoices are per building, show latest)
-        const buildingInvoices = invoices.filter((inv) => inv.buildingId === matchedBuildingId);
-        if (buildingInvoices.length > 0) {
-          const lastInv = buildingInvoices.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-          const amount = Number(lastInv.total ?? 0);
-          lines.push(`<span style="color:#3b82f6">💲</span> Última factura: $${fmtNum(amount)}`);
-        }
-
-        if (lines.length > 0) {
-          const meterId = tuMeters[0].id;
-          extraHtml = `<div style="margin-top:6px;font-size:11px;color:#555;line-height:1.6">${lines.join('<br/>')}</div>`
-            + `<a href="/monitoring/meters/${meterId}" style="display:inline-block;margin-top:6px;font-size:11px;color:#6366f1;text-decoration:none;font-weight:600" data-meter-id="${meterId}">Ver detalle →</a>`;
-        }
+      if (metersWithData.length > 0) {
+        lines.push(`⚡ ${fmtNum(totalKwh)} kWh · ${metersWithData.length}/${metersByBuilding.length} medidores`);
+      } else {
+        lines.push(`📡 ${metersByBuilding.length} medidor${metersByBuilding.length > 1 ? 'es' : ''} (sin lecturas recientes)`);
       }
     }
 
+    // Invoice summary
+    const buildingInvoices = matchedBuildingId
+      ? invoices.filter((inv) => inv.buildingId === matchedBuildingId)
+      : [];
+    if (buildingInvoices.length > 0) {
+      const lastInv = [...buildingInvoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      const amount = Number(lastInv.total ?? 0);
+      lines.push(`💲 Última factura: $${fmtNum(amount)}`);
+    }
+
+    let extraHtml = '';
+    if (lines.length > 0) {
+      extraHtml = `<div style="margin-top:6px;font-size:11px;color:#555;line-height:1.6">${lines.join('<br/>')}</div>`;
+    }
+
+    // Navigation link: to building detail if matched, or meter detail if single meter
+    if (matchedBuildingId) {
+      const linkHref = metersByBuilding.length === 1
+        ? `/monitoring/meters/${metersByBuilding[0].id}`
+        : `/buildings/${matchedBuildingId}`;
+      extraHtml += `<a href="${linkHref}" style="display:inline-block;margin-top:6px;font-size:11px;color:#6366f1;text-decoration:none;font-weight:600" data-meter-id="nav">Ver detalle →</a>`;
+    }
+
     return { lng: selectedStore.lng, lat: selectedStore.lat, label: selectedStore.title, extraHtml };
-  }, [selectedStore, tuByName, metersByBuilding, readingByMeter, invoices]);
+  }, [selectedStore, metersByBuilding, readingByMeter, invoices, matchedBuildingId]);
 
   const handleSelectStore = (store: MapvxStore) => {
     setSelectedStore(store);

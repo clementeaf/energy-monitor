@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.44.0-alpha.0] - 2026-07-13 — UX PASS + MAPA INDOOR ENRIQUECIDO
+
+### Changed — Observabilidad
+- **KPIs en una fila** — 7 KPIs en `grid-cols-7`. Eliminada sección separada "Métricas de ingestión". KPI duplicado "p95" removido.
+- **Estado por componente** — Cards compactas con `flex-wrap`.
+- **Alertas de salud** — Panel usa alto disponible (`flex-1`) con scroll interno.
+
+### Changed — Selectores
+- **24 `<select>` nativos → `DropdownSelect`** en 9 archivos: MedidoresCatalogo (4), CalidadDatos (4), PanelConsolidado (4), Cuadratura (2), ExportarEvidencia (2), TenantsMalls (2), UsersPage (2), SeguridadPam (2), AuditPage (2). Zero `<select>` nativos restantes.
+
+### Changed — Layout / scroll
+- **`max-h-[70vh]` y `max-h-[calc(...)]` eliminados** de 28 páginas. Tablas crecen a altura natural, scroll via layout wrapper. Sin doble scrollbar.
+- **UsersPage** — Flex layout (`h-full flex-col`), tabla `flex-1 overflow-auto` (scroll interno con muchos usuarios).
+- **RolesPage** — `space-y-4`, `overflow-x-auto`.
+
+### Changed — Mapa Indoor
+- **Indoor tiles URL** — Antes `localhost:4000` en dev (bypass proxy). Ahora `window.location.origin` siempre → tiles pasan por proxy Vite en dev y por origin en prod.
+- **Popup enriquecido** — Al seleccionar tienda: matchea store → tenant unit por nombre. Si hay medidores: muestra kWh total + cantidad. Si hay facturas: monto última factura. Link "Ver detalle →" navega a vista medidor (SPA navigation).
+- **`SelectedPoint.extraHtml`** — Prop opcional para inyectar HTML adicional en popup.
+- **`MapView.onNavigate`** — Intercepta clicks en links del popup para navegación SPA sin reload.
+
+---
+
 ## [2.43.0-alpha.0] - 2026-07-07 — SECURITY PENTEST + SWITCHER FIXES + TEST CLEANUP
 
 ### Security — Pentest findings fixed

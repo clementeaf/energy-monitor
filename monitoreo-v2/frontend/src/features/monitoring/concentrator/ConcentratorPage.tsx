@@ -139,7 +139,7 @@ export function ConcentratorPage(): ReactElement {
       {/* Meters table */}
       <div className="space-y-2">
         <h2 className="text-sm font-medium text-foreground">Medidores del concentrador</h2>
-        <div className="max-h-[70vh] overflow-auto panel">
+        <div className="overflow-auto panel">
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
               <tr>

@@ -10,6 +10,7 @@ import { UserForm } from './UserForm';
 import { UserImportTab } from './UserImportTab';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 
 type UsersTab = 'list' | 'import';
 
@@ -84,7 +85,7 @@ export function UsersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
         title="Usuarios"
         eyebrow="Administración"
@@ -113,12 +114,16 @@ export function UsersPage() {
       {/* Filters */}
       {activeTab === 'list' && (
         <div className="flex flex-wrap items-center gap-2">
-          <select value={profileFilter} onChange={(e) => setProfileFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-            {PROFILE_FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
-          <select value={statusFilterVal} onChange={(e) => setStatusFilterVal(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-            {STATUS_FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
+          <DropdownSelect
+            options={PROFILE_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
+            value={profileFilter}
+            onChange={setProfileFilter}
+          />
+          <DropdownSelect
+            options={STATUS_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
+            value={statusFilterVal}
+            onChange={setStatusFilterVal}
+          />
           <span className="text-[11px] text-muted">{allUsers.length} usuarios</span>
         </div>
       )}
@@ -127,7 +132,7 @@ export function UsersPage() {
         <UserImportTab onViewUsers={() => { setActiveTab('list'); }} />
       ) : (
         <>
-          <div className="max-h-[70vh] overflow-auto panel">
+          <div className="panel min-h-0 flex-1 overflow-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="sticky top-0 z-10 bg-surface">
                 <tr>
@@ -177,7 +182,7 @@ export function UsersPage() {
           {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleUsers.length} de {total}</p>}
 
           {/* Spec-required panels */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid shrink-0 gap-4 lg:grid-cols-2">
             {/* Permisos sin uso >90 días */}
             <div className="panel p-4">
               <h3 className="mb-2 text-[13px] font-medium text-foreground">Permisos sin uso &gt;90 días</h3>

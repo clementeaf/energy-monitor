@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Drawer } from '../../../components/ui/Drawer';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useUsersQuery } from '../../../hooks/queries/useUsersQuery';
 import { useBreachReportsQuery } from '../../../hooks/queries/useBreachReportsQuery';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
@@ -305,19 +306,29 @@ export function SeguridadPamPage() {
                 <p className="text-[11px] text-emerald-700">Accion registrada (pendiente integracion backend). Solicitud enviada. Pendiente de aprobacion.</p>
               ) : (
                 <>
-                  <select value={jitResource} onChange={(e) => setJitResource(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none">
-                    <option value="">Recurso...</option>
-                    <option value="rds-prod">RDS Producción</option>
-                    <option value="ecs-exec">ECS Exec</option>
-                    <option value="s3-admin">S3 Admin</option>
-                    <option value="iam-console">IAM Console</option>
-                  </select>
-                  <select value={jitDuration} onChange={(e) => setJitDuration(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none">
-                    <option value="15">15 min</option>
-                    <option value="30">30 min</option>
-                    <option value="60">1 hora</option>
-                    <option value="120">2 horas</option>
-                  </select>
+                  <DropdownSelect
+                    className="w-full"
+                    placeholder="Recurso..."
+                    value={jitResource}
+                    onChange={setJitResource}
+                    options={[
+                      { value: 'rds-prod', label: 'RDS Producción' },
+                      { value: 'ecs-exec', label: 'ECS Exec' },
+                      { value: 's3-admin', label: 'S3 Admin' },
+                      { value: 'iam-console', label: 'IAM Console' },
+                    ]}
+                  />
+                  <DropdownSelect
+                    className="w-full"
+                    value={jitDuration}
+                    onChange={setJitDuration}
+                    options={[
+                      { value: '15', label: '15 min' },
+                      { value: '30', label: '30 min' },
+                      { value: '60', label: '1 hora' },
+                      { value: '120', label: '2 horas' },
+                    ]}
+                  />
                   <textarea value={jitJustification} onChange={(e) => setJitJustification(e.target.value)} rows={2} className="w-full rounded border border-border bg-background px-2 py-1.5 text-[11px] outline-none" placeholder="Justificación..." />
                   <button type="button" disabled={!jitResource || !jitJustification.trim()} onClick={() => setJitSubmitted(true)} className="w-full rounded-md bg-brand px-3 py-1.5 text-[10px] font-medium text-brand-fg disabled:opacity-50">Enviar solicitud</button>
                 </>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
@@ -94,19 +95,26 @@ export function ExportarEvidenciaPage() {
 
           <div>
             <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Mall</h3>
-            <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
-              <option value="all">Todos</option>
-              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            <DropdownSelect
+              className="w-full"
+              options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
+              value={mallFilter}
+              onChange={setMallFilter}
+            />
           </div>
 
           <div>
             <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Período</h3>
-            <select value={periodMonths} onChange={(e) => setPeriodMonths(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none">
-              <option value="1">Último mes</option>
-              <option value="3">Último trimestre</option>
-              <option value="12">Último año</option>
-            </select>
+            <DropdownSelect
+              className="w-full"
+              options={[
+                { value: '1', label: 'Último mes' },
+                { value: '3', label: 'Último trimestre' },
+                { value: '12', label: 'Último año' },
+              ]}
+              value={periodMonths}
+              onChange={setPeriodMonths}
+            />
           </div>
 
           <p className="text-[10px] text-muted">

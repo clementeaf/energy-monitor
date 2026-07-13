@@ -8,10 +8,8 @@ const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489];
 const DEFAULT_ZOOM = 6;
 const DEFAULT_PITCH = 50;
 
-// ponytail: derive tile URL from current origin in prod, localhost in dev
-const INDOOR_TILES_URL = import.meta.env.DEV
-  ? 'http://localhost:4000/api/mapvx/tiles/{z}/{x}/{y}.pbf'
-  : `${window.location.origin}/api/mapvx/tiles/{z}/{x}/{y}.pbf`;
+// ponytail: relative URL — vite proxy handles /api in dev, origin in prod
+const INDOOR_TILES_URL = `${window.location.origin}/api/mapvx/tiles/{z}/{x}/{y}.pbf`;
 
 const EMPTY_POLYGONS: MapPolygon[] = [];
 const EMPTY_MALL_MARKERS: MapvxMall[] = [];
@@ -46,6 +44,8 @@ export interface SelectedPoint {
   lng: number;
   lat: number;
   label: string;
+  /** Extra HTML appended after the area line in the popup */
+  extraHtml?: string;
 }
 
 /** Per-building enrichment for markers (color, popup content, click handler). */
@@ -70,6 +70,8 @@ interface MapViewProps {
   buildingMeta?: ReadonlyMap<string, BuildingMarkerMeta>;
   /** Fires when a building marker is clicked */
   onBuildingClick?: (buildingId: string) => void;
+  /** Fires when a popup link with `data-navigate` is clicked */
+  onNavigate?: (path: string) => void;
 }
 
 function buildStyle(
@@ -224,12 +226,27 @@ export function MapView({
   className = '',
   buildingMeta,
   onBuildingClick,
+  onNavigate,
 }: Readonly<MapViewProps>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const mallMarkersRef = useRef<maplibregl.Marker[]>([]);
   const selectedMarkerRef = useRef<maplibregl.Marker | null>(null);
+
+  // Intercept clicks on popup links with href for SPA navigation
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !onNavigate) return;
+    const handler = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest('a[data-meter-id]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      e.preventDefault();
+      onNavigate(anchor.getAttribute('href') ?? '');
+    };
+    container.addEventListener('click', handler);
+    return () => container.removeEventListener('click', handler);
+  }, [onNavigate]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -352,6 +369,7 @@ export function MapView({
         `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
           <strong style="font-size:13px">${escapeHtml(selectedPoint.label)}</strong>
           ${areaText}
+          ${selectedPoint.extraHtml ?? ''}
         </div>`,
       );
       selectedMarkerRef.current?.setPopup(popup).togglePopup();

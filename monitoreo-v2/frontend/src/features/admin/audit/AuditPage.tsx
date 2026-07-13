@@ -4,6 +4,7 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 import type { AuditLogQueryParams } from '../../../types/audit-log';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 
 const PAGE_SIZE = 50;
 
@@ -77,26 +78,36 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label className="block text-xs font-medium text-muted">Tipo acción</label>
-          <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm">
-            <option value="">Todas</option>
-            <option value="GET">Consulta</option>
-            <option value="POST">Creación</option>
-            <option value="PATCH">Modificación</option>
-            <option value="DELETE">Eliminación</option>
-            <option value="LOGIN">Login</option>
-          </select>
+          <DropdownSelect
+            className="mt-1"
+            options={[
+              { value: '', label: 'Todas' },
+              { value: 'GET', label: 'Consulta' },
+              { value: 'POST', label: 'Creación' },
+              { value: 'PATCH', label: 'Modificación' },
+              { value: 'DELETE', label: 'Eliminación' },
+              { value: 'LOGIN', label: 'Login' },
+            ]}
+            value={actionFilter}
+            onChange={setActionFilter}
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-muted">Recurso</label>
-          <select value={resourceFilter} onChange={(e) => setResourceFilter(e.target.value)} className="mt-1 rounded-md border border-border px-3 py-2 text-sm">
-            <option value="">Todos</option>
-            <option value="meters">Medidores</option>
-            <option value="readings">Lecturas</option>
-            <option value="alerts">Alarmas</option>
-            <option value="users">Usuarios</option>
-            <option value="cnr">CNR</option>
-            <option value="config">Configuración</option>
-          </select>
+          <DropdownSelect
+            className="mt-1"
+            options={[
+              { value: '', label: 'Todos' },
+              { value: 'meters', label: 'Medidores' },
+              { value: 'readings', label: 'Lecturas' },
+              { value: 'alerts', label: 'Alarmas' },
+              { value: 'users', label: 'Usuarios' },
+              { value: 'cnr', label: 'CNR' },
+              { value: 'config', label: 'Configuración' },
+            ]}
+            value={resourceFilter}
+            onChange={setResourceFilter}
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-muted">User ID</label>
@@ -123,7 +134,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
         </button>
       </div>
 
-      <div className="max-h-[70vh] overflow-auto panel">
+      <div className="overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

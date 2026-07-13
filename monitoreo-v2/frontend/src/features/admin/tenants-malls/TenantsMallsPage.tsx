@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Drawer } from '../../../components/ui/Drawer';
 import { useTenantsAdminQuery, useUpdateTenant } from '../../../hooks/queries/useTenantsQuery';
@@ -141,16 +142,21 @@ export function TenantsMallsPage() {
         eyebrow="Plataforma"
         actions={
           <div className="flex items-center gap-2">
-            <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="all">Todos los países</option>
-              {countries.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="all">Todos los estados</option>
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-              <option value="onboarding">En onboarding</option>
-            </select>
+            <DropdownSelect
+              options={[{ value: 'all', label: 'Todos los países' }, ...countries.map((c) => ({ value: c, label: c }))]}
+              value={countryFilter}
+              onChange={setCountryFilter}
+            />
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todos los estados' },
+                { value: 'activo', label: 'Activo' },
+                { value: 'inactivo', label: 'Inactivo' },
+                { value: 'onboarding', label: 'En onboarding' },
+              ]}
+              value={statusFilter}
+              onChange={setStatusFilter}
+            />
             <label className="flex items-center gap-1 text-[11px] text-muted">
               <input type="checkbox" checked={alertFilter} onChange={(e) => setAlertFilter(e.target.checked)} className="size-3.5 rounded border-border" />
               Con alertas

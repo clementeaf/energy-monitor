@@ -201,7 +201,7 @@ export function DevicesPage() {
         <MiniKpi label="Error" value={errorCount} color="text-red-600" />
       </div>
 
-      <div className="max-h-[70vh] overflow-auto panel">
+      <div className="overflow-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

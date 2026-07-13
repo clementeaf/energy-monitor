@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -216,24 +217,38 @@ export function CalidadDatosPage() {
         eyebrow="Auditoría"
         actions={
           <div className="flex items-center gap-2">
-            <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="all">Todo país</option>
-              <option value="CL">Chile</option>
-              <option value="PE">Perú</option>
-              <option value="CO">Colombia</option>
-            </select>
-            <select value={mallFilter} onChange={(e) => { setMallFilter(e.target.value); setSelectedMall(null); }} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="all">Todos los centros</option>
-              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
-            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              {PERIOD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <select value={granularity} onChange={(e) => setGranularity(e.target.value as Granularity)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="15min">15 min</option>
-              <option value="hourly">Horaria</option>
-              <option value="daily">Diaria</option>
-            </select>
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todo país' },
+                { value: 'CL', label: 'Chile' },
+                { value: 'PE', label: 'Perú' },
+                { value: 'CO', label: 'Colombia' },
+              ]}
+              value={countryFilter}
+              onChange={setCountryFilter}
+            />
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todos los centros' },
+                ...buildings.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              value={mallFilter}
+              onChange={(v) => { setMallFilter(v); setSelectedMall(null); }}
+            />
+            <DropdownSelect
+              options={PERIOD_OPTIONS}
+              value={period}
+              onChange={setPeriod}
+            />
+            <DropdownSelect
+              options={[
+                { value: '15min', label: '15 min' },
+                { value: 'hourly', label: 'Horaria' },
+                { value: 'daily', label: 'Diaria' },
+              ]}
+              value={granularity}
+              onChange={(v) => setGranularity(v as Granularity)}
+            />
             <button type="button" onClick={exportCsv} className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface">
               Exportar CSV
             </button>

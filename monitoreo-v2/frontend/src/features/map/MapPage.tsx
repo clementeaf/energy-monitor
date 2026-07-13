@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { MapView } from '../../components/ui/MapView';
 import type { MapPolygon, IndoorConfig, SelectedPoint } from '../../components/ui/MapView';
@@ -6,10 +7,16 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useMapVxMalls, useMapVxStoresQuery } from '../../hooks/queries/useMapVxQuery';
+import { useTenantUnitsQuery } from '../../hooks/queries/useTenantUnitsQuery';
+import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
+import { useLatestReadingsQuery } from '../../hooks/queries/useReadingsQuery';
+import { useInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
+import { fmtNum } from '../../lib/formatters';
 import type { MapvxFloor, MapvxMall, MapvxStore } from '../../types/mapvx';
 import type { Building } from '../../types/building';
 
 export function MapPage() {
+  const navigate = useNavigate();
   const [activeMallId, setActiveMallId] = useState<string>('');
   const [floorKey, setFloorKey] = useState('');
   const [selectedStore, setSelectedStore] = useState<MapvxStore | null>(null);
@@ -48,13 +55,47 @@ export function MapPage() {
   });
   const storesQuery = useMapVxStoresQuery(isIndoor ? (activeMall?.id ?? '') : '');
 
+  const buildings = query.data ?? [];
   const geoBuildings = useMemo(
     () =>
-      (query.data ?? []).filter(
+      buildings.filter(
         (b): b is Building & { latitude: number; longitude: number } =>
           b.latitude != null && b.longitude != null,
       ),
-    [query.data],
+    [buildings],
+  );
+
+  // Match active mall → building by name for tenant unit / meter lookup
+  const matchedBuildingId = useMemo(
+    () => activeMall ? buildings.find((b) => b.name === activeMall.name)?.id : undefined,
+    [activeMall, buildings],
+  );
+
+  const tenantUnitsQuery = useTenantUnitsQuery(matchedBuildingId);
+  const tenantUnits = tenantUnitsQuery.data ?? [];
+  const metersQuery = useMetersQuery();
+  const meters = metersQuery.data ?? [];
+  const latestQuery = useLatestReadingsQuery();
+  const readings = latestQuery.data ?? [];
+  const invoicesQuery = useInvoicesQuery();
+  const invoices = invoicesQuery.data ?? [];
+
+  // Map tenant unit name (lowercase) → tenant unit id for store matching
+  const tuByName = useMemo(
+    () => new Map(tenantUnits.map((tu) => [tu.name.toLowerCase(), tu])),
+    [tenantUnits],
+  );
+
+  // Map meter id → latest reading
+  const readingByMeter = useMemo(
+    () => new Map(readings.map((r) => [r.meter_id, r])),
+    [readings],
+  );
+
+  // Meters by building
+  const metersByBuilding = useMemo(
+    () => matchedBuildingId ? meters.filter((m) => m.buildingId === matchedBuildingId) : [],
+    [meters, matchedBuildingId],
   );
 
   const polygons = useMemo<MapPolygon[]>(() => {
@@ -76,8 +117,50 @@ export function MapPage() {
 
   const selectedPoint = useMemo<SelectedPoint | null>(() => {
     if (!selectedStore) return null;
-    return { lng: selectedStore.lng, lat: selectedStore.lat, label: selectedStore.title };
-  }, [selectedStore]);
+
+    // Try to match store → tenant unit by name
+    const tu = tuByName.get(selectedStore.title.toLowerCase());
+    let extraHtml = '';
+
+    if (tu) {
+      // Find meters linked to this tenant unit's building that match the unit code or name
+      // ponytail: no direct store→meter FK, match by tenant unit name
+      const tuMeters = metersByBuilding.filter(
+        (m) => m.name.toLowerCase().includes(tu.name.toLowerCase()) ||
+               m.code.toLowerCase().includes(tu.unitCode.toLowerCase()),
+      );
+
+      if (tuMeters.length > 0) {
+        const lines: string[] = [];
+
+        // Latest reading summary
+        const metersWithData = tuMeters.filter((m) => readingByMeter.has(m.id));
+        if (metersWithData.length > 0) {
+          const totalKwh = metersWithData.reduce((sum, m) => {
+            const r = readingByMeter.get(m.id);
+            return sum + Number(r?.energy_kwh_total ?? 0);
+          }, 0);
+          lines.push(`<span style="color:#22c55e">⚡</span> ${fmtNum(totalKwh)} kWh · ${metersWithData.length} medidor${metersWithData.length > 1 ? 'es' : ''}`);
+        }
+
+        // Invoice summary (invoices are per building, show latest)
+        const buildingInvoices = invoices.filter((inv) => inv.buildingId === matchedBuildingId);
+        if (buildingInvoices.length > 0) {
+          const lastInv = buildingInvoices.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+          const amount = Number(lastInv.total ?? 0);
+          lines.push(`<span style="color:#3b82f6">💲</span> Última factura: $${fmtNum(amount)}`);
+        }
+
+        if (lines.length > 0) {
+          const meterId = tuMeters[0].id;
+          extraHtml = `<div style="margin-top:6px;font-size:11px;color:#555;line-height:1.6">${lines.join('<br/>')}</div>`
+            + `<a href="/monitoring/meters/${meterId}" style="display:inline-block;margin-top:6px;font-size:11px;color:#6366f1;text-decoration:none;font-weight:600" data-meter-id="${meterId}">Ver detalle →</a>`;
+        }
+      }
+    }
+
+    return { lng: selectedStore.lng, lat: selectedStore.lat, label: selectedStore.title, extraHtml };
+  }, [selectedStore, tuByName, metersByBuilding, readingByMeter, invoices]);
 
   const handleSelectStore = (store: MapvxStore) => {
     setSelectedStore(store);
@@ -166,6 +249,7 @@ export function MapPage() {
               center={center}
               zoom={mapZoom}
               pitch={isIndoor ? 50 : 0}
+              onNavigate={(path) => navigate(path)}
             />
           </div>
         </div>

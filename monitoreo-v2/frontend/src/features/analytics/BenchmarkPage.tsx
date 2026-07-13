@@ -206,7 +206,7 @@ export function BenchmarkPage(): ReactElement {
       </div>
 
       {/* Ranking table */}
-      <div className="max-h-[70vh] overflow-auto panel">
+      <div className="overflow-auto panel">
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
             <tr>

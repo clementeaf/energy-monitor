@@ -186,7 +186,7 @@ export function DemandPage() {
       )}
 
       {topPeaks.length > 0 && (
-        <div className="max-h-[70vh] overflow-auto panel">
+        <div className="overflow-auto panel">
           <h2 className="border-b border-border px-4 py-3 text-sm font-medium text-foreground">
             Top 10 Peaks
           </h2>

@@ -190,7 +190,7 @@ export function RolesPage() {
   const formId = 'role-form';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Roles"
         eyebrow="Administración"
@@ -205,7 +205,7 @@ export function RolesPage() {
         ) : undefined}
       />
 
-      <div className="max-h-[70vh] overflow-auto panel">
+      <div className="overflow-x-auto panel">
         <table className="min-w-full divide-y divide-border">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { MapView } from '../../../components/ui/MapView';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -278,18 +279,14 @@ export function PanelConsolidadoPage() {
       {/* Map filters below title */}
       {!selectedFloorId && (
         <div className="flex shrink-0 items-center gap-3 text-[11px]">
-          <label className="flex items-center gap-1 text-muted">
+          <span className="flex items-center gap-1 text-muted">
             Colorear marcadores por:
-            <select value={colorBy} onChange={(e) => setColorBy(e.target.value as MapColorBy)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-              {COLOR_BY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-          </label>
-          <label className="flex items-center gap-1 text-muted">
+            <DropdownSelect options={COLOR_BY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={colorBy} onChange={(v) => setColorBy(v as MapColorBy)} />
+          </span>
+          <span className="flex items-center gap-1 text-muted">
             Mostrar:
-            <select value={showOnly} onChange={(e) => setShowOnly(e.target.value as MapShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-              {SHOW_ONLY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-          </label>
+            <DropdownSelect options={SHOW_ONLY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={showOnly} onChange={(v) => setShowOnly(v as MapShowOnly)} />
+          </span>
         </div>
       )}
 
@@ -903,18 +900,14 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
 
       {/* Floor filters + color mode */}
       <div className="flex flex-wrap items-center gap-3 px-1 text-[11px]">
-        <label className="flex items-center gap-1 text-muted">
+        <span className="flex items-center gap-1 text-muted">
           Período:
-          <select value={floorPeriod} onChange={(e) => setFloorPeriod(e.target.value as FloorPeriod)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-            {FLOOR_PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
-        </label>
-        <label className="flex items-center gap-1 text-muted">
+          <DropdownSelect options={FLOOR_PERIOD_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorPeriod} onChange={(v) => setFloorPeriod(v as FloorPeriod)} />
+        </span>
+        <span className="flex items-center gap-1 text-muted">
           Mostrar:
-          <select value={floorShowOnly} onChange={(e) => setFloorShowOnly(e.target.value as FloorShowOnly)} className="rounded border border-border bg-background px-1.5 py-0.5 text-foreground outline-none">
-            {FLOOR_SHOW_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
-        </label>
+          <DropdownSelect options={FLOOR_SHOW_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorShowOnly} onChange={(v) => setFloorShowOnly(v as FloorShowOnly)} />
+        </span>
         <div className="flex items-center gap-1">
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
           {COLOR_MODE_OPTIONS.map((opt) => (

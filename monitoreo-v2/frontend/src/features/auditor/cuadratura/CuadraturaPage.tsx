@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -97,15 +98,23 @@ export function CuadraturaPage() {
         eyebrow="Auditoría"
         actions={
           <div className="flex items-center gap-2">
-            <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="month">Mes actual</option>
-              <option value="quarter">Trimestre</option>
-              <option value="year">Año</option>
-            </select>
-            <select value={mallFilter} onChange={(e) => setMallFilter(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none">
-              <option value="all">Todos los centros</option>
-              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            <DropdownSelect
+              options={[
+                { value: 'month', label: 'Mes actual' },
+                { value: 'quarter', label: 'Trimestre' },
+                { value: 'year', label: 'Año' },
+              ]}
+              value={periodFilter}
+              onChange={setPeriodFilter}
+            />
+            <DropdownSelect
+              options={[
+                { value: 'all', label: 'Todos los centros' },
+                ...buildings.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              value={mallFilter}
+              onChange={setMallFilter}
+            />
             <button
               type="button"
               onClick={() => {

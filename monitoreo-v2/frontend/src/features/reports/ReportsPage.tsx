@@ -188,7 +188,7 @@ export function ReportsPage() {
         {/* Reportes generados */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes generados</h2>
-          <div className="max-h-[calc(100vh-280px)] overflow-auto rounded-lg border border-border">
+          <div className="overflow-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
@@ -225,7 +225,7 @@ export function ReportsPage() {
         {/* Reportes programados */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes programados</h2>
-          <div className="max-h-[calc(100vh-280px)] overflow-auto rounded-lg border border-border">
+          <div className="overflow-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
                 <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">

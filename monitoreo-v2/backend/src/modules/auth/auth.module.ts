@@ -18,6 +18,7 @@ import { TenantSsoController } from './sso/tenant-sso.controller';
 import { HttpOidcClient } from './sso/http-oidc.client';
 import { MockOidcClient } from './sso/mock-oidc.client';
 import { OIDC_CLIENT } from './sso/oidc-client.interface';
+import { JwtBlacklistService } from './jwt-blacklist.service';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { OIDC_CLIENT } from './sso/oidc-client.interface';
     AuthService,
     MfaService,
     DataRetentionService,
+    JwtBlacklistService,
     JwtStrategy,
     TenantSsoService,
     HttpOidcClient,

@@ -19,6 +19,7 @@ import {
   resolveSessionMinutes,
 } from '../../lib/tenant-settings';
 import { TenantsService } from '../tenants/tenants.service';
+import { JwtBlacklistService } from './jwt-blacklist.service';
 
 export interface OAuthProfile {
   provider: 'microsoft' | 'google';
@@ -53,6 +54,7 @@ export class AuthService {
     private readonly dataSource: DataSource,
     private readonly rolesService: RolesService,
     private readonly tenantsService: TenantsService,
+    private readonly jwtBlacklist: JwtBlacklistService,
   ) {}
 
   async getUserProfile(userId: string) {
@@ -552,6 +554,8 @@ export class AuthService {
   }
 
   async revokeAllTokens(userId: string): Promise<void> {
+    // Blacklist all outstanding access tokens for this user in Redis
+    await this.jwtBlacklist.blacklistUser(userId);
     await this.dataSource.query(
       `UPDATE refresh_tokens SET revoked_at = NOW(), revoked_reason = 'logout_all' WHERE user_id = $1 AND revoked_at IS NULL`,
       [userId],

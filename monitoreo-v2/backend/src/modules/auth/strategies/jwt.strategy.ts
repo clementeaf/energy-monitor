@@ -4,10 +4,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '../../../common/decorators/current-user.decorator';
 import { jwtAccessTokenExtractors } from './jwt-extractors';
+import { JwtBlacklistService } from '../jwt-blacklist.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private readonly blacklist: JwtBlacklistService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors(jwtAccessTokenExtractors),
       ignoreExpiration: false,
@@ -18,8 +22,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * Strict validation of JWT payload structure.
    * Rejects malformed tokens even if signature is valid — defense-in-depth.
+   * Also checks JWT blacklist (logout / password change).
    */
-  validate(payload: Record<string, unknown>): JwtPayload {
+  async validate(payload: Record<string, unknown>): Promise<JwtPayload> {
     if (
       typeof payload.sub !== 'string' ||
       typeof payload.email !== 'string' ||
@@ -40,8 +45,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Malformed token payload');
     }
 
+    const sub = payload.sub as string;
+    const iat = typeof payload.iat === 'number' ? payload.iat : 0;
+
+    // Check user-level blacklist (logout / password change)
+    if (await this.blacklist.isUserBlacklisted(sub, iat)) {
+      throw new UnauthorizedException('Token revoked');
+    }
+
     return {
-      sub: payload.sub,
+      sub,
       email: payload.email,
       tenantId: payload.tenantId,
       roleId: payload.roleId,
@@ -49,7 +62,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       permissions: payload.permissions as string[],
       buildingIds: (buildingIds as string[]) ?? [],
       crossTenant: false,
-      iat: typeof payload.iat === 'number' ? payload.iat : undefined,
+      iat,
     };
   }
 }

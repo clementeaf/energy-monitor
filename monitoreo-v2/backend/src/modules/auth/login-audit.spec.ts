@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { AuthService } from './auth.service';
 import { RolesService } from '../roles/roles.service';
 import { TenantsService } from '../tenants/tenants.service';
+import { JwtBlacklistService } from './jwt-blacklist.service';
 
 describe('AuthService — writeLoginAudit (CYB-21)', () => {
   let service: AuthService;
@@ -24,6 +25,7 @@ describe('AuthService — writeLoginAudit (CYB-21)', () => {
         { provide: DataSource, useValue: ds },
         { provide: RolesService, useValue: {} },
         { provide: TenantsService, useValue: { findById: jest.fn().mockResolvedValue({ id: 't-1', settings: {} }) } },
+        { provide: JwtBlacklistService, useValue: { blacklistUser: jest.fn() } },
       ],
     }).compile();
 

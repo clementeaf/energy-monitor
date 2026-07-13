@@ -6,6 +6,7 @@ import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RolesService } from '../roles/roles.service';
 import { TenantsService } from '../tenants/tenants.service';
+import { JwtBlacklistService } from './jwt-blacklist.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -37,6 +38,7 @@ describe('AuthService', () => {
         { provide: DataSource, useValue: ds },
         { provide: RolesService, useValue: rolesService },
         { provide: TenantsService, useValue: tenantsService },
+        { provide: JwtBlacklistService, useValue: { blacklistUser: jest.fn() } },
       ],
     }).compile();
 

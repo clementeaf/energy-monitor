@@ -7,7 +7,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { resolveJwtAccessToken } from './strategies/jwt-extractors';
 
 function createStrategy(): JwtStrategy {
-  return Object.create(JwtStrategy.prototype) as JwtStrategy;
+  const strategy = Object.create(JwtStrategy.prototype) as JwtStrategy;
+  (strategy as Record<string, unknown>).blacklist = {
+    isBlacklisted: async () => false,
+    isUserBlacklisted: async () => false,
+  };
+  return strategy;
 }
 
 describe('Auth session attack matrix', () => {
@@ -37,15 +42,16 @@ describe('Auth session attack matrix', () => {
       { label: 'null payload fields', payload: { ...valid, email: null } },
     ];
 
-    it.each(rejectedTamperCases)('rejects tampered payload: $label', ({ payload }) => {
-      expect(() => strategy.validate(payload)).toThrow(UnauthorizedException);
+    it.each(rejectedTamperCases)('rejects tampered payload: $label', async ({ payload }) => {
+      await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('accepts structurally valid super_admin payload (permissions still from DB at issue time)', () => {
-      const result = strategy.validate({
+    it('accepts structurally valid super_admin payload (permissions still from DB at issue time)', async () => {
+      const result = await strategy.validate({
         ...valid,
         roleSlug: 'super_admin',
         permissions: ['admin_users:delete'],
+        iat: Math.floor(Date.now() / 1000),
       });
       expect(result.roleSlug).toBe('super_admin');
     });

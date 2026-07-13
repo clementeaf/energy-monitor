@@ -14,6 +14,37 @@ const INDOOR_TILES_URL = `${window.location.origin}/api/mapvx/tiles/{z}/{x}/{y}.
 const EMPTY_POLYGONS: MapPolygon[] = [];
 const EMPTY_MALL_MARKERS: MapvxMall[] = [];
 
+// ponytail: inject popup styles once
+const POPUP_STYLE_ID = 'store-popup-style';
+if (!document.getElementById(POPUP_STYLE_ID)) {
+  const style = document.createElement('style');
+  style.id = POPUP_STYLE_ID;
+  style.textContent = `
+    .store-popup .maplibregl-popup-content {
+      padding: 0;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      min-width: 200px;
+    }
+    .store-popup .maplibregl-popup-close-button {
+      top: 6px;
+      right: 8px;
+      font-size: 18px;
+      color: #888;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+    }
+    .store-popup .maplibregl-popup-close-button:hover {
+      color: #333;
+      background: rgba(0,0,0,0.06);
+      border-radius: 4px;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const HIGHLIGHT_SOURCE = 'highlight-area';
 const HIGHLIGHT_FILL = 'highlight-area-fill';
 const HIGHLIGHT_LINE = 'highlight-area-line';
@@ -365,9 +396,9 @@ export function MapView({
         ? `<p style="margin:4px 0 0;font-size:12px;color:#6366f1;font-weight:600">${formatArea(areaSqm)} m²</p>`
         : '';
 
-      const popup = new maplibregl.Popup({ offset: 30 }).setHTML(
-        `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
-          <strong style="font-size:13px">${escapeHtml(selectedPoint.label)}</strong>
+      const popup = new maplibregl.Popup({ offset: 30, maxWidth: '280px', className: 'store-popup' }).setHTML(
+        `<div style="font-family:Inter,system-ui,sans-serif;padding:10px 12px">
+          <strong style="font-size:14px;line-height:1.4;display:block">${escapeHtml(selectedPoint.label)}</strong>
           ${areaText}
           ${selectedPoint.extraHtml ?? ''}
         </div>`,

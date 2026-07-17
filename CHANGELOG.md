@@ -2,6 +2,18 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Reportes Ejecutivos (3.4)
+- **Título + subtítulo spec** — "3.4 Reportes Ejecutivos" + descripción configurador.
+- **Layout 2 columnas** — Izq: Configurador de reporte (5 selects nativos: Alcance, Período, Comparación, Métrica, Formato) + Secciones a incluir (7 checkboxes inline). Der: Vista previa (portada + índice secciones) + Botones (Generar reporte primary + Programar envío outline) + Historial de reportes (tabla con headers fijos, filas animadas).
+- **Columnas misma altura** — `relative` + `absolute inset-0` wrapper fuerza altura exacta del padre.
+- **Refs spec** — `[FIN-07, DAT-28]`, `[FIN-07]`, `[DAT-12, DAT-08]`.
+
+### Changed — Alarmas Agregadas (3.5)
+- **Título + subtítulo spec** — "3.5 Alarmas Agregadas" + descripción supervisión portafolio.
+- **Banner filtros** — DropdownSelects: País, Severidad, Estado, Período.
+- **Layout 3 filas** — Fila 1: 4 KPI cards (Total activas, Críticas activas con badge rojo, Resueltas 24h, T. medio resolución con indicador SLA). Fila 2 (50%, 2 cols): Mapa geográfico alarmas (marcadores SIEMPRE por estado) + Evolución 30 días (barras apiladas abiertas/escaladas/resueltas) + Top 5 malls (tendencia ↑↓→ vs semana anterior). Fila 3 (50%, full-width): Tabla alarmas por mall (Mall, País, Críticas, Warnings, Resueltas, T.medio h, Última alarma). Headers fijos, filas `animate-fade-in` staggered.
+- **Refs spec** — `[DAT-27, FIN-06]`, `[DAT-03, DAT-27]`, `[DAT-27, DAT-03]`, `[DAT-27, DAT-11]`, `[DAT-03, DAT-11, FIN-06]`.
+
 ### Changed — Costos y Tendencias (3.3)
 - **Título + subtítulo spec** — "3.3 Costos y Tendencias" + descripción análisis de costos.
 - **Banner filtros unificado** — DropdownSelects: País, Período, Moneda, Agrupación + MallMultiSelect. Reemplaza PillToggles/selects sueltos.

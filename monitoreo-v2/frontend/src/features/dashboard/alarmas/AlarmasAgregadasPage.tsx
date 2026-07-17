@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
@@ -274,233 +274,166 @@ export function AlarmasAgregadasPage() {
   const top5 = mallRows.slice(0, 5);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Alarmas Agregadas"
-        eyebrow="Alarmas"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <PillToggle
-              options={COUNTRIES.map((c) => ({ key: c.key, label: c.label }))}
-              value={country}
-              onChange={setCountry}
-              size="sm"
-            />
-            <PillToggle
-              options={SEVERITY_OPTIONS.map((s) => ({ key: s.key, label: s.label }))}
-              value={severityFilter}
-              onChange={setSeverityFilter}
-              size="sm"
-            />
-            <PillToggle
-              options={STATUS_OPTIONS.map((s) => ({ key: s.key, label: s.label }))}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              size="sm"
-            />
-            <PillToggle
-              options={PERIOD_OPTIONS.map((p) => ({ key: p.key, label: p.label }))}
-              value={periodFilter}
-              onChange={setPeriodFilter}
-              size="sm"
-            />
-          </div>
-        }
+        title="3.5 Alarmas Agregadas"
+        description="Supervisión de alarmas a nivel portafolio — sin gestión de alarmas individuales (rol gerencial)"
       />
 
-      {/* Row 1: KPI cards */}
-      <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-        {kpis.map((k) => (
-          <div key={k.title} className="panel px-4 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-xl font-semibold tracking-tight ${k.color}`}>{k.value}</p>
-          </div>
-        ))}
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          País
+          <DropdownSelect options={COUNTRIES.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
+        </span>
+        <span className="flex items-center gap-1">
+          Severidad
+          <DropdownSelect options={SEVERITY_OPTIONS.map((s) => ({ value: s.key, label: s.label }))} value={severityFilter} onChange={setSeverityFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado
+          <DropdownSelect options={STATUS_OPTIONS.map((s) => ({ value: s.key, label: s.label }))} value={statusFilter} onChange={setStatusFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período
+          <DropdownSelect options={PERIOD_OPTIONS.map((p) => ({ value: p.key, label: p.label }))} value={periodFilter} onChange={setPeriodFilter} />
+        </span>
       </div>
 
-      {/* Row 2 (2x height): Map + Evolution chart */}
-      <div className="flex shrink-0 gap-4" style={{ height: '35%' }}>
-        {/* Map */}
-        <div className="relative hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
-          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
-          {selectedBuildingId && (() => {
-            const row = mallRows.find((r) => r.buildingId === selectedBuildingId);
-            if (!row) return null;
-            return (
-              <div className="absolute bottom-3 left-3 right-3 z-20 rounded-lg border border-border bg-background/95 p-3 shadow-lg backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[13px] font-semibold text-foreground">{row.buildingName}</h4>
-                  <button type="button" onClick={() => setSelectedBuildingId(null)} className="text-[11px] text-muted hover:text-foreground">✕</button>
-                </div>
-                <div className="mt-1.5 flex gap-4 text-[11px]">
-                  <span className="text-red-600">{row.criticalCount} críticas</span>
-                  <span className="text-amber-600">{row.warningCount} warnings</span>
-                  <span className="text-emerald-600">{row.resolvedCount} resueltas</span>
-                  <span className="text-muted">Resolución: {row.meanResolutionH != null ? `${row.meanResolutionH}h` : '—'}</span>
-                </div>
-              </div>
-            );
-          })()}
+      {/* Row 1: 4 KPI cards */}
+      <div className="flex shrink-0 gap-3">
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
+          <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{totalActive}</p>
+          <p className="text-[9px] text-subtle">en el período filtrado</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27, FIN-06]</p>
         </div>
-
-        {/* Evolution chart — 30 days */}
-        <div className="panel flex flex-1 flex-col p-4">
-          <h3 className="mb-2 shrink-0 text-[13px] font-medium text-foreground">Evolución alarmas — 30 días</h3>
-          <div className="flex min-h-0 flex-1 items-end gap-[2px]">
-            {evolutionData.map((d) => {
-              const activeH = (d.active / maxEvoValue) * 100;
-              const escalatedH = (d.escalated / maxEvoValue) * 100;
-              const resolvedH = (d.resolved / maxEvoValue) * 100;
-              return (
-                <div key={d.label} className="group relative flex h-full flex-1 flex-col justify-end">
-                  {activeH > 0 && <div className="w-full rounded-t bg-red-400" style={{ height: `${activeH}%` }} />}
-                  {escalatedH > 0 && <div className={`w-full bg-orange-400 ${activeH > 0 ? '' : 'rounded-t'}`} style={{ height: `${escalatedH}%` }} />}
-                  {resolvedH > 0 && <div className={`w-full bg-emerald-400 ${activeH + escalatedH > 0 ? '' : 'rounded-t'}`} style={{ height: `${resolvedH}%` }} />}
-                  <div className="pointer-events-none absolute -top-16 left-1/2 z-30 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[10px] text-background shadow-lg group-hover:block">
-                    <p className="font-medium">{d.label}</p>
-                    <p>Abiertas: {d.active}</p>
-                    <p>Escaladas: {d.escalated}</p>
-                    <p>Resueltas: {d.resolved}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-2 flex shrink-0 items-center gap-3 text-[10px] text-muted">
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-400" /> Abiertas</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-orange-400" /> Escaladas</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Resueltas</span>
-          </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Críticas activas</p>
+          <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{criticalActive}</p>
+          <p className="text-[9px] text-subtle">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27, FIN-06]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600">{resolved24h}</p>
+          <p className="text-[9px] text-subtle">últimas 24 horas</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
+          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
+          <p className="text-[9px] text-subtle">indicador si supera SLA</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06]</p>
         </div>
       </div>
 
-      {/* Row 3 (1x height): Top 5 + Table */}
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Top 5 */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <h3 className="px-4 py-3 text-[13px] font-medium text-foreground">
-              Top 5 centros con más alarmas activas
-            </h3>
-            <ul className="divide-y divide-border">
-              {top5.map((row) => (
-                <li key={row.buildingId} className="flex items-center justify-between px-4 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-foreground">{row.buildingName}</p>
-                    <p className="text-[11px] text-muted">
-                      {row.criticalCount} críticas · {row.warningCount} warnings
-                    </p>
+      {/* Row 2: Map (left) + Evolution + Top 5 (right stacked) */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Mapa geográfico de alarmas */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
+          <p className="shrink-0 text-[9px] text-subtle">marcadores SIEMPRE por estado de alarma</p>
+          <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
+            <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
+          </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-27]</p>
+        </div>
+
+        {/* Right: Evolution + Top 5 */}
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          {/* Evolución 30 días */}
+          <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
+            <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
+            <p className="shrink-0 text-[9px] text-subtle">abiertas / escaladas / resueltas por día</p>
+            <div className="mt-2 flex min-h-0 flex-1 items-end gap-[2px]">
+              {evolutionData.map((d) => {
+                const aH = (d.active / maxEvoValue) * 100;
+                const eH = (d.escalated / maxEvoValue) * 100;
+                const rH = (d.resolved / maxEvoValue) * 100;
+                return (
+                  <div key={d.label} className="group relative flex h-full flex-1 flex-col justify-end" title={`${d.label}: ${d.active} abiertas, ${d.escalated} escaladas, ${d.resolved} resueltas`}>
+                    {aH > 0 && <div className="w-full rounded-t bg-red-400" style={{ height: `${aH}%` }} />}
+                    {eH > 0 && <div className={`w-full bg-orange-400 ${aH > 0 ? '' : 'rounded-t'}`} style={{ height: `${eH}%` }} />}
+                    {rH > 0 && <div className={`w-full bg-emerald-400 ${aH + eH > 0 ? '' : 'rounded-t'}`} style={{ height: `${rH}%` }} />}
                   </div>
-                  <div className="flex items-center gap-3">
-                    {/* ponytail: trend placeholder — compute real when previous-week data available */}
-                    <span className={`text-[12px] font-medium ${row.totalActive > 2 ? 'text-red-500' : row.totalActive === 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                      {row.totalActive > 2 ? '↑' : row.totalActive === 0 ? '↓' : '→'}
-                    </span>
-                    <span className="text-[15px] font-semibold text-foreground">{row.totalActive}</span>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/dashboard/consumo?building=${row.buildingId}`)}
-                      className="text-[11px] text-brand hover:underline"
-                    >
-                      Ver mall
-                    </button>
-                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-1 flex shrink-0 items-center gap-3 text-[9px] text-muted">
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-400" /> Abiertas</span>
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-orange-400" /> Escaladas</span>
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-400" /> Resueltas</span>
+            </div>
+            <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-03]</p>
+          </div>
+
+          {/* Top 5 malls con más alarmas */}
+          <div className="panel shrink-0 px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
+            <p className="text-[9px] text-subtle">con tendencia ↑↓→ vs. semana anterior</p>
+            <ul className="mt-2 space-y-1 text-[11px]">
+              {top5.map((row, i) => (
+                <li key={row.buildingId} className="flex items-center gap-2">
+                  <span className="w-4 text-muted">{i + 1}.</span>
+                  <span className="min-w-0 flex-1 truncate text-foreground">{row.buildingName}</span>
+                  <span className="text-muted">— {row.criticalCount} crít / {row.warningCount} warn</span>
+                  <span className={`font-medium ${row.totalActive > 2 ? 'text-red-500' : row.totalActive === 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                    {row.totalActive > 2 ? '↑' : row.totalActive === 0 ? '↓' : '→'}
+                  </span>
                 </li>
               ))}
-              {top5.length === 0 && (
-                <li className="px-4 py-6 text-center text-[13px] text-muted">Sin alarmas activas.</li>
-              )}
+              {top5.length === 0 && <li className="text-muted">Sin alarmas activas.</li>}
             </ul>
+            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-27, DAT-11]</p>
           </div>
         </div>
+      </div>
 
-        {/* Table — right column */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex shrink-0 items-center gap-2 px-4 py-3">
-              <h3 className="flex-1 text-[13px] font-medium text-foreground">Alarmas por centro comercial</h3>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar mall..."
-                className="w-36 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-brand"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const header = 'Centro,Críticas,Warnings,Resueltas,Total activas,Última alarma';
-                  const csv = [header, ...displayRows.map((r) => `${r.buildingName},${r.criticalCount},${r.warningCount},${r.resolvedCount},${r.totalActive},${r.lastAlertAt ?? '—'}`)].join('\n');
-                  const blob = new Blob([csv], { type: 'text/csv' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url; a.download = `alarmas_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
-              >
-                Exportar CSV
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full text-[13px]">
-                <thead className="sticky top-0 z-10 bg-background">
-                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                    <th className="px-4 py-2">Centro</th>
-                    {([['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['total', 'Total activas'], ['resolution', 'T. resolución'], ['last', 'Última alarma']] as const).map(([col, label]) => (
-                      <th
-                        key={col}
-                        className={`cursor-pointer px-3 py-2 ${col === 'last' ? '' : 'text-right'} hover:text-foreground`}
-                        onClick={() => { if (sortCol === col) { setSortAsc(!sortAsc); } else { setSortCol(col); setSortAsc(false); } }}
-                      >
-                        {label} {sortCol === col ? (sortAsc ? '▲' : '▼') : ''}
-                      </th>
-                    ))}
+      {/* Row 3: Tabla de alarmas por mall */}
+      <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                {([['total', 'Mall'], ['critical', 'País'], ['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['resolution', 'T.medio [h]'], ['last', 'Última alarma']] as [string, string][]).map(([col, label], idx) => (
+                  <th
+                    key={`${col}-${idx}`}
+                    className={`cursor-pointer px-2 py-1.5 ${idx >= 2 && idx <= 5 ? 'text-right' : ''} hover:text-foreground`}
+                    onClick={() => { if (sortCol === col) { setSortAsc(!sortAsc); } else { setSortCol(col as typeof sortCol); setSortAsc(false); } }}
+                  >
+                    {label} {sortCol === col ? (sortAsc ? '▲' : '▼') : ''}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
+              <tbody className="divide-y divide-border">
+                {displayRows.map((row, i) => (
+                  <tr key={row.buildingId} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
+                    <td className="px-2 py-1.5 font-medium text-foreground">{row.buildingName}</td>
+                    <td className="px-2 py-1.5 text-muted">CL</td>
+                    <td className="px-2 py-1.5 text-right"><CriticalBadge count={row.criticalCount} /></td>
+                    <td className="px-2 py-1.5 text-right"><WarningBadge count={row.warningCount} /></td>
+                    <td className="px-2 py-1.5 text-right text-muted">{row.resolvedCount}</td>
+                    <td className="px-2 py-1.5 text-right text-muted">{row.meanResolutionH != null ? `${row.meanResolutionH}` : '—'}</td>
+                    <td className="max-w-[180px] truncate px-2 py-1.5 text-muted">
+                      {row.lastAlertMessage ?? '—'}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {displayRows.map((row) => (
-                    <tr key={row.buildingId} className="transition-colors hover:bg-surface">
-                      <td className="px-4 py-2 font-medium text-foreground">{row.buildingName}</td>
-                      <td className="px-3 py-2 text-right">
-                        <CriticalBadge count={row.criticalCount} />
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <WarningBadge count={row.warningCount} />
-                      </td>
-                      <td className="px-3 py-2 text-right text-muted">{row.resolvedCount}</td>
-                      <td className="px-3 py-2 text-right font-medium text-foreground">{row.totalActive}</td>
-                      <td className="px-3 py-2 text-right text-[11px] text-muted">
-                        {row.meanResolutionH != null ? `${row.meanResolutionH}h` : '—'}
-                      </td>
-                      <td className="max-w-[200px] px-3 py-2">
-                        {row.lastAlertMessage
-                          ? (
-                            <div>
-                              <p className="truncate text-[12px] text-foreground">{row.lastAlertMessage}</p>
-                              <p className="text-[10px] text-muted">
-                                {row.lastAlertAt && new Date(row.lastAlertAt).toLocaleString('es-CL', {
-                                  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-                                })}
-                              </p>
-                            </div>
-                          )
-                          : <span className="text-[12px] text-muted">—</span>
-                        }
-                      </td>
-                    </tr>
-                  ))}
-                  {displayRows.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                        Sin datos de alarmas para los filtros seleccionados.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {displayRows.length === 0 && (
+                  <tr><td colSpan={7} className="px-2 py-6 text-center text-muted">Sin datos de alarmas.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-11, FIN-06]</p>
       </div>
     </div>
   );

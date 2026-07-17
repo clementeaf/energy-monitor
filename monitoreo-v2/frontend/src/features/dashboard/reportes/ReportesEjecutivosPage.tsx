@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced with native selects per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -153,173 +153,143 @@ export function ReportesEjecutivosPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Reportes Ejecutivos"
-        eyebrow="Reportes"
-        actions={
-          <button
-            type="button"
-            onClick={() => { /* scroll to history */ }}
-            className="text-[12px] text-brand hover:underline"
-          >
-            Revisar historial
-          </button>
-        }
+        title="3.4 Reportes Ejecutivos"
+        description="Configurador de reportes con vista previa, generación e historial de archivos"
       />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Left: Configurator */}
-        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
-          <ConfigSection title="Alcance geográfico">
-            <PillToggle
-              options={SCOPE_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={scope}
-              onChange={setScope}
-              size="sm"
-            />
-            {scope === 'building' && (
-              <select
-                value={selectedBuildingId}
-                onChange={(e) => setSelectedBuildingId(e.target.value)}
-                className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none"
-              >
-                <option value="">Seleccionar centro...</option>
-                {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            )}
-          </ConfigSection>
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0 flex gap-3">
+        {/* Left column: Configurator + Sections */}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
+          {/* Configurador de reporte */}
+          <div className="panel px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
+            <p className="text-[9px] text-subtle">los filtros determinan el contenido a generar</p>
+            <div className="mt-3 space-y-3">
+              <ConfigField label="Alcance geográfico (Portafolio / País / Mall)">
+                <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+                {scope === 'building' && (
+                  <select value={selectedBuildingId} onChange={(e) => setSelectedBuildingId(e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    <option value="">Seleccionar centro...</option>
+                    {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                )}
+              </ConfigField>
+              <ConfigField label="Período (Mes / Trimestre / Año / Rango)">
+                <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  {PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </ConfigField>
+              <ConfigField label="Comparación (vs. anterior / año anterior / sin)">
+                <select value={comparison} onChange={(e) => setComparison(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  {COMPARISON_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </ConfigField>
+              <ConfigField label="Métrica principal (Consumo / Costo / Intensidad)">
+                <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  {METRIC_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </ConfigField>
+              <ConfigField label="Formato de salida (PDF / PPT / Excel)">
+                <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  {FORMAT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </ConfigField>
+            </div>
+            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07, DAT-28]</p>
+          </div>
 
-          <ConfigSection title="Período">
-            <PillToggle
-              options={PERIOD_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={period}
-              onChange={setPeriod}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <ConfigSection title="Comparación">
-            <PillToggle
-              options={COMPARISON_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={comparison}
-              onChange={setComparison}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <ConfigSection title="Secciones a incluir">
-            <div className="space-y-1.5">
+          {/* Secciones a incluir */}
+          <div className="panel px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
+            <p className="text-[9px] text-subtle">todas activadas por defecto</p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
               {REPORT_SECTIONS.map((s) => (
-                <label key={s.key} className="flex items-center gap-2 text-[12px] text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={sections.has(s.key)}
-                    onChange={() => toggleSection(s.key)}
-                    className="rounded border-border"
-                  />
+                <label key={s.key} className="flex items-center gap-1.5 text-[11px] text-foreground">
+                  <input type="checkbox" checked={sections.has(s.key)} onChange={() => toggleSection(s.key)} className="rounded border-border" />
                   {s.label}
                 </label>
               ))}
             </div>
-          </ConfigSection>
-
-          <ConfigSection title="Métrica principal">
-            <PillToggle
-              options={METRIC_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={metric}
-              onChange={setMetric}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <ConfigSection title="Formato de salida">
-            <PillToggle
-              options={FORMAT_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={format}
-              onChange={setFormat}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <ConfigSection title="Idioma">
-            <PillToggle
-              options={LANGUAGE_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={language}
-              onChange={setLanguage}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <Button
-            onClick={handleGenerate}
-            loading={generateReport.isPending}
-            className="mt-2 w-full"
-          >
-            Generar reporte
-          </Button>
+            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07, DAT-28]</p>
+          </div>
         </div>
 
-        {/* Right: Preview + History */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Preview */}
-          <div className="panel flex min-h-0 shrink-0 flex-col overflow-hidden p-4" style={{ maxHeight: '65%' }}>
-            <h3 className="mb-3 shrink-0 text-[13px] font-medium text-foreground">Vista previa</h3>
-            {sections.size === 0 ? (
-              <p className="py-6 text-center text-[12px] text-muted">
-                Selecciona al menos una sección.
-              </p>
-            ) : (
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                <div className="grid grid-cols-3 gap-3">
-                  {REPORT_SECTIONS.filter((s) => sections.has(s.key)).map((s) => (
-                    <PreviewCard key={s.key} section={s.key} label={s.label} />
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Right column: Preview + Buttons + History */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+          {/* Vista previa del reporte */}
+          <div className="panel shrink-0 px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
+            <p className="text-[9px] text-subtle">miniatura de portada e índice</p>
+            <div className="mt-2 text-[11px] text-muted">
+              <p>• Portada + logo</p>
+              <p>• Índice de secciones seleccionadas:</p>
+              <ul className="ml-3 mt-1 space-y-0.5">
+                {REPORT_SECTIONS.filter((s) => sections.has(s.key)).map((s) => (
+                  <li key={s.key} className="text-foreground">— {s.label}</li>
+                ))}
+              </ul>
+              {sections.size === 0 && <p className="mt-1 text-subtle">Seleccione al menos una sección</p>}
+            </div>
+            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07]</p>
           </div>
 
-          {/* History */}
-          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex shrink-0 items-center gap-2 px-4 py-3">
-              <h3 className="flex-1 text-[13px] font-medium text-foreground">Historial de reportes generados</h3>
-              <input
-                value={historySearch}
-                onChange={(e) => setHistorySearch(e.target.value)}
-                placeholder="Buscar por tipo o fecha..."
-                className="w-44 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-brand"
-              />
-            </div>
-            <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full text-[13px]">
-                <thead className="sticky top-0 z-10 bg-background">
-                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                    <th className="px-4 py-2">Fecha</th>
-                    <th className="px-3 py-2">Tipo</th>
-                    <th className="px-3 py-2">Alcance</th>
-                    <th className="px-3 py-2">Período</th>
-                    <th className="px-3 py-2">Formato</th>
-                    <th className="px-3 py-2">Usuario</th>
-                    <th className="px-3 py-2 text-center">Estado</th>
-                    <th className="px-3 py-2" />
+          {/* Action buttons */}
+          <div className="flex shrink-0 gap-2">
+            <Button onClick={handleGenerate} loading={generateReport.isPending} className="flex-1">
+              Generar reporte
+            </Button>
+            <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">
+              Programar envío
+            </button>
+          </div>
+
+          {/* Historial de reportes */}
+          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+            <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
+            <p className="shrink-0 text-[9px] text-subtle">retención de archivos ≥ 12 meses</p>
+            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                    <th className="px-2 py-1.5">Fecha</th>
+                    <th className="px-2 py-1.5">Usuario</th>
+                    <th className="px-2 py-1.5">Alcance</th>
+                    <th className="px-2 py-1.5">Formato</th>
+                    <th className="px-2 py-1.5 text-center">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  {sortedReports.map((report) => (
-                    <ReportRow key={report.id} report={report} />
-                  ))}
-                  {sortedReports.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-muted">
-                        No hay reportes generados aún.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
               </table>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <table className="w-full">
+                  <tbody className="divide-y divide-border">
+                    {sortedReports.map((report, i) => (
+                      <tr key={report.id} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
+                        <td className="px-2 py-1.5 text-foreground">{new Date(report.createdAt).toLocaleDateString('es-CL')}</td>
+                        <td className="px-2 py-1.5 text-muted">{(report as unknown as Record<string, unknown>).userEmail as string ?? '—'}</td>
+                        <td className="px-2 py-1.5 text-muted">{(report as unknown as Record<string, unknown>).scope as string ?? 'Portafolio'}</td>
+                        <td className="px-2 py-1.5 uppercase text-muted">{report.format}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-medium ${STATUS_STYLE[report.fileUrl ? 'ready' : 'generating'] ?? ''}`}>
+                            {STATUS_LABEL[report.fileUrl ? 'ready' : 'generating'] ?? '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {sortedReports.length === 0 && (
+                      <tr><td colSpan={5} className="px-2 py-6 text-center text-muted">No hay reportes generados aún.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+            <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-12, DAT-08]</p>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -466,12 +436,12 @@ function PreviewCard({ section, label }: Readonly<{ section: string; label: stri
   );
 }
 
-/* ── Config section wrapper ── */
+/* ── Config field (label + input) ── */
 
-function ConfigSection({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
+function ConfigField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
-    <div className="panel px-3 py-2.5">
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">{title}</p>
+    <div>
+      <p className="mb-1 text-[10px] text-muted">{label}</p>
       {children}
     </div>
   );

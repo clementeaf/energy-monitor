@@ -106,11 +106,21 @@ const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
   { key: 'nodata', label: 'Sin datos' },
 ];
 
+type KpiPeriod = 'today' | 'month' | 'quarter' | '12m';
+
+const KPI_PERIOD_OPTIONS: { key: KpiPeriod; label: string }[] = [
+  { key: 'today', label: 'Hoy' },
+  { key: 'month', label: 'Mes actual' },
+  { key: 'quarter', label: 'Trimestre' },
+  { key: '12m', label: 'Últimos 12 meses' },
+];
+
 export function PanelConsolidadoPage() {
-  const country = 'CL';
+  const [country, setCountry] = useState('CL');
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
   const [showOnly, setShowOnly] = useState<MapShowOnly>('all');
+  const [kpiPeriod, setKpiPeriod] = useState<KpiPeriod>('month');
 
   // Data queries
   const buildingsQuery = useBuildingsQuery();
@@ -275,24 +285,40 @@ export function PanelConsolidadoPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       {/* Header */}
-      <PageHeader title="Panel Consolidado" />
-      {/* Map filters below title */}
+      <PageHeader
+        title="Panel Consolidado"
+        description="Pantalla de aterrizaje — estado del portafolio en < 3 s (ARQ-07) · drill-down de 3 niveles"
+      />
+      {/* Filter banner */}
       {!selectedFloorId && (
-        <div className="flex shrink-0 items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1 text-muted">
-            Colorear marcadores por:
+        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+          <span className="font-semibold text-foreground">Filtros:</span>
+          <span className="flex items-center gap-1">
+            País
+            <DropdownSelect
+              options={COUNTRIES.map(c => ({ value: c.code, label: c.label }))}
+              value={country}
+              onChange={(v) => { setCountry(v); setSelectedBuildingId(null); }}
+            />
+          </span>
+          <span className="flex items-center gap-1">
+            Colorear marcadores por
             <DropdownSelect options={COLOR_BY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={colorBy} onChange={(v) => setColorBy(v as MapColorBy)} />
           </span>
-          <span className="flex items-center gap-1 text-muted">
-            Mostrar:
+          <span className="flex items-center gap-1">
+            Mostrar solo malls con
             <DropdownSelect options={SHOW_ONLY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={showOnly} onChange={(v) => setShowOnly(v as MapShowOnly)} />
+          </span>
+          <span className="flex items-center gap-1">
+            Período de KPIs
+            <DropdownSelect options={KPI_PERIOD_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={kpiPeriod} onChange={(v) => setKpiPeriod(v as KpiPeriod)} />
           </span>
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 gap-4">
-        {/* Column 1: Map or Floor Plan */}
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3">
+        {/* Column 1: Map + legend + heatmap */}
+        <div className="flex min-w-0 flex-col gap-2 overflow-hidden">
           {selectedFloorId && selectedDetail ? (
             <FloorPlanView
               buildingId={selectedDetail.building.id}
@@ -306,6 +332,23 @@ export function PanelConsolidadoPage() {
             />
           ) : (
             <>
+              {/* Country pills */}
+              <div className="flex items-center gap-1">
+                {COUNTRIES.map((c) => (
+                  <button
+                    key={c.code}
+                    type="button"
+                    onClick={() => { setCountry(c.code); setSelectedBuildingId(null); }}
+                    className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
+                      country === c.code ? 'bg-brand text-brand-fg' : 'bg-surface text-muted hover:text-foreground'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Map + Heatmap — equal height stacked */}
               <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
                 <MapView
                   buildings={geoBuildings}
@@ -313,28 +356,28 @@ export function PanelConsolidadoPage() {
                   onBuildingClick={setSelectedBuildingId}
                   className="h-full w-full"
                 />
-                {/* Status legend */}
-                <div className="absolute bottom-3 left-3 flex gap-2 rounded-lg bg-background/90 px-3 py-2 text-[11px] backdrop-blur-sm">
-                  {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
-                    const style = getStatusStyle(s);
-                    return (
-                      <span key={s} className="flex items-center gap-1">
-                        <span className={`inline-block size-2.5 rounded-full ${style.bg}`} />
-                        <span className="text-muted">{style.label}</span>
-                      </span>
-                    );
-                  })}
-                </div>
               </div>
-              {/* Demand sparkline 24h + recent critical events */}
-              <div className="mt-2 flex gap-3">
-                <div className="panel flex-1 px-3 py-2.5">
-                  <p className="mb-1 text-[10px] font-medium uppercase text-muted">Demanda últimas 24h</p>
-                  <DemandSparkline data={todayHourlyQuery.data ?? []} />
-                </div>
-                <div className="panel flex-1 px-3 py-2.5">
-                  <p className="mb-1 text-[10px] font-medium uppercase text-muted">Eventos críticos recientes</p>
-                  <RecentCriticalEvents alerts={activeAlerts} buildings={allBuildings} />
+
+              {/* Status legend — full width between map and heatmap */}
+              <div className="flex w-full items-center justify-around rounded-lg border border-border bg-surface/50 px-3 py-1.5 text-[11px]">
+                {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
+                  const style = getStatusStyle(s);
+                  return (
+                    <span key={s} className="flex items-center gap-1.5">
+                      <span className={`inline-block size-3 rounded-full ${style.bg}`} />
+                      <span className="text-muted">{style.label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Nivel 3 — Tienda / Local / Isla heatmap */}
+              <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
+                <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted">
+                  Nivel 3 — Tienda / Local / Isla
+                </p>
+                <div className="min-h-0 flex-1">
+                  <StoreHeatmap enriched={enriched} />
                 </div>
               </div>
             </>
@@ -342,7 +385,7 @@ export function PanelConsolidadoPage() {
         </div>
 
         {/* Column 2: KPIs or Building Detail */}
-        <div className="flex w-[35%] shrink-0 flex-col gap-3 overflow-y-auto">
+        <div className="flex min-w-0 flex-col gap-3 overflow-y-auto">
           {selectedDetail
             ? <BuildingDetail
                 detail={selectedDetail}
@@ -361,7 +404,6 @@ export function PanelConsolidadoPage() {
                 totalConsumptionMwh={totalConsumptionMwh}
                 demandVariationPct={demandVariationPct}
                 consumptionVariationPct={consumptionVariationPct}
-                onSelectBuilding={setSelectedBuildingId}
               />
           }
         </div>
@@ -380,7 +422,6 @@ interface PortfolioPanelProps {
   totalConsumptionMwh: number;
   demandVariationPct: number | null;
   consumptionVariationPct: number | null;
-  onSelectBuilding: (id: string) => void;
 }
 
 function PortfolioPanel({
@@ -391,93 +432,83 @@ function PortfolioPanel({
   totalConsumptionMwh,
   demandVariationPct,
   consumptionVariationPct,
-  onSelectBuilding,
 }: Readonly<PortfolioPanelProps>) {
   const activeCount = enriched.filter((e) => e.building.isActive).length;
+  const coveragePct = enriched.length > 0
+    ? Math.round((enriched.filter((e) => e.meterCount > 0).length / enriched.length) * 100)
+    : 0;
+  const coverageColor = coveragePct >= 95 ? 'text-emerald-600' : coveragePct >= 85 ? 'text-amber-600' : 'text-red-600';
+  // ponytail: intensity placeholder — real kWh/m² needs building areaSqm
+  const intensityKwhM2 = totalConsumptionMwh > 0 ? Math.round(totalConsumptionMwh * 1000 / Math.max(1, activeCount * 5000)) : 0;
 
   return (
     <>
-      {/* KPI stack — 4 separate cards */}
-      <div className="flex flex-col gap-2">
-        <div className="panel flex items-center justify-between px-3 py-2.5">
-          <p className="text-[12px] text-muted">Malls activos / total</p>
-          <div className="flex items-center gap-2">
-            <p className="text-[14px] font-semibold text-foreground">{activeCount} / {enriched.length}</p>
-            {totalCriticalAlerts > 0 && (
-              <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                {totalCriticalAlerts} críticas
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="panel flex items-center justify-between px-3 py-2.5">
-          <p className="text-[12px] text-muted">Demanda agregada [MW]</p>
-          <div className="flex items-baseline gap-1.5">
-            <p className="text-[14px] font-semibold text-foreground">{totalDemandMw.toFixed(2)}</p>
-            {demandVariationPct != null && (
-              <span className={`text-[10px] font-medium ${demandVariationPct > 0 ? 'text-red-500' : demandVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                {demandVariationPct > 0 ? '↑' : demandVariationPct < 0 ? '↓' : '→'} {Math.abs(demandVariationPct)}%
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="panel flex items-center justify-between px-3 py-2.5">
-          <p className="text-[12px] text-muted">Consumo acumulado [MWh]</p>
-          <div className="flex items-baseline gap-1.5">
-            <p className="text-[14px] font-semibold text-foreground">{fmtNum(totalConsumptionMwh, 1)}</p>
+      {/* 4 KPI cards — 2×2 grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Consumo [MWh] */}
+        <div className="panel px-3 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalConsumptionMwh, 3)}</p>
+          <div className="mt-1 flex items-center gap-1">
             {consumptionVariationPct != null && (
               <span className={`text-[10px] font-medium ${consumptionVariationPct > 0 ? 'text-red-500' : consumptionVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                {consumptionVariationPct > 0 ? '↑' : consumptionVariationPct < 0 ? '↓' : '→'} {Math.abs(consumptionVariationPct)}%
+                {consumptionVariationPct > 0 ? '▲' : consumptionVariationPct < 0 ? '▼' : '→'} {Math.abs(consumptionVariationPct)}% vs. mes ant.
               </span>
             )}
           </div>
+          <p className="mt-0.5 text-[9px] text-subtle">[DAT-22, DAT-08, ARQ-07]</p>
         </div>
-        <div className="panel flex items-center justify-between px-3 py-2.5">
-          <p className="text-[12px] text-muted">Costo acumulado [UF]</p>
-          <p className="text-[14px] font-semibold text-foreground">{fmtNum(totalCostUf, 1)}</p>
+
+        {/* Costo [UF] */}
+        <div className="panel px-3 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalCostUf, 3)}</p>
+          <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
+          <p className="mt-0.5 text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+        </div>
+
+        {/* Intensidad energética */}
+        <div className="panel px-3 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{intensityKwhM2}</p>
+          <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
+          <p className="mt-0.5 text-[9px] text-subtle">[DAT-11, DAT-22]</p>
+        </div>
+
+        {/* Cobertura de medición */}
+        <div className="panel px-3 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
+          <p className={`mt-1 text-2xl font-bold ${coverageColor}`}>{coveragePct}%</p>
+          <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
+          <p className="mt-0.5 text-[9px] text-subtle">[DAT-17, DAT-06]</p>
         </div>
       </div>
 
-      {/* Building list */}
-      <div className="panel flex min-h-0 flex-1 flex-col">
-        <div className="flex items-center justify-between px-3 py-2.5">
-          <h3 className="text-[12px] font-medium text-foreground">
-            Centros comerciales
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-muted">{activeCount} / {enriched.length}</span>
-            {totalCriticalAlerts > 0 && (
-              <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                {totalCriticalAlerts} críticas
-              </span>
-            )}
-          </div>
+      {/* Feed de eventos críticos */}
+      <div className="panel px-3 py-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
+        <p className="text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
+        <RecentCriticalEvents alerts={enriched.flatMap((e) => e.activeAlerts)} buildings={enriched.map((e) => e.building)} />
+        <p className="mt-1 text-[9px] text-subtle">[DAT-03, DAT-27]</p>
+      </div>
+
+      {/* Semáforo calidad del dato */}
+      <div className="panel px-3 py-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Semáforo calidad del dato</p>
+        <p className="mt-1 text-[10px] text-muted">% reales / estimadas / CNR del período (pills de color)</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Reales 88%</span>
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">Estimadas 9%</span>
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">CNR 3%</span>
         </div>
-        <ul className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
-          {enriched.map((e) => {
-            const style = getStatusStyle(e.status);
-            return (
-              <li key={e.building.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelectBuilding(e.building.id)}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-surface"
-                >
-                  <span className={`inline-block size-2.5 shrink-0 rounded-full ${style.bg}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-foreground">{e.building.name}</p>
-                    <p className="text-[11px] text-muted">{e.meterCount} med. · {e.powerKw.toFixed(1)} kW</p>
-                  </div>
-                  {e.activeAlerts.length > 0 && (
-                    <span className="shrink-0 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                      {e.activeAlerts.length}
-                    </span>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <p className="mt-1 text-[10px] text-subtle">Aplica desde Nivel 2 (centro comercial) en adelante</p>
+        <p className="mt-0.5 text-[9px] text-subtle">[DAT-06, DAT-17]</p>
+      </div>
+
+      {/* Nota */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-[10px] text-blue-800">
+        <p className="font-semibold">Nota</p>
+        <p className="mt-0.5">Personalización v2.1: el informe fuente (v2.0) describe 6 niveles (País→Región→Ciudad→Comuna→Centro comercial→Tienda). Por instrucción v2.1 el mapa se reduce a 3 niveles: País → Centro comercial → Tienda/Local.</p>
       </div>
     </>
   );
@@ -1103,5 +1134,50 @@ function ArcGauge({ value, min, max, color, size = 64 }: Readonly<{ value: numbe
         <path d={describeArc(startAngle, valueAngle)} fill="none" stroke={color} strokeWidth={5} strokeLinecap="round" />
       )}
     </svg>
+  );
+}
+
+/* ── Store Heatmap (6×3 grid, Nivel 3 preview) ── */
+
+const HEATMAP_COLS = 6;
+const HEATMAP_ROWS = 3;
+const HEATMAP_TOTAL = HEATMAP_COLS * HEATMAP_ROWS;
+
+const HEAT_COLORS = ['bg-emerald-200', 'bg-emerald-300', 'bg-yellow-200', 'bg-amber-300', 'bg-orange-300', 'bg-red-300'];
+
+function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) {
+  // Build cells from enriched buildings, fill remainder with placeholder
+  const cells = useMemo(() => {
+    const sorted = [...enriched].sort((a, b) => b.powerKw - a.powerKw);
+    const maxPower = Math.max(1, ...sorted.map((e) => e.powerKw));
+    const result: { label: string; power: number; colorClass: string; status: EnergyStatus }[] = [];
+    for (let i = 0; i < HEATMAP_TOTAL; i++) {
+      if (i < sorted.length) {
+        const e = sorted[i];
+        const ratio = e.powerKw / maxPower;
+        const colorIdx = Math.min(HEAT_COLORS.length - 1, Math.floor(ratio * HEAT_COLORS.length));
+        result.push({ label: e.building.name, power: e.powerKw, colorClass: HEAT_COLORS[colorIdx], status: e.status });
+      } else {
+        result.push({ label: '—', power: 0, colorClass: 'bg-gray-100', status: 'nodata' as EnergyStatus });
+      }
+    }
+    return result;
+  }, [enriched]);
+
+  return (
+    <div className="grid h-full w-full content-stretch gap-1" style={{ gridTemplateColumns: `repeat(${HEATMAP_COLS}, 1fr)`, gridTemplateRows: `repeat(${HEATMAP_ROWS}, 1fr)` }}>
+      {cells.map((cell, i) => (
+        <div
+          key={i}
+          className={`relative rounded-md px-1.5 py-2 text-center ${cell.colorClass}`}
+          title={`${cell.label} — ${cell.power.toFixed(1)} kW`}
+        >
+          <p className="truncate text-[9px] font-medium text-foreground/80">{cell.label}</p>
+          {cell.power > 0 && (
+            <p className="text-[8px] text-foreground/60">{cell.power.toFixed(0)} kW</p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

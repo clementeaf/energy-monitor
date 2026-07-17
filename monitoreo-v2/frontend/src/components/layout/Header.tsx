@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import { usePermissions } from '../../hooks/usePermissions';
+import { PROFILE_LABELS } from '../../lib/profiles';
+import globeLogo from '../../assets/globe-logo.png';
+import { AdminSwitchers } from './AdminSwitchers';
 
 const COUNTRIES = [
   { code: 'CL', label: 'CHILE' },
@@ -46,8 +50,9 @@ function FlagCircle({ code, size = 18 }: Readonly<{ code: string; size?: number 
 }
 
 export function Header() {
-  const { user } = useAuthStore();
+  const { user, tenant } = useAuthStore();
   const { toggleSidebar, sidebarOpen } = useAppStore();
+  const { profile } = usePermissions();
   const navigate = useNavigate();
   const [activeCountry, setActiveCountry] = useState<string>('CL');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -64,7 +69,14 @@ export function Header() {
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
-      {/* Hamburger — always visible when sidebar collapsed */}
+      {/* Logo */}
+      <img
+        src={tenant?.logoUrl ?? globeLogo}
+        alt="Globe Power"
+        className="h-8 w-auto object-contain"
+      />
+
+      {/* Hamburger */}
       <button
         type="button"
         onClick={toggleSidebar}
@@ -75,6 +87,14 @@ export function Header() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      {/* Active profile badge */}
+      <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+        {PROFILE_LABELS[profile]}
+      </span>
+
+      {/* Admin switchers (Vista / Empresa / Tienda / Edificio) */}
+      <AdminSwitchers />
 
       <div className="flex-1" />
 

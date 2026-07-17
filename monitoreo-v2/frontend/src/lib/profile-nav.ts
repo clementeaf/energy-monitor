@@ -38,32 +38,12 @@ const CNR_PENDIENTES: ProfileSubItem = { to: APP_ROUTES.cnrPendientes, label: 'C
 const MAPA_COBERTURA: ProfileSubItem = { to: APP_ROUTES.mapaCobertura, label: 'Cobertura' };
 
 const GERENCIAL_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Panel Consolidado',
-    icon: 'dashboard',
-    basePath: '/dashboard',
-    children: [DASHBOARD_CONSOLIDADO, DASHBOARD_CONSUMO, DASHBOARD_COSTOS],
-  },
-  {
-    label: 'Alarmas',
-    icon: 'alerts',
-    basePath: '/alerts',
-    extraPaths: ['/gerencial/alarmas'],
-    children: [ALERTAS_AGREGADAS],
-  },
-  {
-    label: 'Reportes',
-    icon: 'analytics',
-    basePath: '/reports',
-    extraPaths: ['/gerencial/reportes'],
-    children: [REPORTES_EJECUTIVOS, REPORTES_EXPORTAR],
-  },
-  {
-    label: 'Mapa Indoor',
-    icon: 'monitoring',
-    to: APP_ROUTES.map,
-    basePath: '/map',
-  },
+  { label: 'Panel Consolidado', icon: 'dashboard', to: APP_ROUTES.consolidado, basePath: '/dashboard/consolidado', extraPaths: ['/dashboard'] },
+  { label: 'Consumo Jerárquico', icon: 'monitoring', to: APP_ROUTES.consumo, basePath: '/dashboard/consumo' },
+  { label: 'Costos y Tendencias', icon: 'analytics', to: APP_ROUTES.costos, basePath: '/dashboard/costos' },
+  { label: 'Reportes Ejecutivos', icon: 'analytics', to: APP_ROUTES.reportesEjecutivos, basePath: '/reports', extraPaths: ['/gerencial/reportes'] },
+  { label: 'Alarmas Agregadas', icon: 'alerts', to: APP_ROUTES.alarmasAgregadas, basePath: '/alerts', extraPaths: ['/gerencial/alarmas'] },
+  { label: 'Exportar Reportes', icon: 'admin', to: APP_ROUTES.exportarReportes, basePath: '/reports/exportar' },
 ];
 
 const MAPA_INDOOR: ProfileSubItem = { to: APP_ROUTES.map, label: 'Mapa Indoor' };

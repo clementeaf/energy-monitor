@@ -1,5 +1,44 @@
 # Changelog
 
+## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
+
+### Changed — Layout global
+- **Header full-width** — Barra superior ocupa todo el ancho. Sidebar empieza debajo del header (`AppLayout` de `flex row` a `flex col`).
+- **Logo en Header** — Movido de sidebar a header (izquierda). Sidebar sin logo.
+- **Badge perfil activo** — Header muestra `PROFILE_LABELS[profile]` como pill (`bg-brand/10`).
+- **Admin switchers en Header** — Vista, Empresa, Tienda, Edificio movidos del sidebar al header. Nuevo `AdminSwitchers.tsx` con dropdowns inline. Sidebar reducido a solo navegación + footer.
+- **Padding reducido** — `main` de `p-4/p-6` a `p-2/p-3` (menos distancia sidebar→contenido).
+
+### Changed — Sidebar Gerencial
+- **6 entradas planas** — Panel Consolidado, Consumo Jerárquico, Costos y Tendencias, Reportes Ejecutivos, Alarmas Agregadas, Exportar Reportes. Sin agrupación por secciones. Mapa Indoor removido del perfil gerencial.
+
+### Changed — Panel Consolidado (3.1)
+- **Subtítulo spec** — "Pantalla de aterrizaje — estado del portafolio en < 3 s (ARQ-07) · drill-down de 3 niveles".
+- **Banner de filtros** — Línea unificada: País (DropdownSelect) + Colorear marcadores por + Mostrar solo malls con + Período de KPIs (nuevo: hoy/mes/trimestre/12m).
+- **Selector país** — `useState` (era hardcoded `'CL'`). Tabs Chile/Perú/Colombia funcionales.
+- **Columna izquierda** — Country pills (rounded-full) → Mapa (flex-1) → Semáforo status (full-width, `justify-around`) → Heatmap Nivel 3 (flex-1, misma altura que mapa).
+- **Heatmap Nivel 3** — "Tienda / Local / Isla", grid 6×3, coloreado por intensidad de consumo (verde→rojo), tooltip nombre+kW.
+- **Layout 50/50** — Columnas izquierda/derecha `grid-cols-2` (era 65/35).
+- **Columna derecha rediseñada** — 4 KPI cards en grid 2×2 (Consumo MWh, Costo UF, Intensidad kWh/m², Cobertura %) con variación %, refs spec `[DAT-xx]`. Feed eventos críticos. Semáforo calidad dato (pills Reales/Estimadas/CNR). Nota v2.1 (banner azul).
+
+### Changed — DropdownSelect
+- **Transición smooth** — Open/close con `opacity + scale-y` 200ms ease-out (`origin-top`). Antes era mount/unmount sin animación.
+
+### Changed — Mapa Indoor
+- **m² y dirección** para malls indoor — Sidebar panel izquierdo ahora muestra `sizeText` y `address` para malls indoor (antes solo para PIN).
+
+### Fixed — Infra
+- **Redis SG** — Security group `sg-0adda6a999e8d5d9a` tenía solo puerto 5432 (PostgreSQL). Agregado 6379 (Redis) desde VPC CIDR `172.31.0.0/16`.
+- **Redis error handling** — `ThrottlerStorageRedisService` recibía URL string directo (sin error handler → unhandled `ETIMEDOUT` crash). Ahora recibe instancia `ioredis` con `maxRetriesPerRequest: 2`, `retryStrategy` con backoff, `.on('error')` handler. Backend deployed `redis-fix-20260715`.
+- **Indoor malls metadata** — 4 UPDATEs en prod vía ECS Exec: Arauco Kennedy (120.000 m²), Arauco Chillán (32.500 m²), Arauco Maipú (75.000 m²), Buenaventura Quilicura (29.500 m²). `address` y `size_text` estaban `null` en `mapvx_malls`.
+
+### Stats
+- Sidebar: 265 líneas (era 853). Switchers extraídos a `AdminSwitchers.tsx`.
+- Panel Consolidado alineado con wireframe spec 3.1.
+- 0 TS errors. Backend ECS rev 22 (`redis-fix-20260715`).
+
+---
+
 ## [2.44.0-alpha.0] - 2026-07-13 — UX PASS + MAPA INDOOR ENRIQUECIDO
 
 ### Changed — Observabilidad

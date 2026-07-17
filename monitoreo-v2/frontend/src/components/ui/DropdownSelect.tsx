@@ -117,44 +117,48 @@ function DropdownSelectInner<T extends string = string>({
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute z-50 mt-1 w-full panel shadow-sm">
-          {showSearch && (
-            <div className="border-b border-border p-2">
-              <input
-                ref={searchRef}
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setHighlightIdx(0); }}
-                placeholder="Buscar..."
-                className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground outline-none transition-all duration-150 focus:border-brand"
-              />
-            </div>
+      <div
+        className={`absolute z-50 mt-1 w-full panel shadow-sm transition-all duration-200 ease-out origin-top ${
+          open
+            ? 'scale-y-100 opacity-100'
+            : 'pointer-events-none scale-y-95 opacity-0'
+        }`}
+      >
+        {showSearch && (
+          <div className="border-b border-border p-2">
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setHighlightIdx(0); }}
+              placeholder="Buscar..."
+              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground outline-none transition-all duration-150 focus:border-brand"
+            />
+          </div>
+        )}
+        <ul ref={listRef} className="max-h-60 overflow-y-auto py-1" role="listbox">
+          {filtered.length === 0 && (
+            <li className="px-3 py-2 text-sm text-subtle">Sin resultados</li>
           )}
-          <ul ref={listRef} className="max-h-60 overflow-y-auto py-1" role="listbox">
-            {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-subtle">Sin resultados</li>
-            )}
-            {filtered.map((opt, i) => (
-              <li
-                key={opt.value}
-                role="option"
-                aria-selected={opt.value === value}
-                tabIndex={0}
-                onMouseEnter={() => setHighlightIdx(i)}
-                onClick={() => select(opt.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(opt.value); } }}
-                className={
-                  'cursor-pointer px-3 py-2 text-sm transition-colors duration-150 ' +
-                  (opt.value === value ? 'font-medium text-brand' : 'text-foreground') + ' ' +
-                  (i === highlightIdx ? 'bg-surface' : 'hover:bg-surface')
-                }
-              >
-                {opt.label}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+          {filtered.map((opt, i) => (
+            <li
+              key={opt.value}
+              role="option"
+              aria-selected={opt.value === value}
+              tabIndex={0}
+              onMouseEnter={() => setHighlightIdx(i)}
+              onClick={() => select(opt.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(opt.value); } }}
+              className={
+                'cursor-pointer px-3 py-2 text-sm transition-colors duration-150 ' +
+                (opt.value === value ? 'font-medium text-brand' : 'text-foreground') + ' ' +
+                (i === highlightIdx ? 'bg-surface' : 'hover:bg-surface')
+              }
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

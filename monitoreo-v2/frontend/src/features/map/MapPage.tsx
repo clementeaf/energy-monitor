@@ -212,10 +212,14 @@ export function MapPage() {
             {activeMall && (
               <div className="mt-1 space-y-1 text-xs text-muted">
                 {isIndoor ? (
-                  <div>
-                    <span>{activeMall.floors.length} pisos</span>
-                    <span className="mx-1.5">&middot;</span>
-                    <span>{storesQuery.data?.length ?? 0} tiendas</span>
+                  <div className="space-y-1">
+                    <div>
+                      <span>{activeMall.floors.length} pisos</span>
+                      <span className="mx-1.5">&middot;</span>
+                      <span>{storesQuery.data?.length ?? 0} tiendas</span>
+                    </div>
+                    {activeMall.sizeText && <p className="font-medium text-foreground">{activeMall.sizeText}</p>}
+                    {activeMall.address && <p className="text-muted">{activeMall.address}</p>}
                   </div>
                 ) : (
                   <div className="rounded-md border border-border bg-surface p-2.5 text-xs">

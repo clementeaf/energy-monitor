@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard, type ThrottlerModuleOptions } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import Redis from 'ioredis';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { getDatabaseConfig } from './config/database.config';
 import { DatabaseModule } from './database/database.module';
@@ -94,7 +95,19 @@ import { HealthController } from './health.controller';
             const req = context.switchToHttp().getRequest();
             return req.url?.startsWith('/api/mapvx/tiles/') ?? false;
           },
-          ...(redisUrl ? { storage: new ThrottlerStorageRedisService(redisUrl) } : {}),
+          ...(redisUrl ? { storage: new ThrottlerStorageRedisService(
+            new Redis(redisUrl, {
+              maxRetriesPerRequest: 2,
+              lazyConnect: false,
+              retryStrategy: (times) => (times > 3 ? null : Math.min(times * 500, 3000)),
+            }).on('error', (err) => {
+              // ponytail: swallow connection errors to prevent unhandled crash
+              if (!(globalThis as unknown as Record<string, boolean>).__redisWarnLogged) {
+                console.warn(`[Throttler] Redis error (will use in-memory fallback): ${err.message}`);
+                (globalThis as unknown as Record<string, boolean>).__redisWarnLogged = true;
+              }
+            }),
+          ) } : {}),
         };
       },
     }),

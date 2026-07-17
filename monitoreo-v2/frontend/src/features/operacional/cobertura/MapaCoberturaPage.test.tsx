@@ -71,7 +71,7 @@ describe('MapaCoberturaPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Mapa de Cobertura' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.6 Mapa de Cobertura' })).toBeInTheDocument();
     });
 
     it('renders map', () => {
@@ -79,49 +79,64 @@ describe('MapaCoberturaPage', () => {
       expect(screen.getByTestId('map-view')).toBeInTheDocument();
     });
 
-    it('renders metric selector', () => {
+    it('renders map panel label', () => {
       renderPage();
-      expect(screen.getByText('% Online')).toBeInTheDocument();
-      expect(screen.getAllByText('Alertas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Última lectura')).toBeInTheDocument();
+      expect(screen.getByText('Mapa interactivo de cobertura')).toBeInTheDocument();
     });
 
-    it('renders search input', () => {
+    it('renders side panel label', () => {
       renderPage();
-      expect(screen.getByPlaceholderText('Buscar centro...')).toBeInTheDocument();
+      expect(screen.getByText('Panel lateral de lista')).toBeInTheDocument();
     });
   });
 
-  describe('side panel', () => {
-    it('renders building list sorted by % online ascending', () => {
+  describe('side panel table', () => {
+    it('renders table column headers', () => {
       renderPage();
-      // b1: 1/2 = 50% online (worst), b2: 1/1 = 100% online
-      const items = screen.getAllByRole('button').filter((btn) =>
-        btn.textContent?.includes('% online'),
-      );
-      expect(items.length).toBe(2);
-      // First should be Mall Norte (50%)
-      expect(items[0].textContent).toContain('Mall Norte');
-      expect(items[0].textContent).toContain('50% online');
+      expect(screen.getByText('Mall')).toBeInTheDocument();
+      expect(screen.getByText('% online')).toBeInTheDocument();
+      expect(screen.getByText('Alarmas')).toBeInTheDocument();
+      expect(screen.getByText('Último dato')).toBeInTheDocument();
     });
 
-    it('shows meter count per building', () => {
+    it('renders building names', () => {
       renderPage();
-      expect(screen.getByText(/2 med\./)).toBeInTheDocument();
+      expect(screen.getByText('Mall Norte')).toBeInTheDocument();
+      expect(screen.getByText('Mall Sur')).toBeInTheDocument();
     });
 
-    it('shows alert count', () => {
+    it('renders online percentage for each building', () => {
       renderPage();
-      expect(screen.getByText(/1 alertas/)).toBeInTheDocument();
+      // b1: 1/2 = 50% online, b2: 1/1 = 100% online
+      expect(screen.getByText('50%')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
+    });
+
+    it('renders alert count for buildings with alerts', () => {
+      renderPage();
+      // b1 has 1 alert
+      expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    it('renders buildings sorted worst first (lowest % online first)', () => {
+      renderPage();
+      const rows = screen.getAllByRole('row');
+      // First data row should be Mall Norte (50% — worst)
+      expect(rows[1].textContent).toContain('Mall Norte');
     });
   });
 
   describe('search', () => {
+    it('renders search input', () => {
+      renderPage();
+      expect(screen.getByPlaceholderText('Buscar mall...')).toBeInTheDocument();
+    });
+
     it('filters buildings by name', async () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.type(screen.getByPlaceholderText('Buscar centro...'), 'Sur');
+      await user.type(screen.getByPlaceholderText('Buscar mall...'), 'Sur');
 
       expect(screen.queryByText('Mall Norte')).not.toBeInTheDocument();
       expect(screen.getByText('Mall Sur')).toBeInTheDocument();
@@ -131,7 +146,7 @@ describe('MapaCoberturaPage', () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.type(screen.getByPlaceholderText('Buscar centro...'), 'zzz');
+      await user.type(screen.getByPlaceholderText('Buscar mall...'), 'zzz');
 
       expect(screen.getByText('Sin resultados.')).toBeInTheDocument();
     });

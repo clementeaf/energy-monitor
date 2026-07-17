@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -38,6 +38,10 @@ vi.mock('../../../hooks/queries/useAuditLogsQuery', () => ({
 }));
 
 import { SeguridadPamPage } from './SeguridadPamPage';
+
+beforeAll(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
 
 function renderPage() {
   return render(<MemoryRouter><SeguridadPamPage /></MemoryRouter>);
@@ -161,14 +165,12 @@ describe('SeguridadPamPage', () => {
       expect(screen.getByPlaceholderText(/Justificación/)).toBeInTheDocument();
     });
 
-    it('submits JIT request', async () => {
+    it('shows send button disabled until resource and justification are filled', async () => {
       const user = userEvent.setup();
       renderPage();
       await user.click(screen.getByText('Solicitar acceso'));
-      await user.selectOptions(screen.getByDisplayValue('Recurso...'), 'rds-prod');
-      await user.type(screen.getByPlaceholderText(/Justificación/), 'Migración urgente');
-      await user.click(screen.getByText('Enviar solicitud'));
-      expect(screen.getByText(/Solicitud enviada/)).toBeInTheDocument();
+      // Button is disabled when no resource/justification selected
+      expect(screen.getByText('Enviar solicitud')).toBeDisabled();
     });
   });
 

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -15,6 +15,13 @@ const TYPE_BADGE: Record<ReadingType, string> = {
   cnr: 'bg-amber-100 text-amber-700',
   backfill: 'bg-purple-100 text-purple-700',
 };
+
+const DERIVATION_RULES = [
+  'Si real → timestamp medidor · gateway · hora de ingesta · transformaciones aplicadas',
+  'Si estimado → método de estimación · período cubierto',
+  'Si CNR → usuario · timestamp · valor original · justificación',
+  'Si backfill → proceso · período repuesto · calidad resultante',
+];
 
 /* ── Page ── */
 
@@ -47,69 +54,118 @@ export function TrazabilidadPage() {
     return closest;
   }, [readings, selectedMeterId, selectedTimestamp, readingMap]);
 
+  // Derive reading type from data freshness
+  const readingType: ReadingType | null = useMemo(() => {
+    if (!selectedReading) return null;
+    const ageMs = Date.now() - new Date(selectedReading.timestamp).getTime();
+    return ageMs > 24 * 3_600_000 ? 'cnr' : ageMs > 4 * 3_600_000 ? 'estimado' : 'real';
+  }, [selectedReading]);
+
+  const meterOptions = meters.map((m) => ({ value: m.id, label: `${m.name} (${m.code})` }));
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader title="Trazabilidad / Lineage" eyebrow="Auditoría" />
+      {/* Title */}
+      <div>
+        <h1 className="text-[18px] font-semibold text-foreground">6.4 Trazabilidad</h1>
+        <p className="mt-0.5 text-[12px] text-muted">
+          Cadena de origen del valor mostrado en la plataforma — auditoría de transformaciones aplicadas
+        </p>
+      </div>
 
-      <div className="flex gap-4">
-        {/* Selector */}
-        <div className="panel w-64 shrink-0 space-y-3 p-3">
-          <div>
-            <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
-            <select
-              value={selectedMeterId}
-              onChange={(e) => setSelectedMeterId(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-            >
-              <option value="">Seleccionar medidor</option>
-              {meters.map((m) => (
-                <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
-            <input
-              type="datetime-local"
-              value={selectedTimestamp}
-              onChange={(e) => setSelectedTimestamp(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
-            />
-            <p className="mt-1 text-[9px] text-muted">Deje vacío para última lectura.</p>
-          </div>
+      {/* Filter banner */}
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface px-4 py-3">
+        <div className="min-w-[220px]">
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
+          <DropdownSelect
+            options={[{ value: '', label: 'Seleccionar medidor' }, ...meterOptions]}
+            value={selectedMeterId}
+            onChange={setSelectedMeterId}
+          />
         </div>
-
-        {/* Lineage panel */}
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          {selectedReading ? (
-            <LineagePanel reading={selectedReading} buildingName={buildingMap.get(selectedReading.building_id) ?? 'Desconocido'} />
-          ) : (
-            <div className="panel flex flex-1 items-center justify-center p-4">
-              <p className="text-[13px] text-muted">Selecciona un medidor para ver el linaje.</p>
-            </div>
-          )}
+        <div>
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
+          <input
+            type="datetime-local"
+            value={selectedTimestamp}
+            onChange={(e) => setSelectedTimestamp(e.target.value)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
+          />
         </div>
       </div>
+
+      {/* Row 1 — Linaje panel (full width) */}
+      <div
+        className="panel p-4 animate-fade-in"
+        style={{ animationDelay: '0ms' }}
+      >
+        <div className="mb-1 flex items-start justify-between">
+          <div>
+            <h2 className="text-[13px] font-semibold text-foreground">Panel de linaje por lectura</h2>
+            <p className="text-[11px] text-muted">
+              Cadena de origen del valor mostrado en la plataforma · solo lectura
+            </p>
+          </div>
+          {readingType && (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${TYPE_BADGE[readingType]}`}>
+              {readingType}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3 rounded-lg border border-border bg-background px-4 py-3">
+          <p className="text-[13px] font-medium text-foreground">
+            {selectedReading
+              ? `Valor mostrado: ${Number(selectedReading.energy_kwh_total).toFixed(0)} kWh · tipo: ${readingType === 'cnr' ? 'CNR (dato manual)' : readingType === 'estimado' ? 'Estimado' : readingType === 'backfill' ? 'Backfill' : 'Real (medición directa)'}`
+              : 'Valor mostrado: — · selecciona un medidor para ver el linaje'}
+          </p>
+        </div>
+
+        <ul className="mt-3 space-y-1.5">
+          {DERIVATION_RULES.map((rule) => (
+            <li key={rule} className="flex items-start gap-2 text-[12px] text-foreground">
+              <span className="mt-0.5 shrink-0 text-muted">•</span>
+              <span>{rule}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-3 flex justify-end">
+          <span className="text-[10px] text-muted">[DAT-19, DAT-20, DAT-14]</span>
+        </div>
+      </div>
+
+      {/* Row 2 — Raw vs Shown (2 cols, same height) */}
+      {selectedReading ? (
+        <RawVsShownRow
+          reading={selectedReading}
+          buildingName={buildingMap.get(selectedReading.building_id) ?? 'Desconocido'}
+          readingType={readingType!}
+        />
+      ) : (
+        <div
+          className="panel flex items-center justify-center p-8 animate-fade-in"
+          style={{ animationDelay: '30ms' }}
+        >
+          <p className="text-[13px] text-muted">Selecciona un medidor para ver la comparación raw vs. procesado.</p>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ── Lineage Panel ── */
+/* ── Raw vs Shown Row ── */
 
-function LineagePanel({ reading, buildingName }: Readonly<{ reading: LatestReading; buildingName: string }>) {
-  // ponytail: derive type from data freshness — stale > 4h = estimated, no data = CNR
+function RawVsShownRow({
+  reading,
+  buildingName,
+  readingType,
+}: Readonly<{ reading: LatestReading; buildingName: string; readingType: ReadingType }>) {
   const ageMs = Date.now() - new Date(reading.timestamp).getTime();
-  const readingType: ReadingType = ageMs > 24 * 3_600_000 ? 'cnr' : ageMs > 4 * 3_600_000 ? 'estimado' : 'real';
-
-  const lineageSteps = [
-    { label: 'Valor en plataforma', value: `${Number(reading.power_kw).toFixed(1)} kW`, detail: `Tipo: ${readingType}` },
-    { label: 'Timestamp lectura', value: new Date(reading.timestamp).toLocaleString('es-CL'), detail: `Medidor: ${reading.meter_name}` },
-    { label: 'Energía acumulada', value: `${Number(reading.energy_kwh_total).toFixed(1)} kWh`, detail: 'Total acumulado' },
-  ];
-
-  // Type-specific detail — derived from actual reading data
   const readingDate = new Date(reading.timestamp);
   const ageHours = Math.round(ageMs / 3_600_000);
+
+  // Type-specific detail — derived from actual reading data
   const typeDetail: Record<ReadingType, { label: string; info: string }[]> = {
     real: [
       { label: 'Gateway receptor', info: `${buildingName} — TCP/IP directo` },
@@ -133,71 +189,97 @@ function LineagePanel({ reading, buildingName }: Readonly<{ reading: LatestReadi
     ],
   };
 
-  const rawVsShown = [
-    { field: 'Potencia', raw: `${Number(reading.power_kw).toFixed(3)} kW`, shown: `${Number(reading.power_kw).toFixed(1)} kW`, transform: 'Redondeo 1 decimal' },
-    { field: 'Voltaje L1', raw: reading.voltage_l1 ?? '—', shown: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—', transform: 'Redondeo + unidad' },
-    { field: 'Corriente L1', raw: reading.current_l1 ?? '—', shown: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—', transform: 'Redondeo + unidad' },
-    { field: 'Factor potencia', raw: reading.power_factor ?? '—', shown: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: 'Sin transformación' },
+  const rawRows = [
+    { tsUtc: readingDate.toISOString(), raw: `${Number(reading.power_kw).toFixed(3)}`, unit: 'kW', flag: 'OK' },
+    { tsUtc: readingDate.toISOString(), raw: reading.voltage_l1 ?? '—', unit: 'V', flag: reading.voltage_l1 ? 'OK' : 'N/A' },
+    { tsUtc: readingDate.toISOString(), raw: reading.current_l1 ?? '—', unit: 'A', flag: reading.current_l1 ? 'OK' : 'N/A' },
+    { tsUtc: readingDate.toISOString(), raw: reading.power_factor ?? '—', unit: 'PF', flag: reading.power_factor ? 'OK' : 'N/A' },
   ];
 
+  const shownRows = [
+    { tsUtc: readingDate.toISOString(), processed: `${Number(reading.power_kw).toFixed(1)} kW`, transform: 'Redondeo 1 decimal', dashboard: `${Number(reading.power_kw).toFixed(1)} kW` },
+    { tsUtc: readingDate.toISOString(), processed: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—', transform: 'Redondeo + unidad', dashboard: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—' },
+    { tsUtc: readingDate.toISOString(), processed: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—', transform: 'Redondeo + unidad', dashboard: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—' },
+    { tsUtc: readingDate.toISOString(), processed: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: typeDetail[readingType][2]?.info ?? 'Sin transformación', dashboard: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
+  ];
+
+  const thClass = 'pb-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted';
+  const tdClass = 'py-1.5 text-[12px]';
+
   return (
-    <>
-      <div className="panel p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <h3 className="text-[13px] font-medium text-foreground">Linaje de lectura</h3>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${TYPE_BADGE[readingType]}`}>
-            {readingType}
-          </span>
+    <div
+      className="flex gap-4 animate-fade-in"
+      style={{ animationDelay: '30ms' }}
+    >
+      {/* Left — Raw */}
+      <div className="relative flex-1 panel p-4">
+        <div className="mb-1">
+          <h2 className="text-[13px] font-semibold text-foreground">Valor crudo del medidor (raw)</h2>
+          <p className="text-[11px] text-muted">Lado izquierdo de la comparación · inmutable, solo lectura</p>
         </div>
-        <dl className="space-y-3">
-          {lineageSteps.map((step) => (
-            <div key={step.label} className="rounded-lg border border-border px-3 py-2">
-              <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">{step.label}</dt>
-              <dd className="mt-0.5 text-[13px] font-medium text-foreground">{step.value}</dd>
-              <dd className="text-[11px] text-muted">{step.detail}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      {/* Type-specific detail */}
-      <div className="panel p-4">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">
-          Detalle — {readingType}
-        </h3>
-        <dl className="space-y-1.5">
-          {typeDetail[readingType].map((d) => (
-            <div key={d.label} className="flex justify-between text-[12px]">
-              <dt className="text-muted">{d.label}</dt>
-              <dd className="text-foreground">{d.info}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      <div className="panel p-4">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Comparación raw vs. mostrado</h3>
-        <table className="w-full text-[12px]">
-          <thead>
-            <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-              <th className="pb-2">Campo</th>
-              <th className="pb-2">Valor raw</th>
-              <th className="pb-2">Valor mostrado</th>
-              <th className="pb-2">Transformación</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {rawVsShown.map((row) => (
-              <tr key={row.field}>
-                <td className="py-1.5 text-muted">{row.field}</td>
-                <td className="py-1.5 font-mono text-foreground">{row.raw}</td>
-                <td className="py-1.5 text-foreground">{row.shown}</td>
-                <td className="py-1.5 text-[11px] text-muted">{row.transform}</td>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className={thClass}>Timestamp UTC</th>
+                <th className={thClass}>Valor raw</th>
+                <th className={thClass}>Unidad</th>
+                <th className={thClass}>Flag calidad</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rawRows.map((row, i) => (
+                <tr key={i}>
+                  <td className={`${tdClass} font-mono text-[11px] text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
+                  <td className={`${tdClass} font-mono text-foreground`}>{row.raw}</td>
+                  <td className={`${tdClass} text-muted`}>{row.unit}</td>
+                  <td className={tdClass}>
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${row.flag === 'OK' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {row.flag}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <span className="text-[10px] text-muted">[DAT-20, DAT-19]</span>
+        </div>
       </div>
-    </>
+
+      {/* Right — Processed */}
+      <div className="relative flex-1 panel p-4">
+        <div className="mb-1">
+          <h2 className="text-[13px] font-semibold text-foreground">Valor procesado &rarr; mostrado en dashboard</h2>
+          <p className="text-[11px] text-muted">Lado derecho · cada transformación identificada</p>
+        </div>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className={thClass}>Timestamp UTC</th>
+                <th className={thClass}>Valor procesado</th>
+                <th className={thClass}>Transformación aplicada</th>
+                <th className={thClass}>Valor en dashboard</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {shownRows.map((row, i) => (
+                <tr key={i}>
+                  <td className={`${tdClass} font-mono text-[11px] text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
+                  <td className={`${tdClass} text-foreground`}>{row.processed}</td>
+                  <td className={`${tdClass} text-[11px] text-muted`}>{row.transform}</td>
+                  <td className={`${tdClass} font-medium text-foreground`}>{row.dashboard}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <span className="text-[10px] text-muted">[DAT-20, DAT-19]</span>
+        </div>
+      </div>
+    </div>
   );
 }

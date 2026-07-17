@@ -33,14 +33,12 @@ function renderPage() {
 describe('RegIntervencionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // ponytail: jsdom localStorage is a shim; just reset via setItem
-    try { localStorage.setItem('interventions', '[]'); } catch { /* noop */ }
   });
 
   describe('layout', () => {
-    it('renders page header', () => {
+    it('renders page header with new title format', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Registro de Intervención' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '5.4 Registro de intervención' })).toBeInTheDocument();
     });
 
     it('renders meter selector with real meters', () => {
@@ -62,14 +60,24 @@ describe('RegIntervencionPage', () => {
       expect(screen.getByText('Pendiente piezas')).toBeInTheDocument();
     });
 
-    it('renders CNR checkbox', () => {
+    it('renders CNR checkbox label', () => {
       renderPage();
-      expect(screen.getByLabelText('Requiere CNR')).toBeInTheDocument();
+      // Label text appears in multiple places (form label + adjuntos section)
+      expect(screen.getAllByText(/Requiere CNR/).length).toBeGreaterThanOrEqual(1);
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toBeInTheDocument();
     });
 
-    it('renders empty history', () => {
+    it('renders section headers', () => {
       renderPage();
-      expect(screen.getByText(/Sin intervenciones registradas/)).toBeInTheDocument();
+      expect(screen.getByText('Orden asociada')).toBeInTheDocument();
+      expect(screen.getByText('Bitácora de intervención')).toBeInTheDocument();
+      expect(screen.getByText('Adjuntos y firma')).toBeInTheDocument();
+    });
+
+    it('renders immutability notice', () => {
+      renderPage();
+      expect(screen.getByText('Inmutabilidad del registro')).toBeInTheDocument();
     });
   });
 
@@ -85,24 +93,24 @@ describe('RegIntervencionPage', () => {
   });
 
   describe('validation', () => {
-    it('submit disabled without meter and description', () => {
+    it('submit button disabled without meter and description', () => {
       renderPage();
-      expect(screen.getByRole('button', { name: 'Registrar intervención' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Firmar y guardar' })).toBeDisabled();
     });
 
-    it('submit disabled with meter but no description', async () => {
+    it('submit button disabled with meter but no description', async () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      expect(screen.getByRole('button', { name: 'Registrar intervención' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Firmar y guardar' })).toBeDisabled();
     });
 
-    it('submit enabled with meter and description', async () => {
+    it('submit button enabled with meter and description', async () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      await user.type(screen.getByPlaceholderText(/Descripción del trabajo/), 'Revisión completa');
-      expect(screen.getByRole('button', { name: 'Registrar intervención' })).toBeEnabled();
+      await user.type(screen.getByPlaceholderText(/Descripción del trabajo realizado/), 'Revisión completa');
+      expect(screen.getByRole('button', { name: 'Firmar y guardar' })).toBeEnabled();
     });
   });
 
@@ -111,8 +119,8 @@ describe('RegIntervencionPage', () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      await user.type(screen.getByPlaceholderText(/Descripción del trabajo/), 'Revisión completa');
-      await user.click(screen.getByRole('button', { name: 'Registrar intervención' }));
+      await user.type(screen.getByPlaceholderText(/Descripción del trabajo realizado/), 'Revisión completa');
+      await user.click(screen.getByRole('button', { name: 'Firmar y guardar' }));
       expect(screen.getByText(/Intervención registrada correctamente/)).toBeInTheDocument();
     });
 
@@ -120,35 +128,30 @@ describe('RegIntervencionPage', () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      await user.type(screen.getByPlaceholderText(/Descripción del trabajo/), 'Test');
-      await user.click(screen.getByRole('button', { name: 'Registrar intervención' }));
+      await user.type(screen.getByPlaceholderText(/Descripción del trabajo realizado/), 'Test');
+      await user.click(screen.getByRole('button', { name: 'Firmar y guardar' }));
       // onSuccess resets selectedMeterId → canSubmit false → button disabled
-      expect(screen.getByRole('button', { name: 'Registrar intervención' })).toBeDisabled();
-    });
-
-    it('history panel shows 0 entries (API returns empty)', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      await user.type(screen.getByPlaceholderText(/Descripción del trabajo/), 'Inspección rutinaria');
-      await user.click(screen.getByRole('button', { name: 'Registrar intervención' }));
-      // History comes from interventionsQuery.data which is mocked as [] — count stays 0
-      expect(screen.getByText('Historial (0)')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Firmar y guardar' })).toBeDisabled();
     });
   });
 
   describe('CNR flag', () => {
-    it('checkbox is togglable and form can be submitted with CNR flag', async () => {
+    it('checkbox is togglable', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeChecked();
+      await user.click(checkbox);
+      expect(checkbox).toBeChecked();
+    });
+
+    it('form can be submitted with CNR flag checked', async () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      await user.type(screen.getByPlaceholderText(/Descripción del trabajo/), 'Con CNR');
-      const cnrCheckbox = screen.getByLabelText('Requiere CNR');
-      expect(cnrCheckbox).not.toBeChecked();
-      await user.click(cnrCheckbox);
-      expect(cnrCheckbox).toBeChecked();
-      await user.click(screen.getByRole('button', { name: 'Registrar intervención' }));
-      // Success message confirms submit with CNR flag
+      await user.type(screen.getByPlaceholderText(/Descripción del trabajo realizado/), 'Con CNR');
+      await user.click(screen.getByRole('checkbox'));
+      await user.click(screen.getByRole('button', { name: 'Firmar y guardar' }));
       expect(screen.getByText(/Intervención registrada correctamente/)).toBeInTheDocument();
     });
   });

@@ -1,26 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { AggregationInterval } from '../../../types/reading';
 
-/* ── Options ── */
-
-const RESOLUTION_OPTIONS = [
-  { key: '15min', label: '15 min' },
-  { key: '1h', label: 'Horaria' },
-  { key: '1d', label: 'Diaria' },
-];
-
-const FORMAT_OPTIONS = [
-  { key: 'csv', label: 'CSV' },
-  { key: 'json', label: 'JSON' },
-  { key: 'parquet', label: 'Parquet (requiere backend)' },
-];
-
-/* ── Page ── */
+/* ── Constants ── */
 
 const INTERVAL_MAP: Record<string, AggregationInterval> = {
   '15min': 'hourly',
@@ -45,11 +30,18 @@ function downloadFile(content: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
+/* ── Ref tag ── */
+
+function Ref({ ids }: { ids: string }) {
+  return (
+    <span className="ml-auto text-[9px] text-muted opacity-60 font-mono">[{ids}]</span>
+  );
+}
+
 export function DatosCrudosPage() {
   const [selectedMeterIds, setSelectedMeterIds] = useState<string[]>([]);
   const selectedMeterId = selectedMeterIds[0] ?? '';
-  const [resolution, setResolution] = useState('1h');
-  const [format, setFormat] = useState('csv');
+  const [resolution] = useState('1h');
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
   const metersQuery = useMetersQuery();
@@ -79,121 +71,116 @@ export function DatosCrudosPage() {
 
   const meterName = meters.find((m) => m.id === selectedMeterId)?.name ?? 'meter';
 
-  const handleExport = useCallback(() => {
+  const handleExportCsv = useCallback(() => {
     const rows = aggData.length > 0 ? aggData : preview;
     if (rows.length === 0) return;
-
     const now = new Date().toISOString().slice(0, 19).replace(/:/g, '');
     const filename = `${meterName}_${resolution}_${now}`;
+    const keys = Object.keys(rows[0]);
+    const header = keys.join(',');
+    const csvRows = rows.map((r) => keys.map((k) => (r as unknown as Record<string, unknown>)[k] ?? '').join(','));
+    const hashInput = csvRows.join('');
+    const hashVal = Array.from(new TextEncoder().encode(hashInput)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16);
+    const meta = `# Exportado: ${new Date().toISOString()} | Medidor: ${meterName} | Resolución: ${resolution} | SHA-256: ${hashVal}`;
+    downloadFile([meta, header, ...csvRows].join('\n'), `${filename}.csv`, 'text/csv');
+  }, [aggData, preview, resolution, meterName]);
 
-    if (format === 'json') {
-      const meta = { exportedAt: new Date().toISOString(), meterId: selectedMeterId, meterName, resolution, period: dateRange };
-      downloadFile(JSON.stringify({ meta, data: rows }, null, 2), `${filename}.json`, 'application/json');
-    } else {
-      // CSV with hash metadata
-      const keys = Object.keys(rows[0]);
-      const header = keys.join(',');
-      const csvRows = rows.map((r) => keys.map((k) => (r as unknown as Record<string, unknown>)[k] ?? '').join(','));
-      const hashInput = csvRows.join('');
-      const hashVal = Array.from(new TextEncoder().encode(hashInput)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16);
-      const meta = `# Exportado: ${new Date().toISOString()} | Medidor: ${meterName} | Resolución: ${resolution} | SHA-256: ${hashVal}`;
-      const csv = [meta, header, ...csvRows].join('\n');
-      downloadFile(csv, `${filename}.csv`, 'text/csv');
-    }
-  }, [aggData, preview, format, resolution, selectedMeterId, meterName, dateRange]);
+  const handleExportJson = useCallback(() => {
+    const rows = aggData.length > 0 ? aggData : preview;
+    if (rows.length === 0) return;
+    const now = new Date().toISOString().slice(0, 19).replace(/:/g, '');
+    const filename = `${meterName}_${resolution}_${now}`;
+    const meta = { exportedAt: new Date().toISOString(), meterId: selectedMeterId, meterName, resolution, period: dateRange };
+    downloadFile(JSON.stringify({ meta, data: rows }, null, 2), `${filename}.json`, 'application/json');
+  }, [aggData, preview, resolution, selectedMeterId, meterName, dateRange]);
+
+  const handleExportParquet = useCallback(() => {
+    // Parquet requires backend endpoint — placeholder
+    alert('Exportación Parquet requiere backend. Próximamente.');
+  }, []);
+
+  const handleVerifyHash = useCallback(() => {
+    alert('Verificación de hash: funcionalidad próximamente.');
+  }, []);
+
+  const meterOptions = meters.map((m) => ({ value: m.id, label: `${m.name} (${m.code})` }));
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader title="Datos Crudos (Raw)" eyebrow="Auditoría" />
-
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="panel flex-1 p-3">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
-          <select
-            multiple
-            value={selectedMeterIds}
-            onChange={(e) => setSelectedMeterIds(Array.from(e.target.selectedOptions, (o) => o.value))}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
-            size={Math.min(6, meters.length + 1)}
-          >
-            {meters.map((m) => (
-              <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
-            ))}
-          </select>
-          <p className="mt-1 text-[9px] text-muted">Ctrl+click para multi-selección.</p>
-        </div>
-
-        <div className="panel p-3">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Resolución</label>
-          <PillToggle
-            options={RESOLUTION_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-            value={resolution}
-            onChange={setResolution}
-            size="sm"
-          />
-        </div>
-
-        <div className="panel p-3">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Rango fechas</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={dateRange.from}
-              max={dateRange.to}
-              onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
-              className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
-            />
-            <span className="text-[11px] text-muted">—</span>
-            <input
-              type="date"
-              value={dateRange.to}
-              min={dateRange.from}
-              max={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setDateRange((prev) => ({ ...prev, to: e.target.value }))}
-              className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
-            />
-          </div>
-        </div>
-
-        <div className="panel p-3">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Formato exportación</label>
-          <PillToggle
-            options={FORMAT_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-            value={format}
-            onChange={setFormat}
-            size="sm"
-          />
-        </div>
-
-        <Button disabled={selectedMeterIds.length === 0} className="shrink-0" onClick={handleExport}>
-          Exportar {format.toUpperCase()}
-        </Button>
+      {/* Page title */}
+      <div>
+        <h1 className="text-[18px] font-semibold text-foreground">6.5 Datos Crudos</h1>
+        <p className="mt-0.5 text-[12px] text-muted">
+          Vista previa de lecturas sin transformar — exportación para Data Science con sello de integridad
+        </p>
       </div>
 
-      {/* Preview table */}
-      <div className="panel p-4">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Vista previa (primeras 100 filas)</h3>
-        <div className="overflow-auto">
+      {/* Filter banner */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-[220px]">
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor(es)</label>
+          <DropdownSelect
+            options={meterOptions}
+            value={selectedMeterIds[0] ?? ''}
+            onChange={(val) => setSelectedMeterIds(val ? [val] : [])}
+            placeholder="Seleccionar medidor..."
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Desde</label>
+          <input
+            type="date"
+            value={dateRange.from}
+            max={dateRange.to}
+            onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Hasta</label>
+          <input
+            type="date"
+            value={dateRange.to}
+            min={dateRange.from}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={(e) => setDateRange((prev) => ({ ...prev, to: e.target.value }))}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+          />
+        </div>
+      </div>
+
+      {/* Row 1 — Preview table (flex-1) */}
+      <div className="panel flex flex-1 flex-col p-4" style={{ minHeight: 0 }}>
+        <div className="mb-3 flex items-center gap-2">
+          <div>
+            <h2 className="text-[13px] font-semibold text-foreground">Vista previa de datos raw</h2>
+            <p className="text-[11px] text-muted">Primeras 100 filas · sin transformar · solo lectura</p>
+          </div>
+          <Ref ids="DAT-07, DAT-06, DAT-04" />
+        </div>
+        <div className="flex-1 overflow-auto">
           <table className="w-full text-[12px]">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-white">
               <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Timestamp</th>
-                <th className="px-3 py-2 text-right">Potencia [kW]</th>
-                <th className="px-3 py-2 text-right">Energía [kWh]</th>
-                <th className="px-3 py-2 text-right">Voltaje [V]</th>
-                <th className="px-3 py-2 text-right">FP</th>
-                <th className="px-3 py-2 text-center">Calidad</th>
-                <th className="px-3 py-2 text-center">Anomalía</th>
+                <th className="px-3 py-2">Timestamp UTC</th>
+                <th className="px-3 py-2 text-right">Valor raw</th>
+                <th className="px-3 py-2">Unidad</th>
+                <th className="px-3 py-2 text-center">Flag calidad</th>
+                <th className="px-3 py-2 text-center">Flag anomalía</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {preview.map((r) => (
-                <tr key={`${r.meter_id}-${r.timestamp}`}>
+              {preview.map((r, idx) => (
+                <tr
+                  key={`${r.meter_id}-${r.timestamp}`}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                >
                   <td className="px-3 py-1.5 font-mono text-[11px] text-foreground">{r.timestamp}</td>
                   <td className="px-3 py-1.5 text-right text-muted">{Number(r.power_kw).toFixed(3)}</td>
-                  <td className="px-3 py-1.5 text-right text-muted">{Number(r.energy_kwh_total).toFixed(1)}</td>
-                  <td className="px-3 py-1.5 text-right text-muted">{r.voltage_l1 ?? '—'}</td>
-                  <td className="px-3 py-1.5 text-right text-muted">{r.power_factor ?? '—'}</td>
+                  <td className="px-3 py-1.5 text-muted">kW</td>
                   <td className="px-3 py-1.5 text-center">
                     {(() => {
                       const ageMs = Date.now() - new Date(r.timestamp).getTime();
@@ -215,17 +202,98 @@ export function DatosCrudosPage() {
                 </tr>
               ))}
               {preview.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-6 text-center text-muted">Selecciona un medidor para previsualizar.</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-muted">
+                    Selecciona un medidor para previsualizar.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <p className="text-[10px] text-muted">
-        Los datos exportados no pueden usarse para entrenar modelos ML fuera de PASA (DAT-30).
-        Retención de exports: 30 días.
-      </p>
+      {/* Row 2 — 2 cols 50/50 */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Left: Exportación */}
+        <div className="panel p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <div>
+              <h2 className="text-[13px] font-semibold text-foreground">Exportación</h2>
+              <p className="text-[11px] text-muted">Formatos para Data Science · retención de exports: 30 días</p>
+            </div>
+            <Ref ids="DAT-12, DAT-07, CYB-10" />
+          </div>
+          <ul className="space-y-2 text-[12px] text-foreground">
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-muted">•</span>
+              <span>Formatos: <strong>Parquet</strong> · <strong>CSV</strong> · <strong>JSON</strong></span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-muted">•</span>
+              <span>Metadatos en el header: usuario · fecha de exportación · medidor(es) · período · hash SHA-256</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-muted">•</span>
+              <span>El hash sella el archivo: permite verificar que la extracción no fue alterada</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Right: Restricción DAT-30 */}
+        <div className="panel p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <div>
+              <h2 className="text-[13px] font-semibold text-foreground">Restricción DAT-30</h2>
+              <p className="text-[11px] text-muted">Aviso permanente ligado a la exportación</p>
+            </div>
+            <Ref ids="DAT-30" />
+          </div>
+          <ul className="space-y-2 text-[12px] text-foreground">
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-amber-500">•</span>
+              <span>Los datos exportados <strong>NO pueden usarse</strong> para entrenar modelos de ML fuera de PASA.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-amber-500">•</span>
+              <span>Restricción contractual y técnica de entrenamiento con datos de PASA.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-0.5 text-amber-500">•</span>
+              <span>Aplica a Parquet, CSV y JSON descargados desde esta pantalla.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Action bar */}
+      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+        <Button
+          className="bg-brand text-white hover:opacity-90"
+          onClick={handleExportParquet}
+          disabled={selectedMeterIds.length === 0}
+        >
+          Exportar Parquet
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleExportCsv}
+          disabled={selectedMeterIds.length === 0}
+        >
+          Exportar CSV
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleExportJson}
+          disabled={selectedMeterIds.length === 0}
+        >
+          Exportar JSON
+        </Button>
+        <Button variant="outline" onClick={handleVerifyHash}>
+          Verificar hash
+        </Button>
+        <span className="ml-auto text-[10px] text-muted font-mono">[DAT-30]</span>
+      </div>
     </div>
   );
 }

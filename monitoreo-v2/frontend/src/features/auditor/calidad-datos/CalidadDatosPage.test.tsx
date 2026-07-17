@@ -18,24 +18,21 @@ function renderPage() { return render(<MemoryRouter><CalidadDatosPage /></Memory
 describe('CalidadDatosPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Calidad de Datos' })).toBeInTheDocument(); });
-  it('renders scorecard table', () => { renderPage(); expect(screen.getByText('Scorecard de calidad por centro')).toBeInTheDocument(); });
-  it('renders table headers', () => { renderPage(); expect(screen.getByText('Esperadas')).toBeInTheDocument(); expect(screen.getByText('% Real')).toBeInTheDocument(); expect(screen.getByText('% CNR')).toBeInTheDocument(); });
+  it('renders title', () => { renderPage(); expect(screen.getByText('6.1 Calidad de Datos')).toBeInTheDocument(); });
+  it('renders scorecard panel', () => { renderPage(); expect(screen.getAllByText(/Scorecard de calidad por mall/).length).toBeGreaterThanOrEqual(1); });
+  it('renders table headers', () => { renderPage(); expect(screen.getByText('Lecturas esperadas')).toBeInTheDocument(); });
   it('renders building row', () => { renderPage(); expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1); });
   it('renders evolution chart', () => { renderPage(); expect(screen.getByText(/Evolución de calidad/)).toBeInTheDocument(); });
-  it('renders low-quality panel', () => { renderPage(); expect(screen.getByText('Medidores con baja calidad')).toBeInTheDocument(); });
-  it('shows select prompt before clicking row', () => { renderPage(); expect(screen.getByText(/Seleccione un centro/)).toBeInTheDocument(); });
+  it('renders low-quality panel', () => { renderPage(); expect(screen.getByText(/Medidores con baja calidad/)).toBeInTheDocument(); });
+  it('shows select prompt before clicking row', () => { renderPage(); expect(screen.getByText(/Seleccione un mall/)).toBeInTheDocument(); });
   it('shows detail after clicking row', () => {
     renderPage();
-    // Find the cell inside the scorecard tbody
     const rows = screen.getAllByRole('row');
     const dataRow = rows.find((r) => r.textContent?.includes('Mall Norte'));
     expect(dataRow).toBeTruthy();
     fireEvent.click(dataRow!);
-    expect(screen.queryByText(/Seleccione un centro/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Seleccione un mall/)).not.toBeInTheDocument();
   });
-  it('renders period filter', () => { renderPage(); expect(screen.getByDisplayValue('Últimos 30 días')).toBeInTheDocument(); });
-  it('renders granularity filter', () => { renderPage(); expect(screen.getByDisplayValue('Horaria')).toBeInTheDocument(); });
   it('renders export button', () => { renderPage(); expect(screen.getByText('Exportar CSV')).toBeInTheDocument(); });
-  it('renders mall filter', () => { renderPage(); expect(screen.getByDisplayValue('Todos los centros')).toBeInTheDocument(); });
+  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-06/).length).toBeGreaterThanOrEqual(1); });
 });

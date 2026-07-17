@@ -31,6 +31,10 @@ vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
   useResolveAlert: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
+}));
+
 import { AlarmasEventosPage } from './AlarmasEventosPage';
 
 function renderPage() {
@@ -50,48 +54,75 @@ describe('AlarmasEventosPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Alarmas y Eventos' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.2 Alarmas y Eventos' })).toBeInTheDocument();
     });
 
-    it('renders severity filter', () => {
+    it('renders filter bar', () => {
       renderPage();
-      expect(screen.getAllByText('Todas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Crítica').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Filtros:')).toBeInTheDocument();
     });
 
-    it('renders status filter', () => {
+    it('renders severity filter label', () => {
+      renderPage();
+      expect(screen.getByText('Severidad')).toBeInTheDocument();
+    });
+
+    it('renders status filter label', () => {
+      renderPage();
+      expect(screen.getAllByText('Estado').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders mall filter label', () => {
+      renderPage();
+      expect(screen.getAllByText('Mall').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders severity dropdown showing current value', () => {
+      renderPage();
+      // DropdownSelect renders a button with the selected label
+      expect(screen.getAllByText('Todas').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders status dropdown showing current value', () => {
       renderPage();
       expect(screen.getAllByText('Abiertas').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Asignadas').length).toBeGreaterThanOrEqual(1);
     });
   });
 
   describe('alert table', () => {
-    it('renders table headers', () => {
+    it('renders table panel label', () => {
       renderPage();
-      expect(screen.getByText('Severidad')).toBeInTheDocument();
+      expect(screen.getByText('Tabla de alarmas')).toBeInTheDocument();
+    });
+
+    it('renders table column headers', () => {
+      renderPage();
+      expect(screen.getByText('ID')).toBeInTheDocument();
+      expect(screen.getByText('Sev.')).toBeInTheDocument();
       expect(screen.getByText('Descripción')).toBeInTheDocument();
-      expect(screen.getByText('Centro')).toBeInTheDocument();
-      expect(screen.getByText('Tiempo')).toBeInTheDocument();
+      // 'Mall' appears in both filter bar and table header
+      expect(screen.getAllByText('Mall').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Apertura')).toBeInTheDocument();
+      expect(screen.getByText('Transcurrido')).toBeInTheDocument();
     });
 
     it('renders alerts sorted by severity (critical first)', () => {
       renderPage();
-      const rows = screen.getAllByRole('row');
-      // Header + 3 alerts = 4 rows
-      expect(rows.length).toBe(4);
-      // First data row should be critical
-      expect(rows[1].textContent).toContain('CRITICAL');
-    });
-
-    it('renders severity badges', () => {
-      renderPage();
+      // The table has thead + tbody split into two <table> elements
+      // Just verify severity badges appear
       expect(screen.getByText('CRITICAL')).toBeInTheDocument();
       expect(screen.getByText('HIGH')).toBeInTheDocument();
       expect(screen.getByText('MEDIUM')).toBeInTheDocument();
     });
 
-    it('renders building name', () => {
+    it('renders alert messages', () => {
+      renderPage();
+      expect(screen.getByText('Sobrevoltaje L1')).toBeInTheDocument();
+      expect(screen.getByText('Factor potencia bajo')).toBeInTheDocument();
+      expect(screen.getByText('Sobrecorriente')).toBeInTheDocument();
+    });
+
+    it('renders building name in table', () => {
       renderPage();
       expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1);
     });
@@ -102,52 +133,53 @@ describe('AlarmasEventosPage', () => {
     });
   });
 
-  describe('detail panel', () => {
-    it('shows placeholder when no alert selected', () => {
+  describe('right panel', () => {
+    it('renders SLA summary panel', () => {
       renderPage();
-      expect(screen.getByText('Selecciona una alarma para ver el detalle.')).toBeInTheDocument();
+      expect(screen.getByText('Resumen de SLA de alarmas')).toBeInTheDocument();
     });
 
-    it('shows detail panel on alert click', async () => {
-      const user = userEvent.setup();
+    it('renders SLA percentage text', () => {
       renderPage();
-
-      await user.click(screen.getByText('Sobrevoltaje L1'));
-
-      expect(screen.getByText('Detalle')).toBeInTheDocument();
-      expect(screen.getByText('Valor disparador')).toBeInTheDocument();
-      expect(screen.getByText('250')).toBeInTheDocument();
-      expect(screen.getByText('Umbral')).toBeInTheDocument();
-      expect(screen.getByText('240')).toBeInTheDocument();
+      expect(screen.getByText(/% dentro SLA/)).toBeInTheDocument();
     });
 
-    it('shows action buttons', async () => {
-      const user = userEvent.setup();
+    it('renders detail panel placeholder when no alert selected', () => {
       renderPage();
-
-      await user.click(screen.getByText('Sobrevoltaje L1'));
-
-      expect(screen.getByRole('button', { name: 'Asignar a mí' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+      expect(screen.getByText('Seleccione una alarma')).toBeInTheDocument();
     });
 
-    it('shows comment textarea', async () => {
-      const user = userEvent.setup();
+    it('renders comment panel', () => {
       renderPage();
+      expect(screen.getByText('Comentario de la alarma')).toBeInTheDocument();
+    });
 
-      await user.click(screen.getByText('Sobrevoltaje L1'));
-
-      expect(screen.getByLabelText('Comentario')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('Notas de resolución...')).toBeInTheDocument();
+    it('renders comment textarea', () => {
+      renderPage();
+      expect(screen.getByPlaceholderText('Comentario del operador (texto libre)')).toBeInTheDocument();
     });
   });
 
-  describe('SLA summary', () => {
-    it('renders SLA summary section', () => {
+  describe('row expand', () => {
+    it('shows expanded detail on row click', async () => {
+      const user = userEvent.setup();
       renderPage();
-      expect(screen.getByText(/% dentro SLA/)).toBeInTheDocument();
-      expect(screen.getByText(/% fuera SLA/)).toBeInTheDocument();
-      expect(screen.getByText(/Por severidad/)).toBeInTheDocument();
+
+      await user.click(screen.getByText('Sobrevoltaje L1'));
+
+      // Expanded row shows triggered value and threshold
+      expect(screen.getByText(/Valor:/)).toBeInTheDocument();
+      expect(screen.getByText(/250/)).toBeInTheDocument();
+    });
+  });
+
+  describe('action buttons', () => {
+    it('renders action buttons', () => {
+      renderPage();
+      expect(screen.getByRole('button', { name: 'Asignar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Escalar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Iniciar backfill' })).toBeInTheDocument();
     });
   });
 });

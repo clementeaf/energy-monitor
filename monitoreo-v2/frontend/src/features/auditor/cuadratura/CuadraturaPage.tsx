@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -91,156 +90,239 @@ export function CuadraturaPage() {
   );
   const rows = mallFilter === 'all' ? allRows : allRows.filter((r) => r.buildingId === mallFilter);
 
+  // Build per-month main vs sub difference from aggregated data
+  const monthData = useMemo(() => {
+    const meterTypeMap = new Map(meters.map((m) => [m.id, m.loadCategory ?? m.meterType]));
+    const filteredMeterIds = mallFilter === 'all'
+      ? new Set(meters.map((m) => m.id))
+      : new Set(meters.filter((m) => m.buildingId === mallFilter).map((m) => m.id));
+
+    const months: { label: string; diff: number; differencePct: number }[] = [];
+    const now = new Date();
+    for (let mo = 11; mo >= 0; mo--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - mo, 1);
+      const label = d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' });
+      let mainKwh = 0;
+      let subKwh = 0;
+      for (const r of evoAgg) {
+        const b = new Date(r.bucket);
+        if (b.getFullYear() !== d.getFullYear() || b.getMonth() !== d.getMonth()) continue;
+        if (!filteredMeterIds.has(r.meter_id)) continue;
+        const energy = parseFloat(r.energy_delta_kwh ?? '0');
+        const cat = meterTypeMap.get(r.meter_id);
+        if (cat === 'main') mainKwh += energy;
+        else subKwh += energy;
+      }
+      const diff = mainKwh - subKwh;
+      const differencePct = mainKwh > 0 ? (diff / mainKwh) * 100 : 0;
+      months.push({ label, diff, differencePct });
+    }
+    return months;
+  }, [meters, mallFilter, evoAgg]);
+
+  const maxDiff = Math.max(1, ...monthData.map((m) => Math.abs(m.diff)));
+  const outOfTolerance = monthData.filter((m) => Math.abs(m.differencePct) > TOLERANCE_PCT);
+
+  const handleExport = () => {
+    const now = new Date().toISOString();
+    const csvBody = rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`).join('\n');
+    // sync SHA-256 via SubtleCrypto not available in sync context; use simple hash
+    const hashVal = Array.from(new TextEncoder().encode(csvBody)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16).replace('-', '');
+    const header = `# Exportado: ${now} | Hash: ${hashVal}\nZona / Piso,Remarcador [kWh],Suma sub-medidores [kWh],Diferencia [kWh],Diferencia [%],Dentro de tolerancia`;
+    const csv = [header, ...rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`)].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cuadratura_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader
-        title="Cuadratura Agregación"
-        eyebrow="Auditoría"
-        actions={
-          <div className="flex items-center gap-2">
-            <DropdownSelect
-              options={[
-                { value: 'month', label: 'Mes actual' },
-                { value: 'quarter', label: 'Trimestre' },
-                { value: 'year', label: 'Año' },
-              ]}
-              value={periodFilter}
-              onChange={setPeriodFilter}
-            />
-            <DropdownSelect
-              options={[
-                { value: 'all', label: 'Todos los centros' },
-                ...buildings.map((b) => ({ value: b.id, label: b.name })),
-              ]}
-              value={mallFilter}
-              onChange={setMallFilter}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const now = new Date().toISOString();
-                const csvBody = rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`).join('\n');
-                // ponytail: sync SHA-256 via SubtleCrypto not available in sync context; use simple hash
-                const hashVal = Array.from(new TextEncoder().encode(csvBody)).reduce((h, b) => ((h << 5) - h + b) | 0, 0).toString(16).replace('-', '');
-                const header = `# Exportado: ${now} | Hash: ${hashVal}\nCentro,Remarcador kWh,Suma sub kWh,Diferencia kWh,Dif %,Dentro tolerancia`;
-                const csv = [header, ...rows.map((r) => `${r.buildingName},${r.mainKwh.toFixed(1)},${r.subKwh.toFixed(1)},${r.differenceKwh.toFixed(1)},${r.differencePct.toFixed(2)},${r.withinTolerance ? 'Sí' : 'No'}`)].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `cuadratura_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
-            >
-              Exportar CSV
-            </button>
-          </div>
-        }
-      />
-
-      <div className="panel p-4">
-        <h3 className="mb-3 text-[13px] font-medium text-foreground">Tabla de reconciliación</h3>
-        <p className="mb-3 text-[11px] text-muted">Tolerancia: ±{TOLERANCE_PCT}%</p>
-        <table className="w-full text-[13px]">
-          <thead>
-            <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-              <th className="px-3 py-2">Centro</th>
-              <th className="px-3 py-2 text-right">Remarcador [kWh]</th>
-              <th className="px-3 py-2 text-right">Suma sub-med. [kWh]</th>
-              <th className="px-3 py-2 text-right">Diferencia [kWh]</th>
-              <th className="px-3 py-2 text-right">Dif. %</th>
-              <th className="px-3 py-2 text-center">Tolerancia</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {rows.map((row) => (
-              <tr key={row.buildingId} className="transition-colors hover:bg-surface">
-                <td className="px-3 py-2 font-medium text-foreground">{row.buildingName}</td>
-                <td className="px-3 py-2 text-right text-muted">{row.mainKwh.toFixed(1)}</td>
-                <td className="px-3 py-2 text-right text-muted">{row.subKwh.toFixed(1)}</td>
-                <td className="px-3 py-2 text-right text-foreground">{row.differenceKwh.toFixed(1)}</td>
-                <td className="px-3 py-2 text-right text-foreground">{row.differencePct.toFixed(2)}%</td>
-                <td className="px-3 py-2 text-center">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${TOLERANCE_BADGE[String(row.withinTolerance)]}`}>
-                    {row.withinTolerance ? 'Sí' : 'No'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-muted">Sin datos.</td></tr>
-            )}
-          </tbody>
-        </table>
+      {/* Header */}
+      <div>
+        <h1 className="text-lg font-semibold text-foreground">6.2 Cuadratura y Agregación</h1>
+        <p className="text-[12px] text-muted">Reconciliación remarcador general vs. suma sub-medidores — análisis de desviaciones y exportación firmada</p>
       </div>
 
-      {/* Deviation bar chart — 12 months from real aggregated data */}
-      {rows.length > 0 && (
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">Análisis de desviaciones — 12 meses</h3>
-          {(() => {
-            // Build per-month main vs sub difference from aggregated data
-            const meterTypeMap = new Map(meters.map((m) => [m.id, m.loadCategory ?? m.meterType]));
-            const filteredMeterIds = mallFilter === 'all'
-              ? new Set(meters.map((m) => m.id))
-              : new Set(meters.filter((m) => m.buildingId === mallFilter).map((m) => m.id));
+      {/* Filter banner */}
+      <div className="flex items-center gap-2">
+        <DropdownSelect
+          options={[
+            { value: 'all', label: 'Todos los malls' },
+            ...buildings.map((b) => ({ value: b.id, label: b.name })),
+          ]}
+          value={mallFilter}
+          onChange={setMallFilter}
+        />
+        <DropdownSelect
+          options={[
+            { value: 'month', label: 'Mes actual' },
+            { value: 'quarter', label: 'Trimestre' },
+            { value: 'year', label: 'Año' },
+          ]}
+          value={periodFilter}
+          onChange={setPeriodFilter}
+        />
+      </div>
 
-            const months: { label: string; diff: number }[] = [];
-            const now = new Date();
-            for (let m = 11; m >= 0; m--) {
-              const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
-              const label = d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' });
-              let mainKwh = 0;
-              let subKwh = 0;
-              for (const r of evoAgg) {
-                const b = new Date(r.bucket);
-                if (b.getFullYear() !== d.getFullYear() || b.getMonth() !== d.getMonth()) continue;
-                if (!filteredMeterIds.has(r.meter_id)) continue;
-                const energy = parseFloat(r.energy_delta_kwh ?? '0');
-                const cat = meterTypeMap.get(r.meter_id);
-                if (cat === 'main') mainKwh += energy;
-                else subKwh += energy;
-              }
-              months.push({ label, diff: mainKwh - subKwh });
-            }
-            const maxDiff = Math.max(1, ...months.map((m) => Math.abs(m.diff)));
-            const outOfTolerance = months.filter((m) => Math.abs(m.diff) > maxDiff * (TOLERANCE_PCT / 100));
-
-            return (
-              <>
-                <div className="flex h-24 items-center gap-[2px]">
-                  {months.map((m) => {
-                    const h = (Math.abs(m.diff) / maxDiff) * 100;
-                    const isNeg = m.diff < 0;
-                    return (
-                      <div key={m.label} className="flex flex-1 flex-col items-center gap-0.5" title={`${m.label}: ${m.diff.toFixed(1)} kWh`}>
-                        <div className={`w-full rounded ${isNeg ? 'bg-emerald-400' : 'bg-red-400'}`} style={{ height: `${Math.max(3, h)}%` }} />
-                        <span className="text-[8px] text-subtle">{m.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {outOfTolerance.length > 0 && (
-                  <div className="mt-3">
-                    <h4 className="text-[11px] font-medium text-muted">Meses fuera de tolerancia</h4>
-                    <ul className="mt-1 space-y-1 text-[12px]">
-                      {outOfTolerance.map((m) => (
-                        <li key={m.label} className="flex items-center justify-between">
-                          <span className="text-foreground">{m.label}</span>
-                          <div className="flex items-center gap-2">
-                            <span className={`font-medium ${m.diff > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{m.diff.toFixed(1)} kWh</span>
-                            <button type="button" onClick={() => navigate('/auditor/datos-crudos')} className="text-[10px] text-brand hover:underline">Ver raw</button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+      {/* Row 1 — Reconciliation table */}
+      <div className="panel p-4">
+        <h3 className="text-[13px] font-medium text-foreground">Tabla de reconciliación</h3>
+        <p className="mb-3 text-[11px] text-muted">Remarcador general vs. suma sub-medidores · desglose por zona / piso</p>
+        <div className="overflow-auto">
+          <table className="w-full text-[13px]">
+            <thead className="sticky top-0 z-10 bg-white">
+              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-3 py-2">Zona / Piso</th>
+                <th className="px-3 py-2 text-right">Remarcador general [kWh]</th>
+                <th className="px-3 py-2 text-right">Suma sub-medidores [kWh]</th>
+                <th className="px-3 py-2 text-right">Diferencia [kWh]</th>
+                <th className="px-3 py-2 text-right">Diferencia [%]</th>
+                <th className="px-3 py-2 text-center">Dentro de tolerancia (≤2%)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((row, idx) => (
+                <tr
+                  key={row.buildingId}
+                  className="animate-fade-in transition-colors hover:bg-surface"
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                >
+                  <td className="px-3 py-2 font-medium text-foreground">{row.buildingName}</td>
+                  <td className="px-3 py-2 text-right text-muted">{row.mainKwh.toFixed(1)}</td>
+                  <td className="px-3 py-2 text-right text-muted">{row.subKwh.toFixed(1)}</td>
+                  <td className="px-3 py-2 text-right text-foreground">{row.differenceKwh.toFixed(1)}</td>
+                  <td className="px-3 py-2 text-right text-foreground">{row.differencePct.toFixed(2)}%</td>
+                  <td className="px-3 py-2 text-center">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${TOLERANCE_BADGE[String(row.withinTolerance)]}`}>
+                      {row.withinTolerance ? 'Sí' : 'No'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-3 py-8 text-center text-muted">Sin datos.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+        <span className="block text-right text-[10px] text-muted mt-2">[DAT-16]</span>
+      </div>
+
+      {/* Row 2 — Deviation chart + Out-of-tolerance table (50/50) */}
+      <div className="flex gap-4" style={{ minHeight: '220px' }}>
+        {/* Left: bar chart */}
+        <div className="panel relative flex-1 p-4">
+          <div className="absolute inset-0 flex flex-col p-4">
+            <h3 className="text-[13px] font-medium text-foreground">Análisis de desviaciones — diferencia mensual</h3>
+            <p className="mb-3 text-[11px] text-muted">Últimos 12 meses · barras fuera de tolerancia resaltadas</p>
+            <div className="flex flex-1 items-end gap-[3px] overflow-hidden">
+              {monthData.map((m) => {
+                const h = (Math.abs(m.diff) / maxDiff) * 100;
+                const isOut = Math.abs(m.differencePct) > TOLERANCE_PCT;
+                return (
+                  <div
+                    key={m.label}
+                    className="flex flex-1 flex-col items-center gap-0.5"
+                    title={`${m.label}: ${m.diff.toFixed(1)} kWh (${m.differencePct.toFixed(2)}%)`}
+                  >
+                    <div
+                      className={`w-full rounded-t ${isOut ? 'bg-red-400' : 'bg-emerald-400'}`}
+                      style={{ height: `${Math.max(3, h)}%` }}
+                    />
+                    <span className="text-[8px] text-subtle">{m.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <span className="block text-right text-[10px] text-muted mt-2">[DAT-16, DAT-08]</span>
+          </div>
+        </div>
+
+        {/* Right: out-of-tolerance table */}
+        <div className="panel relative flex-1 p-4">
+          <div className="absolute inset-0 flex flex-col p-4">
+            <h3 className="text-[13px] font-medium text-foreground">Meses fuera de tolerancia</h3>
+            <p className="mb-3 text-[11px] text-muted">Con enlace a datos crudos del período</p>
+            <div className="flex-1 overflow-auto">
+              <table className="w-full text-[12px]">
+                <thead className="sticky top-0 bg-white">
+                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                    <th className="px-2 py-1.5">Mes</th>
+                    <th className="px-2 py-1.5 text-right">Diferencia %</th>
+                    <th className="px-2 py-1.5 text-center">Estado</th>
+                    <th className="px-2 py-1.5 text-center">Datos crudos</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {outOfTolerance.map((m) => (
+                    <tr key={m.label} className="transition-colors hover:bg-surface">
+                      <td className="px-2 py-1.5 font-medium text-foreground">{m.label}</td>
+                      <td className={`px-2 py-1.5 text-right font-medium ${m.differencePct > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                        {m.differencePct.toFixed(2)}%
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
+                          Fuera
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => navigate('/auditor/datos-crudos')}
+                          className="text-[11px] text-brand hover:underline"
+                        >
+                          Ver datos
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {outOfTolerance.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-2 py-6 text-center text-muted">
+                        Todos los meses dentro de tolerancia.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <span className="block text-right text-[10px] text-muted mt-2">[DAT-16, DAT-08]</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3 — Signed export */}
+      <div className="panel p-4">
+        <h3 className="text-[13px] font-medium text-foreground">Exportación firmada de la reconciliación</h3>
+        <p className="mb-3 text-[11px] text-muted">Sello de integridad para adjuntar a la evidencia</p>
+        <ul className="mb-4 space-y-1 text-[12px] text-muted list-disc list-inside">
+          <li>Metadatos incluidos: fecha de generación, filtros aplicados, usuario auditor</li>
+          <li>Hash SHA-256 del contenido — cualquier modificación invalida el archivo</li>
+          <li>La cuadratura descargada queda cerrada e íntegra</li>
+        </ul>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="rounded-md bg-brand px-4 py-2 text-[12px] font-medium text-white hover:opacity-90 transition-opacity"
+          >
+            Descargar reconciliación firmada
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-border px-4 py-2 text-[12px] font-medium text-foreground hover:bg-surface transition-colors"
+          >
+            Verificar hash
+          </button>
+        </div>
+        <span className="block text-right text-[10px] text-muted mt-2">[DAT-12, DAT-07, CYB-10]</span>
+      </div>
     </div>
   );
 }

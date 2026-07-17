@@ -15,22 +15,16 @@ function renderPage() { return render(<MemoryRouter><MaestroMedidoresPage /></Me
 
 describe('MaestroMedidoresPage', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Maestro Medidores' })).toBeInTheDocument(); });
-  it('renders table headers', () => { renderPage(); expect(screen.getByText('Serial')).toBeInTheDocument(); expect(screen.getByText('Protocolo')).toBeInTheDocument(); expect(screen.getByText('Estado activo')).toBeInTheDocument(); });
+  it('renders page title', () => { renderPage(); expect(screen.getByText('5.6 Maestro de Medidores')).toBeInTheDocument(); });
+  it('renders table headers', () => { renderPage(); expect(screen.getByText('Serial')).toBeInTheDocument(); expect(screen.getByText('Prot.')).toBeInTheDocument(); expect(screen.getByText('Estado activo')).toBeInTheDocument(); });
   it('renders meters', () => { renderPage(); expect(screen.getByText('Principal')).toBeInTheDocument(); expect(screen.getByText('Dado de baja')).toBeInTheDocument(); });
   it('shows asset status badges', () => { renderPage(); expect(screen.getByText('activo')).toBeInTheDocument(); expect(screen.getByText('baja')).toBeInTheDocument(); });
-  it('renders filter pills', () => { renderPage(); expect(screen.getByText('Todos')).toBeInTheDocument(); expect(screen.getByText('Activos')).toBeInTheDocument(); expect(screen.getByText('Baja')).toBeInTheDocument(); });
-  it('filters by status', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(screen.getByText('Baja'));
-    expect(screen.getByText('Dado de baja')).toBeInTheDocument();
-    expect(screen.queryByText('Principal')).not.toBeInTheDocument();
-  });
+  it('renders section labels', () => { renderPage(); expect(screen.getByText('Maestro de medidores')).toBeInTheDocument(); expect(screen.getByText('Alta / edición de medidor')).toBeInTheDocument(); });
+  it('renders search input', () => { renderPage(); expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument(); });
   it('filters by search', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.type(screen.getByPlaceholderText(/Buscar por serial/), 'SN-001');
+    await user.type(screen.getByPlaceholderText('Buscar...'), 'SN-001');
     expect(screen.getByText('Principal')).toBeInTheDocument();
     expect(screen.queryByText('Dado de baja')).not.toBeInTheDocument();
   });

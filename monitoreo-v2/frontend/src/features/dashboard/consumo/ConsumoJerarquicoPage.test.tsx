@@ -40,6 +40,7 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   useAggregatedReadingsQuery: () => ({
     data: [],
     isLoading: false,
+    isPending: false,
     isSuccess: true,
   }),
 }));
@@ -75,83 +76,107 @@ describe('ConsumoJerarquicoPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe('layout and filters', () => {
-    it('renders page header', () => {
+    it('renders page header with "3.2 Consumo Jerárquico"', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Consumo Jerárquico' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /3\.2 Consumo Jerárquico/ })).toBeInTheDocument();
     });
 
-    it('renders period selector', () => {
+    it('renders filter banner', () => {
       renderPage();
-      expect(screen.getByText('Mes actual')).toBeInTheDocument();
+      expect(screen.getByText('Filtros:')).toBeInTheDocument();
     });
 
-    it('renders metric selector', () => {
+    it('renders period selector with default "Mes actual"', () => {
       renderPage();
-      // "Consumo" also appears as eyebrow — check all three metric labels exist
-      expect(screen.getAllByText('Consumo').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Demanda')).toBeInTheDocument();
-      expect(screen.getByText('Costo')).toBeInTheDocument();
+      expect(screen.getAllByText('Mes actual').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders portfolio total', () => {
+    it('renders map view', () => {
       renderPage();
-      expect(screen.getByText('Portafolio')).toBeInTheDocument();
+      expect(screen.getByTestId('map-view')).toBeInTheDocument();
     });
   });
 
-  describe('building tree', () => {
-    it('renders all buildings', () => {
+  describe('tree panel', () => {
+    it('renders hierarchical tree section', () => {
+      renderPage();
+      expect(screen.getByText('Árbol jerárquico expandible')).toBeInTheDocument();
+    });
+
+    it('renders portfolio root label', () => {
+      renderPage();
+      expect(screen.getByText(/Total país/)).toBeInTheDocument();
+    });
+
+    it('renders CL buildings in tree', () => {
       renderPage();
       expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
       expect(screen.getByText('Mall Plaza Oeste')).toBeInTheDocument();
     });
 
-    it('shows table headers', () => {
+    it('does not render PE building (filtered by default country CL)', () => {
       renderPage();
-      expect(screen.getByText('Centro')).toBeInTheDocument();
-      expect(screen.getByText('% Total')).toBeInTheDocument();
-      expect(screen.getByText('Medidores')).toBeInTheDocument();
+      expect(screen.queryByText('Mall Jockey')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('table (remarcadores)', () => {
+    it('renders table section label', () => {
+      renderPage();
+      expect(screen.getByText('Tabla de remarcadores del mall')).toBeInTheDocument();
+    });
+
+    it('renders table column headers', () => {
+      renderPage();
+      expect(screen.getByText('ID medidor')).toBeInTheDocument();
+      expect(screen.getByText('Zona')).toBeInTheDocument();
+      expect(screen.getByText('Timestamp')).toBeInTheDocument();
       expect(screen.getByText('Estado')).toBeInTheDocument();
     });
 
-    it('shows meter count per building', () => {
+    it('shows empty state when no mall selected', () => {
       renderPage();
-      // b1 has 2 meters, b2 has 1
-      const cells = screen.getAllByText('2');
-      expect(cells.length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Seleccione un mall para ver sus medidores')).toBeInTheDocument();
     });
   });
 
-  describe('expand building', () => {
-    it('shows sparkline row when building row is clicked', async () => {
-      const user = userEvent.setup();
+  describe('KPI panel (right column)', () => {
+    it('renders KPI section label', () => {
       renderPage();
-
-      await user.click(screen.getByText('Mall Costanera'));
-
-      // Expanded building shows "Ver planta →" button and trend sparkline row
-      expect(screen.getByText('Ver planta →')).toBeInTheDocument();
+      expect(screen.getByText('KPIs del mall (3 tarjetas)')).toBeInTheDocument();
     });
 
-    it('collapses expanded row on second click', async () => {
-      const user = userEvent.setup();
+    it('shows placeholder when no mall selected', () => {
       renderPage();
-
-      await user.click(screen.getByText('Mall Costanera'));
-      expect(screen.getByText('Ver planta →')).toBeInTheDocument();
-
-      await user.click(screen.getByText('Mall Costanera'));
-      expect(screen.queryByText('Ver planta →')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Seleccione un mall').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  describe('country filter (hardcoded to CL)', () => {
-    it('only shows CL buildings by default', () => {
+  describe('expand building in tree', () => {
+    it('shows zones/meters when tree building is clicked', async () => {
+      const user = userEvent.setup();
       renderPage();
-      // b1 and b2 are CL, b3 is PE — only CL shown
-      expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
-      expect(screen.getByText('Mall Plaza Oeste')).toBeInTheDocument();
-      expect(screen.queryByText('Mall Jockey')).not.toBeInTheDocument();
+
+      // Click the building row button in the tree
+      await user.click(screen.getByText('Mall Costanera'));
+
+      // Expanded building shows meter codes/zones in sub-list
+      // b1 meters: 'main' and 'hvac' load categories
+      expect(screen.getAllByText('Mall Costanera').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('map + filter interactions', () => {
+    it('renders sort and compare dropdowns', () => {
+      renderPage();
+      expect(screen.getByText('Ordenar malls por')).toBeInTheDocument();
+      expect(screen.getByText('Comparar con')).toBeInTheDocument();
+    });
+
+    it('renders granularity selector', () => {
+      renderPage();
+      expect(screen.getAllByText('Granularidad').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Mensual').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

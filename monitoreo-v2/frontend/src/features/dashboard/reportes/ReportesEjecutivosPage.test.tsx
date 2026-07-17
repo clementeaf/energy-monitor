@@ -40,83 +40,84 @@ describe('ReportesEjecutivosPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe('layout', () => {
-    it('renders page header', () => {
+    it('renders page header with "3.4 Reportes Ejecutivos"', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Reportes Ejecutivos' })).toBeInTheDocument();
-    });
-
-    it('renders history link', () => {
-      renderPage();
-      expect(screen.getByText('Revisar historial')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /3\.4 Reportes Ejecutivos/ })).toBeInTheDocument();
     });
   });
 
   describe('configurator', () => {
-    it('renders scope selector', () => {
+    it('renders configurador de reporte section', () => {
       renderPage();
-      expect(screen.getByText('Alcance geográfico')).toBeInTheDocument();
+      expect(screen.getByText('Configurador de reporte')).toBeInTheDocument();
+    });
+
+    it('renders scope field with options', () => {
+      renderPage();
+      expect(screen.getByText('Alcance geográfico (Portafolio / País / Mall)')).toBeInTheDocument();
       expect(screen.getByText('Portafolio completo')).toBeInTheDocument();
       expect(screen.getByText('Por país')).toBeInTheDocument();
       expect(screen.getByText('Centro específico')).toBeInTheDocument();
     });
 
-    it('renders period selector', () => {
+    it('renders period field', () => {
       renderPage();
-      // "Período" appears in configurator section + table header
-      expect(screen.getAllByText('Período').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Período (Mes / Trimestre / Año / Rango)')).toBeInTheDocument();
+      expect(screen.getByText('Mes')).toBeInTheDocument();
+      expect(screen.getByText('Trimestre')).toBeInTheDocument();
+      expect(screen.getByText('Año')).toBeInTheDocument();
     });
 
-    it('renders comparison selector', () => {
+    it('renders comparison field', () => {
       renderPage();
-      expect(screen.getByText('Comparación')).toBeInTheDocument();
+      expect(screen.getByText('Comparación (vs. anterior / año anterior / sin)')).toBeInTheDocument();
       expect(screen.getByText('vs. período anterior')).toBeInTheDocument();
+      expect(screen.getByText('vs. mismo período año anterior')).toBeInTheDocument();
     });
 
-    it('renders section checkboxes', () => {
+    it('renders metric field', () => {
       renderPage();
-      expect(screen.getByText('Secciones a incluir')).toBeInTheDocument();
-      // Checked sections appear in both checkbox labels and preview thumbnails
-      expect(screen.getAllByText('KPIs ejecutivos').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Tendencia de consumo').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Ranking de malls').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Análisis de costos').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Calidad del dato').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Resumen de alarmas').length).toBeGreaterThanOrEqual(1);
-      // Mapa de cobertura only in checkbox (unchecked = no preview)
-      expect(screen.getByText('Mapa de cobertura')).toBeInTheDocument();
+      expect(screen.getByText('Métrica principal (Consumo / Costo / Intensidad)')).toBeInTheDocument();
+      expect(screen.getByText('Consumo')).toBeInTheDocument();
+      expect(screen.getByText('Costo')).toBeInTheDocument();
+      expect(screen.getByText('Intensidad')).toBeInTheDocument();
     });
 
-    it('renders format selector', () => {
+    it('renders format field', () => {
       renderPage();
-      expect(screen.getByText('Formato de salida')).toBeInTheDocument();
+      expect(screen.getByText('Formato de salida (PDF / PPT / Excel)')).toBeInTheDocument();
       expect(screen.getByText('PDF')).toBeInTheDocument();
+      expect(screen.getByText('PPT')).toBeInTheDocument();
       expect(screen.getByText('Excel')).toBeInTheDocument();
       expect(screen.getByText('CSV')).toBeInTheDocument();
-    });
-
-    it('renders language selector', () => {
-      renderPage();
-      expect(screen.getByText('Idioma')).toBeInTheDocument();
-      expect(screen.getByText('Español')).toBeInTheDocument();
-      expect(screen.getByText('Inglés')).toBeInTheDocument();
     });
 
     it('renders generate button', () => {
       renderPage();
       expect(screen.getByRole('button', { name: 'Generar reporte' })).toBeInTheDocument();
     });
+
+    it('renders schedule send button', () => {
+      renderPage();
+      expect(screen.getByRole('button', { name: 'Programar envío' })).toBeInTheDocument();
+    });
   });
 
   describe('section checkboxes', () => {
-    it('toggles section checkbox', async () => {
-      const user = userEvent.setup();
+    it('renders secciones a incluir panel', () => {
       renderPage();
+      expect(screen.getByText('Secciones a incluir (checkboxes)')).toBeInTheDocument();
+    });
 
-      const checkbox = screen.getByLabelText('Mapa de cobertura');
-      expect(checkbox).not.toBeChecked();
-
-      await user.click(checkbox);
-      expect(checkbox).toBeChecked();
+    it('renders all section checkboxes', () => {
+      renderPage();
+      expect(screen.getByLabelText('KPIs ejecutivos')).toBeInTheDocument();
+      expect(screen.getByLabelText('Tendencia de consumo')).toBeInTheDocument();
+      expect(screen.getByLabelText('Ranking de malls')).toBeInTheDocument();
+      expect(screen.getByLabelText('Análisis de costos')).toBeInTheDocument();
+      expect(screen.getByLabelText('Calidad del dato')).toBeInTheDocument();
+      expect(screen.getByLabelText('Resumen de alarmas')).toBeInTheDocument();
+      expect(screen.getByLabelText('Mapa de cobertura')).toBeInTheDocument();
     });
 
     it('default sections are checked', () => {
@@ -124,57 +125,87 @@ describe('ReportesEjecutivosPage', () => {
       expect(screen.getByLabelText('KPIs ejecutivos')).toBeChecked();
       expect(screen.getByLabelText('Tendencia de consumo')).toBeChecked();
       expect(screen.getByLabelText('Ranking de malls')).toBeChecked();
+      expect(screen.getByLabelText('Análisis de costos')).toBeChecked();
+      expect(screen.getByLabelText('Calidad del dato')).toBeChecked();
+      expect(screen.getByLabelText('Resumen de alarmas')).toBeChecked();
     });
 
     it('Mapa de cobertura is unchecked by default', () => {
       renderPage();
       expect(screen.getByLabelText('Mapa de cobertura')).not.toBeChecked();
     });
+
+    it('toggles section checkbox', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const checkbox = screen.getByLabelText('Mapa de cobertura');
+      expect(checkbox).not.toBeChecked();
+      await user.click(checkbox);
+      expect(checkbox).toBeChecked();
+    });
   });
 
-  describe('preview', () => {
-    it('renders preview section', () => {
+  describe('preview panel', () => {
+    it('renders vista previa section', () => {
       renderPage();
-      expect(screen.getByText('Vista previa')).toBeInTheDocument();
+      expect(screen.getByText('Vista previa del reporte')).toBeInTheDocument();
     });
 
-    it('shows preview thumbnails for checked sections', () => {
+    it('shows sections listed in preview index', () => {
       renderPage();
-      // 6 default sections checked (Mapa de cobertura unchecked)
-      const previews = screen.getAllByText('KPIs ejecutivos');
-      // One in checkbox label, one in preview
-      expect(previews.length).toBe(2);
+      // Default 6 sections checked — they appear as "— {label}" items in the preview
+      // getAllByText because label also appears in checkbox area
+      expect(screen.getAllByText('KPIs ejecutivos').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Tendencia de consumo').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('shows portada entry in preview', () => {
+      renderPage();
+      expect(screen.getByText('• Portada + logo')).toBeInTheDocument();
     });
   });
 
   describe('history table', () => {
-    it('renders history section', () => {
+    it('renders historial de reportes section', () => {
       renderPage();
-      expect(screen.getByText('Historial de reportes generados')).toBeInTheDocument();
+      expect(screen.getByText('Historial de reportes')).toBeInTheDocument();
     });
 
-    it('renders report rows', () => {
+    it('renders table column headers', () => {
       renderPage();
-      expect(screen.getByText('executive')).toBeInTheDocument();
-      expect(screen.getByText('consumption')).toBeInTheDocument();
+      expect(screen.getByText('Fecha')).toBeInTheDocument();
+      expect(screen.getByText('Usuario')).toBeInTheDocument();
+      expect(screen.getByText('Alcance')).toBeInTheDocument();
+      expect(screen.getByText('Formato')).toBeInTheDocument();
+      expect(screen.getByText('Estado')).toBeInTheDocument();
     });
 
-    it('shows download link for ready reports', () => {
+    it('renders report rows from mock data', () => {
       renderPage();
-      expect(screen.getByText('Descargar')).toBeInTheDocument();
+      // Inline table renders: Fecha, Usuario, Alcance, Formato, Estado
+      // Alcance defaults to 'Portafolio' (no scope field in mock), format = 'pdf' / 'excel'
+      expect(screen.getAllByText('Portafolio').length).toBeGreaterThanOrEqual(1);
+      // format column has uppercase CSS class — DOM text is lowercase
+      expect(screen.getByText('pdf')).toBeInTheDocument();
+      expect(screen.getByText('excel')).toBeInTheDocument();
     });
 
-    it('shows status badges', () => {
+    it('shows status badges for report rows', () => {
       renderPage();
+      // r1 has fileUrl → 'Listo', r2 has no fileUrl → 'Generando'
       expect(screen.getByText('Listo')).toBeInTheDocument();
       expect(screen.getByText('Generando')).toBeInTheDocument();
     });
 
-    it('shows format column', () => {
+    it('shows Listo status for report with fileUrl', () => {
       renderPage();
-      // Filter shows "PDF"; table shows "pdf" (CSS uppercase) and "excel"
-      expect(screen.getAllByText('PDF').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('excel')).toBeInTheDocument();
+      expect(screen.getByText('Listo')).toBeInTheDocument();
+    });
+
+    it('shows Generando status for report without fileUrl', () => {
+      renderPage();
+      expect(screen.getByText('Generando')).toBeInTheDocument();
     });
   });
 });

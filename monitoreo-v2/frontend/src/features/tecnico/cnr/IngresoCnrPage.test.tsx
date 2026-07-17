@@ -41,25 +41,23 @@ async function fillForm(user: ReturnType<typeof userEvent.setup>) {
 describe('IngresoCnrPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    try { localStorage.setItem('cnr_entries', '[]'); } catch { /* noop */ }
   });
 
   describe('layout', () => {
-    it('renders page header', () => {
+    it('renders page header with new title format', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Ingreso CNR Manual' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '5.5 Ingreso CNR manual' })).toBeInTheDocument();
     });
 
-    it('renders meter selector with real meters', () => {
+    it('renders meter selector with default option', () => {
       renderPage();
       expect(screen.getByText('Seleccionar medidor')).toBeInTheDocument();
-      expect(screen.getByText(/Principal \(P1\)/)).toBeInTheDocument();
     });
 
-    it('renders period inputs', () => {
+    it('renders meter option in select', () => {
       renderPage();
-      expect(screen.getByText('Inicio período')).toBeInTheDocument();
-      expect(screen.getByText('Fin período')).toBeInTheDocument();
+      // Option text: "P1 — {buildingName}" where buildingName = 'Mall Norte'
+      expect(screen.getByText(/P1 —/)).toBeInTheDocument();
     });
 
     it('renders kWh input', () => {
@@ -67,36 +65,45 @@ describe('IngresoCnrPage', () => {
       expect(screen.getByPlaceholderText(/Lectura manual/)).toBeInTheDocument();
     });
 
-    it('renders motive selector', () => {
+    it('renders motive selector with CNR motives', () => {
       renderPage();
       expect(screen.getByText('Falla de comunicación')).toBeInTheDocument();
       expect(screen.getByText('Mantenimiento programado')).toBeInTheDocument();
     });
 
-    it('renders justification with char counter', () => {
+    it('renders justification textarea', () => {
       renderPage();
-      expect(screen.getByText(/20 caracteres mínimo/)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Justificación detallada/)).toBeInTheDocument();
     });
 
-    it('renders empty history', () => {
+    it('renders section headers', () => {
       renderPage();
-      expect(screen.getByText(/Sin CNR registrados/)).toBeInTheDocument();
+      expect(screen.getByText('Medidor y contexto')).toBeInTheDocument();
+      expect(screen.getByText('Datos del CNR')).toBeInTheDocument();
+      expect(screen.getByText('Justificación y evidencia')).toBeInTheDocument();
+      expect(screen.getByText('Marcado del valor')).toBeInTheDocument();
+    });
+
+    it('renders post-signature restrictions notice', () => {
+      renderPage();
+      expect(screen.getByText('Restricciones post-firma')).toBeInTheDocument();
     });
   });
 
   describe('meter info', () => {
-    it('shows meter details after selection', async () => {
+    it('shows meter code after selection', async () => {
       const user = userEvent.setup();
       renderPage();
       await user.selectOptions(screen.getAllByRole('combobox')[0], 'm1');
-      expect(screen.getByText(/Código:/)).toBeInTheDocument();
+      // Shows "P1 · Mall Norte" inline
+      expect(screen.getAllByText(/P1/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
   describe('validation', () => {
     it('submit disabled without data', () => {
       renderPage();
-      expect(screen.getByRole('button', { name: 'Registrar CNR' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Firmar CNR' })).toBeDisabled();
     });
 
     it('submit disabled with short justification', async () => {
@@ -108,14 +115,14 @@ describe('IngresoCnrPage', () => {
       await user.type(dateInputs[1], '2026-06-22T08:00');
       await user.type(screen.getByPlaceholderText(/Lectura manual/), '150');
       await user.type(screen.getByPlaceholderText(/Justificación detallada/), 'Corto');
-      expect(screen.getByRole('button', { name: 'Registrar CNR' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Firmar CNR' })).toBeDisabled();
     });
 
     it('submit enabled with all fields and 20+ char justification', async () => {
       const user = userEvent.setup();
       renderPage();
       await fillForm(user);
-      expect(screen.getByRole('button', { name: 'Registrar CNR' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Firmar CNR' })).toBeEnabled();
     });
   });
 
@@ -124,35 +131,18 @@ describe('IngresoCnrPage', () => {
       const user = userEvent.setup();
       renderPage();
       await fillForm(user);
-      await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
-      expect(screen.getByText(/dato manual — CNR/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Firmar CNR' }));
+      // Text appears in both success banner and static "Marcado del valor" section
+      expect(screen.getAllByText(/dato manual — CNR/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('clears form after submit (button disabled again)', async () => {
       const user = userEvent.setup();
       renderPage();
       await fillForm(user);
-      await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
+      await user.click(screen.getByRole('button', { name: 'Firmar CNR' }));
       // onSuccess resets selectedMeterId → canSubmit false → button disabled
-      expect(screen.getByRole('button', { name: 'Registrar CNR' })).toBeDisabled();
-    });
-
-    it('history panel shows 0 entries (API returns empty)', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await fillForm(user);
-      await user.click(screen.getByRole('button', { name: 'Registrar CNR' }));
-      // History comes from cnrQuery.data which is mocked as [] — count stays 0
-      expect(screen.getByText('Historial CNR (0)')).toBeInTheDocument();
-    });
-  });
-
-  describe('char counter', () => {
-    it('updates as user types', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.type(screen.getByPlaceholderText(/Justificación detallada/), 'ABCDE');
-      expect(screen.getByText('5/20 caracteres mínimo')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Firmar CNR' })).toBeDisabled();
     });
   });
 });

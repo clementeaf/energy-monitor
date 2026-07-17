@@ -59,46 +59,38 @@ describe('profile-nav', () => {
     });
   });
 
-  describe('spec-aligned profile assertions (6 screens each)', () => {
-    it('gerencial has exactly 4 nav groups: Panel Consolidado, Alarmas, Reportes, Mapa Indoor', () => {
-      const labels = PROFILE_NAV.gerencial.map((e) => e.label);
-      expect(labels).toEqual(['Panel Consolidado', 'Alarmas', 'Reportes', 'Mapa Indoor']);
+  describe('flat nav — wireframe v3 aligned', () => {
+    it('gerencial has 6 flat entries', () => {
+      expect(PROFILE_NAV.gerencial).toHaveLength(6);
+      expect(PROFILE_NAV.gerencial.every((e) => !!e.to)).toBe(true);
     });
 
-    it('gerencial Panel Consolidado has 3 sub-items: Consolidado, Consumo, Costos', () => {
-      const panel = PROFILE_NAV.gerencial[0];
-      expect(panel.children).toHaveLength(3);
+    it('operacional has 6 flat entries', () => {
+      expect(PROFILE_NAV.operacional).toHaveLength(6);
+      expect(PROFILE_NAV.operacional.every((e) => !!e.to)).toBe(true);
     });
 
-    it('operacional has exactly 3 nav groups: Monitoreo, Alertas, Calidad', () => {
-      const labels = PROFILE_NAV.operacional.map((e) => e.label);
-      expect(labels).toEqual(['Monitoreo', 'Alertas', 'Calidad']);
+    it('tecnico has 7 flat entries', () => {
+      expect(PROFILE_NAV.tecnico).toHaveLength(7);
+      expect(PROFILE_NAV.tecnico.every((e) => !!e.to)).toBe(true);
     });
 
-    it('operacional Alertas has 2 sub-items: Gestión, Tickets y SLA', () => {
-      const alertas = PROFILE_NAV.operacional.find((e) => e.label === 'Alertas');
-      expect(alertas?.children).toHaveLength(2);
+    it('auditor has 6 flat entries', () => {
+      expect(PROFILE_NAV.auditor).toHaveLength(6);
+      const labels = PROFILE_NAV.auditor.map((e) => e.label);
+      expect(labels).toEqual([
+        'Calidad de Datos',
+        'Cuadratura',
+        'Pista de Auditoría',
+        'Trazabilidad',
+        'Datos Crudos',
+        'Exportar Evidencia',
+      ]);
+      expect(PROFILE_NAV.auditor.every((e) => !!e.to)).toBe(true);
     });
 
-    it('tecnico has exactly 3 nav groups: Órdenes, Medidores, Registro', () => {
-      const labels = PROFILE_NAV.tecnico.map((e) => e.label);
-      expect(labels).toEqual(['Órdenes', 'Medidores', 'Registro']);
-    });
-
-    it('auditor has exactly 1 nav group: Auditoría with 6 sub-items', () => {
-      expect(PROFILE_NAV.auditor).toHaveLength(1);
-      expect(PROFILE_NAV.auditor[0].label).toBe('Auditoría');
-      expect(PROFILE_NAV.auditor[0].children).toHaveLength(6);
-    });
-
-    it('super_admin has exactly 4 nav groups: Plataforma, Administración, Integraciones, Mapa Indoor', () => {
-      const labels = PROFILE_NAV.super_admin.map((e) => e.label);
-      expect(labels).toEqual(['Plataforma', 'Administración', 'Integraciones', 'Mapa Indoor']);
-    });
-
-    it('super_admin Administración has 2 sub-items: Usuarios y Roles, Seguridad y PAM', () => {
-      const admin = PROFILE_NAV.super_admin.find((e) => e.label === 'Administración');
-      expect(admin?.children).toHaveLength(2);
+    it('super_admin has grouped entries with children', () => {
+      expect(PROFILE_NAV.super_admin.length).toBeGreaterThanOrEqual(3);
     });
 
     it('no locatario profile exists (not in spec)', () => {

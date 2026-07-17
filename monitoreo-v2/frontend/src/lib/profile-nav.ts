@@ -68,20 +68,12 @@ const TECNICO_NAV: ProfileNavEntry[] = [
 ];
 
 const AUDITOR_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Auditoría',
-    icon: 'admin',
-    basePath: '/auditor',
-    extraPaths: ['/admin/audit', '/admin/data-quality'],
-    children: [
-      { to: APP_ROUTES.calidadDatos, label: 'Calidad de Datos' },
-      { to: APP_ROUTES.cuadratura, label: 'Cuadratura' },
-      { to: '/admin/audit', label: 'Pista de Auditoría' },
-      { to: APP_ROUTES.trazabilidad, label: 'Trazabilidad' },
-      { to: APP_ROUTES.datosCrudos, label: 'Datos Crudos' },
-      { to: APP_ROUTES.exportarEvidencia, label: 'Exportar Evidencia' },
-    ],
-  },
+  { label: 'Calidad de Datos', icon: 'analytics', to: APP_ROUTES.calidadDatos, basePath: '/auditor/calidad-datos' },
+  { label: 'Cuadratura', icon: 'analytics', to: APP_ROUTES.cuadratura, basePath: '/auditor/cuadratura' },
+  { label: 'Pista de Auditoría', icon: 'admin', to: APP_ROUTES.pistaAuditoria, basePath: '/auditor/pista' },
+  { label: 'Trazabilidad', icon: 'monitoring', to: APP_ROUTES.trazabilidad, basePath: '/auditor/trazabilidad' },
+  { label: 'Datos Crudos', icon: 'monitoring', to: APP_ROUTES.datosCrudos, basePath: '/auditor/datos-crudos' },
+  { label: 'Exportar Evidencia', icon: 'admin', to: APP_ROUTES.exportarEvidencia, basePath: '/auditor/evidencia' },
 ];
 
 const SUPER_ADMIN_PLATFORM_NAV: ProfileNavEntry[] = [

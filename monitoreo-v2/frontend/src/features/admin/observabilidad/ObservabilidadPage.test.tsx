@@ -16,6 +16,6 @@ describe('ObservabilidadPage', () => {
   it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Observabilidad' })).toBeInTheDocument(); });
   it('renders health KPIs', () => { renderPage(); expect(screen.getByText('Uptime (30d)')).toBeInTheDocument(); expect(screen.getByText('Latencia p95')).toBeInTheDocument(); expect(screen.getByText('Error rate')).toBeInTheDocument(); });
   it('renders component status', () => { renderPage(); expect(screen.getByText('Estado por componente')).toBeInTheDocument(); expect(screen.getByText('API principal')).toBeInTheDocument(); expect(screen.getByText('Base de datos')).toBeInTheDocument(); });
-  it('renders ingestion metrics', () => { renderPage(); expect(screen.getByText('Métricas de ingestión')).toBeInTheDocument(); expect(screen.getByText('Medidores reportando')).toBeInTheDocument(); });
+  it('renders ingestion metrics', () => { renderPage(); expect(screen.getByText('Medidores reportando')).toBeInTheDocument(); expect(screen.getByText('Mensajes/hora')).toBeInTheDocument(); });
   it('renders health alerts section', () => { renderPage(); expect(screen.getByText('Alertas de salud activas')).toBeInTheDocument(); });
 });

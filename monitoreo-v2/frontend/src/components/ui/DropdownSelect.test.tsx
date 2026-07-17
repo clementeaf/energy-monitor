@@ -31,24 +31,31 @@ describe('DropdownSelect', () => {
 
   it('renders selected option label', () => {
     render(<DropdownSelect options={options} value="b" onChange={vi.fn()} />);
-    expect(screen.getByText('Beta')).toBeInTheDocument();
+    // 'Beta' appears in the button label and in the (hidden) listbox
+    expect(screen.getAllByText('Beta').length).toBeGreaterThanOrEqual(1);
   });
 
+  // Helper: the listbox wrapper is always in DOM; check opacity class to determine open/closed
+  function isDropdownOpen(container: HTMLElement) {
+    const wrapper = container.querySelector('[role="listbox"]')?.closest('div[class*="transition-all"]');
+    return wrapper ? !wrapper.className.includes('opacity-0') : false;
+  }
+
   it('opens dropdown on button click', async () => {
-    render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
+    const { container } = render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
+    expect(isDropdownOpen(container)).toBe(false);
     await userEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(true);
     expect(screen.getByText('Alpha')).toBeInTheDocument();
-    expect(screen.getByText('Beta')).toBeInTheDocument();
     expect(screen.getByText('Charlie')).toBeInTheDocument();
   });
 
   it('closes dropdown on second button click', async () => {
-    render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
+    const { container } = render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
     await userEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(true);
     await userEvent.click(screen.getByRole('button'));
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(false);
   });
 
   it('calls onChange when option is clicked', async () => {
@@ -61,10 +68,11 @@ describe('DropdownSelect', () => {
 
   it('closes dropdown after selecting an option', async () => {
     const onChange = vi.fn();
-    render(<DropdownSelect options={options} value="" onChange={onChange} />);
+    const { container } = render(<DropdownSelect options={options} value="" onChange={onChange} />);
     await userEvent.click(screen.getByRole('button'));
+    expect(isDropdownOpen(container)).toBe(true);
     await userEvent.click(screen.getByText('Alpha'));
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(false);
   });
 
   it('shows search input when options exceed searchThreshold', async () => {
@@ -110,11 +118,11 @@ describe('DropdownSelect', () => {
   });
 
   it('closes on Escape key', async () => {
-    render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
+    const { container } = render(<DropdownSelect options={options} value="" onChange={vi.fn()} />);
     await userEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(true);
     await userEvent.keyboard('{Escape}');
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(false);
   });
 
   it('is disabled when disabled prop is true', () => {
@@ -123,9 +131,9 @@ describe('DropdownSelect', () => {
   });
 
   it('does not open when disabled', async () => {
-    render(<DropdownSelect options={options} value="" onChange={vi.fn()} disabled />);
+    const { container } = render(<DropdownSelect options={options} value="" onChange={vi.fn()} disabled />);
     await userEvent.click(screen.getByRole('button'));
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(isDropdownOpen(container)).toBe(false);
   });
 
   it('applies extra className', () => {

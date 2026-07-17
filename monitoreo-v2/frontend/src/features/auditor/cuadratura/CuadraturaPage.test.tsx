@@ -17,10 +17,12 @@ function renderPage() { return render(<MemoryRouter><CuadraturaPage /></MemoryRo
 
 describe('CuadraturaPage', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Cuadratura Agregación' })).toBeInTheDocument(); });
-  it('renders reconciliation table', () => { renderPage(); expect(screen.getByText('Tabla de reconciliación')).toBeInTheDocument(); });
-  it('renders table headers', () => { renderPage(); expect(screen.getByText('Remarcador [kWh]')).toBeInTheDocument(); expect(screen.getByText('Suma sub-med. [kWh]')).toBeInTheDocument(); expect(screen.getByText('Diferencia [kWh]')).toBeInTheDocument(); });
+  it('renders title', () => { renderPage(); expect(screen.getByText('6.2 Cuadratura y Agregación')).toBeInTheDocument(); });
+  it('renders reconciliation table', () => { renderPage(); expect(screen.getByText(/Tabla de reconciliación/)).toBeInTheDocument(); });
+  it('renders table headers', () => { renderPage(); expect(screen.getByText('Remarcador general [kWh]')).toBeInTheDocument(); expect(screen.getByText('Suma sub-medidores [kWh]')).toBeInTheDocument(); });
   it('renders building row', () => { renderPage(); expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1); });
-  it('shows tolerance status', () => { renderPage(); expect(screen.getAllByText(/Sí|No/).length).toBeGreaterThanOrEqual(1); });
-  it('shows tolerance percentage', () => { renderPage(); expect(screen.getByText(/±2%/)).toBeInTheDocument(); });
+  it('shows tolerance column', () => { renderPage(); expect(screen.getAllByText(/tolerancia/i).length).toBeGreaterThanOrEqual(1); });
+  it('renders signed export section', () => { renderPage(); expect(screen.getByText(/Exportación firmada/)).toBeInTheDocument(); });
+  it('renders download button', () => { renderPage(); expect(screen.getByText('Descargar reconciliación firmada')).toBeInTheDocument(); });
+  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-16/).length).toBeGreaterThanOrEqual(1); });
 });

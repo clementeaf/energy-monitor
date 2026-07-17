@@ -16,8 +16,8 @@ vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
 vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   useLatestReadingsQuery: () => ({
     data: [
-      { meterId: 'm1', timestamp: new Date(Date.now() - 30 * 60_000).toISOString(), activePowerKw: 10 },
-      { meterId: 'm2', timestamp: new Date(Date.now() - 2 * 3_600_000).toISOString(), activePowerKw: 5 },
+      { meter_id: 'm1', meter_name: 'P1', building_id: 'b1', timestamp: new Date(Date.now() - 30 * 60_000).toISOString(), power_kw: '10', energy_kwh_total: '100', voltage_l1: null, current_l1: null, power_factor: null, frequency_hz: null },
+      { meter_id: 'm2', meter_name: 'H1', building_id: 'b1', timestamp: new Date(Date.now() - 2 * 3_600_000).toISOString(), power_kw: '5', energy_kwh_total: '50', voltage_l1: null, current_l1: null, power_factor: null, frequency_hz: null },
     ],
     isLoading: false,
     isSuccess: true,
@@ -64,47 +64,59 @@ describe('TicketsSlaPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Tickets y SLA' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.3 Tickets y SLA' })).toBeInTheDocument();
     });
 
-    it('renders quick filter pills', () => {
+    it('renders quick filter buttons', () => {
       renderPage();
       expect(screen.getByText('Todos')).toBeInTheDocument();
       expect(screen.getByText('Por vencer')).toBeInTheDocument();
       expect(screen.getByText('Vencidos')).toBeInTheDocument();
     });
+
+    it('renders Mis tickets filter button', () => {
+      renderPage();
+      expect(screen.getByText('Mis tickets')).toBeInTheDocument();
+    });
   });
 
-  describe('SLA KPIs', () => {
-    it('renders tickets abiertos', () => {
+  describe('KPI cards row 1', () => {
+    it('renders uptime card', () => {
       renderPage();
-      expect(screen.getByText('Tickets abiertos')).toBeInTheDocument();
+      expect(screen.getByText('Uptime del servicio (30 días)')).toBeInTheDocument();
     });
 
-    it('renders vencidos count', () => {
+    it('renders disponibilidad datos card', () => {
       renderPage();
-      expect(screen.getByText('Vencidos (SLA)')).toBeInTheDocument();
+      expect(screen.getByText('Disponibilidad de datos [%]')).toBeInTheDocument();
     });
 
-    it('renders resueltos período', () => {
+    it('renders tiempo medio resolución card', () => {
       renderPage();
-      expect(screen.getByText('Resueltos período')).toBeInTheDocument();
+      expect(screen.getByText('T. medio resolución críticas [h]')).toBeInTheDocument();
     });
+  });
 
-    it('renders resueltos período', () => {
+  describe('SLA evolution chart', () => {
+    it('renders SLA evolution heading', () => {
       renderPage();
-      expect(screen.getByText('Resueltos período')).toBeInTheDocument();
+      expect(screen.getByText('Evolución de SLA — últimos 3 meses')).toBeInTheDocument();
     });
   });
 
   describe('ticket table', () => {
+    it('renders tablero de tickets heading', () => {
+      renderPage();
+      expect(screen.getByText('Tablero de tickets')).toBeInTheDocument();
+    });
+
     it('renders table headers', () => {
       renderPage();
       expect(screen.getByText('Descripción')).toBeInTheDocument();
       expect(screen.getByText('Tipo')).toBeInTheDocument();
       expect(screen.getByText('Prioridad')).toBeInTheDocument();
       expect(screen.getByText('Apertura')).toBeInTheDocument();
-      expect(screen.getByText('SLA')).toBeInTheDocument();
+      expect(screen.getByText('Compromiso SLA')).toBeInTheDocument();
     });
 
     it('renders ticket rows from alerts', () => {
@@ -120,57 +132,10 @@ describe('TicketsSlaPage', () => {
       expect(screen.getAllByText('BAJA').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders building name', () => {
-      renderPage();
-      expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1);
-    });
-
     it('renders status badges', () => {
       renderPage();
       expect(screen.getAllByText('abierto').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('resuelto').length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  describe('new SLA KPIs', () => {
-    it('renders cumplimiento SLA', () => {
-      renderPage();
-      expect(screen.getByText('Cumplimiento SLA')).toBeInTheDocument();
-    });
-
-    it('renders tiempo medio resolución', () => {
-      renderPage();
-      expect(screen.getByText('Tiempo medio resolución')).toBeInTheDocument();
-    });
-
-    it('shows resolution time in hours for resolved alerts', () => {
-      renderPage();
-      // resolved alert: created 10h ago, resolved 1h ago → 9h
-      expect(screen.getByText('9h')).toBeInTheDocument();
-    });
-
-    it('renders disponibilidad datos', () => {
-      renderPage();
-      expect(screen.getByText('Disponibilidad datos')).toBeInTheDocument();
-    });
-
-    it('shows uptime percentage from latest readings', () => {
-      renderPage();
-      // 1 of 2 meters online (< 1h) → 50%
-      expect(screen.getByText('50%')).toBeInTheDocument();
-    });
-  });
-
-  describe('SLA chart', () => {
-    it('renders SLA evolution heading', () => {
-      renderPage();
-      expect(screen.getByText(/Evolución SLA/)).toBeInTheDocument();
-    });
-
-    it('renders chart legend', () => {
-      renderPage();
-      expect(screen.getByText('Dentro SLA')).toBeInTheDocument();
-      expect(screen.getByText('Fuera SLA')).toBeInTheDocument();
     });
   });
 

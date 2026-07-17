@@ -66,38 +66,23 @@ describe('CalidadBackfillPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Calidad y Backfill' })).toBeInTheDocument();
-    });
-  });
-
-  describe('summary KPIs', () => {
-    it('renders quality average', () => {
-      renderPage();
-      expect(screen.getByText('Calidad promedio')).toBeInTheDocument();
-    });
-
-    it('renders centers count', () => {
-      renderPage();
-      expect(screen.getByText('Centros')).toBeInTheDocument();
-    });
-
-    it('renders active backfill count', () => {
-      renderPage();
-      expect(screen.getByText('Backfill activos')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.4 Calidad y Backfill' })).toBeInTheDocument();
     });
   });
 
   describe('scorecard table', () => {
     it('renders scorecard heading', () => {
       renderPage();
-      expect(screen.getByText('Scorecard de calidad por centro')).toBeInTheDocument();
+      expect(screen.getByText('Scorecard de calidad por mall')).toBeInTheDocument();
     });
 
-    it('renders table headers', () => {
+    it('renders table column headers', () => {
       renderPage();
-      expect(screen.getByText('% Real')).toBeInTheDocument();
-      expect(screen.getByText('% Estimado')).toBeInTheDocument();
+      expect(screen.getByText('Mall')).toBeInTheDocument();
+      expect(screen.getByText('% Reales')).toBeInTheDocument();
+      expect(screen.getByText('% Estimadas')).toBeInTheDocument();
       expect(screen.getByText('% CNR')).toBeInTheDocument();
+      expect(screen.getByText('Tendencia')).toBeInTheDocument();
     });
 
     it('renders building rows', () => {
@@ -105,45 +90,60 @@ describe('CalidadBackfillPage', () => {
       expect(screen.getByText('Mall Norte')).toBeInTheDocument();
       expect(screen.getByText('Mall Sur')).toBeInTheDocument();
     });
+  });
 
-    it('shows meter count per building', () => {
+  describe('histogram panel', () => {
+    it('renders histogram heading', () => {
       renderPage();
-      // b1 has 2 meters, b2 has 1
-      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Histograma de calidad — 30 días')).toBeInTheDocument();
+    });
+
+    it('renders histogram legend', () => {
+      renderPage();
+      expect(screen.getByText('Real')).toBeInTheDocument();
+      expect(screen.getByText('Estimado')).toBeInTheDocument();
+      expect(screen.getByText('CNR')).toBeInTheDocument();
+      expect(screen.getByText('Faltante')).toBeInTheDocument();
     });
   });
 
   describe('backfill panel', () => {
-    it('renders backfill heading', () => {
+    it('renders backfill panel heading', () => {
       renderPage();
-      expect(screen.getByText('Backfill activo')).toBeInTheDocument();
+      expect(screen.getByText('Panel de backfill activo')).toBeInTheDocument();
     });
 
-    it('renders running backfill job', () => {
+    it('renders running backfill job meter name', () => {
       renderPage();
-      // bf1 is running for meter m2 (HVAC) — appears in backfill + degradation
-      expect(screen.getAllByText('HVAC').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('En curso')).toBeInTheDocument();
+      // bf1 is running for m2 → meter name resolved from meterMap = 'HVAC'
+      expect(screen.getByText('HVAC')).toBeInTheDocument();
     });
 
-    it('shows rows processed', () => {
+    it('renders launch backfill button', () => {
       renderPage();
-      expect(screen.getByText('150 filas')).toBeInTheDocument();
+      expect(screen.getByText('Lanzar backfill manual')).toBeInTheDocument();
+    });
+
+    it('renders backfill table headers', () => {
+      renderPage();
+      expect(screen.getByText('Medidor')).toBeInTheDocument();
+      expect(screen.getByText('Tipo de gap')).toBeInTheDocument();
+      expect(screen.getByText('% completado')).toBeInTheDocument();
+      expect(screen.getByText('ETA')).toBeInTheDocument();
     });
   });
 
-  describe('degradation alerts', () => {
-    it('renders degradation heading', () => {
+  describe('degradation alerts panel', () => {
+    it('renders degradation panel heading', () => {
       renderPage();
-      expect(screen.getByText('Alertas de degradación')).toBeInTheDocument();
+      expect(screen.getByText('Alertas de degradación de calidad')).toBeInTheDocument();
     });
 
     it('renders meters without recent data', () => {
       renderPage();
-      // m2 (HVAC) and m3 (General) have no readings
-      // HVAC appears in both backfill and degradation
-      expect(screen.getByText('General')).toBeInTheDocument();
-      expect(screen.getAllByText(/Sin lecturas|Dato estancado|Comunicación perdida/).length).toBeGreaterThanOrEqual(1);
+      // m2 (HVAC) and m3 (General) have no readings — appear in degradation list via meter code
+      // The page renders: "Medidor {meter.code} {buildingName} — cae a..."
+      expect(screen.getAllByText(/H1|G1/).length).toBeGreaterThanOrEqual(1);
     });
   });
 });

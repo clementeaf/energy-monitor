@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
 vi.mock('../../../hooks/queries/useMetersQuery', () => ({ useMetersQuery: () => ({ data: [{ id: 'm1', buildingId: 'b1', name: 'Principal', code: 'P1', meterType: 'main', isActive: true, metadata: {}, externalId: null, model: null, serialNumber: null, ipAddress: null, modbusAddress: null, busId: null, phaseType: 'three_phase', nominalVoltage: null, nominalCurrent: null, contractedDemandKw: null, loadCategory: null, parentMeterId: null, createdAt: '', updatedAt: '' }], isLoading: false, isSuccess: true }) }));
@@ -12,15 +11,9 @@ function renderPage() { return render(<MemoryRouter><TrazabilidadPage /></Memory
 
 describe('TrazabilidadPage', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Trazabilidad / Lineage' })).toBeInTheDocument(); });
-  it('renders meter selector', () => { renderPage(); expect(screen.getByText('Medidor')).toBeInTheDocument(); });
-  it('shows placeholder without selection', () => { renderPage(); expect(screen.getByText('Selecciona un medidor para ver el linaje.')).toBeInTheDocument(); });
-  it('shows lineage on meter select', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.selectOptions(screen.getByRole('combobox'), 'm1');
-    expect(screen.getByText('Linaje de lectura')).toBeInTheDocument();
-    expect(screen.getByText('Comparación raw vs. mostrado')).toBeInTheDocument();
-    expect(screen.getByText('500.123 kW')).toBeInTheDocument();
-  });
+  it('renders title', () => { renderPage(); expect(screen.getByText('6.4 Trazabilidad')).toBeInTheDocument(); });
+  it('renders lineage panel', () => { renderPage(); expect(screen.getByText(/Panel de linaje por lectura/)).toBeInTheDocument(); });
+  it('shows placeholder without selection', () => { renderPage(); expect(screen.getByText(/Selecciona un medidor/)).toBeInTheDocument(); });
+  it('shows comparison prompt without selection', () => { renderPage(); expect(screen.getByText(/Selecciona un medidor para ver la comparación/)).toBeInTheDocument(); });
+  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-19/).length).toBeGreaterThanOrEqual(1); });
 });

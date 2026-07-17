@@ -17,7 +17,7 @@ const PROFILE_DASHBOARD: Record<string, string> = {
   gerencial: '/dashboard/consolidado',
   operacional: '/operacional/monitoreo',
   tecnico: '/tecnico/ordenes',
-  auditor: '/auditor/calidad',
+  auditor: '/auditor/calidad-datos',
 };
 
 function DashboardIndex() {
@@ -58,6 +58,7 @@ import {
   LazyDatosCrudosPage,
   LazyExportarEvidenciaPage,
   LazyCalidadDatosPage,
+  LazyPistaAuditoriaPage,
   LazyTenantsMallsPage,
   LazyBuildingsPage,
   LazyMetersUnifiedPage,
@@ -286,12 +287,13 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.regions, element: <P any={BUILDINGS}><LazyRegionsPage /></P> },
                   { path: APP_ROUTES.admin.breachReports, element: <P any={AUDIT}><LazyBreachReportsPage /></P> },
                   { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
-                  /* Auditor — 5 pages (tenant-scoped) */
+                  /* Auditor — 6 pages (tenant-scoped) */
+                  { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
                   { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
+                  { path: APP_ROUTES.pistaAuditoria, element: <P any={AUDIT}><LazyPistaAuditoriaPage /></P> },
                   { path: APP_ROUTES.trazabilidad, element: <P any={AUDIT}><LazyTrazabilidadPage /></P> },
                   { path: APP_ROUTES.datosCrudos, element: <P any={AUDIT}><LazyDatosCrudosPage /></P> },
                   { path: APP_ROUTES.exportarEvidencia, element: <P any={AUDIT}><LazyExportarEvidenciaPage /></P> },
-                  { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
                   { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },

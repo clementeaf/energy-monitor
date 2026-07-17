@@ -36,7 +36,10 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   useAggregatedReadingsQuery: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }), useUpdateCnrStatus: () => ({ mutate: vi.fn(), isPending: false }) }));
+vi.mock('../../../hooks/queries/useCnrQuery', () => ({
+  useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
+  useUpdateCnrStatus: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 
 import { CnrPendientesPage } from './CnrPendientesPage';
 
@@ -54,43 +57,57 @@ describe('CnrPendientesPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'CNR Pendientes' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.5 CNR Pendientes' })).toBeInTheDocument();
     });
 
-    it('renders filter pills', () => {
-      renderPage();
-      expect(screen.getByText('Todas')).toBeInTheDocument();
-      expect(screen.getByText('Pendientes')).toBeInTheDocument();
-      expect(screen.getByText('>24h')).toBeInTheDocument();
-    });
   });
 
-  describe('KPIs', () => {
-    it('renders CNR abiertas count', () => {
+  describe('KPI cards', () => {
+    it('renders total CNR abiertas label', () => {
       renderPage();
-      expect(screen.getByText('CNR abiertas')).toBeInTheDocument();
+      expect(screen.getByText('Total CNR abiertas')).toBeInTheDocument();
+    });
+
+    it('renders total CNR value', () => {
+      renderPage();
       // 2 stale meters (>4h): Principal (30h) and HVAC (6h)
       expect(screen.getByText('2')).toBeInTheDocument();
     });
 
-    it('renders >7d count', () => {
+    it('renders >7d sin resolución label', () => {
       renderPage();
-      expect(screen.getByText('>7d sin resolución')).toBeInTheDocument();
+      expect(screen.getByText('Con > 7 días sin resolución')).toBeInTheDocument();
     });
 
-    it('renders ingresadas hoy', () => {
+    it('renders ingresadas hoy label', () => {
       renderPage();
       expect(screen.getByText('Ingresadas hoy')).toBeInTheDocument();
     });
   });
 
-  describe('table', () => {
-    it('renders table headers', () => {
+  describe('action bar', () => {
+    it('renders action buttons', () => {
       renderPage();
+      expect(screen.getByText('Asignar responsable')).toBeInTheDocument();
+      expect(screen.getByText('Exportar CNR a CSV')).toBeInTheDocument();
+    });
+  });
+
+  describe('table', () => {
+    it('renders table panel heading', () => {
+      renderPage();
+      expect(screen.getByText('Tabla de CNR')).toBeInTheDocument();
+    });
+
+    it('renders table column headers', () => {
+      renderPage();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('Medidor')).toBeInTheDocument();
-      expect(screen.getByText('Centro')).toBeInTheDocument();
-      expect(screen.getByText('Período')).toBeInTheDocument();
-      expect(screen.getByText('Gap (h)')).toBeInTheDocument();
+      expect(screen.getByText('Mall')).toBeInTheDocument();
+      expect(screen.getByText('Período afectado')).toBeInTheDocument();
+      expect(screen.getByText('Tipo')).toBeInTheDocument();
+      expect(screen.getByText('Responsable')).toBeInTheDocument();
+      expect(screen.getByText('Fecha ingreso')).toBeInTheDocument();
     });
 
     it('renders stale meters as CNR rows', () => {
@@ -144,7 +161,6 @@ describe('CnrPendientesPage', () => {
       renderPage();
 
       await user.click(screen.getByText('Principal'));
-      // Auto-detected records show this note instead of a suggested action
       expect(screen.getByText(/Auto-detectado/)).toBeInTheDocument();
     });
 
@@ -160,34 +176,4 @@ describe('CnrPendientesPage', () => {
     });
   });
 
-  describe('filter', () => {
-    it('filters to pendientes only', async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await user.click(screen.getByText('Pendientes'));
-      // Only Principal (30h, pendiente) should show
-      expect(screen.getByText('Principal')).toBeInTheDocument();
-      expect(screen.queryByText('HVAC')).not.toBeInTheDocument();
-    });
-
-    it('filters to >24h only', async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await user.click(screen.getByText('>24h'));
-      expect(screen.getByText('Principal')).toBeInTheDocument();
-      expect(screen.queryByText('HVAC')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('empty state', () => {
-    it('shows empty message when no stale meters', () => {
-      vi.mocked(
-        // @ts-expect-error — mock override
-        vi.importMock('../../../hooks/queries/useReadingsQuery'),
-      );
-      // Re-render test would need full re-mock; covered by filter "Pendientes" when none match
-    });
-  });
 });

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
 vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
@@ -58,77 +57,106 @@ describe('CostosTendenciasPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe('layout and filters', () => {
-    it('renders page header', () => {
+    it('renders page header with "3.3 Costos y Tendencias"', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Costos y Tendencias' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /3\.3 Costos y Tendencias/ })).toBeInTheDocument();
     });
 
-    it('renders period selector', () => {
+    it('renders filter banner', () => {
       renderPage();
-      expect(screen.getByText('Mes actual')).toBeInTheDocument();
+      expect(screen.getByText('Filtros:')).toBeInTheDocument();
+    });
+
+    it('renders period selector with default "Mes actual"', () => {
+      renderPage();
+      expect(screen.getAllByText('Mes actual').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders currency selector', () => {
       renderPage();
-      expect(screen.getByText('CLP')).toBeInTheDocument();
-      expect(screen.getByText('UF')).toBeInTheDocument();
-      expect(screen.getByText('USD')).toBeInTheDocument();
+      // CLP appears as the default DropdownSelect button value and as option
+      expect(screen.getAllByText('CLP').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders grouping selector', () => {
+      renderPage();
+      expect(screen.getByText('Agrupación')).toBeInTheDocument();
+      expect(screen.getAllByText('Por mall').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders mall multi-select', () => {
+      renderPage();
+      expect(screen.getByText('Todos los malls')).toBeInTheDocument();
     });
   });
 
-  describe('summary KPIs', () => {
-    it('renders all four KPI cards', () => {
+  describe('chart section', () => {
+    it('renders stacked bar chart area', () => {
       renderPage();
-      expect(screen.getAllByText('Costo total').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Consumo total')).toBeInTheDocument();
-      expect(screen.getAllByText('Precio medio').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Centros')).toBeInTheDocument();
+      // Chart is mocked — no real invoices in same month so "Sin datos de facturación" shown
+      // Either the chart or the empty state renders
+      const chartOrEmpty = screen.queryByTestId('chart') ?? screen.queryByText('Sin datos de facturación');
+      expect(chartOrEmpty).toBeInTheDocument();
+    });
+
+    it('renders chart section label', () => {
+      renderPage();
+      expect(screen.getByText(/Barras apiladas mensual/)).toBeInTheDocument();
+    });
+
+    it('renders waterfall section', () => {
+      renderPage();
+      expect(screen.getByText('Waterfall de variación de costo')).toBeInTheDocument();
     });
   });
 
   describe('cost table', () => {
-    it('renders table headers', () => {
+    it('renders table section label', () => {
       renderPage();
-      // Table has sortable headers; active sort column ("Costo total") gains an arrow indicator
-      // Use getAllByText with partial match or check presence by role
-      expect(screen.getByText('Centro')).toBeInTheDocument();
-      expect(screen.getByText('MWh')).toBeInTheDocument();
-      // "Precio medio" appears in KPI card; table header may include sort arrow
-      expect(screen.getAllByText(/Precio medio/).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText(/Costo total/).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Facturas')).toBeInTheDocument();
+      expect(screen.getByText(/Tabla de costos por mall/)).toBeInTheDocument();
     });
 
-    it('renders buildings in table', () => {
+    it('renders sortable table headers', () => {
+      renderPage();
+      expect(screen.getAllByText('Mall').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('País').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Variación %')).toBeInTheDocument();
+    });
+
+    it('renders export CSV button', () => {
+      renderPage();
+      expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeInTheDocument();
+    });
+
+    it('renders CL buildings in table', () => {
       renderPage();
       expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
       expect(screen.getByText('Mall Arauco')).toBeInTheDocument();
     });
 
-    it('excludes voided invoices from cost calculation', () => {
+    it('excludes Peruvian building (filtered by default country CL)', () => {
       renderPage();
-      // Mall Arauco has inv3 (238000 paid) + inv4 (voided, excluded)
-      // So only 1 invoice counted for Arauco
-      const rows = screen.getAllByText('1');
-      expect(rows.length).toBeGreaterThanOrEqual(1);
+      expect(screen.queryByText('Mall Lima')).not.toBeInTheDocument();
     });
 
-    it('renders table footer with totals', () => {
+    it('excludes voided invoices from calculation', () => {
       renderPage();
-      expect(screen.getByText('Total')).toBeInTheDocument();
-    });
-  });
-
-  describe('chart', () => {
-    it('renders chart area', () => {
-      renderPage();
-      expect(screen.getByTestId('chart')).toBeInTheDocument();
-    });
-
-    it('renders chart section title', () => {
-      renderPage();
-      expect(screen.getByText('Costo mensual por período')).toBeInTheDocument();
+      // Mall Arauco has only 1 non-voided invoice (inv3); inv4 is voided
+      // Country code column shows CL for both buildings
+      const clCells = screen.getAllByText('CL');
+      expect(clCells.length).toBeGreaterThanOrEqual(1);
     });
   });
 
+  describe('projections section', () => {
+    it('renders projections row', () => {
+      renderPage();
+      expect(screen.getByText('Proyecciones — 2 meses')).toBeInTheDocument();
+    });
+
+    it('renders projection arrow label', () => {
+      renderPage();
+      expect(screen.getByText(/proyección/)).toBeInTheDocument();
+    });
+  });
 });

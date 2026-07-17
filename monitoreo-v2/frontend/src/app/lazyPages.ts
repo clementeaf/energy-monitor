@@ -68,6 +68,10 @@ export const LazyCalidadDatosPage = lazy(async () => {
   const m = await import('../features/auditor/calidad-datos/CalidadDatosPage');
   return { default: m.CalidadDatosPage };
 });
+export const LazyPistaAuditoriaPage = lazy(async () => {
+  const m = await import('../features/auditor/pista-auditoria/PistaAuditoriaPage');
+  return { default: m.PistaAuditoriaPage };
+});
 export const LazyTenantsMallsPage = lazy(async () => {
   const m = await import('../features/admin/tenants-malls/TenantsMallsPage');
   return { default: m.TenantsMallsPage };

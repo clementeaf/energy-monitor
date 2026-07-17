@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -62,6 +62,10 @@ vi.mock('../../../hooks/queries/useAuditLogsQuery', () => ({
 
 import { TenantsMallsPage } from './TenantsMallsPage';
 
+beforeAll(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
+
 function renderPage() { return render(<MemoryRouter><TenantsMallsPage /></MemoryRouter>); }
 
 describe('TenantsMallsPage', () => {
@@ -106,12 +110,12 @@ describe('TenantsMallsPage', () => {
 
   it('renders country filter', () => {
     renderPage();
-    expect(screen.getByDisplayValue('Todos los países')).toBeInTheDocument();
+    expect(screen.getAllByText('Todos los países').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders status filter', () => {
     renderPage();
-    expect(screen.getByDisplayValue('Todos los estados')).toBeInTheDocument();
+    expect(screen.getAllByText('Todos los estados').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders alert filter checkbox', () => {
@@ -122,8 +126,9 @@ describe('TenantsMallsPage', () => {
   it('filters by status', async () => {
     const user = userEvent.setup();
     renderPage();
-    const select = screen.getByDisplayValue('Todos los estados');
-    await user.selectOptions(select, 'inactivo');
+    // Click the button (first occurrence = the button label span)
+    await user.click(screen.getAllByText('Todos los estados')[0]);
+    await user.click(screen.getByText('Inactivo'));
     expect(screen.getByText('Inactive Co')).toBeInTheDocument();
     expect(screen.queryByText('PASA')).not.toBeInTheDocument();
   });

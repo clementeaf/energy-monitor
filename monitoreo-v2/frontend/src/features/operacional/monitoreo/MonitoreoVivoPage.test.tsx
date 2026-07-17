@@ -78,33 +78,39 @@ describe('MonitoreoVivoPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Monitoreo en Vivo' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '4.1 Monitoreo en Vivo' })).toBeInTheDocument();
     });
   });
 
   describe('KPI header', () => {
-    it('renders total meters', () => {
+    it('renders total meters label', () => {
       renderPage();
       expect(screen.getByText('Total medidores')).toBeInTheDocument();
+    });
+
+    it('renders total meters value', () => {
+      renderPage();
+      // 3 meters total — value appears in KPI card
       expect(screen.getByText('3')).toBeInTheDocument();
     });
 
-    it('renders online count', () => {
+    it('renders online KPI label', () => {
       renderPage();
-      expect(screen.getByText('En línea')).toBeInTheDocument();
+      expect(screen.getByText('En línea [%]')).toBeInTheDocument();
     });
 
-    it('renders offline count', () => {
+    it('renders offline KPI label', () => {
       renderPage();
       expect(screen.getByText('Offline')).toBeInTheDocument();
     });
 
-    it('renders stale count', () => {
+    it('renders stale KPI label', () => {
       renderPage();
-      expect(screen.getByText('Dato estancado >4h')).toBeInTheDocument();
+      // The label uses HTML entity > rendered as text
+      expect(screen.getByText('Dato estancado > 4h')).toBeInTheDocument();
     });
 
-    it('renders CNR pendientes', () => {
+    it('renders CNR pendientes KPI label', () => {
       renderPage();
       expect(screen.getByText('CNR pendientes')).toBeInTheDocument();
     });
@@ -113,25 +119,19 @@ describe('MonitoreoVivoPage', () => {
   describe('mall grid', () => {
     it('renders mall cards', () => {
       renderPage();
-      // "Mall Arauco" also appears in event feed building name
       expect(screen.getAllByText('Mall Arauco').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('Mall Plaza').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders centros comerciales heading', () => {
+    it('renders centros comerciales panel label', () => {
       renderPage();
-      expect(screen.getByText('Centros comerciales')).toBeInTheDocument();
+      expect(screen.getByText('Mapa / grilla de centros comerciales')).toBeInTheDocument();
     });
 
-    it('shows online percentage', () => {
+    it('shows meter count badge', () => {
       renderPage();
-      // Mall Arauco: 1 online (m1), 1 stale (m2) = 50% online
-      expect(screen.getByText(/50% online/)).toBeInTheDocument();
-    });
-
-    it('shows meter count', () => {
-      renderPage();
-      expect(screen.getByText(/2 med\./)).toBeInTheDocument();
+      // Mall Arauco has 2 meters — shown in card as "2 med."
+      expect(screen.getAllByText(/2 med\./).length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -140,7 +140,7 @@ describe('MonitoreoVivoPage', () => {
       const user = userEvent.setup();
       renderPage();
 
-      // Click the mall card button (not the feed event)
+      // Click the mall card button
       const mallButtons = screen.getAllByText('Mall Arauco');
       const cardButton = mallButtons.find((el) => el.closest('button[type="button"]'))!;
       await user.click(cardButton);
@@ -164,19 +164,40 @@ describe('MonitoreoVivoPage', () => {
   });
 
   describe('events feed', () => {
-    it('renders events heading', () => {
+    it('renders feed panel label', () => {
       renderPage();
-      expect(screen.getByText('Eventos recientes')).toBeInTheDocument();
+      expect(screen.getByText('Feed de eventos recientes')).toBeInTheDocument();
     });
 
     it('renders alert events', () => {
       renderPage();
-      expect(screen.getByText('Sobrevoltaje en Principal')).toBeInTheDocument();
+      // Feed renders event type + message inside a <p> — message may be split across elements
+      expect(screen.getByText(/Sobrevoltaje en Principal/)).toBeInTheDocument();
     });
 
     it('shows event type badge', () => {
       renderPage();
-      expect(screen.getByText('ALERT')).toBeInTheDocument();
+      // evt.type is 'alert' (lowercase); CSS class uppercase renders it visually as ALERT
+      expect(screen.getByText(/^alert$/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('histogram panel', () => {
+    it('renders histogram panel label', () => {
+      renderPage();
+      expect(screen.getByText('Comportamiento del parque — 24h')).toBeInTheDocument();
+    });
+  });
+
+  describe('meter grid panel', () => {
+    it('renders meter grid panel label', () => {
+      renderPage();
+      expect(screen.getByText('Grilla de medidores del mall seleccionado')).toBeInTheDocument();
+    });
+
+    it('shows placeholder when no mall selected', () => {
+      renderPage();
+      expect(screen.getByText('Seleccione un mall para ver sus medidores')).toBeInTheDocument();
     });
   });
 });

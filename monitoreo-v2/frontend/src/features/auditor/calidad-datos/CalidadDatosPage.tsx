@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -114,7 +113,6 @@ const PERIOD_OPTIONS = [
 
 export function CalidadDatosPage() {
   const [mallFilter, setMallFilter] = useState('all');
-  const [countryFilter, setCountryFilter] = useState('all');
   const [period, setPeriod] = useState('30');
   const [granularity, setGranularity] = useState<Granularity>('hourly');
   const [selectedMall, setSelectedMall] = useState<string | null>(null);
@@ -129,10 +127,7 @@ export function CalidadDatosPage() {
 
   const days = Number(period);
 
-  const filteredBuildings = useMemo(
-    () => countryFilter === 'all' ? buildings : buildings.filter((b) => (b.countryCode ?? 'CL') === countryFilter),
-    [buildings, countryFilter],
-  );
+  const filteredBuildings = useMemo(() => buildings, [buildings]);
 
   // 12-month aggregated for evolution chart
   const evoRange = useMemo(() => {
@@ -212,82 +207,84 @@ export function CalidadDatosPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader
-        title="Calidad de Datos"
-        eyebrow="Auditoría"
-        actions={
-          <div className="flex items-center gap-2">
-            <DropdownSelect
-              options={[
-                { value: 'all', label: 'Todo país' },
-                { value: 'CL', label: 'Chile' },
-                { value: 'PE', label: 'Perú' },
-                { value: 'CO', label: 'Colombia' },
-              ]}
-              value={countryFilter}
-              onChange={setCountryFilter}
-            />
-            <DropdownSelect
-              options={[
-                { value: 'all', label: 'Todos los centros' },
-                ...buildings.map((b) => ({ value: b.id, label: b.name })),
-              ]}
-              value={mallFilter}
-              onChange={(v) => { setMallFilter(v); setSelectedMall(null); }}
-            />
-            <DropdownSelect
-              options={PERIOD_OPTIONS}
-              value={period}
-              onChange={setPeriod}
-            />
-            <DropdownSelect
-              options={[
-                { value: '15min', label: '15 min' },
-                { value: 'hourly', label: 'Horaria' },
-                { value: 'daily', label: 'Diaria' },
-              ]}
-              value={granularity}
-              onChange={(v) => setGranularity(v as Granularity)}
-            />
-            <button type="button" onClick={exportCsv} className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface">
-              Exportar CSV
-            </button>
-            <button type="button" onClick={() => window.print()} className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface">
-              Exportar PDF
-            </button>
-          </div>
-        }
-      />
+      {/* Header */}
+      <div>
+        <h1 className="text-lg font-semibold text-foreground">6.1 Calidad de Datos</h1>
+        <p className="text-[12px] text-muted">Scorecard de calidad por mall — tendencia de lecturas reales y detalle de medidores con baja cobertura</p>
+      </div>
 
-      {/* Scorecard table */}
-      <div className="panel flex min-h-0 flex-col overflow-hidden">
-        <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">Scorecard de calidad por centro</h3>
+      {/* Filtros */}
+      <div className="flex flex-wrap items-center gap-2">
+        <DropdownSelect
+          options={[
+            { value: 'all', label: 'Todos los malls' },
+            ...buildings.map((b) => ({ value: b.id, label: b.name })),
+          ]}
+          value={mallFilter}
+          onChange={(v) => { setMallFilter(v); setSelectedMall(null); }}
+        />
+        <DropdownSelect
+          options={PERIOD_OPTIONS}
+          value={period}
+          onChange={setPeriod}
+        />
+        <DropdownSelect
+          options={[
+            { value: '15min', label: '15 min' },
+            { value: 'hourly', label: 'Horaria' },
+            { value: 'daily', label: 'Diaria' },
+          ]}
+          value={granularity}
+          onChange={(v) => setGranularity(v as Granularity)}
+        />
+        <button
+          type="button"
+          onClick={exportCsv}
+          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
+        >
+          Exportar CSV
+        </button>
+      </div>
+
+      {/* Row 1 — Scorecard full-width */}
+      <div className="panel flex flex-col overflow-hidden">
+        <div className="shrink-0 px-4 pt-3 pb-1">
+          <h3 className="text-[13px] font-medium text-foreground">Scorecard de calidad por mall</h3>
+          <p className="text-[11px] text-muted">Solo lectura · semáforo por fila · exportable a CSV</p>
+        </div>
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-[13px]">
             <thead className="sticky top-0 z-10 bg-background">
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Centro</th>
-                <th className="px-3 py-2 text-right">Esperadas</th>
-                <th className="px-3 py-2 text-right">Reales</th>
-                <th className="px-3 py-2 text-right">% Real</th>
-                <th className="px-3 py-2 text-right">Estimadas</th>
-                <th className="px-3 py-2 text-right">% Est.</th>
-                <th className="px-3 py-2 text-right">CNR</th>
-                <th className="px-3 py-2 text-right">% CNR</th>
-                <th className="px-3 py-2 text-right">Faltantes</th>
-                <th className="px-3 py-2 text-right">% Falt.</th>
-                <th className="px-3 py-2 text-center">Tend.</th>
-                <th className="px-3 py-2 text-center">Estado</th>
+                <th className="px-3 py-2">Mall</th>
+                <th className="px-3 py-2 text-right">Período</th>
+                <th className="px-3 py-2 text-right">Lecturas esperadas</th>
+                <th className="px-3 py-2 text-right">Reales (#)</th>
+                <th className="px-3 py-2 text-right">Reales (%)</th>
+                <th className="px-3 py-2 text-right">Estimadas (#)</th>
+                <th className="px-3 py-2 text-right">Estimadas (%)</th>
+                <th className="px-3 py-2 text-right">CNR (#)</th>
+                <th className="px-3 py-2 text-right">CNR (%)</th>
+                <th className="px-3 py-2 text-right">Faltantes (#)</th>
+                <th className="px-3 py-2 text-right">Faltantes (%)</th>
+                <th className="px-3 py-2 text-center">Tendencia</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((row) => (
+              {rows.map((row, i) => (
                 <tr
                   key={row.buildingId}
-                  className="cursor-pointer transition-colors hover:bg-surface"
+                  className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
+                  style={{ animationDelay: `${i * 30}ms` }}
                   onClick={() => setSelectedMall(row.buildingId === selectedMall ? null : row.buildingId)}
                 >
-                  <td className="px-3 py-2 font-medium text-foreground">{row.buildingName}</td>
+                  <td className="px-3 py-2 font-medium text-foreground">
+                    <span className="flex items-center gap-2">
+                      <span className={`inline-block size-2 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
+                      {row.buildingName}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-right text-muted">{days}d</td>
                   <td className="px-3 py-2 text-right text-muted">{row.totalExpected.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right text-foreground">{row.realCount.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
@@ -298,9 +295,6 @@ export function CalidadDatosPage() {
                   <td className="px-3 py-2 text-right text-muted">{row.missingCount.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right text-muted">{row.missingPct.toFixed(1)}%</td>
                   <td className={`px-3 py-2 text-center ${row.trend === '↓' ? 'text-red-600' : 'text-muted'}`}>{row.trend}</td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`inline-block size-2.5 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
-                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
@@ -309,80 +303,121 @@ export function CalidadDatosPage() {
             </tbody>
           </table>
         </div>
+        <span className="block px-4 pb-2 text-right text-[10px] text-muted">[DAT-06, DAT-17]</span>
       </div>
 
-      {/* Evolution chart + detail panel */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Evolution line chart */}
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">
-            Evolución de calidad — 12 meses
-            {selectedMall && (
-              <span className="ml-2 text-[11px] font-normal text-muted">
-                ({buildings.find((b) => b.id === selectedMall)?.name ?? 'Seleccionado'})
-              </span>
-            )}
-          </h3>
-          {(() => {
-            const w = 300;
-            const h = 120;
-            const minY = Math.min(70, ...evolutionData.map((m) => m.realPct));
-            const toY = (v: number) => h - 8 - ((v - minY) / (100 - minY)) * (h - 16);
-            const linePath = evolutionData.map((m, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(m.realPct)}`).join(' ');
-            return (
-              <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
-                <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
-                {evolutionData.map((m, i) => (
-                  <circle key={m.label} cx={(i / 11) * w} cy={toY(m.realPct)} r={3} fill={m.realPct >= 95 ? '#22c55e' : m.realPct >= 85 ? '#f59e0b' : '#ef4444'}>
-                    <title>{`${m.label}: ${m.realPct.toFixed(1)}%`}</title>
-                  </circle>
-                ))}
-              </svg>
-            );
-          })()}
-          <p className="mt-2 text-[10px] text-muted">% lecturas reales por mes. Click en fila para filtrar.</p>
+      {/* Row 2 — Evolution chart + Low-quality meters */}
+      <div className="flex gap-4" style={{ minHeight: 260 }}>
+        {/* Left: Evolution line chart */}
+        <div className="relative flex-1">
+          <div className="panel absolute inset-0 flex flex-col p-4">
+            <div className="shrink-0">
+              <h3 className="text-[13px] font-medium text-foreground">Evolución de calidad — % lecturas reales</h3>
+              <p className="text-[11px] text-muted">
+                Por mall seleccionado · últimos 12 meses o rango configurado
+                {selectedMall && (
+                  <span className="ml-1">
+                    · {buildings.find((b) => b.id === selectedMall)?.name ?? 'Seleccionado'}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="min-h-0 flex-1 py-2">
+              {(() => {
+                const w = 400;
+                const h = 140;
+                const minY = Math.min(70, ...evolutionData.map((m) => m.realPct));
+                const toY = (v: number) => h - 8 - ((v - minY) / (100 - minY)) * (h - 16);
+                const linePath = evolutionData.map((m, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(m.realPct)}`).join(' ');
+                const thresholdY = toY(95);
+                return (
+                  <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
+                    {/* Dashed umbral line at 95% */}
+                    <line
+                      x1={0} y1={thresholdY}
+                      x2={w} y2={thresholdY}
+                      stroke="#9ca3af"
+                      strokeWidth={1}
+                      strokeDasharray="4 3"
+                    />
+                    <text x={w - 2} y={thresholdY - 3} textAnchor="end" fontSize={9} fill="#9ca3af">95%</text>
+                    <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
+                    {evolutionData.map((m, i) => (
+                      <circle
+                        key={m.label}
+                        cx={(i / 11) * w}
+                        cy={toY(m.realPct)}
+                        r={3}
+                        fill={m.realPct >= 95 ? '#22c55e' : m.realPct >= 85 ? '#f59e0b' : '#ef4444'}
+                      >
+                        <title>{`${m.label}: ${m.realPct.toFixed(1)}%`}</title>
+                      </circle>
+                    ))}
+                    {evolutionData.map((m, i) => (
+                      <text
+                        key={`lbl-${m.label}`}
+                        x={(i / 11) * w}
+                        y={h - 1}
+                        textAnchor="middle"
+                        fontSize={8}
+                        fill="#9ca3af"
+                      >
+                        {m.label}
+                      </text>
+                    ))}
+                  </svg>
+                );
+              })()}
+            </div>
+            <span className="block text-right text-[10px] text-muted mt-2">[DAT-17, DAT-08]</span>
+          </div>
         </div>
 
-        {/* Low-quality meter detail */}
-        <div className="panel p-4">
-          <h3 className="mb-3 text-[13px] font-medium text-foreground">
-            Medidores con baja calidad
-            {selectedMall && (
-              <span className="ml-2 text-[11px] font-normal text-muted">
-                (&lt; {LOW_QUALITY_THRESHOLD}% lecturas reales)
-              </span>
-            )}
-          </h3>
-          {!selectedMall ? (
-            <p className="py-8 text-center text-[12px] text-muted">Seleccione un centro en la tabla para ver detalle.</p>
-          ) : lowQualityMeters.length === 0 ? (
-            <p className="py-8 text-center text-[12px] text-muted">Todos los medidores sobre {LOW_QUALITY_THRESHOLD}%.</p>
-          ) : (
-            <div className="max-h-48 overflow-y-auto">
-              <table className="w-full text-[12px]">
-                <thead className="sticky top-0 bg-background">
-                  <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                    <th className="px-2 py-1">Medidor</th>
-                    <th className="px-2 py-1">Código</th>
-                    <th className="px-2 py-1 text-right">% Real</th>
-                    <th className="px-2 py-1">Causa</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {lowQualityMeters.map((m) => (
-                    <tr key={m.id} className="hover:bg-surface">
-                      <td className="px-2 py-1.5 text-foreground">{m.name}</td>
-                      <td className="px-2 py-1.5 text-muted">{m.code}</td>
-                      <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-red-600' : 'text-amber-600'}`}>
-                        {m.realPct.toFixed(1)}%
-                      </td>
-                      <td className="px-2 py-1.5 text-[11px] text-muted">{m.causa}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Right: Low-quality meters */}
+        <div className="relative flex-1">
+          <div className="panel absolute inset-0 flex flex-col p-4">
+            <div className="shrink-0">
+              <h3 className="text-[13px] font-medium text-foreground">Medidores con baja calidad</h3>
+              <p className="text-[11px] text-muted">Al seleccionar un mall · % reales &lt; umbral</p>
             </div>
-          )}
+            <div className="min-h-0 flex-1 overflow-auto py-2">
+              {!selectedMall ? (
+                <p className="py-8 text-center text-[12px] text-muted">Seleccione un mall en la tabla para ver detalle.</p>
+              ) : lowQualityMeters.length === 0 ? (
+                <p className="py-8 text-center text-[12px] text-muted">Todos los medidores sobre {LOW_QUALITY_THRESHOLD}%.</p>
+              ) : (
+                <table className="w-full text-[12px]">
+                  <thead className="sticky top-0 bg-background">
+                    <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                      <th className="px-2 py-1">Medidor</th>
+                      <th className="px-2 py-1 text-right">% Reales</th>
+                      <th className="px-2 py-1">Causa más frecuente</th>
+                      <th className="px-2 py-1">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {lowQualityMeters.map((m, i) => (
+                      <tr
+                        key={m.id}
+                        className="animate-fade-in hover:bg-surface"
+                        style={{ animationDelay: `${i * 30}ms` }}
+                      >
+                        <td className="px-2 py-1.5 text-foreground">{m.name}</td>
+                        <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-red-600' : 'text-amber-600'}`}>
+                          {m.realPct.toFixed(1)}%
+                        </td>
+                        <td className="px-2 py-1.5 text-[11px] text-muted">{m.causa}</td>
+                        <td className="px-2 py-1.5">
+                          <span className={`inline-block size-2 rounded-full ${m.realPct < 60 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <span className="block text-right text-[10px] text-muted mt-2">[DAT-06, DAT-17]</span>
+          </div>
         </div>
       </div>
     </div>

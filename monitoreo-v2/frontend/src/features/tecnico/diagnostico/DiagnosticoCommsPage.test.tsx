@@ -12,21 +12,69 @@ function renderPage() { return render(<MemoryRouter><DiagnosticoCommsPage /></Me
 
 describe('DiagnosticoCommsPage', () => {
   beforeEach(() => vi.clearAllMocks());
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Diagnóstico Comms' })).toBeInTheDocument(); });
-  it('renders meter list', () => { renderPage(); expect(screen.getByText('Principal')).toBeInTheDocument(); });
-  it('shows diagnostic panel on meter click', async () => {
-    const user = userEvent.setup();
+
+  it('renders page header with new title format', () => {
     renderPage();
-    await user.click(screen.getByText('Principal'));
-    expect(screen.getByText('Estado comunicación')).toBeInTheDocument();
-    expect(screen.getByText('TCP/IP')).toBeInTheDocument();
-    expect(screen.getByText('10.0.0.1')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '5.3 Diagnóstico Comms' })).toBeInTheDocument();
   });
-  it('shows diagnostic tools', async () => {
+
+  it('renders search input and meter select', () => {
+    renderPage();
+    expect(screen.getByPlaceholderText('Buscar por serial o nombre...')).toBeInTheDocument();
+    expect(screen.getByText('Seleccionar medidor...')).toBeInTheDocument();
+  });
+
+  it('renders meter in the select dropdown', () => {
+    renderPage();
+    // Option text in the select: "P1 — Principal"
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+    expect(screen.getByText('P1 — Principal')).toBeInTheDocument();
+  });
+
+  it('renders KPI card labels always visible', () => {
+    renderPage();
+    expect(screen.getByText('Estado de comunicación')).toBeInTheDocument();
+    expect(screen.getByText('Tasa de éxito 24 h')).toBeInTheDocument();
+    expect(screen.getByText('Último dato recibido')).toBeInTheDocument();
+  });
+
+  it('renders diagnostic tools section', () => {
+    renderPage();
+    expect(screen.getByText('Herramientas de diagnóstico')).toBeInTheDocument();
+    expect(screen.getByText('• Forzar re-intento de lectura')).toBeInTheDocument();
+    expect(screen.getByText(/Ver log de comunicación raw/)).toBeInTheDocument();
+  });
+
+  it('renders tool action buttons', () => {
+    renderPage();
+    expect(screen.getByRole('button', { name: 'Test de conexión' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Forzar re-lectura' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver log raw' })).toBeInTheDocument();
+  });
+
+  it('shows histogram section', () => {
+    renderPage();
+    expect(screen.getByText(/Histograma de disponibilidad 72 h/)).toBeInTheDocument();
+  });
+
+  it('shows log table section', () => {
+    renderPage();
+    expect(screen.getByText(/Log de comunicación raw/)).toBeInTheDocument();
+  });
+
+  it('shows placeholder when no meter selected', () => {
+    renderPage();
+    // Histogram and log sections both show placeholder when no meter selected
+    expect(screen.getAllByText('Selecciona un medidor').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows log entries after selecting a meter', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByText('Principal'));
-    expect(screen.getByText('Forzar re-intento de lectura')).toBeInTheDocument();
-    expect(screen.getByText(/Ver log comunicación/)).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole('combobox'), 'm1');
+    // Log table headers become visible
+    expect(screen.getByText('Timestamp UTC')).toBeInTheDocument();
+    expect(screen.getByText('Trama / evento')).toBeInTheDocument();
   });
 });

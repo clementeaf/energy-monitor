@@ -19,6 +19,18 @@ vi.mock('../../../hooks/queries/useReportsQuery', () => ({
   }),
 }));
 
+vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
+  useBuildingsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
+}));
+
+vi.mock('../../../hooks/queries/useMetersQuery', () => ({
+  useMetersQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
+}));
+
+vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
+  useAlertsQuery: () => ({ data: [], isLoading: false, isSuccess: true }),
+}));
+
 import { ExportarReportesPage } from './ExportarReportesPage';
 
 function renderPage() {
@@ -36,16 +48,21 @@ describe('ExportarReportesPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe('layout', () => {
-    it('renders page header', () => {
+    it('renders page header with "3.6 Exportar Reportes"', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: 'Exportar Reportes' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /3\.6 Exportar Reportes/ })).toBeInTheDocument();
     });
   });
 
   describe('configurator', () => {
+    it('renders configurador de exportación section', () => {
+      renderPage();
+      expect(screen.getByText('Configurador de exportación')).toBeInTheDocument();
+    });
+
     it('renders content type checkboxes', () => {
       renderPage();
-      expect(screen.getByText('Tipo de contenido')).toBeInTheDocument();
+      expect(screen.getByText('Tipo de contenido (multi-selección)')).toBeInTheDocument();
       expect(screen.getByLabelText('Consumos agregados por mall')).toBeInTheDocument();
       expect(screen.getByLabelText('Costos y facturación')).toBeInTheDocument();
       expect(screen.getByLabelText('Calidad del dato')).toBeInTheDocument();
@@ -59,46 +76,86 @@ describe('ExportarReportesPage', () => {
       expect(screen.getByLabelText('Costos y facturación')).not.toBeChecked();
     });
 
-    it('renders scope selector', () => {
+    it('renders scope field with options', () => {
       renderPage();
-      expect(screen.getByText('Alcance')).toBeInTheDocument();
+      expect(screen.getByText('Alcance geográfico')).toBeInTheDocument();
       expect(screen.getByText('Portafolio completo')).toBeInTheDocument();
+      expect(screen.getByText('País')).toBeInTheDocument();
+      expect(screen.getByText('Mall específico')).toBeInTheDocument();
+    });
+
+    it('renders period selector', () => {
+      renderPage();
+      expect(screen.getByText('Período (hasta 5 años)')).toBeInTheDocument();
+      expect(screen.getByText('Mes actual')).toBeInTheDocument();
     });
 
     it('renders granularity selector', () => {
       renderPage();
-      expect(screen.getByText('Granularidad')).toBeInTheDocument();
+      expect(screen.getByText('Granularidad temporal (Mensual / Semanal)')).toBeInTheDocument();
       expect(screen.getByText('Mensual')).toBeInTheDocument();
       expect(screen.getByText('Semanal')).toBeInTheDocument();
     });
 
-    it('renders format selector', () => {
+    it('renders format selector with full labels', () => {
       renderPage();
-      // "Formato" appears in configurator + queue table header
-      expect(screen.getAllByText('Formato').length).toBeGreaterThanOrEqual(1);
-      // Format options have full labels in the select
+      expect(screen.getByText('Formato de salida (PDF / Excel / CSV)')).toBeInTheDocument();
       expect(screen.getByText(/PDF ejecutivo/)).toBeInTheDocument();
-      expect(screen.getByText(/Excel \(tablas/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Excel \(tablas/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/CSV \(solo datos/)).toBeInTheDocument();
     });
 
     it('renders currency selector', () => {
       renderPage();
-      expect(screen.getByText('Moneda')).toBeInTheDocument();
+      expect(screen.getByText('Moneda de costos')).toBeInTheDocument();
+      expect(screen.getByText('CLP')).toBeInTheDocument();
+      expect(screen.getByText('UF')).toBeInTheDocument();
+      expect(screen.getByText('USD')).toBeInTheDocument();
     });
 
     it('renders export button', () => {
       renderPage();
-      expect(screen.getByRole('button', { name: 'Exportar datos' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Exportar' })).toBeInTheDocument();
     });
 
-    it('renders auditor limitation notice', () => {
+    it('renders schedule export button', () => {
       renderPage();
-      expect(screen.getByText(/perfil auditor/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Programar exportación' })).toBeInTheDocument();
+    });
+  });
+
+  describe('limitation notice', () => {
+    it('renders limitación del perfil gerencial section', () => {
+      renderPage();
+      expect(screen.getByText('Limitación del perfil gerencial')).toBeInTheDocument();
+    });
+
+    it('mentions auditor profile', () => {
+      renderPage();
+      expect(screen.getByText(/perfil Auditor/)).toBeInTheDocument();
+    });
+
+    it('mentions no raw meter data', () => {
+      renderPage();
+      expect(screen.getByText(/Sin datos crudos de medidores individuales/)).toBeInTheDocument();
+    });
+  });
+
+  describe('export summary', () => {
+    it('renders resumen de la exportación section', () => {
+      renderPage();
+      expect(screen.getByText('Resumen de la exportación')).toBeInTheDocument();
+    });
+
+    it('shows selected content in summary', () => {
+      renderPage();
+      // Default: "Consumos agregados por mall" selected
+      expect(screen.getAllByText(/Consumos agregados por mall/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
   describe('content checkbox toggle', () => {
-    it('toggles content type', async () => {
+    it('toggles content type on and off', async () => {
       const user = userEvent.setup();
       renderPage();
 
@@ -113,49 +170,35 @@ describe('ExportarReportesPage', () => {
     });
   });
 
-  describe('preview', () => {
-    it('renders preview section', () => {
+  describe('history table (Row 2)', () => {
+    it('renders historial de exportaciones section', () => {
       renderPage();
-      expect(screen.getByText('Vista previa del contenido')).toBeInTheDocument();
+      expect(screen.getByText('Historial de exportaciones')).toBeInTheDocument();
     });
 
-    it('shows estimated rows and size for selected content', () => {
+    it('renders table column headers', () => {
       renderPage();
-      // Default: "Consumos agregados por mall" selected
-      // rowEstimates.consumption = buildingCount * 12; no buildings mock → 0 rows
-      expect(screen.getByText('Filas estimadas')).toBeInTheDocument();
-      expect(screen.getByText('Tamaño aprox.')).toBeInTheDocument();
-      // Total row and size row are rendered (values depend on entity counts)
-      expect(screen.getByText('Total')).toBeInTheDocument();
+      expect(screen.getByText('Fecha')).toBeInTheDocument();
+      expect(screen.getByText('Usuario')).toBeInTheDocument();
+      expect(screen.getByText('Contenido')).toBeInTheDocument();
+      expect(screen.getByText('Período')).toBeInTheDocument();
+      expect(screen.getByText('Formato')).toBeInTheDocument();
+      expect(screen.getByText('Descarga')).toBeInTheDocument();
     });
 
-    it('shows total row', () => {
-      renderPage();
-      const totals = screen.getAllByText('Total');
-      expect(totals.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  describe('export queue', () => {
-    it('renders queue section', () => {
-      renderPage();
-      expect(screen.getByText('Cola de exportaciones')).toBeInTheDocument();
-    });
-
-    it('renders queue rows', () => {
+    it('renders report rows from mock data', () => {
       renderPage();
       expect(screen.getByText('consumption')).toBeInTheDocument();
       expect(screen.getByText('billing')).toBeInTheDocument();
     });
 
-    it('shows download link for ready exports', () => {
+    it('shows download link for ready report (has fileUrl)', () => {
       renderPage();
       expect(screen.getByText('Descargar')).toBeInTheDocument();
     });
 
-    it('shows status badges', () => {
+    it('shows Generando badge for report without fileUrl', () => {
       renderPage();
-      expect(screen.getByText('Listo')).toBeInTheDocument();
       expect(screen.getByText('Generando')).toBeInTheDocument();
     });
   });

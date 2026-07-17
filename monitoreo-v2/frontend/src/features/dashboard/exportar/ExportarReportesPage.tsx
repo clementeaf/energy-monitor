@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced with native selects per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -150,231 +150,157 @@ export function ExportarReportesPage() {
     });
   };
 
+  const scopeLabel = SCOPE_OPTIONS.find((o) => o.key === scope)?.label ?? scope;
+  const periodLabel = PERIOD_OPTIONS.find((o) => o.key === period)?.label ?? period;
+  const formatLabel = FORMAT_OPTIONS.find((o) => o.key === format)?.label ?? format;
+  const granLabel = GRANULARITY_OPTIONS.find((o) => o.key === granularity)?.label ?? granularity;
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Exportar Reportes"
-        eyebrow="Exportar"
+        title="3.6 Exportar Reportes"
+        description="Exportación de datos agregados del portafolio con configuración de contenido, alcance y formato"
       />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Left: Configurator */}
-        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto overflow-x-hidden">
-          <ConfigSection title="Tipo de contenido">
-            <div className="space-y-1.5">
-              {CONTENT_TYPES.map((ct) => (
-                <label key={ct.key} className="flex items-center gap-2 text-[12px] text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={selectedContent.has(ct.key)}
-                    onChange={() => toggleContent(ct.key)}
-                    className="rounded border-border"
-                  />
-                  {ct.label}
-                </label>
-              ))}
-            </div>
-          </ConfigSection>
-
-          <ConfigSection title="Alcance">
-            <select
-              value={scope}
-              onChange={(e) => setScope(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none"
-            >
-              {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            {scope === 'building' && (
-              <MallMultiSelect
-                buildings={buildingsQuery.data ?? []}
-                selected={selectedMallIds}
-                onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })}
-                onClear={() => setSelectedMallIds(new Set())}
-                search={mallSearch}
-                onSearch={setMallSearch}
-              />
-            )}
-          </ConfigSection>
-
-          <ConfigSection title="Período">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none"
-            >
-              {PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            {period === 'custom' && (
-              <div className="mt-2 flex flex-col gap-1.5">
-                <input type="date" value={customStart} min={fiveYearsAgo} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-                <input type="date" value={customEnd} min={customStart} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setCustomEnd(e.target.value)} className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+      {/* Row 1: 2 columns */}
+      <div className="relative min-h-0 flex-1 basis-1/2">
+        <div className="absolute inset-0 flex gap-3">
+          {/* Left: Configurador de exportación */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
+            <div className="panel px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
+              <p className="text-[9px] text-subtle">selección de contenido, alcance y formato</p>
+              <div className="mt-3 space-y-3">
+                <ConfigField label="Tipo de contenido (multi-selección)">
+                  <div className="space-y-1.5">
+                    {CONTENT_TYPES.map((ct) => (
+                      <label key={ct.key} className="flex items-center gap-2 text-[11px] text-foreground">
+                        <input type="checkbox" checked={selectedContent.has(ct.key)} onChange={() => toggleContent(ct.key)} className="rounded border-border" />
+                        {ct.label}
+                      </label>
+                    ))}
+                  </div>
+                </ConfigField>
+                <ConfigField label="Alcance geográfico">
+                  <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                  {scope === 'building' && (
+                    <MallMultiSelect buildings={buildingsQuery.data ?? []} selected={selectedMallIds} onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })} onClear={() => setSelectedMallIds(new Set())} search={mallSearch} onSearch={setMallSearch} />
+                  )}
+                </ConfigField>
+                <ConfigField label="Período (hasta 5 años)">
+                  <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    {PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                  {period === 'custom' && (
+                    <div className="mt-1 flex gap-2">
+                      <input type="date" value={customStart} min={fiveYearsAgo} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                      <input type="date" value={customEnd} min={customStart} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setCustomEnd(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                    </div>
+                  )}
+                </ConfigField>
+                <ConfigField label="Granularidad temporal (Mensual / Semanal)">
+                  <select value={granularity} onChange={(e) => setGranularity(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    {GRANULARITY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </ConfigField>
+                <ConfigField label="Formato de salida (PDF / Excel / CSV)">
+                  <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    {FORMAT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </ConfigField>
+                <ConfigField label="Moneda de costos">
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                    {CURRENCY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </ConfigField>
               </div>
-            )}
-          </ConfigSection>
+              <p className="mt-2 text-right text-[9px] text-subtle">[DAT-07, DAT-12]</p>
+            </div>
+          </div>
 
-          <ConfigSection title="Granularidad">
-            <PillToggle
-              options={GRANULARITY_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={granularity}
-              onChange={setGranularity}
-              size="sm"
-            />
-            <p className="mt-1.5 text-[9px] text-muted">Datos diarios o inferiores no disponibles en perfil gerencial.</p>
-          </ConfigSection>
+          {/* Right: Resumen + Buttons + Limitación */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+            {/* Resumen de la exportación */}
+            <div className="panel shrink-0 px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
+              <div className="mt-2 space-y-0.5 text-[11px] text-muted">
+                <p>• Contenido: {selectedTypes.map((t) => t.label).join(', ') || '—'}</p>
+                <p>• Alcance: {scopeLabel} · Período: {periodLabel}</p>
+                <p>• Granularidad: {granLabel} · Formato: {formatLabel}</p>
+              </div>
+              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-12]</p>
+            </div>
 
-          <ConfigSection title="Formato">
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none"
-            >
-              {FORMAT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-          </ConfigSection>
+            {/* Action buttons */}
+            <div className="flex shrink-0 gap-2">
+              <Button onClick={handleExport} loading={generateReport.isPending} disabled={selectedContent.size === 0} className="flex-1">
+                Exportar
+              </Button>
+              <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">
+                Programar exportación
+              </button>
+            </div>
 
-          <ConfigSection title="Moneda">
-            <PillToggle
-              options={CURRENCY_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={currency}
-              onChange={setCurrency}
-              size="sm"
-            />
-          </ConfigSection>
-
-          <Button
-            onClick={handleExport}
-            loading={generateReport.isPending}
-            disabled={selectedContent.size === 0}
-            className="mt-2 w-full"
-          >
-            Exportar datos
-          </Button>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-            <p className="text-[11px] font-medium text-amber-800">Limitaciones del perfil</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-amber-700">
-              Los exports incluyen únicamente datos agregados por mall y período.
-              No incluyen datos crudos de medidores individuales ni información identificable de locatarios.
-              Para datos de mayor granularidad se requiere el perfil auditor.
-            </p>
+            {/* Limitación del perfil gerencial */}
+            <div className="panel shrink-0 px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
+              <ul className="mt-2 space-y-0.5 text-[11px] text-muted">
+                <li>• Solo datos agregados por mall y período</li>
+                <li>• Sin datos crudos de medidores individuales</li>
+                <li>• Sin información identificable de locatarios</li>
+                <li>• Para granularidad / trazabilidad / evidencia firmada → perfil Auditor</li>
+              </ul>
+              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-07]</p>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Right: Preview + Queue */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Preview */}
-          <div className="panel shrink-0 p-4">
-            <h3 className="mb-3 text-[13px] font-medium text-foreground">Vista previa del contenido</h3>
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                  <th className="pb-2">Tipo</th>
-                  <th className="pb-2 text-right">Filas estimadas</th>
-                  <th className="pb-2 text-right">Tamaño aprox.</th>
-                </tr>
-              </thead>
+      {/* Row 2: Historial de exportaciones */}
+      <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">Fecha</th>
+                <th className="px-2 py-1.5">Usuario</th>
+                <th className="px-2 py-1.5">Contenido</th>
+                <th className="px-2 py-1.5">Período</th>
+                <th className="px-2 py-1.5">Formato</th>
+                <th className="px-2 py-1.5">Descarga</th>
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
               <tbody className="divide-y divide-border">
-                {selectedTypes.map((ct) => {
-                  const rows = rowEstimates[ct.key] ?? ct.estimatedRows;
-                  return (
-                    <tr key={ct.key}>
-                      <td className="py-1.5 text-foreground">{ct.label}</td>
-                      <td className="py-1.5 text-right text-muted">{rows}</td>
-                      <td className="py-1.5 text-right text-muted">{Math.round(rows * 2.5)} KB</td>
-                    </tr>
-                  );
-                })}
-                {selectedTypes.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-4 text-center text-muted">
-                      Selecciona al menos un tipo de contenido.
+                {queue.map((report, i) => (
+                  <tr key={report.id} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
+                    <td className="px-2 py-1.5 text-foreground">{new Date(report.createdAt).toLocaleDateString('es-CL')}</td>
+                    <td className="px-2 py-1.5 text-muted">{(report as unknown as Record<string, unknown>).userEmail as string ?? '—'}</td>
+                    <td className="px-2 py-1.5 capitalize text-muted">{report.reportType}</td>
+                    <td className="px-2 py-1.5 text-muted">{report.periodStart.slice(0, 7)} — {report.periodEnd.slice(0, 7)}</td>
+                    <td className="px-2 py-1.5 uppercase text-muted">{report.format}</td>
+                    <td className="px-2 py-1.5">
+                      {report.fileUrl ? (
+                        <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">Descargar</a>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium text-amber-700">Generando</span>
+                      )}
                     </td>
                   </tr>
+                ))}
+                {queue.length === 0 && (
+                  <tr><td colSpan={6} className="px-2 py-6 text-center text-muted">No hay exportaciones recientes.</td></tr>
                 )}
               </tbody>
-              {selectedTypes.length > 0 && (
-                <tfoot className="border-t border-border">
-                  <tr className="font-medium text-foreground">
-                    <td className="pt-2">Total</td>
-                    <td className="pt-2 text-right">{totalRows}</td>
-                    <td className="pt-2 text-right">{totalSizeKb} KB</td>
-                  </tr>
-                </tfoot>
-              )}
             </table>
           </div>
-
-          {/* Queue */}
-          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">
-              Cola de exportaciones
-            </h3>
-            <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full text-[13px]">
-                <thead className="sticky top-0 z-10 bg-background">
-                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                    <th className="px-4 py-2">Fecha</th>
-                    <th className="px-3 py-2">Tipo</th>
-                    <th className="px-3 py-2">Configuración</th>
-                    <th className="px-3 py-2">Formato</th>
-                    <th className="px-3 py-2 text-center">Estado</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {queue.map((report) => {
-                    const status = report.fileUrl ? 'ready' : 'generating';
-                    const statusDef = QUEUE_STATUS[status] ?? QUEUE_STATUS.generating;
-                    return (
-                      <tr key={report.id} className="transition-colors hover:bg-surface">
-                        <td className="px-4 py-2 text-foreground">
-                          {new Date(report.createdAt).toLocaleDateString('es-CL')}
-                        </td>
-                        <td className="px-3 py-2 capitalize text-foreground">{report.reportType}</td>
-                        <td className="px-3 py-2 text-[11px] text-muted">
-                          {report.periodStart.slice(0, 7)} — {report.periodEnd.slice(0, 7)}
-                        </td>
-                        <td className="px-3 py-2 uppercase text-muted">{report.format}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${statusDef.style}`}>
-                            {statusDef.label}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2">
-                          {report.fileUrl && (() => {
-                            const createdMs = new Date(report.createdAt).getTime();
-                            const expiresMs = createdMs + 30 * 86_400_000;
-                            const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
-                            const expired = daysLeft === 0;
-                            return (
-                              <div className="flex items-center gap-1.5">
-                                {expired ? (
-                                  <span className="text-[10px] text-red-500">Expirado</span>
-                                ) : (
-                                  <>
-                                    <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline">Descargar</a>
-                                    <span className="text-[9px] text-muted">({daysLeft}d)</span>
-                                  </>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {queue.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                        No hay exportaciones recientes.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-12, DAT-08]</p>
       </div>
     </div>
   );
@@ -450,12 +376,12 @@ function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSea
   );
 }
 
-/* ── Config section wrapper ── */
+/* ── Config field (label + input) ── */
 
-function ConfigSection({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
+function ConfigField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
-    <div className="panel px-3 py-2.5">
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">{title}</p>
+    <div>
+      <p className="mb-1 text-[10px] text-muted">{label}</p>
       {children}
     </div>
   );

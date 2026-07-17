@@ -2,6 +2,11 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Exportar Reportes (3.6)
+- **Título + subtítulo spec** — "3.6 Exportar Reportes" + descripción exportación datos agregados.
+- **Layout 2 filas** — Fila 1 (2 cols, `absolute inset-0` misma altura): Izq: Configurador de exportación (6 selects: Tipo contenido multi-selección, Alcance geográfico, Período hasta 5 años, Granularidad Mensual/Semanal, Formato PDF/Excel/CSV, Moneda costos). Der: Resumen exportación (preview natural language) + Botones (Exportar primary + Programar exportación outline) + Limitación perfil gerencial (4 bullets: solo agregados, sin crudos, sin locatarios, auditor para evidencia). Fila 2 (full-width, 50%): Historial exportaciones (Fecha, Usuario, Contenido, Período, Formato, Descarga). Headers fijos, filas `animate-fade-in` staggered.
+- **Refs spec** — `[DAT-07, DAT-12]`, `[DAT-12]`, `[DAT-07]`, `[DAT-12, DAT-08]`.
+
 ### Changed — Reportes Ejecutivos (3.4)
 - **Título + subtítulo spec** — "3.4 Reportes Ejecutivos" + descripción configurador.
 - **Layout 2 columnas** — Izq: Configurador de reporte (5 selects nativos: Alcance, Período, Comparación, Métrica, Formato) + Secciones a incluir (7 checkboxes inline). Der: Vista previa (portada + índice secciones) + Botones (Generar reporte primary + Programar envío outline) + Historial de reportes (tabla con headers fijos, filas animadas).

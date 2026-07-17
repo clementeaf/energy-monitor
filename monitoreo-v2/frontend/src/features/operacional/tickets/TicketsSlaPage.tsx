@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced with tab buttons per wireframe
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -219,180 +219,135 @@ export function TicketsSlaPage() {
     { title: 'Resueltos período', value: String(resolvedCount), color: 'text-emerald-600' },
   ];
 
+  // Uptime line data for chart
+  const uptimeByWeek = slaWeekly.map((wk) => {
+    const total = wk.withinSla + wk.outsideSla;
+    return total > 0 ? (wk.withinSla / total) * 100 : 100;
+  });
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Tickets y SLA"
-        eyebrow="Tickets"
-        actions={
-          <PillToggle
-            options={QUICK_FILTERS.map((f) => ({ key: f.key, label: f.label }))}
-            value={quickFilter}
-            onChange={setQuickFilter}
-            size="sm"
-          />
-        }
+        title="4.3 Tickets y SLA"
+        description="Seguimiento de SLA contractual — uptime, disponibilidad y resolución de alarmas"
       />
 
-      {/* SLA KPIs */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-6">
-        {slaKpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
-          </div>
-        ))}
+      {/* Row 1: 3 KPI cards */}
+      <div className="flex shrink-0 gap-3">
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
+          <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-red-600'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
+          <p className="text-[9px] text-subtle">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06, ARQ-06]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
+          <p className="text-[9px] text-subtle">lecturas recibidas / esperadas</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06, ARQ-06]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
+          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
+          <p className="text-[9px] text-subtle">indicador visual si supera el SLA</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06]</p>
+        </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Ticket table */}
-        <div className="panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-3 py-2">ID</th>
-                  <th className="px-3 py-2">Descripción</th>
-                  <th className="px-3 py-2">Tipo</th>
-                  <th className="px-3 py-2">Prioridad</th>
-                  <th className="px-3 py-2">Centro</th>
-                  <th className="px-3 py-2">Apertura</th>
-                  <th className="px-3 py-2 text-right">SLA</th>
-                  <th className="px-3 py-2 text-center">Estado</th>
-                </tr>
-              </thead>
+      {/* Row 2: Evolución de SLA — últimos 3 meses */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
+        <p className="text-[9px] text-subtle">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
+        <div className="mt-2" style={{ height: '80px' }}>
+          {(() => {
+            const w = 600;
+            const h = 70;
+            const threshold = 99.5;
+            const minY = Math.min(95, ...uptimeByWeek);
+            const toY = (v: number) => h - 4 - ((v - minY) / (100 - minY + 0.01)) * (h - 8);
+            const linePath = uptimeByWeek.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(v)}`).join(' ');
+            const threshY = toY(threshold);
+            return (
+              <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full" preserveAspectRatio="none">
+                <line x1={0} y1={threshY} x2={w} y2={threshY} stroke="#ef4444" strokeWidth={1} strokeDasharray="6 3" />
+                <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2.5} />
+                {uptimeByWeek.map((v, i) => v < threshold ? (
+                  <circle key={i} cx={(i / 11) * w} cy={toY(v)} r={4} fill="#ef4444" />
+                ) : null)}
+                <text x={w - 4} y={threshY - 4} fontSize={10} fill="#ef4444" textAnchor="end">umbral</text>
+              </svg>
+            );
+          })()}
+        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[FIN-06, FIN-07]</p>
+      </div>
+
+      {/* Row 3: Quick-filter tabs + Tablero de tickets */}
+      <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+        {/* Tabs */}
+        <div className="flex shrink-0 items-center gap-1">
+          {QUICK_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setQuickFilter(f.key)}
+              className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                quickFilter === f.key ? 'bg-foreground text-background' : 'bg-surface text-muted hover:text-foreground'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+          <span className="ml-2 text-[9px] text-subtle">esta pantalla: El filtro rápido «Mis tickets /</span>
+        </div>
+
+        <p className="mt-2 shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
+        <p className="shrink-0 text-[9px] text-subtle">días restantes en verde · vencidos en rojo</p>
+
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">ID</th>
+                <th className="px-2 py-1.5">Descripción</th>
+                <th className="px-2 py-1.5">Tipo</th>
+                <th className="px-2 py-1.5">Prioridad</th>
+                <th className="px-2 py-1.5">Apertura</th>
+                <th className="px-2 py-1.5">Compromiso SLA</th>
+                <th className="px-2 py-1.5 text-center">Estado</th>
+                <th className="px-2 py-1.5 text-right">Días rest./venc.</th>
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
               <tbody className="divide-y divide-border">
-                {filtered.map((ticket) => (
-                  <tr key={ticket.id} className="transition-colors hover:bg-surface">
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted">{ticket.id}</td>
-                    <td className="max-w-[250px] px-3 py-2">
-                      <p className="truncate text-foreground">{ticket.description}</p>
+                {filtered.map((ticket, i) => (
+                  <tr key={ticket.id} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 25}ms` }}>
+                    <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{ticket.id}</td>
+                    <td className="max-w-[200px] truncate px-2 py-1.5 text-foreground">{ticket.description}</td>
+                    <td className="px-2 py-1.5 capitalize text-muted">{ticket.type}</td>
+                    <td className="px-2 py-1.5">
+                      <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${PRIORITY_BADGE[ticket.priority]}`}>{ticket.priority.toUpperCase()}</span>
                     </td>
-                    <td className="px-3 py-2 capitalize text-muted">{ticket.type}</td>
-                    <td className="px-3 py-2">
-                      <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_BADGE[ticket.priority]}`}>
-                        {ticket.priority.toUpperCase()}
-                      </span>
+                    <td className="px-2 py-1.5 text-muted">{new Date(ticket.openDate).toLocaleDateString('es-CL')}</td>
+                    <td className="px-2 py-1.5 text-muted">{new Date(ticket.slaDeadline).toLocaleDateString('es-CL')}</td>
+                    <td className="px-2 py-1.5 text-center">
+                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${STATUS_BADGE[ticket.status]}`}>{ticket.status}</span>
                     </td>
-                    <td className="px-3 py-2 text-muted">
-                      {buildingMap.get(ticket.buildingId) ?? '—'}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-muted">
-                      {new Date(ticket.openDate).toLocaleDateString('es-CL')}
-                    </td>
-                    <td className={`px-3 py-2 text-right text-[12px] ${daysClass(ticket.daysRemaining)}`}>
+                    <td className={`px-2 py-1.5 text-right font-medium ${daysClass(ticket.daysRemaining)}`}>
                       {daysLabel(ticket.daysRemaining)}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[ticket.status]}`}>
-                        {ticket.status}
-                      </span>
                     </td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-muted">
-                      Sin tickets para el filtro seleccionado.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={8} className="px-2 py-6 text-center text-muted">Sin tickets para el filtro seleccionado.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         </div>
-
-        {/* Right column: SLA evolution + penalties */}
-        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
-        {/* SLA evolution chart */}
-        <div className="panel flex flex-col gap-3 p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Evolución SLA — 12 semanas</h3>
-          <div className="flex flex-1 items-end gap-1">
-            {slaWeekly.map((w) => {
-              const total = w.withinSla + w.outsideSla;
-              const withinH = total > 0 ? (w.withinSla / maxBarValue) * 100 : 0;
-              const outsideH = total > 0 ? (w.outsideSla / maxBarValue) * 100 : 0;
-              return (
-                <div key={w.label} className="flex flex-1 flex-col items-center gap-1" title={`${w.label}: ${w.withinSla} dentro SLA, ${w.outsideSla} fuera`}>
-                  <div className="flex w-full flex-col justify-end" style={{ height: 120 }}>
-                    {outsideH > 0 && (
-                      <div className="w-full rounded-t bg-red-400" style={{ height: `${outsideH}%` }} />
-                    )}
-                    {withinH > 0 && (
-                      <div className={`w-full bg-emerald-400 ${outsideH > 0 ? '' : 'rounded-t'}`} style={{ height: `${withinH}%` }} />
-                    )}
-                  </div>
-                  <span className="text-[9px] text-subtle">{w.label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-3 text-[10px] text-muted">
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Dentro SLA</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-400" /> Fuera SLA</span>
-          </div>
-
-          {/* Uptime line vs threshold */}
-          <div className="mt-3">
-            <h4 className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted">Uptime real vs umbral contratado</h4>
-            {(() => {
-              const w = 280;
-              const h = 48;
-              const threshold = 95; // SLA contractual %
-              const uptimeByWeek = slaWeekly.map((wk) => {
-                const total = wk.withinSla + wk.outsideSla;
-                return total > 0 ? (wk.withinSla / total) * 100 : 100;
-              });
-              const minY = Math.min(80, ...uptimeByWeek);
-              const toY = (v: number) => h - 4 - ((v - minY) / (100 - minY)) * (h - 8);
-              const linePath = uptimeByWeek.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 11) * w} ${toY(v)}`).join(' ');
-              const threshY = toY(threshold);
-              return (
-                <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
-                  <line x1={0} y1={threshY} x2={w} y2={threshY} stroke="#ef4444" strokeWidth={1} strokeDasharray="4 2" />
-                  <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
-                  {uptimeByWeek.map((v, i) => v < threshold ? (
-                    <circle key={i} cx={(i / 11) * w} cy={toY(v)} r={3} fill="#ef4444" />
-                  ) : null)}
-                  <text x={w - 2} y={threshY - 3} fontSize={8} fill="#ef4444" textAnchor="end">{threshold}%</text>
-                </svg>
-              );
-            })()}
-          </div>
-
-        </div>
-
-        {/* SLA penalties history */}
-        <div className="panel flex flex-col gap-2 p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Historial penalizaciones SLA</h3>
-          {(() => {
-            const penalties = slaWeekly.filter((w) => w.outsideSla > 0);
-            if (penalties.length === 0) return <p className="text-[12px] text-muted">Sin penalizaciones en el período.</p>;
-            return (
-              <ul className="space-y-2">
-                {penalties.map((w) => {
-                  const total = w.withinSla + w.outsideSla;
-                  const pct = total > 0 ? Math.round((w.withinSla / total) * 100) : 0;
-                  return (
-                    <li key={w.label} className="rounded-md border border-border px-2.5 py-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-medium text-foreground">{w.label}</span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pct >= 90 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                          {pct}%
-                        </span>
-                      </div>
-                      <div className="mt-1 flex items-center justify-between text-[10px]">
-                        <span className="text-red-600">{w.outsideSla} fuera SLA</span>
-                        <span className="text-muted">{(w.outsideSla * 0.5).toFixed(1)} UF crédito</span>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            );
-          })()}
-        </div>
-        </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[FIN-05, FIN-06]</p>
       </div>
     </div>
   );

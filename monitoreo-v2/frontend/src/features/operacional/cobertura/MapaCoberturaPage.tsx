@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced per wireframe
 import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -168,70 +168,77 @@ export function MapaCoberturaPage() {
   }, [coverageRows, metric]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Mapa de Cobertura"
-        eyebrow="Cobertura"
-        actions={
-          <PillToggle
-            options={METRIC_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-            value={metric}
-            onChange={setMetric}
-            size="sm"
-          />
-        }
+        title="4.6 Mapa de Cobertura"
+        description="Visualización geográfica de cobertura de medidores — click abre grilla del mall"
       />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Map */}
-        <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
-          <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
+      <div className="flex min-h-0 flex-1 gap-3">
+        {/* Left: Mapa interactivo de cobertura */}
+        <div className="panel flex min-w-0 flex-[2] flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
+          <p className="shrink-0 text-[9px] text-subtle">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
+          <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
+            <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
+          </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[ARQ-08, DAT-17, DAT-11]</p>
         </div>
 
-        {/* Side panel */}
-        <div className="flex w-72 shrink-0 flex-col gap-3 overflow-hidden">
-          {/* Search */}
+        {/* Right: Panel lateral de lista */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
+          <p className="shrink-0 text-[9px] text-subtle">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar centro..."
-            className="w-full shrink-0 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none transition-colors focus:border-brand"
+            placeholder="Buscar mall..."
+            className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
           />
-
-          {/* Mall list */}
-          <div className="panel min-h-0 flex-1 overflow-y-auto">
-            <ul className="divide-y divide-border">
-              {filteredRows.map((row) => {
-                const dot = SEMAPHORE_DOT[row.semaphore];
-                return (
-                  <li key={row.building.id}>
-                    <button
-                      type="button"
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-2 py-1.5">Mall</th>
+                  <th className="px-2 py-1.5 text-right">% online</th>
+                  <th className="px-2 py-1.5 text-right">Alarmas</th>
+                  <th className="px-2 py-1.5">Último dato</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="w-full">
+                <tbody className="divide-y divide-border">
+                  {filteredRows.map((row, i) => (
+                    <tr
+                      key={row.building.id}
+                      className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
+                      style={{ animationDelay: `${i * 25}ms` }}
                       onClick={() => navigate(`/meters?building=${row.building.id}`)}
-                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface"
                     >
-                      <span className={`inline-block size-2.5 shrink-0 rounded-full ${dot}`} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-medium text-foreground">{row.building.name}</p>
-                        <p className="text-[11px] text-muted">
-                          {row.onlinePct.toFixed(0)}% online · {row.totalMeters} med.
-                          {row.alertCount > 0 && ` · ${row.alertCount} alertas`}
-                        </p>
-                        {row.lastReading && (
-                          <p className="text-[10px] text-muted">Últ: {row.lastReading}</p>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-              {filteredRows.length === 0 && (
-                <li className="px-3 py-6 text-center text-[12px] text-muted">
-                  Sin resultados.
-                </li>
-              )}
-            </ul>
+                      <td className="px-2 py-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`inline-block size-2 shrink-0 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
+                          <span className="truncate font-medium text-foreground">{row.building.name}</span>
+                        </span>
+                      </td>
+                      <td className={`px-2 py-1.5 text-right font-medium ${row.onlinePct >= 95 ? 'text-emerald-600' : row.onlinePct >= 85 ? 'text-amber-600' : 'text-red-600'}`}>
+                        {row.onlinePct.toFixed(0)}%
+                      </td>
+                      <td className="px-2 py-1.5 text-right text-muted">
+                        {row.alertCount > 0 ? <span className="font-medium text-red-600">{row.alertCount}</span> : '0'}
+                      </td>
+                      <td className="px-2 py-1.5 text-muted">{row.lastReading ?? '—'}</td>
+                    </tr>
+                  ))}
+                  {filteredRows.length === 0 && (
+                    <tr><td colSpan={4} className="px-2 py-6 text-center text-muted">Sin resultados.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-17, DAT-27]</p>
         </div>
       </div>
     </div>

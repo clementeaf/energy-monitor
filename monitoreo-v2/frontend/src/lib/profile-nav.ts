@@ -49,27 +49,12 @@ const GERENCIAL_NAV: ProfileNavEntry[] = [
 const MAPA_INDOOR: ProfileSubItem = { to: APP_ROUTES.map, label: 'Mapa Indoor' };
 
 const OPERACIONAL_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Monitoreo',
-    icon: 'monitoring',
-    basePath: '/monitoring',
-    extraPaths: ['/operacional', '/map'],
-    children: [MONITOREO_EN_VIVO, MAPA_COBERTURA, MAPA_INDOOR],
-  },
-  {
-    label: 'Alertas',
-    icon: 'alerts',
-    basePath: '/alerts',
-    extraPaths: ['/operacional/alarmas', '/operacional/tickets'],
-    children: [ALERTAS_GESTION, ALERTAS_TICKETS],
-  },
-  {
-    label: 'Calidad',
-    icon: 'admin',
-    basePath: '/operacional/calidad',
-    extraPaths: ['/operacional/cnr'],
-    children: [CALIDAD_BACKFILL, CNR_PENDIENTES],
-  },
+  { label: 'Monitoreo en Vivo', icon: 'monitoring', to: APP_ROUTES.monitoreoVivo, basePath: '/monitoring/realtime', extraPaths: ['/operacional/monitoreo'] },
+  { label: 'Alarmas y Eventos', icon: 'alerts', to: APP_ROUTES.alarmasEventos, basePath: '/alerts/events', extraPaths: ['/operacional/alarmas'] },
+  { label: 'Tickets y SLA', icon: 'analytics', to: APP_ROUTES.ticketsSla, basePath: '/operacional/tickets' },
+  { label: 'Calidad y Backfill', icon: 'admin', to: APP_ROUTES.calidadBackfill, basePath: '/operacional/calidad' },
+  { label: 'CNR Pendientes', icon: 'admin', to: APP_ROUTES.cnrPendientes, basePath: '/operacional/cnr' },
+  { label: 'Mapa de Cobertura', icon: 'monitoring', to: APP_ROUTES.mapaCobertura, basePath: '/operacional/cobertura', extraPaths: ['/map'] },
 ];
 
 const TECNICO_ORDENES: ProfileSubItem = { to: APP_ROUTES.misOrdenes, label: 'Mis órdenes' };

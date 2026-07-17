@@ -295,160 +295,172 @@ export function MonitoreoVivoPage() {
   }, [alerts, meters, buildings, readingByMeter, now, backfillQuery.data, cnrQuery.data]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Monitoreo en Vivo" eyebrow="Monitoreo" />
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      <PageHeader
+        title="4.1 Monitoreo en Vivo"
+        description="Estado operativo del parque de medidores — refresh cada 15 min (ARQ-06)"
+      />
 
-      {/* KPI header */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-5">
-        {kpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
-          </div>
-        ))}
+      {/* Row 1: 5 KPI cards */}
+      <div className="flex shrink-0 gap-3">
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total medidores</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
+          <p className="text-[9px] text-subtle">parque completo del portafolio</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-08]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">En línea [%]</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600">{onlinePct}%</p>
+          <p className="text-[9px] text-subtle">▲ vs. inicio de turno · sparkline 24h</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-06, DAT-27]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Offline</p>
+          <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-red-600' : 'text-foreground'}`}>{offlineCount}</p>
+          <p className="text-[9px] text-subtle">medidores sin conexión</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-08, DAT-24]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Dato estancado &gt; 4h</p>
+          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
+          <p className="text-[9px] text-subtle">{staleCount > 0 ? 'badge rojo · alerta DAT-24' : 'sin estancados'}</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-24, DAT-27]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
+          <p className={`mt-1 text-2xl font-bold ${cnrPending > 0 ? 'text-amber-600' : 'text-foreground'}`}>{cnrPending}</p>
+          <p className="text-[9px] text-subtle">a la espera de ingreso</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-24]</p>
+        </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Mall grid */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <h3 className="mb-2 shrink-0 text-[13px] font-medium text-foreground">Centros comerciales</h3>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Row 2: Map + Histogram (same height) */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Mapa / grilla de centros comerciales */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa / grilla de centros comerciales</p>
+          <p className="shrink-0 text-[9px] text-subtle">Tarjeta por mall: nombre, país, % medidores online, última lectura, semáforo general · click → grilla de medidores</p>
+          <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+            <div className="flex flex-wrap gap-2">
               {mallCards.map((card) => {
-                const isExpanded = expandedMallId === card.building.id;
                 const semStyle = SEMAPHORE_STYLES[card.semaphore] ?? '';
                 return (
-                  <div key={card.building.id}>
-                    <button
-                      type="button"
-                      onClick={() => setExpandedMallId(isExpanded ? null : card.building.id)}
-                      className={`w-full rounded-lg border-l-4 p-3 text-left transition-colors hover:bg-surface ${semStyle}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-[13px] font-medium text-foreground">{card.building.name}</p>
-                        {card.alertCount > 0 && (
-                          <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                            {card.alertCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1.5 flex items-center gap-3 text-[11px] text-muted">
-                        <span>{card.building.countryCode ?? 'CL'}</span>
-                        <span>{card.onlinePct.toFixed(0)}% online</span>
-                        <span>{card.totalMeters} med.</span>
-                        {card.lastReading && <span>Últ: {card.lastReading}</span>}
-                      </div>
-                    </button>
-                    {isExpanded && (
-                      <div className="mt-1 rounded-lg border border-border bg-surface/50 p-2">
-                        <table className="w-full text-[12px]">
-                          <thead>
-                            <tr className="text-left text-[10px] font-medium uppercase tracking-wider text-muted">
-                              <th className="pb-1 pl-2">Serial</th>
-                              <th className="pb-1">Zona</th>
-                              <th className="pb-1 text-right">kW</th>
-                              <th className="pb-1 text-right">Var.</th>
-                              <th className="pb-1 text-right">Última lectura</th>
-                              <th className="pb-1 text-center">Estado</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border">
-                            {expandedMeters.map((meter) => {
-                              const reading = readingByMeter.get(meter.id);
-                              const status = deriveMeterStatus(reading, now);
-                              const sStyle = STATUS_STYLES[status];
-                              return (
-                                <tr
-                                  key={meter.id}
-                                  className="cursor-pointer transition-colors hover:bg-background"
-                                  onClick={() => navigate(`/monitoring/meter/${meter.id}`)}
-                                >
-                                  <td className="py-1 pl-2 text-foreground">{meter.code ?? meter.name}</td>
-                                  <td className="py-1 text-[11px] text-muted">{(meter.metadata as Record<string, string>)?.zone ?? '—'}</td>
-                                  <td className="py-1 text-right text-muted">
-                                    {reading ? Number(reading.power_kw).toFixed(1) : '—'}
-                                  </td>
-                                  <td className="py-1 text-right text-[10px]">
-                                    {(() => {
-                                      const currentKw = reading ? Number(reading.power_kw) : 0;
-                                      const yesterdayKw = yesterdayPowerByMeter.get(meter.id);
-                                      if (!yesterdayKw || yesterdayKw === 0 || !reading) return <span className="text-muted">—</span>;
-                                      const pct = Math.round(((currentKw - yesterdayKw) / yesterdayKw) * 100);
-                                      const color = pct > 0 ? 'text-red-500' : pct < 0 ? 'text-emerald-500' : 'text-muted';
-                                      return <span className={`font-medium ${color}`}>{pct > 0 ? '↑' : pct < 0 ? '↓' : '→'} {Math.abs(pct)}%</span>;
-                                    })()}
-                                  </td>
-                                  <td className="py-1 text-right text-muted">
-                                    {reading
-                                      ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
-                                      : '—'}
-                                  </td>
-                                  <td className="py-1 text-center">
-                                    <span className={`inline-block size-2 rounded-full ${sStyle.dot}`} title={sStyle.label} />
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    key={card.building.id}
+                    type="button"
+                    onClick={() => setExpandedMallId(expandedMallId === card.building.id ? null : card.building.id)}
+                    className={`w-[calc(50%-0.25rem)] rounded-lg border-l-4 p-2.5 text-left transition-colors hover:bg-surface ${semStyle} ${expandedMallId === card.building.id ? 'ring-2 ring-brand' : ''}`}
+                  >
+                    <p className="truncate text-[12px] font-medium text-foreground">{card.building.name}</p>
+                    <div className="mt-1 flex items-center gap-2 text-[10px] text-muted">
+                      <span>{card.building.countryCode ?? 'CL'}</span>
+                      <span>{card.onlinePct.toFixed(0)}%</span>
+                      <span>{card.totalMeters} med.</span>
+                      {card.alertCount > 0 && <span className="rounded-full bg-red-100 px-1 py-0.5 text-[9px] font-medium text-red-700">{card.alertCount}</span>}
+                    </div>
+                  </button>
                 );
               })}
             </div>
           </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[ARQ-06, DAT-11, DAT-19]</p>
         </div>
 
-        {/* Right column: histogram + feed */}
-        <div className="hidden w-72 shrink-0 flex-col gap-3 lg:flex">
-          {/* Park histogram */}
-          <div className="panel flex min-h-0 flex-1 flex-col p-3">
-            <h3 className="mb-2 shrink-0 text-[11px] font-medium uppercase tracking-wider text-muted">Comportamiento parque — 24h</h3>
-            <div className="flex min-h-0 flex-1 items-end gap-[1px]">
-              {parkHistogram.map((h) => (
-                <div
-                  key={h.label}
-                  className="flex-1 rounded-t"
-                  style={{ height: `${Math.max(2, h.pctOnline)}%`, backgroundColor: h.pctOnline >= 90 ? '#22c55e' : h.pctOnline >= 70 ? '#f59e0b' : '#ef4444' }}
-                  title={`${h.label}: ${h.pctOnline.toFixed(0)}% online`}
-                />
-              ))}
-            </div>
-            <div className="mt-1 flex justify-between text-[9px] text-subtle">
-              <span>{parkHistogram[0]?.label}</span>
-              <span>{parkHistogram[parkHistogram.length - 1]?.label}</span>
+        {/* Comportamiento del parque — 24h */}
+        <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Comportamiento del parque — 24h</p>
+          <p className="shrink-0 text-[9px] text-subtle">% medidores online por hora · detecta caídas masivas o parciales</p>
+          <div className="mt-2 flex min-h-0 flex-1 items-end gap-[1px]">
+            {parkHistogram.map((h) => (
+              <div
+                key={h.label}
+                className="flex-1 rounded-t"
+                style={{ height: `${Math.max(2, h.pctOnline)}%`, backgroundColor: h.pctOnline >= 90 ? '#22c55e' : h.pctOnline >= 70 ? '#f59e0b' : '#ef4444' }}
+                title={`${h.label}: ${h.pctOnline.toFixed(0)}% online`}
+              />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[9px] text-subtle">
+            <span>{parkHistogram[0]?.label}</span>
+            <span>{parkHistogram[parkHistogram.length - 1]?.label}</span>
+          </div>
+          <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-24]</p>
+        </div>
+      </div>
+
+      {/* Row 3: Meter grid + Feed (same height) */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Grilla de medidores del mall seleccionado */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Grilla de medidores del mall seleccionado</p>
+          <p className="shrink-0 text-[9px] text-subtle">se despliega al hacer click en una tarjeta del mapa</p>
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-2 py-1.5">Serial</th>
+                  <th className="px-2 py-1.5">Zona</th>
+                  <th className="px-2 py-1.5 text-center">Estado</th>
+                  <th className="px-2 py-1.5 text-right">Último valor</th>
+                  <th className="px-2 py-1.5">Timestamp</th>
+                  <th className="px-2 py-1.5 text-right">Var. vs día ant.</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="w-full">
+                <tbody className="divide-y divide-border">
+                  {expandedMeters.length > 0 ? expandedMeters.map((meter, i) => {
+                    const reading = readingByMeter.get(meter.id);
+                    const status = deriveMeterStatus(reading, now);
+                    const sStyle = STATUS_STYLES[status];
+                    const currentKw = reading ? Number(reading.power_kw) : 0;
+                    const yesterdayKw = yesterdayPowerByMeter.get(meter.id);
+                    const varPct = yesterdayKw && yesterdayKw > 0 && reading ? Math.round(((currentKw - yesterdayKw) / yesterdayKw) * 100) : null;
+                    return (
+                      <tr key={meter.id} className="animate-fade-in cursor-pointer transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }} onClick={() => navigate(`/monitoring/meter/${meter.id}`)}>
+                        <td className="px-2 py-1.5 font-medium text-foreground">{meter.code ?? meter.name}</td>
+                        <td className="px-2 py-1.5 text-muted">{(meter.metadata as Record<string, string>)?.zone ?? '—'}</td>
+                        <td className="px-2 py-1.5 text-center"><span className={`inline-block size-2 rounded-full ${sStyle.dot}`} title={sStyle.label} /></td>
+                        <td className="px-2 py-1.5 text-right text-muted">{reading ? `${Number(reading.power_kw).toFixed(1)} kW` : '—'}</td>
+                        <td className="px-2 py-1.5 text-muted">{reading ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                        <td className="px-2 py-1.5 text-right">{varPct != null ? <span className={`font-medium ${varPct > 0 ? 'text-red-500' : varPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>{varPct > 0 ? '↑' : varPct < 0 ? '↓' : '→'} {Math.abs(varPct)}%</span> : <span className="text-muted">—</span>}</td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr><td colSpan={6} className="px-2 py-6 text-center text-muted">Seleccione un mall para ver sus medidores</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-11, DAT-19, ARQ-08]</p>
+        </div>
 
-          {/* Feed */}
-          <h3 className="text-[13px] font-medium text-foreground">Eventos recientes</h3>
-          <div className="panel min-h-0 flex-1 overflow-y-auto">
-            <ul className="divide-y divide-border">
-              {enrichedFeed.map((evt) => {
-                const badge = EVENT_BADGE[evt.type] ?? '';
-                return (
-                  <li key={evt.id} className="px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${badge}`}>
-                        {evt.type.toUpperCase()}
-                      </span>
-                      <span className="text-[11px] text-muted">{evt.building}</span>
-                    </div>
-                    <p className="mt-1 text-[12px] text-foreground">{evt.message}</p>
-                    <p className="mt-0.5 text-[10px] text-muted">
-                      {new Date(evt.timestamp).toLocaleString('es-CL', {
-                        hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short',
-                      })}
+        {/* Feed de eventos recientes */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos recientes</p>
+          <p className="shrink-0 text-[9px] text-subtle">cronológico · con timestamp y mall</p>
+          <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+            <ul className="space-y-1.5">
+              {enrichedFeed.map((evt) => (
+                <li key={evt.id} className="flex items-start gap-2 text-[11px]">
+                  <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${evt.type === 'alert' ? 'bg-red-500' : evt.type === 'offline' ? 'bg-gray-500' : evt.type === 'backfill' ? 'bg-emerald-500' : evt.type === 'cnr' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-foreground">
+                      <span className="font-medium uppercase">{evt.type}</span> · {evt.message}
+                      {evt.building && <span className="text-muted"> — {evt.building}</span>}
                     </p>
-                  </li>
-                );
-              })}
+                  </div>
+                </li>
+              ))}
               {enrichedFeed.length === 0 && (
-                <li className="px-3 py-6 text-center text-[12px] text-muted">Sin eventos recientes.</li>
+                <li className="py-4 text-center text-muted">Sin eventos recientes.</li>
               )}
             </ul>
           </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-10, DAT-19]</p>
         </div>
       </div>
     </div>

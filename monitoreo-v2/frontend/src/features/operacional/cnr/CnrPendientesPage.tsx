@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced per wireframe
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useCnrQuery, useUpdateCnrStatus } from '../../../hooks/queries/useCnrQuery';
@@ -154,88 +154,94 @@ export function CnrPendientesPage() {
     { title: 'Ingresadas hoy', value: String(ingestedToday), color: 'text-foreground' },
   ];
 
+  const handleExportCsv = () => {
+    const header = 'ID,Medidor,Mall,Período afectado,Tipo,Responsable,Fecha ingreso,Estado,Valor estim. kWh';
+    const csv = [header, ...filtered.map((c) => `${c.id},${c.meterName},${c.buildingName},${c.lastReading},${c.motivo},${c.realCnrId ? '—' : 'auto'},${new Date(c.lastReading).toLocaleDateString('es-CL')},${c.status},${c.valueKwh ?? '—'}`)].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `cnr_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="CNR Pendientes"
-        eyebrow="CNR"
-        actions={
-          <div className="flex items-center gap-2">
-            <PillToggle
-              options={FILTER_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              size="sm"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const header = 'ID,Medidor,Centro,Última lectura,Gap (h),Estado';
-                const csv = [header, ...filtered.map((c) => `${c.id},${c.meterName},${c.buildingName},${c.lastReading},${c.gapHours},${c.status}`)].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `cnr_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
-            >
-              Exportar CSV
-            </button>
-          </div>
-        }
+        title="4.5 CNR Pendientes"
+        description="Consumo No Registrado — gestión de gaps pendientes de resolución (DAT-19)"
       />
 
-      {/* KPIs */}
-      <div className="grid shrink-0 grid-cols-3 gap-2">
-        {kpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
-            <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
-          </div>
-        ))}
+      {/* Row 1: 3 KPI cards */}
+      <div className="flex shrink-0 gap-3">
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
+          <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{totalOpen}</p>
+          <p className="text-[9px] text-subtle">a la espera de resolución</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
+          <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-red-600' : 'text-foreground'}`}>{over7d}</p>
+          <p className="text-[9px] text-subtle">badge de alerta de antigüedad</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+        </div>
+        <div className="panel flex-1 px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{ingestedToday}</p>
+          <p className="text-[9px] text-subtle">nuevas en el turno</p>
+          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-[13px]">
-            <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">ID</th>
-                <th className="px-3 py-2">Medidor</th>
-                <th className="px-3 py-2">Centro</th>
-                <th className="px-3 py-2">Período</th>
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2">Responsable</th>
-                <th className="px-3 py-2 text-right">Gap (h)</th>
-                <th className="px-3 py-2 text-right">Est. kWh</th>
-                <th className="px-3 py-2 text-center">Estado</th>
+      {/* Action bar */}
+      <div className="flex shrink-0 gap-2">
+        <button type="button" className="rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">Asignar responsable</button>
+        <button type="button" className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cambiar estado</button>
+        <button type="button" className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Agregar comentario</button>
+        <button type="button" onClick={handleExportCsv} className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Exportar CNR a CSV</button>
+      </div>
+
+      {/* Tabla de CNR */}
+      <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
+        <p className="shrink-0 text-[9px] text-subtle">fila expandible: detalle, justificación e historial</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">ID</th>
+                <th className="px-2 py-1.5">Medidor</th>
+                <th className="px-2 py-1.5">Mall</th>
+                <th className="px-2 py-1.5">Período afectado</th>
+                <th className="px-2 py-1.5">Tipo</th>
+                <th className="px-2 py-1.5">Responsable</th>
+                <th className="px-2 py-1.5">Fecha ingreso</th>
+                <th className="px-2 py-1.5 text-center">Estado</th>
+                <th className="px-2 py-1.5 text-right">Valor estim. [kWh]</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((cnr) => {
-                const isExpanded = expandedId === cnr.id;
-                return (
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
+              <tbody className="divide-y divide-border">
+                {filtered.map((cnr, i) => (
                   <CnrRow
                     key={cnr.id}
                     cnr={cnr}
-                    isExpanded={isExpanded}
-                    onToggle={() => setExpandedId(isExpanded ? null : cnr.id)}
+                    isExpanded={expandedId === cnr.id}
+                    onToggle={() => setExpandedId(expandedId === cnr.id ? null : cnr.id)}
                     onUpdateStatus={(id, status) => updateStatus.mutate({ id, payload: { status } })}
+                    index={i}
                   />
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-muted">
-                    Sin CNR pendientes — todos los medidores reportando.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={9} className="px-2 py-6 text-center text-muted">Sin CNR pendientes — todos los medidores reportando.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-20, DAT-19, DAT-14]</p>
       </div>
     </div>
   );
@@ -248,33 +254,35 @@ interface CnrRowProps {
   isExpanded: boolean;
   onToggle: () => void;
   onUpdateStatus?: (id: string, status: 'in_review' | 'approved' | 'rejected') => void;
+  index?: number;
 }
 
-function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus }: Readonly<CnrRowProps>) {
+function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readonly<CnrRowProps>) {
   const gapClass = cnr.gapHours >= CRITICAL_GAP_H ? 'text-red-600 font-medium' : cnr.gapHours >= 8 ? 'text-amber-600' : 'text-foreground';
 
   return (
     <>
       <tr
-        className="cursor-pointer transition-colors hover:bg-surface"
+        className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
+        style={{ animationDelay: `${index * 25}ms` }}
         onClick={onToggle}
       >
-        <td className="px-3 py-2 font-mono text-[11px] text-muted">{cnr.id}</td>
-        <td className="px-3 py-2 font-medium text-foreground">{cnr.meterName}</td>
-        <td className="px-3 py-2 text-muted">{cnr.buildingName}</td>
-        <td className="px-3 py-2 text-[11px] text-muted">
+        <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{cnr.id}</td>
+        <td className="px-2 py-1.5 font-medium text-foreground">{cnr.meterName}</td>
+        <td className="px-2 py-1.5 text-muted">{cnr.buildingName}</td>
+        <td className="px-2 py-1.5 text-muted">
           {new Date(cnr.lastReading).toLocaleDateString('es-CL')} — {new Date().toLocaleDateString('es-CL')}
         </td>
-        <td className="px-3 py-2 text-[11px] text-muted">{cnr.motivo}</td>
-        <td className="px-3 py-2 text-[11px] text-muted">{cnr.realCnrId ? '—' : 'auto'}</td>
-        <td className={`px-3 py-2 text-right ${gapClass}`}>{cnr.gapHours}</td>
-        <td className="px-3 py-2 text-right text-[11px] text-muted">
-          {cnr.valueKwh != null ? `${cnr.valueKwh.toFixed(1)}` : '—'}
-        </td>
-        <td className="px-3 py-2 text-center">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[cnr.status]}`}>
+        <td className="px-2 py-1.5 text-muted">{cnr.motivo}</td>
+        <td className="px-2 py-1.5 text-muted">{cnr.realCnrId ? '—' : 'auto'}</td>
+        <td className="px-2 py-1.5 text-muted">{new Date(cnr.lastReading).toLocaleDateString('es-CL')}</td>
+        <td className="px-2 py-1.5 text-center">
+          <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${STATUS_BADGE[cnr.status]}`}>
             {cnr.status}
           </span>
+        </td>
+        <td className="px-2 py-1.5 text-right text-muted">
+          {cnr.valueKwh != null ? `${cnr.valueKwh.toFixed(1)}` : '—'}
         </td>
       </tr>
       {isExpanded && (

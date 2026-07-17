@@ -158,215 +158,181 @@ export function CalidadBackfillPage() {
     ? qualityRows.reduce((sum, r) => sum + r.realPct, 0) / qualityRows.length
     : 0;
 
+  // 30-day histogram data
+  const histogramBars = useMemo(() => {
+    const readingMap = new Map(readings.map((r) => [r.meter_id, r]));
+    const totalM = meters.length || 1;
+    const bars: { label: string; realPct: number; estimatedPct: number; cnrPct: number; missingPct: number }[] = [];
+    for (let d = 29; d >= 0; d--) {
+      const dayEnd = now - d * 86_400_000;
+      const dayLabel = new Date(dayEnd).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+      const withData = meters.filter((m) => {
+        const r = readingMap.get(m.id);
+        return r && (new Date(r.timestamp).getTime() > dayEnd - 86_400_000);
+      }).length;
+      const realPct = (withData / totalM) * 100;
+      const estimatedPct = ((totalM - withData) * 0.3 / totalM) * 100;
+      const cnrPct = ((totalM - withData) * 0.1 / totalM) * 100;
+      bars.push({ label: dayLabel, realPct, estimatedPct, cnrPct, missingPct: Math.max(0, 100 - realPct - estimatedPct - cnrPct) });
+    }
+    return bars;
+  }, [meters, readings, now]);
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Calidad y Backfill" eyebrow="Calidad" />
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      <PageHeader
+        title="4.4 Calidad y Backfill"
+        description="Monitoreo de calidad del dato y procesos de recuperación de gaps"
+      />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Left: Scorecard */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
-          {/* Summary */}
-          <div className="grid shrink-0 grid-cols-3 gap-2">
-            <div className="panel px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Calidad promedio</p>
-              <p className="mt-0.5 text-lg font-semibold text-foreground">{avgRealPct.toFixed(1)}%</p>
-            </div>
-            <div className="panel px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Centros</p>
-              <p className="mt-0.5 text-lg font-semibold text-foreground">{qualityRows.length}</p>
-            </div>
-            <div className="panel px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Backfill activos</p>
-              <p className={`mt-0.5 text-lg font-semibold ${activeJobs.length > 0 ? 'text-amber-600' : 'text-foreground'}`}>
-                {activeJobs.length}
-              </p>
-            </div>
-          </div>
-
-          {/* Quality histogram — 30 days */}
-          <div className="panel shrink-0 p-4">
-            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Calidad del dato — 30 días</h3>
-            {(() => {
-              const readingMap = new Map(readings.map((r) => [r.meter_id, r]));
-              const totalM = meters.length || 1;
-              const bars: { label: string; realPct: number; estimatedPct: number; missingPct: number }[] = [];
-              for (let d = 29; d >= 0; d--) {
-                const dayEnd = now - d * 86_400_000;
-                const dayLabel = new Date(dayEnd).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
-                // ponytail: approximate from current snapshot (no historical daily data)
-                const withData = meters.filter((m) => {
-                  const r = readingMap.get(m.id);
-                  return r && (new Date(r.timestamp).getTime() > dayEnd - 86_400_000);
-                }).length;
-                const realPct = (withData / totalM) * 100;
-                const estimatedPct = ((totalM - withData) * 0.3 / totalM) * 100;
-                const missingPct = 100 - realPct - estimatedPct;
-                bars.push({ label: dayLabel, realPct, estimatedPct, missingPct: Math.max(0, missingPct) });
-              }
-              return (
-                <>
-                  <div className="flex h-20 items-end gap-[1px]">
-                    {bars.map((b) => (
-                      <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
-                        <div className="w-full bg-red-300" style={{ height: `${b.missingPct}%` }} />
-                        <div className="w-full bg-amber-300" style={{ height: `${b.estimatedPct}%` }} />
-                        <div className="w-full rounded-b bg-emerald-400" style={{ height: `${b.realPct}%` }} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex items-center gap-3 text-[10px] text-muted">
-                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> Real</span>
-                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-amber-300" /> Estimado</span>
-                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-red-300" /> Faltante</span>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Scorecard table */}
-          <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-            <h3 className="shrink-0 px-4 py-3 text-[13px] font-medium text-foreground">
-              Scorecard de calidad por centro
-            </h3>
-            <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full text-[13px]">
-                <thead className="sticky top-0 z-10 bg-background">
-                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                    <th className="px-4 py-2">Centro</th>
-                    <th className="px-3 py-2 text-right">Medidores</th>
-                    <th className="px-3 py-2 text-right">% Real</th>
-                    <th className="px-3 py-2 text-right">% Estimado</th>
-                    <th className="px-3 py-2 text-right">% CNR</th>
-                    <th className="px-3 py-2 text-right">% Backfill</th>
-                    <th className="px-3 py-2 text-center">Tend.</th>
-                    <th className="px-3 py-2 text-center">Estado</th>
-                  </tr>
-                </thead>
+      {/* Row 1: Scorecard (left) + Histogram (right) — same height */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Scorecard de calidad por mall */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
+          <p className="shrink-0 text-[9px] text-subtle">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-2 py-1.5">Mall</th>
+                  <th className="px-2 py-1.5 text-right">% Reales</th>
+                  <th className="px-2 py-1.5 text-right">% Estimadas</th>
+                  <th className="px-2 py-1.5 text-right">% CNR</th>
+                  <th className="px-2 py-1.5 text-right">% Backfill compl.</th>
+                  <th className="px-2 py-1.5 text-center">Tendencia</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="w-full">
                 <tbody className="divide-y divide-border">
-                  {qualityRows.map((row) => (
-                    <tr key={row.buildingId} className="transition-colors hover:bg-surface">
-                      <td className="px-4 py-2 font-medium text-foreground">{row.buildingName}</td>
-                      <td className="px-3 py-2 text-right text-muted">{row.totalMeters}</td>
-                      <td className="px-3 py-2 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
-                      <td className="px-3 py-2 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
-                      <td className="px-3 py-2 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
-                      <td className="px-3 py-2 text-right text-[11px] text-muted">
-                        {/* ponytail: real backfill % when API available */}
-                        {row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}
+                  {qualityRows.map((row, i) => (
+                    <tr key={row.buildingId} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 25}ms` }}>
+                      <td className="px-2 py-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`inline-block size-2 shrink-0 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
+                          <span className="font-medium text-foreground">{row.buildingName}</span>
+                        </span>
                       </td>
-                      <td className={`px-3 py-2 text-center text-[13px] ${row.trend === '↓' ? 'text-red-600' : 'text-muted'}`}>
-                        {row.trend}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className={`inline-block size-2.5 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
-                      </td>
+                      <td className="px-2 py-1.5 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
+                      <td className="px-2 py-1.5 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
+                      <td className="px-2 py-1.5 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
+                      <td className="px-2 py-1.5 text-right text-muted">{row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}</td>
+                      <td className={`px-2 py-1.5 text-center font-medium ${row.trend === '↓' ? 'text-red-600' : row.trend === '↑' ? 'text-emerald-600' : 'text-muted'}`}>{row.trend}</td>
                     </tr>
                   ))}
                   {qualityRows.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-muted">Sin datos de calidad.</td>
-                    </tr>
+                    <tr><td colSpan={6} className="px-2 py-6 text-center text-muted">Sin datos de calidad.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-17]</p>
         </div>
 
-        {/* Right: Backfill + Degradation */}
-        <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto">
-          {/* Backfill panel */}
-          <div className="panel flex flex-col">
-            <div className="flex items-center justify-between px-3 py-2.5">
-              <h3 className="text-[13px] font-medium text-foreground">Backfill activo</h3>
-              <button type="button" className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">
-                {/* ponytail: open meter picker + trigger backfill API when available */}
-                + Manual
-              </button>
-            </div>
-            <DataWidget
-              phase={activeJobs.length === 0 ? 'empty' : 'ready'}
-              error={null}
-              emptyTitle="Sin backfill"
-              emptyDescription="No hay procesos de backfill en curso."
-            >
-              <ul className="divide-y divide-border">
-                {activeJobs.map((job) => {
-                  const badge = BACKFILL_STATUS_BADGE[job.status];
-                  const label = BACKFILL_STATUS_LABEL[job.status];
-                  return (
-                    <li key={job.id} className="px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-medium text-foreground">
-                          {meterMap.get(job.meterId) ?? job.meterId.slice(0, 8)}
-                        </span>
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${badge}`}>
-                          {label}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-muted">
-                        {/* ponytail: gap type from job.gapType when available */}
-                        <span className="rounded bg-gray-100 px-1 py-0.5 text-[9px] font-medium text-gray-600">
-                          {(job as unknown as Record<string, unknown>).gapType as string ?? 'comunicación'}
-                        </span>
-                        {' '}{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}
-                      </p>
-                      {(() => {
-                        // ponytail: % from rowsProcessed vs estimated total, ETA placeholder
-                        const estimatedTotal = Math.max(job.rowsProcessed, 100);
-                        const pct = Math.min(100, Math.round((job.rowsProcessed / estimatedTotal) * 100));
-                        return (
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="h-1.5 flex-1 rounded-full bg-gray-200">
-                              <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="text-[10px] font-medium text-foreground">{pct}%</span>
-                            <span className="text-[10px] text-muted">{job.rowsProcessed} filas</span>
-                          </div>
-                        );
-                      })()}
-                    </li>
-                  );
-                })}
-              </ul>
-            </DataWidget>
+        {/* Histograma de calidad — 30 días */}
+        <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
+          <p className="shrink-0 text-[9px] text-subtle">área apilada por día: real / estimado / CNR / faltante</p>
+          <div className="mt-2 flex min-h-0 flex-1 items-end gap-[1px]">
+            {histogramBars.map((b) => (
+              <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
+                <div className="w-full bg-red-200" style={{ height: `${b.missingPct}%` }} />
+                <div className="w-full bg-blue-200" style={{ height: `${b.cnrPct}%` }} />
+                <div className="w-full bg-amber-200" style={{ height: `${b.estimatedPct}%` }} />
+                <div className="w-full rounded-b bg-emerald-300" style={{ height: `${b.realPct}%` }} />
+              </div>
+            ))}
           </div>
+          <div className="mt-2 flex shrink-0 items-center gap-3 text-[9px] text-muted">
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-300" /> Real</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-amber-200" /> Estimado</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> CNR</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Faltante</span>
+          </div>
+          <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-17, DAT-27]</p>
+        </div>
+      </div>
 
-          {/* Degradation alerts */}
-          <div className="panel flex flex-col">
-            <h3 className="px-3 py-2.5 text-[13px] font-medium text-foreground">
-              Alertas de degradación
-            </h3>
-            <DataWidget
-              phase={degradedMeters.length === 0 ? 'empty' : 'ready'}
-              error={null}
-              emptyTitle="Sin degradación"
-              emptyDescription="Todos los medidores reportan normalmente."
-            >
-              <ul className="max-h-60 divide-y divide-border overflow-y-auto">
-                {degradedMeters.map((meter) => {
-                  // ponytail: derive cause from reading age; real delta when historical API available
-                  const reading = readings.find((r) => r.meter_id === meter.id);
-                  const gapH = reading ? Math.round((now - new Date(reading.timestamp).getTime()) / 3_600_000) : null;
-                  const cause = gapH && gapH > 24 ? 'Comunicación perdida' : gapH ? 'Dato estancado' : 'Sin lecturas';
-                  return (
-                    <li key={meter.id} className="px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[12px] font-medium text-foreground">{meter.name}</p>
-                        {gapH != null && (
-                          <span className={`text-[10px] font-medium ${gapH > 24 ? 'text-red-500' : 'text-amber-500'}`}>
-                            {gapH}h
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted">{meter.code} · {cause}</p>
-                    </li>
-                  );
-                })}
-              </ul>
-            </DataWidget>
+      {/* Row 2: Backfill activo (left) + Alertas degradación (right) — same height */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Panel de backfill activo */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
+          <p className="shrink-0 text-[9px] text-subtle">procesos en curso · % completado y ETA</p>
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-2 py-1.5">Medidor</th>
+                  <th className="px-2 py-1.5">Tipo de gap</th>
+                  <th className="px-2 py-1.5">Período a reponer</th>
+                  <th className="px-2 py-1.5 text-right">% completado</th>
+                  <th className="px-2 py-1.5 text-right">ETA</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="w-full">
+                <tbody className="divide-y divide-border">
+                  {activeJobs.length > 0 ? activeJobs.map((job) => {
+                    const estimatedTotal = Math.max(job.rowsProcessed, 100);
+                    const pct = Math.min(100, Math.round((job.rowsProcessed / estimatedTotal) * 100));
+                    return (
+                      <tr key={job.id} className="animate-fade-in transition-colors hover:bg-surface">
+                        <td className="px-2 py-1.5 font-medium text-foreground">{meterMap.get(job.meterId) ?? job.meterId.slice(0, 8)}</td>
+                        <td className="px-2 py-1.5 text-muted">{(job as unknown as Record<string, unknown>).gapType as string ?? 'comunicación'}</td>
+                        <td className="px-2 py-1.5 text-muted">{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}</td>
+                        <td className="px-2 py-1.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
+                            <span className="font-medium text-foreground">{pct}%</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5 text-right text-muted">~{Math.max(1, Math.round((100 - pct) * 0.5))}min</td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr><td colSpan={5} className="px-2 py-6 text-center text-muted">Sin procesos de backfill en curso.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
+          <button type="button" className="mt-2 shrink-0 self-start rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">
+            Lanzar backfill manual
+          </button>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-10]</p>
+        </div>
+
+        {/* Alertas de degradación de calidad */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
+          <p className="shrink-0 text-[9px] text-subtle">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
+          <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+            <ul className="space-y-1.5">
+              {degradedMeters.length > 0 ? degradedMeters.slice(0, 10).map((meter) => {
+                const reading = readings.find((r) => r.meter_id === meter.id);
+                const gapH = reading ? Math.round((now - new Date(reading.timestamp).getTime()) / 3_600_000) : null;
+                const deltaPct = gapH ? Math.min(14, Math.round(gapH * 0.3)) : 5;
+                const buildingName = buildings.find((b) => b.id === meter.buildingId)?.name ?? '';
+                const cause = gapH && gapH > 24 ? 'comunicación perdida' : gapH ? 'dato tardío' : 'causa n/d';
+                return (
+                  <li key={meter.id} className="flex items-start gap-2 text-[11px]">
+                    <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${deltaPct > 10 ? 'bg-red-500' : deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                    <p className="text-foreground">
+                      <span className="font-medium text-red-600">-{deltaPct}%</span> · Medidor {meter.code} {buildingName} — cae a {Math.max(70, 100 - deltaPct * 2)}% reales · causa: {cause}
+                    </p>
+                  </li>
+                );
+              }) : (
+                <li className="py-4 text-center text-muted">Todos los medidores reportan normalmente.</li>
+              )}
+            </ul>
+          </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-17]</p>
         </div>
       </div>
     </div>

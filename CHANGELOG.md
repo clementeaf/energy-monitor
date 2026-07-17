@@ -2,6 +2,16 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Perfil Operacional (6 pantallas)
+- **Sidebar operacional** — 6 entradas planas: Monitoreo en Vivo, Alarmas y Eventos, Tickets y SLA, Calidad y Backfill, CNR Pendientes, Mapa de Cobertura. Sin agrupación.
+- **4.1 Monitoreo en Vivo** — 3 filas: 5 KPI cards (Total medidores, En línea %, Offline, Dato estancado >4h, CNR pendientes) + Mapa/grilla centros + Histograma parque 24h (fila 2, 50%) + Grilla medidores del mall seleccionado + Feed eventos recientes (fila 3, 50%). Filas animadas.
+- **4.2 Alarmas y Eventos** — 2 columnas (`absolute inset-0`): Tabla alarmas (ID, Sev, Descripción, Mall, Zona/medidor, Apertura, Transcurrido, Responsable, Estado, expandible) + Resumen SLA + Panel detalle serie 48h + Botones (Asignar/Escalar/Cerrar/Backfill) + Comentario textarea.
+- **4.3 Tickets y SLA** — 3 filas: 3 KPI cards (Uptime 30d, Disponibilidad datos %, T. medio resolución) + Evolución SLA 3 meses (línea + threshold dashed 99,5% + puntos incidente) + Quick-filter tabs (Mis tickets/Todos/Por vencer/Vencidos) + Tablero tickets (headers fijos, filas animadas, días verde/rojo).
+- **4.4 Calidad y Backfill** — 2 filas × 2 cols: Scorecard calidad por mall (tabla semáforo + tendencia) + Histograma calidad 30d (área apilada real/estimado/CNR/faltante) | Panel backfill activo (tabla + botón "Lanzar backfill manual") + Alertas degradación calidad (lista dots + delta %).
+- **4.5 CNR Pendientes** — 3 KPI cards (Total abiertas, >7d sin resolución, Ingresadas hoy) + Action bar (Asignar responsable/Cambiar estado/Agregar comentario/Exportar CSV) + Tabla CNR (ID, Medidor, Mall, Período, Tipo, Responsable, Fecha ingreso, Estado, Valor estim. kWh, expandible, animada).
+- **4.6 Mapa de Cobertura** — 2 columnas: Mapa interactivo (flex-[2], markers % online, hover popup) + Panel lateral lista (flex-1, tabla Mall/% online/Alarmas/Último dato, ordenado ascendente, búsqueda, filas animadas).
+- **Todas las pantallas**: título + subtítulo spec, banner filtros con DropdownSelect donde aplica, refs spec `[DAT-xx, FIN-xx]`, headers fijos en tablas, `animate-fade-in` staggered en filas.
+
 ### Changed — Exportar Reportes (3.6)
 - **Título + subtítulo spec** — "3.6 Exportar Reportes" + descripción exportación datos agregados.
 - **Layout 2 filas** — Fila 1 (2 cols, `absolute inset-0` misma altura): Izq: Configurador de exportación (6 selects: Tipo contenido multi-selección, Alcance geográfico, Período hasta 5 años, Granularidad Mensual/Semanal, Formato PDF/Excel/CSV, Moneda costos). Der: Resumen exportación (preview natural language) + Botones (Exportar primary + Programar exportación outline) + Limitación perfil gerencial (4 bullets: solo agregados, sin crudos, sin locatarios, auditor para evidencia). Fila 2 (full-width, 50%): Historial exportaciones (Fecha, Usuario, Contenido, Período, Formato, Descarga). Headers fijos, filas `animate-fade-in` staggered.

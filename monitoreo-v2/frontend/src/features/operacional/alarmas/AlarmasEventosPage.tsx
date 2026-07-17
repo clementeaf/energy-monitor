@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery, useResolveAlert, useAcknowledgeAlert } from '../../../hooks/queries/useAlertsQuery';
@@ -122,140 +122,150 @@ export function AlarmasEventosPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Alarmas y Eventos"
-        eyebrow="Alarmas"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <PillToggle
-              options={SEVERITY_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={severityFilter}
-              onChange={setSeverityFilter}
-              size="sm"
-            />
-            <PillToggle
-              options={STATUS_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              size="sm"
-            />
-            <select
-              value={mallFilter}
-              onChange={(e) => setMallFilter(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              <option value="all">Todos los centros</option>
-              {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" title="Desde" />
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" title="Hasta" />
-          </div>
-        }
+        title="4.2 Alarmas y Eventos"
+        description="Gestión de alarmas operacionales — asignar, escalar, cerrar, backfill (MFA requerido)"
       />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Table */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="panel min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-3 py-2">Severidad</th>
-                  <th className="px-3 py-2">Descripción</th>
-                  <th className="px-3 py-2">Centro</th>
-                  <th className="px-3 py-2">Zona/Medidor</th>
-                  <th className="px-3 py-2 text-right">Tiempo</th>
-                  <th className="px-3 py-2">Responsable</th>
-                  <th className="px-3 py-2 text-center">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sorted.map((alert) => {
-                  const isSelected = selectedId === alert.id;
-                  const sevStyle = SEVERITY_BADGE[alert.severity];
-                  const statStyle = STATUS_BADGE[alert.status];
-                  const statLabel = STATUS_LABEL[alert.status];
-                  return (
-                    <AlertTableRow
-                      key={alert.id}
-                      alert={alert}
-                      isSelected={isSelected}
-                      sevStyle={sevStyle}
-                      statStyle={statStyle}
-                      statLabel={statLabel}
-                      buildingName={buildingMap.get(alert.buildingId) ?? '—'}
-                      onSelect={() => setSelectedId(isSelected ? null : alert.id)}
-                    />
-                  );
-                })}
-                {sorted.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center text-muted">
-                      Sin alarmas para los filtros seleccionados.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          Severidad
+          <DropdownSelect options={SEVERITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={severityFilter} onChange={setSeverityFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado
+          <DropdownSelect options={STATUS_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={statusFilter} onChange={setStatusFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]} value={mallFilter} onChange={setMallFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Desde
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+        </span>
+        <span className="flex items-center gap-1">
+          Hasta
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+        </span>
+      </div>
 
-          {/* SLA visual widgets */}
-          <div className="mt-3 grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4">
-            {(() => {
-              const total = sorted.length || 1;
-              const critCount = sorted.filter((a) => a.severity === 'critical').length;
-              const highCount = sorted.filter((a) => a.severity === 'high').length;
-              const medCount = sorted.filter((a) => a.severity === 'medium').length;
-              const lowCount = sorted.filter((a) => a.severity === 'low').length;
-              // ponytail: SLA within/outside derived from resolved alerts with resolvedAt
-              const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
-              const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
-              const withinSla = resolvedWithTs.filter((a) => {
-                const resolveMs = new Date(a.resolvedAt!).getTime() - new Date(a.createdAt).getTime();
-                return resolveMs <= (SLA_H[a.severity] ?? 72) * 3_600_000;
-              }).length;
-              const withinPct = resolvedWithTs.length > 0 ? Math.round((withinSla / resolvedWithTs.length) * 100) : 100;
-              const outsidePct = 100 - withinPct;
-              const widgets = [
-                { label: '% dentro SLA', value: `${withinPct}%`, pct: withinPct, color: 'bg-emerald-400' },
-                { label: '% fuera SLA', value: `${outsidePct}%`, pct: outsidePct, color: 'bg-red-400' },
-                { label: 'Por severidad', value: `${critCount}C ${highCount}A ${medCount}M ${lowCount}B`, pct: total > 0 ? ((critCount + highCount) / total) * 100 : 0, color: 'bg-red-400' },
-                { label: 'Resueltas período', value: String(totalResolved), pct: total > 0 ? (totalResolved / (totalResolved + sorted.length)) * 100 : 0, color: 'bg-blue-400' },
-              ];
-              return widgets.map((w) => (
-                <div key={w.label} className="panel px-3 py-2">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{w.label}</p>
-                  <p className="mt-0.5 text-[13px] font-semibold text-foreground">{w.value}</p>
-                  <div className="mt-1 h-1.5 rounded-full bg-gray-200">
-                    <div className={`h-full rounded-full ${w.color}`} style={{ width: `${Math.min(100, w.pct)}%` }} />
-                  </div>
+      {/* 2 columns */}
+      <div className="relative min-h-0 flex-1">
+        <div className="absolute inset-0 flex gap-3">
+          {/* Left: Tabla de alarmas */}
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+              <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
+              <p className="shrink-0 text-[9px] text-subtle">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
+              <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                      <th className="px-2 py-1.5">ID</th>
+                      <th className="px-2 py-1.5">Sev.</th>
+                      <th className="px-2 py-1.5">Descripción</th>
+                      <th className="px-2 py-1.5">Mall</th>
+                      <th className="px-2 py-1.5">Zona/medidor</th>
+                      <th className="px-2 py-1.5">Apertura</th>
+                      <th className="px-2 py-1.5">Transcurrido</th>
+                      <th className="px-2 py-1.5">Responsable</th>
+                      <th className="px-2 py-1.5 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                </table>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <table className="w-full">
+                    <tbody className="divide-y divide-border">
+                      {sorted.map((alert, i) => (
+                        <AlertTableRow
+                          key={alert.id}
+                          alert={alert}
+                          isSelected={selectedId === alert.id}
+                          sevStyle={SEVERITY_BADGE[alert.severity]}
+                          statStyle={STATUS_BADGE[alert.status]}
+                          statLabel={STATUS_LABEL[alert.status]}
+                          buildingName={buildingMap.get(alert.buildingId) ?? '—'}
+                          onSelect={() => setSelectedId(selectedId === alert.id ? null : alert.id)}
+                          index={i}
+                        />
+                      ))}
+                      {sorted.length === 0 && (
+                        <tr><td colSpan={9} className="px-2 py-6 text-center text-muted">Sin alarmas para los filtros seleccionados.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              ));
-            })()}
-          </div>
-        </div>
-
-        {/* Detail panel */}
-        <div className="hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto lg:flex">
-          {selectedAlert ? (
-            <AlertDetailPanel
-              alert={selectedAlert}
-              buildingName={buildingMap.get(selectedAlert.buildingId) ?? '—'}
-              comment={comment}
-              onCommentChange={setComment}
-              onAcknowledge={handleAcknowledge}
-              onResolve={handleResolve}
-              acknowledging={acknowledgeAlert.isPending}
-              resolving={resolveAlert.isPending}
-            />
-          ) : (
-            <div className="panel flex flex-1 items-center justify-center p-4">
-              <p className="text-center text-[13px] text-muted">
-                Selecciona una alarma para ver el detalle.
-              </p>
+              </div>
+              <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-27, FIN-05]</p>
             </div>
-          )}
+          </div>
+
+          {/* Right: SLA + Detail + Actions + Comment */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
+            {/* Resumen de SLA de alarmas */}
+            <div className="panel shrink-0 px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
+              <p className="text-[9px] text-subtle">% resueltas dentro / fuera del SLA, por severidad y período</p>
+              {(() => {
+                const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
+                const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
+                const withinSla = resolvedWithTs.filter((a) => {
+                  const resolveMs = new Date(a.resolvedAt!).getTime() - new Date(a.createdAt).getTime();
+                  return resolveMs <= (SLA_H[a.severity] ?? 72) * 3_600_000;
+                }).length;
+                const withinPct = resolvedWithTs.length > 0 ? Math.round((withinSla / resolvedWithTs.length) * 100) : 100;
+                return (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="h-4 flex-1 overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full rounded-full bg-emerald-400" style={{ width: `${withinPct}%` }} />
+                    </div>
+                    <span className="text-[11px] font-medium text-foreground">{withinPct}% dentro SLA</span>
+                  </div>
+                );
+              })()}
+              <p className="mt-1 text-right text-[9px] text-subtle">[FIN-06, FIN-05]</p>
+            </div>
+
+            {/* Panel de detalle — serie del medidor 48h */}
+            <div className="panel shrink-0 px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
+              <p className="text-[9px] text-subtle">línea de threshold del valor que disparó la alarma</p>
+              <div className="mt-2">
+                {selectedAlert ? (
+                  <MeterSparkline48h meterId={selectedAlert.meterId} thresholdValue={selectedAlert.thresholdValue} />
+                ) : (
+                  <p className="py-4 text-center text-[11px] text-muted">Seleccione una alarma</p>
+                )}
+              </div>
+              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-03, DAT-10, DAT-23]</p>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex shrink-0 gap-2">
+              <Button size="sm" onClick={handleAcknowledge} loading={acknowledgeAlert.isPending} disabled={!selectedId} className="flex-1">Asignar</Button>
+              <button type="button" disabled={!selectedId} onClick={handleAcknowledge} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Escalar</button>
+              <Button size="sm" variant="danger" onClick={handleResolve} loading={resolveAlert.isPending} disabled={!selectedId} className="flex-1">Cerrar</Button>
+              <button type="button" disabled={!selectedAlert?.meterId} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Iniciar backfill</button>
+            </div>
+
+            {/* Comentario de la alarma */}
+            <div className="panel shrink-0 px-3 py-2.5">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
+              <p className="text-[9px] text-subtle">queda registrado en la pista de auditoría</p>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                className="mt-2 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+                placeholder="Comentario del operador (texto libre)"
+              />
+              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-14, DAT-23]</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -311,35 +321,36 @@ function MeterSparkline48h({ meterId, thresholdValue }: Readonly<{ meterId?: str
 
 /* ── Alert Table Row (expandable) ── */
 
-function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buildingName, onSelect }: Readonly<{
-  alert: Alert; isSelected: boolean; sevStyle: string; statStyle: string; statLabel: string; buildingName: string; onSelect: () => void;
+function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buildingName, onSelect, index = 0 }: Readonly<{
+  alert: Alert; isSelected: boolean; sevStyle: string; statStyle: string; statLabel: string; buildingName: string; onSelect: () => void; index?: number;
 }>) {
   const [expanded, setExpanded] = useState(false);
   return (
     <>
       <tr
-        className={`cursor-pointer transition-colors hover:bg-surface ${isSelected ? 'bg-surface' : ''}`}
+        className={`animate-fade-in cursor-pointer transition-colors hover:bg-surface ${isSelected ? 'bg-surface' : ''}`}
+        style={{ animationDelay: `${index * 25}ms` }}
         onClick={() => { onSelect(); setExpanded(!expanded); }}
       >
-        <td className="px-3 py-2">
-          <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${sevStyle}`}>
+        <td className="px-2 py-1.5 text-[10px] text-muted">{alert.id.slice(0, 6)}</td>
+        <td className="px-2 py-1.5">
+          <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${sevStyle}`}>
             {alert.severity.toUpperCase()}
           </span>
         </td>
-        <td className="max-w-[250px] px-3 py-2">
-          <p className="truncate text-foreground">{alert.message}</p>
-        </td>
-        <td className="px-3 py-2 text-muted">{buildingName}</td>
-        <td className="px-3 py-2 text-[11px] text-muted">{alert.meterId ? alert.meterId.slice(0, 8) : '—'}</td>
-        <td className="px-3 py-2 text-right text-muted">{elapsed(alert.createdAt)}</td>
-        <td className="px-3 py-2 text-[11px] text-muted">{alert.assignedTo ?? '—'}</td>
-        <td className="px-3 py-2 text-center">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${statStyle}`}>{statLabel}</span>
+        <td className="max-w-[180px] truncate px-2 py-1.5 text-foreground">{alert.message}</td>
+        <td className="px-2 py-1.5 text-muted">{buildingName}</td>
+        <td className="px-2 py-1.5 text-muted">{alert.meterId ? alert.meterId.slice(0, 8) : '—'}</td>
+        <td className="px-2 py-1.5 text-muted">{new Date(alert.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</td>
+        <td className="px-2 py-1.5 text-muted">{elapsed(alert.createdAt)}</td>
+        <td className="px-2 py-1.5 text-muted">{alert.assignedTo ?? '—'}</td>
+        <td className="px-2 py-1.5 text-center">
+          <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${statStyle}`}>{statLabel}</span>
         </td>
       </tr>
       {expanded && (
         <tr className="bg-surface/50">
-          <td colSpan={7} className="px-6 py-2">
+          <td colSpan={9} className="px-6 py-2">
             <div className="space-y-1 text-[11px] text-muted">
               <p><span className="font-medium">Valor:</span> {alert.triggeredValue ?? '—'} | <span className="font-medium">Umbral:</span> {alert.thresholdValue ?? '—'}</p>
               <p><span className="font-medium">Código:</span> {alert.alertTypeCode}</p>

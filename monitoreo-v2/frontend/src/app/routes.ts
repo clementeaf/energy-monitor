@@ -20,6 +20,7 @@ export const APP_ROUTES = {
   regIntervencion: '/tecnico/intervencion',
   ingresoCnr: '/tecnico/cnr',
   maestroMedidores: '/tecnico/maestro',
+  reglasTransformacion: '/tecnico/reglas',
   observabilidad: '/admin/observabilidad',
   configReleases: '/admin/config-releases',
   seguridadPam: '/admin/seguridad-pam',

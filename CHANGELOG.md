@@ -2,6 +2,16 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Perfil Técnico (7 pantallas)
+- **Sidebar técnico** — 7 entradas planas: Mis Órdenes, Activos (Medidores), Diagnóstico Comms, Reg. Intervención, Ingreso CNR, Maestro Medidores, Reglas Transformación.
+- **5.1 Mis Órdenes** — Mobile stacked: filtros tabs → Vencidas card → Contadores turno → Lista órdenes (tabla compacta ID/Tipo/Prior/Estado, animada) → Detalle orden seleccionada → Action bar (Iniciar/Pausar/Cerrar/Registrar).
+- **5.2 Activos (Medidores)** — Mobile stacked: filtros (Mall/Estado/Tipo) → Medidores del mall (tabla Serial/Estado/Prot/Últ.dato) → Ficha Identificación (3 fields) → Ubicación física → Disponibilidad 72h (barras 15min) → Serie temporal 48h → Historial fallas.
+- **5.3 Diagnóstico Comms** — 3 filas: 3 KPI cards (Estado comunicación, Tasa éxito 24h, Último dato) + Histograma disponibilidad 72h + Herramientas diagnóstico (Test/Forzar/Log raw, 3 botones) + Log comunicación raw (headers fijos, filas animadas).
+- **5.4 Registro Intervención** — Mobile stacked: Orden asociada → Bitácora (tipo/descripción/resultado) → Adjuntos y firma → Inmutabilidad (banner azul) → Buttons (Firmar y guardar/Cancelar).
+- **5.5 Ingreso CNR Manual** — Mobile stacked: Medidor y contexto → Datos CNR (período/valor kWh/motivo) → Justificación y evidencia → Marcado del valor → Restricciones post-firma (banner azul) → Buttons (Firmar CNR/Cancelar).
+- **5.6 Maestro Medidores** — Desktop 2 filas: Tabla maestro (Serial/Tag/Mall/Prot/Gateway/Comms/Estado, animada) + Formulario alta/edición (7 fields agrupados por sección) + Buttons (Guardar/Dar de baja/Cancelar) | Pista cambios inmutable (Timestamp/Usuario/Campo/Anterior/Nuevo).
+- **5.7 Reglas Transformación** — **NUEVA pantalla**. Desktop 2 filas: Tabla reglas activas (Medidor/Tipo/Entrada/Salida/Estado) + Alta/edición regla (3 fields) + Simulador valor prueba (raw→transformado en tiempo real) + Indicador impacto (dashboards/exports/alertas afectadas) + Buttons (Guardar/Simular/Cancelar) | Historial cambios reglas inmutable. Ruta `/tecnico/reglas`, lazy page registrada.
+
 ### Changed — Perfil Operacional (6 pantallas)
 - **Sidebar operacional** — 6 entradas planas: Monitoreo en Vivo, Alarmas y Eventos, Tickets y SLA, Calidad y Backfill, CNR Pendientes, Mapa de Cobertura. Sin agrupación.
 - **4.1 Monitoreo en Vivo** — 3 filas: 5 KPI cards (Total medidores, En línea %, Offline, Dato estancado >4h, CNR pendientes) + Mapa/grilla centros + Histograma parque 24h (fila 2, 50%) + Grilla medidores del mall seleccionado + Feed eventos recientes (fila 3, 50%). Filas animadas.

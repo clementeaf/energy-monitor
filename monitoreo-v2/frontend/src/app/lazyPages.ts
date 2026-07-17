@@ -83,6 +83,11 @@ export const LazyMaestroMedidoresPage = lazy(async () => {
   return { default: m.MaestroMedidoresPage };
 });
 
+export const LazyReglasTransformacionPage = lazy(async () => {
+  const m = await import('../features/tecnico/reglas/ReglasTransformacionPage');
+  return { default: m.ReglasTransformacionPage };
+});
+
 export const LazyMapaCoberturaPage = lazy(async () => {
   const m = await import('../features/operacional/cobertura/MapaCoberturaPage');
   return { default: m.MapaCoberturaPage };

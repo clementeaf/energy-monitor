@@ -49,6 +49,7 @@ import {
   LazyRegIntervencionPage,
   LazyIngresoCnrPage,
   LazyMaestroMedidoresPage,
+  LazyReglasTransformacionPage,
   LazyObservabilidadPage,
   LazyConfigReleasesPage,
   LazySeguridadPamPage,
@@ -206,6 +207,7 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.regIntervencion, element: <P any={MONITORING}><LazyRegIntervencionPage /></P> },
               { path: APP_ROUTES.ingresoCnr, element: <P any={MONITORING}><LazyIngresoCnrPage /></P> },
               { path: APP_ROUTES.maestroMedidores, element: <P any={DEVICES}><LazyMaestroMedidoresPage /></P> },
+              { path: APP_ROUTES.reglasTransformacion, element: <P any={DEVICES}><LazyReglasTransformacionPage /></P> },
               /* Dashboard — Platform (cross-tenant, no tenant needed) */
               { path: APP_ROUTES.platform, element: <P any={DASH_EXEC}><LazyPlatformDashboardPage /></P> },
 

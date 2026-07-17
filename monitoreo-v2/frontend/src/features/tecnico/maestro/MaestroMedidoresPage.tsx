@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+// ponytail: PillToggle replaced per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery, useUpdateMeter } from '../../../hooks/queries/useMetersQuery';
@@ -58,152 +58,106 @@ export function MaestroMedidoresPage() {
       .filter((e) => !q || e.meter.name.toLowerCase().includes(q) || e.meter.code.toLowerCase().includes(q) || (e.meter.serialNumber ?? '').toLowerCase().includes(q));
   }, [enriched, search, statusFilter]);
 
+  const sel = meters.find((m) => m.id === selectedId) ?? null;
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader
-        title="Maestro Medidores"
-        eyebrow="Maestro"
-        actions={
-          <PillToggle
-            options={FILTER_OPTIONS.map((o) => ({ key: o.key, label: o.label }))}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            size="sm"
-          />
-        }
-      />
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
+      <PageHeader title="5.6 Maestro de Medidores" description="Alta, edición y baja de medidores — pista de cambios inmutable (desktop)" />
 
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Buscar por serial, tag o nombre..."
-        className="w-full shrink-0 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
-      />
-
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-      <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-[13px]">
-            <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Nombre</th>
-                <th className="px-3 py-2">Serial</th>
-                <th className="px-3 py-2">Centro</th>
-                <th className="px-3 py-2">Protocolo</th>
-                <th className="px-3 py-2">Gateway</th>
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2">Fase</th>
-                <th className="px-3 py-2">Fecha alta</th>
-                <th className="px-3 py-2 text-center">Estado activo</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map(({ meter, assetStatus }) => (
-                <tr key={meter.id} className={`cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`} onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}>
-                  <td className="px-3 py-2 font-medium text-foreground">{meter.name}</td>
-                  <td className="px-3 py-2 font-mono text-[11px] text-muted">{meter.serialNumber ?? '—'}</td>
-                  <td className="px-3 py-2 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
-                  <td className="px-3 py-2 text-muted">{meter.ipAddress ? 'TCP/IP' : meter.modbusAddress ? 'Modbus' : '—'}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{meter.busId ?? '—'}</td>
-                  <td className="px-3 py-2 text-muted">{meter.meterType}</td>
-                  <td className="px-3 py-2 text-muted">{meter.phaseType}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{meter.createdAt ? new Date(meter.createdAt).toLocaleDateString('es-CL') : '—'}</td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${ASSET_BADGE[assetStatus]}`}>
-                      {assetStatus}
-                    </span>
-                  </td>
+      {/* Row 1: Master table (left) + Edit form (right) */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Maestro de medidores */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Maestro de medidores</p>
+          <p className="shrink-0 text-[9px] text-subtle">búsqueda y filtros completos · selecciona para editar</p>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-brand" />
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-2 py-1.5">Serial</th>
+                  <th className="px-2 py-1.5">Tag</th>
+                  <th className="px-2 py-1.5">Mall</th>
+                  <th className="px-2 py-1.5">Prot.</th>
+                  <th className="px-2 py-1.5">Gateway</th>
+                  <th className="px-2 py-1.5">Comms</th>
+                  <th className="px-2 py-1.5 text-center">Estado activo</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={9} className="px-3 py-8 text-center text-muted">Sin medidores.</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+            </table>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <table className="w-full">
+                <tbody className="divide-y divide-border">
+                  {filtered.map(({ meter, assetStatus }, i) => (
+                    <tr key={meter.id} className={`animate-fade-in cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`} style={{ animationDelay: `${i * 20}ms` }} onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}>
+                      <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{meter.serialNumber ?? '—'}</td>
+                      <td className="px-2 py-1.5 font-medium text-foreground">{meter.name}</td>
+                      <td className="px-2 py-1.5 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
+                      <td className="px-2 py-1.5 text-muted">{meter.ipAddress ? 'TCP' : 'Modbus'}</td>
+                      <td className="px-2 py-1.5 text-muted">{meter.busId ?? '—'}</td>
+                      <td className="px-2 py-1.5 text-muted">{meter.isActive ? '●' : '○'}</td>
+                      <td className="px-2 py-1.5 text-center"><span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${ASSET_BADGE[assetStatus]}`}>{assetStatus}</span></td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && <tr><td colSpan={7} className="px-2 py-6 text-center text-muted">Sin medidores.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-14, FIN-02, FIN-03]</p>
+        </div>
+
+        {/* Alta / edición de medidor */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-y-auto px-3 py-2.5">
+          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Alta / edición de medidor</p>
+          <p className="shrink-0 text-[9px] text-subtle">agrupado por secciones</p>
+          {sel ? (
+            <div className="mt-2 space-y-3 text-[11px]">
+              <div><p className="text-[9px] text-subtle">Identificación: serial · fabricante · modelo · firmware</p><input readOnly value={`${sel.serialNumber ?? '—'} · ${sel.model ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Protocolo</p><input readOnly value={sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Comunicación: dirección Modbus/IP · gateway</p><input readOnly value={sel.busId ?? sel.ipAddress ?? '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Tiempo de muestreo</p><input readOnly value="15 min" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Ubicación: mall · zona · tipo de sala</p><input readOnly value={`${buildingMap.get(sel.buildingId) ?? '—'} · ${(sel.metadata as Record<string, string>)?.zone ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Rack / tablero</p><input readOnly value="—" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[9px] text-subtle">Factor de multiplicación / constante de medición</p><input readOnly value="1.0" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+            </div>
+          ) : <p className="mt-4 text-center text-[11px] text-muted">Selecciona un medidor de la tabla</p>}
+          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-14, ARQ-15, FIN-03]</p>
+
+          {/* Action buttons */}
+          <div className="mt-3 flex shrink-0 gap-2">
+            <Button size="sm" disabled={!sel} className="flex-1">Guardar cambios</Button>
+            <button type="button" disabled={!sel} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Dar de baja</button>
+            <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
+          </div>
         </div>
       </div>
-      {/* Detail/action panel */}
-      <div className="hidden w-72 shrink-0 flex-col gap-3 overflow-y-auto lg:flex">
-        {(() => {
-          const sel = meters.find((m) => m.id === selectedId);
-          if (!sel) return <div className="panel flex flex-1 items-center justify-center p-4"><p className="text-[13px] text-muted">Selecciona un medidor.</p></div>;
-          const status = deriveAssetStatus(sel);
-          return (
-            <>
-              <div className="panel px-3 py-3">
-                <p className="text-[15px] font-semibold text-foreground">{sel.name}</p>
-                <p className="mt-0.5 font-mono text-[11px] text-muted">{sel.code}</p>
-              </div>
-              <div className="panel px-3 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Datos</h4>
-                <dl className="space-y-1 text-[12px]">
-                  <div className="flex justify-between"><dt className="text-muted">Serial</dt><dd className="text-foreground">{sel.serialNumber ?? '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Modelo</dt><dd className="text-foreground">{sel.model ?? '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Tipo</dt><dd className="text-foreground">{sel.meterType}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Fase</dt><dd className="text-foreground">{sel.phaseType}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Centro</dt><dd className="text-foreground">{buildingMap.get(sel.buildingId) ?? '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">Protocolo</dt><dd className="text-foreground">{sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">IoT Device</dt><dd className="font-mono text-foreground">{sel.iotDeviceId ?? '—'}</dd></div>
-                </dl>
-              </div>
-              <div className="panel space-y-2 px-3 py-3">
-                <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Cambio de estado</h4>
-                <div className="flex flex-wrap gap-2">
-                  {status === 'activo' && (
-                    <>
-                      <Button size="sm" variant="secondary" loading={updateMeter.isPending} onClick={() => {
-                        updateMeter.mutate({ id: sel.id, payload: { metadata: { ...sel.metadata as Record<string, unknown>, maintenance: true } } });
-                      }}>
-                        En mantención
-                      </Button>
-                      {!showBajaInput ? (
-                        <Button size="sm" variant="danger" onClick={() => setShowBajaInput(true)}>
-                          Dar de baja
-                        </Button>
-                      ) : (
-                        <div className="flex w-full items-center gap-2">
-                          <input
-                            value={bajaMotivo}
-                            onChange={(e) => setBajaMotivo(e.target.value)}
-                            placeholder="Motivo de baja (requerido)"
-                            className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-[12px] text-foreground outline-none"
-                            autoFocus
-                          />
-                          <Button size="sm" variant="danger" loading={updateMeter.isPending} disabled={bajaMotivo.trim().length === 0} onClick={() => {
-                            updateMeter.mutate({ id: sel.id, payload: { isActive: false, metadata: { ...sel.metadata as Record<string, unknown>, bajaMotivo: bajaMotivo.trim(), bajaDate: new Date().toISOString() } } }, {
-                              onSuccess: () => { setShowBajaInput(false); setBajaMotivo(''); },
-                            });
-                          }}>
-                            Confirmar
-                          </Button>
-                          <Button size="sm" variant="secondary" onClick={() => { setShowBajaInput(false); setBajaMotivo(''); }}>
-                            Cancelar
-                          </Button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {status === 'en mantención' && (
-                    <Button size="sm" loading={updateMeter.isPending} onClick={() => {
-                      updateMeter.mutate({ id: sel.id, payload: { metadata: { ...sel.metadata as Record<string, unknown>, maintenance: false } } });
-                    }}>
-                      Salir de mantención
-                    </Button>
-                  )}
-                  {status === 'baja' && (
-                    <Button size="sm" loading={updateMeter.isPending} onClick={() => updateMeter.mutate({ id: sel.id, payload: { isActive: true } })}>
-                      Activar
-                    </Button>
-                  )}
-                </div>
-                <p className="text-[10px] text-muted">
-                  Toda modificación queda registrada: campo, valor anterior/nuevo, usuario, timestamp.
-                </p>
-              </div>
-            </>
-          );
-        })()}
-      </div>
+
+      {/* Row 2: Pista de cambios del maestro */}
+      <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Pista de cambios del maestro (inmutable)</p>
+        <p className="shrink-0 text-[9px] text-subtle">campo · valor anterior → valor nuevo · usuario · timestamp</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">Timestamp</th>
+                <th className="px-2 py-1.5">Usuario</th>
+                <th className="px-2 py-1.5">Campo</th>
+                <th className="px-2 py-1.5">Valor anterior</th>
+                <th className="px-2 py-1.5">Valor nuevo</th>
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
+              <tbody className="divide-y divide-border">
+                <tr><td colSpan={5} className="px-2 py-6 text-center text-muted">Sin cambios registrados para este medidor.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-23, DAT-14, CYB-10]</p>
       </div>
     </div>
   );

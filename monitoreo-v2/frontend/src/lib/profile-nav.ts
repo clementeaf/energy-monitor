@@ -57,33 +57,14 @@ const OPERACIONAL_NAV: ProfileNavEntry[] = [
   { label: 'Mapa de Cobertura', icon: 'monitoring', to: APP_ROUTES.mapaCobertura, basePath: '/operacional/cobertura', extraPaths: ['/map'] },
 ];
 
-const TECNICO_ORDENES: ProfileSubItem = { to: APP_ROUTES.misOrdenes, label: 'Mis órdenes' };
-const TECNICO_CATALOGO: ProfileSubItem = { to: APP_ROUTES.medidoresCatalogo, label: 'Catálogo' };
-const TECNICO_DIAGNOSTICO: ProfileSubItem = { to: APP_ROUTES.diagnosticoComms, label: 'Diagnóstico' };
-const TECNICO_INTERVENCION: ProfileSubItem = { to: APP_ROUTES.regIntervencion, label: 'Intervención' };
-const TECNICO_CNR: ProfileSubItem = { to: APP_ROUTES.ingresoCnr, label: 'Ingreso CNR' };
-const TECNICO_MAESTRO: ProfileSubItem = { to: APP_ROUTES.maestroMedidores, label: 'Maestro' };
-
 const TECNICO_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Órdenes',
-    icon: 'monitoring',
-    basePath: '/tecnico/ordenes',
-    children: [TECNICO_ORDENES],
-  },
-  {
-    label: 'Medidores',
-    icon: 'monitoring',
-    basePath: '/tecnico',
-    children: [TECNICO_CATALOGO, TECNICO_DIAGNOSTICO, TECNICO_MAESTRO],
-  },
-  {
-    label: 'Registro',
-    icon: 'admin',
-    basePath: '/tecnico/intervencion',
-    extraPaths: ['/tecnico/cnr'],
-    children: [TECNICO_INTERVENCION, TECNICO_CNR],
-  },
+  { label: 'Mis Órdenes', icon: 'monitoring', to: APP_ROUTES.misOrdenes, basePath: '/tecnico/ordenes' },
+  { label: 'Activos (Medidores)', icon: 'monitoring', to: APP_ROUTES.medidoresCatalogo, basePath: '/tecnico/medidores' },
+  { label: 'Diagnóstico Comms', icon: 'monitoring', to: APP_ROUTES.diagnosticoComms, basePath: '/tecnico/diagnostico' },
+  { label: 'Reg. Intervención', icon: 'admin', to: APP_ROUTES.regIntervencion, basePath: '/tecnico/intervencion' },
+  { label: 'Ingreso CNR', icon: 'admin', to: APP_ROUTES.ingresoCnr, basePath: '/tecnico/cnr' },
+  { label: 'Maestro Medidores', icon: 'admin', to: APP_ROUTES.maestroMedidores, basePath: '/tecnico/maestro' },
+  { label: 'Reglas Transformación', icon: 'analytics', to: APP_ROUTES.reglasTransformacion, basePath: '/tecnico/reglas' },
 ];
 
 const AUDITOR_NAV: ProfileNavEntry[] = [

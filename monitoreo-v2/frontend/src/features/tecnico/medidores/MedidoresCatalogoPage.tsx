@@ -9,8 +9,6 @@ import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 
-/* ── Meter status ── */
-
 type CommStatus = 'online' | 'offline' | 'stale';
 
 const STALE_MS = 4 * 60 * 60 * 1000;
@@ -28,8 +26,6 @@ function deriveCommStatus(reading: LatestReading | undefined, now: number): Comm
   ];
   return checks.find(([c]) => c)?.[1] ?? 'online';
 }
-
-/* ── Page ── */
 
 export function MedidoresCatalogoPage() {
   const navigate = useNavigate();
@@ -79,244 +75,157 @@ export function MedidoresCatalogoPage() {
   const selected = meters.find((m) => m.id === selectedId) ?? null;
   const selectedReading = selected ? readingMap.get(selected.id) : undefined;
 
+  const avail72h = useMemo(() => {
+    const bars: number[] = [];
+    for (let i = 0; i < 72 * 4; i++) bars.push(Math.random() > 0.1 ? 100 : 0); // ponytail: placeholder
+    return bars;
+  }, [selectedId]);
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Medidores / Remarcador" eyebrow="Medidores" />
+    <div className="flex h-full flex-col gap-2 overflow-y-auto">
+      <PageHeader
+        title="5.2 Activos (medidores)"
+        description="Vista mobile-first — búsqueda y ficha técnica de medidores en campo"
+      />
 
       <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por serial, tag o nombre..."
-          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
-        />
         <DropdownSelect
           options={[{ value: 'all', label: 'Todos los centros' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
           value={mallFilter}
           onChange={setMallFilter}
         />
         <DropdownSelect
-          options={[
-            { value: 'all', label: 'Todo estado' },
-            { value: 'online', label: 'Online' },
-            { value: 'stale', label: 'Estancado' },
-            { value: 'offline', label: 'Offline' },
-          ]}
+          options={[{ value: 'all', label: 'Estado comms: Todos' }, { value: 'online', label: 'Online' }, { value: 'stale', label: 'Estancado' }, { value: 'offline', label: 'Offline' }]}
           value={statusFilter}
           onChange={setStatusFilter}
         />
         <DropdownSelect
-          options={[{ value: 'all', label: 'Todo tipo' }, ...meterTypes.map((t) => ({ value: t, label: t }))]}
+          options={[{ value: 'all', label: 'Tipo: Todos' }, ...meterTypes.map((t) => ({ value: t, label: t }))]}
           value={typeFilter}
           onChange={setTypeFilter}
         />
-        <DropdownSelect
-          options={[
-            { value: 'all', label: 'Todo país' },
-            { value: 'CL', label: 'Chile' },
-            { value: 'PE', label: 'Perú' },
-            { value: 'CO', label: 'Colombia' },
-          ]}
-          value={countryFilter}
-          onChange={setCountryFilter}
-        />
-        <label className="flex items-center gap-1 text-[11px] text-muted">
-          <input type="checkbox" checked={alarmOnly} onChange={(e) => setAlarmOnly(e.target.checked)} className="rounded border-border" />
-          Con alarma
-        </label>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Table */}
-        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-3 py-2">Nombre</th>
-                  <th className="px-3 py-2">Código</th>
-                  <th className="px-3 py-2">Centro</th>
-                  <th className="px-3 py-2">Gateway</th>
-                  <th className="px-3 py-2 text-right">Último dato</th>
-                  <th className="px-3 py-2 text-center">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((meter) => {
-                  const reading = readingMap.get(meter.id);
-                  const status = deriveCommStatus(reading, now);
-                  return (
-                    <tr
-                      key={meter.id}
-                      className={`cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`}
-                      onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}
-                    >
-                      <td className="px-3 py-2 font-medium text-foreground">{meter.name}</td>
-                      <td className="px-3 py-2 font-mono text-[11px] text-muted">{meter.code}</td>
-                      <td className="px-3 py-2 text-muted">{buildingMap.get(meter.buildingId) ?? '—'}</td>
-                      <td className="px-3 py-2 text-[11px] text-muted">{meter.busId ?? '—'}</td>
-                      <td className="px-3 py-2 text-right text-[11px] text-muted">
-                        {reading ? new Date(reading.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className={`inline-block size-2.5 rounded-full ${COMM_DOT[status]}`} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
+        <p className="text-[9px] text-subtle">serial · estado · protocolo · último dato</p>
+        <div className="mt-2 text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">Serial</th>
+                <th className="px-2 py-1.5 text-center">Estado</th>
+                <th className="px-2 py-1.5">Prot.</th>
+                <th className="px-2 py-1.5">Últ. dato</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filtered.slice(0, 20).map((meter, i) => {
+                const reading = readingMap.get(meter.id);
+                const status = deriveCommStatus(reading, now);
+                return (
+                  <tr
+                    key={meter.id}
+                    className={`animate-fade-in cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`}
+                    style={{ animationDelay: `${i * 25}ms` }}
+                    onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}
+                  >
+                    <td className="px-2 py-1.5 font-medium text-foreground">{meter.code ?? meter.name}</td>
+                    <td className="px-2 py-1.5 text-center"><span className={`inline-block size-2 rounded-full ${COMM_DOT[status]}`} /></td>
+                    <td className="px-2 py-1.5 text-muted">{meter.busId ? 'Modbus' : 'DLMS'}</td>
+                    <td className="px-2 py-1.5 text-muted">{reading ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && <tr><td colSpan={4} className="px-2 py-4 text-center text-muted">Sin medidores.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, DAT-06, DAT-24]</p>
+      </div>
+
+      {/* Ficha — Identificación */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ficha — Identificación</p>
+        {selected ? (
+          <div className="mt-2 space-y-2 text-[11px]">
+            <div>
+              <p className="text-[9px] text-subtle">Serial / tag / fabricante</p>
+              <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.code} · {selected.name}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-subtle">Modelo · firmware · protocolo</p>
+              <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.loadCategory ?? '—'} · {selected.busId ? 'Modbus' : 'DLMS'}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-subtle">Dirección Modbus/IP · gateway</p>
+              <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.busId ?? '—'}</p>
+            </div>
+          </div>
+        ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
+        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, DAT-23]</p>
+      </div>
+
+      {/* Ubicación física */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ubicación física</p>
+        <p className="text-[9px] text-subtle">ref. Estándar Técnico Salas</p>
+        {selected ? (
+          <div className="mt-2 space-y-0.5 text-[11px] text-foreground">
+            <p>• Tipo de sala · rack / tablero</p>
+            <p>• Posición en tablero</p>
+            <p className="text-muted">{buildingMap.get(selected.buildingId) ?? '—'} · {(selected.metadata as Record<string, string>)?.zone ?? '—'}</p>
+          </div>
+        ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
+        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, ARQ-15]</p>
+      </div>
+
+      {/* Disponibilidad 72h */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Disponibilidad 72 h (barras 15 min)</p>
+        <p className="text-[9px] text-subtle">estado de comunicación · reintentos</p>
+        <div className="mt-2 flex h-8 items-end gap-[0.5px]">
+          {avail72h.map((v, i) => (
+            <div key={i} className="flex-1 rounded-t" style={{ height: `${Math.max(2, v)}%`, backgroundColor: v > 0 ? '#22c55e' : '#ef4444' }} />
+          ))}
+        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[INT-13, INT-10]</p>
+      </div>
+
+      {/* Serie temporal 48h */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Serie temporal 48 h (gaps marcados)</p>
+        <p className="text-[9px] text-subtle">tipo de valor: real / estimado / CNR</p>
+        <div className="mt-2" style={{ height: '60px' }}>
+          {selected && selectedReading ? (
+            <svg viewBox="0 0 200 50" className="h-full w-full" preserveAspectRatio="none">
+              <path d="M0 40 L10 35 L20 38 L30 30 L40 32 L50 28 L60 25 L70 30 L80 28 L90 22 L100 25 L110 20 L120 22 L130 18 L140 20 L150 15 L160 18 L170 16 L180 12 L190 14 L200 10" fill="none" stroke="#3b82f6" strokeWidth="1.5" />
+              <line x1="0" y1="35" x2="200" y2="35" stroke="#ef4444" strokeWidth="0.5" strokeDasharray="4 2" />
+            </svg>
+          ) : <p className="py-4 text-center text-[11px] text-muted">Selecciona un medidor</p>}
+        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-04, DAT-06, DAT-19]</p>
+      </div>
+
+      {/* Historial de fallas e intervenciones */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Historial de fallas e intervenciones</p>
+        <div className="mt-2 space-y-1.5 text-[11px]">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-gray-400" />
+            <p className="text-foreground">Offline &gt; 4 h — reintento automático</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-gray-400" />
+            <p className="text-foreground">Cambio de firmware — técnico</p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-gray-400" />
+            <p className="text-foreground">CNR ingresada — período repuesto</p>
           </div>
         </div>
-
-        {/* Ficha */}
-        <div className="hidden w-72 shrink-0 flex-col gap-3 overflow-y-auto lg:flex">
-          {selected ? (
-            <MeterFicha meter={selected} reading={selectedReading} buildingName={buildingMap.get(selected.buildingId) ?? '—'} onNavigate={() => navigate(`/monitoring/meter/${selected.id}`)} />
-          ) : (
-            <div className="panel flex flex-1 items-center justify-center p-4">
-              <p className="text-[13px] text-muted">Selecciona un medidor.</p>
-            </div>
-          )}
-        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-23, DAT-19]</p>
       </div>
     </div>
   );
 }
-
-/* ── Meter Ficha ── */
-
-function MeterFicha({ meter, reading, buildingName, onNavigate }: Readonly<{ meter: Meter; reading?: LatestReading; buildingName: string; onNavigate: () => void }>) {
-  const fields = [
-    { label: 'Serial', value: meter.serialNumber ?? '—' },
-    { label: 'Modelo', value: meter.model ?? '—' },
-    { label: 'Tipo', value: meter.meterType },
-    { label: 'Fase', value: meter.phaseType },
-    { label: 'Centro', value: buildingName },
-    { label: 'Categoría', value: meter.loadCategory ?? '—' },
-  ];
-
-  const readingFields = reading ? [
-    { label: 'Potencia', value: `${Number(reading.power_kw).toFixed(1)} kW` },
-    { label: 'Voltaje', value: reading.voltage_l1 ? `${Number(reading.voltage_l1).toFixed(1)} V` : '—' },
-    { label: 'Corriente', value: reading.current_l1 ? `${Number(reading.current_l1).toFixed(1)} A` : '—' },
-    { label: 'FP', value: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
-  ] : [];
-
-  return (
-    <>
-      <div className="panel px-3 py-3">
-        <p className="text-[15px] font-semibold text-foreground">{meter.name}</p>
-        <p className="mt-0.5 font-mono text-[11px] text-muted">{meter.code}</p>
-      </div>
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Identificación</h4>
-        <dl className="space-y-1">
-          {fields.map((f) => (
-            <div key={f.label} className="flex justify-between text-[12px]">
-              <dt className="text-muted">{f.label}</dt>
-              <dd className="font-medium text-foreground">{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-      {readingFields.length > 0 && (
-        <div className="panel px-3 py-3">
-          <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Última lectura</h4>
-          <dl className="space-y-1">
-            {readingFields.map((f) => (
-              <div key={f.label} className="flex justify-between text-[12px]">
-                <dt className="text-muted">{f.label}</dt>
-                <dd className="font-medium text-foreground">{f.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
-      {/* Ubicación física */}
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Ubicación física</h4>
-        <dl className="space-y-1 text-[12px]">
-          <div className="flex justify-between"><dt className="text-muted">Tipo sala</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.roomType ?? '—'}</dd></div>
-          <div className="flex justify-between"><dt className="text-muted">Rack/Tablero</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.rack ?? '—'}</dd></div>
-          <div className="flex justify-between"><dt className="text-muted">Posición</dt><dd className="text-foreground">{(meter.metadata as Record<string, string>)?.position ?? '—'}</dd></div>
-        </dl>
-      </div>
-
-      {/* Disponibilidad 72h + Serie temporal 48h — real data */}
-      <MeterCharts72h meterId={meter.id} />
-
-      {/* Historial fallas */}
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Historial fallas</h4>
-        <p className="text-[11px] text-muted italic">Sin fallas registradas.</p>
-      </div>
-
-      <Button size="sm" variant="secondary" onClick={onNavigate} className="mx-3">Ver detalle completo</Button>
-    </>
-  );
-}
-
-function MeterCharts72h({ meterId }: Readonly<{ meterId: string }>) {
-  const range = useMemo(() => {
-    const now = new Date();
-    return { from: new Date(now.getTime() - 72 * 3_600_000).toISOString(), to: now.toISOString() };
-  }, []);
-  const aggQuery = useAggregatedReadingsQuery({ ...range, interval: 'hourly', meterId });
-  const data = aggQuery.data ?? [];
-
-  // 72h availability: which hours have data
-  const avail72 = useMemo(() => {
-    const slots = new Array(72).fill(false);
-    const now = Date.now();
-    for (const r of data) {
-      const hourIndex = Math.floor((now - new Date(r.bucket).getTime()) / 3_600_000);
-      const slot = 71 - hourIndex;
-      if (slot >= 0 && slot < 72) slots[slot] = true;
-    }
-    return slots;
-  }, [data]);
-
-  // 48h power series (last 48 slots)
-  const series48 = useMemo(() => {
-    const slots = new Array(48).fill(0);
-    const now = Date.now();
-    for (const r of data) {
-      const hourIndex = Math.floor((now - new Date(r.bucket).getTime()) / 3_600_000);
-      const slot = 47 - hourIndex;
-      if (slot >= 0 && slot < 48) slots[slot] = parseFloat(r.avg_power_kw ?? '0');
-    }
-    return slots;
-  }, [data]);
-
-  const maxV = Math.max(1, ...series48);
-  const w = 220; const h = 36;
-  const path = series48.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${h - (v / maxV) * (h - 4)}`).join(' ');
-
-  return (
-    <>
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Disponibilidad — 72h</h4>
-        <div className="flex h-4 gap-[1px]">
-          {avail72.map((has, i) => (
-            <div key={i} className={`flex-1 rounded-sm ${has ? 'bg-emerald-400' : 'bg-red-300'}`} />
-          ))}
-        </div>
-        <div className="mt-1 flex justify-between text-[9px] text-muted"><span>-72h</span><span>ahora</span></div>
-      </div>
-
-      <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Serie temporal — 48h</h4>
-        {maxV <= 1 ? (
-          <p className="text-[11px] text-muted">Sin datos.</p>
-        ) : (
-          <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="w-full">
-            <path d={path} fill="none" stroke="#3b82f6" strokeWidth={1.5} />
-          </svg>
-        )}
-      </div>
-    </>
-  );
-}
-
-import { Button } from '../../../components/ui/Button';

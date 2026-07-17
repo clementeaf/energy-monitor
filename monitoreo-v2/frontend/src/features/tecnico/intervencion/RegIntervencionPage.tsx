@@ -70,13 +70,25 @@ export function RegIntervencionPage() {
   }, [canSubmit, selectedMeter, selectedMeterId, type, description, result, requiresCnr, createIntervention]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Registro de Intervención" eyebrow="Intervención" />
+    <div className="flex h-full flex-col gap-2 overflow-y-auto">
+      <PageHeader title="5.4 Registro de intervención" description="Vista mobile-first — bitácora de intervención con firma digital e inmutabilidad" />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Form */}
-        <div className="flex w-full max-w-xl shrink-0 flex-col overflow-y-auto">
-          <form onSubmit={handleSubmit} className="panel space-y-4 p-4">
+      {/* Orden asociada */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Orden asociada</p>
+        {selectedMeter ? (
+          <div className="mt-1 text-[11px] text-foreground">
+            <p className="font-semibold">OT — Medidor {selectedMeter.code}</p>
+            <p>• Cierre de intervención en terreno</p>
+          </div>
+        ) : <p className="mt-1 text-[11px] text-muted">Selecciona un medidor</p>}
+        <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-19]</p>
+      </div>
+
+      {/* Bitácora de intervención */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
+        <form onSubmit={handleSubmit} className="mt-2 space-y-3">
             <FormField label="Medidor / activo">
               <select
                 value={selectedMeterId}
@@ -143,64 +155,44 @@ export function RegIntervencionPage() {
               <p className="mt-1 text-[10px] text-muted">Máx 5 archivos.</p>
             </FormField>
 
-            <label className="flex items-center gap-2 text-[13px] text-foreground">
-              <input type="checkbox" checked={false} disabled className="rounded border-border" />
-              Firma digital del técnico
-              <span className="text-[10px] text-muted">(requiere backend)</span>
+            <label className="flex items-center gap-2 text-[11px] text-foreground">
+              <input type="checkbox" checked={requiresCnr} onChange={(e) => setRequiresCnr(e.target.checked)} className="rounded border-border" />
+              Requiere CNR → pre-llena formulario de CNR
             </label>
+        </form>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-19, DAT-23]</p>
+      </div>
 
-            <label className="flex items-center gap-2 text-[13px] text-foreground">
-              <input
-                type="checkbox"
-                checked={requiresCnr}
-                onChange={(e) => setRequiresCnr(e.target.checked)}
-                className="rounded border-border"
-              />
-              Requiere CNR
-            </label>
-
-            {submitted && (
-              <div className="rounded-md bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
-                Intervención registrada correctamente.
-              </div>
-            )}
-
-            <Button type="submit" disabled={!canSubmit} className="w-full">
-              Registrar intervención
-            </Button>
-          </form>
+      {/* Adjuntos y firma */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
+        <div className="mt-2 space-y-1 text-[11px] text-foreground">
+          <p>• Fotos máx. 5 (JPG/PNG) + documentos (PDF)</p>
+          <p>• □ Requiere CNR → pre-llena formulario de CNR</p>
+          <p>• Firma digital del técnico</p>
         </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-19, DAT-23]</p>
+      </div>
 
-        {/* History panel */}
-        <div className="hidden w-full max-w-sm shrink-0 flex-col overflow-hidden lg:flex">
-          <div className="panel flex min-h-0 flex-1 flex-col p-4">
-            <h3 className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">
-              Historial ({history.length})
-            </h3>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
-              {history.length === 0 && (
-                <p className="text-[12px] text-muted">Sin intervenciones registradas.</p>
-              )}
-              {history.slice(0, 30).map((h) => (
-                <div key={h.id} className="rounded-md border border-border p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-muted">{h.id.slice(0, 8)}</span>
-                    <span className="text-[10px] text-muted">{new Date(h.created_at).toLocaleDateString('es-CL')}</span>
-                  </div>
-                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meter_id.slice(0, 8)}</p>
-                  <p className="text-[11px] text-muted">{h.intervention_type} · {h.result}</p>
-                  <p className="mt-1 line-clamp-2 text-[11px] text-muted">{h.description}</p>
-                  {h.requires_cnr && (
-                    <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-medium text-amber-700">CNR</span>
-                  )}
-                  {h.integrity_hash && (
-                    <span className="mt-1 block font-mono text-[9px] text-muted">hash: {h.integrity_hash}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Inmutabilidad del registro */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-[10px] text-blue-800">
+        <p className="font-semibold">Inmutabilidad del registro</p>
+        <p className="mt-1">al firmar y guardar:</p>
+        <p>• Timestamp del servidor + usuario + hash de integridad</p>
+        <p>• No editable una vez firmado</p>
+        <p className="mt-0.5 text-right text-[9px]">[DAT-19, CYB-10, DAT-14]</p>
+      </div>
+
+      {submitted && (
+        <div className="rounded-md bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700">
+          Intervención registrada correctamente.
         </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex shrink-0 gap-2">
+        <Button type="button" onClick={handleSubmit} disabled={!canSubmit} loading={createIntervention.isPending} className="flex-1">Firmar y guardar</Button>
+        <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
       </div>
     </div>
   );

@@ -69,143 +69,67 @@ export function IngresoCnrPage() {
   }, [canSubmit, selectedMeter, selectedMeterId, periodStart, periodEnd, valueKwh, motive, justification, createCnr]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader title="Ingreso CNR Manual" eyebrow="CNR" />
+    <div className="flex h-full flex-col gap-2 overflow-y-auto">
+      <PageHeader title="5.5 Ingreso CNR manual" description="Vista mobile-first — registro de Consumo No Registrado con firma digital" />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
-        {/* Form */}
-        <div className="flex w-full max-w-xl shrink-0 flex-col overflow-y-auto">
-          <form onSubmit={handleSubmit} className="panel space-y-4 p-4">
-            <FormField label="Medidor">
-              <select
-                value={selectedMeterId}
-                onChange={(e) => setSelectedMeterId(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-              >
-                <option value="">Seleccionar medidor</option>
-                {meters.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.code}) — {buildingMap.get(m.buildingId) ?? ''}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+      {/* Medidor y contexto */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Medidor y contexto</p>
+        <select value={selectedMeterId} onChange={(e) => setSelectedMeterId(e.target.value)} className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+          <option value="">Seleccionar medidor</option>
+          {meters.map((m) => <option key={m.id} value={m.id}>{m.code} — {buildingMap.get(m.buildingId) ?? ''}</option>)}
+        </select>
+        {selectedMeter && <p className="mt-1 text-[11px] text-foreground">{selectedMeter.code} · {buildingMap.get(selectedMeter.buildingId) ?? ''}</p>}
+        <p className="text-[9px] text-subtle">• Ingreso CNR según norma de Consumos No Registrados</p>
+        <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+      </div>
 
-            {selectedMeter && (
-              <div className="rounded-md bg-surface px-3 py-2 text-[12px] text-muted">
-                <span className="font-medium">Medidor:</span> {selectedMeter.name} · <span className="font-medium">Código:</span> {selectedMeter.code}
-              </div>
-            )}
+      {/* Datos del CNR */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Datos del CNR</p>
+        <form onSubmit={handleSubmit} className="mt-2 space-y-3">
+          <div><p className="text-[9px] text-subtle">Período afectado (fecha/hora inicio – fin)</p><div className="flex gap-2"><input type="datetime-local" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /><input type="datetime-local" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /></div></div>
+          <div><p className="text-[9px] text-subtle">Valor real [kWh]</p><input type="number" step="0.01" value={valueKwh} onChange={(e) => setValueKwh(e.target.value)} placeholder="Lectura manual" className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /></div>
+          <div><p className="text-[9px] text-subtle">Motivo del CNR</p><select value={motive} onChange={(e) => setMotive(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">{CNR_MOTIVES.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}</select></div>
+        </form>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-20, DAT-19]</p>
+      </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Inicio período">
-                <input
-                  type="datetime-local"
-                  value={periodStart}
-                  onChange={(e) => setPeriodStart(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-                />
-              </FormField>
-              <FormField label="Fin período">
-                <input
-                  type="datetime-local"
-                  value={periodEnd}
-                  onChange={(e) => setPeriodEnd(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-                />
-              </FormField>
-            </div>
-
-            <FormField label="Valor real [kWh]">
-              <input
-                type="number"
-                step="0.01"
-                value={valueKwh}
-                onChange={(e) => setValueKwh(e.target.value)}
-                placeholder="Lectura manual o respaldo"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-              />
-            </FormField>
-
-            <FormField label="Motivo del CNR">
-              <select
-                value={motive}
-                onChange={(e) => setMotive(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-              >
-                {CNR_MOTIVES.map((m) => (
-                  <option key={m.key} value={m.key}>{m.label}</option>
-                ))}
-              </select>
-            </FormField>
-
-            <FormField label="Justificación (mín. 20 caracteres)">
-              <textarea
-                value={justification}
-                onChange={(e) => setJustification(e.target.value)}
-                rows={3}
-                placeholder="Justificación detallada del cambio..."
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
-              />
-              <p className="mt-1 text-[10px] text-muted">{justification.length}/20 caracteres mínimo</p>
-            </FormField>
-
-            <FormField label="Evidencia (foto o documento)">
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf"
-                className="w-full text-[12px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[11px] file:text-foreground"
-                onChange={() => { /* ponytail: handle upload when backend available */ }}
-              />
-            </FormField>
-
-            <label className="flex items-center gap-2 text-[13px] text-foreground">
-              <input type="checkbox" checked={false} disabled className="rounded border-border" />
-              Firma digital del técnico
-              <span className="text-[10px] text-muted">(requiere backend)</span>
-            </label>
-
-            <p className="text-[10px] text-muted">
-              Una vez firmado, el registro no podrá ser retroeditado — solo "en revisión" por perfil operacional.
-              Pista auditoría: usuario, timestamp y valor anterior quedan registrados.
-            </p>
-
-            {submitted && (
-              <div className="rounded-md bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
-                CNR registrado. Valor marcado como "dato manual — CNR".
-              </div>
-            )}
-
-            <Button type="submit" disabled={!canSubmit} className="w-full">
-              Registrar CNR
-            </Button>
-          </form>
+      {/* Justificación y evidencia */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Justificación y evidencia</p>
+        <div className="mt-2 space-y-2">
+          <div><p className="text-[9px] text-subtle">Justificación (texto libre)</p><textarea value={justification} onChange={(e) => setJustification(e.target.value)} rows={2} placeholder="Justificación detallada..." className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /></div>
+          <div><p className="text-[9px] text-subtle">Adjunto de evidencia</p><input type="file" accept=".jpg,.jpeg,.png,.pdf" className="w-full text-[11px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[10px] file:text-foreground" /></div>
         </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-20, DAT-14]</p>
+      </div>
 
-        {/* History panel */}
-        <div className="hidden w-full max-w-sm shrink-0 flex-col overflow-hidden lg:flex">
-          <div className="panel flex min-h-0 flex-1 flex-col p-4">
-            <h3 className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">
-              Historial CNR ({history.length})
-            </h3>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
-              {history.length === 0 && (
-                <p className="text-[12px] text-muted">Sin CNR registrados.</p>
-              )}
-              {history.slice(0, 30).map((h) => (
-                <div key={h.id} className="rounded-md border border-border p-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-muted">{h.id.slice(0, 8)}</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${h.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : h.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{h.status}</span>
-                  </div>
-                  <p className="mt-1 text-[12px] font-medium text-foreground">{h.meter_id.slice(0, 8)}</p>
-                  <p className="text-[11px] text-muted">{h.motivo} · {h.value_kwh != null ? `${h.value_kwh} kWh` : '—'}</p>
-                  <p className="mt-0.5 text-[10px] text-muted">{new Date(h.created_at).toLocaleDateString('es-CL')}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Marcado del valor */}
+      <div className="panel shrink-0 px-3 py-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Marcado del valor</p>
+        <div className="mt-1 space-y-0.5 text-[11px] text-foreground">
+          <p>• Se marca 'dato manual — CNR' en todos los dashboards</p>
+          <p>• Firma digital obligatoria</p>
         </div>
+        <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20, DAT-19]</p>
+      </div>
+
+      {/* Restricciones post-firma */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-[10px] text-blue-800">
+        <p className="font-semibold">Restricciones post-firma</p>
+        <p className="mt-1">irreversible:</p>
+        <p>• No se puede retroeditar</p>
+        <p>• Solo Operacional puede marcar 'en revisión'</p>
+        <p>• Auditoría: usuario, timestamp, valor anterior</p>
+        <p className="mt-0.5 text-right text-[9px]">[DAT-20, DAT-14, CYB-10]</p>
+      </div>
+
+      {submitted && <div className="rounded-md bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700">CNR registrado. Valor marcado como "dato manual — CNR".</div>}
+
+      <div className="flex shrink-0 gap-2">
+        <Button type="button" onClick={handleSubmit} disabled={!canSubmit} loading={createCnr.isPending} className="flex-1">Firmar CNR</Button>
+        <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
       </div>
     </div>
   );

@@ -2,6 +2,21 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Consumo Jerárquico (3.2)
+- **Título + subtítulo spec** — "3.2 Consumo Jerárquico" + "Análisis drill-down: mapa + árbol expandible + panel de detalle sincronizados".
+- **Banner filtros unificado** — 6 DropdownSelects inline: País, Período, Métrica principal, Granularidad, Ordenar malls por, Comparar con. Reemplaza selects/PillToggles sueltos en `actions`.
+- **Layout 3 columnas + tabla** — Fila 1 (flex, 3 cards mismo ancho): Mapa geográfico sincronizado + Árbol jerárquico expandible + KPIs/Tendencia/Zonas stacked. Fila 2 (full-width, misma altura): Tabla remarcadores del mall.
+- **Árbol jerárquico smooth** — Expand/collapse con `grid-template-rows: 0fr→1fr` + `transition-all duration-300`. Chevron rota 0°→90° smooth.
+- **KPIs del mall** — 3 métricas (Consumo MWh, Intensidad kWh/m², Costo UF) con variación %, aparecen al seleccionar mall en árbol/mapa. Refs spec `[DAT-22, DAT-11, FIN-07]`.
+- **Tendencia mensual** — Mall vs promedio portafolio, TrendSparkline integrado en card 3. Ref `[DAT-08, DAT-22]`.
+- **Zonas del piso** — Tarjetas coloreadas por estado (online/stale/offline). Ref `[DAT-11, DAT-03]`.
+- **Tabla remarcadores** — Columnas: ID medidor, Zona, Consumo MWh, % del total, Último valor, Timestamp, Estado. Título + headers fijos, solo filas hacen scroll (`overflow-y-auto` en wrapper separado).
+- **Filas animadas** — `animate-fade-in` con stagger 40ms por fila al seleccionar mall. Keyframe `fade-in` (opacity 0→1 + translateY 6px→0, 250ms ease-out) agregado a `index.css`.
+- **Refs spec** — Cada panel muestra referencias wireframe: `[ARQ-05, DAT-11]`, `[DAT-11, DAT-22]`, `[DAT-06, DAT-19, DAT-17]`.
+
+### Fixed — Sidebar active state
+- **`findActiveIndex`** — `/dashboard/consumo` ya no matchea Panel Consolidado. Antes `startsWith('/dashboard')` capturaba todas las sub-rutas. Ahora usa match exacto primero, luego `basePath + '/'` prefix. `extraPaths: ['/dashboard']` removido de Panel Consolidado.
+
 ### Changed — Layout global
 - **Header full-width** — Barra superior ocupa todo el ancho. Sidebar empieza debajo del header (`AppLayout` de `flex row` a `flex col`).
 - **Logo en Header** — Movido de sidebar a header (izquierda). Sidebar sin logo.

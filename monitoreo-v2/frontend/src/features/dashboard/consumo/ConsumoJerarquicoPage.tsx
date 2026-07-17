@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -223,6 +223,11 @@ export function ConsumoJerarquicoPage() {
     return map;
   }, [rows, accessor, currentMetric.unit]);
 
+  const selectedRow = useMemo(
+    () => expandedId ? sortedRows.find((r) => r.building.id === expandedId) ?? null : null,
+    [sortedRows, expandedId],
+  );
+
   // Meters for expanded building
   const expandedMeters = useMemo(
     () => expandedId ? allMeters.filter((m) => m.buildingId === expandedId) : [],
@@ -234,144 +239,236 @@ export function ConsumoJerarquicoPage() {
     return readings.filter((r) => meterIds.has(r.meter_id));
   }, [expandedMeters, readings]);
 
+  // Zones grouped from expanded meters
+  const zones = useMemo(() => {
+    if (expandedMeters.length === 0) return [];
+    const zoneMap = new Map<string, Meter[]>();
+    expandedMeters.forEach((m) => {
+      const zone = (m.metadata as Record<string, string>)?.zone ?? m.loadCategory ?? 'general';
+      const list = zoneMap.get(zone) ?? [];
+      list.push(m);
+      zoneMap.set(zone, list);
+    });
+    return Array.from(zoneMap.entries()).map(([name, meters]) => {
+      const meterIds = new Set(meters.map((m) => m.id));
+      const hasOnline = expandedReadings.some((r) => meterIds.has(r.meter_id));
+      const hasStale = expandedReadings.some((r) => meterIds.has(r.meter_id) && (Date.now() - new Date(r.timestamp).getTime()) > 4 * 3_600_000);
+      const status = !hasOnline ? 'offline' : hasStale ? 'stale' : 'online';
+      return { name, meters, status };
+    });
+  }, [expandedMeters, expandedReadings]);
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
-        title="Consumo Jerárquico"
-        eyebrow="Consumo"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              {PERIODS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
-            </select>
-            {period === 'custom' && (
-              <>
-                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-              </>
-            )}
-            <PillToggle
-              options={METRICS.map((m) => ({ key: m.key, label: m.label }))}
-              value={metric}
-              onChange={setMetric}
-              size="sm"
-            />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              {SORT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            <select
-              value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              {FILTER_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            {filterBy === 'variation' && (
-              <input
-                type="number"
-                min={1}
-                max={100}
-                value={variationThreshold}
-                onChange={(e) => setVariationThreshold(Number(e.target.value) || 10)}
-                className="w-14 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-                title="Umbral variación %"
-              />
-            )}
-            <select
-              value={compareWith}
-              onChange={(e) => setCompareWith(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              {COMPARE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            <PillToggle
-              options={[{ key: 'monthly', label: 'Mensual' }, { key: 'weekly', label: 'Semanal' }]}
-              value={granularity}
-              onChange={(v) => setGranularity(v as 'monthly' | 'weekly')}
-              size="sm"
-            />
-          </div>
-        }
+        title="3.2 Consumo Jerárquico"
+        description="Análisis drill-down: mapa + árbol expandible + panel de detalle sincronizados"
       />
 
-      <div className="flex min-h-0 flex-1 gap-4">
-        {/* Left: Map */}
-        <div className="hidden min-h-0 flex-1 overflow-hidden rounded-xl border border-border lg:block">
-          <MapView
-            buildings={geoBuildings}
-            buildingMeta={buildingMeta}
-            onBuildingClick={(id) => setExpandedId(expandedId === id ? null : id)}
-            className="h-full w-full"
-          />
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          País
+          <DropdownSelect options={[{ value: 'CL', label: 'Chile' }, { value: 'PE', label: 'Perú' }, { value: 'CO', label: 'Colombia' }]} value={country} onChange={() => {}} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período
+          <DropdownSelect options={PERIODS.map((p) => ({ value: p.key, label: p.label }))} value={period} onChange={setPeriod} />
+        </span>
+        {period === 'custom' && (
+          <>
+            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+          </>
+        )}
+        <span className="flex items-center gap-1">
+          Métrica principal
+          <DropdownSelect options={METRICS.map((m) => ({ value: m.key, label: `${m.label} (${m.unit})` }))} value={metric} onChange={setMetric} />
+        </span>
+        <span className="flex items-center gap-1">
+          Granularidad
+          <DropdownSelect options={[{ value: 'monthly', label: 'Mensual' }, { value: 'weekly', label: 'Semanal' }]} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
+        </span>
+        <span className="flex items-center gap-1">
+          Ordenar malls por
+          <DropdownSelect options={SORT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={sortBy} onChange={setSortBy} />
+        </span>
+        <span className="flex items-center gap-1">
+          Comparar con
+          <DropdownSelect options={COMPARE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={compareWith} onChange={setCompareWith} />
+        </span>
+      </div>
+
+      {/* Row 1: 3 cards */}
+      <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
+        {/* Card 1: Mapa geográfico (sincronizado) */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Mapa geográfico (sincronizado)</p>
+          <p className="text-[9px] text-subtle">Click en marcador ↔ árbol ↔ detalle</p>
+          <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
+            <MapView
+              buildings={geoBuildings}
+              buildingMeta={buildingMeta}
+              onBuildingClick={(id) => setExpandedId(expandedId === id ? null : id)}
+              className="h-full w-full"
+            />
+          </div>
+          <p className="mt-1 text-right text-[9px] text-subtle">[ARQ-05, DAT-11]</p>
         </div>
 
-        {/* Center/Right: Tree */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden lg:max-w-[55%]">
-          {/* Portfolio header */}
-          <div className="panel mb-3 flex items-center justify-between px-4 py-3">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted">Portafolio</p>
-              <p className="text-xl font-semibold text-foreground">
-                {formatMetric(portfolioTotal, currentMetric.unit)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] text-muted">{rows.length} centros</p>
-              <p className="text-[11px] text-muted">{rows.reduce((s, r) => s + r.meterCount, 0)} medidores</p>
-            </div>
+        {/* Card 2: Árbol jerárquico expandible */}
+        <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Árbol jerárquico expandible</p>
+          <p className="text-[9px] text-subtle">3 niveles de sangría</p>
+          <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-[12px]">
+            <div className="font-semibold text-foreground">▼ Total país — Chile</div>
+            <ul className="mt-1 space-y-0.5">
+              {sortedRows.map((row) => {
+                const isExp = expandedId === row.building.id;
+                const style = getStatusStyle(row.status as 'normal' | 'warning' | 'critical' | 'nodata');
+                return (
+                  <li key={row.building.id}>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isExp ? null : row.building.id)}
+                      className="flex w-full items-center gap-1.5 rounded px-1 py-1 text-left transition-colors hover:bg-surface"
+                    >
+                      <span className={`inline-block text-[10px] text-muted transition-transform duration-200 ${isExp ? 'rotate-90' : ''}`}>▶</span>
+                      <span className={`inline-block size-2 shrink-0 rounded-full ${style.bg}`} />
+                      <span className="truncate font-medium text-foreground">{row.building.name}</span>
+                    </button>
+                    <div
+                      className="overflow-hidden transition-all duration-300 ease-in-out"
+                      style={{ display: 'grid', gridTemplateRows: isExp ? '1fr' : '0fr' }}
+                    >
+                      <div className="min-h-0">
+                        {expandedMeters.length > 0 && (
+                          <ul className="ml-5 mt-0.5 space-y-0.5 border-l border-border pl-2 pb-1">
+                            {zones.length > 0 ? zones.map((z) => (
+                              <li key={z.name} className="text-[11px] text-muted">{z.name}</li>
+                            )) : expandedMeters.slice(0, 5).map((m) => (
+                              <li key={m.id} className="text-[11px] text-muted">{m.name}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-11, DAT-22]</p>
+        </div>
+
+        {/* Card 3: KPIs + Tendencia + Zonas (stacked) */}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
+          {/* KPIs del mall (3 tarjetas) */}
+          <div className="panel px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">KPIs del mall (3 tarjetas)</p>
+            <p className="mt-0.5 text-[9px] text-subtle">seleccionado en el árbol/mapa</p>
+            {selectedRow ? (
+              <div className="mt-2 space-y-1 text-[11px]">
+                <p className="text-foreground">• Consumo [MWh] <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-red-500' : 'text-emerald-500'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
+                <p className="text-foreground">• Intensidad [kWh/m²] <span className="font-semibold">{METRIC_ACCESSORS.intensity(selectedRow).toFixed(1)}</span></p>
+                <p className="text-foreground">• Costo [UF] <span className="font-semibold">{METRIC_ACCESSORS.cost(selectedRow).toFixed(1)}</span></p>
+              </div>
+            ) : (
+              <p className="mt-2 text-[11px] text-muted">Seleccione un mall</p>
+            )}
+            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, DAT-11, FIN-07]</p>
           </div>
 
-          {/* Building tree */}
-          <div className="panel min-h-0 flex-1 overflow-y-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-3 py-2">Centro</th>
-                  <th className="px-3 py-2 text-right">{currentMetric.label} ({currentMetric.unit})</th>
-                  <th className="px-3 py-2 text-right">% Total</th>
-                  <th className="px-3 py-2 text-right">Var. %</th>
-                  <th className="px-3 py-2 text-right">Medidores</th>
-                  <th className="px-3 py-2 text-center">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sortedRows.map((row) => {
-                  const isExpanded = expandedId === row.building.id;
-                  const metricVal = accessor(row);
-                  const pctOfTotal = portfolioTotal > 0 ? (metricVal / portfolioTotal) * 100 : 0;
-                  const style = getStatusStyle(row.status as 'normal' | 'warning' | 'critical' | 'nodata');
+          {/* Tendencia mensual */}
+          <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tendencia mensual: mall vs. promedio portafolio</p>
+            <p className="text-[9px] text-subtle">Últimos 8-12 meses · detecta anomalías estacionales</p>
+            <div className="mt-2 min-h-0 flex-1">
+              {selectedRow ? (
+                <TrendSparkline buildingId={selectedRow.building.id} metricVal={accessor(selectedRow)} label={currentMetric.unit} granularity={granularity} compareWith={compareWith} />
+              ) : (
+                <p className="text-[11px] text-muted">Seleccione un mall</p>
+              )}
+            </div>
+            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-08, DAT-22]</p>
+          </div>
 
-                  return (
-                    <TreeRow
-                      key={row.building.id}
-                      row={row}
-                      metricVal={metricVal}
-                      metricUnit={currentMetric.unit}
-                      pctOfTotal={pctOfTotal}
-                      statusStyle={style}
-                      isExpanded={isExpanded}
-                      onToggle={() => setExpandedId(isExpanded ? null : row.building.id)}
-                      expandedMeters={isExpanded ? expandedMeters : []}
-                      expandedReadings={isExpanded ? expandedReadings : []}
-                      onMeterClick={(meterId) => navigate(`/monitoring/meter/${meterId}`)}
-                      onViewPlant={(buildingId) => navigate(`/dashboard/consolidado?building=${buildingId}`)}
-                      granularity={granularity}
-                      compareWith={compareWith}
-                    />
-                  );
-                })}
+          {/* Zonas del piso seleccionado */}
+          <div className="panel px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Zonas del piso seleccionado</p>
+            <p className="text-[9px] text-subtle">tarjetas coloreadas por estado (vectorizado PASA)</p>
+            {zones.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {zones.map((z) => (
+                  <div key={z.name} className={`rounded px-2 py-1.5 text-center text-[10px] ${z.status === 'online' ? 'bg-emerald-100 text-emerald-700' : z.status === 'stale' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {z.name}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-[11px] text-muted">Seleccione un mall con pisos</p>
+            )}
+            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-11, DAT-03]</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Tabla de remarcadores del mall */}
+      <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de remarcadores del mall</p>
+        <p className="shrink-0 text-[9px] text-subtle">al seleccionar mall sin piso</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-2 py-1.5">ID medidor</th>
+                <th className="px-2 py-1.5">Zona</th>
+                <th className="px-2 py-1.5 text-right">Consumo [MWh]</th>
+                <th className="px-2 py-1.5 text-right">% del total</th>
+                <th className="px-2 py-1.5 text-right">Último valor</th>
+                <th className="px-2 py-1.5">Timestamp</th>
+                <th className="px-2 py-1.5 text-center">Estado</th>
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
+              <tbody className="divide-y divide-border">
+            {expandedMeters.length > 0 ? expandedMeters.map((meter, i) => {
+              const reading = expandedReadings.find((r) => r.meter_id === meter.id);
+              const mwh = Number(reading?.energy_kwh_total ?? 0) / 1000;
+              const mallTotal = expandedReadings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
+              const pct = mallTotal > 0 ? (mwh / mallTotal) * 100 : 0;
+              const isOnline = !!reading;
+              const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;
+              const statusLabel = !isOnline ? 'offline' : stale ? 'stale' : 'online';
+              const statusDot = statusLabel === 'online' ? 'bg-emerald-500' : statusLabel === 'stale' ? 'bg-amber-400' : 'bg-gray-400';
+              const zone = (meter.metadata as Record<string, string>)?.zone ?? meter.loadCategory ?? '—';
+              return (
+                <tr
+                  key={meter.id}
+                  className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                  onClick={() => navigate(`/monitoring/meter/${meter.id}`)}
+                >
+                  <td className="px-2 py-1.5 font-medium text-foreground">{meter.code}</td>
+                  <td className="px-2 py-1.5 text-muted">{zone}</td>
+                  <td className="px-2 py-1.5 text-right text-foreground">{mwh > 0 ? mwh.toFixed(2) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-muted">{pct > 0 ? `${pct.toFixed(1)}%` : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-foreground">{reading ? `${Number(reading.power_kw).toFixed(1)} kW` : '—'}</td>
+                  <td className="px-2 py-1.5 text-muted">{reading ? new Date(reading.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                  <td className="px-2 py-1.5 text-center"><span className={`inline-block size-2 rounded-full ${statusDot}`} title={statusLabel} /></td>
+                </tr>
+              );
+            }) : (
+              <tr><td colSpan={7} className="px-2 py-4 text-center text-muted">Seleccione un mall para ver sus medidores</td></tr>
+            )}
               </tbody>
             </table>
           </div>
         </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-19, DAT-17]</p>
       </div>
     </div>
   );

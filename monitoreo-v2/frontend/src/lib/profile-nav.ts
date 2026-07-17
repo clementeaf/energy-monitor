@@ -38,7 +38,7 @@ const CNR_PENDIENTES: ProfileSubItem = { to: APP_ROUTES.cnrPendientes, label: 'C
 const MAPA_COBERTURA: ProfileSubItem = { to: APP_ROUTES.mapaCobertura, label: 'Cobertura' };
 
 const GERENCIAL_NAV: ProfileNavEntry[] = [
-  { label: 'Panel Consolidado', icon: 'dashboard', to: APP_ROUTES.consolidado, basePath: '/dashboard/consolidado', extraPaths: ['/dashboard'] },
+  { label: 'Panel Consolidado', icon: 'dashboard', to: APP_ROUTES.consolidado, basePath: '/dashboard/consolidado' },
   { label: 'Consumo Jerárquico', icon: 'monitoring', to: APP_ROUTES.consumo, basePath: '/dashboard/consumo' },
   { label: 'Costos y Tendencias', icon: 'analytics', to: APP_ROUTES.costos, basePath: '/dashboard/costos' },
   { label: 'Reportes Ejecutivos', icon: 'analytics', to: APP_ROUTES.reportesEjecutivos, basePath: '/reports', extraPaths: ['/gerencial/reportes'] },

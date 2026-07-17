@@ -26,11 +26,13 @@ function subLinkClass(subActive: boolean): string {
 }
 
 function findActiveIndex(entries: ProfileNavEntry[], pathname: string): number {
+  // Exact match first (e.g. /dashboard/consolidado), then prefix match
+  const exact = entries.findIndex((e) => pathname === e.basePath || pathname === e.to);
+  if (exact >= 0) return exact;
   return entries.findIndex((e) => {
-    const matchesDashboard = e.basePath === '/dashboard' && (pathname === '/' || pathname.startsWith('/dashboard'));
-    const matchesBase = pathname.startsWith(e.basePath);
-    const matchesExtra = e.extraPaths?.some((p) => pathname.startsWith(p)) ?? false;
-    return matchesDashboard || matchesBase || matchesExtra;
+    const matchesBase = pathname.startsWith(e.basePath + '/') || pathname === e.basePath;
+    const matchesExtra = e.extraPaths?.some((p) => pathname.startsWith(p + '/') || pathname === p) ?? false;
+    return matchesBase || matchesExtra;
   });
 }
 

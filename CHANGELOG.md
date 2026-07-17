@@ -2,6 +2,13 @@
 
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
+### Changed — Costos y Tendencias (3.3)
+- **Título + subtítulo spec** — "3.3 Costos y Tendencias" + descripción análisis de costos.
+- **Banner filtros unificado** — DropdownSelects: País, Período, Moneda, Agrupación + MallMultiSelect. Reemplaza PillToggles/selects sueltos.
+- **Layout 3 filas** — Fila 1 (flex 50/50): Barras apiladas mensual costo [UF] con línea precio medio + Waterfall variación de costo (barras verticales, verde baja / rojo sube). Fila 2 (full-width): Tabla costos por mall ordenable (Mall, País, Consumo MWh, Precio medio, Costo total, Variación %, Proyección cierre). Headers fijos, filas con `animate-fade-in` staggered 30ms. Exportar CSV. Fila 3: Proyecciones 2 meses (barras reales + barras dashed amber proyectadas, base tendencia últimos 3 meses).
+- **Waterfall visual** — Barras verticales: Anterior, Δ Volumen, Δ Precio, Mix, Actual. Descomposición real cuando hay MWh, proporcional como fallback.
+- **Refs spec** — `[DAT-22, FIN-07]`, `[DAT-22, FIN-07, DAT-12]`.
+
 ### Changed — Consumo Jerárquico (3.2)
 - **Título + subtítulo spec** — "3.2 Consumo Jerárquico" + "Análisis drill-down: mapa + árbol expandible + panel de detalle sincronizados".
 - **Banner filtros unificado** — 6 DropdownSelects inline: País, Período, Métrica principal, Granularidad, Ordenar malls por, Comparar con. Reemplaza selects/PillToggles sueltos en `actions`.

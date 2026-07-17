@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { PillToggle } from '../../../components/ui/PillToggle';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Chart } from '../../../components/charts/Chart';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
@@ -309,228 +309,197 @@ export function CostosTendenciasPage() {
     { title: 'Centros', value: String(costRows.length) },
   ];
 
+  // Waterfall factors
+  const waterfallFactors = useMemo(() => {
+    if (monthlyData.length < 2) return null;
+    const prevB = monthlyData[monthlyData.length - 2];
+    const currB = monthlyData[monthlyData.length - 1];
+    const prev = prevB.cost;
+    const curr = currB.cost;
+    const delta = curr - prev;
+    const hasReal = prevB.mwh > 0 && currB.mwh > 0;
+    const prevP = prevB.mwh > 0 ? prev / prevB.mwh : 0;
+    const currP = currB.mwh > 0 ? curr / currB.mwh : 0;
+    const vol = hasReal ? (currB.mwh - prevB.mwh) * prevP : delta * 0.5;
+    const price = hasReal ? (currP - prevP) * currB.mwh : delta * 0.3;
+    const mix = delta - vol - price;
+    return { vol, price, mix, prev, curr };
+  }, [monthlyData]);
+
+  // Projection bars (last 2 months extrapolated)
+  const projectionBars = useMemo(() => {
+    if (monthlyData.length < 3) return [];
+    const last3 = monthlyData.slice(-3);
+    const avgCost = last3.reduce((s, d) => s + d.cost, 0) / 3;
+    const now = new Date();
+    return [1, 2].map((offset) => {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      return { month: d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' }), cost: avgCost };
+    });
+  }, [monthlyData]);
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="Costos y Tendencias"
-        eyebrow="Costos"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-            >
-              {PERIODS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
-            </select>
-            {period === 'custom' && (
-              <>
-                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-              </>
-            )}
-            <PillToggle
-              options={CURRENCIES.map((c) => ({ key: c.key, label: c.label }))}
-              value={currency}
-              onChange={setCurrency}
-              size="sm"
-            />
-            <PillToggle
-              options={GROUPING_OPTIONS.map((g) => ({ key: g.key, label: g.label }))}
-              value={grouping}
-              onChange={setGrouping}
-              size="sm"
-            />
-            <MallMultiSelect
-              buildings={filteredBuildings}
-              selected={selectedMallIds}
-              onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })}
-              onClear={() => setSelectedMallIds(new Set())}
-              search={mallSearch}
-              onSearch={setMallSearch}
-            />
-          </div>
-        }
+        title="3.3 Costos y Tendencias"
+        description="Análisis de costos energéticos por centro comercial con proyecciones y descomposición de variación"
       />
 
-      {/* Summary KPIs */}
-      <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-        {summaryCards.map((card) => (
-          <div key={card.title} className="panel px-4 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">{card.title}</p>
-            <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{card.value}</p>
-          </div>
-        ))}
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          País
+          <DropdownSelect options={[{ value: 'CL', label: 'Chile' }, { value: 'PE', label: 'Perú' }, { value: 'CO', label: 'Colombia' }]} value={country} onChange={() => {}} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período
+          <DropdownSelect options={PERIODS.map((p) => ({ value: p.key, label: p.label }))} value={period} onChange={setPeriod} />
+        </span>
+        <span className="flex items-center gap-1">
+          Moneda
+          <DropdownSelect options={CURRENCIES.map((c) => ({ value: c.key, label: c.label }))} value={currency} onChange={setCurrency} />
+        </span>
+        <span className="flex items-center gap-1">
+          Agrupación
+          <DropdownSelect options={GROUPING_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} value={grouping} onChange={setGrouping} />
+        </span>
+        <MallMultiSelect
+          buildings={filteredBuildings}
+          selected={selectedMallIds}
+          onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })}
+          onClear={() => setSelectedMallIds(new Set())}
+          search={mallSearch}
+          onSearch={setMallSearch}
+        />
       </div>
 
-      {/* Waterfall — cost variation analysis */}
-      {monthlyData.length >= 2 && (() => {
-        const prevBucket = monthlyData[monthlyData.length - 2]!;
-        const currBucket = monthlyData[monthlyData.length - 1]!;
-        const prev = prevBucket.cost;
-        const curr = currBucket.cost;
-        const totalDelta = curr - prev;
+      {/* Row 1: Stacked bar chart + Waterfall (same height) */}
+      <div className="flex min-h-0 flex-1 basis-1/3 gap-3">
+        {/* Barras apiladas mensual — costo [UF] */}
+        <div className="panel flex min-w-0 flex-1 flex-col p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>
+          <p className="text-[9px] text-subtle">Línea eje secundario: precio medio [{currentCurrency.key}/MWh] · tooltip con desglose</p>
+          {monthlyData.length > 0 ? (
+            <Chart options={chartOptions} className="mt-1 min-h-0 flex-1" />
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Sin datos de facturación</div>
+          )}
+          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+        </div>
 
-        // Real decomposition when MWh data available, else proportional fallback
-        const prevMwh = prevBucket.mwh;
-        const currMwh = currBucket.mwh;
-        const prevPrice = prevMwh > 0 ? prev / prevMwh : 0;
-        const currPrice = currMwh > 0 ? curr / currMwh : 0;
-        const hasRealMwh = prevMwh > 0 && currMwh > 0;
-
-        // Δ Volume = (MWh_curr - MWh_prev) × price_prev
-        // Δ Price  = (price_curr - price_prev) × MWh_curr
-        // Δ Other  = residual
-        const volumeEffect = hasRealMwh ? (currMwh - prevMwh) * prevPrice : totalDelta * 0.5;
-        const priceEffect = hasRealMwh ? (currPrice - prevPrice) * currMwh : totalDelta * 0.3;
-        const otherEffect = totalDelta - volumeEffect - priceEffect;
-        const factors = [
-          { label: 'Período anterior', value: prev, type: 'base' as const },
-          { label: 'Δ Volumen', value: volumeEffect, type: 'delta' as const },
-          { label: 'Δ Precio', value: priceEffect, type: 'delta' as const },
-          { label: 'Otros', value: otherEffect, type: 'delta' as const },
-          { label: 'Período actual', value: curr, type: 'base' as const },
-        ];
-        const maxVal = Math.max(...factors.map((f) => Math.abs(f.value)), 1);
-        return (
-          <div className="panel shrink-0 p-4">
-            <h3 className="mb-3 text-[13px] font-medium text-foreground">Análisis de variación</h3>
-            <div className="space-y-1.5">
-              {factors.map((f) => {
-                const pct = (Math.abs(f.value) / maxVal) * 100;
-                const isPositive = f.value >= 0;
-                const barColor = f.type === 'base' ? 'bg-blue-400' : isPositive ? 'bg-red-400' : 'bg-emerald-400';
+        {/* Waterfall de variación de costo */}
+        <div className="panel flex min-w-0 flex-1 flex-col p-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
+          <p className="text-[9px] text-subtle">volumen · precio · mix de malls (verde baja, rojo sube)</p>
+          {waterfallFactors ? (
+            <div className="mt-2 flex min-h-0 flex-1 items-end gap-2">
+              {[
+                { label: 'Anterior', value: waterfallFactors.prev, color: 'bg-blue-400' },
+                { label: 'Δ Volumen', value: waterfallFactors.vol, color: waterfallFactors.vol >= 0 ? 'bg-red-400' : 'bg-emerald-400' },
+                { label: 'Δ Precio', value: waterfallFactors.price, color: waterfallFactors.price >= 0 ? 'bg-red-400' : 'bg-emerald-400' },
+                { label: 'Mix', value: waterfallFactors.mix, color: waterfallFactors.mix >= 0 ? 'bg-red-300' : 'bg-emerald-300' },
+                { label: 'Actual', value: waterfallFactors.curr, color: 'bg-blue-500' },
+              ].map((bar) => {
+                const maxVal = Math.max(waterfallFactors.prev, waterfallFactors.curr, 1);
+                const pct = (Math.abs(bar.value) / maxVal) * 100;
                 return (
-                  <div key={f.label} className="flex items-center gap-2 text-[12px]">
-                    <span className="w-28 shrink-0 text-right text-muted">{f.label}</span>
-                    <div className="h-4 flex-1 rounded bg-gray-100">
-                      <div className={`h-full rounded ${barColor}`} style={{ width: `${Math.max(2, pct)}%` }} />
+                  <div key={bar.label} className="flex flex-1 flex-col items-center gap-1">
+                    <div className="flex w-full flex-1 items-end justify-center">
+                      <div className={`w-full rounded-t ${bar.color}`} style={{ height: `${Math.max(4, pct)}%` }} />
                     </div>
-                    <span className={`w-24 shrink-0 text-right font-medium ${f.type === 'delta' ? (isPositive ? 'text-red-600' : 'text-emerald-600') : 'text-foreground'}`}>
-                      {f.type === 'delta' && isPositive ? '+' : ''}{formatCurrency(f.value, currentCurrency.key)}
-                    </span>
+                    <p className="text-[8px] text-muted">{bar.label}</p>
                   </div>
                 );
               })}
             </div>
-          </div>
-        );
-      })()}
-
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
-        {/* Chart */}
-        <div className="panel flex min-h-0 flex-1 flex-col p-4">
-          <h3 className="mb-2 shrink-0 text-[13px] font-medium text-foreground">Costo mensual por período</h3>
-          {monthlyData.length > 0 ? (
-            <Chart options={chartOptions} className="min-h-0 flex-1" />
           ) : (
-            <div className="flex flex-1 items-center justify-center text-[13px] text-muted">
-              Sin datos de facturación para el período.
-            </div>
+            <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Requiere ≥2 meses</div>
           )}
+          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
         </div>
+      </div>
 
-        {/* Cost table */}
-        <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex shrink-0 items-center gap-2 px-4 py-3">
-            <h3 className="flex-1 text-[13px] font-medium text-foreground">Costos por centro comercial</h3>
-            <label className="flex items-center gap-1 text-[11px] text-muted">
-              Var &gt;
-              <input
-                type="number"
-                min={0}
-                value={varThreshold ?? ''}
-                onChange={(e) => setVarThreshold(e.target.value ? Number(e.target.value) : null)}
-                placeholder="—"
-                className="w-12 rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-foreground outline-none"
-              />
-              %
-            </label>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar mall..."
-              className="w-36 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-brand"
-            />
-            <button
-              type="button"
-              onClick={() => downloadCsv(costRows, currentCurrency.key)}
-              className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
-            >
-              Exportar CSV
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <SortTh col="buildingName" label="Centro" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
-                  <SortTh col="countryCode" label="País" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
-                  <SortTh col="consumptionMwh" label="MWh" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
-                  <SortTh col="avgPricePerMwh" label="Precio medio" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
-                  <SortTh col="totalCost" label="Costo total" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
-                  <SortTh col="invoiceCount" label="Facturas" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
-                  <SortTh col="variationPct" label="Var. %" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
-                  <th className="px-3 py-2 text-right">Proy. mes</th>
-                  <th className="px-3 py-2 text-right">Proy. año</th>
-                </tr>
-              </thead>
+      {/* Row 2: Tabla de costos por mall */}
+      <div className="panel flex min-h-0 flex-1 basis-1/3 flex-col overflow-hidden p-3">
+        <div className="flex shrink-0 items-center gap-2">
+          <p className="flex-1 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de costos por mall (ordenable · exportable CSV/Excel)</p>
+          <button
+            type="button"
+            onClick={() => downloadCsv(costRows, currentCurrency.key)}
+            className="rounded-md border border-border px-2 py-1 text-[10px] text-muted hover:bg-surface"
+          >
+            Exportar CSV
+          </button>
+        </div>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <SortTh col="buildingName" label="Mall" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
+                <SortTh col="countryCode" label="País" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
+                <SortTh col="consumptionMwh" label="Consumo [MWh]" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                <SortTh col="avgPricePerMwh" label={`Precio medio [${currentCurrency.key}/MWh]`} sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                <SortTh col="totalCost" label="Costo total" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                <SortTh col="variationPct" label="Variación %" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
+                <th className="px-3 py-1.5 text-right">Proyección cierre</th>
+              </tr>
+            </thead>
+          </table>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="w-full">
               <tbody className="divide-y divide-border">
-                {costRows.map((row) => (
-                  <tr key={row.buildingId} className="transition-colors hover:bg-surface">
-                    <td className="px-4 py-2 font-medium text-foreground">{row.buildingName}</td>
-                    <td className="px-3 py-2 text-muted">{row.countryCode}</td>
-                    <td className="px-3 py-2 text-right text-muted">{row.consumptionMwh.toFixed(1)}</td>
-                    <td className="px-3 py-2 text-right text-muted">
-                      {row.avgPricePerMwh.toFixed(2)}
-                    </td>
-                    <td className="px-3 py-2 text-right font-medium text-foreground">
-                      {formatCurrency(row.totalCost, currentCurrency.key)}
-                    </td>
-                    <td className="px-3 py-2 text-right text-muted">{row.invoiceCount}</td>
-                    <td className="px-3 py-2 text-right text-[11px] text-muted">
-                      {row.variationPct != null ? `${row.variationPct > 0 ? '+' : ''}${row.variationPct.toFixed(1)}%` : '—'}
-                    </td>
-                    <td className="px-3 py-2 text-right text-[11px] text-muted">
-                      {(() => {
-                        const now = new Date();
-                        const dayOfMonth = now.getDate();
-                        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                        const proj = dayOfMonth > 0 ? (row.totalCost / dayOfMonth) * daysInMonth : row.totalCost;
-                        return formatCurrency(proj, currentCurrency.key);
-                      })()}
-                    </td>
-                    <td className="px-3 py-2 text-right text-[11px] text-muted">
-                      {formatCurrency(row.totalCost * 12, currentCurrency.key)}
+                {costRows.map((row, i) => (
+                  <tr key={row.buildingId} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
+                    <td className="px-3 py-1.5 font-medium text-foreground">{row.buildingName}</td>
+                    <td className="px-3 py-1.5 text-muted">{row.countryCode}</td>
+                    <td className="px-3 py-1.5 text-right text-muted">{row.consumptionMwh.toFixed(1)}</td>
+                    <td className="px-3 py-1.5 text-right text-muted">{row.avgPricePerMwh.toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right font-medium text-foreground">{formatCurrency(row.totalCost, currentCurrency.key)}</td>
+                    <td className="px-3 py-1.5 text-right text-muted">{row.variationPct != null ? `${row.variationPct > 0 ? '+' : ''}${row.variationPct.toFixed(1)}%` : '—'}</td>
+                    <td className="px-3 py-1.5 text-right text-muted">
+                      {(() => { const now = new Date(); const d = now.getDate(); const dm = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); return formatCurrency(d > 0 ? (row.totalCost / d) * dm : row.totalCost, currentCurrency.key); })()}
                     </td>
                   </tr>
                 ))}
                 {costRows.length === 0 && (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-muted">
-                      Sin datos de costos para el período seleccionado.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={7} className="px-3 py-6 text-center text-muted">Sin datos de costos para el período seleccionado.</td></tr>
                 )}
               </tbody>
-              {costRows.length > 0 && (
-                <tfoot className="border-t border-border bg-surface/50">
-                  <tr className="font-medium text-foreground">
-                    <td className="px-4 py-2">Total</td>
-                    <td className="px-3 py-2" />
-                    <td className="px-3 py-2 text-right">{totalMwh.toFixed(1)}</td>
-                    <td className="px-3 py-2 text-right">{avgPrice.toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right">{formatCurrency(totalCost, currentCurrency.key)}</td>
-                    <td className="px-3 py-2 text-right">{costRows.reduce((s, r) => s + r.invoiceCount, 0)}</td>
-                    <td className="px-3 py-2" />
-                    <td className="px-3 py-2" />
-                    <td className="px-3 py-2" />
-                  </tr>
-                </tfoot>
-              )}
             </table>
           </div>
         </div>
+        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-22, FIN-07, DAT-12]</p>
+      </div>
+
+      {/* Row 3: Proyecciones — 2 meses */}
+      <div className="panel shrink-0 p-3">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
+        <p className="text-[9px] text-subtle">barras con trama diferente · base tendencia últimos 3 meses</p>
+        <div className="mt-2 flex items-end gap-2" style={{ height: '60px' }}>
+          {monthlyData.slice(-3).map((d) => {
+            const maxCost = Math.max(1, ...monthlyData.map((m) => m.cost), ...projectionBars.map((p) => p.cost));
+            const pct = (d.cost / maxCost) * 100;
+            return (
+              <div key={d.month} className="flex flex-1 flex-col items-center gap-0.5">
+                <div className="w-full rounded-t bg-blue-400" style={{ height: `${Math.max(4, pct)}%` }} />
+                <p className="text-[8px] text-muted">{d.month}</p>
+              </div>
+            );
+          })}
+          {projectionBars.map((p) => {
+            const maxCost = Math.max(1, ...monthlyData.map((m) => m.cost), ...projectionBars.map((pb) => pb.cost));
+            const pct = (p.cost / maxCost) * 100;
+            return (
+              <div key={p.month} className="flex flex-1 flex-col items-center gap-0.5">
+                <div className="w-full rounded-t border-2 border-dashed border-amber-400 bg-amber-100" style={{ height: `${Math.max(4, pct)}%` }} />
+                <p className="text-[8px] text-muted">{p.month}</p>
+              </div>
+            );
+          })}
+          <span className="ml-1 self-center text-[9px] text-muted">→ proyección</span>
+        </div>
+        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
       </div>
     </div>
   );

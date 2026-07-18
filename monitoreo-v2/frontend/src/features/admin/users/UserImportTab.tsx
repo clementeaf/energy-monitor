@@ -140,7 +140,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
   const validCount = summary?.validRows ?? 0;
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-3xl space-y-4">
       {step === 'upload' && (
         <section className="space-y-4">
           <div className="panel p-4 text-sm text-muted">

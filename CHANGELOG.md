@@ -1,5 +1,43 @@
 # Changelog
 
+## [2.46.0-alpha.0] - 2026-07-17 — WIREFRAME V3 COMPLETE: AUDITOR + SÚPER-ADMIN (35/35 SCREENS)
+
+### Changed — Perfil Auditor (6 pantallas)
+- **Sidebar auditor aplanado** — 6 entradas planas: Calidad de Datos, Cuadratura, Pista de Auditoría, Trazabilidad, Datos Crudos, Exportar Evidencia. Sin agrupación (era 1 grupo "Auditoría" con 6 children).
+- **6.1 Calidad de Datos** — 2 filas: Scorecard calidad por mall (tabla Mall/Período/Lecturas esperadas/Reales #%/Estimadas #%/CNR #%/Faltantes #%/Tendencia, semáforo por fila, exportable CSV) + Evolución calidad % lecturas reales (línea SVG 12 meses con umbral 95% dashed) + Medidores baja calidad (tabla expandible). Refs `[DAT-06, DAT-17, DAT-08]`.
+- **6.2 Cuadratura y Agregación** — 3 filas: Tabla reconciliación (Zona/Piso, Remarcador general kWh, Suma sub-medidores kWh, Diferencia kWh/%, tolerancia ≤2%) + Análisis desviaciones mensual (barras 12 meses, fuera tolerancia resaltadas) + Meses fuera tolerancia (tabla con link datos crudos) + Exportación firmada reconciliación (hash SHA-256, botones Descargar/Verificar). Refs `[DAT-16, DAT-08, DAT-12, DAT-07, CYB-10]`.
+- **6.3 Pista de Auditoría** — **NUEVA pantalla**. 2 columnas: Timeline inmutable (cronología inversa, sin edición/borrado, retención 12 meses, formato "HH:mm · user · action · detail · IP · sesión") + Resumen actividad heatmap 7×24 (densidad acciones por día/hora) + Top 10 usuarios por nº acciones. Botones: Exportar CSV completo + Verificar integridad. Ruta `/auditor/pista`. Refs `[DAT-14, DAT-23, CYB-10]`.
+- **6.4 Trazabilidad** — 2 filas: Panel linaje por lectura (valor mostrado + tipo + 4 reglas derivación real/estimado/CNR/backfill) + Valor crudo del medidor (tabla Timestamp UTC/Valor raw/Unidad/Flag calidad) + Valor procesado → mostrado en dashboard (tabla Timestamp UTC/Valor procesado/Transformación/Valor dashboard). Refs `[DAT-19, DAT-20, DAT-14]`.
+- **6.5 Datos Crudos** — 2 filas + action bar: Vista previa 100 filas raw (Timestamp UTC/Valor raw/Unidad/Flag calidad/Flag anomalía) + Exportación (Parquet/CSV/JSON, metadata header, hash SHA-256) + Restricción DAT-30 (datos NO para ML fuera PASA). 4 botones: Exportar Parquet (primary) + CSV + JSON + Verificar hash. Refs `[DAT-07, DAT-06, DAT-04, DAT-12, CYB-10, DAT-30]`.
+- **6.6 Exportar Evidencia** — 2 filas: Configurador paquete (contenido multi-select, mall, período, formato ZIP firmado) + Firma digital (SHA-256, sello tiempo, firma plataforma) + Vista previa ZIP (/pdf /csv /manifest-firma.txt) + Historial evidencias exportadas (Fecha/Usuario/Contenido/Período/Hash SHA-256/Descarga, link válido 90 días). Refs `[DAT-07, DAT-12, CYB-10, DAT-14]`.
+
+### Changed — Perfil Súper-admin (10 pantallas)
+- **Sidebar súper-admin aplanado** — 10 entradas planas: Tenants y Malls, Usuarios y Roles, Seguridad y PAM, Observabilidad, Config y Releases, Integraciones, SLOs de Datos, Throttle y Cargas, Retención y Privacidad, Réplica de Datos. Sin agrupación (era Plataforma/Administración/Integraciones/Mapa Indoor con children).
+- **7.1 Tenants y Malls** — 2 filas: Lista tenants (Tenant ID/Mall/País/Estado/Nº medidores/Nº usuarios/Fecha alta/Versión contrato, fila expandible) + Detalle configuración base + Estadísticas uso 30d + Historial cambios config (inmutable, quién/campo/anterior/nuevo/aprobación) + Botones Crear/Activar/Desactivar con nota CYB-15. Refs `[ARQ-05, FIN-02, FIN-03, FIN-04, DAT-19, DAT-14]`.
+- **7.2 Usuarios y Roles** — 2 filas: Lista usuarios (Nombre/Email/Tenant-mall/Perfil/Estado/Último acceso/MFA, fila expandible) + Detalle permisos efectivos + Historial accesos y cambios rol (timeline 30 sesiones) + Permisos sin uso >90d (revocación masiva auditada) + Botones Asignar perfil/Revocar acceso. Refs `[CYB-03, ARQ-10, CYB-02, DAT-14, CYB-21]`.
+- **7.3 Seguridad y PAM** — Grid 5×3 (15 paneles): Vulnerabilidades + Certificados TLS + Cifrado AES-256 + WAF/DDoS/IDS-IPS + Hardening CIS + EDR/antivirus + Inventario SBOM + PAM cuentas privilegiadas + Bóveda JIT + Incidentes seguridad + BCP/DRP + Integridad backups + Escaneo DAST + Informe Pentest anual + Borrado criptográfico. Refs `[CYB-04..CYB-23, ARQ-11..ARQ-20, INT-04, PRI-02, DAT-07..DAT-14]`.
+- **7.4 Observabilidad** — 3 filas: 4 KPI cards (Uptime 99,82% / Latencia 142ms / Error rate 0,4% / p95 468ms) + Health dashboard semáforo (API/BD/Cola/Ingestión/Backfill) + Métricas ingestión datos + 3 charts SVG (Latencia por endpoint con umbral 500ms / Tasa errores 4xx-5xx / Throughput mensajes). Refs `[ARQ-08, FIN-06, DAT-09, ARQ-21, INT-08, DAT-27]`.
+- **7.5 Config y Releases** — 2 filas: Pipeline releases (Versión/Descripción/Estado/Tests QA/Aprobaciones, fila expandible con diff) + Control despliegue (GATE aprobación PASA, botones Solicitar deploy/Rollback) + Historial despliegues + IaC diff viewer (dark theme, +/- líneas, commit metadata). Refs `[CYB-15, ARQ-06, ARQ-16, DAT-14, CYB-10]`.
+- **7.6 Integraciones** — Página existente sin cambios de wireframe.
+- **7.7 SLOs de Datos** — **NUEVA pantalla**. 2 filas: SLOs por dimensión (tabla Dimensión/Objetivo/Actual/Estado/Tendencia 7d) + SLO latencia API p95 (línea SVG con umbral 500ms dashed) + Historial incumplimientos (tabla expandible con causa raíz, exportable) + Configurador SLOs (form 5 campos, cambios auditados). Ruta `/admin/slos`. Refs `[DAT-26, INT-08, FIN-06, DAT-14]`.
+- **7.8 Throttle y Cargas** — **NUEVA pantalla**. 3 filas: Quotas API por tenant (tabla con % uso, alerta >80%) + Consumo API (línea SVG 24h con umbral) + Log throttling (detecta falsos positivos ETL PASA) + Configurador quotas (whitelist IPs exentas) + Estado extracciones incrementales (alerta cursor >4h) + Configurador modo extracción + Historial extracciones (últimas 100). Ruta `/admin/throttle`. Refs `[DAT-15, DAT-09, DAT-14, CYB-03, DAT-21, DAT-24, DAT-19]`.
+- **7.9 Retención y Privacidad** — **NUEVA pantalla**. 3 filas: Catálogo políticas retención (anonimizar/eliminar/archivar) + Formulario nueva política (minimización por proceso/país/finalidad) + Cola ejecución (GATE aprobación PASA, botones Ejecutar borrado/Enviar aprobación) + Configurador campos por proceso/país (heatmap obligatorio/opcional/no permitido) + Historial ejecuciones (inmutable, hash verificación). Ruta `/admin/retencion`. Refs `[PRI-05, PRI-08, CYB-12, DAT-14, CYB-10]`.
+- **7.10 Réplica de Datos** — **NUEVA pantalla**. 3 filas: Estado réplica NRT (lag 42s, umbral 300s, última réplica, volumen 24h) + Histograma lag (barras SVG 24h/7d) + Acceso réplica por tenant/ETL (tabla con revocación individual) + Monitor cambios esquema (badge rojo si plazo 30 días incumplido) + Contratos datos versionados (backward compatibility, deprecación) + Alerta anticipación 30 días (botón Notificar a PASA ahora). Ruta `/admin/replica`. Refs `[DAT-01, DAT-26, CYB-03, DAT-13, DAT-25, INT-06, DAT-14]`.
+
+### Fixed — Tests
+- **826→855 tests** — 29 tests nuevos (4 páginas admin reescritas). 22 test files corregidos en sesión anterior (auditor + perfiles previos). MisOrdenesPage.tsx restaurado de truncación (literal `// ... N lines omitted`).
+- **profile-nav.test.ts** — Actualizado para sidebar plano (auditor 6 flat + super_admin 10 flat).
+- **0 TS errors**. Build limpio.
+
+### Stats
+- Wireframe v3 alignment **completo**: 35/35 pantallas (6 gerencial + 6 operacional + 7 técnico + 6 auditor + 10 súper-admin).
+- 5 nuevas pantallas creadas (PistaAuditoria, SlosDatos, ThrottleCargas, RetencionPrivacidad, ReplicaDatos).
+- 5 sidebars aplanados a entradas planas (todos los perfiles).
+- 855/855 tests pass. 72/72 test files pass.
+- 0 TS errors.
+
+---
+
 ## [2.45.0-alpha.0] - 2026-07-17 — WIREFRAME V3 ALIGNMENT + LAYOUT OVERHAUL
 
 ### Changed — Perfil Técnico (7 pantallas)

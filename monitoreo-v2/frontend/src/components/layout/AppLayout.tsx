@@ -10,7 +10,7 @@ export function AppLayout() {
         <div className="relative z-20 flex shrink-0 self-stretch overflow-visible">
           <Sidebar />
         </div>
-        <main className="flex-1 overflow-hidden pl-1 pr-1 pb-1">
+        <main className="flex-1 overflow-hidden pl-2 pr-2 pb-1.5">
           <div className="h-full w-full overflow-y-auto">
             <MainContentOutlet />
           </div>

@@ -307,87 +307,76 @@ export function TenantsMallsPage() {
         </div>
       </div>
 
-      {/* Row 2 — Historial + Acciones */}
-      <div className="flex gap-4" style={{ flex: '0 0 auto' }}>
-        {/* Left 60% — Historial de cambios */}
-        <div className="panel flex flex-col overflow-hidden" style={{ flex: '0 0 60%', minHeight: '220px' }}>
-          <div className="border-b border-border px-3 py-2">
-            <p className="text-[13px] font-medium text-foreground">Historial de cambios de configuración del tenant</p>
-            <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp (DAT-14)</p>
-          </div>
-          <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
-              <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="px-3 py-2">Fecha</th>
-                  <th className="px-3 py-2">Usuario</th>
-                  <th className="px-3 py-2">Campo</th>
-                  <th className="px-3 py-2">Valor anterior</th>
-                  <th className="px-3 py-2">Valor nuevo</th>
-                  <th className="px-3 py-2">Aprobación</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {configHistory.length > 0 ? configHistory.map((h) => (
-                  <tr key={h.id} className="hover:bg-surface">
-                    <td className="px-3 py-2 text-[11px] text-muted">{h.date}</td>
-                    <td className="px-3 py-2 text-foreground">{h.user}</td>
-                    <td className="px-3 py-2 text-muted">{h.action}</td>
-                    <td className="px-3 py-2 text-muted">—</td>
-                    <td className="px-3 py-2 text-muted">—</td>
-                    <td className="px-3 py-2">
-                      <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">aprobado</span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={6} className="px-3 py-6 text-center text-[12px] text-muted">Sin cambios registrados.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">Ref [DAT-19, DAT-14]</p>
+      {/* Row 2 — Historial + acciones integradas */}
+      <div className="panel flex flex-col overflow-hidden" style={{ minHeight: '220px' }}>
+        <div className="border-b border-border px-3 py-2">
+          <p className="text-[13px] font-medium text-foreground">Historial de cambios de configuración del tenant</p>
+          <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp (DAT-14)</p>
         </div>
-
-        {/* Right 40% — Acciones */}
-        <div className="panel flex flex-col p-4" style={{ flex: '0 0 40%' }}>
-          <div className="flex flex-wrap items-center gap-2 pb-3">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/companies')}
-              className="rounded-md bg-brand px-4 py-1.5 text-[12px] font-medium text-brand-fg hover:opacity-90"
-            >
-              Crear tenant
-            </button>
-            <button
-              type="button"
-              disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'activo'}
-              onClick={() => {
-                if (!selectedTenant) return;
-                updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } });
-              }}
-              className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
-            >
-              Activar
-            </button>
-            <button
-              type="button"
-              disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'inactivo'}
-              onClick={() => {
-                if (!selectedTenant) return;
-                if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
-                updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
-              }}
-              className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
-            >
-              Desactivar
-            </button>
-          </div>
-
-          {/* Nota CYB-15 */}
-          <div className="mt-auto rounded-md border border-amber-200 bg-amber-50 p-2.5 text-[10px] text-amber-800">
-            <p className="font-medium">Gate PASA (CYB-15)</p>
-            <p className="mt-0.5">Crear / Activar / Desactivar no se ejecuta directamente — abre flujo de aprobación. Toda acción queda en pista de auditoría.</p>
-          </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          <table className="w-full text-[13px]">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                <th className="px-3 py-2">Fecha</th>
+                <th className="px-3 py-2">Usuario</th>
+                <th className="px-3 py-2">Campo</th>
+                <th className="px-3 py-2">Valor anterior</th>
+                <th className="px-3 py-2">Valor nuevo</th>
+                <th className="px-3 py-2">Aprobación</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {configHistory.length > 0 ? configHistory.map((h) => (
+                <tr key={h.id} className="hover:bg-surface">
+                  <td className="px-3 py-2 text-[11px] text-muted">{h.date}</td>
+                  <td className="px-3 py-2 text-foreground">{h.user}</td>
+                  <td className="px-3 py-2 text-muted">{h.action}</td>
+                  <td className="px-3 py-2 text-muted">—</td>
+                  <td className="px-3 py-2 text-muted">—</td>
+                  <td className="px-3 py-2">
+                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">aprobado</span>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-[12px] text-muted">Sin cambios registrados.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Action bar + nota */}
+        <div className="flex items-center gap-3 border-t border-border px-3 py-2">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/companies')}
+            className="rounded-md bg-brand px-4 py-1.5 text-[12px] font-medium text-brand-fg hover:opacity-90"
+          >
+            Crear tenant
+          </button>
+          <button
+            type="button"
+            disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'activo'}
+            onClick={() => {
+              if (!selectedTenant) return;
+              updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } });
+            }}
+            className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+          >
+            Activar
+          </button>
+          <button
+            type="button"
+            disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'inactivo'}
+            onClick={() => {
+              if (!selectedTenant) return;
+              if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
+              updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
+            }}
+            className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+          >
+            Desactivar
+          </button>
+          <span className="ml-auto text-[10px] text-amber-600">Gate PASA (CYB-15) · requiere aprobación</span>
+          <span className="text-[10px] text-muted">[DAT-19, DAT-14]</span>
         </div>
       </div>
     </div>

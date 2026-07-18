@@ -53,7 +53,7 @@ export function ThrottleCargasPage() {
   const [extractForm, setExtractForm] = useState({ integracion: '', modo: 'incremental', cursor: 'timestamp', overlap: '5' });
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto">
+    <div className="flex h-full flex-col gap-3 overflow-y-auto overflow-x-hidden">
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.8 Throttle y Cargas</h1>
@@ -63,13 +63,13 @@ export function ThrottleCargasPage() {
       {/* Row 1 */}
       <div className="flex gap-3">
         {/* Quotas */}
-        <div className="panel flex flex-col" style={{ flex: '0 0 50%' }}>
+        <div className="panel flex flex-col" style={{ flex: '1 1 0', minWidth: 0 }}>
           <div className="shrink-0 px-4 pt-4 pb-2">
             <h3 className="text-[13px] font-semibold text-foreground">Quotas de API por tenant</h3>
             <p className="text-[11px] text-muted">alerta si un tenant supera el 80% de su cuota</p>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[12px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="sticky top-0 bg-white px-3 py-2">Tenant</th>
@@ -112,7 +112,7 @@ export function ThrottleCargasPage() {
         </div>
 
         {/* Consumo chart */}
-        <div className="panel flex flex-col p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel flex flex-col p-4" style={{ flex: '1 1 0', minWidth: 0 }}>
           <div className="shrink-0">
             <h3 className="text-[13px] font-semibold text-foreground">Consumo de API por tenant</h3>
             <p className="mb-2 text-[11px] text-muted">requests/hora 24h · línea horizontal en el límite configurado</p>
@@ -146,10 +146,10 @@ export function ThrottleCargasPage() {
       {/* Row 2 */}
       <div className="flex gap-3">
         {/* Log throttling */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel p-4" style={{ flex: '1 1 0', minWidth: 0 }}>
           <h3 className="text-[13px] font-semibold text-foreground">Log de eventos de throttling</h3>
           <p className="mb-3 text-[11px] text-muted">detecta falsos positivos que afecten ETL legítimos de PASA</p>
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[12px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="sticky top-0 bg-white px-3 py-2">Tenant</th>
@@ -162,7 +162,7 @@ export function ThrottleCargasPage() {
               {THROTTLE_LOG.map((t, i) => (
                 <tr key={i} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
                   <td className="px-3 py-2 font-medium text-foreground">{t.tenant}</td>
-                  <td className="px-3 py-2 font-mono text-[11px] text-muted">{t.endpoint}</td>
+                  <td className="max-w-[120px] truncate px-3 py-2 font-mono text-[10px] text-muted" title={t.endpoint}>{t.endpoint}</td>
                   <td className="px-3 py-2 text-[11px] font-mono text-red-600">{t.bloqueadas}</td>
                   <td className="px-3 py-2 font-mono text-[11px] text-muted">{t.ip}</td>
                 </tr>
@@ -214,7 +214,7 @@ export function ThrottleCargasPage() {
         <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Estado de extracciones incrementales</h3>
           <p className="mb-3 text-[11px] text-muted">indicador si el cursor lleva &gt; 4h sin avanzar (DAT-24)</p>
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[12px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="sticky top-0 bg-white px-3 py-2">Integración</th>
@@ -287,7 +287,7 @@ export function ThrottleCargasPage() {
       <div className="panel p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Historial de extracciones</h3>
           <p className="mb-3 text-[11px] text-muted">últimas 100 por integración · audita eficiencia incremental vs. full-load</p>
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[12px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
                 <th className="sticky top-0 bg-white px-3 py-2">Inicio</th>

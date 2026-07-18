@@ -1,5 +1,67 @@
 # Changelog
 
+## [2.46.1-alpha.0] - 2026-07-18 — UX POLISH + LAYOUT FIXES
+
+### Fixed — Layout global
+- **Main padding** — `p-2 md:p-3` → `p-5`. Más espacio respirable sin desperdiciar ancho.
+- **Sidebar→content gap** — Removido `mx-auto` + `max-w-screen-2xl` wrapper. Contenido pegado al layout.
+- **Header z-index** — `z-30` en `<header>` para que dropdowns de Vista/Empresa no queden detrás del contenido.
+- **Country switcher removido** — Banderas CL/CO/PE eliminadas del navbar (62 líneas menos).
+
+### Fixed — Tenants y Malls (7.1)
+- **Detalle tenant** — Header sticky con nombre del tenant seleccionado (antes "tenant seleccionado en la lista"). Layout `<dl>` estructurado por campo.
+- **Lista tenants** — Row 1 `flex-1` (tabla no crece al hacer click). Skeleton loading 5 filas pulsantes hasta que las 5 queries completan (fix flicker onboarding→activo).
+- **Actions** — Botones fusionados al footer del panel Historial (eliminado card vacío con espacio muerto). Inline horizontal, nota CYB-15 compacta.
+
+### Fixed — Usuarios y Roles (7.2)
+- **Lista usuarios** — Row 1 `flex-1` con scroll interno (no empuja scroll a la vista).
+- **Acciones** — "Editar" y "Eliminar" reemplazados por iconos SVG (pencil/trash) con tooltip. `stopPropagation` en click.
+- **Tab Importar** — Todas las secciones con `panel` class (bg-white + border). `max-w-3xl` alineado izquierda.
+
+### Fixed — Integraciones (7.6)
+- **Título duplicado** — Removido eyebrow "Integraciones" (era título + eyebrow ambos iguales). Ahora "7.6 Integraciones".
+- **Acciones tabla** — Historial/Sincronizar/Editar/Eliminar reemplazados por iconos (clock/sync/pencil/trash).
+
+### Fixed — SLOs de Datos (7.7)
+- **Sin scroll vista** — Row 1 `shrink-0`, Row 2 `flex-1 min-h-0` con scroll interno en tabla breaches.
+- **Chart latencia p95** — `flex-1` llena ~85% del espacio de la card (antes `height: 120` fijo).
+- **Configurador SLOs** — Header sticky fuera del scroll container.
+
+### Fixed — Throttle y Cargas (7.8)
+- **Sin scroll horizontal** — Root `overflow-x-hidden`. Paneles `w-1/2 min-w-0` (antes `flex: 0 0 50%` + gap = overflow). Endpoint truncado `max-w-[120px]`.
+- **Chart consumo API** — `flex-1` llena espacio disponible.
+- **Quotas tabla** — Headers compactos (Req/h, Req/d), progress bar `w-12`, padding reducido.
+- **Layout 4 filas** — Row 2: log + configurador (50/50). Row 3: extracciones + modo. Row 4: historial full-width.
+
+### Fixed — Retención y Privacidad (7.9)
+- **Sin scroll horizontal** — Root `overflow-x-hidden`, paneles `w-1/2 min-w-0`, texto 10-11px, padding compacto. Cola ejecución full-width con botones en footer.
+
+### Fixed — Réplica de Datos (7.10)
+- **Sin scroll horizontal** — Paneles `w-1/2 min-w-0`.
+- **Histograma lag** — `flex-1` llena espacio de la card.
+
+### Fixed — Panel Consolidado (3.1)
+- **Feed eventos críticos** — `flex-1 min-h-0` llena alto restante de columna derecha. Removido `max-h-20` (80px fijo) de la lista.
+
+### Fixed — Costos y Tendencias (3.3)
+- **Chart barras apiladas** — `height: 160` fijo en Highcharts (antes `'100%'` causaba stretch excesivo). Eje 0 visible.
+- **Tabla costos** — `flex: 0 1 30%` (más compacta).
+- **Proyecciones** — Valores encima de cada barra, leyenda Real/Proyectado, meses abreviados.
+
+### Fixed — Sesión
+- **Modal "Sesión inactiva"** — "Continuar trabajando" intenta `POST /auth/refresh` antes de redirigir a login. Si token vive, cierra modal y sigue. Título cambiado de "Sesión expirada" a "Sesión inactiva".
+
+### Fixed — Tipografía global
+- **Títulos cards** — `text-[10px]` → `text-[12px]` en 27 archivos. Legible en todas las vistas.
+- **Subtítulos cards** — `text-[9px] text-subtle` → `text-[11px] text-muted`. Eliminado color `text-subtle` (ilegible).
+
+### Stats
+- 855/855 tests pass. 0 TS errors.
+- 27 archivos con fix tipográfico global.
+- Frontend desplegado en `power-monitor.cloud`.
+
+---
+
 ## [2.46.0-alpha.0] - 2026-07-17 — WIREFRAME V3 COMPLETE: AUDITOR + SÚPER-ADMIN (35/35 SCREENS)
 
 ### Changed — Perfil Auditor (6 pantallas)

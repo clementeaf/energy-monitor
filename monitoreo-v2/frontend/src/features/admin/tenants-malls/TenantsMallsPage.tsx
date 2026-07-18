@@ -349,7 +349,7 @@ export function TenantsMallsPage() {
         </div>
 
         {/* Right 40% — Acciones */}
-        <div className="panel flex flex-col justify-between p-4" style={{ flex: '0 0 40%' }}>
+        <div className="panel flex flex-col gap-3 p-4" style={{ flex: '0 0 40%', alignSelf: 'start' }}>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"

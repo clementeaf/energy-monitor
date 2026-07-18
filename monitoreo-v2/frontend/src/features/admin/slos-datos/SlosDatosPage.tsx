@@ -70,19 +70,19 @@ export function SlosDatosPage() {
   });
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto">
+    <div className="flex h-full flex-col gap-3 overflow-hidden">
       {/* Header */}
-      <div>
+      <div className="shrink-0">
         <h1 className="text-lg font-semibold text-foreground">7.7 SLOs de Datos</h1>
         <p className="text-[12px] text-muted">Objetivos de nivel de servicio para datos — cumplimiento, historial de incumplimientos y configuración</p>
       </div>
 
-      {/* Row 1 */}
-      <div className="flex gap-4">
+      {/* Row 1 — compact */}
+      <div className="flex shrink-0 gap-3">
         {/* SLOs por dimensión */}
         <div className="panel p-4" style={{ flex: '0 0 50%' }}>
           <h3 className="text-[13px] font-semibold text-foreground">SLOs por dimensión de dato</h3>
-          <p className="mb-3 text-[11px] text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
+          <p className="mb-2 text-[11px] text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -170,12 +170,15 @@ export function SlosDatosPage() {
         </div>
       </div>
 
-      {/* Row 2 */}
-      <div className="flex gap-4">
+      {/* Row 2 — fills remaining space */}
+      <div className="flex min-h-0 flex-1 gap-3">
         {/* Historial de incumplimientos */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
-          <h3 className="text-[13px] font-semibold text-foreground">Historial de incumplimientos de SLO</h3>
-          <p className="mb-3 text-[11px] text-muted">causa raíz registrada · exportable para revisión con PASA</p>
+        <div className="panel flex min-h-0 flex-col" style={{ flex: '0 0 50%' }}>
+          <div className="shrink-0 p-4 pb-2">
+            <h3 className="text-[13px] font-semibold text-foreground">Historial de incumplimientos de SLO</h3>
+            <p className="text-[11px] text-muted">causa raíz registrada · exportable para revisión con PASA</p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -225,11 +228,12 @@ export function SlosDatosPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-26, FIN-06, DAT-14]</span>
+          </div>
+          <span className="block shrink-0 border-t border-border px-4 py-1.5 text-right text-[10px] text-muted">[DAT-26, FIN-06, DAT-14]</span>
         </div>
 
         {/* Configurador de SLOs */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel overflow-y-auto p-4" style={{ flex: '0 0 50%' }}>
           <h3 className="text-[13px] font-semibold text-foreground">Configurador de SLOs</h3>
           <p className="mb-3 text-[11px] text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>
           <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>

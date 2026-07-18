@@ -61,7 +61,7 @@ export function ThrottleCargasPage() {
       </div>
 
       {/* Row 1 */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {/* Quotas */}
         <div className="panel flex flex-col" style={{ flex: '0 0 50%' }}>
           <div className="shrink-0 px-4 pt-4 pb-2">
@@ -144,9 +144,9 @@ export function ThrottleCargasPage() {
       </div>
 
       {/* Row 2 */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {/* Log throttling */}
-        <div className="panel p-4 flex-1">
+        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
           <h3 className="text-[13px] font-semibold text-foreground">Log de eventos de throttling</h3>
           <p className="mb-3 text-[11px] text-muted">detecta falsos positivos que afecten ETL legítimos de PASA</p>
           <table className="w-full text-[13px]">
@@ -173,7 +173,7 @@ export function ThrottleCargasPage() {
         </div>
 
         {/* Configurador de quotas */}
-        <div className="panel p-4 flex-1">
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Configurador de quotas</h3>
           <p className="mb-3 text-[11px] text-muted">whitelist de IPs exentas · cambios auditados (usuario/timestamp)</p>
           <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
@@ -206,8 +206,12 @@ export function ThrottleCargasPage() {
           <span className="block text-right text-[10px] text-muted mt-2">[DAT-15, CYB-03]</span>
         </div>
 
+      </div>
+
+      {/* Row 3 */}
+      <div className="flex gap-3">
         {/* Estado extracciones incrementales */}
-        <div className="panel p-4 flex-1">
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Estado de extracciones incrementales</h3>
           <p className="mb-3 text-[11px] text-muted">indicador si el cursor lleva &gt; 4h sin avanzar (DAT-24)</p>
           <table className="w-full text-[13px]">
@@ -235,12 +239,9 @@ export function ThrottleCargasPage() {
           </table>
           <span className="block text-right text-[10px] text-muted mt-2">[DAT-21, DAT-24]</span>
         </div>
-      </div>
 
-      {/* Row 3 */}
-      <div className="flex gap-4">
         {/* Configurador modo extracción */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Configurador de modo de extracción</h3>
           <p className="mb-3 text-[11px] text-muted">incremental / full-load · ventana de overlap para registros tardíos</p>
           <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
@@ -280,8 +281,10 @@ export function ThrottleCargasPage() {
           <span className="block text-right text-[10px] text-muted mt-2">[DAT-21]</span>
         </div>
 
-        {/* Historial extracciones */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+      </div>
+
+      {/* Row 4 */}
+      <div className="panel p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Historial de extracciones</h3>
           <p className="mb-3 text-[11px] text-muted">últimas 100 por integración · audita eficiencia incremental vs. full-load</p>
           <table className="w-full text-[13px]">
@@ -313,7 +316,6 @@ export function ThrottleCargasPage() {
             </tbody>
           </table>
           <span className="block text-right text-[10px] text-muted mt-2">[DAT-21, DAT-19]</span>
-        </div>
       </div>
     </div>
   );

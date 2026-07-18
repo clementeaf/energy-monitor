@@ -1032,7 +1032,7 @@ function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[];
   if (recent.length === 0) return <p className="text-[11px] text-muted">Sin eventos críticos.</p>;
 
   return (
-    <ul className="max-h-20 space-y-0.5 overflow-y-auto text-[11px]">
+    <ul className="space-y-0.5 text-[11px]">
       {recent.map((a) => {
         const ago = Math.round((Date.now() - new Date(a.createdAt).getTime()) / 60_000);
         const agoLabel = ago < 60 ? `${ago}m` : `${Math.round(ago / 60)}h`;

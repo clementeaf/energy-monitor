@@ -63,7 +63,7 @@ export function ThrottleCargasPage() {
       {/* Row 1 */}
       <div className="flex gap-3">
         {/* Quotas */}
-        <div className="panel flex flex-col" style={{ flex: '1 1 0', minWidth: 0 }}>
+        <div className="panel flex w-1/2 min-w-0 flex-col">
           <div className="shrink-0 px-4 pt-4 pb-2">
             <h3 className="text-[13px] font-semibold text-foreground">Quotas de API por tenant</h3>
             <p className="text-[11px] text-muted">alerta si un tenant supera el 80% de su cuota</p>
@@ -109,7 +109,7 @@ export function ThrottleCargasPage() {
         </div>
 
         {/* Consumo chart */}
-        <div className="panel flex flex-col p-4" style={{ flex: '1 1 0', minWidth: 0 }}>
+        <div className="panel flex w-1/2 min-w-0 flex-col p-4">
           <div className="shrink-0">
             <h3 className="text-[13px] font-semibold text-foreground">Consumo de API por tenant</h3>
             <p className="mb-2 text-[11px] text-muted">requests/hora 24h · línea horizontal en el límite configurado</p>

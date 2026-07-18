@@ -100,7 +100,7 @@ export function UsersPage() {
   ] : [];
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto">
       {/* Page title */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.2 Usuarios y Roles</h1>

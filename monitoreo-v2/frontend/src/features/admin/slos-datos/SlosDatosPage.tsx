@@ -233,9 +233,12 @@ export function SlosDatosPage() {
         </div>
 
         {/* Configurador de SLOs */}
-        <div className="panel overflow-y-auto p-4" style={{ flex: '0 0 50%' }}>
-          <h3 className="text-[13px] font-semibold text-foreground">Configurador de SLOs</h3>
-          <p className="mb-3 text-[11px] text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>
+        <div className="panel flex min-h-0 flex-col" style={{ flex: '0 0 50%' }}>
+          <div className="shrink-0 px-4 pt-4 pb-2">
+            <h3 className="text-[13px] font-semibold text-foreground">Configurador de SLOs</h3>
+            <p className="text-[11px] text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
             <div>
               <label className="mb-1 block text-[11px] font-medium text-muted">Dimensión de dato</label>
@@ -298,7 +301,8 @@ export function SlosDatosPage() {
               </button>
             </div>
           </form>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-26]</span>
+          </div>
+          <span className="block shrink-0 px-4 pb-2 text-right text-[10px] text-muted">[DAT-26]</span>
         </div>
       </div>
     </div>

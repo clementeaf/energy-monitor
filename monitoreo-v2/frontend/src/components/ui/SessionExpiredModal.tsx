@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import { setSessionExpiredHandler } from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
+import api from '../../services/api';
 
 export function SessionExpiredModal() {
   const [open, setOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const clearSession = useAuthStore((s) => s.clearSession);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const idleTimeoutMinutes = useAuthStore((s) => s.idleTimeoutMinutes);
@@ -18,19 +20,26 @@ export function SessionExpiredModal() {
   // CYB-06: client-side idle detection mirrors backend guard
   useIdleTimeout(idleTimeoutMinutes, () => setOpen(true), isAuthenticated && !open);
 
-  const handleContinue = useCallback(() => {
+  const goToLogin = useCallback(() => {
     localStorage.removeItem('has_session');
     clearSession();
     setOpen(false);
     window.location.href = '/login';
   }, [clearSession]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('has_session');
-    clearSession();
-    setOpen(false);
-    window.location.href = '/login';
-  }, [clearSession]);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await api.post('/auth/refresh');
+      // Token refreshed — close modal, continue working
+      setOpen(false);
+    } catch {
+      // Refresh token also expired — must re-login
+      goToLogin();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [goToLogin]);
 
   if (!open) return null;
 
@@ -48,25 +57,26 @@ export function SessionExpiredModal() {
             </svg>
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Sesión expirada</h2>
-            <p className="text-sm text-muted">Tu sesión ha caducado por inactividad.</p>
+            <h2 className="text-base font-semibold text-foreground">Sesión inactiva</h2>
+            <p className="text-sm text-muted">Tu sesión se pausó por inactividad.</p>
           </div>
         </div>
 
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={goToLogin}
             className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface"
           >
             Cerrar sesión
           </button>
           <button
             type="button"
-            onClick={handleContinue}
-            className="flex-1 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:opacity-90"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex-1 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:opacity-90 disabled:opacity-60"
           >
-            Iniciar sesión
+            {refreshing ? 'Reconectando…' : 'Continuar trabajando'}
           </button>
         </div>
       </div>

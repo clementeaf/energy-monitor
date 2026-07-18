@@ -120,6 +120,38 @@ function buildMallCards(
   });
 }
 
+/* ── Placeholder data for empty state ── */
+
+interface PlaceholderMallCard {
+  id: string;
+  name: string;
+  countryCode: string;
+  totalMeters: number;
+  onlineCount: number;
+  offlineCount: number;
+  staleCount: number;
+  onlinePct: number;
+  lastReading: string;
+  semaphore: MallCard['semaphore'];
+  alertCount: number;
+}
+
+const PLACEHOLDER_MALL_CARDS: PlaceholderMallCard[] = [
+  { id: 'ph-1', name: 'Mall del Mar', countryCode: 'CL', totalMeters: 210, onlineCount: 204, offlineCount: 3, staleCount: 3, onlinePct: 97.1, lastReading: '08:45, 18 jul', semaphore: 'green', alertCount: 0 },
+  { id: 'ph-2', name: 'Costanera Center', countryCode: 'CL', totalMeters: 195, onlineCount: 188, offlineCount: 4, staleCount: 3, onlinePct: 96.4, lastReading: '08:42, 18 jul', semaphore: 'green', alertCount: 1 },
+  { id: 'ph-3', name: 'Alto Las Condes', countryCode: 'CL', totalMeters: 180, onlineCount: 164, offlineCount: 9, staleCount: 7, onlinePct: 91.1, lastReading: '08:30, 18 jul', semaphore: 'yellow', alertCount: 2 },
+  { id: 'ph-4', name: 'Open Temuco', countryCode: 'CL', totalMeters: 155, onlineCount: 128, offlineCount: 18, staleCount: 9, onlinePct: 82.6, lastReading: '06:15, 18 jul', semaphore: 'red', alertCount: 3 },
+  { id: 'ph-5', name: 'SC52', countryCode: 'CL', totalMeters: 135, onlineCount: 130, offlineCount: 3, staleCount: 2, onlinePct: 96.3, lastReading: '08:40, 18 jul', semaphore: 'green', alertCount: 0 },
+];
+
+const PLACEHOLDER_FEED_EVENTS: FeedEvent[] = [
+  { id: 'ph-evt-1', type: 'alert', message: 'Voltaje fuera de rango (387V > 386V límite)', building: 'Open Temuco', timestamp: new Date(Date.now() - 12 * 60_000).toISOString() },
+  { id: 'ph-evt-2', type: 'stale', message: 'MED-0412 (PAC-412) — Dato estancado', building: 'Alto Las Condes', timestamp: new Date(Date.now() - 38 * 60_000).toISOString() },
+  { id: 'ph-evt-3', type: 'offline', message: 'MED-0318 (PAC-318) — Offline', building: 'Open Temuco', timestamp: new Date(Date.now() - 72 * 60_000).toISOString() },
+  { id: 'ph-evt-4', type: 'backfill', message: 'Backfill completado — 144 filas', building: '', timestamp: new Date(Date.now() - 130 * 60_000).toISOString() },
+  { id: 'ph-evt-5', type: 'cnr', message: 'CNR ingresada — corte programado subestación norte', building: 'Costanera Center', timestamp: new Date(Date.now() - 210 * 60_000).toISOString() },
+];
+
 /* ── Event feed item ── */
 
 interface FeedEvent {
@@ -172,21 +204,29 @@ export function MonitoreoVivoPage() {
     [buildings, meters, readings, alerts, now],
   );
 
-  // Portfolio KPIs
-  const totalMeters = meters.length;
+  // Use placeholder mall cards when API returns no buildings yet
+  const displayMallCards = mallCards.length > 0 ? mallCards : null;
+  const displayPlaceholderMalls = mallCards.length === 0;
+
+  // Portfolio KPIs — fall back to placeholder aggregates when no real data
+  const totalMeters = meters.length > 0 ? meters.length : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.totalMeters, 0);
   const readingByMeter = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
-  const onlineCount = useMemo(
+  const onlineCountReal = useMemo(
     () => meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'online').length,
     [meters, readingByMeter, now],
   );
-  const offlineCount = useMemo(
+  const offlineCountReal = useMemo(
     () => meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'offline').length,
     [meters, readingByMeter, now],
   );
-  const staleCount = useMemo(
+  const staleCountReal = useMemo(
     () => meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'stale').length,
     [meters, readingByMeter, now],
   );
+  // Fall back to placeholder aggregates when no real meter data
+  const onlineCount = meters.length > 0 ? onlineCountReal : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.onlineCount, 0);
+  const offlineCount = meters.length > 0 ? offlineCountReal : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.offlineCount, 0);
+  const staleCount = meters.length > 0 ? staleCountReal : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.staleCount, 0);
   const onlinePct = totalMeters > 0 ? ((onlineCount / totalMeters) * 100).toFixed(1) : '0';
 
   // Expanded mall meters
@@ -327,25 +367,43 @@ export function MonitoreoVivoPage() {
           <p className="shrink-0 text-[11px] text-muted">Tarjeta por mall: nombre, país, % medidores online, última lectura, semáforo general · click → grilla de medidores</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <div className="flex flex-wrap gap-2">
-              {mallCards.map((card) => {
-                const semStyle = SEMAPHORE_STYLES[card.semaphore] ?? '';
-                return (
-                  <button
-                    key={card.building.id}
-                    type="button"
-                    onClick={() => setExpandedMallId(expandedMallId === card.building.id ? null : card.building.id)}
-                    className={`w-[calc(50%-0.25rem)] rounded-lg border-l-4 p-2.5 text-left transition-colors hover:bg-surface ${semStyle} ${expandedMallId === card.building.id ? 'ring-2 ring-brand' : ''}`}
-                  >
-                    <p className="truncate text-[12px] font-medium text-foreground">{card.building.name}</p>
-                    <div className="mt-1 flex items-center gap-2 text-[10px] text-muted">
-                      <span>{card.building.countryCode ?? 'CL'}</span>
-                      <span>{card.onlinePct.toFixed(0)}%</span>
-                      <span>{card.totalMeters} med.</span>
-                      {card.alertCount > 0 && <span className="rounded-full bg-red-100 px-1 py-0.5 text-[9px] font-medium text-red-700">{card.alertCount}</span>}
-                    </div>
-                  </button>
-                );
-              })}
+              {displayPlaceholderMalls
+                ? PLACEHOLDER_MALL_CARDS.map((card) => {
+                    const semStyle = SEMAPHORE_STYLES[card.semaphore] ?? '';
+                    return (
+                      <div
+                        key={card.id}
+                        className={`w-[calc(50%-0.25rem)] rounded-lg border-l-4 p-2.5 text-left opacity-70 ${semStyle}`}
+                      >
+                        <p className="truncate text-[12px] font-medium text-foreground">{card.name}</p>
+                        <div className="mt-1 flex items-center gap-2 text-[10px] text-muted">
+                          <span>{card.countryCode}</span>
+                          <span>{card.onlinePct.toFixed(0)}%</span>
+                          <span>{card.totalMeters} med.</span>
+                          {card.alertCount > 0 && <span className="rounded-full bg-red-100 px-1 py-0.5 text-[9px] font-medium text-red-700">{card.alertCount}</span>}
+                        </div>
+                      </div>
+                    );
+                  })
+                : (displayMallCards ?? []).map((card) => {
+                    const semStyle = SEMAPHORE_STYLES[card.semaphore] ?? '';
+                    return (
+                      <button
+                        key={card.building.id}
+                        type="button"
+                        onClick={() => setExpandedMallId(expandedMallId === card.building.id ? null : card.building.id)}
+                        className={`w-[calc(50%-0.25rem)] rounded-lg border-l-4 p-2.5 text-left transition-colors hover:bg-surface ${semStyle} ${expandedMallId === card.building.id ? 'ring-2 ring-brand' : ''}`}
+                      >
+                        <p className="truncate text-[12px] font-medium text-foreground">{card.building.name}</p>
+                        <div className="mt-1 flex items-center gap-2 text-[10px] text-muted">
+                          <span>{card.building.countryCode ?? 'CL'}</span>
+                          <span>{card.onlinePct.toFixed(0)}%</span>
+                          <span>{card.totalMeters} med.</span>
+                          {card.alertCount > 0 && <span className="rounded-full bg-red-100 px-1 py-0.5 text-[9px] font-medium text-red-700">{card.alertCount}</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
             </div>
           </div>
           <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[ARQ-06, DAT-11, DAT-19]</p>
@@ -428,20 +486,21 @@ export function MonitoreoVivoPage() {
           <p className="shrink-0 text-[11px] text-muted">cronológico · con timestamp y mall</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
-              {enrichedFeed.map((evt) => (
-                <li key={evt.id} className="flex items-start gap-2 text-[11px]">
-                  <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${evt.type === 'alert' ? 'bg-red-500' : evt.type === 'offline' ? 'bg-gray-500' : evt.type === 'backfill' ? 'bg-emerald-500' : evt.type === 'cnr' ? 'bg-blue-500' : 'bg-amber-500'}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-foreground">
-                      <span className="font-medium uppercase">{evt.type}</span> · {evt.message}
-                      {evt.building && <span className="text-muted"> — {evt.building}</span>}
-                    </p>
-                  </div>
-                </li>
-              ))}
-              {enrichedFeed.length === 0 && (
-                <li className="py-4 text-center text-muted">Sin eventos recientes.</li>
-              )}
+              {(enrichedFeed.length > 0 ? enrichedFeed : PLACEHOLDER_FEED_EVENTS).map((evt) => {
+                const isPlaceholder = enrichedFeed.length === 0;
+                return (
+                  <li key={evt.id} className={`flex items-start gap-2 text-[11px] ${isPlaceholder ? 'opacity-60' : ''}`}>
+                    <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${evt.type === 'alert' ? 'bg-red-500' : evt.type === 'offline' ? 'bg-gray-500' : evt.type === 'backfill' ? 'bg-emerald-500' : evt.type === 'cnr' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground">
+                        <span className="font-medium uppercase">{evt.type}</span> · {evt.message}
+                        {evt.building && <span className="text-muted"> — {evt.building}</span>}
+                      </p>
+                      <p className="text-[10px] text-muted">{new Date(evt.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-10, DAT-19]</p>

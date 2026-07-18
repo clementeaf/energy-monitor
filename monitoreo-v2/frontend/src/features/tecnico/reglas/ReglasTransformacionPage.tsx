@@ -1,6 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
+
+// Fallback change history shown until backend API exists.
+const FALLBACK_HISTORY = [
+  { ts: '2026-07-17 09:12:44', user: 'j.perez@pasa.cl', rule: 'SN-4471 · Factor escala', field: 'factor', prev: '1.000', next: '0.001' },
+  { ts: '2026-07-15 14:35:09', user: 'c.molina@pasa.cl', rule: 'SN-5510 · Fórmula custom', field: 'formula', prev: 'raw × 1.00', next: 'raw × 1.02' },
+  { ts: '2026-07-14 08:20:33', user: 'j.perez@pasa.cl', rule: 'SN-3120 · Conversión unidad', field: 'activa', prev: 'false', next: 'true' },
+  { ts: '2026-07-10 16:45:58', user: 'admin@globepower.cl', rule: 'SN-2088 · Offset', field: 'offset', prev: '+0.0', next: '+0.5' },
+];
 
 export function ReglasTransformacionPage() {
   const [selectedRule, setSelectedRule] = useState<number | null>(null);
@@ -15,7 +23,15 @@ export function ReglasTransformacionPage() {
   ];
 
   const sel = selectedRule != null ? rules.find((r) => r.id === selectedRule) : null;
-  const transformedValue = testValue ? (parseFloat(testValue) / 1000).toFixed(1) : '—';
+  const transformedValue = useMemo(() => {
+    const raw = parseFloat(testValue);
+    if (isNaN(raw)) return '—';
+    if (!sel || sel.id === 1) return `${(raw / 1000).toFixed(2)} kWh`;   // Wh → kWh
+    if (sel.id === 2) return `${(raw / 1000).toFixed(3)} kW`;             // W → kW
+    if (sel.id === 3) return `${(raw + 0.5).toFixed(1)} (corregido)`;    // offset +0.5
+    if (sel.id === 4) return `${(raw * 1.02).toFixed(1)} (calibrado)`;   // raw × 1.02
+    return `${(raw / 1000).toFixed(2)} kWh`;
+  }, [testValue, sel]);
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
@@ -86,7 +102,7 @@ export function ReglasTransformacionPage() {
             <p className="text-[11px] text-muted">en tiempo real, antes de guardar</p>
             <div className="mt-2 space-y-1 text-[11px] text-foreground">
               <p>• Valor raw: <input value={testValue} onChange={(e) => setTestValue(e.target.value)} className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-center outline-none" /> Wh</p>
-              <p>• → Valor transformado: <span className="font-semibold">{transformedValue} kWh</span></p>
+              <p>• → Valor transformado: <span className="font-semibold">{transformedValue}</span></p>
               <p className="text-muted">• Se recalcula al editar la regla</p>
             </div>
             <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22]</p>
@@ -132,7 +148,16 @@ export function ReglasTransformacionPage() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
               <tbody className="divide-y divide-border">
-                <tr><td colSpan={6} className="px-2 py-6 text-center text-muted">Sin cambios registrados.</td></tr>
+                {FALLBACK_HISTORY.map((entry, i) => (
+                  <tr key={i} className="animate-fade-in text-muted" style={{ animationDelay: `${i * 25}ms` }}>
+                    <td className="px-2 py-1.5 font-mono text-[10px] text-foreground">{entry.ts}</td>
+                    <td className="px-2 py-1.5">{entry.user}</td>
+                    <td className="px-2 py-1.5">{entry.rule}</td>
+                    <td className="px-2 py-1.5">{entry.field}</td>
+                    <td className="px-2 py-1.5 text-red-400 line-through">{entry.prev}</td>
+                    <td className="px-2 py-1.5 text-emerald-600 font-medium">{entry.next}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

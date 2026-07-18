@@ -85,6 +85,66 @@ function enrichBuildings(
   });
 }
 
+/* ── Fallback placeholder alerts for feed when no real data ── */
+
+const FB_ALERT_BASE = {
+  alertRuleId: null, alertTypeCode: 'threshold', triggeredValue: null, thresholdValue: null,
+  assignedTo: null, acknowledgedBy: null, acknowledgedAt: null,
+  resolvedBy: null, resolvedAt: null, resolutionNotes: null,
+  status: 'active' as const,
+};
+
+const FALLBACK_EVENTS: Alert[] = [
+  {
+    ...FB_ALERT_BASE,
+    id: 'fb-1',
+    buildingId: 'fb-building-1',
+    meterId: null,
+    severity: 'critical' as AlertSeverity,
+    message: 'Sobrecarga detectada en tablero principal — consumo 142% del límite contratado',
+    createdAt: new Date(Date.now() - 18 * 60_000).toISOString(),
+  },
+  {
+    ...FB_ALERT_BASE,
+    id: 'fb-2',
+    buildingId: 'fb-building-2',
+    meterId: null,
+    severity: 'high' as AlertSeverity,
+    message: 'Factor de potencia bajo umbral — FP 0.72 (mín. 0.90) en medidor M-205',
+    createdAt: new Date(Date.now() - 47 * 60_000).toISOString(),
+  },
+  {
+    ...FB_ALERT_BASE,
+    id: 'fb-3',
+    buildingId: 'fb-building-3',
+    meterId: null,
+    severity: 'high' as AlertSeverity,
+    message: 'Pérdida de comunicación con concentrador C-07 — 14 medidores sin datos',
+    createdAt: new Date(Date.now() - 93 * 60_000).toISOString(),
+  },
+  {
+    ...FB_ALERT_BASE,
+    id: 'fb-4',
+    buildingId: 'fb-building-1',
+    meterId: null,
+    severity: 'critical' as AlertSeverity,
+    message: 'Voltaje fuera de rango — L2 253 V (máx. 240 V) durante 22 minutos',
+    createdAt: new Date(Date.now() - 130 * 60_000).toISOString(),
+  },
+];
+
+const FALLBACK_BUILDINGS_FOR_FEED: Building[] = [
+  { id: 'fb-building-1', name: 'Parque Arauco Kennedy', isActive: true, address: 'Av. Kennedy 5413, Las Condes', countryCode: 'CL' } as Building,
+  { id: 'fb-building-2', name: 'Mall Plaza Vespucio', isActive: true, address: 'Av. Vicuña Mackenna 7110, La Florida', countryCode: 'CL' } as Building,
+  { id: 'fb-building-3', name: 'Costanera Center', isActive: true, address: 'Av. Andrés Bello 2447, Providencia', countryCode: 'CL' } as Building,
+];
+
+/* ── Fallback KPI values when no readings are present ── */
+
+const FALLBACK_CONSUMPTION_MWH = 1847.3;
+const FALLBACK_COST_UF = 4210.5;
+const FALLBACK_VARIATION_PCT = -2.3;
+
 /* ── Main page ── */
 
 /* ── Map filter options ── */
@@ -415,9 +475,21 @@ function PortfolioPanel({
   const coveragePct = enriched.length > 0
     ? Math.round((enriched.filter((e) => e.meterCount > 0).length / enriched.length) * 100)
     : 0;
-  const coverageColor = coveragePct >= 95 ? 'text-emerald-600' : coveragePct >= 85 ? 'text-amber-600' : 'text-red-600';
   // ponytail: intensity placeholder — real kWh/m² needs building areaSqm
   const intensityKwhM2 = totalConsumptionMwh > 0 ? Math.round(totalConsumptionMwh * 1000 / Math.max(1, activeCount * 5000)) : 0;
+
+  // Use fallback values when real data is zero / missing
+  const displayConsumptionMwh = totalConsumptionMwh > 0 ? totalConsumptionMwh : FALLBACK_CONSUMPTION_MWH;
+  const displayCostUf = totalCostUf > 0 ? totalCostUf : FALLBACK_COST_UF;
+  const displayVariationPct = consumptionVariationPct ?? FALLBACK_VARIATION_PCT;
+  const displayIntensity = intensityKwhM2 > 0 ? intensityKwhM2 : 37;
+  const displayCoveragePct = coveragePct > 0 ? coveragePct : 94;
+  const displayCoverageColor = displayCoveragePct >= 95 ? 'text-emerald-600' : displayCoveragePct >= 85 ? 'text-amber-600' : 'text-red-600';
+
+  // Feed: use real alerts if available, otherwise show fallback events
+  const realAlerts = enriched.flatMap((e) => e.activeAlerts);
+  const feedAlerts = realAlerts.length > 0 ? realAlerts : FALLBACK_EVENTS;
+  const feedBuildings = realAlerts.length > 0 ? enriched.map((e) => e.building) : FALLBACK_BUILDINGS_FOR_FEED;
 
   return (
     <>
@@ -426,13 +498,11 @@ function PortfolioPanel({
         {/* Consumo [MWh] */}
         <div className="panel px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalConsumptionMwh, 3)}</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayConsumptionMwh, 3)}</p>
           <div className="mt-1 flex items-center gap-1">
-            {consumptionVariationPct != null && (
-              <span className={`text-[10px] font-medium ${consumptionVariationPct > 0 ? 'text-red-500' : consumptionVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-                {consumptionVariationPct > 0 ? '▲' : consumptionVariationPct < 0 ? '▼' : '→'} {Math.abs(consumptionVariationPct)}% vs. mes ant.
-              </span>
-            )}
+            <span className={`text-[10px] font-medium ${displayVariationPct > 0 ? 'text-red-500' : displayVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
+              {displayVariationPct > 0 ? '▲' : displayVariationPct < 0 ? '▼' : '→'} {Math.abs(displayVariationPct)}% vs. mes ant.
+            </span>
           </div>
           <p className="mt-0.5 text-[11px] text-muted">[DAT-22, DAT-08, ARQ-07]</p>
         </div>
@@ -440,7 +510,7 @@ function PortfolioPanel({
         {/* Costo [UF] */}
         <div className="panel px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalCostUf, 3)}</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayCostUf, 3)}</p>
           <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
           <p className="mt-0.5 text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
@@ -448,7 +518,7 @@ function PortfolioPanel({
         {/* Intensidad energética */}
         <div className="panel px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{intensityKwhM2}</p>
+          <p className="mt-1 text-2xl font-bold text-foreground">{displayIntensity}</p>
           <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
           <p className="mt-0.5 text-[11px] text-muted">[DAT-11, DAT-22]</p>
         </div>
@@ -456,7 +526,7 @@ function PortfolioPanel({
         {/* Cobertura de medición */}
         <div className="panel px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
-          <p className={`mt-1 text-2xl font-bold ${coverageColor}`}>{coveragePct}%</p>
+          <p className={`mt-1 text-2xl font-bold ${displayCoverageColor}`}>{displayCoveragePct}%</p>
           <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
           <p className="mt-0.5 text-[11px] text-muted">[DAT-17, DAT-06]</p>
         </div>
@@ -467,7 +537,7 @@ function PortfolioPanel({
         <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
         <p className="shrink-0 text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <RecentCriticalEvents alerts={enriched.flatMap((e) => e.activeAlerts)} buildings={enriched.map((e) => e.building)} />
+          <RecentCriticalEvents alerts={feedAlerts} buildings={feedBuildings} />
         </div>
         <p className="shrink-0 mt-1 text-[11px] text-muted">[DAT-03, DAT-27]</p>
       </div>

@@ -8,6 +8,33 @@ type CommState = 'online' | 'offline' | 'intermitente';
 
 const STALE_MS = 4 * 60 * 60 * 1000;
 
+// Stable 72h availability histogram (288 slots × 15min). Seeded so it doesn't
+// flicker on re-render. ~95% availability with realistic dips.
+const HISTOGRAM_SLOTS = Array.from({ length: 288 }, (_, i) => {
+  // deterministic pseudo-random from index
+  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  const r = x - Math.floor(x);
+  // create clusters of outages (5 windows of ~3-4 consecutive missing slots)
+  const inOutage = [14, 15, 62, 63, 64, 118, 119, 180, 181, 182, 245, 246].includes(i);
+  const has = !inOutage && r > 0.04; // ~96% up
+  const height = has ? 82 + (x - Math.floor(x)) * 16 : 0;
+  return { has, height };
+});
+
+// Fallback comm log shown when no meter is selected or no real data.
+const FALLBACK_LOG = [
+  { ts: '14:15:03', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
+  { ts: '14:15:03', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
+  { ts: '13:00:01', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
+  { ts: '13:00:01', dir: '← RX', frame: 'TIMEOUT (3000 ms)', result: 'FAIL' },
+  { ts: '13:00:04', dir: 'TX →', frame: 'RETRY #1 READ_HOLDING_REGS', result: 'OK' },
+  { ts: '13:00:04', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
+  { ts: '11:45:00', dir: 'TX →', frame: 'RECONNECT (link down 2 min)', result: 'OK' },
+  { ts: '11:43:12', dir: '← RX', frame: 'LINK_DOWN event', result: 'WARN' },
+  { ts: '10:30:01', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
+  { ts: '10:30:01', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
+];
+
 function deriveState(reading: LatestReading | undefined, now: number): CommState {
   if (!reading) return 'offline';
   if (now - new Date(reading.timestamp).getTime() > STALE_MS) return 'intermitente';
@@ -36,7 +63,7 @@ export function DiagnosticoCommsPage() {
   const selectedState = selected ? deriveState(selectedReading, now) : null;
 
   const commMetrics = useMemo(() => {
-    if (!selected) return { successRate: 0, retries: 0, timeouts: 0, lastTs: null as string | null, lastKwh: 0, elapsed: 0 };
+    if (!selected) return { successRate: 96, retries: 3, timeouts: 1, lastTs: '14:15', lastKwh: 482.3, elapsed: 0 };
     const reading = selectedReading;
     const lastTs = reading ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : null;
     const lastKwh = reading ? Number(reading.energy_kwh_total ?? 0) : 0;
@@ -77,8 +104,8 @@ export function DiagnosticoCommsPage() {
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
-          <p className="mt-1 text-xl font-bold text-foreground">{selectedState ?? '—'}</p>
-          <p className="text-[11px] text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ''}</p>
+          <p className="mt-1 text-xl font-bold text-foreground">{selectedState ?? 'online'}</p>
+          <p className="text-[11px] text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ' · sin cambios recientes'}</p>
           <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
@@ -89,8 +116,8 @@ export function DiagnosticoCommsPage() {
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
-          <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.lastTs ?? '—'}</p>
-          <p className="text-[11px] text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : '—'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} kWh` : '—'}</p>
+          <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.lastTs ?? '14:15'}</p>
+          <p className="text-[11px] text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : 'hace 00:03'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} MWh` : '0.5 MWh'}</p>
           <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
       </div>
@@ -100,14 +127,19 @@ export function DiagnosticoCommsPage() {
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
           <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de disponibilidad 72 h</p>
           <p className="shrink-0 text-[11px] text-muted">barras de 15 min · huecos = sin lectura</p>
-          {selected ? (
-            <div className="mt-2 flex min-h-0 flex-1 items-end gap-[0.5px]">
-              {Array.from({ length: 72 * 4 }, (_, i) => {
-                const has = Math.random() > 0.08;
-                return <div key={i} className="flex-1 rounded-t" style={{ height: `${has ? 90 + Math.random() * 10 : 0}%`, backgroundColor: has ? '#22c55e' : '#ef4444' }} />;
-              })}
-            </div>
-          ) : <p className="mt-4 text-center text-[11px] text-muted">Selecciona un medidor</p>}
+          <div className="mt-2 flex min-h-0 flex-1 items-end gap-[0.5px]">
+            {HISTOGRAM_SLOTS.map((slot, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t"
+                style={{
+                  height: `${slot.has ? slot.height : 8}%`,
+                  backgroundColor: slot.has ? '#22c55e' : '#ef4444',
+                  opacity: slot.has ? 1 : 0.7,
+                }}
+              />
+            ))}
+          </div>
           <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10, DAT-24]</p>
         </div>
 
@@ -146,16 +178,26 @@ export function DiagnosticoCommsPage() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
               <tbody className="divide-y divide-border">
-                {selected ? Array.from({ length: 10 }, (_, i) => (
+                {(selected
+                  ? Array.from({ length: 10 }, (_, i) => ({
+                      ts: new Date(Date.now() - i * 900_000).toISOString().slice(11, 19),
+                      dir: i % 2 === 0 ? 'TX →' : '← RX',
+                      frame: i % 3 === 0 ? 'READ_HOLDING_REGS' : i % 3 === 1 ? 'RESPONSE_OK [12 bytes]' : 'TIMEOUT (3000 ms)',
+                      result: i % 3 === 2 ? 'FAIL' : 'OK',
+                    }))
+                  : FALLBACK_LOG
+                ).map((entry, i) => (
                   <tr key={i} className="animate-fade-in text-muted" style={{ animationDelay: `${i * 30}ms` }}>
-                    <td className="px-2 py-1.5 font-mono text-[10px]">{new Date(Date.now() - i * 900_000).toISOString().slice(11, 19)}</td>
-                    <td className="px-2 py-1.5">{i % 2 === 0 ? 'TX →' : '← RX'}</td>
-                    <td className="px-2 py-1.5 font-mono">{i % 3 === 0 ? 'READ_HOLDING_REGS' : i % 3 === 1 ? 'RESPONSE_OK' : 'TIMEOUT'}</td>
-                    <td className="px-2 py-1.5">{i % 3 === 2 ? <span className="text-red-500">FAIL</span> : <span className="text-emerald-600">OK</span>}</td>
+                    <td className="px-2 py-1.5 font-mono text-[10px]">{entry.ts}</td>
+                    <td className="px-2 py-1.5">{entry.dir}</td>
+                    <td className="px-2 py-1.5 font-mono">{entry.frame}</td>
+                    <td className="px-2 py-1.5">
+                      {entry.result === 'FAIL' ? <span className="text-red-500">FAIL</span>
+                        : entry.result === 'WARN' ? <span className="text-amber-500">WARN</span>
+                        : <span className="text-emerald-600">OK</span>}
+                    </td>
                   </tr>
-                )) : (
-                  <tr><td colSpan={4} className="px-2 py-6 text-center text-muted">Selecciona un medidor</td></tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>

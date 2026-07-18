@@ -154,9 +154,9 @@ describe('CostosTendenciasPage', () => {
       expect(screen.getByText('Proyecciones — 2 meses')).toBeInTheDocument();
     });
 
-    it('renders projection arrow label', () => {
+    it('renders projection legend', () => {
       renderPage();
-      expect(screen.getByText(/proyección/)).toBeInTheDocument();
+      expect(screen.getByText(/Proyectado/)).toBeInTheDocument();
     });
   });
 });

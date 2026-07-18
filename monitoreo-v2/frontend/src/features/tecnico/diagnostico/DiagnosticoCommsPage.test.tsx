@@ -63,10 +63,9 @@ describe('DiagnosticoCommsPage', () => {
     expect(screen.getByText(/Log de comunicación raw/)).toBeInTheDocument();
   });
 
-  it('shows placeholder when no meter selected', () => {
+  it('shows fallback data when no meter selected', () => {
     renderPage();
-    // Histogram and log sections both show placeholder when no meter selected
-    expect(screen.getAllByText('Selecciona un medidor').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/96/)).toBeInTheDocument();
   });
 
   it('shows log entries after selecting a meter', async () => {

@@ -82,6 +82,55 @@ function buildQualityRows(
   });
 }
 
+/* ── Placeholder data ── */
+
+const PLACEHOLDER_QUALITY_ROWS: QualityRow[] = [
+  { buildingId: 'ph-1', buildingName: 'Mall del Mar', totalMeters: 210, metersWithData: 204, realPct: 97.1, estimatedPct: 0.9, cnrPct: 0.3, semaphore: 'green', trend: '↑' },
+  { buildingId: 'ph-2', buildingName: 'Costanera Center', totalMeters: 195, metersWithData: 188, realPct: 96.4, estimatedPct: 1.1, cnrPct: 0.4, semaphore: 'green', trend: '→' },
+  { buildingId: 'ph-3', buildingName: 'Alto Las Condes', totalMeters: 180, metersWithData: 164, realPct: 91.1, estimatedPct: 2.7, cnrPct: 0.9, semaphore: 'yellow', trend: '↓' },
+  { buildingId: 'ph-4', buildingName: 'Open Temuco', totalMeters: 155, metersWithData: 128, realPct: 82.6, estimatedPct: 5.2, cnrPct: 1.7, semaphore: 'red', trend: '↓' },
+  { buildingId: 'ph-5', buildingName: 'SC52', totalMeters: 135, metersWithData: 130, realPct: 96.3, estimatedPct: 1.1, cnrPct: 0.4, semaphore: 'green', trend: '↑' },
+];
+
+// 30 days of realistic histogram — real % between 82–98, with dips on weekends
+const PLACEHOLDER_HISTOGRAM_30D: { label: string; realPct: number; estimatedPct: number; cnrPct: number; missingPct: number }[] = (() => {
+  const base = [97,96,95,94,88,88,97,96,95,94,93,89,87,96,95,94,93,91,88,87,95,94,93,92,90,87,86,95,94,93];
+  const now = Date.now();
+  return base.map((realPct, i) => {
+    const dayEnd = now - (29 - i) * 86_400_000;
+    const label = new Date(dayEnd).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+    const estimatedPct = Math.round((100 - realPct) * 0.3 * 10) / 10;
+    const cnrPct = Math.round((100 - realPct) * 0.1 * 10) / 10;
+    const missingPct = Math.max(0, 100 - realPct - estimatedPct - cnrPct);
+    return { label, realPct, estimatedPct, cnrPct, missingPct };
+  });
+})();
+
+interface PlaceholderBackfillJob {
+  id: string;
+  meterName: string;
+  gapType: string;
+  fromLabel: string;
+  toLabel: string;
+  pct: number;
+  etaMin: number;
+  status: 'running' | 'completed';
+}
+
+const PLACEHOLDER_BACKFILL_JOBS: PlaceholderBackfillJob[] = [
+  { id: 'ph-bf-1', meterName: 'MED-0318', gapType: 'comunicación', fromLabel: '14 jul', toLabel: '16 jul', pct: 67, etaMin: 8, status: 'running' },
+  { id: 'ph-bf-2', meterName: 'MED-0412', gapType: 'dato tardío', fromLabel: '15 jul', toLabel: '17 jul', pct: 23, etaMin: 21, status: 'running' },
+  { id: 'ph-bf-3', meterName: 'MED-0201', gapType: 'mantenimiento', fromLabel: '10 jul', toLabel: '11 jul', pct: 100, etaMin: 0, status: 'completed' },
+];
+
+const PLACEHOLDER_DEGRADED_METERS: { id: string; code: string; buildingName: string; deltaPct: number; gapH: number; cause: string }[] = [
+  { id: 'ph-d1', code: 'PAC-318', buildingName: 'Open Temuco', deltaPct: 12, gapH: 52, cause: 'comunicación perdida' },
+  { id: 'ph-d2', code: 'PAC-412', buildingName: 'Alto Las Condes', deltaPct: 8, gapH: 29, cause: 'comunicación perdida' },
+  { id: 'ph-d3', code: 'PAC-087', buildingName: 'Open Temuco', deltaPct: 6, gapH: 18, cause: 'dato tardío' },
+  { id: 'ph-d4', code: 'PAC-201', buildingName: 'Costanera Center', deltaPct: 4, gapH: 7, cause: 'dato tardío' },
+  { id: 'ph-d5', code: 'PAC-503', buildingName: 'Open Temuco', deltaPct: 3, gapH: 5, cause: 'dato tardío' },
+];
+
 /* ── Page ── */
 
 export function CalidadBackfillPage() {
@@ -184,24 +233,24 @@ export function CalidadBackfillPage() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               <table className="w-full">
                 <tbody className="divide-y divide-border">
-                  {qualityRows.map((row, i) => (
-                    <tr key={row.buildingId} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 25}ms` }}>
-                      <td className="px-2 py-1.5">
-                        <span className="flex items-center gap-1.5">
-                          <span className={`inline-block size-2 shrink-0 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
-                          <span className="font-medium text-foreground">{row.buildingName}</span>
-                        </span>
-                      </td>
-                      <td className="px-2 py-1.5 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
-                      <td className="px-2 py-1.5 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
-                      <td className="px-2 py-1.5 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
-                      <td className="px-2 py-1.5 text-right text-muted">{row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}</td>
-                      <td className={`px-2 py-1.5 text-center font-medium ${row.trend === '↓' ? 'text-red-600' : row.trend === '↑' ? 'text-emerald-600' : 'text-muted'}`}>{row.trend}</td>
-                    </tr>
-                  ))}
-                  {qualityRows.length === 0 && (
-                    <tr><td colSpan={6} className="px-2 py-6 text-center text-muted">Sin datos de calidad.</td></tr>
-                  )}
+                  {(qualityRows.length > 0 ? qualityRows : PLACEHOLDER_QUALITY_ROWS).map((row, i) => {
+                    const isPlaceholder = qualityRows.length === 0;
+                    return (
+                      <tr key={row.buildingId} className={`animate-fade-in transition-colors hover:bg-surface ${isPlaceholder ? 'opacity-70' : ''}`} style={{ animationDelay: `${i * 25}ms` }}>
+                        <td className="px-2 py-1.5">
+                          <span className="flex items-center gap-1.5">
+                            <span className={`inline-block size-2 shrink-0 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
+                            <span className="font-medium text-foreground">{row.buildingName}</span>
+                          </span>
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-medium text-foreground">{row.realPct.toFixed(1)}%</td>
+                        <td className="px-2 py-1.5 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
+                        <td className="px-2 py-1.5 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
+                        <td className="px-2 py-1.5 text-right text-muted">{row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}</td>
+                        <td className={`px-2 py-1.5 text-center font-medium ${row.trend === '↓' ? 'text-red-600' : row.trend === '↑' ? 'text-emerald-600' : 'text-muted'}`}>{row.trend}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -213,16 +262,23 @@ export function CalidadBackfillPage() {
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
           <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
           <p className="shrink-0 text-[11px] text-muted">área apilada por día: real / estimado / CNR / faltante</p>
-          <div className="mt-2 flex min-h-0 flex-1 items-end gap-[1px]">
-            {histogramBars.map((b) => (
-              <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
-                <div className="w-full bg-red-200" style={{ height: `${b.missingPct}%` }} />
-                <div className="w-full bg-blue-200" style={{ height: `${b.cnrPct}%` }} />
-                <div className="w-full bg-amber-200" style={{ height: `${b.estimatedPct}%` }} />
-                <div className="w-full rounded-b bg-emerald-300" style={{ height: `${b.realPct}%` }} />
+          {(() => {
+            const hasRealBars = histogramBars.some((b) => b.realPct > 0);
+            const displayBars = hasRealBars ? histogramBars : PLACEHOLDER_HISTOGRAM_30D;
+            const isPlaceholder = !hasRealBars;
+            return (
+              <div className={`mt-2 flex min-h-0 flex-1 items-end gap-[1px] ${isPlaceholder ? 'opacity-70' : ''}`}>
+                {displayBars.map((b) => (
+                  <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
+                    <div className="w-full bg-red-200" style={{ height: `${b.missingPct}%` }} />
+                    <div className="w-full bg-blue-200" style={{ height: `${b.cnrPct}%` }} />
+                    <div className="w-full bg-amber-200" style={{ height: `${b.estimatedPct}%` }} />
+                    <div className="w-full rounded-b bg-emerald-300" style={{ height: `${b.realPct}%` }} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
           <div className="mt-2 flex shrink-0 items-center gap-3 text-[9px] text-muted">
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-300" /> Real</span>
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-amber-200" /> Estimado</span>
@@ -254,26 +310,40 @@ export function CalidadBackfillPage() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               <table className="w-full">
                 <tbody className="divide-y divide-border">
-                  {activeJobs.length > 0 ? activeJobs.map((job) => {
-                    const estimatedTotal = Math.max(job.rowsProcessed, 100);
-                    const pct = Math.min(100, Math.round((job.rowsProcessed / estimatedTotal) * 100));
-                    return (
-                      <tr key={job.id} className="animate-fade-in transition-colors hover:bg-surface">
-                        <td className="px-2 py-1.5 font-medium text-foreground">{meterMap.get(job.meterId) ?? job.meterId.slice(0, 8)}</td>
-                        <td className="px-2 py-1.5 text-muted">{(job as unknown as Record<string, unknown>).gapType as string ?? 'comunicación'}</td>
-                        <td className="px-2 py-1.5 text-muted">{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}</td>
-                        <td className="px-2 py-1.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
-                            <span className="font-medium text-foreground">{pct}%</span>
-                          </div>
-                        </td>
-                        <td className="px-2 py-1.5 text-right text-muted">~{Math.max(1, Math.round((100 - pct) * 0.5))}min</td>
-                      </tr>
-                    );
-                  }) : (
-                    <tr><td colSpan={5} className="px-2 py-6 text-center text-muted">Sin procesos de backfill en curso.</td></tr>
-                  )}
+                  {activeJobs.length > 0
+                    ? activeJobs.map((job) => {
+                        const estimatedTotal = Math.max(job.rowsProcessed, 100);
+                        const pct = Math.min(100, Math.round((job.rowsProcessed / estimatedTotal) * 100));
+                        return (
+                          <tr key={job.id} className="animate-fade-in transition-colors hover:bg-surface">
+                            <td className="px-2 py-1.5 font-medium text-foreground">{meterMap.get(job.meterId) ?? job.meterId.slice(0, 8)}</td>
+                            <td className="px-2 py-1.5 text-muted">{(job as unknown as Record<string, unknown>).gapType as string ?? 'comunicación'}</td>
+                            <td className="px-2 py-1.5 text-muted">{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}</td>
+                            <td className="px-2 py-1.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
+                                <span className="font-medium text-foreground">{pct}%</span>
+                              </div>
+                            </td>
+                            <td className="px-2 py-1.5 text-right text-muted">~{Math.max(1, Math.round((100 - pct) * 0.5))}min</td>
+                          </tr>
+                        );
+                      })
+                    : PLACEHOLDER_BACKFILL_JOBS.map((job) => (
+                        <tr key={job.id} className="animate-fade-in opacity-70 transition-colors hover:bg-surface">
+                          <td className="px-2 py-1.5 font-medium text-foreground">{job.meterName}</td>
+                          <td className="px-2 py-1.5 text-muted">{job.gapType}</td>
+                          <td className="px-2 py-1.5 text-muted">{job.fromLabel} — {job.toLabel}</td>
+                          <td className="px-2 py-1.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${job.pct}%` }} /></div>
+                              <span className="font-medium text-foreground">{job.pct}%</span>
+                            </div>
+                          </td>
+                          <td className="px-2 py-1.5 text-right text-muted">{job.etaMin > 0 ? `~${job.etaMin}min` : 'completado'}</td>
+                        </tr>
+                      ))
+                  }
                 </tbody>
               </table>
             </div>
@@ -290,23 +360,31 @@ export function CalidadBackfillPage() {
           <p className="shrink-0 text-[11px] text-muted">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
-              {degradedMeters.length > 0 ? degradedMeters.slice(0, 10).map((meter) => {
-                const reading = readings.find((r) => r.meter_id === meter.id);
-                const gapH = reading ? Math.round((now - new Date(reading.timestamp).getTime()) / 3_600_000) : null;
-                const deltaPct = gapH ? Math.min(14, Math.round(gapH * 0.3)) : 5;
-                const buildingName = buildings.find((b) => b.id === meter.buildingId)?.name ?? '';
-                const cause = gapH && gapH > 24 ? 'comunicación perdida' : gapH ? 'dato tardío' : 'causa n/d';
-                return (
-                  <li key={meter.id} className="flex items-start gap-2 text-[11px]">
-                    <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${deltaPct > 10 ? 'bg-red-500' : deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
-                    <p className="text-foreground">
-                      <span className="font-medium text-red-600">-{deltaPct}%</span> · Medidor {meter.code} {buildingName} — cae a {Math.max(70, 100 - deltaPct * 2)}% reales · causa: {cause}
-                    </p>
-                  </li>
-                );
-              }) : (
-                <li className="py-4 text-center text-muted">Todos los medidores reportan normalmente.</li>
-              )}
+              {degradedMeters.length > 0
+                ? degradedMeters.slice(0, 10).map((meter) => {
+                    const reading = readings.find((r) => r.meter_id === meter.id);
+                    const gapH = reading ? Math.round((now - new Date(reading.timestamp).getTime()) / 3_600_000) : null;
+                    const deltaPct = gapH ? Math.min(14, Math.round(gapH * 0.3)) : 5;
+                    const buildingName = buildings.find((b) => b.id === meter.buildingId)?.name ?? '';
+                    const cause = gapH && gapH > 24 ? 'comunicación perdida' : gapH ? 'dato tardío' : 'causa n/d';
+                    return (
+                      <li key={meter.id} className="flex items-start gap-2 text-[11px]">
+                        <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${deltaPct > 10 ? 'bg-red-500' : deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                        <p className="text-foreground">
+                          <span className="font-medium text-red-600">-{deltaPct}%</span> · Medidor {meter.code} {buildingName} — cae a {Math.max(70, 100 - deltaPct * 2)}% reales · causa: {cause}
+                        </p>
+                      </li>
+                    );
+                  })
+                : PLACEHOLDER_DEGRADED_METERS.map((item) => (
+                    <li key={item.id} className="flex items-start gap-2 text-[11px] opacity-70">
+                      <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${item.deltaPct > 10 ? 'bg-red-500' : item.deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                      <p className="text-foreground">
+                        <span className="font-medium text-red-600">-{item.deltaPct}%</span> · Medidor {item.code} {item.buildingName} — cae a {Math.max(70, 100 - item.deltaPct * 2)}% reales · causa: {item.cause}
+                      </p>
+                    </li>
+                  ))
+              }
             </ul>
           </div>
           <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-17]</p>

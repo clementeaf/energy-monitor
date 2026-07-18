@@ -5,7 +5,6 @@ import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { RequirePerms } from '../components/auth/RequirePerms';
 import { RequireTenantLayout } from '../components/ui/RequireTenant';
 import { usePermissions } from '../hooks/usePermissions';
-import { useAppStore } from '../store/useAppStore';
 
 /**
  * Redirects to the correct dashboard based on profile:
@@ -18,15 +17,12 @@ const PROFILE_DASHBOARD: Record<string, string> = {
   operacional: '/operacional/monitoreo',
   tecnico: '/tecnico/ordenes',
   auditor: '/auditor/calidad-datos',
+  super_admin: '/admin/tenants-malls',
 };
 
 function DashboardIndex() {
-  const { isSuperAdmin, profile } = usePermissions();
-  const selectedTenantId = useAppStore((s) => s.selectedTenantId);
-  const superAdminWithoutTenant = isSuperAdmin && !selectedTenantId;
-  const redirect = superAdminWithoutTenant
-    ? '/dashboard/platform'
-    : PROFILE_DASHBOARD[profile];
+  const { profile } = usePermissions();
+  const redirect = PROFILE_DASHBOARD[profile];
   return redirect ? <Navigate to={redirect} replace /> : <LazyDashboardPage />;
 }
 import { LoginRouteShell } from '../components/routing/LoginRouteShell';

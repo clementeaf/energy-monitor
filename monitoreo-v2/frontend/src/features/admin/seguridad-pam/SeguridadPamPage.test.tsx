@@ -50,200 +50,190 @@ function renderPage() {
 describe('SeguridadPamPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  describe('layout', () => {
-    it('renders page header', () => {
-      renderPage();
-      expect(screen.getByRole('heading', { name: 'Seguridad y PAM' })).toBeInTheDocument();
-    });
+  it('renders page heading', () => {
+    renderPage();
+    expect(screen.getByRole('heading', { name: /7\.3 Seguridad y PAM/ })).toBeInTheDocument();
   });
 
-  describe('KPIs', () => {
-    it('renders brechas abiertas count', () => {
-      renderPage();
-      expect(screen.getByText('Brechas abiertas')).toBeInTheDocument();
-    });
-
-    it('renders PAM accounts count', () => {
-      renderPage();
-      expect(screen.getByText('Cuentas PAM')).toBeInTheDocument();
-    });
-
-    it('renders incidentes abiertos', () => {
-      renderPage();
-      expect(screen.getByText('Incidentes abiertos')).toBeInTheDocument();
-    });
+  it('renders vulnerability summary section', () => {
+    renderPage();
+    expect(screen.getByText('Resumen de vulnerabilidades')).toBeInTheDocument();
   });
 
-  describe('breach reports', () => {
-    it('renders breach section', () => {
-      renderPage();
-      expect(screen.getByText('Reportes de brecha')).toBeInTheDocument();
-    });
-
-    it('renders breach descriptions', () => {
-      renderPage();
-      // Appears in breach reports + incidents section
-      expect(screen.getAllByText('Acceso no autorizado detectado').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Certificado expirado').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders breach status badges', () => {
-      renderPage();
-      expect(screen.getByText('open')).toBeInTheDocument();
-      expect(screen.getByText('resolved')).toBeInTheDocument();
-    });
+  it('renders vulnerability counts', () => {
+    renderPage();
+    expect(screen.getByText(/Críticas:/)).toBeInTheDocument();
+    expect(screen.getByText(/Altas:/)).toBeInTheDocument();
+    expect(screen.getByText(/Medias:/)).toBeInTheDocument();
+    expect(screen.getByText(/Bajas:/)).toBeInTheDocument();
   });
 
-  describe('audit activity', () => {
-    it('renders activity section', () => {
-      renderPage();
-      expect(screen.getByText('Actividad de seguridad')).toBeInTheDocument();
-    });
-
-    it('renders audit actions', () => {
-      renderPage();
-      // Appears in audit activity + PAM usage history
-      expect(screen.getAllByText('CREATE').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('DELETE').length).toBeGreaterThanOrEqual(1);
-    });
+  it('renders TLS certificates section', () => {
+    renderPage();
+    expect(screen.getByText('Certificados TLS')).toBeInTheDocument();
+    expect(screen.getByText('API Gateway')).toBeInTheDocument();
+    expect(screen.getByText('CloudFront CDN')).toBeInTheDocument();
   });
 
-  describe('PAM accounts (enhanced)', () => {
-    it('renders PAM section', () => {
-      renderPage();
-      expect(screen.getByText('Cuentas privilegiadas (PAM)')).toBeInTheDocument();
-    });
-
-    it('shows only privileged users', () => {
-      renderPage();
-      expect(screen.getByText('Admin User')).toBeInTheDocument();
-      expect(screen.getByText('DevOps User')).toBeInTheDocument();
-      expect(screen.queryByText('Operator')).not.toBeInTheDocument();
-    });
-
-    it('renders review date columns', () => {
-      renderPage();
-      expect(screen.getByText('Última revisión')).toBeInTheDocument();
-      expect(screen.getByText('Próxima revisión')).toBeInTheDocument();
-    });
-
-    it('renders PAM status badges', () => {
-      renderPage();
-      // All active users should show 'activo' or 'en revisión'
-      const badges = screen.getAllByText(/activo|en revisión/);
-      expect(badges.length).toBeGreaterThanOrEqual(2);
-    });
+  it('renders encryption at rest section', () => {
+    renderPage();
+    expect(screen.getByText('Cifrado en reposo (AES-256)')).toBeInTheDocument();
   });
 
-  describe('PAM usage history', () => {
-    it('renders usage history section', () => {
-      renderPage();
-      expect(screen.getByTestId('pam-usage-history')).toBeInTheDocument();
-      expect(screen.getByText('Historial uso PAM')).toBeInTheDocument();
-    });
-
-    it('shows privileged user actions', () => {
-      renderPage();
-      // u1 is a PAM user and has audit logs
-      const section = screen.getByTestId('pam-usage-history');
-      expect(section.textContent).toContain('admin@globepower.cl');
-    });
+  it('renders WAF section', () => {
+    renderPage();
+    expect(screen.getByText('WAF / DDoS / IDS-IPS')).toBeInTheDocument();
+    expect(screen.getByText(/WAF activo/)).toBeInTheDocument();
   });
 
-  describe('JIT credential vault', () => {
-    it('renders JIT vault section', () => {
-      renderPage();
-      expect(screen.getByTestId('jit-vault')).toBeInTheDocument();
-      expect(screen.getByText(/Bóveda de credenciales/)).toBeInTheDocument();
-    });
-
-    it('opens JIT form on button click', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Solicitar acceso'));
-      expect(screen.getByTestId('jit-form')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/Justificación/)).toBeInTheDocument();
-    });
-
-    it('shows send button disabled until resource and justification are filled', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Solicitar acceso'));
-      // Button is disabled when no resource/justification selected
-      expect(screen.getByText('Enviar solicitud')).toBeDisabled();
-    });
+  it('renders CIS hardening section', () => {
+    renderPage();
+    expect(screen.getByText('Hardening — CIS Benchmarks')).toBeInTheDocument();
+    expect(screen.getByText('ECS Fargate')).toBeInTheDocument();
+    // RDS PostgreSQL appears in both CIS and SBOM sections
+    expect(screen.getAllByText('RDS PostgreSQL').length).toBeGreaterThanOrEqual(1);
   });
 
-  describe('security incidents', () => {
-    it('renders incidents section', () => {
-      renderPage();
-      expect(screen.getByTestId('security-incidents')).toBeInTheDocument();
-      expect(screen.getByText('Incidentes')).toBeInTheDocument();
-    });
-
-    it('shows incidents derived from breaches', () => {
-      renderPage();
-      const section = screen.getByTestId('security-incidents');
-      expect(section.textContent).toContain('Acceso no autorizado detectado');
-    });
-
-    it('shows incident severity and status', () => {
-      renderPage();
-      const section = screen.getByTestId('security-incidents');
-      expect(section.textContent).toContain('abierto');
-      expect(section.textContent).toContain('resuelto');
-    });
+  it('renders EDR section', () => {
+    renderPage();
+    expect(screen.getByText('EDR / antivirus')).toBeInTheDocument();
+    expect(screen.getByText(/AWS Inspector activo/)).toBeInTheDocument();
   });
 
-  describe('breach notification', () => {
-    it('renders notification section', () => {
-      renderPage();
-      expect(screen.getByTestId('breach-notification')).toBeInTheDocument();
-      expect(screen.getByText(/Notificación de brecha/)).toBeInTheDocument();
-    });
-
-    it('opens breach form on click', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Reportar brecha'));
-      expect(screen.getByPlaceholderText(/Descripción de la brecha/)).toBeInTheDocument();
-    });
-
-    it('sends breach notification', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Reportar brecha'));
-      await user.type(screen.getByPlaceholderText(/Descripción de la brecha/), 'Data leak detected');
-      await user.click(screen.getByText('Enviar notificación a PASA'));
-      expect(screen.getByText(/Notificacion enviada/)).toBeInTheDocument();
-    });
+  it('renders SBOM inventory section', () => {
+    renderPage();
+    expect(screen.getByText('Inventario HW/SW (SBOM)')).toBeInTheDocument();
+    expect(screen.getByText('Node.js 20')).toBeInTheDocument();
+    expect(screen.getByText('PostgreSQL 16')).toBeInTheDocument();
   });
 
-  describe('crypto deletion', () => {
-    it('renders crypto deletion section', () => {
-      renderPage();
-      expect(screen.getByTestId('crypto-deletion')).toBeInTheDocument();
-      expect(screen.getByText('Borrado criptográfico')).toBeInTheDocument();
-    });
+  it('renders PAM accounts section', () => {
+    renderPage();
+    expect(screen.getByText('PAM — cuentas privilegiadas')).toBeInTheDocument();
+  });
 
-    it('requires CONFIRMAR to execute', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Iniciar borrado'));
-      expect(screen.getByPlaceholderText('CONFIRMAR')).toBeInTheDocument();
-      // Button disabled until typed
-      expect(screen.getByText('Ejecutar borrado')).toBeDisabled();
-      await user.type(screen.getByPlaceholderText('CONFIRMAR'), 'CONFIRMAR');
-      expect(screen.getByText('Ejecutar borrado')).not.toBeDisabled();
-    });
+  it('shows only privileged users in PAM table', () => {
+    renderPage();
+    expect(screen.getByText('Admin User')).toBeInTheDocument();
+    expect(screen.getByText('DevOps User')).toBeInTheDocument();
+    expect(screen.queryByText('Operator')).not.toBeInTheDocument();
+  });
 
-    it('executes crypto deletion', async () => {
-      const user = userEvent.setup();
-      renderPage();
-      await user.click(screen.getByText('Iniciar borrado'));
-      await user.type(screen.getByPlaceholderText('CONFIRMAR'), 'CONFIRMAR');
-      await user.click(screen.getByText('Ejecutar borrado'));
-      expect(screen.getByText(/Borrado criptografico ejecutado/)).toBeInTheDocument();
-    });
+  it('renders PAM status badges', () => {
+    renderPage();
+    const badges = screen.getAllByText(/activo|en revisión/);
+    expect(badges.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders JIT vault section', () => {
+    renderPage();
+    expect(screen.getByTestId('jit-vault')).toBeInTheDocument();
+    expect(screen.getByText(/Bóveda de credenciales JIT/)).toBeInTheDocument();
+  });
+
+  it('renders JIT vault details', () => {
+    renderPage();
+    expect(screen.getByText(/TTL máximo/)).toBeInTheDocument();
+    expect(screen.getByText('Solicitar acceso')).toBeInTheDocument();
+  });
+
+  it('opens JIT form on button click', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Solicitar acceso'));
+    expect(screen.getByPlaceholderText(/Justificación/)).toBeInTheDocument();
+    expect(screen.getByText('Enviar')).toBeInTheDocument();
+  });
+
+  it('send button disabled without resource and justification', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Solicitar acceso'));
+    expect(screen.getByText('Enviar')).toBeDisabled();
+  });
+
+  it('renders security incidents section', () => {
+    renderPage();
+    expect(screen.getByTestId('security-incidents')).toBeInTheDocument();
+    expect(screen.getByText('Incidentes de seguridad')).toBeInTheDocument();
+  });
+
+  it('shows incidents derived from breach reports', () => {
+    renderPage();
+    const section = screen.getByTestId('security-incidents');
+    // breach reports map to incidents with type 'brecha'
+    expect(section.textContent).toContain('brecha');
+    expect(section.textContent).toContain('abierto');
+    expect(section.textContent).toContain('resuelto');
+  });
+
+  it('renders breach notification button', () => {
+    renderPage();
+    expect(screen.getByText('Notificar a PASA')).toBeInTheDocument();
+  });
+
+  it('opens breach form on click', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Notificar a PASA'));
+    expect(screen.getByPlaceholderText(/Descripción de la brecha/)).toBeInTheDocument();
+  });
+
+  it('sends breach notification', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Notificar a PASA'));
+    await user.type(screen.getByPlaceholderText(/Descripción de la brecha/), 'Data leak detected');
+    await user.click(screen.getByText('Notificar a PASA'));
+    expect(screen.getByText(/Notificación enviada a PASA/)).toBeInTheDocument();
+  });
+
+  it('renders BCP/DRP section', () => {
+    renderPage();
+    expect(screen.getByText('Estado del BCP / DRP')).toBeInTheDocument();
+    expect(screen.getByText(/BCP documentado/)).toBeInTheDocument();
+  });
+
+  it('renders backup integrity section', () => {
+    renderPage();
+    expect(screen.getByText('Integridad de backups')).toBeInTheDocument();
+    expect(screen.getByText(/RDS automated backups/)).toBeInTheDocument();
+  });
+
+  it('renders DAST scan section', () => {
+    renderPage();
+    expect(screen.getByText('Escaneo DAST')).toBeInTheDocument();
+    expect(screen.getByText(/OWASP ZAP/)).toBeInTheDocument();
+  });
+
+  it('renders pentest report section', () => {
+    renderPage();
+    expect(screen.getByText('Informe Pentest anual')).toBeInTheDocument();
+    expect(screen.getByText(/91 PASS/)).toBeInTheDocument();
+  });
+
+  it('renders crypto deletion section', () => {
+    renderPage();
+    expect(screen.getByTestId('crypto-deletion')).toBeInTheDocument();
+    expect(screen.getByText('Borrado criptográfico')).toBeInTheDocument();
+  });
+
+  it('requires CONFIRMAR to execute crypto deletion', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Iniciar borrado criptográfico'));
+    expect(screen.getByPlaceholderText('CONFIRMAR')).toBeInTheDocument();
+    expect(screen.getByText('Ejecutar borrado')).toBeDisabled();
+    await user.type(screen.getByPlaceholderText('CONFIRMAR'), 'CONFIRMAR');
+    expect(screen.getByText('Ejecutar borrado')).not.toBeDisabled();
+  });
+
+  it('executes crypto deletion after confirmation', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByText('Iniciar borrado criptográfico'));
+    await user.type(screen.getByPlaceholderText('CONFIRMAR'), 'CONFIRMAR');
+    await user.click(screen.getByText('Ejecutar borrado'));
+    expect(screen.getByText(/Borrado ejecutado/)).toBeInTheDocument();
   });
 });

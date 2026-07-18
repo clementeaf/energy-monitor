@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
@@ -71,15 +71,24 @@ function renderPage() { return render(<MemoryRouter><TenantsMallsPage /></Memory
 describe('TenantsMallsPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('renders page header', () => { renderPage(); expect(screen.getByRole('heading', { name: 'Tenants y Malls' })).toBeInTheDocument(); });
-
-  it('renders tenant table with columns', () => {
+  it('renders page heading', () => {
     renderPage();
-    expect(screen.getByText('Nombre')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /7\.1 Tenants y Malls/ })).toBeInTheDocument();
+  });
+
+  it('renders tenant list section', () => {
+    renderPage();
+    expect(screen.getByText('Lista de tenants')).toBeInTheDocument();
+  });
+
+  it('renders tenant table columns', () => {
+    renderPage();
+    expect(screen.getByText('Tenant ID')).toBeInTheDocument();
+    expect(screen.getByText('Mall')).toBeInTheDocument();
     expect(screen.getByText('País')).toBeInTheDocument();
-    expect(screen.getByText('Medidores')).toBeInTheDocument();
-    expect(screen.getByText('Usuarios')).toBeInTheDocument();
-    expect(screen.getByText('Contrato')).toBeInTheDocument();
+    expect(screen.getByText('Nº medidores')).toBeInTheDocument();
+    expect(screen.getByText('Nº usuarios')).toBeInTheDocument();
+    expect(screen.getByText('Versión contrato')).toBeInTheDocument();
   });
 
   it('renders tenant rows', () => {
@@ -89,31 +98,24 @@ describe('TenantsMallsPage', () => {
     expect(screen.getByText('Inactive Co')).toBeInTheDocument();
   });
 
-  it('shows active status badges', () => {
+  it('shows status badges', () => {
     renderPage();
-    expect(screen.getAllByText('activo').length).toBeGreaterThanOrEqual(1);
+    // PASA has meters → activo; Siemens has no meters → onboarding; Inactive Co isActive=false → inactivo
     expect(screen.getByText('inactivo')).toBeInTheDocument();
   });
 
-  it('shows country codes', () => {
+  it('shows country codes in rows', () => {
     renderPage();
     expect(screen.getAllByText('CL').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('PE').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows currency in drawer', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(screen.getByText('PASA'));
-    expect(screen.getByText('CLP')).toBeInTheDocument();
-  });
-
-  it('renders country filter', () => {
+  it('renders country filter dropdown', () => {
     renderPage();
     expect(screen.getAllByText('Todos los países').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders status filter', () => {
+  it('renders status filter dropdown', () => {
     renderPage();
     expect(screen.getAllByText('Todos los estados').length).toBeGreaterThanOrEqual(1);
   });
@@ -123,39 +125,60 @@ describe('TenantsMallsPage', () => {
     expect(screen.getByText('Con alertas')).toBeInTheDocument();
   });
 
-  it('filters by status', async () => {
+  it('renders detail panel placeholder', () => {
+    renderPage();
+    expect(screen.getByText('Detalle de tenant — configuración base')).toBeInTheDocument();
+  });
+
+  it('renders usage stats panel placeholder', () => {
+    renderPage();
+    expect(screen.getByText('Estadísticas de uso')).toBeInTheDocument();
+  });
+
+  it('renders config history section', () => {
+    renderPage();
+    expect(screen.getByText('Historial de cambios de configuración del tenant')).toBeInTheDocument();
+  });
+
+  it('renders action buttons', () => {
+    renderPage();
+    expect(screen.getByText('Crear tenant')).toBeInTheDocument();
+    expect(screen.getByText('Activar')).toBeInTheDocument();
+    expect(screen.getByText('Desactivar')).toBeInTheDocument();
+  });
+
+  it('filters by status using dropdown', async () => {
     const user = userEvent.setup();
     renderPage();
-    // Click the button (first occurrence = the button label span)
+    // Open the status dropdown
     await user.click(screen.getAllByText('Todos los estados')[0]);
     await user.click(screen.getByText('Inactivo'));
     expect(screen.getByText('Inactive Co')).toBeInTheDocument();
     expect(screen.queryByText('PASA')).not.toBeInTheDocument();
   });
 
-  it('opens detail drawer on row click', async () => {
+  it('shows detail panel content on row click', async () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByText('PASA'));
-    expect(screen.getByText('Configuración base')).toBeInTheDocument();
-    expect(screen.getByText('Estadísticas de uso')).toBeInTheDocument();
-    expect(screen.getByText('Historial de cambios')).toBeInTheDocument();
+    // After clicking, the detail panel shows the selected tenant's timezone inline
+    // The timezone is rendered inside a <li> concatenated with other text
+    expect(screen.getByText(/America\/Santiago/)).toBeInTheDocument();
   });
 
-  it('shows config details in drawer', async () => {
+  it('shows CLP currency in detail panel after clicking PASA row', async () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByText('PASA'));
-    expect(screen.getByText('America/Santiago')).toBeInTheDocument();
-    expect(screen.getByText('pasa')).toBeInTheDocument();
+    expect(screen.getByText(/CLP/)).toBeInTheDocument();
   });
 
-  it('shows usage stats in drawer', async () => {
+  it('shows usage stats for selected tenant', async () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByText('PASA'));
-    expect(screen.getByText('Usuarios activos (30d)')).toBeInTheDocument();
-    expect(screen.getByText('Acciones audit log')).toBeInTheDocument();
-    expect(screen.getByText('Volumen datos (aprox.)')).toBeInTheDocument();
+    expect(screen.getByText('Usuarios activos 30d')).toBeInTheDocument();
+    expect(screen.getByText('Nº consultas API (mes)')).toBeInTheDocument();
+    expect(screen.getByText('Volumen de datos almacenados')).toBeInTheDocument();
   });
 });

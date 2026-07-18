@@ -76,6 +76,22 @@ export const LazyTenantsMallsPage = lazy(async () => {
   const m = await import('../features/admin/tenants-malls/TenantsMallsPage');
   return { default: m.TenantsMallsPage };
 });
+export const LazySlosDatosPage = lazy(async () => {
+  const m = await import('../features/admin/slos-datos/SlosDatosPage');
+  return { default: m.SlosDatosPage };
+});
+export const LazyThrottleCargasPage = lazy(async () => {
+  const m = await import('../features/admin/throttle-cargas/ThrottleCargasPage');
+  return { default: m.ThrottleCargasPage };
+});
+export const LazyRetencionPrivacidadPage = lazy(async () => {
+  const m = await import('../features/admin/retencion-privacidad/RetencionPrivacidadPage');
+  return { default: m.RetencionPrivacidadPage };
+});
+export const LazyReplicaDatosPage = lazy(async () => {
+  const m = await import('../features/admin/replica-datos/ReplicaDatosPage');
+  return { default: m.ReplicaDatosPage };
+});
 
 export const LazySeguridadPamPage = lazy(async () => {
   const m = await import('../features/admin/seguridad-pam/SeguridadPamPage');

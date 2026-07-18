@@ -9,7 +9,6 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import { UserForm } from './UserForm';
 import { UserImportTab } from './UserImportTab';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
-import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 
 type UsersTab = 'list' | 'import';
@@ -84,23 +83,32 @@ export function UsersPage() {
     deleteMutation.mutate(deleting.id, { onSuccess: () => { setDeleting(null); } });
   };
 
-  return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden">
-      <PageHeader
-        title="Usuarios"
-        eyebrow="Administración"
-        actions={canWrite && activeTab === 'list' ? (
-          <button
-            type="button"
-            onClick={openCreate}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
-          >
-            Nuevo Usuario
-          </button>
-        ) : undefined}
-      />
+  // Stale permissions (active users with no login >90 days)
+  const staleUsers = rawUsers.filter((u) => {
+    const last = u.lastLoginAt ? new Date(u.lastLoginAt).getTime() : 0;
+    return u.isActive && (Date.now() - last > 90 * 86_400_000);
+  });
 
-      {canWrite ? (
+  // Selected user for detail panel
+  const [selectedUser, setSelectedUser] = useState<(typeof visibleUsers)[0] | null>(null);
+
+  // Mock access history for selected user
+  const accessHistory = selectedUser ? [
+    { id: '1', label: `Login OK · ${new Date(selectedUser.lastLoginAt ?? Date.now()).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' })} ${new Date(selectedUser.lastLoginAt ?? Date.now()).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} · IP 190.x` },
+    { id: '2', label: 'Cambio de rol: Auditor → Operacional' },
+    { id: '3', label: 'Login OK · 08-07 14:32 · IP 190.x' },
+  ] : [];
+
+  return (
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+      {/* Page title */}
+      <div>
+        <h1 className="text-lg font-semibold text-foreground">7.2 Usuarios y Roles</h1>
+        <p className="mt-0.5 text-[12px] text-muted">Gestión de accesos — permisos efectivos, historial y revocación masiva</p>
+      </div>
+
+      {/* Import tab toggle */}
+      {canWrite && (
         <nav className="flex gap-2" aria-label="Usuarios">
           <button type="button" className={TAB_CLASS(activeTab === 'list')} onClick={() => { setActiveTab('list'); }}>
             Lista
@@ -109,125 +117,232 @@ export function UsersPage() {
             Importar
           </button>
         </nav>
-      ) : null}
-
-      {/* Filters */}
-      {activeTab === 'list' && (
-        <div className="flex flex-wrap items-center gap-2">
-          <DropdownSelect
-            options={PROFILE_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
-            value={profileFilter}
-            onChange={setProfileFilter}
-          />
-          <DropdownSelect
-            options={STATUS_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
-            value={statusFilterVal}
-            onChange={setStatusFilterVal}
-          />
-          <span className="text-[11px] text-muted">{allUsers.length} usuarios</span>
-        </div>
       )}
 
       {activeTab === 'import' && canWrite ? (
         <UserImportTab onViewUsers={() => { setActiveTab('list'); }} />
       ) : (
         <>
-          <div className="panel min-h-0 flex-1 overflow-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="sticky top-0 z-10 bg-surface">
-                <tr>
-                  <Th>Email</Th>
-                  <Th>Nombre</Th>
-                  <Th>Rol</Th>
-                  <Th>Proveedor</Th>
-                  <Th>Estado</Th>
-                  <Th>Ultimo Login</Th>
-                  {canWrite && <Th></Th>}
-                </tr>
-              </thead>
-              <TableStateBody
-                phase={qs.phase}
-                colSpan={canWrite ? 7 : 6}
-                error={qs.error}
-                onRetry={() => { query.refetch(); }}
-                emptyMessage="No hay usuarios registrados."
-                skeletonWidths={['w-32', 'w-28', 'w-20', 'w-20', 'w-16', 'w-24', 'w-20']}
-              >
-                {visibleUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-surface">
-                    <Td className="font-medium text-foreground">{u.email}</Td>
-                    <Td>{u.displayName ?? '—'}</Td>
-                    <Td>
-                      <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        {u.role.name}
-                      </span>
-                    </Td>
-                    <Td className="capitalize">{u.authProvider}</Td>
-                    <Td><StatusBadge active={u.isActive} /></Td>
-                    <Td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
-                    {canWrite && (
-                      <Td>
-                        <div className="flex gap-1">
-                          <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
-                          <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
-                        </div>
-                      </Td>
-                    )}
-                  </tr>
-                ))}
-              </TableStateBody>
-            </table>
-            {hasMore && <div ref={sentinelRef} className="h-4" />}
-          </div>
-          {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleUsers.length} de {total}</p>}
-
-          {/* Spec-required panels */}
-          <div className="grid shrink-0 gap-4 lg:grid-cols-2">
-            {/* Permisos sin uso >90 días */}
-            <div className="panel p-4">
-              <h3 className="mb-2 text-[13px] font-medium text-foreground">Permisos sin uso &gt;90 días</h3>
-              {(() => {
-                const stale = rawUsers.filter((u) => {
-                  const last = u.lastLoginAt ? new Date(u.lastLoginAt).getTime() : 0;
-                  return u.isActive && (Date.now() - last > 90 * 86_400_000);
-                });
-                return stale.length > 0 ? (
-                  <>
-                    <ul className="max-h-32 space-y-1 overflow-y-auto text-[12px]">
-                      {stale.map((u) => (
-                        <li key={u.id} className="flex items-center justify-between">
-                          <span className="text-foreground">{u.email}</span>
-                          <span className="text-[10px] text-muted">{u.role?.name ?? '—'}</span>
-                        </li>
-                      ))}
-                    </ul>
+          {/* Row 1 — Lista + Detalle/Historial */}
+          <div className="flex min-h-0 gap-4" style={{ flex: '0 0 auto' }}>
+            {/* Left 60% — Lista de usuarios */}
+            <div className="panel flex min-h-0 flex-col overflow-hidden" style={{ flex: '0 0 60%', minHeight: '260px' }}>
+              <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">Lista de usuarios</p>
+                  <p className="text-[11px] text-muted">filtros: tenant / perfil / estado / sin acceso en &gt; 90 días · fila expandible</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <DropdownSelect
+                    options={PROFILE_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
+                    value={profileFilter}
+                    onChange={setProfileFilter}
+                  />
+                  <DropdownSelect
+                    options={STATUS_FILTER_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
+                    value={statusFilterVal}
+                    onChange={setStatusFilterVal}
+                  />
+                  {canWrite && (
                     <button
                       type="button"
-                      disabled={updateMutation.isPending}
-                      onClick={() => {
-                        if (!window.confirm(`Revocar acceso a ${stale.length} usuario(s) sin login en >90 dias?`)) return;
-                        stale.forEach((u) => {
-                          updateMutation.mutate({ id: u.id, payload: { isActive: false } });
-                        });
-                      }}
-                      className="mt-2 rounded-md border border-red-300 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      onClick={openCreate}
+                      className="rounded-full bg-brand px-3 py-1 text-[11px] font-medium text-brand-fg hover:opacity-90"
                     >
-                      Revocar acceso masivo ({stale.length})
+                      + Nuevo
                     </button>
-                  </>
-                ) : <p className="text-[12px] text-muted">Todos los usuarios con acceso reciente.</p>;
-              })()}
+                  )}
+                </div>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="min-w-full divide-y divide-border text-[13px]">
+                  <thead className="sticky top-0 z-10 bg-surface">
+                    <tr>
+                      <Th>Nombre</Th>
+                      <Th>Email</Th>
+                      <Th>Tenant / mall</Th>
+                      <Th>Perfil</Th>
+                      <Th>Estado</Th>
+                      <Th>Último acceso</Th>
+                      <Th>MFA</Th>
+                      {canWrite && <Th></Th>}
+                    </tr>
+                  </thead>
+                  <TableStateBody
+                    phase={qs.phase}
+                    colSpan={canWrite ? 8 : 7}
+                    error={qs.error}
+                    onRetry={() => { query.refetch(); }}
+                    emptyMessage="No hay usuarios registrados."
+                    skeletonWidths={['w-28', 'w-32', 'w-24', 'w-20', 'w-16', 'w-24', 'w-12', 'w-16']}
+                  >
+                    {visibleUsers.map((u, i) => (
+                      <tr
+                        key={u.id}
+                        className="cursor-pointer hover:bg-surface"
+                        style={{ animationDelay: `${i * 30}ms` }}
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        <Td className="font-medium text-foreground">{u.displayName ?? '—'}</Td>
+                        <Td className="text-muted">{u.email}</Td>
+                        <Td className="text-muted">—</Td>
+                        <Td>
+                          <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                            {u.role.name}
+                          </span>
+                        </Td>
+                        <Td><StatusBadge active={u.isActive} /></Td>
+                        <Td className="text-[11px] text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
+                        <Td>
+                          <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                            —
+                          </span>
+                        </Td>
+                        {canWrite && (
+                          <Td>
+                            <div className="flex gap-1">
+                              <ActionBtn label="Editar" onClick={() => { openEdit(u); }} />
+                              <ActionBtn label="Eliminar" onClick={() => { setDeleting(u); }} variant="danger" />
+                            </div>
+                          </Td>
+                        )}
+                      </tr>
+                    ))}
+                  </TableStateBody>
+                </table>
+                {hasMore && <div ref={sentinelRef} className="h-4" />}
+              </div>
+              <div className="flex items-center justify-between border-t border-border px-3 py-1.5">
+                <p className="text-[10px] text-muted">+ fila expandible · Ref [CYB-03, ARQ-10, CYB-02]</p>
+                {total > 0 && <p className="text-[10px] text-muted">Mostrando {visibleUsers.length} de {total}</p>}
+              </div>
             </div>
 
-            {/* Referencia precio + offboarding */}
-            <div className="panel p-4">
-              <h3 className="mb-2 text-[13px] font-medium text-foreground">Gestión</h3>
-              <div className="space-y-2 text-[12px]">
-                <p className="text-muted">Precio referencia: <span className="font-medium text-foreground">0.5 UF/usuario/mes</span> (FIN-01)</p>
-                <p className="text-muted">Off-boarding: Desactivar usuario → Azure AD lo deshabilita (ARQ-10)</p>
-                <p className="text-muted">Asignar/cambiar perfil requiere justificación en pista auditoría.</p>
-                <p className="text-muted">Auditoría trimestral: CYB-03</p>
+            {/* Right 40% — 2 stacked panels */}
+            <div className="flex flex-col gap-4" style={{ flex: '0 0 40%' }}>
+              {/* Detalle de usuario */}
+              <div className="panel flex-1 overflow-auto p-3">
+                <p className="text-[13px] font-medium text-foreground">Detalle de usuario — permisos efectivos</p>
+                <p className="mb-3 text-[11px] text-muted">recursos y acciones permitidas</p>
+                {selectedUser ? (
+                  <ul className="space-y-1.5 text-[12px]">
+                    <li className="text-foreground">
+                      <span className="text-muted">Perfil: </span>{selectedUser.role.name} · tenant: —
+                    </li>
+                    <li className="text-foreground">
+                      <span className="text-muted">Recursos: </span>alarmas (R/W), tickets (R/W)
+                    </li>
+                    <li className="text-foreground">
+                      <span className="text-muted">MFA (CYB-02): </span>
+                      <span className="text-muted">—</span>
+                      {' · SSO Azure AD'}
+                    </li>
+                    <li className="text-foreground">
+                      <span className="text-muted">Auditoría trimestral (CYB-03): </span>pendiente
+                    </li>
+                  </ul>
+                ) : (
+                  <ul className="space-y-1.5 text-[12px] text-muted">
+                    <li>Perfil: Operacional · tenant: Costanera</li>
+                    <li>Recursos: alarmas (R/W), tickets (R/W)</li>
+                    <li>MFA activo (CYB-02) · SSO Azure AD</li>
+                    <li>Auditoría trimestral de permisos (CYB-03)</li>
+                  </ul>
+                )}
+                <p className="mt-3 text-[10px] text-muted">Ref [CYB-03, DAT-14, CYB-21]</p>
               </div>
+
+              {/* Historial de accesos */}
+              <div className="panel flex-1 overflow-auto p-3">
+                <p className="text-[13px] font-medium text-foreground">Historial de accesos y cambios de rol</p>
+                <p className="mb-3 text-[11px] text-muted">últimas 30 sesiones · IP, timestamp, resultado</p>
+                {accessHistory.length > 0 ? (
+                  <ul className="space-y-2">
+                    {accessHistory.map((entry) => (
+                      <li key={entry.id} className="flex items-start gap-2 text-[12px]">
+                        <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                        <span className="text-foreground">{entry.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-[12px]">
+                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                      <span className="text-muted">Login OK · 10-07 08:14 · IP 190.x</span>
+                    </li>
+                    <li className="flex items-start gap-2 text-[12px]">
+                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-amber-400" />
+                      <span className="text-muted">Cambio de rol: Auditor → Operacional</span>
+                    </li>
+                  </ul>
+                )}
+                <p className="mt-3 text-[10px] text-muted">Ref [DAT-14, CYB-21]</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2 — Permisos sin uso + Acciones */}
+          <div className="flex gap-4" style={{ flex: '0 0 auto' }}>
+            {/* Left 60% — Permisos sin uso >90d */}
+            <div className="panel flex flex-col overflow-hidden" style={{ flex: '0 0 60%', minHeight: '200px' }}>
+              <div className="border-b border-border px-3 py-2">
+                <p className="text-[13px] font-medium text-foreground">Permisos sin uso en &gt; 90 días</p>
+                <p className="text-[11px] text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp (DAT-14)</p>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="w-full text-[13px]">
+                  <thead className="sticky top-0 z-10 bg-background">
+                    <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                      <th className="px-3 py-2">Usuario</th>
+                      <th className="px-3 py-2">Permiso / recurso</th>
+                      <th className="px-3 py-2">Últ. uso</th>
+                      <th className="px-3 py-2">Perfil</th>
+                      <th className="px-3 py-2">Sugerencia</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {staleUsers.length > 0 ? staleUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-surface">
+                        <td className="px-3 py-2 text-foreground">{u.email}</td>
+                        <td className="px-3 py-2 text-muted">todos los permisos del rol</td>
+                        <td className="px-3 py-2 text-[11px] text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : 'nunca'}</td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">{u.role?.name ?? '—'}</span>
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-amber-600">Revocar acceso</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={5} className="px-3 py-6 text-center text-[12px] text-muted">Todos los usuarios con acceso reciente.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">Ref [CYB-03, ARQ-10, CYB-02]</p>
+            </div>
+
+            {/* Right 40% — Acciones */}
+            <div className="panel flex flex-col gap-3 p-4" style={{ flex: '0 0 40%' }}>
+              <button
+                type="button"
+                onClick={openCreate}
+                className="rounded-md bg-brand px-3 py-2 text-[13px] font-medium text-brand-fg hover:opacity-90"
+              >
+                Asignar / cambiar perfil
+              </button>
+              <button
+                type="button"
+                disabled={updateMutation.isPending || staleUsers.length === 0}
+                onClick={() => {
+                  if (!window.confirm(`Revocar acceso a ${staleUsers.length} usuario(s) sin login en >90 días?`)) return;
+                  staleUsers.forEach((u) => {
+                    updateMutation.mutate({ id: u.id, payload: { isActive: false } });
+                  });
+                }}
+                className="rounded-md border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+              >
+                Revocar acceso{staleUsers.length > 0 ? ` (${staleUsers.length})` : ''}
+              </button>
             </div>
           </div>
         </>

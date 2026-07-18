@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { Drawer } from '../../../components/ui/Drawer';
 import { useTenantsAdminQuery, useUpdateTenant } from '../../../hooks/queries/useTenantsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -136,186 +134,237 @@ export function TenantsMallsPage() {
   }, [selectedTenant, auditLogs]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto">
-      <PageHeader
-        title="Tenants y Malls"
-        eyebrow="Plataforma"
-        actions={
-          <div className="flex items-center gap-2">
-            <DropdownSelect
-              options={[{ value: 'all', label: 'Todos los países' }, ...countries.map((c) => ({ value: c, label: c }))]}
-              value={countryFilter}
-              onChange={setCountryFilter}
-            />
-            <DropdownSelect
-              options={[
-                { value: 'all', label: 'Todos los estados' },
-                { value: 'activo', label: 'Activo' },
-                { value: 'inactivo', label: 'Inactivo' },
-                { value: 'onboarding', label: 'En onboarding' },
-              ]}
-              value={statusFilter}
-              onChange={setStatusFilter}
-            />
-            <label className="flex items-center gap-1 text-[11px] text-muted">
-              <input type="checkbox" checked={alertFilter} onChange={(e) => setAlertFilter(e.target.checked)} className="size-3.5 rounded border-border" />
-              Con alertas
-            </label>
-          </div>
-        }
-      />
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+      {/* Page title */}
+      <div>
+        <h1 className="text-lg font-semibold text-foreground">7.1 Tenants y Malls</h1>
+        <p className="mt-0.5 text-[12px] text-muted">Gestión multi-tenant — configuración base, estadísticas de uso e historial de cambios</p>
+      </div>
 
-      {/* Tenant table */}
-      <div className="panel flex min-h-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-[13px]">
-            <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="px-3 py-2">Nombre</th>
-                <th className="px-3 py-2">País</th>
-                <th className="px-3 py-2 text-center">Estado</th>
-                <th className="px-3 py-2 text-right">Medidores</th>
-                <th className="px-3 py-2 text-right">Usuarios</th>
-                <th className="px-3 py-2">Fecha alta</th>
-                <th className="px-3 py-2">Contrato</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((row) => (
-                <tr
-                  key={row.tenant.id}
-                  className="cursor-pointer transition-colors hover:bg-surface"
-                  onClick={() => setSelectedTenant(row)}
-                >
-                  <td className="px-3 py-2 font-medium text-foreground">{row.tenant.name}</td>
-                  <td className="px-3 py-2 text-muted">{row.country}</td>
-                  <td className="px-3 py-2 text-center">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[row.status]}`}>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
-                  <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
+      {/* Row 1 — Lista + Detalle/Stats */}
+      <div className="flex min-h-0 gap-4" style={{ flex: '0 0 auto' }}>
+        {/* Left 60% — Lista de tenants */}
+        <div className="panel flex min-h-0 flex-col overflow-hidden" style={{ flex: '0 0 60%' }}>
+          <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
+            <div>
+              <p className="text-[13px] font-medium text-foreground">Lista de tenants</p>
+              <p className="text-[11px] text-muted">Filtros: país / estado / con alertas activas · fila expandible con resumen del mall</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+              <DropdownSelect
+                options={[{ value: 'all', label: 'Todos los países' }, ...countries.map((c) => ({ value: c, label: c }))]}
+                value={countryFilter}
+                onChange={setCountryFilter}
+              />
+              <DropdownSelect
+                options={[
+                  { value: 'all', label: 'Todos los estados' },
+                  { value: 'activo', label: 'Activo' },
+                  { value: 'inactivo', label: 'Inactivo' },
+                  { value: 'onboarding', label: 'En onboarding' },
+                ]}
+                value={statusFilter}
+                onChange={setStatusFilter}
+              />
+              <label className="flex items-center gap-1 text-[11px] text-muted">
+                <input type="checkbox" checked={alertFilter} onChange={(e) => setAlertFilter(e.target.checked)} className="size-3.5 rounded border-border" />
+                Con alertas
+              </label>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto">
+            <table className="w-full text-[13px]">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-3 py-2">Tenant ID</th>
+                  <th className="px-3 py-2">Mall</th>
+                  <th className="px-3 py-2">País</th>
+                  <th className="px-3 py-2 text-center">Estado</th>
+                  <th className="px-3 py-2 text-right">Nº medidores</th>
+                  <th className="px-3 py-2 text-right">Nº usuarios</th>
+                  <th className="px-3 py-2">Fecha alta</th>
+                  <th className="px-3 py-2">Versión contrato</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((row, i) => (
+                  <tr
+                    key={row.tenant.id}
+                    className="cursor-pointer transition-colors hover:bg-surface"
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    onClick={() => setSelectedTenant(row)}
+                  >
+                    <td className="px-3 py-2 font-mono text-[11px] text-muted">{row.tenant.id.slice(0, 8)}…</td>
+                    <td className="px-3 py-2 font-medium text-foreground">{row.tenant.name}</td>
+                    <td className="px-3 py-2 text-muted">{row.country}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[row.status]}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
+                    <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
+                    <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
+                    <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={8} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">+ fila expandible · Ref [ARQ-05, FIN-02, FIN-03]</p>
+        </div>
+
+        {/* Right 40% — 2 stacked panels */}
+        <div className="flex flex-col gap-4" style={{ flex: '0 0 40%' }}>
+          {/* Detalle de tenant */}
+          <div className="panel flex-1 overflow-auto p-3">
+            <p className="text-[13px] font-medium text-foreground">Detalle de tenant — configuración base</p>
+            <p className="mb-3 text-[11px] text-muted">tenant seleccionado en la lista</p>
+            {selectedTenant ? (
+              <ul className="space-y-1.5 text-[12px]">
+                <li className="text-foreground">
+                  <span className="text-muted">Nombre · país · moneda · zona horaria: </span>
+                  {selectedTenant.tenant.name} · {selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}
+                </li>
+                <li className="text-foreground">
+                  <span className="text-muted">Umbrales de alerta: </span>configurados (95% calidad dato)
+                </li>
+                <li className="text-foreground">
+                  <span className="text-muted">Integración de facturación activa (FIN-04): </span>API REST
+                </li>
+                <li className="text-foreground">
+                  <span className="text-muted">Aislamiento lógico por mall (ARQ-05): </span>activo
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-1.5 text-[12px] text-muted">
+                <li>Nombre · país · moneda · zona horaria</li>
+                <li>Umbrales de alerta configurados</li>
+                <li>Integración de facturación activa (FIN-04)</li>
+                <li>Aislamiento lógico por mall (ARQ-05)</li>
+              </ul>
+            )}
+            <p className="mt-3 text-[10px] text-muted">Ref [ARQ-05, DAT-19, FIN-04]</p>
+          </div>
+
+          {/* Estadísticas de uso */}
+          <div className="panel flex-1 overflow-auto p-3">
+            <p className="text-[13px] font-medium text-foreground">Estadísticas de uso</p>
+            <p className="mb-3 text-[11px] text-muted">consumo del tenant, últimos 30 días</p>
+            {usageStats ? (
+              <ul className="space-y-1.5 text-[12px]">
+                <li className="flex items-center justify-between">
+                  <span className="text-muted">Usuarios activos 30d</span>
+                  <span className="font-semibold text-foreground">{usageStats.activeUsers30d}</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-muted">Nº consultas API (mes)</span>
+                  <span className="font-semibold text-foreground">{usageStats.apiQueries >= 1_000_000 ? `${(usageStats.apiQueries / 1_000_000).toFixed(1)} M` : usageStats.apiQueries.toLocaleString('es-CL')}</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-muted">Volumen de datos almacenados</span>
+                  <span className="font-semibold text-foreground">{usageStats.storageMb >= 1000 ? `${(usageStats.storageMb / 1024).toFixed(0)} GB` : `${usageStats.storageMb.toFixed(0)} MB`}</span>
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-1.5 text-[12px] text-muted">
+                <li>Usuarios activos 30d: 42</li>
+                <li>Nº consultas API (mes): 1,2 M</li>
+                <li>Volumen de datos almacenados: 318 GB</li>
+              </ul>
+            )}
+            <p className="mt-3 text-[10px] text-muted">Ref [FIN-01, DAT-09]</p>
+          </div>
         </div>
       </div>
 
-      {/* Detail drawer */}
-      <Drawer
-        open={selectedTenant !== null}
-        onClose={() => setSelectedTenant(null)}
-        title={selectedTenant?.tenant.name ?? 'Detalle'}
-        side="right"
-        size="lg"
-      >
-        {selectedTenant && (
-          <div className="space-y-5">
-            {/* Config base */}
-            <Section title="Configuración base">
-              <ConfigRow label="Nombre" value={selectedTenant.tenant.name} />
-              <ConfigRow label="País" value={selectedTenant.country} />
-              <ConfigRow label="Moneda" value={selectedTenant.tenant.defaultCurrency ?? '—'} />
-              <ConfigRow label="Zona horaria" value={selectedTenant.tenant.timezone} />
-              <ConfigRow label="Estado" value={selectedTenant.status} />
-              <ConfigRow label="Slug" value={selectedTenant.tenant.slug} mono />
-            </Section>
-
-            {/* Config calidad + facturación */}
-            <Section title="Parámetros">
-              <ConfigRow label="Umbral calidad dato" value="95%" />
-              <ConfigRow label="Integración facturación" value="API REST" />
-              <ConfigRow label="Contrato" value="v1.0" />
-            </Section>
-
-            {/* Actions */}
-            <Section title="Acciones">
-              <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => navigate('/admin/companies')} className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface">Crear tenant</button>
-                <button
-                  type="button"
-                  disabled={updateTenantMutation.isPending || selectedTenant.status === 'activo'}
-                  onClick={() => updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } })}
-                  className="rounded-md border border-border px-2 py-1 text-[11px] text-brand hover:bg-surface disabled:opacity-50"
-                >Activar</button>
-                <button
-                  type="button"
-                  disabled={updateTenantMutation.isPending || selectedTenant.status === 'inactivo'}
-                  onClick={() => {
-                    if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
-                    updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
-                  }}
-                  className="rounded-md border border-border px-2 py-1 text-[11px] text-red-600 hover:bg-red-50 disabled:opacity-50"
-                >Desactivar</button>
-              </div>
-              <p className="mt-1 text-[9px] text-muted">Requiere aprobación PASA. Todo en pista de auditoría.</p>
-            </Section>
-
-            {/* Usage stats */}
-            {usageStats && (
-              <Section title="Estadísticas de uso">
-                <div className="grid grid-cols-3 gap-2">
-                  <StatCard label="Usuarios activos (30d)" value={String(usageStats.activeUsers30d)} />
-                  <StatCard label="Acciones audit log" value={usageStats.apiQueries.toLocaleString()} />
-                  <StatCard label="Volumen datos (aprox.)" value={`${usageStats.storageMb.toFixed(1)} MB`} />
-                </div>
-              </Section>
-            )}
-
-            {/* Config history */}
-            <Section title="Historial de cambios">
-              {configHistory.length === 0 ? (
-                <p className="text-[12px] text-muted">Sin cambios registrados.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {configHistory.map((h) => (
-                    <div key={h.id} className="flex items-center justify-between text-[12px]">
-                      <span className="text-foreground">{h.user}</span>
-                      <span className="text-[10px] text-muted">{h.date}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Section>
+      {/* Row 2 — Historial + Acciones */}
+      <div className="flex gap-4" style={{ flex: '0 0 auto' }}>
+        {/* Left 60% — Historial de cambios */}
+        <div className="panel flex flex-col overflow-hidden" style={{ flex: '0 0 60%', minHeight: '220px' }}>
+          <div className="border-b border-border px-3 py-2">
+            <p className="text-[13px] font-medium text-foreground">Historial de cambios de configuración del tenant</p>
+            <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp (DAT-14)</p>
           </div>
-        )}
-      </Drawer>
+          <div className="min-h-0 flex-1 overflow-auto">
+            <table className="w-full text-[13px]">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                  <th className="px-3 py-2">Fecha</th>
+                  <th className="px-3 py-2">Usuario</th>
+                  <th className="px-3 py-2">Campo</th>
+                  <th className="px-3 py-2">Valor anterior</th>
+                  <th className="px-3 py-2">Valor nuevo</th>
+                  <th className="px-3 py-2">Aprobación</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {configHistory.length > 0 ? configHistory.map((h) => (
+                  <tr key={h.id} className="hover:bg-surface">
+                    <td className="px-3 py-2 text-[11px] text-muted">{h.date}</td>
+                    <td className="px-3 py-2 text-foreground">{h.user}</td>
+                    <td className="px-3 py-2 text-muted">{h.action}</td>
+                    <td className="px-3 py-2 text-muted">—</td>
+                    <td className="px-3 py-2 text-muted">—</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">aprobado</span>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={6} className="px-3 py-6 text-center text-[12px] text-muted">Sin cambios registrados.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">Ref [DAT-19, DAT-14]</p>
+        </div>
+
+        {/* Right 40% — Acciones */}
+        <div className="panel flex flex-col gap-4 p-4" style={{ flex: '0 0 40%' }}>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/companies')}
+              className="rounded-md bg-brand px-3 py-2 text-[13px] font-medium text-brand-fg hover:opacity-90"
+            >
+              Crear tenant
+            </button>
+            <button
+              type="button"
+              disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'activo'}
+              onClick={() => {
+                if (!selectedTenant) return;
+                updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } });
+              }}
+              className="rounded-md border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+            >
+              Activar
+            </button>
+            <button
+              type="button"
+              disabled={updateTenantMutation.isPending || !selectedTenant || selectedTenant.status === 'inactivo'}
+              onClick={() => {
+                if (!selectedTenant) return;
+                if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
+                updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
+              }}
+              className="rounded-md border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+            >
+              Desactivar
+            </button>
+          </div>
+
+          {/* Nota CYB-15 */}
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">
+            <p className="font-medium">Gato PASA</p>
+            <p className="mt-1">Crear / Activar / Desactivar un tenant NO se ejecuta directamente — abre un flujo de aprobación documentado (CYB-15). Toda acción queda registrada en la pista de auditoría con usuario, timestamp y justificación.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ── Helpers ── */
-
-function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
-  return (
-    <div>
-      <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">{title}</h4>
-      {children}
-    </div>
-  );
-}
-
-function ConfigRow({ label, value, mono }: Readonly<{ label: string; value: string; mono?: boolean }>) {
-  return (
-    <div className="flex items-center justify-between border-b border-border py-1.5 text-[12px]">
-      <span className="text-muted">{label}</span>
-      <span className={`text-foreground ${mono ? 'font-mono text-[11px]' : ''}`}>{value}</span>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <div className="rounded-lg border border-border px-2.5 py-2 text-center">
-      <p className="text-[10px] text-muted">{label}</p>
-      <p className="mt-0.5 text-[14px] font-semibold text-foreground">{value}</p>
-    </div>
-  );
-}

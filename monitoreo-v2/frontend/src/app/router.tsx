@@ -60,6 +60,10 @@ import {
   LazyCalidadDatosPage,
   LazyPistaAuditoriaPage,
   LazyTenantsMallsPage,
+  LazySlosDatosPage,
+  LazyThrottleCargasPage,
+  LazyRetencionPrivacidadPage,
+  LazyReplicaDatosPage,
   LazyBuildingsPage,
   LazyMetersUnifiedPage,
   LazyAlertsPage,
@@ -307,6 +311,10 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.configReleases, element: <P any={DASH_EXEC}><LazyConfigReleasesPage /></P> },
               { path: APP_ROUTES.admin.iotDevices, element: <P any={DASH_EXEC}><LazyIotDevicesPage /></P> },
               { path: APP_ROUTES.tenantsMalls, element: <P any={DASH_EXEC}><LazyTenantsMallsPage /></P> },
+              { path: APP_ROUTES.slosDatos, element: <P any={DASH_EXEC}><LazySlosDatosPage /></P> },
+              { path: APP_ROUTES.throttleCargas, element: <P any={DASH_EXEC}><LazyThrottleCargasPage /></P> },
+              { path: APP_ROUTES.retencionPrivacidad, element: <P any={DASH_EXEC}><LazyRetencionPrivacidadPage /></P> },
+              { path: APP_ROUTES.replicaDatos, element: <P any={DASH_EXEC}><LazyReplicaDatosPage /></P> },
 
               /* Edificios & Medidores (listas cross-tenant) */
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },

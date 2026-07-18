@@ -76,49 +76,17 @@ const AUDITOR_NAV: ProfileNavEntry[] = [
   { label: 'Exportar Evidencia', icon: 'admin', to: APP_ROUTES.exportarEvidencia, basePath: '/auditor/evidencia' },
 ];
 
-const SUPER_ADMIN_PLATFORM_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Plataforma',
-    icon: 'admin',
-    basePath: '/platform',
-    extraPaths: ['/super-admin', '/dashboard/platform', '/super-admin/tenants'],
-    platformOnly: true,
-    children: [
-      { to: APP_ROUTES.tenantsMalls, label: 'Tenants y Malls' },
-      { to: APP_ROUTES.observabilidad, label: 'Observabilidad' },
-      { to: APP_ROUTES.configReleases, label: 'Config y Releases' },
-    ],
-  },
-];
-
-const SUPER_ADMIN_TENANT_NAV: ProfileNavEntry[] = [
-  {
-    label: 'Administración',
-    icon: 'admin',
-    basePath: '/admin',
-    extraPaths: ['/super-admin'],
-    children: [
-      { to: '/admin/users', label: 'Usuarios y Roles' },
-      { to: APP_ROUTES.seguridadPam, label: 'Seguridad y PAM' },
-    ],
-  },
-  {
-    label: 'Integraciones',
-    icon: 'integrations',
-    to: APP_ROUTES.integrations,
-    basePath: '/integrations',
-  },
-  {
-    label: 'Mapa Indoor',
-    icon: 'monitoring',
-    to: APP_ROUTES.map,
-    basePath: '/map',
-  },
-];
-
 const SUPER_ADMIN_NAV: ProfileNavEntry[] = [
-  ...SUPER_ADMIN_PLATFORM_NAV,
-  ...SUPER_ADMIN_TENANT_NAV,
+  { label: 'Tenants y Malls', icon: 'admin', to: APP_ROUTES.tenantsMalls, basePath: '/admin/tenants-malls', platformOnly: true },
+  { label: 'Usuarios y Roles', icon: 'admin', to: '/admin/users', basePath: '/admin/users' },
+  { label: 'Seguridad y PAM', icon: 'admin', to: APP_ROUTES.seguridadPam, basePath: '/admin/seguridad-pam' },
+  { label: 'Observabilidad', icon: 'monitoring', to: APP_ROUTES.observabilidad, basePath: '/admin/observabilidad', platformOnly: true },
+  { label: 'Config y Releases', icon: 'analytics', to: APP_ROUTES.configReleases, basePath: '/admin/config-releases', platformOnly: true },
+  { label: 'Integraciones', icon: 'integrations', to: APP_ROUTES.integrations, basePath: '/integrations' },
+  { label: 'SLOs de Datos', icon: 'analytics', to: APP_ROUTES.slosDatos, basePath: '/admin/slos' },
+  { label: 'Throttle y Cargas', icon: 'monitoring', to: APP_ROUTES.throttleCargas, basePath: '/admin/throttle' },
+  { label: 'Retención y Privacidad', icon: 'admin', to: APP_ROUTES.retencionPrivacidad, basePath: '/admin/retencion' },
+  { label: 'Réplica de Datos', icon: 'monitoring', to: APP_ROUTES.replicaDatos, basePath: '/admin/replica' },
 ];
 
 /**

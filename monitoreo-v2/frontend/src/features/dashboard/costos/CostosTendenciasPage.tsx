@@ -363,7 +363,7 @@ export function CostosTendenciasPage() {
       </div>
 
       {/* Row 1: Stacked bar chart + Waterfall */}
-      <div className="flex min-h-0 shrink-0 gap-3" style={{ height: '35%' }}>
+      <div className="flex shrink-0 gap-3" style={{ height: '200px' }}>
         {/* Barras apiladas mensual — costo [UF] */}
         <div className="panel flex min-w-0 flex-1 flex-col p-3">
           <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>

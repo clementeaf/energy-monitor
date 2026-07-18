@@ -3,7 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useCnrQuery, useCreateCnr } from '../../../hooks/queries/useCnrQuery';
+import { useCreateCnr } from '../../../hooks/queries/useCnrQuery';
 import type { CnrMotivo } from '../../../types/cnr';
 
 /* ── CNR motives ── */
@@ -28,9 +28,7 @@ export function IngresoCnrPage() {
 
   const metersQuery = useMetersQuery();
   const buildingsQuery = useBuildingsQuery();
-  const cnrQuery = useCnrQuery();
   const createCnr = useCreateCnr();
-  const history = cnrQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const buildings = buildingsQuery.data ?? [];
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
@@ -131,15 +129,6 @@ export function IngresoCnrPage() {
         <Button type="button" onClick={handleSubmit} disabled={!canSubmit} loading={createCnr.isPending} className="flex-1">Firmar CNR</Button>
         <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
       </div>
-    </div>
-  );
-}
-
-function FormField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
-  return (
-    <div>
-      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">{label}</label>
-      {children}
     </div>
   );
 }

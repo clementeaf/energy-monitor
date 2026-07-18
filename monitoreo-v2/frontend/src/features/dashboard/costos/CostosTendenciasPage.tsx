@@ -148,15 +148,13 @@ export function CostosTendenciasPage() {
   const country = DEFAULT_COUNTRY;
   const [period, setPeriod] = useState('month');
   const [currency, setCurrency] = useState('CLP');
-  const [search, setSearch] = useState('');
+  const [search] = useState('');
   const [grouping, setGrouping] = useState('mall');
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
   const [selectedMallIds, setSelectedMallIds] = useState<Set<string>>(new Set());
   const [mallSearch, setMallSearch] = useState('');
   const [sortCol, setSortCol] = useState<string>('totalCost');
   const [sortAsc, setSortAsc] = useState(false);
-  const [varThreshold, setVarThreshold] = useState<number | null>(null);
+  const [varThreshold] = useState<number | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
@@ -219,10 +217,7 @@ export function CostosTendenciasPage() {
   }, [allCostRows, search, varThreshold, sortCol, sortAsc]);
 
   // Summary KPIs
-  const totalCost = costRows.reduce((sum, r) => sum + r.totalCost, 0);
   const totalMwh = costRows.reduce((sum, r) => sum + r.consumptionMwh, 0);
-  const avgPrice = totalMwh > 0 ? totalCost / totalMwh : 0;
-
   // Monthly chart data — stacked by building
   const monthlyData = useMemo(
     () => aggregateMonthlyCosts(filteredInvoices, currencyRate),
@@ -301,13 +296,6 @@ export function CostosTendenciasPage() {
       legend: { enabled: stackedSeries.length > 1 },
     };
   }, [monthlyData, filteredInvoices, filteredBuildings, currencyRate, currentCurrency.key, totalMwh, grouping]);
-
-  const summaryCards = [
-    { title: 'Costo total', value: formatCurrency(totalCost, currentCurrency.key) },
-    { title: 'Consumo total', value: `${totalMwh.toFixed(1)} MWh` },
-    { title: `Precio medio`, value: `${avgPrice.toFixed(2)} ${currentCurrency.key}/MWh` },
-    { title: 'Centros', value: String(costRows.length) },
-  ];
 
   // Waterfall factors
   const waterfallFactors = useMemo(() => {

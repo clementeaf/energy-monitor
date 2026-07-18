@@ -130,14 +130,6 @@ interface FeedEvent {
   timestamp: string;
 }
 
-const EVENT_BADGE: Record<string, string> = {
-  alert: 'bg-red-100 text-red-700',
-  offline: 'bg-gray-100 text-gray-700',
-  stale: 'bg-amber-100 text-amber-700',
-  backfill: 'bg-emerald-100 text-emerald-700',
-  cnr: 'bg-blue-100 text-blue-700',
-};
-
 /* ── Page ── */
 
 export function MonitoreoVivoPage() {
@@ -205,14 +197,6 @@ export function MonitoreoVivoPage() {
 
   // CNR pending = stale meters (gap > 4h = potential CNR)
   const cnrPending = staleCount;
-
-  const kpis = [
-    { title: 'Total medidores', value: String(totalMeters), color: 'text-foreground' },
-    { title: 'En línea', value: `${onlineCount} (${onlinePct}%)`, color: 'text-emerald-600' },
-    { title: 'Offline', value: String(offlineCount), color: offlineCount > 0 ? 'text-red-600' : 'text-foreground' },
-    { title: 'Dato estancado >4h', value: String(staleCount), color: staleCount > 0 ? 'text-amber-600' : 'text-foreground' },
-    { title: 'CNR pendientes', value: String(cnrPending), color: cnrPending > 0 ? 'text-amber-600' : 'text-foreground' },
-  ];
 
   // ponytail: placeholder histogram when no real hourly data
   const PLACEHOLDER_HISTOGRAM = [92,94,88,85,82,80,85,90,95,97,98,96,94,92,90,88,91,93,95,96,94,92,90,88];

@@ -1,12 +1,9 @@
 import { useState, useMemo } from 'react';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
-import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import type { Meter } from '../../../types/meter';
+import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { LatestReading } from '../../../types/reading';
 
 type CommStatus = 'online' | 'offline' | 'stale';
@@ -28,28 +25,22 @@ function deriveCommStatus(reading: LatestReading | undefined, now: number): Comm
 }
 
 export function MedidoresCatalogoPage() {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [search] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mallFilter, setMallFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [countryFilter, setCountryFilter] = useState('all');
-  const [alarmOnly, setAlarmOnly] = useState(false);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
-  const alertsQuery = useAlertsQuery({ status: 'active' });
+
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
-  const activeAlerts = alertsQuery.data ?? [];
 
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
-  const buildingCountryMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.countryCode ?? 'CL'])), [buildings]);
-  const alertMeterIds = useMemo(() => new Set(activeAlerts.map((a) => a.meterId).filter(Boolean)), [activeAlerts]);
   const readingMap = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
   const now = Date.now();
 
@@ -67,10 +58,8 @@ export function MedidoresCatalogoPage() {
         return s === statusFilter;
       });
     }
-    if (countryFilter !== 'all') result = result.filter((m) => buildingCountryMap.get(m.buildingId) === countryFilter);
-    if (alarmOnly) result = result.filter((m) => alertMeterIds.has(m.id));
     return result;
-  }, [meters, search, mallFilter, typeFilter, statusFilter, countryFilter, alarmOnly, readingMap, now, buildingCountryMap, alertMeterIds]);
+  }, [meters, search, mallFilter, typeFilter, statusFilter, readingMap, now]);
 
   const selected = meters.find((m) => m.id === selectedId) ?? null;
   const selectedReading = selected ? readingMap.get(selected.id) : undefined;

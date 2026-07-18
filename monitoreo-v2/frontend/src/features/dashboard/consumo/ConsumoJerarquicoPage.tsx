@@ -42,13 +42,6 @@ const SORT_OPTIONS = [
   { key: 'alerts', label: 'Por alertas' },
 ];
 
-const FILTER_OPTIONS = [
-  { key: 'all', label: 'Todos' },
-  { key: 'critical', label: 'Con alarma crítica' },
-  { key: 'variation', label: 'Con variación > X%' },
-  { key: 'nodata', label: 'Sin datos completos' },
-];
-
 const COMPARE_OPTIONS = [
   { key: 'none', label: 'Sin comparación' },
   { key: 'previous', label: 'Período anterior' },
@@ -130,12 +123,12 @@ export function ConsumoJerarquicoPage() {
   const [metric, setMetric] = useState('energy');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('metric');
-  const [filterBy, setFilterBy] = useState('all');
+  const [filterBy] = useState('all');
   const [compareWith, setCompareWith] = useState('none');
   const [granularity, setGranularity] = useState<'monthly' | 'weekly'>('monthly');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
-  const [variationThreshold, setVariationThreshold] = useState(10);
+  const [variationThreshold] = useState(10);
 
   // Queries
   const buildingsQuery = useBuildingsQuery();
@@ -186,11 +179,6 @@ export function ConsumoJerarquicoPage() {
   }, [filteredRows, sortBy, accessor]);
 
   // Total for portfolio
-  const portfolioTotal = useMemo(
-    () => rows.reduce((sum, r) => sum + accessor(r), 0),
-    [rows, accessor],
-  );
-
   // Geo buildings for map
   const geoBuildings = useMemo(
     () => filteredBuildings.filter((b): b is Building & { latitude: number; longitude: number } =>
@@ -471,240 +459,6 @@ export function ConsumoJerarquicoPage() {
         <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-19, DAT-17]</p>
       </div>
     </div>
-  );
-}
-
-/* ── Tree Row (building + expanded meters) ── */
-
-interface TreeRowProps {
-  row: BuildingRow;
-  metricVal: number;
-  metricUnit: string;
-  pctOfTotal: number;
-  statusStyle: { bg: string; label: string };
-  isExpanded: boolean;
-  onToggle: () => void;
-  expandedMeters: Meter[];
-  expandedReadings: LatestReading[];
-  onMeterClick: (meterId: string) => void;
-  onViewPlant: (buildingId: string) => void;
-  granularity: 'monthly' | 'weekly';
-  compareWith: string;
-}
-
-const STATUS_DOT: Record<string, string> = { online: 'bg-emerald-500', stale: 'bg-amber-400', offline: 'bg-gray-400' };
-
-function TreeRow({
-  row,
-  metricVal,
-  metricUnit,
-  pctOfTotal,
-  statusStyle,
-  isExpanded,
-  onToggle,
-  expandedMeters,
-  expandedReadings,
-  onMeterClick,
-  onViewPlant,
-  granularity,
-  compareWith,
-}: Readonly<TreeRowProps>) {
-  const [expandedZone, setExpandedZone] = useState<string | null>(null);
-
-  const readingMap = useMemo(() => {
-    const map = new Map<string, LatestReading>();
-    expandedReadings.forEach((r) => map.set(r.meter_id, r));
-    return map;
-  }, [expandedReadings]);
-
-  // Group meters by zone/floor for intermediate level
-  const zones = useMemo(() => {
-    if (!isExpanded || expandedMeters.length === 0) return [];
-    const zoneMap = new Map<string, Meter[]>();
-    expandedMeters.forEach((m) => {
-      const zone = (m.metadata as Record<string, string>)?.zone ?? m.loadCategory ?? 'general';
-      const list = zoneMap.get(zone) ?? [];
-      list.push(m);
-      zoneMap.set(zone, list);
-    });
-    const mallTotalMwh = expandedReadings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
-    return Array.from(zoneMap.entries()).map(([name, meters]) => {
-      const meterIds = new Set(meters.map((m) => m.id));
-      const zoneReadings = expandedReadings.filter((r) => meterIds.has(r.meter_id));
-      const zoneMwh = zoneReadings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
-      const pctMall = mallTotalMwh > 0 ? (zoneMwh / mallTotalMwh) * 100 : 0;
-      const hasOnline = zoneReadings.length > 0;
-      const hasStale = zoneReadings.some((r) => (Date.now() - new Date(r.timestamp).getTime()) > 4 * 3_600_000);
-      const status = !hasOnline ? 'offline' : hasStale ? 'stale' : 'online';
-      return { name, meters, zoneMwh, pctMall, meterCount: meters.length, status };
-    }).sort((a, b) => b.zoneMwh - a.zoneMwh);
-  }, [isExpanded, expandedMeters, expandedReadings]);
-
-  return (
-    <>
-      {/* Mall row */}
-      <tr
-        className="cursor-pointer transition-colors hover:bg-surface"
-        onClick={onToggle}
-      >
-        <td className="px-3 py-2">
-          <div className="flex items-center gap-2">
-            <svg
-              className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-              viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <path d="M4 2l4 4-4 4" />
-            </svg>
-            <span className="font-medium text-foreground">{row.building.name}</span>
-          </div>
-        </td>
-        <td className="px-3 py-2 text-right font-medium text-foreground">
-          {formatMetric(metricVal, metricUnit)}
-        </td>
-        <td className="px-3 py-2 text-right text-muted">
-          {pctOfTotal.toFixed(1)}%
-        </td>
-        <td className="px-3 py-2 text-right">
-          {row.variationPct != null ? (
-            <span className={`text-[11px] font-medium ${row.variationPct > 0 ? 'text-red-500' : row.variationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-              {row.variationPct > 0 ? '↑' : row.variationPct < 0 ? '↓' : '→'} {Math.abs(row.variationPct)}%
-            </span>
-          ) : <span className="text-muted">—</span>}
-        </td>
-        <td className="px-3 py-2 text-right text-muted">{row.meterCount}</td>
-        <td className="px-3 py-2 text-center">
-          <span className={`inline-block size-2.5 rounded-full ${statusStyle.bg}`} title={statusStyle.label} />
-        </td>
-      </tr>
-
-      {/* Trend sparkline + "Ver planta" */}
-      {isExpanded && (
-        <tr className="bg-surface/30">
-          <td colSpan={6} className="px-10 py-2">
-            <div className="flex items-center justify-between">
-              <TrendSparkline buildingId={row.building.id} metricVal={metricVal} label={metricUnit} granularity={granularity} compareWith={compareWith} />
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onViewPlant(row.building.id); }}
-                className="shrink-0 rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface"
-              >
-                Ver planta →
-              </button>
-            </div>
-          </td>
-        </tr>
-      )}
-
-      {/* Nivel 2: Zones/floors */}
-      {isExpanded && zones.map((zone) => {
-        const isZoneExpanded = expandedZone === zone.name;
-        return (
-          <ZoneRow
-            key={zone.name}
-            zone={zone}
-            isExpanded={isZoneExpanded}
-            onToggle={() => setExpandedZone(isZoneExpanded ? null : zone.name)}
-            readingMap={readingMap}
-            onMeterClick={onMeterClick}
-          />
-        );
-      })}
-    </>
-  );
-}
-
-/* ── Zone Row (intermediate level: zone/floor → meters) ── */
-
-interface ZoneData {
-  name: string;
-  meters: Meter[];
-  zoneMwh: number;
-  pctMall: number;
-  meterCount: number;
-  status: string;
-}
-
-function ZoneRow({
-  zone,
-  isExpanded,
-  onToggle,
-  readingMap,
-  onMeterClick,
-}: Readonly<{
-  zone: ZoneData;
-  isExpanded: boolean;
-  onToggle: () => void;
-  readingMap: Map<string, LatestReading>;
-  onMeterClick: (meterId: string) => void;
-}>) {
-  return (
-    <>
-      <tr
-        className="cursor-pointer bg-surface/30 transition-colors hover:bg-surface/50"
-        onClick={onToggle}
-      >
-        <td className="py-1.5 pl-8 pr-3">
-          <div className="flex items-center gap-2">
-            <svg
-              className={`h-3 w-3 shrink-0 text-muted transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-              viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <path d="M4 2l4 4-4 4" />
-            </svg>
-            <span className="text-[12px] font-medium text-foreground">{zone.name}</span>
-          </div>
-        </td>
-        <td className="px-3 py-1.5 text-right text-[12px] text-foreground">
-          {zone.zoneMwh > 0 ? `${zone.zoneMwh.toFixed(2)} MWh` : '—'}
-        </td>
-        <td className="px-3 py-1.5 text-right text-[10px] text-muted">
-          {zone.pctMall > 0 ? `${zone.pctMall.toFixed(1)}%` : '—'}
-        </td>
-        <td className="px-3 py-1.5" />
-        <td className="px-3 py-1.5 text-right text-[10px] text-muted">{zone.meterCount}</td>
-        <td className="px-3 py-1.5 text-center">
-          <span className={`inline-block size-2 rounded-full ${STATUS_DOT[zone.status]}`} />
-        </td>
-      </tr>
-
-      {/* Nivel 3: Meters under this zone */}
-      {isExpanded && zone.meters.map((meter) => {
-        const reading = readingMap.get(meter.id);
-        const energyKwh = Number(reading?.energy_kwh_total ?? 0);
-        const meterMwh = energyKwh / 1000;
-        const isOnline = !!reading;
-        const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;
-        const statusLabel = !isOnline ? 'offline' : stale ? 'stale' : 'online';
-        return (
-          <tr
-            key={meter.id}
-            className="cursor-pointer bg-surface/50 transition-colors hover:bg-surface"
-            onClick={() => onMeterClick(meter.id)}
-          >
-            <td className="py-1.5 pl-14 pr-3">
-              <span className="text-[11px] text-foreground">{meter.name}</span>
-              <span className="ml-1.5 text-[10px] text-muted">{meter.code}</span>
-            </td>
-            <td className="px-3 py-1.5 text-right text-[11px] text-foreground">
-              {meterMwh > 0 ? `${meterMwh.toFixed(2)} MWh` : '—'}
-            </td>
-            <td className="px-3 py-1.5" />
-            <td className="px-3 py-1.5 text-right text-[10px] text-muted">
-              {reading?.timestamp
-                ? new Date(reading.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-                : '—'}
-            </td>
-            <td className="px-3 py-1.5" />
-            <td className="px-3 py-1.5 text-center">
-              <span className="flex items-center justify-center gap-1">
-                <span className={`inline-block size-2 rounded-full ${STATUS_DOT[statusLabel]}`} />
-                <span className="text-[10px] text-muted">{statusLabel}</span>
-              </span>
-            </td>
-          </tr>
-        );
-      })}
-    </>
   );
 }
 

@@ -4,8 +4,6 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import type { Report, ReportFormat } from '../../../types/report';
 
 /* ── Config options (pure data) ── */
@@ -54,15 +52,6 @@ const CURRENCY_OPTIONS: SelectOption[] = [
   { key: 'USD', label: 'USD' },
 ];
 
-/* ── Queue status styling ── */
-
-const QUEUE_STATUS: Record<string, { label: string; style: string }> = {
-  queued: { label: 'En cola', style: 'bg-gray-100 text-gray-700' },
-  generating: { label: 'Generando', style: 'bg-amber-100 text-amber-700' },
-  ready: { label: 'Listo', style: 'bg-emerald-100 text-emerald-700' },
-  error: { label: 'Error', style: 'bg-red-100 text-red-700' },
-};
-
 /* ── Page ── */
 
 export function ExportarReportesPage() {
@@ -84,13 +73,7 @@ export function ExportarReportesPage() {
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
   const buildingsQuery = useBuildingsQuery();
-  const metersQuery = useMetersQuery();
-  const alertsQuery = useAlertsQuery({ status: 'active' });
-
   const reports = reportsQuery.data ?? [];
-  const buildingCount = buildingsQuery.data?.length ?? 0;
-  const meterCount = metersQuery.data?.length ?? 0;
-  const alertCount = alertsQuery.data?.length ?? 0;
 
   // Queue (recent exports, newest first)
   const queue = useMemo(
@@ -100,16 +83,6 @@ export function ExportarReportesPage() {
 
   // Preview summary — derive estimates from real entity counts
   const selectedTypes = CONTENT_TYPES.filter((t) => selectedContent.has(t.key));
-  const rowEstimates: Record<string, number> = {
-    consumption: buildingCount * (granularity === 'weekly' ? 12 : 12), // per building per period
-    billing: buildingCount * 3, // invoices per building
-    quality: meterCount,
-    coverage: buildingCount,
-    alerts_compliance: Math.max(alertCount, 10),
-  };
-  const totalRows = selectedTypes.reduce((sum, t) => sum + (rowEstimates[t.key] ?? t.estimatedRows), 0);
-  const totalSizeKb = Math.round(totalRows * 2.5); // ~2.5 KB per row estimate
-
   const toggleContent = (key: string) => {
     setSelectedContent((prev) => {
       const next = new Set(prev);

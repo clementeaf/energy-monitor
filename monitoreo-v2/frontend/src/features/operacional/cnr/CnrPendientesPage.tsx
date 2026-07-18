@@ -32,12 +32,6 @@ const STATUS_BADGE: Record<CnrStatus, string> = {
   'en revisión': 'bg-blue-100 text-blue-700',
 };
 
-const FILTER_OPTIONS = [
-  { key: 'all', label: 'Todas' },
-  { key: 'pendiente', label: 'Pendientes' },
-  { key: 'critical', label: '>24h' },
-];
-
 /* ── Gap thresholds ── */
 
 const GAP_THRESHOLD_H = 4;
@@ -92,7 +86,7 @@ const API_STATUS_MAP: Record<string, CnrStatus> = {
 };
 
 export function CnrPendientesPage() {
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
@@ -147,12 +141,6 @@ export function CnrPendientesPage() {
 
   // ponytail: "ingresadas hoy" approximated from gap < 24h (no ingestion timestamp without backend)
   const ingestedToday = cnrRecords.filter((r) => r.gapHours < 24).length;
-
-  const kpis = [
-    { title: 'CNR abiertas', value: String(totalOpen), color: totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600' },
-    { title: '>7d sin resolución', value: String(over7d), color: over7d > 0 ? 'text-red-600' : 'text-foreground' },
-    { title: 'Ingresadas hoy', value: String(ingestedToday), color: 'text-foreground' },
-  ];
 
   const handleExportCsv = () => {
     const header = 'ID,Medidor,Mall,Período afectado,Tipo,Responsable,Fecha ingreso,Estado,Valor estim. kWh';
@@ -258,8 +246,6 @@ interface CnrRowProps {
 }
 
 function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readonly<CnrRowProps>) {
-  const gapClass = cnr.gapHours >= CRITICAL_GAP_H ? 'text-red-600 font-medium' : cnr.gapHours >= 8 ? 'text-amber-600' : 'text-foreground';
-
   return (
     <>
       <tr

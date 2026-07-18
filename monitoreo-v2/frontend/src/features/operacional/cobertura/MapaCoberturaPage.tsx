@@ -87,22 +87,12 @@ function buildCoverageRows(
   });
 }
 
-/* ── Metric selector ── */
-
-interface MetricOption { key: string; label: string }
-
-const METRIC_OPTIONS: MetricOption[] = [
-  { key: 'online', label: '% Online' },
-  { key: 'alerts', label: 'Alertas' },
-  { key: 'last', label: 'Última lectura' },
-  { key: 'quality', label: 'Calidad dato' },
-];
 
 /* ── Page ── */
 
 export function MapaCoberturaPage() {
   const navigate = useNavigate();
-  const [metric, setMetric] = useState('online');
+  const [metric] = useState('online');
   const [search, setSearch] = useState('');
 
   const buildingsQuery = useBuildingsQuery();

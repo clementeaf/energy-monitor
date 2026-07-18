@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
@@ -111,13 +110,12 @@ function aggregateByMall(
 /* ── Page ── */
 
 export function AlarmasAgregadasPage() {
-  const navigate = useNavigate();
   const [country, setCountry] = useState('CL');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('active');
   const [periodFilter, setPeriodFilter] = useState('30d');
-  const [search, setSearch] = useState('');
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [search] = useState('');
+  const [, setSelectedBuildingId] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<'critical' | 'warning' | 'resolved' | 'total' | 'resolution' | 'last'>('total');
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -181,12 +179,6 @@ export function AlarmasAgregadasPage() {
     return Math.round((totalMs / resolved.length / 3_600_000) * 10) / 10;
   }, [filteredResolved]);
 
-  const kpis = [
-    { title: 'Activas', value: String(totalActive), color: totalActive > 0 ? 'text-red-600' : 'text-emerald-600' },
-    { title: 'Críticas activas', value: String(criticalActive), color: criticalActive > 0 ? 'text-red-600' : 'text-emerald-600' },
-    { title: 'Resueltas 24h', value: String(resolved24h), color: 'text-emerald-600' },
-    { title: 'Resolución media', value: meanResolutionH != null ? `${meanResolutionH}h` : '—', color: (meanResolutionH ?? 0) <= 24 ? 'text-emerald-600' : 'text-red-600' },
-  ];
 
   // Evolution chart: daily bars (last 30 days) — open / escalated / resolved
   const evolutionData = useMemo(() => {

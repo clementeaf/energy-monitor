@@ -194,7 +194,7 @@ export function ExportarEvidenciaPage() {
               >
                 Generar paquete firmado
               </Button>
-              <Button variant="outline">
+              <Button variant="secondary">
                 Verificar hash
               </Button>
             </div>

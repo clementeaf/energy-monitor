@@ -3,7 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useInterventionsQuery, useCreateIntervention } from '../../../hooks/queries/useInterventionsQuery';
+import { useCreateIntervention } from '../../../hooks/queries/useInterventionsQuery';
 import type { InterventionType, InterventionResult } from '../../../types/intervention';
 
 /* ── Types ── */
@@ -37,9 +37,7 @@ export function RegIntervencionPage() {
 
   const metersQuery = useMetersQuery();
   const buildingsQuery = useBuildingsQuery();
-  const interventionsQuery = useInterventionsQuery();
   const createIntervention = useCreateIntervention();
-  const history = interventionsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
   const buildings = buildingsQuery.data ?? [];
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);

@@ -276,20 +276,20 @@ export function DatosCrudosPage() {
           Exportar Parquet
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={handleExportCsv}
           disabled={selectedMeterIds.length === 0}
         >
           Exportar CSV
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={handleExportJson}
           disabled={selectedMeterIds.length === 0}
         >
           Exportar JSON
         </Button>
-        <Button variant="outline" onClick={handleVerifyHash}>
+        <Button variant="secondary" onClick={handleVerifyHash}>
           Verificar hash
         </Button>
         <span className="ml-auto text-[10px] text-muted font-mono">[DAT-30]</span>

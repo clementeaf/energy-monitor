@@ -46,7 +46,7 @@ export function ObservabilidadPage() {
   // Derive component health from data availability + APM
   const apiErrorRate = obsReport?.summary.errorRate ?? 0;
   const components: ComponentStatus[] = useMemo(() => [
-    { name: 'API', status: (hasApmData ? (apiErrorRate > 5 ? 'degraded' : 'ok') : 'ok') as ComponentHealth, latency: hasApmData ? `${obsReport?.summary.p50Ms ?? '—'} ms` : '142 ms', lastCheck: 'hace 1 min' },
+    { name: 'API', status: (hasApmData ? (apiErrorRate > 5 ? 'degraded' : 'ok') : 'ok') as ComponentHealth, latency: hasApmData ? `${obsReport?.summary.p95Ms ?? '—'} ms` : '142 ms', lastCheck: 'hace 1 min' },
     { name: 'BD', status: (hasApmData ? (obsReport!.summary.p95Ms > 2000 ? 'degraded' : 'ok') : 'ok') as ComponentHealth, latency: '18 ms', lastCheck: 'hace 1 min' },
     { name: 'Cola de mensajes', status: 'ok' as ComponentHealth, latency: '—', lastCheck: 'hace 2 min' },
     { name: 'Ingestión', status: (meters.length > 0 && readings.length === 0 ? 'degraded' : 'ok') as ComponentHealth, latency: '—', lastCheck: 'hace 5 min' },
@@ -56,7 +56,7 @@ export function ObservabilidadPage() {
   // Derive uptime from % meters reporting
   const uptimeEst = meters.length > 0 ? ((meters.filter((m) => readingMeterIds.has(m.id)).length / meters.length) * 100) : 99.82;
   const errorRate = hasApmData ? obsReport!.summary.errorRate : (alerts.length > 0 ? ((alerts.length / Math.max(1, meters.length)) * 100) : 0.4);
-  const latencyP50 = hasApmData ? obsReport!.summary.p50Ms : 142;
+  const latencyP50 = hasApmData ? obsReport!.summary.p95Ms : 142;
   const latencyP95 = hasApmData ? obsReport!.summary.p95Ms : 468;
 
   // Simulated 24h trend data

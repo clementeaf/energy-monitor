@@ -138,15 +138,6 @@ export function PanelConsolidadoPage() {
   const yesterdayQuery = useAggregatedReadingsQuery(
     { ...yesterdayRange, interval: 'daily', groupBy: 'portfolio' },
   );
-  const todayHourlyRange = useMemo(() => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return { from: todayStart.toISOString(), to: now.toISOString() };
-  }, []);
-  const todayHourlyQuery = useAggregatedReadingsQuery(
-    { ...todayHourlyRange, interval: 'hourly', groupBy: 'portfolio' },
-  );
-
   const allBuildings = buildingsQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const activeAlerts = alertsQuery.data ?? [];
@@ -185,10 +176,6 @@ export function PanelConsolidadoPage() {
   const totalDemandMw = useMemo(
     () => enriched.reduce((sum, e) => sum + e.powerKw, 0) / 1000,
     [enriched],
-  );
-  const totalCriticalAlerts = useMemo(
-    () => activeAlerts.filter((a) => a.severity === 'critical' || a.severity === 'high').length,
-    [activeAlerts],
   );
   const totalConsumptionMwh = useMemo(
     () => enriched.reduce((sum, e) => sum + e.powerKw * 24 / 1000, 0), // ponytail: approx daily MWh from current power
@@ -398,11 +385,8 @@ export function PanelConsolidadoPage() {
               />
             : <PortfolioPanel
                 enriched={enriched}
-                totalDemandMw={totalDemandMw}
                 totalCostUf={totalCostUf}
-                totalCriticalAlerts={totalCriticalAlerts}
                 totalConsumptionMwh={totalConsumptionMwh}
-                demandVariationPct={demandVariationPct}
                 consumptionVariationPct={consumptionVariationPct}
               />
           }
@@ -416,21 +400,15 @@ export function PanelConsolidadoPage() {
 
 interface PortfolioPanelProps {
   enriched: EnrichedBuilding[];
-  totalDemandMw: number;
   totalCostUf: number;
-  totalCriticalAlerts: number;
   totalConsumptionMwh: number;
-  demandVariationPct: number | null;
   consumptionVariationPct: number | null;
 }
 
 function PortfolioPanel({
   enriched,
-  totalDemandMw,
   totalCostUf,
-  totalCriticalAlerts,
   totalConsumptionMwh,
-  demandVariationPct,
   consumptionVariationPct,
 }: Readonly<PortfolioPanelProps>) {
   const activeCount = enriched.filter((e) => e.building.isActive).length;
@@ -525,6 +503,8 @@ interface BuildingDetailProps {
   onSelectFloor: (id: string | null) => void;
   onBack: () => void;
 }
+
+const PLACEHOLDER_24H = [12, 10, 8, 7, 6, 7, 14, 22, 35, 42, 48, 50, 47, 44, 40, 38, 42, 46, 44, 38, 30, 24, 18, 14];
 
 function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, onSelectFloor, onBack }: Readonly<BuildingDetailProps>) {
   const { building, powerKw, activeAlerts } = detail;
@@ -1068,38 +1048,6 @@ function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[];
         );
       })}
     </ul>
-  );
-}
-
-// ponytail: placeholder curve until aggregated hourly endpoint is fast enough
-const PLACEHOLDER_24H = [12, 10, 8, 7, 6, 7, 14, 22, 35, 42, 48, 50, 47, 44, 40, 38, 42, 46, 44, 38, 30, 24, 18, 14];
-
-function DemandSparkline({ data }: Readonly<{ data: import('../../../types/reading').AggregatedReading[] }>) {
-  const bars = useMemo(() => {
-    // Build 24-slot array from aggregated hourly data
-    const slots = new Array(24).fill(0);
-    for (const row of data) {
-      const hour = new Date(row.bucket).getHours();
-      slots[hour] += parseFloat(row.avg_power_kw ?? '0');
-    }
-    // Use placeholder if no real data available
-    const hasData = slots.some((v) => v > 0);
-    return hasData ? slots : PLACEHOLDER_24H;
-  }, [data]);
-
-  const maxBar = Math.max(1, ...bars);
-
-  return (
-    <div className="flex h-8 items-end gap-[2px]" data-testid="demand-sparkline">
-      {bars.map((v, i) => (
-        <div
-          key={i}
-          className="flex-1 rounded-t bg-brand/60"
-          style={{ height: `${(v / maxBar) * 100}%` }}
-          title={`${String(i).padStart(2, '0')}:00 — ${v.toFixed(0)} kW`}
-        />
-      ))}
-    </div>
   );
 }
 

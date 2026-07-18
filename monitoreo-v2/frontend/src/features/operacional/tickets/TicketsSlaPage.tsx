@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 // ponytail: PillToggle replaced with tab buttons per wireframe
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
-import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { Alert } from '../../../types/alert';
 
@@ -120,13 +119,9 @@ function daysLabel(days: number): string {
 export function TicketsSlaPage() {
   const [quickFilter, setQuickFilter] = useState('all');
 
-  const buildingsQuery = useBuildingsQuery();
   const activeQuery = useAlertsQuery({ status: 'active' });
   const acknowledgedQuery = useAlertsQuery({ status: 'acknowledged' });
   const resolvedQuery = useAlertsQuery({ status: 'resolved' });
-
-  const buildings = buildingsQuery.data ?? [];
-  const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
 
   // Merge all alerts into tickets
   const allAlerts = useMemo(
@@ -152,10 +147,6 @@ export function TicketsSlaPage() {
     return Math.round((online / latestReadings.length) * 100);
   }, [latestReadings]);
 
-  // SLA KPIs
-  const openTickets = tickets.filter((t) => t.status !== 'resuelto');
-  const overdueCount = openTickets.filter((t) => t.daysRemaining <= 0).length;
-  const resolvedCount = tickets.filter((t) => t.status === 'resuelto').length;
 
   // Mean time to resolve (hours) — from resolved alerts with resolvedAt
   const meanResolutionH = useMemo(() => {
@@ -167,18 +158,6 @@ export function TicketsSlaPage() {
       return sum + Math.max(0, close - open);
     }, 0);
     return Math.round((totalMs / resolved.length / 3_600_000) * 10) / 10;
-  }, [allAlerts]);
-
-  // SLA compliance: % resolved within SLA deadline
-  const slaCompliancePct = useMemo(() => {
-    const resolved = allAlerts.filter((a) => a.status === 'resolved' && a.resolvedAt);
-    if (resolved.length === 0) return null;
-    const withinSla = resolved.filter((a) => {
-      const priority = SEVERITY_TO_PRIORITY[a.severity] ?? 'baja';
-      const deadlineMs = new Date(a.createdAt).getTime() + SLA_HOURS[priority] * 3_600_000;
-      return new Date(a.resolvedAt!).getTime() <= deadlineMs;
-    }).length;
-    return Math.round((withinSla / resolved.length) * 100);
   }, [allAlerts]);
 
   // SLA evolution: weekly bars (last 12 weeks)
@@ -208,16 +187,6 @@ export function TicketsSlaPage() {
     return weeks;
   }, [allAlerts]);
 
-  const maxBarValue = Math.max(1, ...slaWeekly.map((w) => w.withinSla + w.outsideSla));
-
-  const slaKpis = [
-    { title: 'Tickets abiertos', value: String(openTickets.length), color: openTickets.length > 0 ? 'text-amber-600' : 'text-emerald-600' },
-    { title: 'Vencidos (SLA)', value: String(overdueCount), color: overdueCount > 0 ? 'text-red-600' : 'text-emerald-600' },
-    { title: 'Cumplimiento SLA', value: slaCompliancePct != null ? `${slaCompliancePct}%` : '—', color: (slaCompliancePct ?? 100) >= 90 ? 'text-emerald-600' : 'text-red-600' },
-    { title: 'Tiempo medio resolución', value: meanResolutionH != null ? `${meanResolutionH}h` : '—', color: (meanResolutionH ?? 0) <= 24 ? 'text-emerald-600' : 'text-amber-600' },
-    { title: 'Disponibilidad datos', value: uptimePct != null ? `${uptimePct}%` : '—', color: (uptimePct ?? 100) >= 95 ? 'text-emerald-600' : 'text-amber-600' },
-    { title: 'Resueltos período', value: String(resolvedCount), color: 'text-emerald-600' },
-  ];
 
   // Uptime line data for chart
   const uptimeByWeek = slaWeekly.map((wk) => {

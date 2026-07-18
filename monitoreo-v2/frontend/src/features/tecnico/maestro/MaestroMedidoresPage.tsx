@@ -3,7 +3,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 // ponytail: PillToggle replaced per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
-import { useMetersQuery, useUpdateMeter } from '../../../hooks/queries/useMetersQuery';
+import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import type { Meter } from '../../../types/meter';
 
 /* ── Asset status ── */
@@ -22,25 +22,15 @@ function deriveAssetStatus(meter: Meter): AssetStatus {
   return 'activo';
 }
 
-const FILTER_OPTIONS = [
-  { key: 'all', label: 'Todos' },
-  { key: 'activo', label: 'Activos' },
-  { key: 'en mantención', label: 'En mantención' },
-  { key: 'baja', label: 'Baja' },
-];
-
 /* ── Page ── */
 
 export function MaestroMedidoresPage() {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [bajaMotivo, setBajaMotivo] = useState('');
-  const [showBajaInput, setShowBajaInput] = useState(false);
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
-  const updateMeter = useUpdateMeter();
 
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];

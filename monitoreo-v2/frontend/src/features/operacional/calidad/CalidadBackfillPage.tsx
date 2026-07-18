@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { DataWidget } from '../../../components/ui/DataWidget';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -8,7 +7,6 @@ import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuer
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
-import type { BackfillJobStatus } from '../../../types/backfill-job';
 
 /* ── Quality scorecard row ── */
 
@@ -84,22 +82,6 @@ function buildQualityRows(
   });
 }
 
-/* ── Backfill job styling ── */
-
-const BACKFILL_STATUS_BADGE: Record<BackfillJobStatus, string> = {
-  pending: 'bg-gray-100 text-gray-700',
-  running: 'bg-amber-100 text-amber-700',
-  completed: 'bg-emerald-100 text-emerald-700',
-  failed: 'bg-red-100 text-red-700',
-};
-
-const BACKFILL_STATUS_LABEL: Record<BackfillJobStatus, string> = {
-  pending: 'En cola',
-  running: 'En curso',
-  completed: 'Completado',
-  failed: 'Error',
-};
-
 /* ── Page ── */
 
 export function CalidadBackfillPage() {
@@ -152,11 +134,6 @@ export function CalidadBackfillPage() {
       })
       .slice(0, 20);
   }, [meters, readings, now]);
-
-  // Summary KPIs
-  const avgRealPct = qualityRows.length > 0
-    ? qualityRows.reduce((sum, r) => sum + r.realPct, 0) / qualityRows.length
-    : 0;
 
   // 30-day histogram data
   const histogramBars = useMemo(() => {

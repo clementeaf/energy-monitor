@@ -116,7 +116,7 @@ export function TrazabilidadPage() {
         <div className="mt-3 rounded-lg border border-border bg-background px-4 py-3">
           <p className="text-[13px] font-medium text-foreground">
             {selectedReading
-              ? `Valor mostrado: ${Number(selectedReading.energy_kwh_total).toFixed(0)} kWh · tipo: ${readingType === 'cnr' ? 'CNR (dato manual)' : readingType === 'estimado' ? 'Estimado' : readingType === 'backfill' ? 'Backfill' : 'Real (medición directa)'}`
+              ? `Valor mostrado: ${Number(selectedReading.energy_kwh_total).toFixed(0)} kWh · tipo: ${readingType === 'cnr' ? 'CNR (dato manual)' : readingType === 'estimado' ? 'Estimado' : (readingType as string) === 'backfill' ? 'Backfill' : 'Real (medición directa)'}`
               : 'Valor mostrado: — · selecciona un medidor para ver el linaje'}
           </p>
         </div>

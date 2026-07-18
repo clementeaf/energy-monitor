@@ -73,19 +73,19 @@ export function RegIntervencionPage() {
 
       {/* Orden asociada */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Orden asociada</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Orden asociada</p>
         {selectedMeter ? (
           <div className="mt-1 text-[11px] text-foreground">
             <p className="font-semibold">OT — Medidor {selectedMeter.code}</p>
             <p>• Cierre de intervención en terreno</p>
           </div>
         ) : <p className="mt-1 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-19]</p>
+        <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-19]</p>
       </div>
 
       {/* Bitácora de intervención */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
         <form onSubmit={handleSubmit} className="mt-2 space-y-3">
             <FormField label="Medidor / activo">
               <select
@@ -158,18 +158,18 @@ export function RegIntervencionPage() {
               Requiere CNR → pre-llena formulario de CNR
             </label>
         </form>
-        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-19, DAT-23]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[DAT-19, DAT-23]</p>
       </div>
 
       {/* Adjuntos y firma */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
         <div className="mt-2 space-y-1 text-[11px] text-foreground">
           <p>• Fotos máx. 5 (JPG/PNG) + documentos (PDF)</p>
           <p>• □ Requiere CNR → pre-llena formulario de CNR</p>
           <p>• Firma digital del técnico</p>
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-19, DAT-23]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[DAT-19, DAT-23]</p>
       </div>
 
       {/* Inmutabilidad del registro */}

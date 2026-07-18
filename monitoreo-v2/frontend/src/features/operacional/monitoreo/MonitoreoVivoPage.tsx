@@ -288,34 +288,34 @@ export function MonitoreoVivoPage() {
       {/* Row 1: 5 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total medidores</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total medidores</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
-          <p className="text-[9px] text-subtle">parque completo del portafolio</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-08]</p>
+          <p className="text-[11px] text-muted">parque completo del portafolio</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-08]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">En línea [%]</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En línea [%]</p>
           <p className="mt-1 text-2xl font-bold text-emerald-600">{onlinePct}%</p>
-          <p className="text-[9px] text-subtle">▲ vs. inicio de turno · sparkline 24h</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-06, DAT-27]</p>
+          <p className="text-[11px] text-muted">▲ vs. inicio de turno · sparkline 24h</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-06, DAT-27]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Offline</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Offline</p>
           <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-red-600' : 'text-foreground'}`}>{offlineCount}</p>
-          <p className="text-[9px] text-subtle">medidores sin conexión</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[ARQ-08, DAT-24]</p>
+          <p className="text-[11px] text-muted">medidores sin conexión</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-08, DAT-24]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Dato estancado &gt; 4h</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Dato estancado &gt; 4h</p>
           <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
-          <p className="text-[9px] text-subtle">{staleCount > 0 ? 'badge rojo · alerta DAT-24' : 'sin estancados'}</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-24, DAT-27]</p>
+          <p className="text-[11px] text-muted">{staleCount > 0 ? 'badge rojo · alerta DAT-24' : 'sin estancados'}</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-24, DAT-27]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
           <p className={`mt-1 text-2xl font-bold ${cnrPending > 0 ? 'text-amber-600' : 'text-foreground'}`}>{cnrPending}</p>
-          <p className="text-[9px] text-subtle">a la espera de ingreso</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-24]</p>
+          <p className="text-[11px] text-muted">a la espera de ingreso</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-24]</p>
         </div>
       </div>
 
@@ -323,8 +323,8 @@ export function MonitoreoVivoPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Mapa / grilla de centros comerciales */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa / grilla de centros comerciales</p>
-          <p className="shrink-0 text-[9px] text-subtle">Tarjeta por mall: nombre, país, % medidores online, última lectura, semáforo general · click → grilla de medidores</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Mapa / grilla de centros comerciales</p>
+          <p className="shrink-0 text-[11px] text-muted">Tarjeta por mall: nombre, país, % medidores online, última lectura, semáforo general · click → grilla de medidores</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <div className="flex flex-wrap gap-2">
               {mallCards.map((card) => {
@@ -348,13 +348,13 @@ export function MonitoreoVivoPage() {
               })}
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[ARQ-06, DAT-11, DAT-19]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[ARQ-06, DAT-11, DAT-19]</p>
         </div>
 
         {/* Comportamiento del parque — 24h */}
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Comportamiento del parque — 24h</p>
-          <p className="shrink-0 text-[9px] text-subtle">% medidores online por hora · detecta caídas masivas o parciales</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Comportamiento del parque — 24h</p>
+          <p className="shrink-0 text-[11px] text-muted">% medidores online por hora · detecta caídas masivas o parciales</p>
           <div className="mt-2 flex min-h-0 flex-1 items-end gap-[1px]">
             {parkHistogram.map((h) => (
               <div
@@ -365,11 +365,11 @@ export function MonitoreoVivoPage() {
               />
             ))}
           </div>
-          <div className="mt-1 flex justify-between text-[9px] text-subtle">
+          <div className="mt-1 flex justify-between text-[11px] text-muted">
             <span>{parkHistogram[0]?.label}</span>
             <span>{parkHistogram[parkHistogram.length - 1]?.label}</span>
           </div>
-          <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-24]</p>
+          <p className="mt-0.5 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-24]</p>
         </div>
       </div>
 
@@ -377,12 +377,12 @@ export function MonitoreoVivoPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Grilla de medidores del mall seleccionado */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Grilla de medidores del mall seleccionado</p>
-          <p className="shrink-0 text-[9px] text-subtle">se despliega al hacer click en una tarjeta del mapa</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Grilla de medidores del mall seleccionado</p>
+          <p className="shrink-0 text-[11px] text-muted">se despliega al hacer click en una tarjeta del mapa</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Serial</th>
                   <th className="px-2 py-1.5">Zona</th>
                   <th className="px-2 py-1.5 text-center">Estado</th>
@@ -419,13 +419,13 @@ export function MonitoreoVivoPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-11, DAT-19, ARQ-08]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-11, DAT-19, ARQ-08]</p>
         </div>
 
         {/* Feed de eventos recientes */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos recientes</p>
-          <p className="shrink-0 text-[9px] text-subtle">cronológico · con timestamp y mall</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Feed de eventos recientes</p>
+          <p className="shrink-0 text-[11px] text-muted">cronológico · con timestamp y mall</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
               {enrichedFeed.map((evt) => (
@@ -444,7 +444,7 @@ export function MonitoreoVivoPage() {
               )}
             </ul>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-10, DAT-19]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-10, DAT-19]</p>
         </div>
       </div>
     </div>

@@ -159,8 +159,8 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {/* Configurador de reporte */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
-            <p className="text-[9px] text-subtle">los filtros determinan el contenido a generar</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
+            <p className="text-[11px] text-muted">los filtros determinan el contenido a generar</p>
             <div className="mt-3 space-y-3">
               <ConfigField label="Alcance geográfico (Portafolio / País / Mall)">
                 <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
@@ -194,13 +194,13 @@ export function ReportesEjecutivosPage() {
                 </select>
               </ConfigField>
             </div>
-            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07, DAT-28]</p>
+            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07, DAT-28]</p>
           </div>
 
           {/* Secciones a incluir */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
-            <p className="text-[9px] text-subtle">todas activadas por defecto</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
+            <p className="text-[11px] text-muted">todas activadas por defecto</p>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
               {REPORT_SECTIONS.map((s) => (
                 <label key={s.key} className="flex items-center gap-1.5 text-[11px] text-foreground">
@@ -209,7 +209,7 @@ export function ReportesEjecutivosPage() {
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07, DAT-28]</p>
+            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07, DAT-28]</p>
           </div>
         </div>
 
@@ -217,8 +217,8 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           {/* Vista previa del reporte */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
-            <p className="text-[9px] text-subtle">miniatura de portada e índice</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
+            <p className="text-[11px] text-muted">miniatura de portada e índice</p>
             <div className="mt-2 text-[11px] text-muted">
               <p>• Portada + logo</p>
               <p>• Índice de secciones seleccionadas:</p>
@@ -229,7 +229,7 @@ export function ReportesEjecutivosPage() {
               </ul>
               {sections.size === 0 && <p className="mt-1 text-subtle">Seleccione al menos una sección</p>}
             </div>
-            <p className="mt-2 text-right text-[9px] text-subtle">[FIN-07]</p>
+            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07]</p>
           </div>
 
           {/* Action buttons */}
@@ -244,12 +244,12 @@ export function ReportesEjecutivosPage() {
 
           {/* Historial de reportes */}
           <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
-            <p className="shrink-0 text-[9px] text-subtle">retención de archivos ≥ 12 meses</p>
+            <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
+            <p className="shrink-0 text-[11px] text-muted">retención de archivos ≥ 12 meses</p>
             <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                     <th className="px-2 py-1.5">Fecha</th>
                     <th className="px-2 py-1.5">Usuario</th>
                     <th className="px-2 py-1.5">Alcance</th>
@@ -281,7 +281,7 @@ export function ReportesEjecutivosPage() {
                 </table>
               </div>
             </div>
-            <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-12, DAT-08]</p>
+            <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-12, DAT-08]</p>
           </div>
         </div>
         </div>

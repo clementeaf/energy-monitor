@@ -73,7 +73,7 @@ export function RetencionPrivacidadPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Tipo</th>
                   <th className="px-2 py-1.5">País</th>
@@ -169,7 +169,7 @@ export function RetencionPrivacidadPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Tipo de dato</th>
                 <th className="px-2 py-1.5">Registros</th>
                 <th className="px-2 py-1.5">Acción</th>
@@ -247,7 +247,7 @@ export function RetencionPrivacidadPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Fecha</th>
                   <th className="px-2 py-1.5">Registros</th>

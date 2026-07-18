@@ -203,7 +203,7 @@ function RawVsShownRow({
     { tsUtc: readingDate.toISOString(), processed: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: typeDetail[readingType][2]?.info ?? 'Sin transformación', dashboard: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
   ];
 
-  const thClass = 'pb-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted';
+  const thClass = 'pb-2 text-left text-[12px] font-medium uppercase tracking-wider text-muted';
   const tdClass = 'py-1.5 text-[12px]';
 
   return (

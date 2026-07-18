@@ -141,8 +141,8 @@ export function ExportarReportesPage() {
           {/* Left: Configurador de exportación */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             <div className="panel px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
-              <p className="text-[9px] text-subtle">selección de contenido, alcance y formato</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
+              <p className="text-[11px] text-muted">selección de contenido, alcance y formato</p>
               <div className="mt-3 space-y-3">
                 <ConfigField label="Tipo de contenido (multi-selección)">
                   <div className="space-y-1.5">
@@ -189,7 +189,7 @@ export function ExportarReportesPage() {
                   </select>
                 </ConfigField>
               </div>
-              <p className="mt-2 text-right text-[9px] text-subtle">[DAT-07, DAT-12]</p>
+              <p className="mt-2 text-right text-[11px] text-muted">[DAT-07, DAT-12]</p>
             </div>
           </div>
 
@@ -197,13 +197,13 @@ export function ExportarReportesPage() {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
             {/* Resumen de la exportación */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
               <div className="mt-2 space-y-0.5 text-[11px] text-muted">
                 <p>• Contenido: {selectedTypes.map((t) => t.label).join(', ') || '—'}</p>
                 <p>• Alcance: {scopeLabel} · Período: {periodLabel}</p>
                 <p>• Granularidad: {granLabel} · Formato: {formatLabel}</p>
               </div>
-              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-12]</p>
+              <p className="mt-1 text-right text-[11px] text-muted">[DAT-12]</p>
             </div>
 
             {/* Action buttons */}
@@ -218,14 +218,14 @@ export function ExportarReportesPage() {
 
             {/* Limitación del perfil gerencial */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
               <ul className="mt-2 space-y-0.5 text-[11px] text-muted">
                 <li>• Solo datos agregados por mall y período</li>
                 <li>• Sin datos crudos de medidores individuales</li>
                 <li>• Sin información identificable de locatarios</li>
                 <li>• Para granularidad / trazabilidad / evidencia firmada → perfil Auditor</li>
               </ul>
-              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-07]</p>
+              <p className="mt-1 text-right text-[11px] text-muted">[DAT-07]</p>
             </div>
           </div>
         </div>
@@ -233,11 +233,11 @@ export function ExportarReportesPage() {
 
       {/* Row 2: Historial de exportaciones */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Fecha</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Contenido</th>
@@ -273,7 +273,7 @@ export function ExportarReportesPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-12, DAT-08]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-12, DAT-08]</p>
       </div>
     </div>
   );

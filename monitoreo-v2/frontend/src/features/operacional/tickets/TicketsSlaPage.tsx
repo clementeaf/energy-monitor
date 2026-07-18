@@ -204,29 +204,29 @@ export function TicketsSlaPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
           <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-red-600'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
-          <p className="text-[9px] text-subtle">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06, ARQ-06]</p>
+          <p className="text-[11px] text-muted">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[FIN-06, ARQ-06]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
-          <p className="text-[9px] text-subtle">lecturas recibidas / esperadas</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06, ARQ-06]</p>
+          <p className="text-[11px] text-muted">lecturas recibidas / esperadas</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[FIN-06, ARQ-06]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
           <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
-          <p className="text-[9px] text-subtle">indicador visual si supera el SLA</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06]</p>
+          <p className="text-[11px] text-muted">indicador visual si supera el SLA</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[FIN-06]</p>
         </div>
       </div>
 
       {/* Row 2: Evolución de SLA — últimos 3 meses */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
-        <p className="text-[9px] text-subtle">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
+        <p className="text-[11px] text-muted">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
         <div className="mt-2" style={{ height: '80px' }}>
           {(() => {
             const w = 600;
@@ -248,7 +248,7 @@ export function TicketsSlaPage() {
             );
           })()}
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[FIN-06, FIN-07]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[FIN-06, FIN-07]</p>
       </div>
 
       {/* Row 3: Quick-filter tabs + Tablero de tickets */}
@@ -267,16 +267,16 @@ export function TicketsSlaPage() {
               {f.label}
             </button>
           ))}
-          <span className="ml-2 text-[9px] text-subtle">esta pantalla: El filtro rápido «Mis tickets /</span>
+          <span className="ml-2 text-[11px] text-muted">esta pantalla: El filtro rápido «Mis tickets /</span>
         </div>
 
-        <p className="mt-2 shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
-        <p className="shrink-0 text-[9px] text-subtle">días restantes en verde · vencidos en rojo</p>
+        <p className="mt-2 shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
+        <p className="shrink-0 text-[11px] text-muted">días restantes en verde · vencidos en rojo</p>
 
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Descripción</th>
                 <th className="px-2 py-1.5">Tipo</th>
@@ -316,7 +316,7 @@ export function TicketsSlaPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[FIN-05, FIN-06]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[FIN-05, FIN-06]</p>
       </div>
     </div>
   );

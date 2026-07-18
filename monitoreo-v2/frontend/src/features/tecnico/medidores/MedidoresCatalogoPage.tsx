@@ -96,12 +96,12 @@ export function MedidoresCatalogoPage() {
       </div>
 
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
-        <p className="text-[9px] text-subtle">serial · estado · protocolo · último dato</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
+        <p className="text-[11px] text-muted">serial · estado · protocolo · último dato</p>
         <div className="mt-2 text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Serial</th>
                 <th className="px-2 py-1.5 text-center">Estado</th>
                 <th className="px-2 py-1.5">Prot.</th>
@@ -130,35 +130,35 @@ export function MedidoresCatalogoPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, DAT-06, DAT-24]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, DAT-06, DAT-24]</p>
       </div>
 
       {/* Ficha — Identificación */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ficha — Identificación</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Ficha — Identificación</p>
         {selected ? (
           <div className="mt-2 space-y-2 text-[11px]">
             <div>
-              <p className="text-[9px] text-subtle">Serial / tag / fabricante</p>
+              <p className="text-[11px] text-muted">Serial / tag / fabricante</p>
               <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.code} · {selected.name}</p>
             </div>
             <div>
-              <p className="text-[9px] text-subtle">Modelo · firmware · protocolo</p>
+              <p className="text-[11px] text-muted">Modelo · firmware · protocolo</p>
               <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.loadCategory ?? '—'} · {selected.busId ? 'Modbus' : 'DLMS'}</p>
             </div>
             <div>
-              <p className="text-[9px] text-subtle">Dirección Modbus/IP · gateway</p>
+              <p className="text-[11px] text-muted">Dirección Modbus/IP · gateway</p>
               <p className="rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground">{selected.busId ?? '—'}</p>
             </div>
           </div>
         ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, DAT-23]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, DAT-23]</p>
       </div>
 
       {/* Ubicación física */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ubicación física</p>
-        <p className="text-[9px] text-subtle">ref. Estándar Técnico Salas</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Ubicación física</p>
+        <p className="text-[11px] text-muted">ref. Estándar Técnico Salas</p>
         {selected ? (
           <div className="mt-2 space-y-0.5 text-[11px] text-foreground">
             <p>• Tipo de sala · rack / tablero</p>
@@ -166,25 +166,25 @@ export function MedidoresCatalogoPage() {
             <p className="text-muted">{buildingMap.get(selected.buildingId) ?? '—'} · {(selected.metadata as Record<string, string>)?.zone ?? '—'}</p>
           </div>
         ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-1 text-right text-[9px] text-subtle">[INT-14, ARQ-15]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, ARQ-15]</p>
       </div>
 
       {/* Disponibilidad 72h */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Disponibilidad 72 h (barras 15 min)</p>
-        <p className="text-[9px] text-subtle">estado de comunicación · reintentos</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Disponibilidad 72 h (barras 15 min)</p>
+        <p className="text-[11px] text-muted">estado de comunicación · reintentos</p>
         <div className="mt-2 flex h-8 items-end gap-[0.5px]">
           {avail72h.map((v, i) => (
             <div key={i} className="flex-1 rounded-t" style={{ height: `${Math.max(2, v)}%`, backgroundColor: v > 0 ? '#22c55e' : '#ef4444' }} />
           ))}
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[INT-13, INT-10]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
       </div>
 
       {/* Serie temporal 48h */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Serie temporal 48 h (gaps marcados)</p>
-        <p className="text-[9px] text-subtle">tipo de valor: real / estimado / CNR</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Serie temporal 48 h (gaps marcados)</p>
+        <p className="text-[11px] text-muted">tipo de valor: real / estimado / CNR</p>
         <div className="mt-2" style={{ height: '60px' }}>
           {selected && selectedReading ? (
             <svg viewBox="0 0 200 50" className="h-full w-full" preserveAspectRatio="none">
@@ -193,12 +193,12 @@ export function MedidoresCatalogoPage() {
             </svg>
           ) : <p className="py-4 text-center text-[11px] text-muted">Selecciona un medidor</p>}
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-04, DAT-06, DAT-19]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[DAT-04, DAT-06, DAT-19]</p>
       </div>
 
       {/* Historial de fallas e intervenciones */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Historial de fallas e intervenciones</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Historial de fallas e intervenciones</p>
         <div className="mt-2 space-y-1.5 text-[11px]">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-gray-400" />
@@ -213,7 +213,7 @@ export function MedidoresCatalogoPage() {
             <p className="text-foreground">CNR ingresada — período repuesto</p>
           </div>
         </div>
-        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-23, DAT-19]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[DAT-23, DAT-19]</p>
       </div>
     </div>
   );

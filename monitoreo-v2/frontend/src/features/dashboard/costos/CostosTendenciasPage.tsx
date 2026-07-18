@@ -366,20 +366,20 @@ export function CostosTendenciasPage() {
       <div className="flex shrink-0 gap-3">
         {/* Barras apiladas mensual — costo [UF] */}
         <div className="panel min-w-0 flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>
-          <p className="text-[9px] text-subtle">Línea eje secundario: precio medio [{currentCurrency.key}/MWh] · tooltip con desglose</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>
+          <p className="text-[11px] text-muted">Línea eje secundario: precio medio [{currentCurrency.key}/MWh] · tooltip con desglose</p>
           {monthlyData.length > 0 ? (
             <Chart options={chartOptions} className="mt-1" />
           ) : (
             <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Sin datos de facturación</div>
           )}
-          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+          <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
 
         {/* Waterfall de variación de costo */}
         <div className="panel min-w-0 flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
-          <p className="text-[9px] text-subtle">volumen · precio · mix de malls (verde baja, rojo sube)</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
+          <p className="text-[11px] text-muted">volumen · precio · mix de malls (verde baja, rojo sube)</p>
           {waterfallFactors ? (
             <div className="mt-2 flex min-h-0 flex-1 items-end gap-2">
               {[
@@ -404,14 +404,14 @@ export function CostosTendenciasPage() {
           ) : (
             <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Requiere ≥2 meses</div>
           )}
-          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+          <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
       </div>
 
       {/* Row 2: Tabla de costos por mall */}
       <div className="panel flex min-h-0 flex-col overflow-hidden p-3" style={{ flex: '0 1 30%' }}>
         <div className="flex shrink-0 items-center gap-2">
-          <p className="flex-1 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de costos por mall (ordenable · exportable CSV/Excel)</p>
+          <p className="flex-1 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de costos por mall (ordenable · exportable CSV/Excel)</p>
           <button
             type="button"
             onClick={() => downloadCsv(costRows, currentCurrency.key)}
@@ -423,7 +423,7 @@ export function CostosTendenciasPage() {
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <SortTh col="buildingName" label="Mall" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
                 <SortTh col="countryCode" label="País" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} />
                 <SortTh col="consumptionMwh" label="Consumo [MWh]" sortCol={sortCol} sortAsc={sortAsc} onSort={(c) => { setSortCol(c); setSortAsc(sortCol === c ? !sortAsc : false); }} right />
@@ -457,15 +457,15 @@ export function CostosTendenciasPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-22, FIN-07, DAT-12]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-22, FIN-07, DAT-12]</p>
       </div>
 
       {/* Row 3: Proyecciones — 2 meses */}
       <div className="panel shrink-0 p-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
-            <p className="text-[9px] text-subtle">Base: tendencia últimos 3 meses</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
+            <p className="text-[11px] text-muted">Base: tendencia últimos 3 meses</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] text-muted"><span className="inline-block h-2.5 w-4 rounded-sm bg-blue-400" /> Real</span>
@@ -497,7 +497,7 @@ export function CostosTendenciasPage() {
             </div>
           );
         })()}
-        <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+        <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
       </div>
     </div>
   );

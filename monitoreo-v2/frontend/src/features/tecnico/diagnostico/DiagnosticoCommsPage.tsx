@@ -76,30 +76,30 @@ export function DiagnosticoCommsPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
           <p className="mt-1 text-xl font-bold text-foreground">{selectedState ?? '—'}</p>
-          <p className="text-[9px] text-subtle">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ''}</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[INT-13, DAT-24]</p>
+          <p className="text-[11px] text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ''}</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tasa de éxito 24 h</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tasa de éxito 24 h</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.successRate}%</p>
-          <p className="text-[9px] text-subtle">reintentos {commMetrics.retries} · timeouts {commMetrics.timeouts}</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[INT-13, INT-10]</p>
+          <p className="text-[11px] text-muted">reintentos {commMetrics.retries} · timeouts {commMetrics.timeouts}</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.lastTs ?? '—'}</p>
-          <p className="text-[9px] text-subtle">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : '—'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} kWh` : '—'}</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[INT-13, DAT-24]</p>
+          <p className="text-[11px] text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : '—'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} kWh` : '—'}</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
       </div>
 
       {/* Row 2: Histogram + Tools */}
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Histograma de disponibilidad 72 h</p>
-          <p className="shrink-0 text-[9px] text-subtle">barras de 15 min · huecos = sin lectura</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de disponibilidad 72 h</p>
+          <p className="shrink-0 text-[11px] text-muted">barras de 15 min · huecos = sin lectura</p>
           {selected ? (
             <div className="mt-2 flex min-h-0 flex-1 items-end gap-[0.5px]">
               {Array.from({ length: 72 * 4 }, (_, i) => {
@@ -108,12 +108,12 @@ export function DiagnosticoCommsPage() {
               })}
             </div>
           ) : <p className="mt-4 text-center text-[11px] text-muted">Selecciona un medidor</p>}
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-13, INT-10, DAT-24]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10, DAT-24]</p>
         </div>
 
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Herramientas de diagnóstico</p>
-          <p className="shrink-0 text-[9px] text-subtle">acción directa sobre el enlace</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Herramientas de diagnóstico</p>
+          <p className="shrink-0 text-[11px] text-muted">acción directa sobre el enlace</p>
           <div className="mt-2 space-y-1 text-[11px] text-foreground">
             <p>• Test de conexión al gateway</p>
             <p>• Forzar re-intento de lectura</p>
@@ -124,18 +124,18 @@ export function DiagnosticoCommsPage() {
             <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Forzar re-lectura</button>
             <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Ver log raw</button>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-13, INT-10]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
         </div>
       </div>
 
       {/* Row 3: Log raw */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Log de comunicación raw (últimas 100 líneas)</p>
-        <p className="shrink-0 text-[9px] text-subtle">solo lectura · exportable</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Log de comunicación raw (últimas 100 líneas)</p>
+        <p className="shrink-0 text-[11px] text-muted">solo lectura · exportable</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Timestamp UTC</th>
                 <th className="px-2 py-1.5">Dirección</th>
                 <th className="px-2 py-1.5">Trama / evento</th>
@@ -160,7 +160,7 @@ export function DiagnosticoCommsPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-13, INT-10]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
       </div>
     </div>
   );

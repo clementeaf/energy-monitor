@@ -360,7 +360,7 @@ export function PanelConsolidadoPage() {
 
               {/* Nivel 3 — Tienda / Local / Isla heatmap */}
               <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted">
+                <p className="mb-2 text-[12px] font-medium uppercase tracking-wider text-muted">
                   Nivel 3 — Tienda / Local / Isla
                 </p>
                 <div className="min-h-0 flex-1">
@@ -425,7 +425,7 @@ function PortfolioPanel({
       <div className="grid grid-cols-2 gap-2">
         {/* Consumo [MWh] */}
         <div className="panel px-3 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalConsumptionMwh, 3)}</p>
           <div className="mt-1 flex items-center gap-1">
             {consumptionVariationPct != null && (
@@ -434,47 +434,47 @@ function PortfolioPanel({
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[9px] text-subtle">[DAT-22, DAT-08, ARQ-07]</p>
+          <p className="mt-0.5 text-[11px] text-muted">[DAT-22, DAT-08, ARQ-07]</p>
         </div>
 
         {/* Costo [UF] */}
         <div className="panel px-3 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(totalCostUf, 3)}</p>
           <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
-          <p className="mt-0.5 text-[9px] text-subtle">[DAT-22, FIN-07]</p>
+          <p className="mt-0.5 text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
 
         {/* Intensidad energética */}
         <div className="panel px-3 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{intensityKwhM2}</p>
           <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
-          <p className="mt-0.5 text-[9px] text-subtle">[DAT-11, DAT-22]</p>
+          <p className="mt-0.5 text-[11px] text-muted">[DAT-11, DAT-22]</p>
         </div>
 
         {/* Cobertura de medición */}
         <div className="panel px-3 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
           <p className={`mt-1 text-2xl font-bold ${coverageColor}`}>{coveragePct}%</p>
           <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
-          <p className="mt-0.5 text-[9px] text-subtle">[DAT-17, DAT-06]</p>
+          <p className="mt-0.5 text-[11px] text-muted">[DAT-17, DAT-06]</p>
         </div>
       </div>
 
       {/* Feed de eventos críticos */}
       <div className="panel flex min-h-0 flex-1 flex-col px-3 py-3">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
         <p className="shrink-0 text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <RecentCriticalEvents alerts={enriched.flatMap((e) => e.activeAlerts)} buildings={enriched.map((e) => e.building)} />
         </div>
-        <p className="shrink-0 mt-1 text-[9px] text-subtle">[DAT-03, DAT-27]</p>
+        <p className="shrink-0 mt-1 text-[11px] text-muted">[DAT-03, DAT-27]</p>
       </div>
 
       {/* Semáforo calidad del dato */}
       <div className="panel px-3 py-3">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Semáforo calidad del dato</p>
+        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Semáforo calidad del dato</p>
         <p className="mt-1 text-[10px] text-muted">% reales / estimadas / CNR del período (pills de color)</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Reales 88%</span>
@@ -482,7 +482,7 @@ function PortfolioPanel({
           <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">CNR 3%</span>
         </div>
         <p className="mt-1 text-[10px] text-subtle">Aplica desde Nivel 2 (centro comercial) en adelante</p>
-        <p className="mt-0.5 text-[9px] text-subtle">[DAT-06, DAT-17]</p>
+        <p className="mt-0.5 text-[11px] text-muted">[DAT-06, DAT-17]</p>
       </div>
 
       {/* Nota */}
@@ -572,7 +572,7 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
       {/* Metric cards — Gap 2: mini sparkline in Carga total */}
       <div className="grid grid-cols-3 gap-2">
         <div className="panel px-2.5 py-2 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Carga total</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Carga total</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
           <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
             {PLACEHOLDER_24H.map((v, i) => (
@@ -581,11 +581,11 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
           </div>
         </div>
         <div className="panel px-2.5 py-2 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—'}</p>
         </div>
         <div className="panel px-2.5 py-2 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">En alarma</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En alarma</p>
           <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
             {activeAlerts.length > 0 && <span className="mr-1">⚠</span>}
             {activeAlerts.length}
@@ -922,7 +922,7 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
           <DropdownSelect options={FLOOR_SHOW_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorShowOnly} onChange={(v) => setFloorShowOnly(v as FloorShowOnly)} />
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
+          <span className="text-[12px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
           {COLOR_MODE_OPTIONS.map((opt) => (
             <button
               key={opt.key}

@@ -249,23 +249,23 @@ export function TenantsMallsPage() {
               {selectedTenant ? (
                 <dl className="space-y-2.5 text-[12px]">
                   <div>
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Nombre</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Nombre</dt>
                     <dd className="text-foreground">{selectedTenant.tenant.name}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
                     <dd className="text-foreground">{selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
                     <dd className="text-foreground">Configurados (95% calidad dato)</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Integración de facturación (FIN-04)</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Integración de facturación (FIN-04)</dt>
                     <dd className="text-foreground">API REST — activa</dd>
                   </div>
                   <div>
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall (ARQ-05)</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall (ARQ-05)</dt>
                     <dd className="text-foreground">Activo</dd>
                   </div>
                 </dl>

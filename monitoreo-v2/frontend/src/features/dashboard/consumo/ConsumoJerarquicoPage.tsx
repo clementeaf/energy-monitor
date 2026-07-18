@@ -292,8 +292,8 @@ export function ConsumoJerarquicoPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Card 1: Mapa geográfico (sincronizado) */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Mapa geográfico (sincronizado)</p>
-          <p className="text-[9px] text-subtle">Click en marcador ↔ árbol ↔ detalle</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Mapa geográfico (sincronizado)</p>
+          <p className="text-[11px] text-muted">Click en marcador ↔ árbol ↔ detalle</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView
               buildings={geoBuildings}
@@ -302,13 +302,13 @@ export function ConsumoJerarquicoPage() {
               className="h-full w-full"
             />
           </div>
-          <p className="mt-1 text-right text-[9px] text-subtle">[ARQ-05, DAT-11]</p>
+          <p className="mt-1 text-right text-[11px] text-muted">[ARQ-05, DAT-11]</p>
         </div>
 
         {/* Card 2: Árbol jerárquico expandible */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Árbol jerárquico expandible</p>
-          <p className="text-[9px] text-subtle">3 niveles de sangría</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Árbol jerárquico expandible</p>
+          <p className="text-[11px] text-muted">3 niveles de sangría</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-[12px]">
             <div className="font-semibold text-foreground">▼ Total país — Chile</div>
             <ul className="mt-1 space-y-0.5">
@@ -347,15 +347,15 @@ export function ConsumoJerarquicoPage() {
               })}
             </ul>
           </div>
-          <p className="mt-1 text-right text-[9px] text-subtle">[DAT-11, DAT-22]</p>
+          <p className="mt-1 text-right text-[11px] text-muted">[DAT-11, DAT-22]</p>
         </div>
 
         {/* Card 3: KPIs + Tendencia + Zonas (stacked) */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
           {/* KPIs del mall (3 tarjetas) */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">KPIs del mall (3 tarjetas)</p>
-            <p className="mt-0.5 text-[9px] text-subtle">seleccionado en el árbol/mapa</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">KPIs del mall (3 tarjetas)</p>
+            <p className="mt-0.5 text-[11px] text-muted">seleccionado en el árbol/mapa</p>
             {selectedRow ? (
               <div className="mt-2 space-y-1 text-[11px]">
                 <p className="text-foreground">• Consumo [MWh] <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-red-500' : 'text-emerald-500'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
@@ -365,13 +365,13 @@ export function ConsumoJerarquicoPage() {
             ) : (
               <p className="mt-2 text-[11px] text-muted">Seleccione un mall</p>
             )}
-            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, DAT-11, FIN-07]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, DAT-11, FIN-07]</p>
           </div>
 
           {/* Tendencia mensual */}
           <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tendencia mensual: mall vs. promedio portafolio</p>
-            <p className="text-[9px] text-subtle">Últimos 8-12 meses · detecta anomalías estacionales</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tendencia mensual: mall vs. promedio portafolio</p>
+            <p className="text-[11px] text-muted">Últimos 8-12 meses · detecta anomalías estacionales</p>
             <div className="mt-2 min-h-0 flex-1">
               {selectedRow ? (
                 <TrendSparkline buildingId={selectedRow.building.id} metricVal={accessor(selectedRow)} label={currentMetric.unit} granularity={granularity} compareWith={compareWith} />
@@ -379,13 +379,13 @@ export function ConsumoJerarquicoPage() {
                 <p className="text-[11px] text-muted">Seleccione un mall</p>
               )}
             </div>
-            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-08, DAT-22]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[DAT-08, DAT-22]</p>
           </div>
 
           {/* Zonas del piso seleccionado */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Zonas del piso seleccionado</p>
-            <p className="text-[9px] text-subtle">tarjetas coloreadas por estado (vectorizado PASA)</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Zonas del piso seleccionado</p>
+            <p className="text-[11px] text-muted">tarjetas coloreadas por estado (vectorizado PASA)</p>
             {zones.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-1">
                 {zones.map((z) => (
@@ -397,19 +397,19 @@ export function ConsumoJerarquicoPage() {
             ) : (
               <p className="mt-2 text-[11px] text-muted">Seleccione un mall con pisos</p>
             )}
-            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-11, DAT-03]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[DAT-11, DAT-03]</p>
           </div>
         </div>
       </div>
 
       {/* Row 2: Tabla de remarcadores del mall */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de remarcadores del mall</p>
-        <p className="shrink-0 text-[9px] text-subtle">al seleccionar mall sin piso</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de remarcadores del mall</p>
+        <p className="shrink-0 text-[11px] text-muted">al seleccionar mall sin piso</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">ID medidor</th>
                 <th className="px-2 py-1.5">Zona</th>
                 <th className="px-2 py-1.5 text-right">Consumo [MWh]</th>
@@ -456,7 +456,7 @@ export function ConsumoJerarquicoPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-19, DAT-17]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-19, DAT-17]</p>
       </div>
     </div>
   );

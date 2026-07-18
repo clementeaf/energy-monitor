@@ -71,7 +71,7 @@ export function ThrottleCargasPage() {
           <div className="min-h-0 flex-1 overflow-auto px-4">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="sticky top-0 bg-white px-2 py-1.5">Tenant</th>
                 <th className="sticky top-0 bg-white px-2 py-1.5">Req/h</th>
                 <th className="sticky top-0 bg-white px-2 py-1.5">Req/d</th>

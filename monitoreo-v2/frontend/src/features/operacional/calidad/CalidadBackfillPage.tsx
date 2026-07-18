@@ -166,12 +166,12 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Scorecard de calidad por mall */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
-          <p className="shrink-0 text-[9px] text-subtle">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
+          <p className="shrink-0 text-[11px] text-muted">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% Reales</th>
                   <th className="px-2 py-1.5 text-right">% Estimadas</th>
@@ -206,13 +206,13 @@ export function CalidadBackfillPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-17]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-17]</p>
         </div>
 
         {/* Histograma de calidad — 30 días */}
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
-          <p className="shrink-0 text-[9px] text-subtle">área apilada por día: real / estimado / CNR / faltante</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
+          <p className="shrink-0 text-[11px] text-muted">área apilada por día: real / estimado / CNR / faltante</p>
           <div className="mt-2 flex min-h-0 flex-1 items-end gap-[1px]">
             {histogramBars.map((b) => (
               <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
@@ -229,7 +229,7 @@ export function CalidadBackfillPage() {
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> CNR</span>
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Faltante</span>
           </div>
-          <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-06, DAT-17, DAT-27]</p>
+          <p className="mt-0.5 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-17, DAT-27]</p>
         </div>
       </div>
 
@@ -237,12 +237,12 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Panel de backfill activo */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
-          <p className="shrink-0 text-[9px] text-subtle">procesos en curso · % completado y ETA</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
+          <p className="shrink-0 text-[11px] text-muted">procesos en curso · % completado y ETA</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Medidor</th>
                   <th className="px-2 py-1.5">Tipo de gap</th>
                   <th className="px-2 py-1.5">Período a reponer</th>
@@ -281,13 +281,13 @@ export function CalidadBackfillPage() {
           <button type="button" className="mt-2 shrink-0 self-start rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">
             Lanzar backfill manual
           </button>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-10]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-10]</p>
         </div>
 
         {/* Alertas de degradación de calidad */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
-          <p className="shrink-0 text-[9px] text-subtle">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
+          <p className="shrink-0 text-[11px] text-muted">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
               {degradedMeters.length > 0 ? degradedMeters.slice(0, 10).map((meter) => {
@@ -309,7 +309,7 @@ export function CalidadBackfillPage() {
               )}
             </ul>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-17]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-17]</p>
         </div>
       </div>
     </div>

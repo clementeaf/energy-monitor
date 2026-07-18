@@ -58,13 +58,13 @@ export function MaestroMedidoresPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Maestro de medidores */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Maestro de medidores</p>
-          <p className="shrink-0 text-[9px] text-subtle">búsqueda y filtros completos · selecciona para editar</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Maestro de medidores</p>
+          <p className="shrink-0 text-[11px] text-muted">búsqueda y filtros completos · selecciona para editar</p>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-brand" />
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Serial</th>
                   <th className="px-2 py-1.5">Tag</th>
                   <th className="px-2 py-1.5">Mall</th>
@@ -94,25 +94,25 @@ export function MaestroMedidoresPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-14, FIN-02, FIN-03]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-14, FIN-02, FIN-03]</p>
         </div>
 
         {/* Alta / edición de medidor */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-y-auto px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Alta / edición de medidor</p>
-          <p className="shrink-0 text-[9px] text-subtle">agrupado por secciones</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Alta / edición de medidor</p>
+          <p className="shrink-0 text-[11px] text-muted">agrupado por secciones</p>
           {sel ? (
             <div className="mt-2 space-y-3 text-[11px]">
-              <div><p className="text-[9px] text-subtle">Identificación: serial · fabricante · modelo · firmware</p><input readOnly value={`${sel.serialNumber ?? '—'} · ${sel.model ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Protocolo</p><input readOnly value={sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Comunicación: dirección Modbus/IP · gateway</p><input readOnly value={sel.busId ?? sel.ipAddress ?? '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Tiempo de muestreo</p><input readOnly value="15 min" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Ubicación: mall · zona · tipo de sala</p><input readOnly value={`${buildingMap.get(sel.buildingId) ?? '—'} · ${(sel.metadata as Record<string, string>)?.zone ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Rack / tablero</p><input readOnly value="—" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Factor de multiplicación / constante de medición</p><input readOnly value="1.0" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Identificación: serial · fabricante · modelo · firmware</p><input readOnly value={`${sel.serialNumber ?? '—'} · ${sel.model ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Protocolo</p><input readOnly value={sel.ipAddress ? 'TCP/IP' : sel.modbusAddress ? 'Modbus' : '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Comunicación: dirección Modbus/IP · gateway</p><input readOnly value={sel.busId ?? sel.ipAddress ?? '—'} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Tiempo de muestreo</p><input readOnly value="15 min" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Ubicación: mall · zona · tipo de sala</p><input readOnly value={`${buildingMap.get(sel.buildingId) ?? '—'} · ${(sel.metadata as Record<string, string>)?.zone ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Rack / tablero</p><input readOnly value="—" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Factor de multiplicación / constante de medición</p><input readOnly value="1.0" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
             </div>
           ) : <p className="mt-4 text-center text-[11px] text-muted">Selecciona un medidor de la tabla</p>}
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-14, ARQ-15, FIN-03]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-14, ARQ-15, FIN-03]</p>
 
           {/* Action buttons */}
           <div className="mt-3 flex shrink-0 gap-2">
@@ -125,12 +125,12 @@ export function MaestroMedidoresPage() {
 
       {/* Row 2: Pista de cambios del maestro */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Pista de cambios del maestro (inmutable)</p>
-        <p className="shrink-0 text-[9px] text-subtle">campo · valor anterior → valor nuevo · usuario · timestamp</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Pista de cambios del maestro (inmutable)</p>
+        <p className="shrink-0 text-[11px] text-muted">campo · valor anterior → valor nuevo · usuario · timestamp</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Timestamp</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Campo</th>
@@ -147,7 +147,7 @@ export function MaestroMedidoresPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-23, DAT-14, CYB-10]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-23, DAT-14, CYB-10]</p>
       </div>
     </div>
   );

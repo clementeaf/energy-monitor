@@ -388,7 +388,7 @@ export function CalidadDatosPage() {
               ) : (
                 <table className="w-full text-[12px]">
                   <thead className="sticky top-0 bg-background">
-                    <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                       <th className="px-2 py-1">Medidor</th>
                       <th className="px-2 py-1 text-right">% Reales</th>
                       <th className="px-2 py-1">Causa más frecuente</th>

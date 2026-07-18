@@ -163,7 +163,7 @@ export function DatosCrudosPage() {
         <div className="flex-1 overflow-auto">
           <table className="w-full text-[12px]">
             <thead className="sticky top-0 z-10 bg-white">
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Timestamp UTC</th>
                 <th className="px-3 py-2 text-right">Valor raw</th>
                 <th className="px-3 py-2">Unidad</th>

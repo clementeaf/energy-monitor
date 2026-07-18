@@ -162,22 +162,22 @@ export function CnrPendientesPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
           <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{totalOpen}</p>
-          <p className="text-[9px] text-subtle">a la espera de resolución</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+          <p className="text-[11px] text-muted">a la espera de resolución</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
           <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-red-600' : 'text-foreground'}`}>{over7d}</p>
-          <p className="text-[9px] text-subtle">badge de alerta de antigüedad</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+          <p className="text-[11px] text-muted">badge de alerta de antigüedad</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{ingestedToday}</p>
-          <p className="text-[9px] text-subtle">nuevas en el turno</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-20]</p>
+          <p className="text-[11px] text-muted">nuevas en el turno</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
       </div>
 
@@ -191,12 +191,12 @@ export function CnrPendientesPage() {
 
       {/* Tabla de CNR */}
       <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
-        <p className="shrink-0 text-[9px] text-subtle">fila expandible: detalle, justificación e historial</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
+        <p className="shrink-0 text-[11px] text-muted">fila expandible: detalle, justificación e historial</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Medidor</th>
                 <th className="px-2 py-1.5">Mall</th>
@@ -229,7 +229,7 @@ export function CnrPendientesPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-20, DAT-19, DAT-14]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-20, DAT-19, DAT-14]</p>
       </div>
     </div>
   );

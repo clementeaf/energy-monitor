@@ -167,18 +167,18 @@ export function MapaCoberturaPage() {
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Left: Mapa interactivo de cobertura */}
         <div className="panel flex min-w-0 flex-[2] flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
-          <p className="shrink-0 text-[9px] text-subtle">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
+          <p className="shrink-0 text-[11px] text-muted">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[ARQ-08, DAT-17, DAT-11]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[ARQ-08, DAT-17, DAT-11]</p>
         </div>
 
         {/* Right: Panel lateral de lista */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
-          <p className="shrink-0 text-[9px] text-subtle">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
+          <p className="shrink-0 text-[11px] text-muted">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -188,7 +188,7 @@ export function MapaCoberturaPage() {
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% online</th>
                   <th className="px-2 py-1.5 text-right">Alarmas</th>
@@ -228,7 +228,7 @@ export function MapaCoberturaPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-17, DAT-27]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-17, DAT-27]</p>
         </div>
       </div>
     </div>

@@ -296,28 +296,28 @@ export function AlarmasAgregadasPage() {
       {/* Row 1: 4 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
           <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{totalActive}</p>
-          <p className="text-[9px] text-subtle">en el período filtrado</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27, FIN-06]</p>
+          <p className="text-[11px] text-muted">en el período filtrado</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-27, FIN-06]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Críticas activas</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Críticas activas</p>
           <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{criticalActive}</p>
-          <p className="text-[9px] text-subtle">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27, FIN-06]</p>
+          <p className="text-[11px] text-muted">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-27, FIN-06]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
           <p className="mt-1 text-2xl font-bold text-emerald-600">{resolved24h}</p>
-          <p className="text-[9px] text-subtle">últimas 24 horas</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[DAT-27]</p>
+          <p className="text-[11px] text-muted">últimas 24 horas</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-27]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
           <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
-          <p className="text-[9px] text-subtle">indicador si supera SLA</p>
-          <p className="mt-0.5 text-right text-[9px] text-subtle">[FIN-06]</p>
+          <p className="text-[11px] text-muted">indicador si supera SLA</p>
+          <p className="mt-0.5 text-right text-[11px] text-muted">[FIN-06]</p>
         </div>
       </div>
 
@@ -325,20 +325,20 @@ export function AlarmasAgregadasPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Mapa geográfico de alarmas */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
-          <p className="shrink-0 text-[9px] text-subtle">marcadores SIEMPRE por estado de alarma</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
+          <p className="shrink-0 text-[11px] text-muted">marcadores SIEMPRE por estado de alarma</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-27]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-27]</p>
         </div>
 
         {/* Right: Evolution + Top 5 */}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {/* Evolución 30 días */}
           <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-            <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
-            <p className="shrink-0 text-[9px] text-subtle">abiertas / escaladas / resueltas por día</p>
+            <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
+            <p className="shrink-0 text-[11px] text-muted">abiertas / escaladas / resueltas por día</p>
             <div className="mt-2 flex min-h-0 flex-1 items-end gap-[2px]">
               {evolutionData.map((d) => {
                 const aH = (d.active / maxEvoValue) * 100;
@@ -358,13 +358,13 @@ export function AlarmasAgregadasPage() {
               <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-orange-400" /> Escaladas</span>
               <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-400" /> Resueltas</span>
             </div>
-            <p className="mt-0.5 shrink-0 text-right text-[9px] text-subtle">[DAT-27, DAT-03]</p>
+            <p className="mt-0.5 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-03]</p>
           </div>
 
           {/* Top 5 malls con más alarmas */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
-            <p className="text-[9px] text-subtle">con tendencia ↑↓→ vs. semana anterior</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
+            <p className="text-[11px] text-muted">con tendencia ↑↓→ vs. semana anterior</p>
             <ul className="mt-2 space-y-1 text-[11px]">
               {top5.map((row, i) => (
                 <li key={row.buildingId} className="flex items-center gap-2">
@@ -378,18 +378,18 @@ export function AlarmasAgregadasPage() {
               ))}
               {top5.length === 0 && <li className="text-muted">Sin alarmas activas.</li>}
             </ul>
-            <p className="mt-1 text-right text-[9px] text-subtle">[DAT-27, DAT-11]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[DAT-27, DAT-11]</p>
           </div>
         </div>
       </div>
 
       {/* Row 3: Tabla de alarmas por mall */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 {([['total', 'Mall'], ['critical', 'País'], ['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['resolution', 'T.medio [h]'], ['last', 'Última alarma']] as [string, string][]).map(([col, label], idx) => (
                   <th
                     key={`${col}-${idx}`}
@@ -425,7 +425,7 @@ export function AlarmasAgregadasPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-11, FIN-06]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-11, FIN-06]</p>
       </div>
     </div>
   );

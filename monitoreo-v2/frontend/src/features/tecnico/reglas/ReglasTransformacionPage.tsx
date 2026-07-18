@@ -25,12 +25,12 @@ export function ReglasTransformacionPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Reglas activas por medidor */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Reglas activas por medidor</p>
-          <p className="shrink-0 text-[9px] text-subtle">entrada esperada → salida resultante</p>
+          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Reglas activas por medidor</p>
+          <p className="shrink-0 text-[11px] text-muted">entrada esperada → salida resultante</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Medidor</th>
                   <th className="px-2 py-1.5">Tipo de regla</th>
                   <th className="px-2 py-1.5">Entrada</th>
@@ -64,43 +64,43 @@ export function ReglasTransformacionPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[INT-05, DAT-22, DAT-23]</p>
+          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-05, DAT-22, DAT-23]</p>
         </div>
 
         {/* Right: Edit form + Simulator + Impact */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {/* Alta / edición de regla */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Alta / edición de regla</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Alta / edición de regla</p>
             <div className="mt-2 space-y-2 text-[11px]">
-              <div><p className="text-[9px] text-subtle">Medidor al que aplica</p><input readOnly value={sel?.meter ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Tipo (factor / unidad / offset / fórmula)</p><input readOnly value={sel?.type ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
-              <div><p className="text-[9px] text-subtle">Fórmula personalizada (expresión validada)</p><input readOnly value={sel?.type === 'Fórmula custom' ? 'raw × 1.02' : ''} placeholder="ej: value / 1000" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Medidor al que aplica</p><input readOnly value={sel?.meter ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Tipo (factor / unidad / offset / fórmula)</p><input readOnly value={sel?.type ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
+              <div><p className="text-[11px] text-muted">Fórmula personalizada (expresión validada)</p><input readOnly value={sel?.type === 'Fórmula custom' ? 'raw × 1.02' : ''} placeholder="ej: value / 1000" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
             </div>
-            <p className="mt-1 text-right text-[9px] text-subtle">[INT-05, DAT-22]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22]</p>
           </div>
 
           {/* Simulador de valor de prueba */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Simulador de valor de prueba</p>
-            <p className="text-[9px] text-subtle">en tiempo real, antes de guardar</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Simulador de valor de prueba</p>
+            <p className="text-[11px] text-muted">en tiempo real, antes de guardar</p>
             <div className="mt-2 space-y-1 text-[11px] text-foreground">
               <p>• Valor raw: <input value={testValue} onChange={(e) => setTestValue(e.target.value)} className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-center outline-none" /> Wh</p>
               <p>• → Valor transformado: <span className="font-semibold">{transformedValue} kWh</span></p>
               <p className="text-muted">• Se recalcula al editar la regla</p>
             </div>
-            <p className="mt-1 text-right text-[9px] text-subtle">[INT-05, DAT-22]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22]</p>
           </div>
 
           {/* Indicador de impacto */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Indicador de impacto</p>
-            <p className="text-[9px] text-subtle">al editar sobre datos históricos</p>
+            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Indicador de impacto</p>
+            <p className="text-[11px] text-muted">al editar sobre datos históricos</p>
             <div className="mt-2 space-y-0.5 text-[11px] text-foreground">
               <p>• 12 dashboards · 5 exports · 3 alertas afectadas</p>
               <p>• Requiere confirmación explícita antes de guardar</p>
             </div>
-            <p className="mt-1 text-right text-[9px] text-subtle">[INT-05, DAT-22, DAT-19]</p>
+            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22, DAT-19]</p>
           </div>
 
           {/* Action buttons */}
@@ -114,12 +114,12 @@ export function ReglasTransformacionPage() {
 
       {/* Row 2: Historial de cambios de reglas */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Historial de cambios de reglas (inmutable)</p>
-        <p className="shrink-0 text-[9px] text-subtle">regla · campo · valor anterior → nuevo · usuario · timestamp</p>
+        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Historial de cambios de reglas (inmutable)</p>
+        <p className="shrink-0 text-[11px] text-muted">regla · campo · valor anterior → nuevo · usuario · timestamp</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Timestamp</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Regla</th>
@@ -137,7 +137,7 @@ export function ReglasTransformacionPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-23, DAT-14, CYB-10]</p>
+        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-23, DAT-14, CYB-10]</p>
       </div>
     </div>
   );

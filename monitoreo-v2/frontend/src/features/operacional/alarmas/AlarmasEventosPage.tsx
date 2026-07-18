@@ -158,12 +158,12 @@ export function AlarmasEventosPage() {
           {/* Left: Tabla de alarmas */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-              <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
-              <p className="shrink-0 text-[9px] text-subtle">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
+              <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
+              <p className="shrink-0 text-[11px] text-muted">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
               <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
                       <th className="px-2 py-1.5">ID</th>
                       <th className="px-2 py-1.5">Sev.</th>
                       <th className="px-2 py-1.5">Descripción</th>
@@ -199,7 +199,7 @@ export function AlarmasEventosPage() {
                   </table>
                 </div>
               </div>
-              <p className="mt-1 shrink-0 text-right text-[9px] text-subtle">[DAT-03, DAT-27, FIN-05]</p>
+              <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-27, FIN-05]</p>
             </div>
           </div>
 
@@ -207,8 +207,8 @@ export function AlarmasEventosPage() {
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             {/* Resumen de SLA de alarmas */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
-              <p className="text-[9px] text-subtle">% resueltas dentro / fuera del SLA, por severidad y período</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
+              <p className="text-[11px] text-muted">% resueltas dentro / fuera del SLA, por severidad y período</p>
               {(() => {
                 const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
                 const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
@@ -226,13 +226,13 @@ export function AlarmasEventosPage() {
                   </div>
                 );
               })()}
-              <p className="mt-1 text-right text-[9px] text-subtle">[FIN-06, FIN-05]</p>
+              <p className="mt-1 text-right text-[11px] text-muted">[FIN-06, FIN-05]</p>
             </div>
 
             {/* Panel de detalle — serie del medidor 48h */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
-              <p className="text-[9px] text-subtle">línea de threshold del valor que disparó la alarma</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
+              <p className="text-[11px] text-muted">línea de threshold del valor que disparó la alarma</p>
               <div className="mt-2">
                 {selectedAlert ? (
                   <MeterSparkline48h meterId={selectedAlert.meterId} thresholdValue={selectedAlert.thresholdValue} />
@@ -240,7 +240,7 @@ export function AlarmasEventosPage() {
                   <p className="py-4 text-center text-[11px] text-muted">Seleccione una alarma</p>
                 )}
               </div>
-              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-03, DAT-10, DAT-23]</p>
+              <p className="mt-1 text-right text-[11px] text-muted">[DAT-03, DAT-10, DAT-23]</p>
             </div>
 
             {/* Action buttons */}
@@ -253,8 +253,8 @@ export function AlarmasEventosPage() {
 
             {/* Comentario de la alarma */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
-              <p className="text-[9px] text-subtle">queda registrado en la pista de auditoría</p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
+              <p className="text-[11px] text-muted">queda registrado en la pista de auditoría</p>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -262,7 +262,7 @@ export function AlarmasEventosPage() {
                 className="mt-2 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
                 placeholder="Comentario del operador (texto libre)"
               />
-              <p className="mt-1 text-right text-[9px] text-subtle">[DAT-14, DAT-23]</p>
+              <p className="mt-1 text-right text-[11px] text-muted">[DAT-14, DAT-23]</p>
             </div>
           </div>
         </div>

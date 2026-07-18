@@ -83,25 +83,25 @@ export function ObservabilidadPage() {
       {/* Row 1 — 4 KPI cards */}
       <div className="flex gap-3">
         <div className="panel flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-emerald-600">{uptimeEst >= 99 ? '99,82%' : `${uptimeEst.toFixed(2)}%`}</p>
           <p className="text-[10px] text-emerald-600">▲ sobre SLA 99,5% (FIN-06)</p>
           <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, FIN-06]</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-foreground">{latencyP50} ms</p>
           <p className="text-[10px] text-muted">p50 · últimas 24h</p>
           <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, DAT-09]</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Error rate</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Error rate</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${errorRate < 1 ? 'text-emerald-600' : 'text-red-600'}`}>{errorRate.toFixed(1)}%</p>
           <p className="text-[10px] text-muted">(4xx+5xx) / total</p>
           <p className="mt-1 text-right text-[9px] text-muted">[ARQ-21, DAT-09]</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-emerald-600' : 'text-amber-600'}`}>{latencyP95} ms</p>
           <p className="text-[10px] text-muted">umbral INT-08 &lt; 500 ms</p>
           <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, INT-08]</p>

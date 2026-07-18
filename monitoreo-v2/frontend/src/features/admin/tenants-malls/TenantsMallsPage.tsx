@@ -142,7 +142,7 @@ export function TenantsMallsPage() {
       </div>
 
       {/* Row 1 — Lista + Detalle/Stats */}
-      <div className="flex min-h-0 gap-4" style={{ flex: '0 0 auto' }}>
+      <div className="flex min-h-0 flex-1 gap-4">
         {/* Left 60% — Lista de tenants */}
         <div className="panel flex min-h-0 flex-col overflow-hidden" style={{ flex: '0 0 60%' }}>
           <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">

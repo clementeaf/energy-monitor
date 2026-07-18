@@ -68,7 +68,7 @@ export function Header() {
     .toUpperCase();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
+    <header className="relative z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm">
       {/* Logo */}
       <img
         src={tenant?.logoUrl ?? globeLogo}

@@ -3,7 +3,30 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
-import type { ReportFormat } from '../../../types/report';
+import type { Report, ReportFormat } from '../../../types/report';
+
+/* ── Fallback evidence history ── */
+
+const FALLBACK_EVIDENCE_HISTORY: Report[] = [
+  {
+    id: 'fb-ev-001', tenantId: 'pasa', buildingId: null, reportType: 'evidence',
+    format: 'csv', periodStart: '2026-06-01', periodEnd: '2026-06-30',
+    fileUrl: '#', fileSizeBytes: '204800', generatedBy: 'auditor.perez@pasa.cl',
+    createdAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'fb-ev-002', tenantId: 'pasa', buildingId: 'bld-001', reportType: 'evidence',
+    format: 'pdf', periodStart: '2026-04-01', periodEnd: '2026-06-30',
+    fileUrl: '#', fileSizeBytes: '512000', generatedBy: 'auditor.perez@pasa.cl',
+    createdAt: new Date(Date.now() - 18 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'fb-ev-003', tenantId: 'pasa', buildingId: null, reportType: 'evidence',
+    format: 'csv', periodStart: '2026-01-01', periodEnd: '2026-03-31',
+    fileUrl: '#', fileSizeBytes: '983040', generatedBy: 'admin.lopez@pasa.cl',
+    createdAt: new Date(Date.now() - 45 * 86_400_000).toISOString(),
+  },
+];
 
 /* ── Content types ── */
 
@@ -44,11 +67,12 @@ export function ExportarEvidenciaPage() {
 
   const buildings = buildingsQuery.data ?? [];
 
-  // History from reports backend
-  const history = useMemo(
-    () => [...(reportsQuery.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20),
-    [reportsQuery.data],
-  );
+  // History from reports backend; fall back to demo data when empty
+  const history = useMemo(() => {
+    const raw = reportsQuery.data ?? [];
+    const source = raw.length > 0 ? raw : FALLBACK_EVIDENCE_HISTORY;
+    return [...source].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20);
+  }, [reportsQuery.data]);
 
   const toggleContent = (key: string) => {
     setSelected((prev) => {

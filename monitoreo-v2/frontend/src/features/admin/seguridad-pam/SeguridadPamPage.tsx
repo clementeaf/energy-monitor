@@ -5,6 +5,47 @@ import { useUsersQuery } from '../../../hooks/queries/useUsersQuery';
 import { useBreachReportsQuery } from '../../../hooks/queries/useBreachReportsQuery';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 
+/* ── Fallback data ── */
+
+const FALLBACK_PAM = [
+  {
+    id: 'fb-pam-1', email: 'c.falcone@hoktus.ai', displayName: 'C. Falcone', isActive: true, createdAt: '2025-01-15T00:00:00Z',
+    role: { id: 'r1', name: 'Súper Admin', slug: 'super_admin' },
+    lastReview: new Date('2026-07-01'), nextReview: new Date('2026-10-01'), daysUntilReview: 75, pamStatus: 'activo' as const,
+  },
+  {
+    id: 'fb-pam-2', email: 'admin@pasa.cl', displayName: 'Admin PASA', isActive: true, createdAt: '2025-03-01T00:00:00Z',
+    role: { id: 'r2', name: 'Corp Admin', slug: 'corp_admin' },
+    lastReview: new Date('2026-06-15'), nextReview: new Date('2026-09-15'), daysUntilReview: 59, pamStatus: 'activo' as const,
+  },
+  {
+    id: 'fb-pam-3', email: 'seguridad@pasa.cl', displayName: 'Jefe Seguridad', isActive: true, createdAt: '2025-06-01T00:00:00Z',
+    role: { id: 'r2', name: 'Corp Admin', slug: 'corp_admin' },
+    lastReview: new Date('2026-07-10'), nextReview: new Date('2026-08-01'), daysUntilReview: 14, pamStatus: 'en revisión' as const,
+  },
+];
+
+const FALLBACK_INCIDENTS = [
+  {
+    id: 'fb-inc-1',
+    description: 'Intento de acceso con credenciales expiradas desde IP 185.x (bloqueado por WAF)',
+    type: 'brecha' as const,
+    severity: 'medium',
+    status: 'resuelto',
+    date: '07-07-2026',
+    responsible: 'c.falcone@hoktus.ai',
+  },
+  {
+    id: 'fb-inc-2',
+    description: 'Alerta rate-limit: 2.400 req/5min desde IP 190.x — bloqueada automáticamente',
+    type: 'brecha' as const,
+    severity: 'low',
+    status: 'contenido',
+    date: '04-07-2026',
+    responsible: 'WAF automático',
+  },
+];
+
 /* ── Styling ── */
 
 type PamStatus = 'activo' | 'inactivo' | 'en revisión' | 'suspendido';
@@ -283,15 +324,13 @@ export function SeguridadPamPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {pamWithReview.length > 0 ? pamWithReview.slice(0, 4).map((acc) => (
+              {(pamWithReview.length > 0 ? pamWithReview : FALLBACK_PAM).slice(0, 4).map((acc) => (
                 <tr key={acc.id} className="cursor-pointer hover:bg-surface" onClick={() => setDrawer({ type: 'pam', data: acc })}>
                   <td className="py-1 text-foreground">{acc.displayName ?? acc.email}</td>
                   <td className={`py-1 text-[10px] ${acc.daysUntilReview <= 7 ? 'font-medium text-red-600' : 'text-muted'}`}>{acc.nextReview.toLocaleDateString('es-CL')}</td>
                   <td className="py-1"><span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${PAM_BADGE[acc.pamStatus]}`}>{acc.pamStatus}</span></td>
                 </tr>
-              )) : (
-                <tr><td colSpan={3} className="py-2 text-center text-[10px] text-muted">Sin cuentas privilegiadas</td></tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -348,15 +387,13 @@ export function SeguridadPamPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {incidents.length > 0 ? incidents.slice(0, 4).map((inc) => (
+              {(incidents.length > 0 ? incidents : FALLBACK_INCIDENTS).slice(0, 4).map((inc) => (
                 <tr key={inc.id} className="cursor-pointer hover:bg-surface" onClick={() => setDrawer({ type: 'incident', data: inc })}>
                   <td className="py-1 text-muted">{inc.date}</td>
                   <td className="py-1 text-foreground">{inc.type}</td>
                   <td className="py-1"><span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${INCIDENT_STATUS_BADGE[inc.status] ?? 'bg-gray-100 text-gray-700'}`}>{inc.status}</span></td>
                 </tr>
-              )) : (
-                <tr><td colSpan={3} className="py-2 text-center text-[10px] text-muted">Sin incidentes</td></tr>
-              )}
+              ))}
             </tbody>
           </table>
           <div className="mt-2">

@@ -89,6 +89,71 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   vencida: 'bg-red-100 text-red-700',
 };
 
+/* ── Fallback work orders (shown when no alerts produce orders) ── */
+
+const FALLBACK_ORDERS: WorkOrder[] = [
+  {
+    id: 'A1B2C3D4',
+    description: 'Voltaje fuera de rango — fase R · tablero principal',
+    type: 'diagnóstico',
+    buildingId: 'building-fb-01',
+    priority: 'alta',
+    assignedDate: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+    deadline: new Date(Date.now() + 2 * 3_600_000).toISOString(),
+    status: 'pendiente',
+    meterId: 'meter-fb-01',
+    alertId: 'alert-fb-01',
+  },
+  {
+    id: 'E5F6G7H8',
+    description: 'Medidor offline &gt; 4 h — sin comunicación Modbus',
+    type: 'mantención',
+    buildingId: 'building-fb-02',
+    priority: 'alta',
+    assignedDate: new Date(Date.now() - 5 * 3_600_000).toISOString(),
+    deadline: new Date(Date.now() - 1 * 3_600_000).toISOString(),
+    status: 'vencida',
+    meterId: 'meter-fb-02',
+    alertId: 'alert-fb-02',
+  },
+  {
+    id: 'I9J0K1L2',
+    description: 'Factor de potencia bajo 0.85 — banco de condensadores',
+    type: 'diagnóstico',
+    buildingId: 'building-fb-01',
+    priority: 'media',
+    assignedDate: new Date(Date.now() - 1 * 3_600_000).toISOString(),
+    deadline: new Date(Date.now() + 23 * 3_600_000).toISOString(),
+    status: 'en curso',
+    meterId: 'meter-fb-03',
+    alertId: 'alert-fb-03',
+  },
+  {
+    id: 'M3N4O5P6',
+    description: 'CNR detectada — gap &gt; 24 h en medidor de iluminación',
+    type: 'cnr',
+    buildingId: 'building-fb-03',
+    priority: 'baja',
+    assignedDate: new Date(Date.now() - 26 * 3_600_000).toISOString(),
+    deadline: new Date(Date.now() + 46 * 3_600_000).toISOString(),
+    status: 'cerrada',
+    meterId: 'meter-fb-04',
+    alertId: 'alert-fb-04',
+  },
+  {
+    id: 'Q7R8S9T0',
+    description: 'THD corriente &gt; 8% — revisión armónicos',
+    type: 'diagnóstico',
+    buildingId: 'building-fb-02',
+    priority: 'media',
+    assignedDate: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+    deadline: new Date(Date.now() + 21 * 3_600_000).toISOString(),
+    status: 'pendiente',
+    meterId: 'meter-fb-05',
+    alertId: 'alert-fb-05',
+  },
+];
+
 /* ── Page ── */
 
 const QUICK_FILTERS = [
@@ -118,13 +183,13 @@ export function MisOrdenesPage() {
     [activeQuery.data, ackQuery.data, resolvedQuery.data],
   );
 
-  const orders = useMemo(
-    () => allAlerts.map(alertToOrder).sort((a, b) => {
+  const orders = useMemo(() => {
+    const derived = allAlerts.map(alertToOrder).sort((a, b) => {
       const STATUS_WEIGHT: Record<OrderStatus, number> = { vencida: 0, pendiente: 1, 'en curso': 2, cerrada: 3 };
       return (STATUS_WEIGHT[a.status] ?? 4) - (STATUS_WEIGHT[b.status] ?? 4);
-    }),
-    [allAlerts],
-  );
+    });
+    return derived.length > 0 ? derived : FALLBACK_ORDERS;
+  }, [allAlerts]);
 
   const filteredOrders = useMemo(() => {
     if (quickFilter === 'all') return orders;

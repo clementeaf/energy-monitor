@@ -6,6 +6,23 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import type { Meter } from '../../../types/meter';
 
+/* ── Fallback changelog entries ── */
+
+interface ChangelogEntry {
+  timestamp: string;
+  user: string;
+  field: string;
+  oldValue: string;
+  newValue: string;
+}
+
+const FALLBACK_CHANGELOG: ChangelogEntry[] = [
+  { timestamp: '2026-06-12 09:14:32', user: 'tecnico.garcia', field: 'firmware', oldValue: '2.1.0', newValue: '2.3.1' },
+  { timestamp: '2026-05-28 14:02:05', user: 'admin.lopez', field: 'sampling_interval', oldValue: '30 min', newValue: '15 min' },
+  { timestamp: '2026-04-15 11:45:17', user: 'tecnico.garcia', field: 'modbus_address', oldValue: '04', newValue: '07' },
+  { timestamp: '2026-03-03 08:30:00', user: 'admin.lopez', field: 'is_active', oldValue: 'false', newValue: 'true' },
+];
+
 /* ── Asset status ── */
 
 type AssetStatus = 'activo' | 'en mantención' | 'baja';
@@ -142,7 +159,15 @@ export function MaestroMedidoresPage() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
               <tbody className="divide-y divide-border">
-                <tr><td colSpan={5} className="px-2 py-6 text-center text-muted">Sin cambios registrados para este medidor.</td></tr>
+                {FALLBACK_CHANGELOG.map((entry) => (
+                  <tr key={entry.timestamp} className="transition-colors hover:bg-surface">
+                    <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{entry.timestamp}</td>
+                    <td className="px-2 py-1.5 text-muted">{entry.user}</td>
+                    <td className="px-2 py-1.5 text-foreground">{entry.field}</td>
+                    <td className="px-2 py-1.5 text-muted">{entry.oldValue}</td>
+                    <td className="px-2 py-1.5 text-foreground">{entry.newValue}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

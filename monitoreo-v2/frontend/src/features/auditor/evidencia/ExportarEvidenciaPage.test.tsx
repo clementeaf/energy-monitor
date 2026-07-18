@@ -29,7 +29,7 @@ describe('ExportarEvidenciaPage', () => {
   it('renders SHA-256 info', () => { renderPage(); expect(screen.getAllByText(/SHA-256/).length).toBeGreaterThanOrEqual(1); });
   it('renders generate button', () => { renderPage(); expect(screen.getByText('Generar paquete firmado')).toBeInTheDocument(); });
   it('renders history table', () => { renderPage(); expect(screen.getByText(/Historial de evidencias exportadas/)).toBeInTheDocument(); });
-  it('shows empty history', () => { renderPage(); expect(screen.getByText(/Sin evidencias exportadas/)).toBeInTheDocument(); });
+  it('shows history entries', () => { renderPage(); expect(screen.getAllByText(/Datos de consumo/).length).toBeGreaterThanOrEqual(1); });
   it('toggles checkbox', async () => {
     const user = userEvent.setup();
     renderPage();

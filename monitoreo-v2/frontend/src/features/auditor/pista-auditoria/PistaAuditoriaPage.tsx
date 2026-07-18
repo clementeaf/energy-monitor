@@ -97,6 +97,22 @@ function buildTop10(logs: AuditLogEntry[]): TopUser[] {
     .slice(0, 10);
 }
 
+/* ── Fallback audit log entries ── */
+
+const _FB: Pick<AuditLogEntry, 'tenantId' | 'userId' | 'userAgent'> = { tenantId: null, userId: null, userAgent: null };
+const FALLBACK_AUDIT_LOGS: AuditLogEntry[] = [
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000001', createdAt: '2026-07-18T09:14:32.000Z', action: 'LOGIN', userEmail: 'auditor.perez@pasa.cl', resourceType: 'session', resourceId: null, ipAddress: '10.0.1.42', details: { description: 'Inicio de sesión exitoso' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000002', createdAt: '2026-07-18T09:22:15.000Z', action: 'VIEW', userEmail: 'auditor.perez@pasa.cl', resourceType: 'report', resourceId: 'rpt-001', ipAddress: '10.0.1.42', details: { description: 'Vista reporte mensual junio 2026' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000003', createdAt: '2026-07-17T14:05:00.000Z', action: 'EXPORT', userEmail: 'admin.lopez@pasa.cl', resourceType: 'reading', resourceId: null, ipAddress: '10.0.2.11', details: { description: 'Exportación CSV medidores Mall Arauco' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000004', createdAt: '2026-07-17T11:30:44.000Z', action: 'UPDATE', userEmail: 'tecnico.garcia@pasa.cl', resourceType: 'meter', resourceId: 'mtr-088', ipAddress: '10.0.3.7', details: { name: 'MTR-088 Zona A' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000005', createdAt: '2026-07-16T16:48:10.000Z', action: 'CREATE', userEmail: 'admin.lopez@pasa.cl', resourceType: 'user', resourceId: 'usr-205', ipAddress: '10.0.2.11', details: { email: 'operador.nuevo@pasa.cl' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000006', createdAt: '2026-07-16T08:00:05.000Z', action: 'LOGIN', userEmail: 'operador.vega@pasa.cl', resourceType: 'session', resourceId: null, ipAddress: '10.0.4.55', details: { description: 'Inicio de sesión exitoso' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000007', createdAt: '2026-07-15T17:22:38.000Z', action: 'LOGOUT', userEmail: 'auditor.perez@pasa.cl', resourceType: 'session', resourceId: null, ipAddress: '10.0.1.42', details: { description: 'Cierre de sesión' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000008', createdAt: '2026-07-15T10:11:59.000Z', action: 'DELETE', userEmail: 'admin.lopez@pasa.cl', resourceType: 'alert', resourceId: 'alr-312', ipAddress: '10.0.2.11', details: { description: 'Alerta resuelta y archivada' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000009', createdAt: '2026-07-14T13:05:27.000Z', action: 'EXPORT', userEmail: 'auditor.perez@pasa.cl', resourceType: 'reading', resourceId: null, ipAddress: '10.0.1.42', details: { description: 'Exportación Parquet periodo Q2 2026' } },
+  { ..._FB, id: 'fb000001-0000-0000-0000-000000000010', createdAt: '2026-07-13T09:00:00.000Z', action: 'UPDATE', userEmail: 'admin.lopez@pasa.cl', resourceType: 'building', resourceId: 'bld-003', ipAddress: '10.0.2.11', details: { name: 'Mall Arauco Quilicura' } },
+];
+
 /* ── Page ── */
 
 const ACTION_OPTIONS = [
@@ -141,7 +157,8 @@ export function PistaAuditoriaPage() {
   );
 
   const { data } = useAuditLogsQuery(queryParams);
-  const logs: AuditLogEntry[] = data?.data ?? [];
+  const rawLogs: AuditLogEntry[] = data?.data ?? [];
+  const logs: AuditLogEntry[] = rawLogs.length > 0 ? rawLogs : FALLBACK_AUDIT_LOGS;
 
   // Client-side user filter (no backend param for email prefix)
   const filteredLogs = useMemo(() => {

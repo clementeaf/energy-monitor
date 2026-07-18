@@ -349,8 +349,8 @@ export function TenantsMallsPage() {
         </div>
 
         {/* Right 40% — Acciones */}
-        <div className="panel flex flex-col gap-3 p-4" style={{ flex: '0 0 40%', alignSelf: 'start' }}>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="panel flex flex-col p-4" style={{ flex: '0 0 40%' }}>
+          <div className="flex flex-wrap items-center gap-2 pb-3">
             <button
               type="button"
               onClick={() => navigate('/admin/companies')}
@@ -384,7 +384,7 @@ export function TenantsMallsPage() {
           </div>
 
           {/* Nota CYB-15 */}
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 text-[10px] text-amber-800">
+          <div className="mt-auto rounded-md border border-amber-200 bg-amber-50 p-2.5 text-[10px] text-amber-800">
             <p className="font-medium">Gate PASA (CYB-15)</p>
             <p className="mt-0.5">Crear / Activar / Desactivar no se ejecuta directamente — abre flujo de aprobación. Toda acción queda en pista de auditoría.</p>
           </div>

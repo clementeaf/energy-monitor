@@ -63,9 +63,12 @@ export function ThrottleCargasPage() {
       {/* Row 1 */}
       <div className="flex gap-4">
         {/* Quotas */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
-          <h3 className="text-[13px] font-semibold text-foreground">Quotas de API por tenant</h3>
-          <p className="mb-3 text-[11px] text-muted">alerta si un tenant supera el 80% de su cuota</p>
+        <div className="panel flex flex-col" style={{ flex: '0 0 50%' }}>
+          <div className="shrink-0 px-4 pt-4 pb-2">
+            <h3 className="text-[13px] font-semibold text-foreground">Quotas de API por tenant</h3>
+            <p className="text-[11px] text-muted">alerta si un tenant supera el 80% de su cuota</p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -104,7 +107,8 @@ export function ThrottleCargasPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-15]</span>
+          </div>
+          <span className="block shrink-0 border-t border-border px-4 py-1.5 text-right text-[10px] text-muted">[DAT-15]</span>
         </div>
 
         {/* Consumo chart */}

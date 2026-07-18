@@ -38,6 +38,8 @@ export function TenantsMallsPage() {
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const auditQuery = useAuditLogsQuery({ limit: 50 });
 
+  const isLoading = tenantsQuery.isLoading || buildingsQuery.isLoading || metersQuery.isLoading || usersQuery.isLoading || alertsQuery.isLoading;
+
   const tenants = tenantsQuery.data ?? [];
   const buildings = buildingsQuery.data ?? [];
   const meters = metersQuery.data ?? [];
@@ -187,29 +189,41 @@ export function TenantsMallsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((row, i) => (
-                  <tr
-                    key={row.tenant.id}
-                    className="cursor-pointer transition-colors hover:bg-surface"
-                    style={{ animationDelay: `${i * 30}ms` }}
-                    onClick={() => setSelectedTenant(row)}
-                  >
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted">{row.tenant.id.slice(0, 8)}…</td>
-                    <td className="px-3 py-2 font-medium text-foreground">{row.tenant.name}</td>
-                    <td className="px-3 py-2 text-muted">{row.country}</td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[row.status]}`}>
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
-                    <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
-                  </tr>
-                ))}
-                {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      {Array.from({ length: 8 }).map((__, j) => (
+                        <td key={j} className="px-3 py-2.5"><div className="h-3 rounded bg-gray-200" style={{ width: `${50 + (j * 7) % 40}%` }} /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <>
+                    {filtered.map((row, i) => (
+                      <tr
+                        key={row.tenant.id}
+                        className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
+                        style={{ animationDelay: `${i * 30}ms` }}
+                        onClick={() => setSelectedTenant(row)}
+                      >
+                        <td className="px-3 py-2 font-mono text-[11px] text-muted">{row.tenant.id.slice(0, 8)}…</td>
+                        <td className="px-3 py-2 font-medium text-foreground">{row.tenant.name}</td>
+                        <td className="px-3 py-2 text-muted">{row.country}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[row.status]}`}>
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
+                        <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
+                        <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
+                        <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
+                      </tr>
+                    ))}
+                    {filtered.length === 0 && (
+                      <tr><td colSpan={8} className="px-3 py-8 text-center text-muted">Sin tenants.</td></tr>
+                    )}
+                  </>
                 )}
               </tbody>
             </table>

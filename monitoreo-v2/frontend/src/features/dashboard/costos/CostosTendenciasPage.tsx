@@ -362,8 +362,8 @@ export function CostosTendenciasPage() {
         />
       </div>
 
-      {/* Row 1: Stacked bar chart + Waterfall (same height) */}
-      <div className="flex min-h-0 flex-1 basis-1/3 gap-3">
+      {/* Row 1: Stacked bar chart + Waterfall */}
+      <div className="flex min-h-0 shrink-0 gap-3" style={{ height: '35%' }}>
         {/* Barras apiladas mensual — costo [UF] */}
         <div className="panel flex min-w-0 flex-1 flex-col p-3">
           <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>
@@ -409,7 +409,7 @@ export function CostosTendenciasPage() {
       </div>
 
       {/* Row 2: Tabla de costos por mall */}
-      <div className="panel flex min-h-0 flex-1 basis-1/3 flex-col overflow-hidden p-3">
+      <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden p-3">
         <div className="flex shrink-0 items-center gap-2">
           <p className="flex-1 text-[10px] font-medium uppercase tracking-wider text-muted">Tabla de costos por mall (ordenable · exportable CSV/Excel)</p>
           <button

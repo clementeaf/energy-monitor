@@ -463,11 +463,13 @@ function PortfolioPanel({
       </div>
 
       {/* Feed de eventos críticos */}
-      <div className="panel px-3 py-3">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
-        <p className="text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
-        <RecentCriticalEvents alerts={enriched.flatMap((e) => e.activeAlerts)} buildings={enriched.map((e) => e.building)} />
-        <p className="mt-1 text-[9px] text-subtle">[DAT-03, DAT-27]</p>
+      <div className="panel flex min-h-0 flex-1 flex-col px-3 py-3">
+        <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
+        <p className="shrink-0 text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <RecentCriticalEvents alerts={enriched.flatMap((e) => e.activeAlerts)} buildings={enriched.map((e) => e.building)} />
+        </div>
+        <p className="shrink-0 mt-1 text-[9px] text-subtle">[DAT-03, DAT-27]</p>
       </div>
 
       {/* Semáforo calidad del dato */}

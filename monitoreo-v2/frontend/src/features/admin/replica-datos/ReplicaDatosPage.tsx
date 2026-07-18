@@ -74,7 +74,7 @@ export function ReplicaDatosPage() {
   const [expandedSchema, setExpandedSchema] = useState<number | null>(null);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto">
+    <div className="flex h-full flex-col gap-3 overflow-y-auto overflow-x-hidden">
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.10 Réplica de Datos</h1>
@@ -82,9 +82,9 @@ export function ReplicaDatosPage() {
       </div>
 
       {/* Row 1 */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {/* Estado réplica */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Estado de la réplica (NRT)</h3>
           <p className="mb-3 text-[11px] text-muted">alerta si el lag supera el umbral (&gt; 5 min)</p>
           <ul className="space-y-2">
@@ -104,7 +104,7 @@ export function ReplicaDatosPage() {
         </div>
 
         {/* Histograma lag */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Histograma de lag de réplica</h3>
           <p className="mb-3 text-[11px] text-muted">lag en segundos · últimas 24h</p>
           <div className="mb-2 flex items-center gap-3">
@@ -144,9 +144,9 @@ export function ReplicaDatosPage() {
       </div>
 
       {/* Row 2 */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {/* Acceso réplica */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Acceso a réplica por tenant / proceso ETL de PASA</h3>
           <p className="mb-3 text-[11px] text-muted">gestión de acceso con revocación individual (auditada)</p>
           <table className="w-full text-[13px]">
@@ -181,7 +181,7 @@ export function ReplicaDatosPage() {
         </div>
 
         {/* Monitor cambios de esquema */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Monitor de cambios de esquema</h3>
           <p className="mb-3 text-[11px] text-muted">badge rojo si el plazo de aviso de 30 días no se cumple (DAT-13)</p>
           <table className="w-full text-[13px]">
@@ -231,9 +231,9 @@ export function ReplicaDatosPage() {
       </div>
 
       {/* Row 3 */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {/* Contratos de datos */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Contratos de datos versionados</h3>
           <p className="mb-3 text-[11px] text-muted">backward compatibility · deprecación de versiones antiguas (INT-06)</p>
           <table className="w-full text-[13px]">
@@ -266,7 +266,7 @@ export function ReplicaDatosPage() {
         </div>
 
         {/* Alerta 30 días */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Alerta de anticipación de 30 días</h3>
           <p className="mb-3 text-[11px] text-muted">aviso formal a PASA por cambio de esquema (DAT-13)</p>
           <ul className="space-y-3">

@@ -220,34 +220,46 @@ export function TenantsMallsPage() {
         {/* Right 40% — 2 stacked panels */}
         <div className="flex flex-col gap-4" style={{ flex: '0 0 40%' }}>
           {/* Detalle de tenant */}
-          <div className="panel flex-1 overflow-auto p-3">
-            <p className="text-[13px] font-medium text-foreground">Detalle de tenant — configuración base</p>
-            <p className="mb-3 text-[11px] text-muted">tenant seleccionado en la lista</p>
-            {selectedTenant ? (
-              <ul className="space-y-1.5 text-[12px]">
-                <li className="text-foreground">
-                  <span className="text-muted">Nombre · país · moneda · zona horaria: </span>
-                  {selectedTenant.tenant.name} · {selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}
-                </li>
-                <li className="text-foreground">
-                  <span className="text-muted">Umbrales de alerta: </span>configurados (95% calidad dato)
-                </li>
-                <li className="text-foreground">
-                  <span className="text-muted">Integración de facturación activa (FIN-04): </span>API REST
-                </li>
-                <li className="text-foreground">
-                  <span className="text-muted">Aislamiento lógico por mall (ARQ-05): </span>activo
-                </li>
-              </ul>
-            ) : (
-              <ul className="space-y-1.5 text-[12px] text-muted">
-                <li>Nombre · país · moneda · zona horaria</li>
-                <li>Umbrales de alerta configurados</li>
-                <li>Integración de facturación activa (FIN-04)</li>
-                <li>Aislamiento lógico por mall (ARQ-05)</li>
-              </ul>
-            )}
-            <p className="mt-3 text-[10px] text-muted">Ref [ARQ-05, DAT-19, FIN-04]</p>
+          <div className="panel flex min-h-0 flex-1 flex-col p-3">
+            {/* Sticky header — never scrolls away */}
+            <div className="shrink-0 border-b border-border pb-2">
+              <p className="text-[13px] font-medium text-foreground">Detalle de tenant — configuración base</p>
+              <p className="text-[11px] text-muted">
+                {selectedTenant
+                  ? <><span className="font-medium text-foreground">{selectedTenant.tenant.name}</span> · {selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'}</>
+                  : 'Seleccione un tenant en la lista'}
+              </p>
+            </div>
+            {/* Scrollable content */}
+            <div className="min-h-0 flex-1 overflow-y-auto pt-3">
+              {selectedTenant ? (
+                <dl className="space-y-2.5 text-[12px]">
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Nombre</dt>
+                    <dd className="text-foreground">{selectedTenant.tenant.name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
+                    <dd className="text-foreground">{selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
+                    <dd className="text-foreground">Configurados (95% calidad dato)</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Integración de facturación (FIN-04)</dt>
+                    <dd className="text-foreground">API REST — activa</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall (ARQ-05)</dt>
+                    <dd className="text-foreground">Activo</dd>
+                  </div>
+                </dl>
+              ) : (
+                <p className="py-6 text-center text-[12px] text-muted">Seleccione un tenant para ver su configuración.</p>
+              )}
+              <p className="mt-3 text-right text-[10px] text-muted">[ARQ-05, DAT-19, FIN-04]</p>
+            </div>
           </div>
 
           {/* Estadísticas de uso */}

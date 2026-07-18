@@ -170,7 +170,7 @@ describe('TenantsMallsPage', () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByText('PASA'));
-    expect(screen.getByText(/CLP/)).toBeInTheDocument();
+    expect(screen.getAllByText(/CLP/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows usage stats for selected tenant', async () => {

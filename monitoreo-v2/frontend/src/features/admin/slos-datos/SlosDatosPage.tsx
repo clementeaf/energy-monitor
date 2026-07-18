@@ -115,16 +115,18 @@ export function SlosDatosPage() {
         </div>
 
         {/* Latency chart */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
-          <h3 className="text-[13px] font-semibold text-foreground">SLO de latencia de API — p95</h3>
-          <p className="mb-3 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera (INT-08)</p>
-          <div className="mb-3 flex items-center gap-3">
-            <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
-              487 ms — dentro de umbral
-            </span>
-            <span className="text-[11px] text-muted">umbral: 500 ms</span>
+        <div className="panel flex flex-col p-4" style={{ flex: '0 0 50%' }}>
+          <div className="shrink-0">
+            <h3 className="text-[13px] font-semibold text-foreground">SLO de latencia de API — p95</h3>
+            <p className="mb-2 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera (INT-08)</p>
+            <div className="mb-2 flex items-center gap-3">
+              <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                487 ms — dentro de umbral
+              </span>
+              <span className="text-[11px] text-muted">umbral: 500 ms</span>
+            </div>
           </div>
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 120 }}>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-h-0 flex-1" preserveAspectRatio="none">
             {/* Grid */}
             {[0, 200, 400, 600].map((v) => (
               <line
@@ -165,8 +167,10 @@ export function SlosDatosPage() {
               <text key={v} x={PAD.left - 4} y={toY(v) + 3} textAnchor="end" fontSize={8} fill="#9ca3af">{v}</text>
             ))}
           </svg>
-          <p className="mt-1 text-[10px] text-muted text-center">últimas 15 mediciones · ms</p>
-          <span className="block text-right text-[10px] text-muted mt-2">[INT-08, DAT-26]</span>
+          <div className="flex shrink-0 items-center justify-between pt-1">
+            <p className="text-[10px] text-muted">últimas 15 mediciones · ms</p>
+            <span className="text-[10px] text-muted">[INT-08, DAT-26]</span>
+          </div>
         </div>
       </div>
 

@@ -462,31 +462,41 @@ export function CostosTendenciasPage() {
 
       {/* Row 3: Proyecciones — 2 meses */}
       <div className="panel shrink-0 p-3">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
-        <p className="text-[9px] text-subtle">barras con trama diferente · base tendencia últimos 3 meses</p>
-        <div className="mt-2 flex items-end gap-2" style={{ height: '60px' }}>
-          {monthlyData.slice(-3).map((d) => {
-            const maxCost = Math.max(1, ...monthlyData.map((m) => m.cost), ...projectionBars.map((p) => p.cost));
-            const pct = (d.cost / maxCost) * 100;
-            return (
-              <div key={d.month} className="flex flex-1 flex-col items-center gap-0.5">
-                <div className="w-full rounded-t bg-blue-400" style={{ height: `${Math.max(4, pct)}%` }} />
-                <p className="text-[8px] text-muted">{d.month}</p>
-              </div>
-            );
-          })}
-          {projectionBars.map((p) => {
-            const maxCost = Math.max(1, ...monthlyData.map((m) => m.cost), ...projectionBars.map((pb) => pb.cost));
-            const pct = (p.cost / maxCost) * 100;
-            return (
-              <div key={p.month} className="flex flex-1 flex-col items-center gap-0.5">
-                <div className="w-full rounded-t border-2 border-dashed border-amber-400 bg-amber-100" style={{ height: `${Math.max(4, pct)}%` }} />
-                <p className="text-[8px] text-muted">{p.month}</p>
-              </div>
-            );
-          })}
-          <span className="ml-1 self-center text-[9px] text-muted">→ proyección</span>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
+            <p className="text-[9px] text-subtle">Base: tendencia últimos 3 meses</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-[10px] text-muted"><span className="inline-block h-2.5 w-4 rounded-sm bg-blue-400" /> Real</span>
+            <span className="flex items-center gap-1 text-[10px] text-muted"><span className="inline-block h-2.5 w-4 rounded-sm border-2 border-dashed border-amber-400 bg-amber-50" /> Proyectado</span>
+          </div>
         </div>
+        {(() => {
+          const allBars = [
+            ...monthlyData.slice(-3).map((d) => ({ month: d.month, cost: d.cost, projected: false })),
+            ...projectionBars.map((p) => ({ month: p.month, cost: p.cost, projected: true })),
+          ];
+          const maxCost = Math.max(1, ...allBars.map((b) => b.cost));
+          return (
+            <div className="mt-2 flex items-end gap-1" style={{ height: '56px' }}>
+              {allBars.map((b) => {
+                const pct = (b.cost / maxCost) * 100;
+                const formatted = b.cost >= 1000 ? `${(b.cost / 1000).toFixed(0)}k` : b.cost.toFixed(0);
+                return (
+                  <div key={b.month} className="flex flex-1 flex-col items-center gap-0.5">
+                    <span className="text-[8px] font-medium text-foreground">{formatted}</span>
+                    <div
+                      className={`w-full rounded-t ${b.projected ? 'border-2 border-dashed border-amber-400 bg-amber-50' : 'bg-blue-400'}`}
+                      style={{ height: `${Math.max(6, pct)}%` }}
+                    />
+                    <span className="text-[8px] text-muted">{b.month.slice(5)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
         <p className="mt-1 text-right text-[9px] text-subtle">[DAT-22, FIN-07]</p>
       </div>
     </div>

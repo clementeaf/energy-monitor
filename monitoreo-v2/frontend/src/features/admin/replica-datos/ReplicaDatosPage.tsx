@@ -104,18 +104,20 @@ export function ReplicaDatosPage() {
         </div>
 
         {/* Histograma lag */}
-        <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Histograma de lag de réplica</h3>
-          <p className="mb-3 text-[11px] text-muted">lag en segundos · últimas 24h</p>
-          <div className="mb-2 flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[11px] text-muted">
-              <span className="inline-block h-3 w-3 rounded-sm bg-brand" /> lag (s)
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-muted">
-              <span className="inline-block h-0.5 w-4 bg-red-400" style={{ borderTop: '2px dashed #ef4444' }} /> umbral 300 s
-            </span>
+        <div className="panel flex w-1/2 min-w-0 flex-col p-3">
+          <div className="shrink-0">
+            <h3 className="text-[13px] font-semibold text-foreground">Histograma de lag de réplica</h3>
+            <p className="mb-2 text-[11px] text-muted">lag en segundos · últimas 24h</p>
+            <div className="mb-1 flex items-center gap-3">
+              <span className="flex items-center gap-1 text-[11px] text-muted">
+                <span className="inline-block h-3 w-3 rounded-sm bg-brand" /> lag (s)
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-muted">
+                <span className="inline-block h-0.5 w-4 bg-red-400" style={{ borderTop: '2px dashed #ef4444' }} /> umbral 300 s
+              </span>
+            </div>
           </div>
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-h-0 flex-1" preserveAspectRatio="none">
             {[0, 100, 200, 300].map((v) => (
               <line key={v} x1={PAD.left} x2={W - PAD.right} y1={PAD.top + cH - (v / maxLag) * cH} y2={PAD.top + cH - (v / maxLag) * cH} stroke="#e5e7eb" strokeWidth={0.5} />
             ))}
@@ -139,7 +141,7 @@ export function ReplicaDatosPage() {
               <text key={h} x={toBarX(h) + bW / 2} y={H - 2} textAnchor="middle" fontSize={8} fill="#9ca3af">{h}h</text>
             ))}
           </svg>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-01, DAT-26]</span>
+          <span className="block shrink-0 pt-1 text-right text-[10px] text-muted">[DAT-01, DAT-26]</span>
         </div>
       </div>
 

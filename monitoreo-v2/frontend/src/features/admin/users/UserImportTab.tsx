@@ -41,7 +41,7 @@ function SummaryCards({ summary }: Readonly<{ summary: UserImportSummary }>) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
-        <div key={item.label} className="rounded-lg border border-border bg-surface px-4 py-3">
+        <div key={item.label} className="panel px-4 py-3">
           <p className="text-xs text-muted">{item.label}</p>
           <p className={`text-2xl font-semibold tabular-nums ${item.className}`}>{item.value}</p>
         </div>
@@ -140,10 +140,10 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
   const validCount = summary?.validRows ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {step === 'upload' && (
         <section className="space-y-4">
-          <div className="rounded-lg border border-border bg-surface/60 p-4 text-sm text-muted">
+          <div className="panel p-4 text-sm text-muted">
             <p className="font-medium text-foreground">Columnas requeridas</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
               <li><code className="text-xs">email</code> — correo único por empresa</li>
@@ -266,7 +266,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
             </div>
           ) : null}
 
-          <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
+          <div className="panel p-4 space-y-3">
             <label className="flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
@@ -293,7 +293,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
       ) : null}
 
       {step === 'done' && commitResult ? (
-        <section className="rounded-lg border border-green-200 bg-green-50/80 p-6 space-y-4">
+        <section className="panel border-green-200 bg-green-50/80 p-6 space-y-4">
           <h3 className="text-lg font-semibold text-green-900">Importación completada</h3>
           <ul className="text-sm text-green-900 space-y-1">
             <li>{commitResult.created} usuario{commitResult.created === 1 ? '' : 's'} creado{commitResult.created === 1 ? '' : 's'}</li>
@@ -309,7 +309,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
         </section>
       ) : null}
 
-      <section className="border-t border-border pt-4">
+      <section className="panel p-4">
         <button
           type="button"
           onClick={() => { setHistoryOpen((open) => !open); }}

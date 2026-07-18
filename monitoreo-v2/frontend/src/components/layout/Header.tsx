@@ -8,53 +8,11 @@ import { PROFILE_LABELS } from '../../lib/profiles';
 import globeLogo from '../../assets/globe-logo.png';
 import { AdminSwitchers } from './AdminSwitchers';
 
-const COUNTRIES = [
-  { code: 'CL', label: 'CHILE' },
-  { code: 'CO', label: 'COLOMBIA' },
-  { code: 'PE', label: 'PERU' },
-] as const;
-
-function FlagCircle({ code, size = 18 }: Readonly<{ code: string; size?: number }>) {
-  const r = size / 2;
-  const flags: Record<string, React.ReactNode> = {
-    CL: (
-      <>
-        <rect width={size} height={r} fill="#fff" />
-        <rect y={r} width={size} height={r} fill="#D52B1E" />
-        <rect width={r} height={r} fill="#0039A6" />
-        <polygon points={`${r / 2},${r * 0.28} ${r * 0.38},${r * 0.72} ${r * 0.12},${r * 0.45} ${r * 0.88},${r * 0.45} ${r * 0.62},${r * 0.72}`} fill="#fff" />
-      </>
-    ),
-    CO: (
-      <>
-        <rect width={size} height={r} fill="#FCD116" />
-        <rect y={r} width={size} height={r * 0.5} fill="#003893" />
-        <rect y={r * 1.5} width={size} height={r * 0.5} fill="#CE1126" />
-      </>
-    ),
-    PE: (
-      <>
-        <rect width={size * 0.33} height={size} fill="#D91023" />
-        <rect x={size * 0.33} width={size * 0.34} height={size} fill="#fff" />
-        <rect x={size * 0.67} width={size * 0.33} height={size} fill="#D91023" />
-      </>
-    ),
-  };
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <clipPath id={`flag-${code}`}><circle cx={r} cy={r} r={r} /></clipPath>
-      <g clipPath={`url(#flag-${code})`}>{flags[code]}</g>
-      <circle cx={r} cy={r} r={r - 0.5} fill="none" stroke="#000" strokeOpacity="0.1" />
-    </svg>
-  );
-}
-
 export function Header() {
   const { user, tenant } = useAuthStore();
   const { toggleSidebar, sidebarOpen } = useAppStore();
   const { profile } = usePermissions();
   const navigate = useNavigate();
-  const [activeCountry, setActiveCountry] = useState<string>('CL');
   const [menuOpen, setMenuOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -98,26 +56,6 @@ export function Header() {
 
       <div className="flex-1" />
 
-      {/* Country selector */}
-      <div className="flex items-center gap-0.5 rounded-full border border-border bg-surface p-0.5">
-        {COUNTRIES.map((c) => (
-          <button
-            key={c.code}
-            type="button"
-            onClick={() => setActiveCountry(c.code)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-              activeCountry === c.code
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted hover:text-foreground'
-            }`}
-          >
-            <FlagCircle code={c.code} />
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="h-5 w-px bg-border" />
 
       {/* Contact icons */}
       <a

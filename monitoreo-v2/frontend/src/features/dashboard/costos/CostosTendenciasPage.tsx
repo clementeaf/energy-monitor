@@ -267,7 +267,7 @@ export function CostosTendenciasPage() {
     });
 
     return {
-      chart: { type: 'column' as const, height: '100%' as unknown as number },
+      chart: { type: 'column' as const, height: 160 },
       title: { text: '' },
       xAxis: { categories: months, crosshair: true },
       yAxis: [
@@ -363,13 +363,13 @@ export function CostosTendenciasPage() {
       </div>
 
       {/* Row 1: Stacked bar chart + Waterfall */}
-      <div className="flex shrink-0 gap-3" style={{ height: '200px' }}>
+      <div className="flex shrink-0 gap-3">
         {/* Barras apiladas mensual — costo [UF] */}
-        <div className="panel flex min-w-0 flex-1 flex-col p-3">
+        <div className="panel min-w-0 flex-1 p-3">
           <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currentCurrency.key}]</p>
           <p className="text-[9px] text-subtle">Línea eje secundario: precio medio [{currentCurrency.key}/MWh] · tooltip con desglose</p>
           {monthlyData.length > 0 ? (
-            <Chart options={chartOptions} className="mt-1 min-h-0 flex-1" />
+            <Chart options={chartOptions} className="mt-1" />
           ) : (
             <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Sin datos de facturación</div>
           )}
@@ -377,7 +377,7 @@ export function CostosTendenciasPage() {
         </div>
 
         {/* Waterfall de variación de costo */}
-        <div className="panel flex min-w-0 flex-1 flex-col p-3">
+        <div className="panel min-w-0 flex-1 p-3">
           <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
           <p className="text-[9px] text-subtle">volumen · precio · mix de malls (verde baja, rojo sube)</p>
           {waterfallFactors ? (

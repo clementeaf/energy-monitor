@@ -68,38 +68,35 @@ export function ThrottleCargasPage() {
             <h3 className="text-[13px] font-semibold text-foreground">Quotas de API por tenant</h3>
             <p className="text-[11px] text-muted">alerta si un tenant supera el 80% de su cuota</p>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4">
-          <table className="w-full text-[12px]">
+          <div className="min-h-0 flex-1 overflow-auto px-4">
+          <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Tenant</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Req/hora</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Req/día</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Consumo</th>
-                <th className="sticky top-0 bg-white px-3 py-2">% uso</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Estado</th>
+              <tr className="border-b border-border text-left text-[10px] font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-white px-2 py-1.5">Tenant</th>
+                <th className="sticky top-0 bg-white px-2 py-1.5">Req/h</th>
+                <th className="sticky top-0 bg-white px-2 py-1.5">Req/d</th>
+                <th className="sticky top-0 bg-white px-2 py-1.5">Actual</th>
+                <th className="sticky top-0 bg-white px-2 py-1.5">% uso</th>
+                <th className="sticky top-0 bg-white px-2 py-1.5">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {TENANT_QUOTAS.map((t, i) => (
                 <tr key={t.tenant} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
-                  <td className="px-3 py-2 font-medium text-foreground">{t.tenant}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted font-mono">{t.reqHora.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted font-mono">{t.reqDia.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-[11px] font-mono text-foreground">{t.consumoActual.toLocaleString()}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-200">
-                        <div
-                          className={`h-full rounded-full ${t.pct >= 80 ? 'bg-amber-500' : 'bg-brand'}`}
-                          style={{ width: `${t.pct}%` }}
-                        />
+                  <td className="px-2 py-1.5 font-medium text-foreground">{t.tenant}</td>
+                  <td className="px-2 py-1.5 font-mono text-muted">{t.reqHora.toLocaleString()}</td>
+                  <td className="px-2 py-1.5 font-mono text-muted">{t.reqDia.toLocaleString()}</td>
+                  <td className="px-2 py-1.5 font-mono text-foreground">{t.consumoActual.toLocaleString()}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex items-center gap-1">
+                      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-gray-200">
+                        <div className={`h-full rounded-full ${t.pct >= 80 ? 'bg-amber-500' : 'bg-brand'}`} style={{ width: `${t.pct}%` }} />
                       </div>
-                      <span className={`text-[11px] font-mono ${t.pct >= 80 ? 'text-amber-600' : 'text-muted'}`}>{t.pct}%</span>
+                      <span className={`font-mono ${t.pct >= 80 ? 'text-amber-600' : 'text-muted'}`}>{t.pct}%</span>
                     </div>
                   </td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${t.estado === 'alerta' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  <td className="px-2 py-1.5">
+                    <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${t.estado === 'alerta' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                       {t.estado}
                     </span>
                   </td>

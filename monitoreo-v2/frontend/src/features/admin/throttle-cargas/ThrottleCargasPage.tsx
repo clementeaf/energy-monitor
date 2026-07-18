@@ -108,18 +108,20 @@ export function ThrottleCargasPage() {
         </div>
 
         {/* Consumo chart */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
-          <h3 className="text-[13px] font-semibold text-foreground">Consumo de API por tenant</h3>
-          <p className="mb-3 text-[11px] text-muted">requests/hora 24h · línea horizontal en el límite configurado</p>
-          <div className="mb-2 flex items-center gap-3">
-            <span className="flex items-center gap-1 text-[11px] text-muted">
-              <span className="inline-block h-2 w-4 rounded bg-brand" /> PASA
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-muted">
-              <span className="inline-block h-0.5 w-4 rounded bg-red-400 border-dashed" /> umbral 5 000 req/h
-            </span>
+        <div className="panel flex flex-col p-4" style={{ flex: '0 0 50%' }}>
+          <div className="shrink-0">
+            <h3 className="text-[13px] font-semibold text-foreground">Consumo de API por tenant</h3>
+            <p className="mb-2 text-[11px] text-muted">requests/hora 24h · línea horizontal en el límite configurado</p>
+            <div className="mb-2 flex items-center gap-3">
+              <span className="flex items-center gap-1 text-[11px] text-muted">
+                <span className="inline-block h-2 w-4 rounded bg-brand" /> PASA
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-muted">
+                <span className="inline-block h-0.5 w-4 rounded bg-red-400 border-dashed" /> umbral 5 000 req/h
+              </span>
+            </div>
           </div>
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-h-0 flex-1" preserveAspectRatio="none">
             {[0, 2000, 4000].map((v) => (
               <line key={v} x1={PAD.left} x2={W - PAD.right} y1={toY(v)} y2={toY(v)} stroke="#e5e7eb" strokeWidth={0.5} />
             ))}
@@ -133,7 +135,7 @@ export function ThrottleCargasPage() {
               <text key={h} x={toX(h)} y={H - 2} textAnchor="middle" fontSize={8} fill="#9ca3af">{h}h</text>
             ))}
           </svg>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-15, DAT-09]</span>
+          <span className="block shrink-0 pt-1 text-right text-[10px] text-muted">[DAT-15, DAT-09]</span>
         </div>
       </div>
 

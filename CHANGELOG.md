@@ -21,6 +21,10 @@
 - **CNR Pendientes** — *(sin filtros)*.
 - **Tickets SLA** — *(sin filtros)*.
 
+### Fixed — Layout
+- **Panel Consolidado** — Columnas mapa/KPIs con ratio `flex-[3]/flex-[2]` (60/40). KPIs hacen wrap 2×2 en vez de estirar la columna derecha.
+- **Navbar switchers** — Dropdowns de Vista/Empresa/Tienda/Edificio con transición CSS smooth (`scale+opacity duration-200`) igual que `DropdownSelect`. Ya no aparecen/desaparecen sin animación.
+
 ### Fixed — Tests
 - 8 archivos de test corregidos por colisión de texto entre labels de filtro y contenido de página (`getAllByText`, `within()`, expectativas actualizadas).
 

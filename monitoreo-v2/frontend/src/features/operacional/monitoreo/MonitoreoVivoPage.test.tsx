@@ -101,7 +101,8 @@ describe('MonitoreoVivoPage', () => {
 
     it('renders offline KPI label', () => {
       renderPage();
-      expect(screen.getByText('Offline')).toBeInTheDocument();
+      // 'Offline' appears in KPI label and in "Estado del medidor" filter dropdown option
+      expect(screen.getAllByText('Offline').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders stale KPI label', () => {

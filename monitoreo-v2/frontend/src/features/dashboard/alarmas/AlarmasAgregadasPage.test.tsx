@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
@@ -71,7 +71,8 @@ describe('AlarmasAgregadasPage', () => {
 
     it('renders severity filter label', () => {
       renderPage();
-      expect(screen.getByText('Severidad')).toBeInTheDocument();
+      // "Severidad" appears as filter banner label AND as a GROUP_BY option
+      expect(screen.getAllByText('Severidad').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders status filter label', () => {
@@ -170,9 +171,10 @@ describe('AlarmasAgregadasPage', () => {
       expect(screen.getAllByText('Mall Sur').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('does not render Peruvian building', () => {
+    it('renders all buildings when country is "all" (default)', () => {
       renderPage();
-      expect(screen.queryByText('Mall Lima')).not.toBeInTheDocument();
+      // Default country is 'all', so all buildings (including PE) are shown
+      expect(screen.getAllByText('Mall Lima').length).toBeGreaterThanOrEqual(1);
     });
 
     it('shows last alert message for building', () => {
@@ -182,28 +184,23 @@ describe('AlarmasAgregadasPage', () => {
   });
 
   describe('country filter switch', () => {
-    it('switches to Peru and shows Peruvian building', async () => {
+    it('switches to Chile and hides Peruvian building from table', async () => {
       const user = userEvent.setup();
       renderPage();
 
-      // The País DropdownSelect button shows "Chile" (current value).
-      // All DropdownSelect buttons that show country labels are role="button".
-      // Find the one whose accessible text is "Chile" (the trigger button, not a list option).
-      // Use getAllByRole to find dropdown trigger buttons, then pick the one with "Chile" text.
-      const allChileBtns = screen.getAllByRole('button').filter(
-        (btn) => btn.textContent?.trim().startsWith('Chile'),
+      // Default country is 'all' (shows "Todos" in dropdown trigger).
+      // DropdownSelect keeps options in DOM (hidden via CSS). Click Chile option directly.
+      const chileOptions = screen.getAllByRole('option').filter(
+        (el) => el.textContent?.trim() === 'Chile',
       );
-      // The País dropdown trigger should be among them — click the first one
-      await user.click(allChileBtns[0]);
+      await user.click(chileOptions[0]);
 
-      // Perú option is now visible in the open dropdown list (role="option")
-      const peruOptions = screen.getAllByRole('option').filter(
-        (el) => el.textContent?.trim() === 'Perú',
-      );
-      await user.click(peruOptions[0]);
-
-      expect(screen.getAllByText('Mall Lima').length).toBeGreaterThanOrEqual(1);
-      expect(screen.queryByText('Mall Norte')).not.toBeInTheDocument();
+      // Mall Norte (CL) should still appear in table
+      expect(screen.getAllByText('Mall Norte').length).toBeGreaterThanOrEqual(1);
+      // Mall Lima (PE) should not appear in table rows, but may still exist
+      // in the Mall DropdownSelect options list. Scope to table area.
+      const tableSection = screen.getByText(/Tabla de alarmas por mall/).closest('div.panel')!;
+      expect(within(tableSection as HTMLElement).queryByText('Mall Lima')).not.toBeInTheDocument();
     });
   });
 });

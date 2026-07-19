@@ -1,5 +1,35 @@
 # Changelog
 
+## [2.47.1-alpha.0] - 2026-07-19 — FILTROS POR PÁGINA SEGÚN SPEC
+
+### Changed — Banners de filtro (17 páginas)
+- **Panel Consolidado** — País, Colorear marcadores por, Mostrar solo malls con, Período de KPIs.
+- **Consumo Jerárquico** — País, Período, Métrica principal, Granularidad, Ordenar malls por, Comparar con.
+- **Costos y Tendencias** — País, Mall, Período, Moneda, Agrupación de gráficos, Ordenar tabla por.
+- **Alarmas Agregadas** — País, Mall, Período de análisis, Severidad, Estado, Gráfico agrupar por.
+- **Alarmas y Eventos** — Severidad, Mall, País, Estado, Rango de fecha, Responsable asignado.
+- **Exportar Reportes** — Tipo de contenido, Alcance geográfico, Período, Granularidad temporal, Formato de salida.
+- **Reportes Ejecutivos** — Alcance geográfico, Período, Comparación, Métrica principal, Formato de salida.
+- **Monitoreo en Vivo** — País, Mall, Estado del medidor, Granularidad del histograma.
+- **Mapa Cobertura** — Métrica del marcador.
+- **Mis Órdenes** — Estado, Prioridad.
+- **Activos (Medidores)** — Mall, Estado comms, Tipo.
+- **Diagnóstico Comms** — Medidor, Mall, Gateway, Ventana.
+- **Maestro Medidores** — País, Mall, Protocolo, Estado del activo, Estado comms.
+- **Reglas Transformación** — Medidor, Tipo de regla, Estado.
+- **Calidad Backfill** — *(sin filtros)*.
+- **CNR Pendientes** — *(sin filtros)*.
+- **Tickets SLA** — *(sin filtros)*.
+
+### Fixed — Tests
+- 8 archivos de test corregidos por colisión de texto entre labels de filtro y contenido de página (`getAllByText`, `within()`, expectativas actualizadas).
+
+### Stats
+- 854/854 tests pass. 0 TS errors.
+- Spec de referencia: `docs/filtros/*.png` (17 imágenes).
+
+---
+
 ## [2.47.0-alpha.0] - 2026-07-19 — RESPONSIVIDAD 13" + FLEX LAYOUT
 
 ### Fixed — Responsividad global (13 pulgadas)

@@ -1,6 +1,29 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
+
+const MEDIDOR_FILTER_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'SN-4471', label: 'SN-4471' },
+  { value: 'SN-3120', label: 'SN-3120' },
+  { value: 'SN-2088', label: 'SN-2088' },
+  { value: 'SN-5510', label: 'SN-5510' },
+];
+
+const TIPO_REGLA_OPTIONS = [
+  { value: 'all', label: 'Todas' },
+  { value: 'escala', label: 'Escala' },
+  { value: 'offset', label: 'Offset' },
+  { value: 'interpolacion', label: 'Interpolación' },
+  { value: 'validacion', label: 'Validación' },
+];
+
+const ESTADO_REGLA_OPTIONS = [
+  { value: 'active', label: 'Activas' },
+  { value: 'inactive', label: 'Inactivas' },
+  { value: 'all', label: 'Todas' },
+];
 
 // Fallback change history shown until backend API exists.
 const FALLBACK_HISTORY = [
@@ -13,6 +36,9 @@ const FALLBACK_HISTORY = [
 export function ReglasTransformacionPage() {
   const [selectedRule, setSelectedRule] = useState<number | null>(null);
   const [testValue, setTestValue] = useState('48200');
+  const [medidorFilter, setMedidorFilter] = useState('all');
+  const [tipoReglaFilter, setTipoReglaFilter] = useState('all');
+  const [estadoReglaFilter, setEstadoReglaFilter] = useState('active');
 
   // ponytail: placeholder rules until backend API exists
   const rules = [
@@ -36,6 +62,22 @@ export function ReglasTransformacionPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader title="5.7 Reglas de Transformación" description="Configuración de reglas de conversión por medidor — simulador en tiempo real (desktop)" />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1">
+          Medidor
+          <DropdownSelect options={MEDIDOR_FILTER_OPTIONS} value={medidorFilter} onChange={setMedidorFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Tipo de regla
+          <DropdownSelect options={TIPO_REGLA_OPTIONS} value={tipoReglaFilter} onChange={setTipoReglaFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado
+          <DropdownSelect options={ESTADO_REGLA_OPTIONS} value={estadoReglaFilter} onChange={setEstadoReglaFilter} />
+        </span>
+      </div>
 
       {/* Row 1: Rules table (left) + Edit form + Simulator + Impact (right) */}
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">

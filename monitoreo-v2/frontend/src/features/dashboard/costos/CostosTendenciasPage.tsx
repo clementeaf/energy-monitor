@@ -13,14 +13,30 @@ import type { LatestReading } from '../../../types/reading';
 
 interface SelectOption { key: string; label: string }
 
-const DEFAULT_COUNTRY = 'CL';
+const COUNTRY_OPTIONS: SelectOption[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'CL', label: 'Chile' },
+  { key: 'PE', label: 'Perú' },
+  { key: 'CO', label: 'Colombia' },
+];
+
+const MALL_OPTIONS: SelectOption[] = [
+  { key: 'all', label: 'Todos' },
+];
 
 const PERIODS: SelectOption[] = [
   { key: 'month', label: 'Mes actual' },
   { key: 'quarter', label: 'Trimestre actual' },
-  { key: 'ytd', label: 'Año en curso' },
+  { key: 'year', label: 'Año en curso' },
   { key: '12m', label: 'Últimos 12 meses' },
   { key: 'custom', label: 'Rango personalizado' },
+];
+
+const SORT_TABLE_OPTIONS: SelectOption[] = [
+  { key: 'cost_desc', label: 'Costo total desc.' },
+  { key: 'cost_asc', label: 'Costo total asc.' },
+  { key: 'name', label: 'Nombre A-Z' },
+  { key: 'consumption', label: 'Consumo desc.' },
 ];
 
 const CURRENCIES: SelectOption[] = [
@@ -168,11 +184,13 @@ function downloadCsv(rows: CostRow[], currency: string) {
 }
 
 export function CostosTendenciasPage() {
-  const country = DEFAULT_COUNTRY;
-  const [period, setPeriod] = useState('month');
-  const [currency, setCurrency] = useState('CLP');
+  const [country, setCountry] = useState('all');
+  const [mall, setMall] = useState('all');
+  const [period, setPeriod] = useState('year');
+  const [currency, setCurrency] = useState('UF');
+  const [sortTable, setSortTable] = useState('cost_desc');
   const [search] = useState('');
-  const [grouping, setGrouping] = useState('mall');
+  const [grouping, setGrouping] = useState('country');
   const [selectedMallIds, setSelectedMallIds] = useState<Set<string>>(new Set());
   const [mallSearch, setMallSearch] = useState('');
   const [sortCol, setSortCol] = useState<string>('totalCost');
@@ -192,10 +210,11 @@ export function CostosTendenciasPage() {
 
   // Filter buildings by country + mall selection
   const filteredBuildings = useMemo(() => {
-    let filtered = buildings.filter((b) => (b.countryCode ?? 'CL') === country);
+    let filtered = country === 'all' ? buildings : buildings.filter((b) => (b.countryCode ?? 'CL') === country);
+    if (mall !== 'all') filtered = filtered.filter((b) => b.id === mall);
     if (selectedMallIds.size > 0) filtered = filtered.filter((b) => selectedMallIds.has(b.id));
     return filtered;
-  }, [buildings, country, selectedMallIds]);
+  }, [buildings, country, mall, selectedMallIds]);
 
   // Filter invoices to those buildings
   const buildingIds = useMemo(
@@ -375,7 +394,11 @@ export function CostosTendenciasPage() {
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
-          <DropdownSelect options={[{ value: 'CL', label: 'Chile' }, { value: 'PE', label: 'Perú' }, { value: 'CO', label: 'Colombia' }]} value={country} onChange={() => {}} />
+          <DropdownSelect options={COUNTRY_OPTIONS.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
+        </span>
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={[...MALL_OPTIONS, ...buildings.map((b) => ({ key: b.id, label: b.name }))].map((o) => ({ value: o.key, label: o.label }))} value={mall} onChange={setMall} />
         </span>
         <span className="flex items-center gap-1">
           Período
@@ -386,17 +409,13 @@ export function CostosTendenciasPage() {
           <DropdownSelect options={CURRENCIES.map((c) => ({ value: c.key, label: c.label }))} value={currency} onChange={setCurrency} />
         </span>
         <span className="flex items-center gap-1">
-          Agrupación
+          Agrupación de gráficos
           <DropdownSelect options={GROUPING_OPTIONS.map((g) => ({ value: g.key, label: g.label }))} value={grouping} onChange={setGrouping} />
         </span>
-        <MallMultiSelect
-          buildings={filteredBuildings}
-          selected={selectedMallIds}
-          onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })}
-          onClear={() => setSelectedMallIds(new Set())}
-          search={mallSearch}
-          onSearch={setMallSearch}
-        />
+        <span className="flex items-center gap-1">
+          Ordenar tabla por
+          <DropdownSelect options={SORT_TABLE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={sortTable} onChange={setSortTable} />
+        </span>
       </div>
 
       {/* Row 1: Stacked bar chart + Waterfall */}

@@ -89,22 +89,31 @@ export function MedidoresCatalogoPage() {
         description="Vista mobile-first — búsqueda y ficha técnica de medidores en campo"
       />
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <DropdownSelect
-          options={[{ value: 'all', label: 'Todos los centros' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
-          value={mallFilter}
-          onChange={setMallFilter}
-        />
-        <DropdownSelect
-          options={[{ value: 'all', label: 'Estado comms: Todos' }, { value: 'online', label: 'Online' }, { value: 'stale', label: 'Estancado' }, { value: 'offline', label: 'Offline' }]}
-          value={statusFilter}
-          onChange={setStatusFilter}
-        />
-        <DropdownSelect
-          options={[{ value: 'all', label: 'Tipo: Todos' }, ...meterTypes.map((t) => ({ value: t, label: t }))]}
-          value={typeFilter}
-          onChange={setTypeFilter}
-        />
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect
+            options={[{ value: 'all', label: 'Todos los centros' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
+            value={mallFilter}
+            onChange={setMallFilter}
+          />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado comms
+          <DropdownSelect
+            options={[{ value: 'all', label: 'Todos' }, { value: 'online', label: 'Online' }, { value: 'offline', label: 'Offline' }, { value: 'stale', label: 'Intermitente' }]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </span>
+        <span className="flex items-center gap-1">
+          Tipo
+          <DropdownSelect
+            options={[{ value: 'all', label: 'Todos' }, ...meterTypes.map((t) => ({ value: t, label: t }))]}
+            value={typeFilter}
+            onChange={setTypeFilter}
+          />
+        </span>
       </div>
 
       <div className="panel shrink-0 px-3 py-2.5">

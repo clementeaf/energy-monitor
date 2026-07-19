@@ -50,23 +50,35 @@ const PERIODS: PeriodOption[] = [
 
 interface MetricOption { key: string; label: string; unit: string }
 const METRICS: MetricOption[] = [
-  { key: 'energy', label: 'Consumo', unit: 'MWh' },
+  { key: 'consumption', label: 'Consumo', unit: 'MWh' },
   { key: 'demand', label: 'Demanda', unit: 'kW' },
   { key: 'cost', label: 'Costo', unit: 'UF' },
   { key: 'intensity', label: 'Intensidad', unit: 'kWh/m²' },
 ];
 
 const SORT_OPTIONS = [
-  { key: 'metric', label: 'Por métrica' },
+  { key: 'highest', label: 'Mayor consumo' },
+  { key: 'lowest', label: 'Menor consumo' },
   { key: 'name', label: 'Alfabético' },
   { key: 'alerts', label: 'Por alertas' },
 ];
 
+const GRANULARITY_OPTIONS = [
+  { key: 'monthly', label: 'Mensual' },
+  { key: 'weekly', label: 'Semanal' },
+];
+
 const COMPARE_OPTIONS = [
-  { key: 'none', label: 'Sin comparación' },
   { key: 'previous', label: 'Período anterior' },
   { key: 'yoy', label: 'Año anterior' },
   { key: 'avg', label: 'Promedio portafolio' },
+  { key: 'none', label: 'Sin comparación' },
+];
+
+const COUNTRY_OPTIONS = [
+  { key: 'CL', label: 'Chile' },
+  { key: 'PE', label: 'Perú' },
+  { key: 'CO', label: 'Colombia' },
 ];
 
 /* ── Building row enrichment ── */
@@ -132,7 +144,7 @@ function groupByFallback<T>(items: T[], keyFn: (item: T) => string): Map<string,
 
 type MetricAccessor = (row: BuildingRow) => number;
 const METRIC_ACCESSORS: Record<string, MetricAccessor> = {
-  energy: (r) => r.energyMwh,
+  consumption: (r) => r.energyMwh,
   demand: (r) => r.demandKw,
   cost: (r) => r.energyMwh * 0.12, // ponytail: placeholder UF/MWh rate, replace with tariff lookup
   intensity: (r) => {
@@ -145,13 +157,13 @@ const METRIC_ACCESSORS: Record<string, MetricAccessor> = {
 
 export function ConsumoJerarquicoPage() {
   const navigate = useNavigate();
-  const country = DEFAULT_COUNTRY;
+  const [country, setCountry] = useState('CL');
   const [period, setPeriod] = useState('month');
-  const [metric, setMetric] = useState('energy');
+  const [metric, setMetric] = useState('consumption');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('metric');
+  const [sortBy, setSortBy] = useState('highest');
   const [filterBy] = useState('all');
-  const [compareWith, setCompareWith] = useState('none');
+  const [compareWith, setCompareWith] = useState('previous');
   const [granularity, setGranularity] = useState<'monthly' | 'weekly'>('monthly');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
@@ -174,7 +186,7 @@ export function ConsumoJerarquicoPage() {
   const yesterdayReadings = yesterdayQuery.data ?? [];
 
   const currentMetric = METRICS.find((m) => m.key === metric) ?? METRICS[0];
-  const accessor = METRIC_ACCESSORS[metric] ?? METRIC_ACCESSORS.energy;
+  const accessor = METRIC_ACCESSORS[metric] ?? METRIC_ACCESSORS.consumption;
 
   // Filter by country
   const filteredBuildings = useMemo(
@@ -201,6 +213,7 @@ export function ConsumoJerarquicoPage() {
     const sorted = [...filteredRows];
     if (sortBy === 'name') sorted.sort((a, b) => a.building.name.localeCompare(b.building.name));
     else if (sortBy === 'alerts') sorted.sort((a, b) => b.alertCount - a.alertCount);
+    else if (sortBy === 'lowest') sorted.sort((a, b) => accessor(a) - accessor(b));
     else sorted.sort((a, b) => accessor(b) - accessor(a));
     return sorted;
   }, [filteredRows, sortBy, accessor]);
@@ -285,25 +298,19 @@ export function ConsumoJerarquicoPage() {
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
-          <DropdownSelect options={[{ value: 'CL', label: 'Chile' }, { value: 'PE', label: 'Perú' }, { value: 'CO', label: 'Colombia' }]} value={country} onChange={() => {}} />
+          <DropdownSelect options={COUNTRY_OPTIONS.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
         </span>
         <span className="flex items-center gap-1">
           Período
           <DropdownSelect options={PERIODS.map((p) => ({ value: p.key, label: p.label }))} value={period} onChange={setPeriod} />
         </span>
-        {period === 'custom' && (
-          <>
-            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-          </>
-        )}
         <span className="flex items-center gap-1">
           Métrica principal
-          <DropdownSelect options={METRICS.map((m) => ({ value: m.key, label: `${m.label} (${m.unit})` }))} value={metric} onChange={setMetric} />
+          <DropdownSelect options={METRICS.map((m) => ({ value: m.key, label: `${m.label} [${m.unit}]` }))} value={metric} onChange={setMetric} />
         </span>
         <span className="flex items-center gap-1">
           Granularidad
-          <DropdownSelect options={[{ value: 'monthly', label: 'Mensual' }, { value: 'weekly', label: 'Semanal' }]} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
+          <DropdownSelect options={GRANULARITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
         </span>
         <span className="flex items-center gap-1">
           Ordenar malls por

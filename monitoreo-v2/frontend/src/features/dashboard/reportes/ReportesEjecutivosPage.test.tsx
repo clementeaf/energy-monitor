@@ -55,41 +55,53 @@ describe('ReportesEjecutivosPage', () => {
     it('renders scope field with options', () => {
       renderPage();
       expect(screen.getByText('Alcance geográfico (Portafolio / País / Mall)')).toBeInTheDocument();
-      expect(screen.getByText('Portafolio completo')).toBeInTheDocument();
-      expect(screen.getByText('Por país')).toBeInTheDocument();
-      expect(screen.getByText('Centro específico')).toBeInTheDocument();
+      // "Portafolio completo" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Portafolio completo').length).toBeGreaterThanOrEqual(1);
+      // "Por país" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Por país').length).toBeGreaterThanOrEqual(1);
+      // "Centro específico" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Centro específico').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders period field', () => {
       renderPage();
       expect(screen.getByText('Período (Mes / Trimestre / Año / Rango)')).toBeInTheDocument();
-      expect(screen.getByText('Mes')).toBeInTheDocument();
-      expect(screen.getByText('Trimestre')).toBeInTheDocument();
-      expect(screen.getByText('Año')).toBeInTheDocument();
+      // "Mes" appears in both filter banner ("Mes actual") and configurator select
+      expect(screen.getAllByText('Mes').length).toBeGreaterThanOrEqual(1);
+      // "Trimestre" appears in both filter banner and configurator select
+      expect(screen.getAllByText('Trimestre').length).toBeGreaterThanOrEqual(1);
+      // "Año" appears in both filter banner and configurator select
+      expect(screen.getAllByText('Año').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders comparison field', () => {
       renderPage();
       expect(screen.getByText('Comparación (vs. anterior / año anterior / sin)')).toBeInTheDocument();
-      expect(screen.getByText('vs. período anterior')).toBeInTheDocument();
-      expect(screen.getByText('vs. mismo período año anterior')).toBeInTheDocument();
+      // "vs. período anterior" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('vs. período anterior').length).toBeGreaterThanOrEqual(1);
+      // "vs. mismo período año anterior" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('vs. mismo período año anterior').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders metric field', () => {
       renderPage();
       expect(screen.getByText('Métrica principal (Consumo / Costo / Intensidad)')).toBeInTheDocument();
-      expect(screen.getByText('Consumo')).toBeInTheDocument();
-      expect(screen.getByText('Costo')).toBeInTheDocument();
-      expect(screen.getByText('Intensidad')).toBeInTheDocument();
+      // "Consumo" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Consumo').length).toBeGreaterThanOrEqual(1);
+      // "Costo" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Costo').length).toBeGreaterThanOrEqual(1);
+      // "Intensidad" appears in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('Intensidad').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders format field', () => {
       renderPage();
       expect(screen.getByText('Formato de salida (PDF / PPT / Excel)')).toBeInTheDocument();
-      expect(screen.getByText('PDF')).toBeInTheDocument();
-      expect(screen.getByText('PPT')).toBeInTheDocument();
-      expect(screen.getByText('Excel')).toBeInTheDocument();
-      expect(screen.getByText('CSV')).toBeInTheDocument();
+      // Format options appear in both filter banner dropdown and configurator select
+      expect(screen.getAllByText('PDF').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('PPT').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Excel').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('CSV').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders generate button', () => {

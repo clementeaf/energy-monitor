@@ -78,23 +78,28 @@ describe('ExportarReportesPage', () => {
 
     it('renders scope field with options', () => {
       renderPage();
-      expect(screen.getByText('Alcance geográfico')).toBeInTheDocument();
-      expect(screen.getByText('Portafolio completo')).toBeInTheDocument();
-      expect(screen.getByText('País')).toBeInTheDocument();
-      expect(screen.getByText('Mall específico')).toBeInTheDocument();
+      // "Alcance geográfico" appears in both filter banner and configurator
+      expect(screen.getAllByText('Alcance geográfico').length).toBeGreaterThanOrEqual(1);
+      // "Portafolio completo" appears in filter banner dropdown + configurator select
+      expect(screen.getAllByText('Portafolio completo').length).toBeGreaterThanOrEqual(1);
+      // "País" appears as filter banner option + scope option
+      expect(screen.getAllByText('País').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Mall específico').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders period selector', () => {
       renderPage();
       expect(screen.getByText('Período (hasta 5 años)')).toBeInTheDocument();
-      expect(screen.getByText('Mes actual')).toBeInTheDocument();
+      // "Mes actual" appears in filter banner dropdown + configurator select
+      expect(screen.getAllByText('Mes actual').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders granularity selector', () => {
       renderPage();
       expect(screen.getByText('Granularidad temporal (Mensual / Semanal)')).toBeInTheDocument();
-      expect(screen.getByText('Mensual')).toBeInTheDocument();
-      expect(screen.getByText('Semanal')).toBeInTheDocument();
+      // "Mensual" and "Semanal" appear in both filter banner and configurator
+      expect(screen.getAllByText('Mensual').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Semanal').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders format selector with full labels', () => {
@@ -181,8 +186,10 @@ describe('ExportarReportesPage', () => {
       expect(screen.getByText('Fecha')).toBeInTheDocument();
       expect(screen.getByText('Usuario')).toBeInTheDocument();
       expect(screen.getByText('Contenido')).toBeInTheDocument();
-      expect(screen.getByText('Período')).toBeInTheDocument();
-      expect(screen.getByText('Formato')).toBeInTheDocument();
+      // "Período" also appears in filter banner label — use getAllByText
+      expect(screen.getAllByText('Período').length).toBeGreaterThanOrEqual(1);
+      // "Formato" also appears in filter banner — use getAllByText
+      expect(screen.getAllByText(/^Formato/).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Descarga')).toBeInTheDocument();
     });
 

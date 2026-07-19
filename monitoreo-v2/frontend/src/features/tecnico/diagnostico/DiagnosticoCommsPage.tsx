@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
+import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { LatestReading } from '../../../types/reading';
 
@@ -41,17 +43,35 @@ function deriveState(reading: LatestReading | undefined, now: number): CommState
   return 'online';
 }
 
+const VENTANA_OPTIONS = [
+  { value: '24h', label: '24 h' },
+  { value: '48h', label: '48 h' },
+  { value: '72h', label: '72 h' },
+  { value: '7d', label: '7 días' },
+];
+
 export function DiagnosticoCommsPage() {
   const [search, setSearch] = useState('');
   const [selectedMeterId, setSelectedMeterId] = useState<string | null>(null);
+  const [mallFilter, setMallFilter] = useState('all');
+  const [gatewayFilter, setGatewayFilter] = useState('all');
+  const [ventanaFilter, setVentanaFilter] = useState('72h');
 
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const buildingsQuery = useBuildingsQuery();
+  const buildings = buildingsQuery.data ?? [];
 
   const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
   const readingMap = useMemo(() => new Map(readings.map((r) => [r.meter_id, r])), [readings]);
   const now = Date.now();
+
+  const meterOptions = useMemo(() => [{ value: 'all', label: 'Todos' }, ...meters.map((m) => ({ value: m.id, label: m.code }))], [meters]);
+  const gatewayOptions = useMemo(() => {
+    const gws = [...new Set(meters.map((m) => m.busId).filter(Boolean))] as string[];
+    return [{ value: 'all', label: 'Todos' }, ...gws.map((g) => ({ value: g, label: g }))];
+  }, [meters]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -82,22 +102,24 @@ export function DiagnosticoCommsPage() {
         description="Diagnóstico de comunicaciones por medidor — estado, disponibilidad y herramientas"
       />
 
-      {/* Meter selector */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por serial o nombre..."
-          className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none focus:border-brand"
-        />
-        <select
-          value={selectedMeterId ?? ''}
-          onChange={(e) => setSelectedMeterId(e.target.value || null)}
-          className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none"
-        >
-          <option value="">Seleccionar medidor...</option>
-          {filtered.map((m) => <option key={m.id} value={m.id}>{m.code} — {m.name}</option>)}
-        </select>
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1">
+          Medidor
+          <DropdownSelect options={meterOptions} value={selectedMeterId ?? 'all'} onChange={(v) => setSelectedMeterId(v === 'all' ? null : v)} />
+        </span>
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]} value={mallFilter} onChange={setMallFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Gateway
+          <DropdownSelect options={gatewayOptions} value={gatewayFilter} onChange={setGatewayFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Ventana
+          <DropdownSelect options={VENTANA_OPTIONS} value={ventanaFilter} onChange={setVentanaFilter} />
+        </span>
       </div>
 
       {/* Row 1: 3 KPI cards */}

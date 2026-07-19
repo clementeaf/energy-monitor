@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery, useAcknowledgeAlert, useResolveAlert } from '../../../hooks/queries/useAlertsQuery';
@@ -156,6 +157,21 @@ const FALLBACK_ORDERS: WorkOrder[] = [
 
 /* ── Page ── */
 
+const ESTADO_OPTIONS = [
+  { value: 'pending_active', label: 'Pendientes + En curso' },
+  { value: 'all', label: 'Todas' },
+  { value: 'pendiente', label: 'Pendientes' },
+  { value: 'en curso', label: 'En curso' },
+  { value: 'cerrada', label: 'Cerradas' },
+];
+
+const PRIORIDAD_OPTIONS = [
+  { value: 'all', label: 'Todas' },
+  { value: 'alta', label: 'Alta' },
+  { value: 'media', label: 'Media' },
+  { value: 'baja', label: 'Baja' },
+];
+
 const QUICK_FILTERS = [
   { key: 'all', label: 'Todos' },
   { key: 'pendiente', label: 'Pendientes' },
@@ -167,6 +183,8 @@ export function MisOrdenesPage() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState('all');
+  const [estadoFilter, setEstadoFilter] = useState('pending_active');
+  const [prioridadFilter, setPrioridadFilter] = useState('all');
 
   const buildingsQuery = useBuildingsQuery();
   const activeQuery = useAlertsQuery({ status: 'active' });
@@ -247,6 +265,18 @@ export function MisOrdenesPage() {
           </div>
         }
       />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1">
+          Estado
+          <DropdownSelect options={ESTADO_OPTIONS} value={estadoFilter} onChange={setEstadoFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Prioridad
+          <DropdownSelect options={PRIORIDAD_OPTIONS} value={prioridadFilter} onChange={setPrioridadFilter} />
+        </span>
+      </div>
 
       {/* KPIs */}
       <div className="flex shrink-0 flex-wrap gap-2">

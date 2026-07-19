@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 // ponytail: PillToggle replaced per wireframe
 import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -138,11 +139,21 @@ const FALLBACK_COVERAGE_ROWS: CoverageRow[] = [
   },
 ];
 
+/* ── Filter options ── */
+
+const METRICA_MARCADOR_OPTIONS = [
+  { value: 'online_pct', label: 'Online %' },
+  { value: 'consumo_kwh', label: 'Consumo kWh' },
+  { value: 'estado_alarma', label: 'Estado alarma' },
+  { value: 'cobertura_datos', label: 'Cobertura datos' },
+];
+
 /* ── Page ── */
 
 export function MapaCoberturaPage() {
   const navigate = useNavigate();
   const [metric] = useState('online');
+  const [metricaMarcador, setMetricaMarcador] = useState('online_pct');
   const [search, setSearch] = useState('');
 
   const buildingsQuery = useBuildingsQuery();
@@ -213,6 +224,15 @@ export function MapaCoberturaPage() {
         title="4.6 Mapa de Cobertura"
         description="Visualización geográfica de cobertura de medidores — click abre grilla del mall"
       />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          Métrica del marcador
+          <DropdownSelect options={METRICA_MARCADOR_OPTIONS} value={metricaMarcador} onChange={setMetricaMarcador} />
+        </span>
+      </div>
 
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Left: Mapa interactivo de cobertura */}

@@ -129,7 +129,8 @@ describe('AlarmasEventosPage', () => {
 
     it('renders status badges', () => {
       renderPage();
-      expect(screen.getAllByText('Abierta').length).toBe(3);
+      // 'Abierta' appears in table badges (3) + filter dropdown button (1 for STATUS_OPTIONS key='open' label='Abierta')
+      expect(screen.getAllByText('Abierta').length).toBeGreaterThanOrEqual(3);
     });
   });
 

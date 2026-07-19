@@ -1,10 +1,33 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 // ponytail: PillToggle replaced per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import type { Meter } from '../../../types/meter';
+
+const PROTOCOLO_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'modbus_rtu', label: 'Modbus RTU' },
+  { value: 'modbus_tcp', label: 'Modbus TCP' },
+  { value: 'mqtt', label: 'MQTT' },
+  { value: 'dlms', label: 'DLMS' },
+];
+
+const ESTADO_ACTIVO_OPTIONS = [
+  { value: 'active', label: 'Activo' },
+  { value: 'inactive', label: 'Inactivo' },
+  { value: 'baja', label: 'Baja' },
+  { value: 'all', label: 'Todos' },
+];
+
+const ESTADO_COMMS_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'online', label: 'Online' },
+  { value: 'offline', label: 'Offline' },
+  { value: 'intermitente', label: 'Intermitente' },
+];
 
 /* ── Fallback changelog entries ── */
 
@@ -45,6 +68,11 @@ export function MaestroMedidoresPage() {
   const [search, setSearch] = useState('');
   const [statusFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [paisFilter, setPaisFilter] = useState('all');
+  const [mallFilter, setMallFilter] = useState('all');
+  const [protocoloFilter, setProtocoloFilter] = useState('all');
+  const [estadoActivoFilter, setEstadoActivoFilter] = useState('active');
+  const [estadoCommsFilter, setEstadoCommsFilter] = useState('all');
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -70,6 +98,30 @@ export function MaestroMedidoresPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader title="5.6 Maestro de Medidores" description="Alta, edición y baja de medidores — pista de cambios inmutable (desktop)" />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1">
+          País
+          <DropdownSelect options={[{ value: 'all', label: 'Todos' }, { value: 'cl', label: 'Chile' }, { value: 'pe', label: 'Perú' }, { value: 'co', label: 'Colombia' }]} value={paisFilter} onChange={setPaisFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]} value={mallFilter} onChange={setMallFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Protocolo
+          <DropdownSelect options={PROTOCOLO_OPTIONS} value={protocoloFilter} onChange={setProtocoloFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado del activo
+          <DropdownSelect options={ESTADO_ACTIVO_OPTIONS} value={estadoActivoFilter} onChange={setEstadoActivoFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado comms
+          <DropdownSelect options={ESTADO_COMMS_OPTIONS} value={estadoCommsFilter} onChange={setEstadoCommsFilter} />
+        </span>
+      </div>
 
       {/* Row 1: Master table (left) + Edit form (right) */}
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">

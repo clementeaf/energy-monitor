@@ -35,10 +35,12 @@ describe('MedidoresCatalogoPage', () => {
 
   it('renders dropdown filters', () => {
     renderPage();
-    // DropdownSelect renders a button with the display value (may appear multiple times in DOM)
+    // Filter banner has labels + DropdownSelect buttons with selected values
     expect(screen.getAllByText('Todos los centros').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Estado comms: Todos').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Tipo: Todos').length).toBeGreaterThanOrEqual(1);
+    // "Estado comms" is the label, "Todos" is the dropdown button text
+    expect(screen.getByText('Estado comms')).toBeInTheDocument();
+    expect(screen.getByText('Tipo')).toBeInTheDocument();
+    expect(screen.getAllByText('Todos').length).toBeGreaterThanOrEqual(2);
   });
 
   it('renders table column headers', () => {

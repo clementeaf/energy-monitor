@@ -38,9 +38,28 @@ const SEVERITY_OPTIONS: SelectOption[] = [
 ];
 
 const STATUS_OPTIONS: SelectOption[] = [
+  { key: 'open', label: 'Abierta' },
   { key: 'active', label: 'Abiertas' },
   { key: 'acknowledged', label: 'Asignadas' },
   { key: 'resolved', label: 'Resueltas' },
+];
+
+const PAIS_OPTIONS: SelectOption[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'CL', label: 'Chile' },
+  { key: 'PE', label: 'Perú' },
+  { key: 'CO', label: 'Colombia' },
+];
+
+const RANGO_FECHA_OPTIONS: SelectOption[] = [
+  { key: 'today', label: 'Hoy' },
+  { key: '7d', label: 'Últimos 7 días' },
+  { key: '30d', label: 'Últimos 30 días' },
+  { key: 'custom', label: 'Personalizado' },
+];
+
+const RESPONSABLE_OPTIONS: SelectOption[] = [
+  { key: 'all', label: 'Todas' },
 ];
 
 /* ── Badge styling ── */
@@ -78,8 +97,11 @@ function elapsed(createdAt: string): string {
 
 export function AlarmasEventosPage() {
   const [severityFilter, setSeverityFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<string>('active');
+  const [statusFilter, setStatusFilter] = useState<string>('open');
   const [mallFilter, setMallFilter] = useState('all');
+  const [paisFilter, setPaisFilter] = useState('all');
+  const [rangoFecha, setRangoFecha] = useState('today');
+  const [responsableFilter, setResponsableFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [comment, setComment] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -154,20 +176,24 @@ export function AlarmasEventosPage() {
           <DropdownSelect options={SEVERITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={severityFilter} onChange={setSeverityFilter} />
         </span>
         <span className="flex items-center gap-1">
-          Estado
-          <DropdownSelect options={STATUS_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={statusFilter} onChange={setStatusFilter} />
-        </span>
-        <span className="flex items-center gap-1">
           Mall
           <DropdownSelect options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]} value={mallFilter} onChange={setMallFilter} />
         </span>
         <span className="flex items-center gap-1">
-          Desde
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+          País
+          <DropdownSelect options={PAIS_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={paisFilter} onChange={setPaisFilter} />
         </span>
         <span className="flex items-center gap-1">
-          Hasta
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+          Estado
+          <DropdownSelect options={STATUS_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={statusFilter} onChange={setStatusFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Rango de fecha
+          <DropdownSelect options={RANGO_FECHA_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={rangoFecha} onChange={setRangoFecha} />
+        </span>
+        <span className="flex items-center gap-1">
+          Responsable asignado
+          <DropdownSelect options={RESPONSABLE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={responsableFilter} onChange={setResponsableFilter} />
         </span>
       </div>
 

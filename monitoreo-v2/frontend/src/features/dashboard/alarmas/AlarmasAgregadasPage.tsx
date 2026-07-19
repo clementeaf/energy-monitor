@@ -12,9 +12,21 @@ import type { Alert, AlertSeverity } from '../../../types/alert';
 interface SelectOption { key: string; label: string }
 
 const COUNTRIES: SelectOption[] = [
+  { key: 'all', label: 'Todos' },
   { key: 'CL', label: 'Chile' },
   { key: 'PE', label: 'Perú' },
   { key: 'CO', label: 'Colombia' },
+];
+
+const MALL_OPTIONS: SelectOption[] = [
+  { key: 'all', label: 'Todos' },
+];
+
+const GROUP_BY_OPTIONS: SelectOption[] = [
+  { key: 'day', label: 'Día' },
+  { key: 'week', label: 'Semana' },
+  { key: 'mall', label: 'Mall' },
+  { key: 'severity', label: 'Severidad' },
 ];
 
 const SEVERITY_OPTIONS: SelectOption[] = [
@@ -32,7 +44,7 @@ const STATUS_OPTIONS: SelectOption[] = [
 const PERIOD_OPTIONS: { key: string; label: string; hours: number }[] = [
   { key: 'today', label: 'Hoy', hours: 24 },
   { key: '24h', label: '24h', hours: 24 },
-  { key: '7d', label: '7 días', hours: 168 },
+  { key: '7d', label: 'Últimos 7 días', hours: 168 },
   { key: '30d', label: '30 días', hours: 720 },
 ];
 
@@ -120,10 +132,12 @@ const FALLBACK_MALL_ROWS: MallAlertRow[] = [
 /* ── Page ── */
 
 export function AlarmasAgregadasPage() {
-  const [country, setCountry] = useState('CL');
+  const [country, setCountry] = useState('all');
+  const [mall, setMall] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('active');
-  const [periodFilter, setPeriodFilter] = useState('30d');
+  const [periodFilter, setPeriodFilter] = useState('7d');
+  const [groupBy, setGroupBy] = useState('day');
   const [search] = useState('');
   const [, setSelectedBuildingId] = useState<string | null>(null);
   const [sortCol, setSortCol] = useState<'critical' | 'warning' | 'resolved' | 'total' | 'resolution' | 'last'>('total');
@@ -137,11 +151,12 @@ export function AlarmasAgregadasPage() {
   const activeAlerts = activeAlertsQuery.data ?? [];
   const resolvedAlerts = resolvedAlertsQuery.data ?? [];
 
-  // Filter buildings by country
-  const filteredBuildings = useMemo(
-    () => buildings.filter((b) => (b.countryCode ?? 'CL') === country),
-    [buildings, country],
-  );
+  // Filter buildings by country + mall
+  const filteredBuildings = useMemo(() => {
+    let filtered = country === 'all' ? buildings : buildings.filter((b) => (b.countryCode ?? 'CL') === country);
+    if (mall !== 'all') filtered = filtered.filter((b) => b.id === mall);
+    return filtered;
+  }, [buildings, country, mall]);
 
   const buildingIds = useMemo(
     () => new Set(filteredBuildings.map((b) => b.id)),
@@ -292,6 +307,14 @@ export function AlarmasAgregadasPage() {
           <DropdownSelect options={COUNTRIES.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
         </span>
         <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={[...MALL_OPTIONS, ...buildings.map((b) => ({ key: b.id, label: b.name }))].map((o) => ({ value: o.key, label: o.label }))} value={mall} onChange={setMall} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período de análisis
+          <DropdownSelect options={PERIOD_OPTIONS.map((p) => ({ value: p.key, label: p.label }))} value={periodFilter} onChange={setPeriodFilter} />
+        </span>
+        <span className="flex items-center gap-1">
           Severidad
           <DropdownSelect options={SEVERITY_OPTIONS.map((s) => ({ value: s.key, label: s.label }))} value={severityFilter} onChange={setSeverityFilter} />
         </span>
@@ -300,8 +323,8 @@ export function AlarmasAgregadasPage() {
           <DropdownSelect options={STATUS_OPTIONS.map((s) => ({ value: s.key, label: s.label }))} value={statusFilter} onChange={setStatusFilter} />
         </span>
         <span className="flex items-center gap-1">
-          Período
-          <DropdownSelect options={PERIOD_OPTIONS.map((p) => ({ value: p.key, label: p.label }))} value={periodFilter} onChange={setPeriodFilter} />
+          Gráfico agrupar por
+          <DropdownSelect options={GROUP_BY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={groupBy} onChange={setGroupBy} />
         </span>
       </div>
 

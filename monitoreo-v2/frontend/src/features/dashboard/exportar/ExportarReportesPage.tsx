@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 // ponytail: PillToggle replaced with native selects per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
@@ -52,6 +53,41 @@ const CURRENCY_OPTIONS: SelectOption[] = [
   { key: 'USD', label: 'USD' },
 ];
 
+/* ── Filter banner options ── */
+
+const FILTER_CONTENT_OPTIONS: SelectOption[] = [
+  { key: 'aggregated', label: 'Consumos agregados' },
+  { key: 'billing', label: 'Costos y facturación' },
+  { key: 'quality', label: 'Calidad del dato' },
+  { key: 'coverage', label: 'Cobertura de medición' },
+  { key: 'alerts', label: 'Resumen de alarmas' },
+];
+
+const FILTER_SCOPE_OPTIONS: SelectOption[] = [
+  { key: 'portfolio', label: 'Portafolio completo' },
+  { key: 'country', label: 'País' },
+  { key: 'building', label: 'Mall específico' },
+];
+
+const FILTER_PERIOD_OPTIONS: SelectOption[] = [
+  { key: 'month', label: 'Mes actual' },
+  { key: 'quarter', label: 'Trimestre actual' },
+  { key: 'ytd', label: 'Año en curso' },
+  { key: '12m', label: 'Últimos 12 meses' },
+];
+
+const FILTER_GRANULARITY_OPTIONS: SelectOption[] = [
+  { key: 'monthly', label: 'Mensual' },
+  { key: 'weekly', label: 'Semanal' },
+];
+
+const FILTER_FORMAT_OPTIONS: SelectOption[] = [
+  { key: 'excel', label: 'Excel' },
+  { key: 'pdf', label: 'PDF' },
+  { key: 'csv', label: 'CSV' },
+  { key: 'zip', label: 'ZIP' },
+];
+
 /* ── Fallback export history entries ── */
 
 interface FallbackExport {
@@ -74,6 +110,12 @@ const FALLBACK_EXPORTS: FallbackExport[] = [
 /* ── Page ── */
 
 export function ExportarReportesPage() {
+  const [filterContent, setFilterContent] = useState('aggregated');
+  const [filterScope, setFilterScope] = useState('portfolio');
+  const [filterPeriod, setFilterPeriod] = useState('month');
+  const [filterGranularity, setFilterGranularity] = useState('monthly');
+  const [filterFormat, setFilterFormat] = useState('excel');
+
   const [selectedContent, setSelectedContent] = useState<Set<string>>(
     () => new Set(['consumption']),
   );
@@ -154,6 +196,31 @@ export function ExportarReportesPage() {
         title="3.6 Exportar Reportes"
         description="Exportación de datos agregados del portafolio con configuración de contenido, alcance y formato"
       />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          Tipo de contenido
+          <DropdownSelect options={FILTER_CONTENT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterContent} onChange={setFilterContent} />
+        </span>
+        <span className="flex items-center gap-1">
+          Alcance geográfico
+          <DropdownSelect options={FILTER_SCOPE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterScope} onChange={setFilterScope} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período
+          <DropdownSelect options={FILTER_PERIOD_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterPeriod} onChange={setFilterPeriod} />
+        </span>
+        <span className="flex items-center gap-1">
+          Granularidad temporal
+          <DropdownSelect options={FILTER_GRANULARITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterGranularity} onChange={setFilterGranularity} />
+        </span>
+        <span className="flex items-center gap-1">
+          Formato de salida
+          <DropdownSelect options={FILTER_FORMAT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterFormat} onChange={setFilterFormat} />
+        </span>
+      </div>
 
       {/* Row 1: 2 columns */}
       <div className="relative min-h-0 flex-1 basis-1/2">

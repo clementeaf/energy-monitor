@@ -80,13 +80,13 @@ describe('CostosTendenciasPage', () => {
 
     it('renders grouping selector', () => {
       renderPage();
-      expect(screen.getByText('Agrupación')).toBeInTheDocument();
+      expect(screen.getByText('Agrupación de gráficos')).toBeInTheDocument();
       expect(screen.getAllByText('Por mall').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders mall multi-select', () => {
+    it('renders sort table selector', () => {
       renderPage();
-      expect(screen.getByText('Todos los malls')).toBeInTheDocument();
+      expect(screen.getByText('Ordenar tabla por')).toBeInTheDocument();
     });
   });
 
@@ -128,15 +128,13 @@ describe('CostosTendenciasPage', () => {
       expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeInTheDocument();
     });
 
-    it('renders CL buildings in table', () => {
+    it('renders all buildings in table (default country is "all")', () => {
       renderPage();
-      expect(screen.getByText('Mall Costanera')).toBeInTheDocument();
-      expect(screen.getByText('Mall Arauco')).toBeInTheDocument();
-    });
-
-    it('excludes Peruvian building (filtered by default country CL)', () => {
-      renderPage();
-      expect(screen.queryByText('Mall Lima')).not.toBeInTheDocument();
+      // Building names may appear in both the Mall filter dropdown and table
+      expect(screen.getAllByText('Mall Costanera').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Mall Arauco').length).toBeGreaterThanOrEqual(1);
+      // Default country is 'all', so PE buildings also appear
+      expect(screen.getAllByText('Mall Lima').length).toBeGreaterThanOrEqual(1);
     });
 
     it('excludes voided invoices from calculation', () => {

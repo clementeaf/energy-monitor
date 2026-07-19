@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 // ponytail: PillToggle replaced with native selects per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
@@ -39,6 +40,39 @@ const METRIC_OPTIONS: SelectOption[] = [
   { key: 'consumption', label: 'Consumo' },
   { key: 'billing', label: 'Costo' },
   { key: 'quality', label: 'Intensidad' },
+];
+
+/* ── Filter banner options ── */
+
+const FILTER_SCOPE_OPTIONS: SelectOption[] = [
+  { key: 'portfolio', label: 'Portafolio completo' },
+  { key: 'country', label: 'Por país' },
+  { key: 'building', label: 'Centro específico' },
+];
+
+const FILTER_PERIOD_OPTIONS: SelectOption[] = [
+  { key: 'month', label: 'Mes actual' },
+  { key: 'quarter', label: 'Trimestre' },
+  { key: 'year', label: 'Año' },
+];
+
+const FILTER_COMPARISON_OPTIONS: SelectOption[] = [
+  { key: 'previous', label: 'vs. período anterior' },
+  { key: 'yoy', label: 'vs. mismo período año anterior' },
+  { key: 'none', label: 'Sin comparación' },
+];
+
+const FILTER_METRIC_OPTIONS: SelectOption[] = [
+  { key: 'consumption', label: 'Consumo' },
+  { key: 'billing', label: 'Costo' },
+  { key: 'quality', label: 'Intensidad' },
+];
+
+const FILTER_FORMAT_OPTIONS: SelectOption[] = [
+  { key: 'pdf', label: 'PDF' },
+  { key: 'ppt', label: 'PPT' },
+  { key: 'excel', label: 'Excel' },
+  { key: 'csv', label: 'CSV' },
 ];
 
 interface SectionDef { key: string; label: string; defaultChecked: boolean }
@@ -119,6 +153,12 @@ function periodRange(periodKey: string): { start: string; end: string } {
 /* ── Page ── */
 
 export function ReportesEjecutivosPage() {
+  const [filterScope, setFilterScope] = useState('portfolio');
+  const [filterPeriod, setFilterPeriod] = useState('month');
+  const [filterComparison, setFilterComparison] = useState('previous');
+  const [filterMetric, setFilterMetric] = useState('consumption');
+  const [filterFormat, setFilterFormat] = useState('pdf');
+
   const [scope, setScope] = useState('portfolio');
   const [period, setPeriod] = useState('month');
   const [comparison, setComparison] = useState('previous');
@@ -174,6 +214,31 @@ export function ReportesEjecutivosPage() {
         title="3.4 Reportes Ejecutivos"
         description="Configurador de reportes con vista previa, generación e historial de archivos"
       />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          Alcance geográfico
+          <DropdownSelect options={FILTER_SCOPE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterScope} onChange={setFilterScope} />
+        </span>
+        <span className="flex items-center gap-1">
+          Período
+          <DropdownSelect options={FILTER_PERIOD_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterPeriod} onChange={setFilterPeriod} />
+        </span>
+        <span className="flex items-center gap-1">
+          Comparación
+          <DropdownSelect options={FILTER_COMPARISON_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterComparison} onChange={setFilterComparison} />
+        </span>
+        <span className="flex items-center gap-1">
+          Métrica principal
+          <DropdownSelect options={FILTER_METRIC_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterMetric} onChange={setFilterMetric} />
+        </span>
+        <span className="flex items-center gap-1">
+          Formato de salida
+          <DropdownSelect options={FILTER_FORMAT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterFormat} onChange={setFilterFormat} />
+        </span>
+      </div>
 
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-0 flex gap-3">

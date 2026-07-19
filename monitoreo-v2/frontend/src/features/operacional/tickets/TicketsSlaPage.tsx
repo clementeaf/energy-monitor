@@ -212,6 +212,12 @@ export function TicketsSlaPage() {
         description="Seguimiento de SLA contractual — uptime, disponibilidad y resolución de alarmas"
       />
 
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="italic">(esta pantalla no declara filtros en el informe)</span>
+      </div>
+
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
@@ -162,11 +163,41 @@ interface FeedEvent {
   timestamp: string;
 }
 
+/* ── Filter options ── */
+
+const PAIS_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'CL', label: 'Chile' },
+  { value: 'PE', label: 'Perú' },
+  { value: 'CO', label: 'Colombia' },
+];
+
+const MALL_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+];
+
+const ESTADO_MEDIDOR_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'online', label: 'En línea' },
+  { value: 'offline', label: 'Offline' },
+  { value: 'stale', label: 'Dato estancado' },
+];
+
+const GRANULARIDAD_OPTIONS = [
+  { value: 'hourly', label: 'Horaria' },
+  { value: '15min', label: '15 min' },
+  { value: 'daily', label: 'Diaria' },
+];
+
 /* ── Page ── */
 
 export function MonitoreoVivoPage() {
   const navigate = useNavigate();
   const [expandedMallId, setExpandedMallId] = useState<string | null>(null);
+  const [paisFilter, setPaisFilter] = useState('all');
+  const [mallFilter, setMallFilter] = useState('all');
+  const [estadoMedidorFilter, setEstadoMedidorFilter] = useState('all');
+  const [granularidad, setGranularidad] = useState('hourly');
 
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
@@ -324,6 +355,27 @@ export function MonitoreoVivoPage() {
         title="4.1 Monitoreo en Vivo"
         description="Estado operativo del parque de medidores — refresh cada 15 min (ARQ-06)"
       />
+
+      {/* Filter banner */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+        <span className="font-semibold text-foreground">Filtros:</span>
+        <span className="flex items-center gap-1">
+          País
+          <DropdownSelect options={PAIS_OPTIONS} value={paisFilter} onChange={setPaisFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Mall
+          <DropdownSelect options={MALL_OPTIONS} value={mallFilter} onChange={setMallFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Estado del medidor
+          <DropdownSelect options={ESTADO_MEDIDOR_OPTIONS} value={estadoMedidorFilter} onChange={setEstadoMedidorFilter} />
+        </span>
+        <span className="flex items-center gap-1">
+          Granularidad del histograma
+          <DropdownSelect options={GRANULARIDAD_OPTIONS} value={granularidad} onChange={setGranularidad} />
+        </span>
+      </div>
 
       {/* Row 1: 5 KPI cards */}
       <div className="flex shrink-0 gap-3">

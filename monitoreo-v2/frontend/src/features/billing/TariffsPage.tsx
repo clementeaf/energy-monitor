@@ -280,13 +280,13 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
       </div>
 
       {addOpen && (
-        <form onSubmit={handleAddBlock} className="grid grid-cols-2 gap-2 rounded border border-border bg-background p-3 lg:grid-cols-7">
-          <input name="blockName" placeholder="Nombre (ej: punta)" required className="rounded border border-border px-2 py-1 text-xs" />
-          <input name="hourStart" type="number" min={0} max={23} placeholder="H inicio" required className="rounded border border-border px-2 py-1 text-xs" />
-          <input name="hourEnd" type="number" min={0} max={23} placeholder="H fin" required className="rounded border border-border px-2 py-1 text-xs" />
-          <input name="energyRate" type="number" step="0.0001" placeholder="$/kWh" required className="rounded border border-border px-2 py-1 text-xs" />
-          <input name="demandRate" type="number" step="0.0001" placeholder="$/kW" className="rounded border border-border px-2 py-1 text-xs" />
-          <input name="reactiveRate" type="number" step="0.0001" placeholder="$/kVArh" className="rounded border border-border px-2 py-1 text-xs" />
+        <form onSubmit={handleAddBlock} className="flex flex-wrap gap-2 rounded border border-border bg-background p-3">
+          <input name="blockName" placeholder="Nombre (ej: punta)" required className="flex-1 min-w-[80px] rounded border border-border px-2 py-1 text-xs" />
+          <input name="hourStart" type="number" min={0} max={23} placeholder="H inicio" required className="flex-1 min-w-[70px] rounded border border-border px-2 py-1 text-xs" />
+          <input name="hourEnd" type="number" min={0} max={23} placeholder="H fin" required className="flex-1 min-w-[70px] rounded border border-border px-2 py-1 text-xs" />
+          <input name="energyRate" type="number" step="0.0001" placeholder="$/kWh" required className="flex-1 min-w-[70px] rounded border border-border px-2 py-1 text-xs" />
+          <input name="demandRate" type="number" step="0.0001" placeholder="$/kW" className="flex-1 min-w-[70px] rounded border border-border px-2 py-1 text-xs" />
+          <input name="reactiveRate" type="number" step="0.0001" placeholder="$/kVArh" className="flex-1 min-w-[70px] rounded border border-border px-2 py-1 text-xs" />
           <button type="submit" disabled={createBlock.isPending} className="rounded-full bg-brand px-2 py-1 text-xs text-brand-fg hover:opacity-90 disabled:opacity-50">
             Crear
           </button>

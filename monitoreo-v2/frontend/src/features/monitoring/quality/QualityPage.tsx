@@ -109,9 +109,9 @@ export function QualityPage() {
 
       {/* Threshold indicators */}
       {readingsQuery.isLoading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-pulse">
+        <div className="flex flex-wrap gap-4 animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+            <div key={i} className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-24 rounded bg-raised" />
               <div className="mt-2 h-6 w-16 rounded bg-gray-300" />
               <div className="mt-1 h-3 w-20 rounded bg-raised" />
@@ -119,7 +119,7 @@ export function QualityPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-4">
           <ThresholdCard
             label="THD Voltaje"
             value={avgThd != null ? `${avgThd.toFixed(1)}%` : '—'}
@@ -148,7 +148,7 @@ export function QualityPage() {
       )}
 
       {readingsQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="flex flex-wrap gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="panel p-4">
               <div className="mb-2 h-4 w-40 animate-pulse rounded bg-raised" />
@@ -164,7 +164,7 @@ export function QualityPage() {
         emptyTitle="Sin datos de calidad"
         emptyDescription="No hay lecturas de calidad electrica para este medidor."
       >
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="flex flex-wrap gap-4">
           <ChartCard title={`THD Voltaje — ${meterName}`}>
             <Chart options={{
               title: { text: '' },
@@ -272,7 +272,7 @@ function ThresholdCard({ label, value, threshold, ok }: {
   label: string; value: string; threshold: string; ok: boolean;
 }) {
   return (
-    <div className={`rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-background ring-border' : 'bg-red-50 ring-red-200'}`}>
+    <div className={`flex-1 min-w-[140px] rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-background ring-border' : 'bg-red-50 ring-red-200'}`}>
       <p className="text-xs font-medium text-muted">{label}</p>
       <p className={`mt-1 text-lg font-semibold ${ok ? 'text-foreground' : 'text-red-600'}`}>{value}</p>
       <p className="text-xs text-subtle">Umbral: {threshold}</p>
@@ -282,7 +282,7 @@ function ThresholdCard({ label, value, threshold, ok }: {
 
 function ChartCard({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
-    <div className="panel p-4">
+    <div className="panel flex-1 min-w-[300px] p-4">
       <h3 className="mb-2 text-sm font-medium text-foreground">{title}</h3>
       {children}
     </div>

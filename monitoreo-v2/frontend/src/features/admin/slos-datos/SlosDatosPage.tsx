@@ -80,7 +80,7 @@ export function SlosDatosPage() {
       {/* Row 1 — compact */}
       <div className="flex shrink-0 gap-3">
         {/* SLOs por dimensión */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">SLOs por dimensión de dato</h3>
           <p className="mb-2 text-[11px] text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
           <table className="w-full text-[13px]">
@@ -115,7 +115,7 @@ export function SlosDatosPage() {
         </div>
 
         {/* Latency chart */}
-        <div className="panel flex flex-col p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 flex flex-col p-4">
           <div className="shrink-0">
             <h3 className="text-[13px] font-semibold text-foreground">SLO de latencia de API — p95</h3>
             <p className="mb-2 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera (INT-08)</p>
@@ -177,7 +177,7 @@ export function SlosDatosPage() {
       {/* Row 2 — fills remaining space */}
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Historial de incumplimientos */}
-        <div className="panel flex min-h-0 flex-col" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 flex min-h-0 flex-col">
           <div className="shrink-0 p-4 pb-2">
             <h3 className="text-[13px] font-semibold text-foreground">Historial de incumplimientos de SLO</h3>
             <p className="text-[11px] text-muted">causa raíz registrada · exportable para revisión con PASA</p>
@@ -237,7 +237,7 @@ export function SlosDatosPage() {
         </div>
 
         {/* Configurador de SLOs */}
-        <div className="panel flex min-h-0 flex-col" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 flex min-h-0 flex-col">
           <div className="shrink-0 px-4 pt-4 pb-2">
             <h3 className="text-[13px] font-semibold text-foreground">Configurador de SLOs</h3>
             <p className="text-[11px] text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>

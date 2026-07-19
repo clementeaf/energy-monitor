@@ -130,7 +130,7 @@ export function ConfigReleasesPage() {
       {/* Row 1: Pipeline + Right column */}
       <div className="flex gap-4">
         {/* Left: Pipeline */}
-        <div className="panel p-4" style={{ flex: '0 0 50%' }}>
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Pipeline de releases</h3>
           <p className="mb-3 text-[11px] text-muted">estado: En desarrollo → QA → Aprobación → Producción · fila expandible con diff y resultados de tests</p>
           <table className="w-full text-[13px]">
@@ -190,7 +190,7 @@ export function ConfigReleasesPage() {
         </div>
 
         {/* Right: stacked */}
-        <div className="flex flex-col gap-4" style={{ flex: '0 0 50%' }}>
+        <div className="min-w-0 flex-1 flex flex-col gap-4">
           {/* Control de despliegue */}
           <div className="panel p-4">
             <h3 className="text-[13px] font-semibold text-foreground">Control de despliegue</h3>

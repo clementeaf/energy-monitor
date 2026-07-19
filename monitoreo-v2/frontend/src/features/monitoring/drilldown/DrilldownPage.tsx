@@ -71,13 +71,13 @@ export function DrilldownPage() {
       <div className="space-y-6">
         <PageHeader title="Drill-down por Sitio" eyebrow="Monitoreo" />
         <p className="text-sm text-muted">Seleccione un edificio para explorar su jerarquia electrica.</p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap gap-3">
           {(buildingsQuery.data ?? []).map((b) => (
             <button
               key={b.id}
               type="button"
               onClick={() => navigate(`/monitoring/drilldown/${b.id}`)}
-              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
+              className="flex-1 min-w-[200px] rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
             >
               <p className="font-medium text-foreground">{b.name}</p>
               <p className="text-xs text-muted">{b.code}</p>

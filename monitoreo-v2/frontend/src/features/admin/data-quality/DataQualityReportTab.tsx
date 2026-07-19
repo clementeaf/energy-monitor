@@ -60,7 +60,7 @@ export function DataQualityReportTab() {
       </div>
 
       {report && (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="flex flex-wrap gap-4">
           <SummaryCard label="Promedio medido" value={`${report.summary.avgMeasuredPct.toFixed(1)}%`} />
           <SummaryCard label="Promedio invalido" value={`${report.summary.avgInvalidPct.toFixed(1)}%`} />
           <SummaryCard label="Total lecturas" value={report.summary.totalReadings.toLocaleString('es-CL')} />
@@ -110,7 +110,7 @@ export function DataQualityReportTab() {
 
 function SummaryCard({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
+    <div className="flex-1 min-w-[140px] rounded-lg border border-border bg-surface p-4">
       <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
     </div>

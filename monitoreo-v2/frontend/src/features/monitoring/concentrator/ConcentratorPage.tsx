@@ -105,14 +105,14 @@ export function ConcentratorPage(): ReactElement {
         emptyTitle="Concentrador no encontrado"
         emptyDescription="No se encontró el concentrador solicitado."
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="flex flex-wrap gap-4">
           <InfoCard label="Modelo" value={concentrator?.model ?? '—'} />
           <InfoCard label="Serial" value={concentrator?.serialNumber ?? '—'} />
           <InfoCard label="IP" value={concentrator?.ipAddress ?? '—'} />
           <InfoCard label="Firmware" value={concentrator?.firmwareVersion ?? '—'} />
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 flex flex-wrap gap-4">
           <InfoCard
             label="MQTT"
             value={concentrator?.mqttConnected ? 'Conectado' : 'Desconectado'}
@@ -129,7 +129,7 @@ export function ConcentratorPage(): ReactElement {
 
       {/* Meter status summary */}
       {meters.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           <StatusCard label="Online" count={onlineCount} color="text-green-600 bg-green-50" />
           <StatusCard label="Offline" count={offlineCount} color="text-red-600 bg-red-50" />
           <StatusCard label="Sin datos" count={noDataCount} color="text-muted bg-surface" />
@@ -193,7 +193,7 @@ function InfoCard({
   valueClass,
 }: Readonly<{ label: string; value: string; valueClass?: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+    <div className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
       <p className="text-xs font-medium text-muted">{label}</p>
       <p className={`mt-1 text-sm font-semibold ${valueClass ?? 'text-foreground'}`}>{value}</p>
     </div>
@@ -202,7 +202,7 @@ function InfoCard({
 
 function StatusCard({ label, count, color }: Readonly<{ label: string; count: number; color: string }>): ReactElement {
   return (
-    <div className={`rounded-lg p-4 text-center ${color}`}>
+    <div className={`flex-1 min-w-[100px] rounded-lg p-4 text-center ${color}`}>
       <p className="text-2xl font-bold">{count}</p>
       <p className="text-xs font-medium">{label}</p>
     </div>

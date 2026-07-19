@@ -82,7 +82,7 @@ export function ModbusMapPage() {
         <p className="text-sm text-muted">
           Seleccione un edificio para ver buses, direcciones Modbus y estado de comunicacion.
         </p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap gap-3">
           {(buildingsQuery.data ?? []).map((b) => (
             <button
               key={b.id}
@@ -120,7 +120,7 @@ export function ModbusMapPage() {
         {concentrators.length === 0 ? (
           <p className="text-sm text-muted">No hay concentradores registrados para este edificio.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-wrap gap-3">
             {concentrators.map((c) => (
               <ConcentratorCard key={c.id} c={c} />
             ))}

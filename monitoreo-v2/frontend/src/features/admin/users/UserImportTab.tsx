@@ -39,9 +39,9 @@ function SummaryCards({ summary }: Readonly<{ summary: UserImportSummary }>) {
     { label: 'Duplicadas', value: summary.duplicateRows, className: 'text-amber-700' },
   ];
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-wrap gap-3">
       {items.map((item) => (
-        <div key={item.label} className="panel px-4 py-3">
+        <div key={item.label} className="panel flex-1 min-w-[120px] px-4 py-3">
           <p className="text-xs text-muted">{item.label}</p>
           <p className={`text-2xl font-semibold tabular-nums ${item.className}`}>{item.value}</p>
         </div>

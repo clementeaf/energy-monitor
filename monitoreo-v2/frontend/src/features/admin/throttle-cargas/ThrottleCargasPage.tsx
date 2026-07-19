@@ -143,7 +143,7 @@ export function ThrottleCargasPage() {
       {/* Row 2 */}
       <div className="flex gap-3">
         {/* Log throttling */}
-        <div className="panel p-4" style={{ flex: '1 1 0', minWidth: 0 }}>
+        <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Log de eventos de throttling</h3>
           <p className="mb-3 text-[11px] text-muted">detecta falsos positivos que afecten ETL legítimos de PASA</p>
           <table className="w-full text-[12px]">

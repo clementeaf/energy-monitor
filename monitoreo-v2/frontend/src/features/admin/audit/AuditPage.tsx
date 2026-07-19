@@ -201,8 +201,8 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
           .slice(0, 10);
 
         return (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="panel p-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="panel flex-1 min-w-[300px] p-4">
               <h3 className="mb-3 text-[13px] font-medium text-foreground">Actividad por día y hora</h3>
               <div className="overflow-x-auto">
                 <div className="inline-grid gap-[2px]" style={{ gridTemplateColumns: `auto repeat(24, 1fr)` }}>
@@ -223,7 +223,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
                 </div>
               </div>
             </div>
-            <div className="panel p-4">
+            <div className="panel flex-1 min-w-[300px] p-4">
               <h3 className="mb-3 text-[13px] font-medium text-foreground">Top 10 usuarios por actividad</h3>
               {top10.length > 0 ? (
                 <ul className="space-y-1.5">

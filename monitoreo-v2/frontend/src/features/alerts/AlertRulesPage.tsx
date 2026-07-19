@@ -210,8 +210,8 @@ export function AlertRulesPage() {
                 className="mt-1 w-full"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex-1 min-w-[80px]">
                 <label className="block text-xs font-medium text-muted">L1 (min)</label>
                 <input
                   type="number"
@@ -220,7 +220,7 @@ export function AlertRulesPage() {
                   className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
-              <div>
+              <div className="flex-1 min-w-[80px]">
                 <label className="block text-xs font-medium text-muted">L2 (min)</label>
                 <input
                   type="number"
@@ -229,7 +229,7 @@ export function AlertRulesPage() {
                   className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
                 />
               </div>
-              <div>
+              <div className="flex-1 min-w-[80px]">
                 <label className="block text-xs font-medium text-muted">L3 (min)</label>
                 <input
                   type="number"

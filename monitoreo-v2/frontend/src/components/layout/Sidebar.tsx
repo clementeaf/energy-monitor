@@ -48,6 +48,13 @@ export function Sidebar() {
 
   const expanded = sidebarOpen;
 
+  // Auto-collapse on narrow viewports (13" laptops ~1280-1366px)
+  useEffect(() => {
+    if (window.innerWidth < 1366 && sidebarOpen) {
+      useAppStore.getState().setSidebarOpen(false);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const navEntries = useMemo(() => {
     const entries = PROFILE_NAV[profile];
     return selectedTenantId ? entries.filter((e) => !e.platformOnly) : entries;

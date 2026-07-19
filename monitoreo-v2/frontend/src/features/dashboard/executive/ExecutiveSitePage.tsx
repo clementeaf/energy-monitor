@@ -184,16 +184,16 @@ export function ExecutiveSitePage(): ReactElement {
 
       {/* KPI cards fila 1 */}
       {metersQuery.isPending || latestQuery.isPending ? (
-        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="animate-pulse flex flex-wrap gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+            <div key={i} className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-20 rounded bg-raised" />
               <div className="mt-2 h-6 w-24 rounded bg-raised" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="flex flex-wrap gap-4">
           <KpiCard title="Medidores" value={String(meters.length)} />
           <KpiCard title="Potencia actual" value={`${totalPowerKw.toFixed(1)} kW`} />
           <KpiCard title="Demanda peak" value={`${peakDemandKw.toFixed(1)} kW`} />
@@ -210,7 +210,7 @@ export function ExecutiveSitePage(): ReactElement {
 
       {/* KPI cards fila 2 */}
       {aggQuery.isPending ? (
-        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="animate-pulse flex flex-wrap gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-28 rounded bg-raised" />
@@ -219,7 +219,7 @@ export function ExecutiveSitePage(): ReactElement {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap gap-4">
           <KpiCard
             title={`Energía periodo (${preset})`}
             value={`${totalEnergyPeriod.toLocaleString('es-CL', { maximumFractionDigits: 0 })} kWh`}
@@ -338,7 +338,7 @@ export function ExecutiveSitePage(): ReactElement {
 
 function KpiCard({ title, value }: Readonly<{ title: string; value: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+    <div className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
       <p className="text-xs font-medium text-muted">{title}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
     </div>

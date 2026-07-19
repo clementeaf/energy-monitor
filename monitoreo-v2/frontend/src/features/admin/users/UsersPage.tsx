@@ -176,7 +176,7 @@ export function UsersPage() {
           {/* Row 1 — Lista + Detalle/Historial */}
           <div className="flex min-h-0 flex-1 gap-4">
             {/* Left 60% — Lista de usuarios */}
-            <div className="panel flex min-h-0 flex-col overflow-hidden" style={{ flex: '0 0 60%' }}>
+            <div className="panel flex min-h-0 min-w-0 flex-[3] flex-col overflow-hidden">
               <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
                 <div>
                   <p className="text-[13px] font-medium text-foreground">Lista de usuarios</p>
@@ -269,7 +269,7 @@ export function UsersPage() {
             </div>
 
             {/* Right 40% — 2 stacked panels */}
-            <div className="flex flex-col gap-4" style={{ flex: '0 0 40%' }}>
+            <div className="flex min-w-0 flex-[2] flex-col gap-4">
               {/* Detalle de usuario */}
               <div className="panel flex-1 overflow-auto p-3">
                 <p className="text-[13px] font-medium text-foreground">Detalle de usuario — permisos efectivos</p>
@@ -333,9 +333,9 @@ export function UsersPage() {
           </div>
 
           {/* Row 2 — Permisos sin uso + Acciones */}
-          <div className="flex gap-4" style={{ flex: '0 0 auto' }}>
+          <div className="flex gap-4">
             {/* Left 60% — Permisos sin uso >90d */}
-            <div className="panel flex flex-col overflow-hidden" style={{ flex: '0 0 60%', minHeight: '200px' }}>
+            <div className="panel flex min-w-0 flex-[3] flex-col overflow-hidden" style={{ minHeight: '200px' }}>
               <div className="border-b border-border px-3 py-2">
                 <p className="text-[13px] font-medium text-foreground">Permisos sin uso en &gt; 90 días</p>
                 <p className="text-[11px] text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp (DAT-14)</p>
@@ -372,7 +372,7 @@ export function UsersPage() {
             </div>
 
             {/* Right 40% — Acciones */}
-            <div className="panel flex flex-col gap-3 p-4" style={{ flex: '0 0 40%' }}>
+            <div className="panel flex min-w-0 flex-[2] flex-col gap-3 p-4">
               <button
                 type="button"
                 onClick={openCreate}

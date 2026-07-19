@@ -492,7 +492,7 @@ export function IntegrationsPage() {
             {logsFor != null && (
               <>
                 {/* Detail metrics — derived from sync log data */}
-                <div className="grid grid-cols-4 gap-2 border-b border-border px-4 py-3">
+                <div className="flex flex-wrap gap-2 border-b border-border px-4 py-3">
                   {(() => {
                     const apiLogs = syncLogsQuery.data?.items ?? [];
                     const logs = apiLogs.length > 0 ? apiLogs : FALLBACK_SYNC_LOGS.filter((l) => l.integrationId === logsFor.id || logsFor.id.startsWith('fb-'));

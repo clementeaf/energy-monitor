@@ -233,7 +233,7 @@ export function PatternsPage(): ReactElement {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="flex flex-wrap gap-4">
         <KpiCard title="Días analizados" value={String(new Set(rows.map((r) => r.bucket.slice(0, 10))).size)} />
         <KpiCard
           title="Anomalías detectadas"
@@ -315,7 +315,7 @@ export function PatternsPage(): ReactElement {
 
 function KpiCard({ title, value, color = 'text-foreground' }: Readonly<{ title: string; value: string; color?: string }>): ReactElement {
   return (
-    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+    <div className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
       <p className="text-xs font-medium text-muted">{title}</p>
       <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
     </div>

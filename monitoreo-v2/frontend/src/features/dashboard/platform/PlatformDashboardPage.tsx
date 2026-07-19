@@ -9,7 +9,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 
 function KpiCard({ title, value, loading }: { title: string; value: string | number; loading: boolean }) {
   return (
-    <div className="panel px-2.5 py-1.5">
+    <div className="panel flex-1 min-w-[100px] px-2.5 py-1.5">
       <p className="text-[10px] font-medium uppercase text-muted">{title}</p>
       {loading ? (
         <div className="mt-0.5 h-4 w-12 animate-pulse rounded bg-raised" />
@@ -31,7 +31,7 @@ export function PlatformDashboardPage(): ReactElement {
   return (
     <div className="space-y-6">
       <PageHeader title="Dashboard plataforma" eyebrow="Dashboard" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="flex flex-wrap gap-3">
         <KpiCard title="Empresas" value={kpis?.tenants ?? '—'} loading={isPending} />
         <KpiCard title="Edificios" value={kpis?.buildings ?? '—'} loading={isPending} />
         <KpiCard title="Medidores" value={kpis?.meters ?? '—'} loading={isPending} />

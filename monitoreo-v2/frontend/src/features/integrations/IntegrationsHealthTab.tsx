@@ -43,7 +43,7 @@ export function IntegrationsHealthTab() {
       >
         {health && (
           <>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex flex-wrap gap-4">
               <KpiCard
                 label="Suscripciones activas"
                 value={String(health.webhooks.activeSubscriptions)}
@@ -123,7 +123,7 @@ function KpiCard({
   variant = 'default',
 }: Readonly<{ label: string; value: string; variant?: 'default' | 'warning' }>) {
   return (
-    <div className={`rounded-lg border p-4 ${variant === 'warning' ? 'border-warning/40 bg-warning/5' : 'border-border bg-surface'}`}>
+    <div className={`flex-1 min-w-[160px] rounded-lg border p-4 ${variant === 'warning' ? 'border-warning/40 bg-warning/5' : 'border-border bg-surface'}`}>
       <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
     </div>

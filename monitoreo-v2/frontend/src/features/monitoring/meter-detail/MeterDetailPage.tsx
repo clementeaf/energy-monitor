@@ -162,9 +162,9 @@ export function MeterDetailPage() {
       {isIot && iotLatest.data && iotLatest.data.length > 0 && (
         <Card className="shrink-0">
           <h2 className="mb-2 text-sm font-semibold text-foreground">Lectura en vivo (IoT)</h2>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          <div className="flex flex-wrap gap-2">
             {iotLatest.data.map((r) => (
-              <div key={r.variable_name} className="rounded border border-border px-2 py-1.5">
+              <div key={r.variable_name} className="min-w-[100px] flex-1 rounded border border-border px-2 py-1.5">
                 <div className="truncate text-[10px] font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
                 <div className="text-sm font-semibold text-foreground">{fmtNum(r.value, 2)}</div>
               </div>

@@ -144,9 +144,9 @@ export function DemandPage() {
       <PageHeader title={`Demanda — ${building?.name ?? 'Sitio'}`} eyebrow="Monitoreo" />
 
       {metersQuery.isPending ? (
-        <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="animate-pulse flex flex-wrap gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+            <div key={i} className="flex-1 min-w-[160px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-20 rounded bg-raised" />
               <div className="mt-2 h-6 w-24 rounded bg-raised" />
               <div className="mt-1 h-3 w-16 rounded bg-raised" />
@@ -154,7 +154,7 @@ export function DemandPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex flex-wrap gap-4">
           <Card title="Peak demand" value={`${peakDemand.value.toFixed(1)} kW`} sub={peakDemand.time ? new Date(peakDemand.time).toLocaleString('es-CL') : '—'} />
           <Card
             title="Contratada"
@@ -228,7 +228,7 @@ export function DemandPage() {
 
 function Card({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
-    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+    <div className="flex-1 min-w-[160px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
       <p className="text-xs font-medium text-muted">{title}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
       <p className="text-xs text-subtle">{sub}</p>

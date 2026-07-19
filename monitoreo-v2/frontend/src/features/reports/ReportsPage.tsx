@@ -184,9 +184,9 @@ export function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="flex flex-wrap gap-6">
         {/* Reportes generados */}
-        <section>
+        <section className="flex-1 min-w-[300px]">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes generados</h2>
           <div className="overflow-auto rounded-lg border border-border">
             <table className="w-full text-sm">
@@ -223,7 +223,7 @@ export function ReportsPage() {
         </section>
 
         {/* Reportes programados */}
-        <section>
+        <section className="flex-1 min-w-[300px]">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Reportes programados</h2>
           <div className="overflow-auto rounded-lg border border-border">
             <table className="w-full text-sm">

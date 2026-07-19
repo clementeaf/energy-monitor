@@ -199,7 +199,7 @@ export function TenantsMallsPage() {
       {/* Row 1 — Lista + Detalle/Stats */}
       <div className="flex min-h-0 flex-1 gap-4">
         {/* Left 60% — Lista de tenants */}
-        <div className="panel flex min-h-0 flex-col overflow-hidden" style={{ flex: '0 0 60%' }}>
+        <div className="panel flex min-h-0 min-w-0 flex-[3] flex-col overflow-hidden">
           <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
             <div>
               <p className="text-[13px] font-medium text-foreground">Lista de tenants</p>
@@ -285,7 +285,7 @@ export function TenantsMallsPage() {
         </div>
 
         {/* Right 40% — 2 stacked panels */}
-        <div className="flex flex-col gap-4" style={{ flex: '0 0 40%' }}>
+        <div className="flex min-w-0 flex-[2] flex-col gap-4">
           {/* Detalle de tenant */}
           <div className="panel flex min-h-0 flex-1 flex-col p-3">
             {/* Sticky header — never scrolls away */}

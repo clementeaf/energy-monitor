@@ -83,16 +83,16 @@ export function FaultHistoryPage() {
       <PageHeader title={`Historial de fallos — ${meter?.name ?? 'Medidor'}`} eyebrow="Monitoreo" />
 
       {faultEventsQuery.isLoading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-pulse">
+        <div className="flex flex-wrap gap-4 animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+            <div key={i} className="flex-1 min-w-[120px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-20 rounded bg-raised" />
               <div className="mt-2 h-5 w-10 rounded bg-gray-300" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-4">
           <SummaryCard label="Total eventos" value={String(events.length)} />
           <SummaryCard label="Abiertos" value={String(openCount)} color="text-red-600" />
           <SummaryCard label="Resueltos" value={String(resolvedCount)} color="text-green-600" />
@@ -235,7 +235,7 @@ function formatDuration(start: Date, end: Date): string {
 
 function SummaryCard({ label, value, color = 'text-foreground' }: Readonly<{ label: string; value: string; color?: string }>) {
   return (
-    <div className="rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
+    <div className="flex-1 min-w-[120px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
       <p className="text-xs font-medium text-muted">{label}</p>
       <p className={`mt-1 text-lg font-semibold ${color}`}>{value}</p>
     </div>

@@ -154,10 +154,10 @@ export function SeguridadPamPage() {
       </div>
 
       {/* Grid 5×3 */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="flex flex-wrap gap-3">
 
         {/* Row 1 — col 1: Resumen vulnerabilidades */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Resumen de vulnerabilidades</h3>
             <span className="text-[9px] text-muted">[CYB-13, CYB-18]</span>
@@ -174,7 +174,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 1 — col 2: Certificados TLS */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Certificados TLS</h3>
             <span className="text-[9px] text-muted">[CYB-04, INT-04]</span>
@@ -205,7 +205,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 1 — col 3: Cifrado en reposo */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Cifrado en reposo (AES-256)</h3>
             <span className="text-[9px] text-muted">[CYB-06]</span>
@@ -219,7 +219,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 2 — col 1: WAF / DDoS / IDS-IPS */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">WAF / DDoS / IDS-IPS</h3>
             <span className="text-[9px] text-muted">[CYB-09, CYB-22]</span>
@@ -235,7 +235,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 2 — col 2: Hardening CIS */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Hardening — CIS Benchmarks</h3>
             <span className="text-[9px] text-muted">[CYB-17]</span>
@@ -261,7 +261,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 2 — col 3: EDR / antivirus */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">EDR / antivirus</h3>
             <span className="text-[9px] text-muted">[CYB-14]</span>
@@ -277,7 +277,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 3 — col 1: Inventario HW/SW (SBOM) */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Inventario HW/SW (SBOM)</h3>
             <span className="text-[9px] text-muted">[CYB-19, ARQ-20]</span>
@@ -309,7 +309,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 3 — col 2: PAM — cuentas privilegiadas */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">PAM — cuentas privilegiadas</h3>
             <span className="text-[9px] text-muted">[CYB-20, CYB-03, DAT-14]</span>
@@ -336,7 +336,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 3 — col 3: Bóveda JIT */}
-        <div className="panel p-3" data-testid="jit-vault">
+        <div className="panel flex-1 min-w-[280px] p-3" data-testid="jit-vault">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Bóveda de credenciales JIT</h3>
             <span className="text-[9px] text-muted">[CYB-20, DAT-14]</span>
@@ -372,7 +372,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 4 — col 1: Incidentes de seguridad */}
-        <div className="panel p-3" data-testid="security-incidents">
+        <div className="panel flex-1 min-w-[280px] p-3" data-testid="security-incidents">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Incidentes de seguridad</h3>
             <span className="text-[9px] text-muted">[CYB-16, PRI-02]</span>
@@ -416,7 +416,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 4 — col 2: BCP / DRP */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Estado del BCP / DRP</h3>
             <span className="text-[9px] text-muted">[CYB-11, DAT-13]</span>
@@ -433,7 +433,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 4 — col 3: Integridad de backups */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Integridad de backups</h3>
             <span className="text-[9px] text-muted">[CYB-23, ARQ-11]</span>
@@ -449,7 +449,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 5 — col 1: Escaneo DAST */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Escaneo DAST</h3>
             <span className="text-[9px] text-muted">[CYB-07]</span>
@@ -465,7 +465,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 5 — col 2: Informe Pentest anual */}
-        <div className="panel p-3">
+        <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Informe Pentest anual</h3>
             <span className="text-[9px] text-muted">[CYB-08]</span>
@@ -481,7 +481,7 @@ export function SeguridadPamPage() {
         </div>
 
         {/* Row 5 — col 3: Borrado criptográfico */}
-        <div className="panel p-3" data-testid="crypto-deletion">
+        <div className="panel flex-1 min-w-[280px] p-3" data-testid="crypto-deletion">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Borrado criptográfico</h3>
             <span className="text-[9px] text-muted">[CYB-12, DAT-07]</span>

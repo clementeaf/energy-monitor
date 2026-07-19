@@ -40,11 +40,11 @@ export function EscalationPage() {
     <div className="space-y-6">
       <PageHeader title="Escalamiento y SLA" eyebrow="Alertas" />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="flex flex-wrap gap-4">
         {['critical', 'high', 'medium', 'low'].map((sev) => {
           const count = openAlerts.filter((a) => a.severity === sev).length;
           return (
-            <div key={sev} className="panel p-4 text-center">
+            <div key={sev} className="panel flex-1 min-w-[120px] p-4 text-center">
               <div className="text-3xl font-bold text-foreground">{count}</div>
               <span className={`inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${SEVERITY_COLORS[sev]}`}>
                 {sev}

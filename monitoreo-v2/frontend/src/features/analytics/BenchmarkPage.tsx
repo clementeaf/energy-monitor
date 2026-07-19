@@ -194,12 +194,12 @@ export function BenchmarkPage(): ReactElement {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="panel p-4">
+      <div className="flex flex-wrap gap-6">
+        <div className="panel flex-1 min-w-[300px] p-4">
           <h2 className="mb-2 text-sm font-medium text-foreground">Ranking por {METRIC_LABELS[metric]}</h2>
           {aggQuery.isLoading ? <ChartSkeleton height={280} /> : barChartOptions ? <Chart options={barChartOptions} /> : null}
         </div>
-        <div className="panel p-4">
+        <div className="panel flex-1 min-w-[300px] p-4">
           <h2 className="mb-2 text-sm font-medium text-foreground">Comparativo multi-KPI (top 5)</h2>
           {aggQuery.isLoading ? <ChartSkeleton height={280} /> : radarChartOptions ? <Chart options={radarChartOptions} /> : null}
         </div>

@@ -446,7 +446,7 @@ export function CostosTendenciasPage() {
       </div>
 
       {/* Row 2: Tabla de costos por mall */}
-      <div className="panel flex min-h-0 flex-col overflow-hidden p-3" style={{ flex: '0 1 30%' }}>
+      <div className="panel flex min-h-0 min-w-0 shrink flex-col overflow-hidden p-3">
         <div className="flex shrink-0 items-center gap-2">
           <p className="flex-1 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de costos por mall (ordenable · exportable CSV/Excel)</p>
           <button

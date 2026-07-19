@@ -363,7 +363,7 @@ export function PanelConsolidadoPage() {
         </div>
       )}
 
-      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3">
+      <div className="flex min-h-0 flex-1 gap-3">
         {/* Column 1: Map + legend + heatmap */}
         <div className="flex min-w-0 flex-col gap-2 overflow-hidden">
           {selectedFloorId && selectedDetail ? (
@@ -493,10 +493,10 @@ function PortfolioPanel({
 
   return (
     <>
-      {/* 4 KPI cards — 2×2 grid */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* 4 KPI cards */}
+      <div className="flex flex-wrap gap-2">
         {/* Consumo [MWh] */}
-        <div className="panel px-3 py-3">
+        <div className="panel flex-1 min-w-[140px] px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayConsumptionMwh, 3)}</p>
           <div className="mt-1 flex items-center gap-1">
@@ -508,7 +508,7 @@ function PortfolioPanel({
         </div>
 
         {/* Costo [UF] */}
-        <div className="panel px-3 py-3">
+        <div className="panel flex-1 min-w-[140px] px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayCostUf, 3)}</p>
           <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
@@ -516,7 +516,7 @@ function PortfolioPanel({
         </div>
 
         {/* Intensidad energética */}
-        <div className="panel px-3 py-3">
+        <div className="panel flex-1 min-w-[140px] px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{displayIntensity}</p>
           <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
@@ -524,7 +524,7 @@ function PortfolioPanel({
         </div>
 
         {/* Cobertura de medición */}
-        <div className="panel px-3 py-3">
+        <div className="panel flex-1 min-w-[140px] px-3 py-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
           <p className={`mt-1 text-2xl font-bold ${displayCoverageColor}`}>{displayCoveragePct}%</p>
           <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
@@ -640,8 +640,8 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
       </div>
 
       {/* Metric cards — Gap 2: mini sparkline in Carga total */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="panel px-2.5 py-2 text-center">
+      <div className="flex flex-wrap gap-2">
+        <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Carga total</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
           <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
@@ -650,11 +650,11 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
             ))}
           </div>
         </div>
-        <div className="panel px-2.5 py-2 text-center">
+        <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—'}</p>
         </div>
-        <div className="panel px-2.5 py-2 text-center">
+        <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En alarma</p>
           <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
             {activeAlerts.length > 0 && <span className="mr-1">⚠</span>}
@@ -708,9 +708,9 @@ function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, on
           thirdGauge,
         ];
         return (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-wrap gap-2">
             {gauges.map((g) => (
-              <div key={g.label} className="panel flex flex-col items-center px-2 py-2">
+              <div key={g.label} className="panel flex flex-1 min-w-[80px] flex-col items-center px-2 py-2">
                 <ArcGauge value={g.value ?? 0} min={g.min} max={g.max} color={g.color} size={64} />
                 <p className="mt-1 text-[12px] font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(g.unit ? 1 : 2)}${g.unit ? ` ${g.unit}` : ''}` : '—'}</p>
                 <p className="text-[9px] text-muted">{g.label}</p>

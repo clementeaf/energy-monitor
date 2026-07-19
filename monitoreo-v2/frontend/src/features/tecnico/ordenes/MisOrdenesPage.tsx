@@ -249,9 +249,9 @@ export function MisOrdenesPage() {
       />
 
       {/* KPIs */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="flex shrink-0 flex-wrap gap-2">
         {kpis.map((k) => (
-          <div key={k.title} className="panel px-3 py-2.5">
+          <div key={k.title} className="panel flex-1 min-w-[120px] px-3 py-2.5">
             <p className="text-[12px] font-medium uppercase tracking-wider text-muted">{k.title}</p>
             <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
           </div>

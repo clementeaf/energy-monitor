@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.47.0-alpha.0] - 2026-07-19 — RESPONSIVIDAD 13" + FLEX LAYOUT
+
+### Fixed — Responsividad global (13 pulgadas)
+- **AppLayout** — `p-5` → `p-3 xl:p-5` (gana 16px). `min-w-0` en `<main>` para permitir shrink. `overflow-x-hidden` en scroll container elimina scroll horizontal.
+- **Sidebar auto-collapse** — viewport < 1366px colapsa sidebar automáticamente al montar (+184px content area en 13").
+- **Grid→Flex migration** — 60+ `grid-cols-N` reemplazados por `flex flex-wrap` + `flex-1 min-w-[Xpx]`. Cards y KPIs se distribuyen naturalmente sin breakpoints rígidos.
+- **Inline flex styles eliminados** — 11 instancias de `style={{ flex: '0 0 N%' }}` (que causaban overflow por basis+gap>100%) reemplazadas por `flex-[N]` o `flex-1` con `min-w-0`.
+
+### Fixed — Páginas corregidas
+- **PlatformDashboard** — 7 KPIs flex-wrap (antes grid-cols-7 cramped).
+- **ExecutiveSitePage** — KPIs flex-wrap con min-w-[140px].
+- **PanelConsolidado** — layout 2-col map+panel via flex, KPIs y gauges flex-wrap.
+- **TenantsMallsPage** — `flex: '0 0 60%/40%'` → `flex-[3]/flex-[2]` + `min-w-0`. Zero scroll horizontal.
+- **UsersPage** — 3 inline flex overflows corregidos (lista/detalle/permisos).
+- **SlosDatosPage** — 4× `flex: '0 0 50%'` → `flex-1 min-w-0`.
+- **ConfigReleasesPage** — 2× `flex: '0 0 50%'` → `flex-1 min-w-0`.
+- **CostosTendenciasPage** — tabla shrinkable.
+- **ThrottleCargasPage** — inline style → tailwind.
+- **SeguridadPamPage** — 15 panels grid-cols-3 → flex-wrap min-w-[280px].
+- **QualityPage, FaultHistoryPage, DemandPage, ConcentratorPage, GenerationSitePage, DrilldownPage, ModbusMapPage** — KPI cards flex-wrap.
+- **EscalationPage, AlertRulesPage** — severity cards + form inputs flex-wrap.
+- **BenchmarkPage, ReportsPage, AuditPage** — side-by-side charts flex-wrap min-w-[300px].
+- **IntegrationsPage, IntegrationsHealthTab** — metrics flex-wrap.
+- **PatternsPage, DataQualityReportTab** — KPIs flex-wrap.
+- **MeterDetailPage** — IoT variables flex-wrap.
+- **TariffsPage** — form inputs flex-wrap con min-w-[70px].
+- **Import tabs** (4 archivos) — stats cards flex-wrap.
+- **MisOrdenesPage** — KPIs flex-wrap.
+
+### Stats
+- 0 `grid-cols-N` (N>2) restantes en features/
+- 0 inline `style={{ flex: }}` restantes
+- 72/72 test suites, 855/855 tests pass
+- TypeScript clean
+
 ## [2.46.1-alpha.0] - 2026-07-18 — UX POLISH + LAYOUT FIXES
 
 ### Fixed — Layout global

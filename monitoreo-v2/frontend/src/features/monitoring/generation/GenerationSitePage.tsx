@@ -186,7 +186,7 @@ export function GenerationSitePage() {
       <div className="space-y-6">
         <PageHeader title="Generacion por sitio" eyebrow="Monitoreo" />
         <p className="text-sm text-muted">Seleccione un edificio para ver curvas y balance.</p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap gap-3">
           {(buildingsQuery.data ?? []).map((b) => (
             <button
               key={b.id}
@@ -221,7 +221,7 @@ export function GenerationSitePage() {
 
       {isLoading ? (
         <div className="space-y-3 animate-pulse">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="panel p-4 shadow-sm">
                 <div className="h-3 w-24 rounded bg-raised" />
@@ -230,7 +230,7 @@ export function GenerationSitePage() {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-wrap gap-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="panel p-4 shadow-sm">
                 <div className="h-3 w-24 rounded bg-raised" />
@@ -245,7 +245,7 @@ export function GenerationSitePage() {
         </div>
       ) : (
         <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-wrap gap-3">
         <Kpi title="Medidores generacion" value={String(genCount)} sub="Tipos solar / PV / generation" />
         <Kpi title="Medidores carga" value={String(loadCount)} sub="Resto electricos en el sitio" />
         <Kpi
@@ -260,7 +260,7 @@ export function GenerationSitePage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="flex flex-wrap gap-3">
         <Kpi title="Energia carga (periodo)" value={`${energyLoadKwh.toFixed(0)} kWh`} sub="Suma delta medidores carga" />
         <Kpi
           title="Balance"
@@ -301,7 +301,7 @@ export function GenerationSitePage() {
 
 function Kpi({ title, value, sub }: Readonly<{ title: string; value: string; sub: string }>) {
   return (
-    <div className="panel p-4 shadow-sm">
+    <div className="panel flex-1 min-w-[160px] p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{title}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
       <p className="text-xs text-subtle">{sub}</p>

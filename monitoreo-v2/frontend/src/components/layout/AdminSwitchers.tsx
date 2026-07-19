@@ -140,11 +140,15 @@ function HeaderDropdown({
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] overflow-hidden rounded-lg border border-border bg-background shadow-lg">
-          {children}
-        </div>
-      )}
+      <div
+        className={`absolute left-0 top-full z-50 mt-1 min-w-[200px] overflow-hidden rounded-lg border border-border bg-background shadow-lg transition-all duration-200 ease-out origin-top ${
+          open
+            ? 'scale-y-100 opacity-100'
+            : 'pointer-events-none scale-y-95 opacity-0'
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

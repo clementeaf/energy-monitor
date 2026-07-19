@@ -365,7 +365,7 @@ export function PanelConsolidadoPage() {
 
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Column 1: Map + legend + heatmap */}
-        <div className="flex min-w-0 flex-col gap-2 overflow-hidden">
+        <div className="flex min-w-0 flex-[3] flex-col gap-2 overflow-hidden">
           {selectedFloorId && selectedDetail ? (
             <FloorPlanView
               buildingId={selectedDetail.building.id}
@@ -432,7 +432,7 @@ export function PanelConsolidadoPage() {
         </div>
 
         {/* Column 2: KPIs or Building Detail */}
-        <div className="flex min-w-0 flex-col gap-3 overflow-y-auto">
+        <div className="flex min-w-0 flex-[2] flex-col gap-3 overflow-y-auto">
           {selectedDetail
             ? <BuildingDetail
                 detail={selectedDetail}

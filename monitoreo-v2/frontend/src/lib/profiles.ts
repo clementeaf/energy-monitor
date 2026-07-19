@@ -55,5 +55,5 @@ export const PROFILE_LANDING: Record<UserProfile, string> = {
   gerencial: '/dashboard/consolidado',
   operacional: '/operacional/monitoreo',
   tecnico: '/tecnico/ordenes',
-  auditor: '/auditor/calidad',
+  auditor: '/auditor/calidad-datos',
 };

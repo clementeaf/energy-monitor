@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Chart } from '../../../components/charts/Chart';
@@ -191,8 +191,7 @@ export function CostosTendenciasPage() {
   const [sortTable, setSortTable] = useState('cost_desc');
   const [search] = useState('');
   const [grouping, setGrouping] = useState('country');
-  const [selectedMallIds, setSelectedMallIds] = useState<Set<string>>(new Set());
-  const [mallSearch, setMallSearch] = useState('');
+  const [selectedMallIds] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<string>('totalCost');
   const [sortAsc, setSortAsc] = useState(false);
   const [varThreshold] = useState<number | null>(null);
@@ -569,76 +568,6 @@ function SortTh({ col, label, sortCol, sortAsc, onSort, right }: Readonly<{
     >
       {label} {active ? (sortAsc ? '↑' : '↓') : ''}
     </th>
-  );
-}
-
-/* ── Mall multi-select dropdown ── */
-
-function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSearch }: Readonly<{
-  buildings: Building[];
-  selected: Set<string>;
-  onToggle: (id: string) => void;
-  onClear: () => void;
-  search: string;
-  onSearch: (v: string) => void;
-}>) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handle = (e: MouseEvent) => { ref.current && !ref.current.contains(e.target as Node) && setOpen(false); };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, [open]);
-
-  const filtered = search
-    ? buildings.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
-    : buildings;
-
-  const label = selected.size === 0 ? 'Todos los malls' : `${selected.size} mall${selected.size > 1 ? 's' : ''}`;
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground"
-      >
-        {label}
-        <svg className={`h-3 w-3 opacity-50 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5l3 3 3-3" /></svg>
-      </button>
-      {open && (
-        <div className="absolute left-0 top-full z-30 mt-1 w-56 rounded-lg border border-border bg-background shadow-lg">
-          <div className="border-b border-border p-2">
-            <input
-              value={search}
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="Buscar mall..."
-              className="w-full rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
-              autoFocus
-            />
-          </div>
-          <ul className="max-h-48 overflow-y-auto py-1">
-            {selected.size > 0 && (
-              <li>
-                <button type="button" onClick={onClear} className="w-full px-3 py-1.5 text-left text-[11px] text-brand hover:bg-surface">
-                  Limpiar selección
-                </button>
-              </li>
-            )}
-            {filtered.map((b) => (
-              <li key={b.id}>
-                <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[11px] text-foreground hover:bg-surface">
-                  <input type="checkbox" checked={selected.has(b.id)} onChange={() => onToggle(b.id)} className="size-3 rounded border-border" />
-                  {b.name}
-                </label>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
   );
 }
 

@@ -104,8 +104,8 @@ export function AlarmasEventosPage() {
   const [responsableFilter, setResponsableFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [comment, setComment] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom] = useState('');
+  const [dateTo] = useState('');
 
   const buildingsQuery = useBuildingsQuery();
   const alertsQuery = useAlertsQuery({ status: statusFilter as AlertStatus });

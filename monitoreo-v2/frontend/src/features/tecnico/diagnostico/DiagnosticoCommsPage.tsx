@@ -51,7 +51,6 @@ const VENTANA_OPTIONS = [
 ];
 
 export function DiagnosticoCommsPage() {
-  const [search, setSearch] = useState('');
   const [selectedMeterId, setSelectedMeterId] = useState<string | null>(null);
   const [mallFilter, setMallFilter] = useState('all');
   const [gatewayFilter, setGatewayFilter] = useState('all');
@@ -73,10 +72,6 @@ export function DiagnosticoCommsPage() {
     return [{ value: 'all', label: 'Todos' }, ...gws.map((g) => ({ value: g, label: g }))];
   }, [meters]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return q ? meters.filter((m) => m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q)) : meters;
-  }, [meters, search]);
 
   const selected = meters.find((m) => m.id === selectedMeterId) ?? null;
   const selectedReading = selected ? readingMap.get(selected.id) : undefined;

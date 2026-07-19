@@ -37,7 +37,6 @@ const FALLBACK_BUILDING_METRICS: FallbackBuildingMetric[] = [
 /* ── Filter options ── */
 
 // ponytail: country filter removed from UI (already in navbar); kept for building filter fallback
-const DEFAULT_COUNTRY = 'CL';
 
 interface PeriodOption { key: string; label: string }
 const PERIODS: PeriodOption[] = [
@@ -165,8 +164,6 @@ export function ConsumoJerarquicoPage() {
   const [filterBy] = useState('all');
   const [compareWith, setCompareWith] = useState('previous');
   const [granularity, setGranularity] = useState<'monthly' | 'weekly'>('monthly');
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
   const [variationThreshold] = useState(10);
 
   // Queries

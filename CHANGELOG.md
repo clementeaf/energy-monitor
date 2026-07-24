@@ -2,13 +2,14 @@
 
 ## [2.47.2-alpha.0] - 2026-07-24 — LIMPIEZA CÓDIGOS DE REQUERIMIENTO
 
-### Fixed — UI cleanup (38 archivos)
-- **Códigos de requerimiento removidos** — Referencias internas `[DAT-XX]`, `[ARQ-XX]`, `[CYB-XX]`, `[FIN-XX]`, `[INT-XX]`, `[PRI-XX]` eliminadas de todas las pantallas. Incluye tags sueltos (`<p>`/`<span>`) y refs inline en textos descriptivos.
-- **Tests actualizados** — 5 tests `renders ref tags` removidos (validaban presencia de códigos ahora eliminados).
+### Fixed — UI cleanup (40 archivos)
+- **Códigos de requerimiento removidos** — Referencias internas `[DAT-XX]`, `[ARQ-XX]`, `[CYB-XX]`, `[FIN-XX]`, `[INT-XX]`, `[PRI-XX]` eliminadas de todas las pantallas. Incluye tags sueltos (`<p>`/`<span>`), refs inline en textos descriptivos, y componente `<Ref>`.
+- **Segunda pasada** — Refs inline adicionales: `INT-08` en Observabilidad, `DAT-27` en alertas ingestión, `DAT-24` en Monitoreo en Vivo, `DAT-30` en Datos Crudos (heading + componente `Ref` eliminado).
+- **Tests actualizados** — 5 tests `renders ref tags` removidos + 2 tests corregidos (`umbral INT-08` → `umbral < 500 ms`, `Restricción DAT-30` → `Restricción de uso`).
 
 ### Stats
 - 849/849 tests pass. 0 TS errors.
-- 38 archivos modificados, 196 líneas eliminadas.
+- 40 archivos modificados, ~210 líneas eliminadas.
 
 ---
 

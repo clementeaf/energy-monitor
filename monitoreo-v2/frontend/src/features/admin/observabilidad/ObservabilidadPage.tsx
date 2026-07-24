@@ -100,7 +100,7 @@ export function ObservabilidadPage() {
         <div className="panel flex-1 p-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-emerald-600' : 'text-amber-600'}`}>{latencyP95} ms</p>
-          <p className="text-[10px] text-muted">umbral INT-08 &lt; 500 ms</p>
+          <p className="text-[10px] text-muted">umbral &lt; 500 ms</p>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ export function ObservabilidadPage() {
               <span className="font-semibold text-foreground">{alerts.length}</span>
             </li>
           </ul>
-          <p className="mt-3 text-[10px] text-muted">DAT-27 — detección automática activa</p>
+          <p className="mt-3 text-[10px] text-muted">detección automática activa</p>
         </div>
       </div>
 

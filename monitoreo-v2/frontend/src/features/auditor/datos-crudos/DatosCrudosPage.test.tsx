@@ -29,7 +29,7 @@ describe('DatosCrudosPage', () => {
 
   it('renders title', () => { renderPage(); expect(screen.getByText('6.5 Datos Crudos')).toBeInTheDocument(); });
   it('renders preview panel', () => { renderPage(); expect(screen.getByText(/Vista previa de datos raw/)).toBeInTheDocument(); });
-  it('renders DAT-30 restriction', () => { renderPage(); expect(screen.getByText(/Restricción DAT-30/)).toBeInTheDocument(); });
+  it('renders restriction panel', () => { renderPage(); expect(screen.getByText(/Restricción de uso/)).toBeInTheDocument(); });
   it('renders export buttons', () => {
     renderPage();
     expect(screen.getByText('Exportar Parquet')).toBeInTheDocument();

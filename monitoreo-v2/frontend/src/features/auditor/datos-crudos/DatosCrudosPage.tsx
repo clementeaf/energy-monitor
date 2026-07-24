@@ -30,13 +30,6 @@ function downloadFile(content: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-/* ── Ref tag ── */
-
-function Ref({ ids }: { ids: string }) {
-  return (
-    <span className="ml-auto text-[9px] text-muted opacity-60 font-mono">[{ids}]</span>
-  );
-}
 
 export function DatosCrudosPage() {
   const [selectedMeterIds, setSelectedMeterIds] = useState<string[]>([]);
@@ -158,7 +151,6 @@ export function DatosCrudosPage() {
             <h2 className="text-[13px] font-semibold text-foreground">Vista previa de datos raw</h2>
             <p className="text-[11px] text-muted">Primeras 100 filas · sin transformar · solo lectura</p>
           </div>
-          <Ref ids="DAT-07, DAT-06, DAT-04" />
         </div>
         <div className="flex-1 overflow-auto">
           <table className="w-full text-[12px]">
@@ -222,7 +214,6 @@ export function DatosCrudosPage() {
               <h2 className="text-[13px] font-semibold text-foreground">Exportación</h2>
               <p className="text-[11px] text-muted">Formatos para Data Science · retención de exports: 30 días</p>
             </div>
-            <Ref ids="DAT-12, DAT-07, CYB-10" />
           </div>
           <ul className="space-y-2 text-[12px] text-foreground">
             <li className="flex items-start gap-2">
@@ -240,14 +231,13 @@ export function DatosCrudosPage() {
           </ul>
         </div>
 
-        {/* Right: Restricción DAT-30 */}
+        {/* Right: Restricción uso de datos */}
         <div className="panel p-4">
           <div className="mb-3 flex items-center gap-2">
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground">Restricción DAT-30</h2>
+              <h2 className="text-[13px] font-semibold text-foreground">Restricción de uso</h2>
               <p className="text-[11px] text-muted">Aviso permanente ligado a la exportación</p>
             </div>
-            <Ref ids="DAT-30" />
           </div>
           <ul className="space-y-2 text-[12px] text-foreground">
             <li className="flex items-start gap-2">

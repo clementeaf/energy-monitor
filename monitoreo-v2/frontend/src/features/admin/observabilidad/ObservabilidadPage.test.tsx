@@ -57,7 +57,7 @@ describe('ObservabilidadPage', () => {
   it('renders p95 KPI card', () => {
     renderPage();
     expect(screen.getByText('Tiempo de respuesta p95')).toBeInTheDocument();
-    expect(screen.getByText(/umbral INT-08/)).toBeInTheDocument();
+    expect(screen.getByText(/umbral < 500 ms/)).toBeInTheDocument();
   });
 
   it('renders health dashboard section', () => {

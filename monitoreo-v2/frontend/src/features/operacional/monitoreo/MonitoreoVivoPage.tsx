@@ -397,7 +397,7 @@ export function MonitoreoVivoPage() {
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Dato estancado &gt; 4h</p>
           <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
-          <p className="text-[11px] text-muted">{staleCount > 0 ? 'badge rojo · alerta DAT-24' : 'sin estancados'}</p>
+          <p className="text-[11px] text-muted">{staleCount > 0 ? 'badge rojo · alerta activa' : 'sin estancados'}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>

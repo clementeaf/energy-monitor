@@ -160,9 +160,8 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Resumen de vulnerabilidades</h3>
-            <span className="text-[9px] text-muted">[CYB-13, CYB-18]</span>
           </div>
-          <p className="mb-2 text-[10px] text-muted">Parche crítico &lt; 30 días (CYB-18)</p>
+          <p className="mb-2 text-[10px] text-muted">Parche crítico &lt; 30 días</p>
           <ul className="space-y-0.5 text-[11px]">
             <li className="flex items-center gap-1.5"><span className="inline-block size-1.5 rounded-full bg-red-500" />Críticas: <span className="font-semibold text-red-600">2</span></li>
             <li className="flex items-center gap-1.5"><span className="inline-block size-1.5 rounded-full bg-orange-400" />Altas: <span className="font-semibold text-orange-600">5</span></li>
@@ -177,9 +176,8 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Certificados TLS</h3>
-            <span className="text-[9px] text-muted">[CYB-04, INT-04]</span>
           </div>
-          <p className="mb-2 text-[10px] text-muted">Alerta a 30 y 7 días (CYB-04)</p>
+          <p className="mb-2 text-[10px] text-muted">Alerta a 30 y 7 días</p>
           <table className="w-full text-[11px]">
             <thead>
               <tr className="border-b border-border text-left text-[10px] text-muted">
@@ -208,7 +206,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Cifrado en reposo (AES-256)</h3>
-            <span className="text-[9px] text-muted">[CYB-06]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Alerta si un componente pierde cifrado</p>
           <ul className="space-y-1 text-[11px]">
@@ -222,9 +219,8 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">WAF / DDoS / IDS-IPS</h3>
-            <span className="text-[9px] text-muted">[CYB-09, CYB-22]</span>
           </div>
-          <p className="mb-2 text-[10px] text-muted">IDS/IPS monitoreado 24×7 (CYB-22)</p>
+          <p className="mb-2 text-[10px] text-muted">IDS/IPS monitoreado 24×7</p>
           <ul className="space-y-1 text-[11px]">
             <li className="flex items-center gap-1.5 text-emerald-700"><span>✓</span> WAF activo — AWS WAF energy-monitor-waf</li>
             <li className="flex items-center gap-1.5 text-emerald-700"><span>✓</span> DDoS — AWS Shield Standard</li>
@@ -238,7 +234,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Hardening — CIS Benchmarks</h3>
-            <span className="text-[9px] text-muted">[CYB-17]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">% cumplimiento por componente</p>
           <ul className="space-y-1 text-[11px]">
@@ -264,7 +259,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">EDR / antivirus</h3>
-            <span className="text-[9px] text-muted">[CYB-14]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Alerta si &gt; 24h sin actualizar firmas</p>
           <ul className="space-y-1 text-[11px]">
@@ -280,7 +274,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Inventario HW/SW (SBOM)</h3>
-            <span className="text-[9px] text-muted">[CYB-19, ARQ-20]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Alerta EOL en próximos 90 días</p>
           <table className="w-full text-[11px]">
@@ -312,9 +305,8 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">PAM — cuentas privilegiadas</h3>
-            <span className="text-[9px] text-muted">[CYB-20, CYB-03, DAT-14]</span>
           </div>
-          <p className="mb-2 text-[10px] text-muted">Revisión mensual obligatoria con justificación (CYB-20)</p>
+          <p className="mb-2 text-[10px] text-muted">Revisión mensual obligatoria con justificación</p>
           <table className="w-full text-[11px]">
             <thead>
               <tr className="border-b border-border text-left text-[10px] text-muted">
@@ -339,7 +331,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3" data-testid="jit-vault">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Bóveda de credenciales JIT</h3>
-            <span className="text-[9px] text-muted">[CYB-20, DAT-14]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Acceso just-in-time</p>
           <ul className="mb-3 space-y-1 text-[11px]">
@@ -375,9 +366,8 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3" data-testid="security-incidents">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Incidentes de seguridad</h3>
-            <span className="text-[9px] text-muted">[CYB-16, PRI-02]</span>
           </div>
-          <p className="mb-2 text-[10px] text-muted">Informe de brecha en &lt; 24h (CYB-16)</p>
+          <p className="mb-2 text-[10px] text-muted">Informe de brecha en &lt; 24h</p>
           <table className="w-full text-[11px]">
             <thead>
               <tr className="border-b border-border text-left text-[10px] text-muted">
@@ -419,7 +409,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Estado del BCP / DRP</h3>
-            <span className="text-[9px] text-muted">[CYB-11, DAT-13]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Alerta si prueba &gt; 6 meses</p>
           <ul className="space-y-1 text-[11px]">
@@ -436,7 +425,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Integridad de backups</h3>
-            <span className="text-[9px] text-muted">[CYB-23, ARQ-11]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Prueba semestral</p>
           <ul className="space-y-1 text-[11px]">
@@ -452,7 +440,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Escaneo DAST</h3>
-            <span className="text-[9px] text-muted">[CYB-07]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Último ciclo de escaneo dinámico</p>
           <ul className="space-y-1 text-[11px]">
@@ -468,7 +455,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Informe Pentest anual</h3>
-            <span className="text-[9px] text-muted">[CYB-08]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">Alerta si último Pentest &gt; 12 meses</p>
           <ul className="space-y-1 text-[11px]">
@@ -484,7 +470,6 @@ export function SeguridadPamPage() {
         <div className="panel flex-1 min-w-[280px] p-3" data-testid="crypto-deletion">
           <div className="flex items-start justify-between">
             <h3 className="text-[13px] font-semibold text-foreground">Borrado criptográfico</h3>
-            <span className="text-[9px] text-muted">[CYB-12, DAT-07]</span>
           </div>
           <p className="mb-2 text-[10px] text-muted">CTA DESTRUCTIVA — destrucción certificada al término de contrato</p>
           <ul className="mb-3 space-y-1 text-[11px]">

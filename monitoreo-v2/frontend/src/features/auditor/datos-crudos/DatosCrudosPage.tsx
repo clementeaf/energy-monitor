@@ -292,7 +292,6 @@ export function DatosCrudosPage() {
         <Button variant="secondary" onClick={handleVerifyHash}>
           Verificar hash
         </Button>
-        <span className="ml-auto text-[10px] text-muted font-mono">[DAT-30]</span>
       </div>
     </div>
   );

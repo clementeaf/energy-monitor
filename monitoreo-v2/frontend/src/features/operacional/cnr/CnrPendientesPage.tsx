@@ -222,7 +222,7 @@ export function CnrPendientesPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.5 CNR Pendientes"
-        description="Consumo No Registrado — gestión de gaps pendientes de resolución (DAT-19)"
+        description="Consumo No Registrado — gestión de gaps pendientes de resolución"
       />
 
       {/* Filter banner */}
@@ -237,19 +237,16 @@ export function CnrPendientesPage() {
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
           <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{totalOpen}</p>
           <p className="text-[11px] text-muted">a la espera de resolución</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
           <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-red-600' : 'text-foreground'}`}>{over7d}</p>
           <p className="text-[11px] text-muted">badge de alerta de antigüedad</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{ingestedToday}</p>
           <p className="text-[11px] text-muted">nuevas en el turno</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
         </div>
       </div>
 
@@ -301,7 +298,6 @@ export function CnrPendientesPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-20, DAT-19, DAT-14]</p>
       </div>
     </div>
   );

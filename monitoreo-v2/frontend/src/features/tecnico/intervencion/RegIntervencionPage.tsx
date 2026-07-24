@@ -80,7 +80,6 @@ export function RegIntervencionPage() {
             <p>• Cierre de intervención en terreno</p>
           </div>
         ) : <p className="mt-1 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-19]</p>
       </div>
 
       {/* Bitácora de intervención */}
@@ -158,7 +157,6 @@ export function RegIntervencionPage() {
               Requiere CNR → pre-llena formulario de CNR
             </label>
         </form>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-19, DAT-23]</p>
       </div>
 
       {/* Adjuntos y firma */}
@@ -169,7 +167,6 @@ export function RegIntervencionPage() {
           <p>• □ Requiere CNR → pre-llena formulario de CNR</p>
           <p>• Firma digital del técnico</p>
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-19, DAT-23]</p>
       </div>
 
       {/* Inmutabilidad del registro */}
@@ -178,7 +175,6 @@ export function RegIntervencionPage() {
         <p className="mt-1">al firmar y guardar:</p>
         <p>• Timestamp del servidor + usuario + hash de integridad</p>
         <p>• No editable una vez firmado</p>
-        <p className="mt-0.5 text-right text-[9px]">[DAT-19, CYB-10, DAT-14]</p>
       </div>
 
       {submitted && (

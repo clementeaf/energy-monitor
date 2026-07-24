@@ -15,5 +15,4 @@ describe('TrazabilidadPage', () => {
   it('renders lineage panel', () => { renderPage(); expect(screen.getByText(/Panel de linaje por lectura/)).toBeInTheDocument(); });
   it('shows placeholder without selection', () => { renderPage(); expect(screen.getByText(/Selecciona un medidor/)).toBeInTheDocument(); });
   it('shows comparison prompt without selection', () => { renderPage(); expect(screen.getByText(/Selecciona un medidor para ver la comparación/)).toBeInTheDocument(); });
-  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-19/).length).toBeGreaterThanOrEqual(1); });
 });

@@ -367,7 +367,6 @@ export function CalidadDatosPage() {
             </tbody>
           </table>
         </div>
-        <span className="block px-4 pb-2 text-right text-[10px] text-muted">[DAT-06, DAT-17]</span>
       </div>
 
       {/* Row 2 — Evolution chart + Low-quality meters */}
@@ -433,7 +432,6 @@ export function CalidadDatosPage() {
                 );
               })()}
             </div>
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-17, DAT-08]</span>
           </div>
         </div>
 
@@ -480,7 +478,6 @@ export function CalidadDatosPage() {
                 </table>
               )}
             </div>
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-06, DAT-17]</span>
           </div>
         </div>
       </div>

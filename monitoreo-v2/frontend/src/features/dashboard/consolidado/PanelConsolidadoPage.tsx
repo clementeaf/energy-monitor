@@ -334,7 +334,7 @@ export function PanelConsolidadoPage() {
       {/* Header */}
       <PageHeader
         title="Panel Consolidado"
-        description="Pantalla de aterrizaje — estado del portafolio en < 3 s (ARQ-07) · drill-down de 3 niveles"
+        description="Pantalla de aterrizaje — estado del portafolio en < 3 s · drill-down de 3 niveles"
       />
       {/* Filter banner */}
       {!selectedFloorId && (
@@ -504,7 +504,6 @@ function PortfolioPanel({
               {displayVariationPct > 0 ? '▲' : displayVariationPct < 0 ? '▼' : '→'} {Math.abs(displayVariationPct)}% vs. mes ant.
             </span>
           </div>
-          <p className="mt-0.5 text-[11px] text-muted">[DAT-22, DAT-08, ARQ-07]</p>
         </div>
 
         {/* Costo [UF] */}
@@ -512,7 +511,6 @@ function PortfolioPanel({
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayCostUf, 3)}</p>
           <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
-          <p className="mt-0.5 text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
 
         {/* Intensidad energética */}
@@ -520,7 +518,6 @@ function PortfolioPanel({
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{displayIntensity}</p>
           <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
-          <p className="mt-0.5 text-[11px] text-muted">[DAT-11, DAT-22]</p>
         </div>
 
         {/* Cobertura de medición */}
@@ -528,7 +525,6 @@ function PortfolioPanel({
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
           <p className={`mt-1 text-2xl font-bold ${displayCoverageColor}`}>{displayCoveragePct}%</p>
           <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
-          <p className="mt-0.5 text-[11px] text-muted">[DAT-17, DAT-06]</p>
         </div>
       </div>
 
@@ -539,7 +535,6 @@ function PortfolioPanel({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <RecentCriticalEvents alerts={feedAlerts} buildings={feedBuildings} />
         </div>
-        <p className="shrink-0 mt-1 text-[11px] text-muted">[DAT-03, DAT-27]</p>
       </div>
 
       {/* Semáforo calidad del dato */}
@@ -552,7 +547,6 @@ function PortfolioPanel({
           <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">CNR 3%</span>
         </div>
         <p className="mt-1 text-[10px] text-subtle">Aplica desde Nivel 2 (centro comercial) en adelante</p>
-        <p className="mt-0.5 text-[11px] text-muted">[DAT-06, DAT-17]</p>
       </div>
 
       {/* Nota */}

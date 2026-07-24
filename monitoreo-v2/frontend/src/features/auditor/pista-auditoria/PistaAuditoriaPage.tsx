@@ -316,7 +316,6 @@ export function PistaAuditoriaPage() {
             </button>
           </div>
 
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-14, DAT-23, CYB-10]</span>
         </div>
 
         {/* Right — Heatmap + Top 10 */}
@@ -368,7 +367,6 @@ export function PistaAuditoriaPage() {
               ))}
             </div>
 
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-14, CYB-10]</span>
           </div>
 
           {/* Top 10 */}
@@ -413,7 +411,6 @@ export function PistaAuditoriaPage() {
               </table>
             </div>
 
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-14, CYB-10]</span>
           </div>
         </div>
       </div>

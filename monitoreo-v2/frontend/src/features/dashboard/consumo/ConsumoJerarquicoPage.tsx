@@ -333,7 +333,6 @@ export function ConsumoJerarquicoPage() {
               className="h-full w-full"
             />
           </div>
-          <p className="mt-1 text-right text-[11px] text-muted">[ARQ-05, DAT-11]</p>
         </div>
 
         {/* Card 2: Árbol jerárquico expandible */}
@@ -378,7 +377,6 @@ export function ConsumoJerarquicoPage() {
               })}
             </ul>
           </div>
-          <p className="mt-1 text-right text-[11px] text-muted">[DAT-11, DAT-22]</p>
         </div>
 
         {/* Card 3: KPIs + Tendencia + Zonas (stacked) */}
@@ -396,7 +394,6 @@ export function ConsumoJerarquicoPage() {
             ) : (
               <p className="mt-2 text-[11px] text-muted">Seleccione un mall</p>
             )}
-            <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, DAT-11, FIN-07]</p>
           </div>
 
           {/* Tendencia mensual */}
@@ -410,7 +407,6 @@ export function ConsumoJerarquicoPage() {
                 <p className="text-[11px] text-muted">Seleccione un mall</p>
               )}
             </div>
-            <p className="mt-1 text-right text-[11px] text-muted">[DAT-08, DAT-22]</p>
           </div>
 
           {/* Zonas del piso seleccionado */}
@@ -428,7 +424,6 @@ export function ConsumoJerarquicoPage() {
             ) : (
               <p className="mt-2 text-[11px] text-muted">Seleccione un mall con pisos</p>
             )}
-            <p className="mt-1 text-right text-[11px] text-muted">[DAT-11, DAT-03]</p>
           </div>
         </div>
       </div>
@@ -487,7 +482,6 @@ export function ConsumoJerarquicoPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-19, DAT-17]</p>
       </div>
     </div>
   );

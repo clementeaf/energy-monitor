@@ -24,5 +24,4 @@ describe('CuadraturaPage', () => {
   it('shows tolerance column', () => { renderPage(); expect(screen.getAllByText(/tolerancia/i).length).toBeGreaterThanOrEqual(1); });
   it('renders signed export section', () => { renderPage(); expect(screen.getByText(/Exportación firmada/)).toBeInTheDocument(); });
   it('renders download button', () => { renderPage(); expect(screen.getByText('Descargar reconciliación firmada')).toBeInTheDocument(); });
-  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-16/).length).toBeGreaterThanOrEqual(1); });
 });

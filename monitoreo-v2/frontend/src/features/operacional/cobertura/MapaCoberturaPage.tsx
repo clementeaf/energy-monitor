@@ -242,7 +242,6 @@ export function MapaCoberturaPage() {
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[ARQ-08, DAT-17, DAT-11]</p>
         </div>
 
         {/* Right: Panel lateral de lista */}
@@ -298,7 +297,6 @@ export function MapaCoberturaPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-17, DAT-27]</p>
         </div>
       </div>
     </div>

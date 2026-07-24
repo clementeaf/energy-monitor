@@ -111,14 +111,13 @@ export function SlosDatosPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-26]</span>
         </div>
 
         {/* Latency chart */}
         <div className="panel min-w-0 flex-1 flex flex-col p-4">
           <div className="shrink-0">
             <h3 className="text-[13px] font-semibold text-foreground">SLO de latencia de API — p95</h3>
-            <p className="mb-2 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera (INT-08)</p>
+            <p className="mb-2 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera</p>
             <div className="mb-2 flex items-center gap-3">
               <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
                 487 ms — dentro de umbral
@@ -169,7 +168,6 @@ export function SlosDatosPage() {
           </svg>
           <div className="flex shrink-0 items-center justify-between pt-1">
             <p className="text-[10px] text-muted">últimas 15 mediciones · ms</p>
-            <span className="text-[10px] text-muted">[INT-08, DAT-26]</span>
           </div>
         </div>
       </div>
@@ -233,7 +231,6 @@ export function SlosDatosPage() {
             </tbody>
           </table>
           </div>
-          <span className="block shrink-0 border-t border-border px-4 py-1.5 text-right text-[10px] text-muted">[DAT-26, FIN-06, DAT-14]</span>
         </div>
 
         {/* Configurador de SLOs */}
@@ -306,7 +303,6 @@ export function SlosDatosPage() {
             </div>
           </form>
           </div>
-          <span className="block shrink-0 px-4 pb-2 text-right text-[10px] text-muted">[DAT-26]</span>
         </div>
       </div>
     </div>

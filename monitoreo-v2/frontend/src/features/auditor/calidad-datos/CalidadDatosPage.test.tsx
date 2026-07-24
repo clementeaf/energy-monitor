@@ -34,5 +34,4 @@ describe('CalidadDatosPage', () => {
     expect(screen.queryByText(/Seleccione un mall/)).not.toBeInTheDocument();
   });
   it('renders export button', () => { renderPage(); expect(screen.getByText('Exportar CSV')).toBeInTheDocument(); });
-  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-06/).length).toBeGreaterThanOrEqual(1); });
 });

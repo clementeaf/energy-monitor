@@ -179,7 +179,6 @@ export function ExportarEvidenciaPage() {
               </div>
             </div>
 
-            <p className="mt-3 text-right text-[9px] text-muted">[DAT-07, DAT-12]</p>
           </div>
         </div>
 
@@ -222,7 +221,6 @@ export function ExportarEvidenciaPage() {
                 Verificar hash
               </Button>
             </div>
-            <p className="mt-2 text-right text-[9px] text-muted">[DAT-12, CYB-10, DAT-07]</p>
           </div>
 
           {/* Vista previa */}
@@ -241,7 +239,6 @@ export function ExportarEvidenciaPage() {
                 <span className="font-mono text-[11px]">Estructura del ZIP: /pdf /csv /manifest-firma.txt</span>
               </li>
             </ul>
-            <p className="mt-2 text-right text-[9px] text-muted">[DAT-12]</p>
           </div>
         </div>
       </div>
@@ -306,7 +303,6 @@ export function ExportarEvidenciaPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-right text-[9px] text-muted">[DAT-12, DAT-14]</p>
       </div>
     </div>
   );

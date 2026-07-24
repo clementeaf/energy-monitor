@@ -186,7 +186,6 @@ export function ConfigReleasesPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[CYB-15, ARQ-16, ARQ-06]</span>
         </div>
 
         {/* Right: stacked */}
@@ -194,7 +193,7 @@ export function ConfigReleasesPage() {
           {/* Control de despliegue */}
           <div className="panel p-4">
             <h3 className="text-[13px] font-semibold text-foreground">Control de despliegue</h3>
-            <p className="mb-3 text-[11px] text-muted">GATE: requiere aprobación de al menos un rol PASA configurado (CYB-15)</p>
+            <p className="mb-3 text-[11px] text-muted">GATE: requiere aprobación de al menos un rol PASA configurado</p>
             <ul className="mb-4 space-y-1.5 text-[12px] text-muted">
               <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Etapas: build → deploy QA → aprobación → prod</li>
               <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Logs de despliegue en tiempo real</li>
@@ -209,7 +208,6 @@ export function ConfigReleasesPage() {
                 Rollback
               </button>
             </div>
-            <span className="block text-right text-[10px] text-muted mt-2">[CYB-15, ARQ-06, ARQ-16]</span>
           </div>
 
           {/* Historial de despliegues */}
@@ -240,7 +238,6 @@ export function ConfigReleasesPage() {
                 ))}
               </tbody>
             </table>
-            <span className="block text-right text-[10px] text-muted mt-2">[ARQ-16, DAT-14, CYB-10]</span>
           </div>
         </div>
       </div>
@@ -248,7 +245,7 @@ export function ConfigReleasesPage() {
       {/* Row 2: IaC diff viewer */}
       <div className="panel p-4">
         <h3 className="text-[13px] font-semibold text-foreground">Configuración como código — diff viewer (IaC)</h3>
-        <p className="mb-3 text-[11px] text-muted">cambios versionados en git · link al commit correspondiente (ARQ-16)</p>
+        <p className="mb-3 text-[11px] text-muted">cambios versionados en git · link al commit correspondiente</p>
         <div className="flex items-center gap-3 mb-3">
           <span className="text-[11px] text-muted font-mono">commit <span className="text-brand">a3f9c12</span></span>
           <span className="text-[11px] text-muted">·</span>
@@ -273,7 +270,6 @@ export function ConfigReleasesPage() {
             </div>
           ))}
         </pre>
-        <span className="block text-right text-[10px] text-muted mt-2">[CYB-15, ARQ-16, ARQ-06]</span>
       </div>
     </div>
   );

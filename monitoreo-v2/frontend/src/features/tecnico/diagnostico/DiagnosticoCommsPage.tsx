@@ -123,19 +123,16 @@ export function DiagnosticoCommsPage() {
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
           <p className="mt-1 text-xl font-bold text-foreground">{selectedState ?? 'online'}</p>
           <p className="text-[11px] text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ' · sin cambios recientes'}</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tasa de éxito 24 h</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.successRate}%</p>
           <p className="text-[11px] text-muted">reintentos {commMetrics.retries} · timeouts {commMetrics.timeouts}</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.lastTs ?? '14:15'}</p>
           <p className="text-[11px] text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : 'hace 00:03'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} MWh` : '0.5 MWh'}</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[INT-13, DAT-24]</p>
         </div>
       </div>
 
@@ -157,7 +154,6 @@ export function DiagnosticoCommsPage() {
               />
             ))}
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10, DAT-24]</p>
         </div>
 
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
@@ -173,7 +169,6 @@ export function DiagnosticoCommsPage() {
             <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Forzar re-lectura</button>
             <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Ver log raw</button>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
         </div>
       </div>
 
@@ -219,7 +214,6 @@ export function DiagnosticoCommsPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
       </div>
     </div>
   );

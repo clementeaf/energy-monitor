@@ -263,7 +263,6 @@ export function UsersPage() {
                 {hasMore && <div ref={sentinelRef} className="h-4" />}
               </div>
               <div className="flex items-center justify-between border-t border-border px-3 py-1.5">
-                <p className="text-[10px] text-muted">+ fila expandible · Ref [CYB-03, ARQ-10, CYB-02]</p>
                 {total > 0 && <p className="text-[10px] text-muted">Mostrando {visibleUsers.length} de {total}</p>}
               </div>
             </div>
@@ -283,23 +282,22 @@ export function UsersPage() {
                       <span className="text-muted">Recursos: </span>alarmas (R/W), tickets (R/W)
                     </li>
                     <li className="text-foreground">
-                      <span className="text-muted">MFA (CYB-02): </span>
+                      <span className="text-muted">MFA: </span>
                       <span className="text-muted">—</span>
                       {' · SSO Azure AD'}
                     </li>
                     <li className="text-foreground">
-                      <span className="text-muted">Auditoría trimestral (CYB-03): </span>pendiente
+                      <span className="text-muted">Auditoría trimestral: </span>pendiente
                     </li>
                   </ul>
                 ) : (
                   <ul className="space-y-1.5 text-[12px] text-muted">
                     <li>Perfil: Operacional · tenant: Costanera</li>
                     <li>Recursos: alarmas (R/W), tickets (R/W)</li>
-                    <li>MFA activo (CYB-02) · SSO Azure AD</li>
-                    <li>Auditoría trimestral de permisos (CYB-03)</li>
+                    <li>MFA activo · SSO Azure AD</li>
+                    <li>Auditoría trimestral de permisos</li>
                   </ul>
                 )}
-                <p className="mt-3 text-[10px] text-muted">Ref [CYB-03, DAT-14, CYB-21]</p>
               </div>
 
               {/* Historial de accesos */}
@@ -327,7 +325,6 @@ export function UsersPage() {
                     </li>
                   </ul>
                 )}
-                <p className="mt-3 text-[10px] text-muted">Ref [DAT-14, CYB-21]</p>
               </div>
             </div>
           </div>
@@ -338,7 +335,7 @@ export function UsersPage() {
             <div className="panel flex min-w-0 flex-[3] flex-col overflow-hidden" style={{ minHeight: '200px' }}>
               <div className="border-b border-border px-3 py-2">
                 <p className="text-[13px] font-medium text-foreground">Permisos sin uso en &gt; 90 días</p>
-                <p className="text-[11px] text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp (DAT-14)</p>
+                <p className="text-[11px] text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp</p>
               </div>
               <div className="min-h-0 flex-1 overflow-auto">
                 <table className="w-full text-[13px]">
@@ -368,7 +365,6 @@ export function UsersPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">Ref [CYB-03, ARQ-10, CYB-02]</p>
             </div>
 
             {/* Right 40% — Acciones */}

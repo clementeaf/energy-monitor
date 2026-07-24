@@ -79,7 +79,6 @@ export function IngresoCnrPage() {
         </select>
         {selectedMeter && <p className="mt-1 text-[11px] text-foreground">{selectedMeter.code} · {buildingMap.get(selectedMeter.buildingId) ?? ''}</p>}
         <p className="text-[11px] text-muted">• Ingreso CNR según norma de Consumos No Registrados</p>
-        <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20]</p>
       </div>
 
       {/* Datos del CNR */}
@@ -90,7 +89,6 @@ export function IngresoCnrPage() {
           <div><p className="text-[11px] text-muted">Valor real [kWh]</p><input type="number" step="0.01" value={valueKwh} onChange={(e) => setValueKwh(e.target.value)} placeholder="Lectura manual" className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /></div>
           <div><p className="text-[11px] text-muted">Motivo del CNR</p><select value={motive} onChange={(e) => setMotive(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">{CNR_MOTIVES.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}</select></div>
         </form>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-20, DAT-19]</p>
       </div>
 
       {/* Justificación y evidencia */}
@@ -100,7 +98,6 @@ export function IngresoCnrPage() {
           <div><p className="text-[11px] text-muted">Justificación (texto libre)</p><textarea value={justification} onChange={(e) => setJustification(e.target.value)} rows={2} placeholder="Justificación detallada..." className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none" /></div>
           <div><p className="text-[11px] text-muted">Adjunto de evidencia</p><input type="file" accept=".jpg,.jpeg,.png,.pdf" className="w-full text-[11px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[10px] file:text-foreground" /></div>
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-20, DAT-14]</p>
       </div>
 
       {/* Marcado del valor */}
@@ -110,7 +107,6 @@ export function IngresoCnrPage() {
           <p>• Se marca 'dato manual — CNR' en todos los dashboards</p>
           <p>• Firma digital obligatoria</p>
         </div>
-        <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-20, DAT-19]</p>
       </div>
 
       {/* Restricciones post-firma */}
@@ -120,7 +116,6 @@ export function IngresoCnrPage() {
         <p>• No se puede retroeditar</p>
         <p>• Solo Operacional puede marcar 'en revisión'</p>
         <p>• Auditoría: usuario, timestamp, valor anterior</p>
-        <p className="mt-0.5 text-right text-[9px]">[DAT-20, DAT-14, CYB-10]</p>
       </div>
 
       {submitted && <div className="rounded-md bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700">CNR registrado. Valor marcado como "dato manual — CNR".</div>}

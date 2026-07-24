@@ -103,7 +103,6 @@ export function RetencionPrivacidadPage() {
               </tbody>
             </table>
           </div>
-          <span className="block text-right text-[10px] text-muted mt-1">[PRI-08, PRI-05]</span>
         </div>
 
         {/* Formulario nueva política */}
@@ -158,7 +157,6 @@ export function RetencionPrivacidadPage() {
               <button type="button" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-muted hover:bg-surface">Cancelar</button>
             </div>
           </form>
-          <span className="block text-right text-[10px] text-muted mt-1">[PRI-08, PRI-05]</span>
         </div>
       </div>
 
@@ -195,7 +193,6 @@ export function RetencionPrivacidadPage() {
         <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
           <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-[12px] font-medium text-white hover:bg-brand/90">Ejecutar borrado</button>
           <button type="button" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-muted hover:bg-surface">Enviar a aprobación PASA</button>
-          <span className="ml-auto text-[10px] text-muted">[PRI-08, CYB-12, DAT-14]</span>
         </div>
       </div>
 
@@ -237,7 +234,6 @@ export function RetencionPrivacidadPage() {
               </tbody>
             </table>
           </div>
-          <span className="block text-right text-[10px] text-muted mt-1">[PRI-05, DAT-14]</span>
         </div>
 
         {/* Historial de ejecuciones */}
@@ -270,7 +266,6 @@ export function RetencionPrivacidadPage() {
               </tbody>
             </table>
           </div>
-          <span className="block text-right text-[10px] text-muted mt-1">[PRI-08, CYB-10, DAT-14]</span>
         </div>
       </div>
     </div>

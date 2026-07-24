@@ -151,7 +151,6 @@ export function MedidoresCatalogoPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, DAT-06, DAT-24]</p>
       </div>
 
       {/* Ficha — Identificación */}
@@ -173,7 +172,6 @@ export function MedidoresCatalogoPage() {
             </div>
           </div>
         ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, DAT-23]</p>
       </div>
 
       {/* Ubicación física */}
@@ -187,7 +185,6 @@ export function MedidoresCatalogoPage() {
             <p className="text-muted">{buildingMap.get(selected.buildingId) ?? '—'} · {(selected.metadata as Record<string, string>)?.zone ?? '—'}</p>
           </div>
         ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
-        <p className="mt-1 text-right text-[11px] text-muted">[INT-14, ARQ-15]</p>
       </div>
 
       {/* Disponibilidad 72h */}
@@ -199,7 +196,6 @@ export function MedidoresCatalogoPage() {
             <div key={i} className="flex-1 rounded-t" style={{ height: `${Math.max(2, v)}%`, backgroundColor: v > 0 ? '#22c55e' : '#ef4444' }} />
           ))}
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[INT-13, INT-10]</p>
       </div>
 
       {/* Serie temporal 48h */}
@@ -214,7 +210,6 @@ export function MedidoresCatalogoPage() {
             </svg>
           ) : <p className="py-4 text-center text-[11px] text-muted">Selecciona un medidor</p>}
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-04, DAT-06, DAT-19]</p>
       </div>
 
       {/* Historial de fallas e intervenciones */}
@@ -234,7 +229,6 @@ export function MedidoresCatalogoPage() {
             <p className="text-foreground">CNR ingresada — período repuesto</p>
           </div>
         </div>
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-23, DAT-19]</p>
       </div>
     </div>
   );

@@ -281,7 +281,6 @@ export function ReportesEjecutivosPage() {
                 </select>
               </ConfigField>
             </div>
-            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07, DAT-28]</p>
           </div>
 
           {/* Secciones a incluir */}
@@ -296,7 +295,6 @@ export function ReportesEjecutivosPage() {
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07, DAT-28]</p>
           </div>
         </div>
 
@@ -316,7 +314,6 @@ export function ReportesEjecutivosPage() {
               </ul>
               {sections.size === 0 && <p className="mt-1 text-subtle">Seleccione al menos una sección</p>}
             </div>
-            <p className="mt-2 text-right text-[11px] text-muted">[FIN-07]</p>
           </div>
 
           {/* Action buttons */}
@@ -368,7 +365,6 @@ export function ReportesEjecutivosPage() {
                 </table>
               </div>
             </div>
-            <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-12, DAT-08]</p>
           </div>
         </div>
         </div>

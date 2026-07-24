@@ -244,7 +244,6 @@ export function AlarmasEventosPage() {
                   </table>
                 </div>
               </div>
-              <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-27, FIN-05]</p>
             </div>
           </div>
 
@@ -271,7 +270,6 @@ export function AlarmasEventosPage() {
                   </div>
                 );
               })()}
-              <p className="mt-1 text-right text-[11px] text-muted">[FIN-06, FIN-05]</p>
             </div>
 
             {/* Panel de detalle — serie del medidor 48h */}
@@ -285,7 +283,6 @@ export function AlarmasEventosPage() {
                   <p className="py-4 text-center text-[11px] text-muted">Seleccione una alarma</p>
                 )}
               </div>
-              <p className="mt-1 text-right text-[11px] text-muted">[DAT-03, DAT-10, DAT-23]</p>
             </div>
 
             {/* Action buttons */}
@@ -307,7 +304,6 @@ export function AlarmasEventosPage() {
                 className="mt-2 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
                 placeholder="Comentario del operador (texto libre)"
               />
-              <p className="mt-1 text-right text-[11px] text-muted">[DAT-14, DAT-23]</p>
             </div>
           </div>
         </div>

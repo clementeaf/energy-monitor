@@ -163,7 +163,6 @@ export function MaestroMedidoresPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-14, FIN-02, FIN-03]</p>
         </div>
 
         {/* Alta / edición de medidor */}
@@ -181,7 +180,6 @@ export function MaestroMedidoresPage() {
               <div><p className="text-[11px] text-muted">Factor de multiplicación / constante de medición</p><input readOnly value="1.0" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
             </div>
           ) : <p className="mt-4 text-center text-[11px] text-muted">Selecciona un medidor de la tabla</p>}
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-14, ARQ-15, FIN-03]</p>
 
           {/* Action buttons */}
           <div className="mt-3 flex shrink-0 gap-2">
@@ -224,7 +222,6 @@ export function MaestroMedidoresPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-23, DAT-14, CYB-10]</p>
       </div>
     </div>
   );

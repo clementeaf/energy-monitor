@@ -122,7 +122,6 @@ export function ReglasTransformacionPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[INT-05, DAT-22, DAT-23]</p>
         </div>
 
         {/* Right: Edit form + Simulator + Impact */}
@@ -135,7 +134,6 @@ export function ReglasTransformacionPage() {
               <div><p className="text-[11px] text-muted">Tipo (factor / unidad / offset / fórmula)</p><input readOnly value={sel?.type ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
               <div><p className="text-[11px] text-muted">Fórmula personalizada (expresión validada)</p><input readOnly value={sel?.type === 'Fórmula custom' ? 'raw × 1.02' : ''} placeholder="ej: value / 1000" className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
             </div>
-            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22]</p>
           </div>
 
           {/* Simulador de valor de prueba */}
@@ -147,7 +145,6 @@ export function ReglasTransformacionPage() {
               <p>• → Valor transformado: <span className="font-semibold">{transformedValue}</span></p>
               <p className="text-muted">• Se recalcula al editar la regla</p>
             </div>
-            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22]</p>
           </div>
 
           {/* Indicador de impacto */}
@@ -158,7 +155,6 @@ export function ReglasTransformacionPage() {
               <p>• 12 dashboards · 5 exports · 3 alertas afectadas</p>
               <p>• Requiere confirmación explícita antes de guardar</p>
             </div>
-            <p className="mt-1 text-right text-[11px] text-muted">[INT-05, DAT-22, DAT-19]</p>
           </div>
 
           {/* Action buttons */}
@@ -204,7 +200,6 @@ export function ReglasTransformacionPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-23, DAT-14, CYB-10]</p>
       </div>
     </div>
   );

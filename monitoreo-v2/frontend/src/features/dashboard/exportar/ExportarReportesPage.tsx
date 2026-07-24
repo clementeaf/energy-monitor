@@ -276,7 +276,6 @@ export function ExportarReportesPage() {
                   </select>
                 </ConfigField>
               </div>
-              <p className="mt-2 text-right text-[11px] text-muted">[DAT-07, DAT-12]</p>
             </div>
           </div>
 
@@ -290,7 +289,6 @@ export function ExportarReportesPage() {
                 <p>• Alcance: {scopeLabel} · Período: {periodLabel}</p>
                 <p>• Granularidad: {granLabel} · Formato: {formatLabel}</p>
               </div>
-              <p className="mt-1 text-right text-[11px] text-muted">[DAT-12]</p>
             </div>
 
             {/* Action buttons */}
@@ -312,7 +310,6 @@ export function ExportarReportesPage() {
                 <li>• Sin información identificable de locatarios</li>
                 <li>• Para granularidad / trazabilidad / evidencia firmada → perfil Auditor</li>
               </ul>
-              <p className="mt-1 text-right text-[11px] text-muted">[DAT-07]</p>
             </div>
           </div>
         </div>
@@ -360,7 +357,6 @@ export function ExportarReportesPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-12, DAT-08]</p>
       </div>
     </div>
   );

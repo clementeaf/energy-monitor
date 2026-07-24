@@ -100,7 +100,6 @@ export function ReplicaDatosPage() {
             <p className="text-[11px] font-medium text-emerald-700">Réplica operando dentro de parámetros normales</p>
             <p className="text-[10px] text-emerald-600 mt-0.5">Próxima ventana de mantenimiento: 2026-07-20 02:00 CLT</p>
           </div>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-01, DAT-26]</span>
         </div>
 
         {/* Histograma lag */}
@@ -141,7 +140,6 @@ export function ReplicaDatosPage() {
               <text key={h} x={toBarX(h) + bW / 2} y={H - 2} textAnchor="middle" fontSize={8} fill="#9ca3af">{h}h</text>
             ))}
           </svg>
-          <span className="block shrink-0 pt-1 text-right text-[10px] text-muted">[DAT-01, DAT-26]</span>
         </div>
       </div>
 
@@ -179,13 +177,12 @@ export function ReplicaDatosPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-01, CYB-03, DAT-14]</span>
         </div>
 
         {/* Monitor cambios de esquema */}
         <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Monitor de cambios de esquema</h3>
-          <p className="mb-3 text-[11px] text-muted">badge rojo si el plazo de aviso de 30 días no se cumple (DAT-13)</p>
+          <p className="mb-3 text-[11px] text-muted">badge rojo si el plazo de aviso de 30 días no se cumple</p>
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -228,7 +225,6 @@ export function ReplicaDatosPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-13, DAT-25]</span>
         </div>
       </div>
 
@@ -237,7 +233,7 @@ export function ReplicaDatosPage() {
         {/* Contratos de datos */}
         <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Contratos de datos versionados</h3>
-          <p className="mb-3 text-[11px] text-muted">backward compatibility · deprecación de versiones antiguas (INT-06)</p>
+          <p className="mb-3 text-[11px] text-muted">backward compatibility · deprecación de versiones antiguas</p>
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -264,13 +260,12 @@ export function ReplicaDatosPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-25, INT-06]</span>
         </div>
 
         {/* Alerta 30 días */}
         <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-[13px] font-semibold text-foreground">Alerta de anticipación de 30 días</h3>
-          <p className="mb-3 text-[11px] text-muted">aviso formal a PASA por cambio de esquema (DAT-13)</p>
+          <p className="mb-3 text-[11px] text-muted">aviso formal a PASA por cambio de esquema</p>
           <ul className="space-y-3">
             <li className="animate-fade-in flex items-start gap-2 text-[13px]" style={{ animationDelay: '0ms' }}>
               <span className="mt-0.5 text-amber-500 flex-shrink-0">⚠</span>
@@ -298,7 +293,6 @@ export function ReplicaDatosPage() {
               Notificar a PASA ahora
             </button>
           </div>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-13]</span>
         </div>
       </div>
     </div>

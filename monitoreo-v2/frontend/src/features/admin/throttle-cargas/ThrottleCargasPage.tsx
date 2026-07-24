@@ -105,7 +105,6 @@ export function ThrottleCargasPage() {
             </tbody>
           </table>
           </div>
-          <span className="block shrink-0 border-t border-border px-4 py-1.5 text-right text-[10px] text-muted">[DAT-15]</span>
         </div>
 
         {/* Consumo chart */}
@@ -136,7 +135,6 @@ export function ThrottleCargasPage() {
               <text key={h} x={toX(h)} y={H - 2} textAnchor="middle" fontSize={8} fill="#9ca3af">{h}h</text>
             ))}
           </svg>
-          <span className="block shrink-0 pt-1 text-right text-[10px] text-muted">[DAT-15, DAT-09]</span>
         </div>
       </div>
 
@@ -166,7 +164,6 @@ export function ThrottleCargasPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-15, DAT-14]</span>
         </div>
 
         {/* Configurador de quotas */}
@@ -200,7 +197,6 @@ export function ThrottleCargasPage() {
               <button type="button" className="rounded-md border border-border px-4 py-2 text-[13px] font-medium text-muted hover:bg-surface">Cancelar</button>
             </div>
           </form>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-15, CYB-03]</span>
         </div>
 
       </div>
@@ -210,7 +206,7 @@ export function ThrottleCargasPage() {
         {/* Estado extracciones incrementales */}
         <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-[13px] font-semibold text-foreground">Estado de extracciones incrementales</h3>
-          <p className="mb-3 text-[11px] text-muted">indicador si el cursor lleva &gt; 4h sin avanzar (DAT-24)</p>
+          <p className="mb-3 text-[11px] text-muted">indicador si el cursor lleva &gt; 4h sin avanzar</p>
           <table className="w-full text-[12px]">
             <thead>
               <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
@@ -234,7 +230,6 @@ export function ThrottleCargasPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-21, DAT-24]</span>
         </div>
 
         {/* Configurador modo extracción */}
@@ -275,7 +270,6 @@ export function ThrottleCargasPage() {
               <button type="button" className="rounded-md border border-border px-4 py-2 text-[13px] font-medium text-muted hover:bg-surface">Cancelar</button>
             </div>
           </form>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-21]</span>
         </div>
 
       </div>
@@ -312,7 +306,6 @@ export function ThrottleCargasPage() {
               ))}
             </tbody>
           </table>
-          <span className="block text-right text-[10px] text-muted mt-2">[DAT-21, DAT-19]</span>
       </div>
     </div>
   );

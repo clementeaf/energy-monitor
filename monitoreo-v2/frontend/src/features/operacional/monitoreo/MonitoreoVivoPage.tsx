@@ -353,7 +353,7 @@ export function MonitoreoVivoPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.1 Monitoreo en Vivo"
-        description="Estado operativo del parque de medidores — refresh cada 15 min (ARQ-06)"
+        description="Estado operativo del parque de medidores — refresh cada 15 min"
       />
 
       {/* Filter banner */}
@@ -383,31 +383,26 @@ export function MonitoreoVivoPage() {
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total medidores</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
           <p className="text-[11px] text-muted">parque completo del portafolio</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-08]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En línea [%]</p>
           <p className="mt-1 text-2xl font-bold text-emerald-600">{onlinePct}%</p>
           <p className="text-[11px] text-muted">▲ vs. inicio de turno · sparkline 24h</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-06, DAT-27]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Offline</p>
           <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-red-600' : 'text-foreground'}`}>{offlineCount}</p>
           <p className="text-[11px] text-muted">medidores sin conexión</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[ARQ-08, DAT-24]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Dato estancado &gt; 4h</p>
           <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
           <p className="text-[11px] text-muted">{staleCount > 0 ? 'badge rojo · alerta DAT-24' : 'sin estancados'}</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-24, DAT-27]</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
           <p className={`mt-1 text-2xl font-bold ${cnrPending > 0 ? 'text-amber-600' : 'text-foreground'}`}>{cnrPending}</p>
           <p className="text-[11px] text-muted">a la espera de ingreso</p>
-          <p className="mt-0.5 text-right text-[11px] text-muted">[DAT-24]</p>
         </div>
       </div>
 
@@ -458,7 +453,6 @@ export function MonitoreoVivoPage() {
                   })}
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[ARQ-06, DAT-11, DAT-19]</p>
         </div>
 
         {/* Comportamiento del parque — 24h */}
@@ -479,7 +473,6 @@ export function MonitoreoVivoPage() {
             <span>{parkHistogram[0]?.label}</span>
             <span>{parkHistogram[parkHistogram.length - 1]?.label}</span>
           </div>
-          <p className="mt-0.5 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-24]</p>
         </div>
       </div>
 
@@ -529,7 +522,6 @@ export function MonitoreoVivoPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-11, DAT-19, ARQ-08]</p>
         </div>
 
         {/* Feed de eventos recientes */}
@@ -555,7 +547,6 @@ export function MonitoreoVivoPage() {
               })}
             </ul>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-03, DAT-10, DAT-19]</p>
         </div>
       </div>
     </div>

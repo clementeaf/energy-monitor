@@ -250,7 +250,6 @@ export function CuadraturaPage() {
             </tbody>
           </table>
         </div>
-        <span className="block text-right text-[10px] text-muted mt-2">[DAT-16]</span>
       </div>
 
       {/* Row 2 — Deviation chart + Out-of-tolerance table (50/50) */}
@@ -279,7 +278,6 @@ export function CuadraturaPage() {
                 );
               })}
             </div>
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-16, DAT-08]</span>
           </div>
         </div>
 
@@ -331,7 +329,6 @@ export function CuadraturaPage() {
                 </tbody>
               </table>
             </div>
-            <span className="block text-right text-[10px] text-muted mt-2">[DAT-16, DAT-08]</span>
           </div>
         </div>
       </div>
@@ -360,7 +357,6 @@ export function CuadraturaPage() {
             Verificar hash
           </button>
         </div>
-        <span className="block text-right text-[10px] text-muted mt-2">[DAT-12, DAT-07, CYB-10]</span>
       </div>
     </div>
   );

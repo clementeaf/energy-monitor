@@ -281,7 +281,6 @@ export function TenantsMallsPage() {
               </tbody>
             </table>
           </div>
-          <p className="border-t border-border px-3 py-1.5 text-[10px] text-muted">+ fila expandible · Ref [ARQ-05, FIN-02, FIN-03]</p>
         </div>
 
         {/* Right 40% — 2 stacked panels */}
@@ -314,18 +313,17 @@ export function TenantsMallsPage() {
                     <dd className="text-foreground">Configurados (95% calidad dato)</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Integración de facturación (FIN-04)</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Integración de facturación</dt>
                     <dd className="text-foreground">API REST — activa</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall (ARQ-05)</dt>
+                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall</dt>
                     <dd className="text-foreground">Activo</dd>
                   </div>
                 </dl>
               ) : (
                 <p className="py-6 text-center text-[12px] text-muted">Seleccione un tenant para ver su configuración.</p>
               )}
-              <p className="mt-3 text-right text-[10px] text-muted">[ARQ-05, DAT-19, FIN-04]</p>
             </div>
           </div>
 
@@ -355,7 +353,6 @@ export function TenantsMallsPage() {
                 <li>Volumen de datos almacenados: 318 GB</li>
               </ul>
             )}
-            <p className="mt-3 text-[10px] text-muted">Ref [FIN-01, DAT-09]</p>
           </div>
         </div>
       </div>
@@ -364,7 +361,7 @@ export function TenantsMallsPage() {
       <div className="panel flex flex-col overflow-hidden" style={{ minHeight: '220px' }}>
         <div className="border-b border-border px-3 py-2">
           <p className="text-[13px] font-medium text-foreground">Historial de cambios de configuración del tenant</p>
-          <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp (DAT-14)</p>
+          <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp</p>
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-[13px]">
@@ -426,8 +423,7 @@ export function TenantsMallsPage() {
           >
             Desactivar
           </button>
-          <span className="ml-auto text-[10px] text-amber-600">Gate PASA (CYB-15) · requiere aprobación</span>
-          <span className="text-[10px] text-muted">[DAT-19, DAT-14]</span>
+          <span className="ml-auto text-[10px] text-amber-600">Gate PASA · requiere aprobación</span>
         </div>
       </div>
     </div>

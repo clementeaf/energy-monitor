@@ -9,7 +9,7 @@ const KEYS = {
 export type { ApiObservabilityReport };
 
 /**
- * Fetches API observability report (DAT-09) from audit_logs hypertable.
+ * Fetches API observability report from audit_logs hypertable.
  */
 export function useApiObservabilityQuery(params?: { from?: string; to?: string; granularity?: string }, options?: { enabled?: boolean }) {
   const granularity = params?.granularity ?? 'day';

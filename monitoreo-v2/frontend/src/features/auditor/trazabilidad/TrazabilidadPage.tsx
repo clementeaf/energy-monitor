@@ -131,7 +131,6 @@ export function TrazabilidadPage() {
         </ul>
 
         <div className="mt-3 flex justify-end">
-          <span className="text-[10px] text-muted">[DAT-19, DAT-20, DAT-14]</span>
         </div>
       </div>
 
@@ -244,7 +243,6 @@ function RawVsShownRow({
           </table>
         </div>
         <div className="mt-3 flex justify-end">
-          <span className="text-[10px] text-muted">[DAT-20, DAT-19]</span>
         </div>
       </div>
 
@@ -277,7 +275,6 @@ function RawVsShownRow({
           </table>
         </div>
         <div className="mt-3 flex justify-end">
-          <span className="text-[10px] text-muted">[DAT-20, DAT-19]</span>
         </div>
       </div>
     </div>

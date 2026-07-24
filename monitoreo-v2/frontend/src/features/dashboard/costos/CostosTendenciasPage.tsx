@@ -428,7 +428,6 @@ export function CostosTendenciasPage() {
           ) : (
             <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Sin datos de facturación</div>
           )}
-          <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
 
         {/* Waterfall de variación de costo */}
@@ -459,7 +458,6 @@ export function CostosTendenciasPage() {
           ) : (
             <div className="flex flex-1 items-center justify-center text-[11px] text-muted">Requiere ≥2 meses</div>
           )}
-          <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
         </div>
       </div>
 
@@ -509,7 +507,6 @@ export function CostosTendenciasPage() {
             </table>
           </div>
         </div>
-        <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-22, FIN-07, DAT-12]</p>
       </div>
 
       {/* Row 3: Proyecciones — 2 meses */}
@@ -549,7 +546,6 @@ export function CostosTendenciasPage() {
             </div>
           );
         })()}
-        <p className="mt-1 text-right text-[11px] text-muted">[DAT-22, FIN-07]</p>
       </div>
     </div>
   );

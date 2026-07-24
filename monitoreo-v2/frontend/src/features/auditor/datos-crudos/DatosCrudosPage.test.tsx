@@ -38,5 +38,4 @@ describe('DatosCrudosPage', () => {
   });
   it('renders exportation info', () => { renderPage(); expect(screen.getByText(/Formatos para Data Science/)).toBeInTheDocument(); });
   it('renders empty state without meter', () => { renderPage(); expect(screen.getByText(/Selecciona un medidor/)).toBeInTheDocument(); });
-  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-07/).length).toBeGreaterThanOrEqual(1); });
 });

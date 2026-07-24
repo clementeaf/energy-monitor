@@ -38,5 +38,4 @@ describe('ExportarEvidenciaPage', () => {
     await user.click(cb);
     expect(cb).toBeChecked();
   });
-  it('renders ref tags', () => { renderPage(); expect(screen.getAllByText(/DAT-12/).length).toBeGreaterThanOrEqual(1); });
 });

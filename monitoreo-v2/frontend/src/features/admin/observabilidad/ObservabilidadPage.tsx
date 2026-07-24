@@ -85,26 +85,22 @@ export function ObservabilidadPage() {
         <div className="panel flex-1 p-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-emerald-600">{uptimeEst >= 99 ? '99,82%' : `${uptimeEst.toFixed(2)}%`}</p>
-          <p className="text-[10px] text-emerald-600">▲ sobre SLA 99,5% (FIN-06)</p>
-          <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, FIN-06]</p>
+          <p className="text-[10px] text-emerald-600">▲ sobre SLA 99,5%</p>
         </div>
         <div className="panel flex-1 p-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-foreground">{latencyP50} ms</p>
           <p className="text-[10px] text-muted">p50 · últimas 24h</p>
-          <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, DAT-09]</p>
         </div>
         <div className="panel flex-1 p-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Error rate</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${errorRate < 1 ? 'text-emerald-600' : 'text-red-600'}`}>{errorRate.toFixed(1)}%</p>
           <p className="text-[10px] text-muted">(4xx+5xx) / total</p>
-          <p className="mt-1 text-right text-[9px] text-muted">[ARQ-21, DAT-09]</p>
         </div>
         <div className="panel flex-1 p-3">
           <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-emerald-600' : 'text-amber-600'}`}>{latencyP95} ms</p>
           <p className="text-[10px] text-muted">umbral INT-08 &lt; 500 ms</p>
-          <p className="mt-1 text-right text-[9px] text-muted">[ARQ-08, INT-08]</p>
         </div>
       </div>
 
@@ -139,7 +135,6 @@ export function ObservabilidadPage() {
               ))}
             </tbody>
           </table>
-          <p className="mt-2 text-right text-[9px] text-muted">[ARQ-08, ARQ-21, FIN-06]</p>
         </div>
 
         {/* Métricas ingestión */}
@@ -169,7 +164,6 @@ export function ObservabilidadPage() {
             </li>
           </ul>
           <p className="mt-3 text-[10px] text-muted">DAT-27 — detección automática activa</p>
-          <p className="mt-1 text-right text-[9px] text-muted">[DAT-09, DAT-27, ARQ-08]</p>
         </div>
       </div>
 
@@ -196,7 +190,6 @@ export function ObservabilidadPage() {
             <span>{latencyData[0]?.label}</span>
             <span>{latencyData[latencyData.length - 1]?.label}</span>
           </div>
-          <p className="mt-1 text-right text-[9px] text-muted">[DAT-09, ARQ-08]</p>
         </div>
 
         {/* Tasa errores — bar chart */}
@@ -217,7 +210,6 @@ export function ObservabilidadPage() {
             <span>{errorData[0]?.label}</span>
             <span>{errorData[errorData.length - 1]?.label}</span>
           </div>
-          <p className="mt-1 text-right text-[9px] text-muted">[ARQ-21, DAT-09]</p>
         </div>
 
         {/* Throughput — area chart */}
@@ -240,7 +232,6 @@ export function ObservabilidadPage() {
             <span>{throughputData[0]?.label}</span>
             <span>{throughputData[throughputData.length - 1]?.label}</span>
           </div>
-          <p className="mt-1 text-right text-[9px] text-muted">[DAT-09, ARQ-08]</p>
         </div>
       </div>
     </div>

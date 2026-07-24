@@ -261,7 +261,6 @@ export function CalidadBackfillPage() {
               </table>
             </div>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-17]</p>
         </div>
 
         {/* Histograma de calidad — 30 días */}
@@ -291,7 +290,6 @@ export function CalidadBackfillPage() {
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> CNR</span>
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Faltante</span>
           </div>
-          <p className="mt-0.5 shrink-0 text-right text-[11px] text-muted">[DAT-06, DAT-17, DAT-27]</p>
         </div>
       </div>
 
@@ -357,7 +355,6 @@ export function CalidadBackfillPage() {
           <button type="button" className="mt-2 shrink-0 self-start rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">
             Lanzar backfill manual
           </button>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-10]</p>
         </div>
 
         {/* Alertas de degradación de calidad */}
@@ -393,7 +390,6 @@ export function CalidadBackfillPage() {
               }
             </ul>
           </div>
-          <p className="mt-1 shrink-0 text-right text-[11px] text-muted">[DAT-27, DAT-17]</p>
         </div>
       </div>
     </div>

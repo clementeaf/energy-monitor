@@ -177,20 +177,32 @@ export function MeterDetailPage() {
       {isIot ? (
         <IotChart data={iotTs.data} loading={iotTs.isPending} />
       ) : (
-        chartData.length > 0 && (
-          <Card className="shrink-0">
+        <Card className="shrink-0">
+          {aggQuery.isPending ? (
+            <div className="flex h-[300px] flex-col gap-3 p-4">
+              <div className="h-4 w-1/3 animate-pulse rounded bg-border" />
+              <div className="flex flex-1 items-end gap-2">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div key={i} className="flex-1 animate-pulse rounded-t bg-border" style={{ height: `${30 + ((i * 37) % 60)}%` }} />
+                ))}
+              </div>
+              <div className="h-3 w-full animate-pulse rounded bg-border" />
+            </div>
+          ) : chartData.length > 0 ? (
             <MonthlyChart
               data={chartData}
               seriesName={meta.label}
               unit={meta.unit}
               modes={['column', 'line', 'area']}
             />
-          </Card>
-        )
+          ) : (
+            <div className="flex h-[300px] items-center justify-center text-sm text-muted">Sin datos</div>
+          )}
+        </Card>
       )}
 
       {/* Monthly table */}
-      <Card className="flex min-h-0 flex-1 flex-col" noPadding>
+      <Card className="flex max-h-[50vh] min-h-0 flex-col overflow-hidden" noPadding>
         <div className="px-6 pt-4 pb-2">
           <h2 className="text-sm font-semibold text-foreground">Detalle mensual</h2>
         </div>

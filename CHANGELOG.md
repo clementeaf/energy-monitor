@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.48.0] - 2026-07-29 — VARELECTRIC + AUTH FIX + UI
+
+### Added
+- **Módulo Varelectric Ingress** — `POST /api/v1/varelectric` (single) y `/batch` (max 1000) para ingesta de datos desde controladores Varelectric a `monitoreo_v3`.
+- **Base de datos monitoreo_v3** — tabla `var_electric` con índices por remarcador, fecha, y compuesto.
+- **Scope `varelectric:create`** en catálogo de API keys externas.
+- **Acceso DB público** — usuario `varelectric_rw` con permisos SELECT/INSERT/UPDATE en `monitoreo_v3`.
+- **Usuario mcaceres@grupoglobe.com** — Marcelo Cáceres, super_admin PASA, auth Microsoft.
+
+### Fixed
+- **Refresh token respeta `sessionMinutes`** — el INSERT usaba `INTERVAL '7 days'` hardcodeado ignorando la duración por tenant/rol. Ahora usa `$3 * INTERVAL '1 minute'` con el parámetro real (TDD: 2 tests agregados).
+- **DropdownSelect ancho estable** — sizer invisible renderiza todos los labels para que el selector mantenga el ancho del label más largo.
+- **Detalle mensual scroll** — tabla con `max-h-[50vh]` y scroll interno; cadena flex corregida en Card, QueryStateView.
+- **Gráfico skeleton** — skeleton de barras (300px) reemplaza espacio vacío durante carga.
+
+### Changed
+- **Favicon** — reemplazado rayo Vite por ícono energía navy/celeste del proyecto.
+- **Label "Alerta warning"** → "Alerta" en filtro Panel Consolidado.
+
+---
+
 ## [2.47.2-alpha.0] - 2026-07-24 — LIMPIEZA CÓDIGOS DE REQUERIMIENTO
 
 ### Fixed — UI cleanup (40 archivos)

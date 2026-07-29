@@ -68,7 +68,7 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex min-h-0 flex-1 flex-col">
       {isFetching ? (
         <div
           className={`pointer-events-none absolute right-0 top-0 z-10 flex items-center gap-2 rounded-md bg-background/90 shadow-sm ring-1 ring-border ${

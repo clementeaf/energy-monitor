@@ -52,7 +52,7 @@ export function Card({
           {action && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      <div className={noPadding ? '' : 'p-6'}>{children}</div>
+      <div className={noPadding ? 'flex min-h-0 flex-1 flex-col' : 'p-6'}>{children}</div>
     </div>
   );
 }

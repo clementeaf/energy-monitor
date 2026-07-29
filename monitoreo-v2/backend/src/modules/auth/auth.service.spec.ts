@@ -159,6 +159,35 @@ describe('AuthService', () => {
     });
   });
 
+  describe('generateTokenPair', () => {
+    const payload = { sub: 'u-1', tenantId: 't-1', email: 'a@b.com', roleSlug: 'operator', buildingIds: [], permissions: [], crossTenant: false };
+
+    it('uses sessionMinutes for refresh token expiry instead of hardcoded 7 days', async () => {
+      ds.query.mockResolvedValue(undefined);
+
+      await service.generateTokenPair(payload, 60); // 60 minutes
+
+      const insertCall = ds.query.mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('INSERT INTO refresh_tokens'),
+      );
+      expect(insertCall).toBeDefined();
+      expect(insertCall![0]).toContain('$3');
+      expect(insertCall![1]).toHaveLength(3);
+      expect(insertCall![1][2]).toBe(60);
+    });
+
+    it('defaults to 1440 minutes (24h) when sessionMinutes not provided', async () => {
+      ds.query.mockResolvedValue(undefined);
+
+      await service.generateTokenPair(payload);
+
+      const insertCall = ds.query.mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('INSERT INTO refresh_tokens'),
+      );
+      expect(insertCall![1][2]).toBe(1440);
+    });
+  });
+
   describe('getUserBuildings', () => {
     it('returns building refs', async () => {
       ds.query.mockResolvedValue([{ id: 'b-1', name: 'Edificio A' }]);

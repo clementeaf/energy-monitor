@@ -162,7 +162,7 @@ const COLOR_BY_OPTIONS: { key: MapColorBy; label: string }[] = [
 const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'critical', label: 'Alarma crítica' },
-  { key: 'warning', label: 'Alerta warning' },
+  { key: 'warning', label: 'Alerta' },
   { key: 'nodata', label: 'Sin datos' },
 ];
 

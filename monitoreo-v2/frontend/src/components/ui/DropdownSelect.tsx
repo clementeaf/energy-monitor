@@ -99,13 +99,17 @@ function DropdownSelectInner<T extends string = string>({
   }, [open, filtered, highlightIdx, select]);
 
   return (
-    <div ref={containerRef} className={`relative ${className}`} onKeyDown={onKeyDown}>
+    <div ref={containerRef} className={`relative inline-block ${className}`} onKeyDown={onKeyDown}>
+      {/* Invisible sizer: renders all labels so the container adopts the widest */}
+      <div aria-hidden className="pointer-events-none invisible h-0 overflow-hidden px-3 text-sm">
+        {options.map((o) => <div key={o.value}>{o.label}<span className="inline-block w-6" /></div>)}
+      </div>
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={
-          'flex w-full items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm ' +
+          'flex w-full items-center justify-between whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm ' +
           'text-left transition-all duration-150 ' +
           'hover:border-subtle focus:border-brand focus:outline-none ' +
           (disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer')

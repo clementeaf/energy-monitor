@@ -403,8 +403,8 @@ export class AuthService {
 
     await this.dataSource.query(
       `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
-       VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
-      [payload.sub, tokenHash],
+       VALUES ($1, $2, NOW() + $3 * INTERVAL '1 minute')`,
+      [payload.sub, tokenHash, sessionMinutes],
     );
 
     return { accessToken, refreshToken: refreshTokenRaw };

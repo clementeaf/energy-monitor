@@ -6,7 +6,7 @@ import { CreateVarElectricDto, CreateVarElectricBatchDto } from './dto/create-va
 
 @ApiTags('Varelectric Ingress')
 @ApiSecurity('api-key')
-@Controller('api/v1/varelectric')
+@Controller('v1/varelectric')
 export class VarelectricIngressController {
   constructor(private readonly svc: VarelectricIngressService) {}
 

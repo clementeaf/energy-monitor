@@ -6,7 +6,7 @@ import { ThrottlerModule, ThrottlerGuard, type ThrottlerModuleOptions } from '@n
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import Redis from 'ioredis';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { getDatabaseConfig } from './config/database.config';
+import { getDatabaseConfig, getPostgresConnectionOptions } from './config/database.config';
 import { DatabaseModule } from './database/database.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { ApiVersionInterceptor } from './common/interceptors/api-version.interceptor';
@@ -57,6 +57,7 @@ import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
+import { VarelectricIngressModule } from './modules/varelectric-ingress/varelectric-ingress.module';
 
 @Module({
   imports: [
@@ -75,6 +76,19 @@ import { HealthController } from './health.controller';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: getDatabaseConfig,
+    }),
+
+    // monitoreo_v3 (Varelectric raw archive)
+    TypeOrmModule.forRootAsync({
+      name: 'v3',
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        ...getPostgresConnectionOptions(config),
+        database: config.get<string>('V3_DB_NAME', 'monitoreo_v3'),
+        autoLoadEntities: true,
+        synchronize: false,
+      }),
     }),
 
     // Rate limiting (ISO 27001: prevent brute force)
@@ -153,6 +167,7 @@ import { HealthController } from './health.controller';
     IotDevicesModule,
     CnrModule,
     InterventionsModule,
+    VarelectricIngressModule,
   ],
   controllers: [HealthController],
   providers: [

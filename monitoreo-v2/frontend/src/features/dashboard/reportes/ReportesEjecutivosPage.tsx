@@ -199,6 +199,7 @@ export function ReportesEjecutivosPage() {
     });
   };
 
+  const [downloading, setDownloading] = useState(false);
   const handleGenerate = () => {
     const range = periodRange(period);
     generateReport.mutate({
@@ -209,6 +210,7 @@ export function ReportesEjecutivosPage() {
     }, {
       onSuccess: async (report) => {
         if (!report?.id) return;
+        setDownloading(true);
         try {
           const { data } = await api.get(`/reports/${report.id}/export`, { responseType: 'blob' });
           const url = URL.createObjectURL(data);
@@ -218,6 +220,7 @@ export function ReportesEjecutivosPage() {
           a.click();
           URL.revokeObjectURL(url);
         } catch { /* export may not be ready yet */ }
+        setDownloading(false);
       },
     });
   };
@@ -332,8 +335,8 @@ export function ReportesEjecutivosPage() {
 
           {/* Action buttons */}
           <div className="flex shrink-0 gap-2">
-            <Button onClick={handleGenerate} loading={generateReport.isPending} className="flex-1">
-              Generar reporte
+            <Button onClick={handleGenerate} loading={generateReport.isPending || downloading} disabled={generateReport.isPending || downloading} className="flex-1">
+              {downloading ? 'Descargando reporte…' : generateReport.isPending ? 'Generando reporte…' : 'Generar reporte'}
             </Button>
             <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">
               Programar envío

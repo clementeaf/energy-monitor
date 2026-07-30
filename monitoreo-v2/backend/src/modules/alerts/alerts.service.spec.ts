@@ -59,6 +59,7 @@ describe('AlertsService', () => {
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
     getMany: jest.fn().mockResolvedValue(Array.isArray(result) ? result : [result]),
     getOne: jest.fn().mockResolvedValue(Array.isArray(result) ? result[0] ?? null : result),
   });
@@ -220,6 +221,17 @@ describe('AlertsService', () => {
 
       const result = await service.resolve('missing', TENANT_ID, [], 'u-1');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('findAll default limit', () => {
+    it('applies a default LIMIT to prevent unbounded queries', async () => {
+      const qb = makeQb();
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.findAll(TENANT_ID, [], {});
+
+      expect(qb.take).toHaveBeenCalledWith(500);
     });
   });
 });

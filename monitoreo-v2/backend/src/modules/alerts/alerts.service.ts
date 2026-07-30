@@ -45,6 +45,8 @@ export class AlertsService {
       qb.andWhere('a.meter_id = :meterId', { meterId: filters.meterId });
     }
 
+    qb.take(500);
+
     return qb.getMany();
   }
 

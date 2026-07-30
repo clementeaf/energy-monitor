@@ -982,8 +982,10 @@ export class ReadingsService {
     pgInterval: string,
   ): Promise<AggregatedRow[]> {
     assertSafeInterval(pgInterval);
+    await this.dataSource.query("SET LOCAL statement_timeout = '15s'");
+    try {
     if (crossTenant) {
-      return this.dataSource.query(
+      return await this.dataSource.query(
         `SELECT
            sub.bucket::text,
            '_portfolio' AS meter_id,
@@ -1014,7 +1016,7 @@ export class ReadingsService {
         [pgInterval, query.from, query.to],
       );
     }
-    return this.dataSource.query(
+    return await this.dataSource.query(
       `SELECT
          sub.bucket::text,
          '_portfolio' AS meter_id,
@@ -1046,6 +1048,9 @@ export class ReadingsService {
        ORDER BY sub.bucket ASC`,
       [pgInterval, tenantId, query.from, query.to],
     );
+    } finally {
+      await this.dataSource.query("SET LOCAL statement_timeout = '0'");
+    }
   }
 
   /**

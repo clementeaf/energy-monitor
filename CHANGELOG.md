@@ -8,10 +8,13 @@
 - **OperatorSwitcher** — Ahora filtra tiendas/operadores dentro del edificio seleccionado, no al revés.
 - **Store cascade reset** — Cambiar edificio resetea tienda. Cambiar tienda ya no resetea edificio.
 - **needsSelection** — Ahora requiere seleccionar edificio (no operador) para ver contenido filtrado.
-- **Páginas detalle cross-context** — MeterDetail, BuildingDetail y Drilldown redirigen a lista cuando el item no pertenece al contexto seleccionado.
+- **Páginas detalle cross-context** — MeterDetail, BuildingDetail y Drilldown redirigen al item correcto cuando el actual no pertenece al contexto (incluye caso building no encontrado en tenant).
+- **MetersPage filtro operador** — Lista de medidores ahora filtra por operador/tienda seleccionado en header.
+- **BuildingDetailPage filtro operador** — Detalle edificio filtra meters por operador seleccionado.
+- **ExportarReportesPage build fix** — Referencia circular `rawBuildings` corregida.
 
 ### Added
-- **useOperatorFilter propagado a 11 páginas** — Filtro operator/building ahora activo en todas las vistas gerenciales y operacionales:
+- **useOperatorFilter propagado a 13 páginas** — Filtro operator/building ahora activo en todas las vistas gerenciales, operacionales y detalle:
   - Gerencial: PanelConsolidado, ConsumoJerarquico, CostosTendencias, ReportesEjecutivos, AlarmasAgregadas, ExportarReportes
   - Operacional: MonitoreoVivo, AlarmasEventos, CalidadBackfill, CnrPendientes, MapaCobertura
 - Cada página filtra buildings, meters, readings y alerts client-side según selección del header.

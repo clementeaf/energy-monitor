@@ -66,8 +66,9 @@ export function MeterDetailPage() {
   const building = buildingsQuery.data?.find((b) => b.id === meter?.buildingId);
 
   // When user changes context and current meter doesn't belong, redirect to meters list
-  const meterOutOfContext = meter && isFilteredMode && (
-    (operatorMeterIds && !operatorMeterIds.has(meter.id))
+  const meterOutOfContext = isFilteredMode && !meterQuery.isPending && (
+    !meter
+    || (operatorMeterIds && !operatorMeterIds.has(meter.id))
     || (operatorBuildingIds && !operatorBuildingIds.has(meter.buildingId))
   );
   if (meterOutOfContext) {

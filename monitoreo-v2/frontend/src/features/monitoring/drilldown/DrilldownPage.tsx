@@ -21,7 +21,7 @@ export function DrilldownPage() {
   const buildingsQuery = useBuildingsQuery();
   const building = buildingsQuery.data?.find((b) => b.id === siteId);
 
-  if (building && isFilteredMode && operatorBuildingIds && !operatorBuildingIds.has(building.id)) {
+  if (isFilteredMode && operatorBuildingIds && !buildingsQuery.isPending && (!building || !operatorBuildingIds.has(building.id))) {
     const targetBuilding = [...operatorBuildingIds][0];
     navigate(targetBuilding ? `/monitoring/drilldown/${targetBuilding}` : '/buildings', { replace: true });
     return null;

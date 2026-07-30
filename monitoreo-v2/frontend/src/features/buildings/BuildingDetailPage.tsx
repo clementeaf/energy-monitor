@@ -83,14 +83,17 @@ type Tab = 'billing' | 'meters';
 export function BuildingDetailPage() {
   const { buildingId } = useParams<{ buildingId: string }>();
   const navigate = useNavigate();
-  const { isFilteredMode, operatorBuildingIds } = useOperatorFilter();
+  const { isFilteredMode, operatorBuildingIds, operatorMeterIds } = useOperatorFilter();
 
   const buildingsQuery = useBuildingsQuery();
   const building = buildingsQuery.data?.find((b) => b.id === buildingId);
 
-  // Redirect when building doesn't belong to current context
-  if (building && isFilteredMode && operatorBuildingIds && !operatorBuildingIds.has(building.id)) {
-    const targetBuilding = [...operatorBuildingIds][0];
+  // Redirect when building doesn't belong to current context or doesn't exist in current tenant
+  const buildingOutOfContext = isFilteredMode && operatorBuildingIds && (
+    !building || !operatorBuildingIds.has(building.id)
+  );
+  if (buildingOutOfContext && !buildingsQuery.isPending) {
+    const targetBuilding = [...operatorBuildingIds!][0];
     navigate(targetBuilding ? `/buildings/${targetBuilding}` : '/buildings', { replace: true });
     return null;
   }
@@ -99,7 +102,11 @@ export function BuildingDetailPage() {
   const invoicesQuery = useInvoicesQuery({ buildingId });
 
   const invoices = invoicesQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
+  const rawMeters = metersQuery.data ?? [];
+  const meters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawMeters;
+    return rawMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [rawMeters, isFilteredMode, operatorMeterIds]);
   const hasInvoices = invoices.length > 0;
 
   const [activeTab, setActiveTab] = useState<Tab>(hasInvoices ? 'billing' : 'meters');

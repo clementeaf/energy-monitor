@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.48.8] - 2026-07-30 — PORTFOLIO FIX + ALERTS + MATVIEW REFRESH
+
+### Fixed
+- **Portfolio daily 10s → 300ms** — eliminado raw fallback innecesario para portfolio/hourly. Matviews devuelven resultado directo sin escanear tabla raw.
+- **Alerts `status=open` 400** — frontend enviaba `open` (no válido en backend). Corregido a `active`, opción duplicada eliminada.
+- **Matviews auto-refresh** — sync service refresca las 4 matviews después de insertar readings nuevos (TDD: 8 tests).
+
+---
+
 ## [2.48.7] - 2026-07-30 — AUTH REFRESH FIX + NAV + PERF
 
 ### Fixed

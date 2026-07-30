@@ -813,10 +813,7 @@ export class ReadingsService {
     }
     if (rows.length > 0) return rows;
 
-    rows = await this.queryPortfolioFromDaily(tenantId, query, crossTenant);
-    if (rows.length > 0) return rows;
-
-    return this.queryPortfolioFromRaw(tenantId, query, crossTenant, '1 day');
+    return this.queryPortfolioFromDaily(tenantId, query, crossTenant);
   }
 
   /**
@@ -827,9 +824,7 @@ export class ReadingsService {
     query: AggregatedQueryDto,
     crossTenant: boolean,
   ): Promise<AggregatedRow[]> {
-    const rows = await this.queryPortfolioFromHourly(tenantId, query, crossTenant);
-    if (rows.length > 0) return rows;
-    return this.queryPortfolioFromRaw(tenantId, query, crossTenant, '1 hour');
+    return this.queryPortfolioFromHourly(tenantId, query, crossTenant);
   }
 
   /**

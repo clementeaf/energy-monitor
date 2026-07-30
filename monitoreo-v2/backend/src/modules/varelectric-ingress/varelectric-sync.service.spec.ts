@@ -100,4 +100,18 @@ describe('VarelectricSyncService', () => {
       expect(ds.query).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('refreshMaterializedViews', () => {
+    it('refreshes all 4 materialized views after sync', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.refreshMaterializedViews();
+
+      const calls = ds.query.mock.calls.map((c: unknown[]) => (c[0] as string).trim());
+      expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW readings_hourly'));
+      expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW readings_daily'));
+      expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW portfolio_summary'));
+      expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW building_summary'));
+    });
+  });
 });

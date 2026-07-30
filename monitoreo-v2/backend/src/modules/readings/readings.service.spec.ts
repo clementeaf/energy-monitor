@@ -598,23 +598,22 @@ describe('ReadingsService', () => {
       expect(lastCall).toContain("statement_timeout = '0'");
     });
 
-    it('applies statement_timeout to portfolio raw fallback', async () => {
-      // portfolio daily: portfolio_summary empty → readings_daily empty → raw fallback
+    it('portfolio returns empty without raw fallback when matviews return empty', async () => {
       ds.query
         .mockRejectedValueOnce(Object.assign(new Error('does not exist'), { driverError: { code: '42P01' } }))
-        .mockResolvedValueOnce([]) // readings_daily fallback empty
-        .mockResolvedValue([]); // raw fallback
+        .mockResolvedValueOnce([]); // readings_daily fallback empty → no raw fallback
 
-      await service.findAggregated(TENANT_ID, [], {
+      const result = await service.findAggregated(TENANT_ID, [], {
         from: '2026-07-01T00:00:00Z',
         to: '2026-07-31T00:00:00Z',
         interval: 'daily',
         groupBy: 'portfolio',
       });
 
+      expect(result).toEqual([]);
       const calls = ds.query.mock.calls.map((c: unknown[]) => c[0] as string);
-      const hasTimeout = calls.some((sql) => sql.includes('statement_timeout'));
-      expect(hasTimeout).toBe(true);
+      const hasRawScan = calls.some((sql) => sql.includes('FROM readings r'));
+      expect(hasRawScan).toBe(false);
     });
   });
 });

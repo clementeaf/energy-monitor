@@ -81,15 +81,33 @@ export class VarelectricSyncService {
     return id;
   }
 
+  private static readonly MATVIEWS = ['readings_hourly', 'readings_daily', 'portfolio_summary', 'building_summary'];
+
   @Cron(CronExpression.EVERY_5_MINUTES)
   async syncAll(): Promise<void> {
+    let totalInserted = 0;
     for (const source of this.sources) {
       try {
-        await this.syncSource(source);
+        const { inserted } = await this.syncSource(source);
+        totalInserted += inserted;
       } catch (err) {
         this.logger.error(`Sync failed for ${source.db}: ${(err as Error).message}`);
       }
     }
+    if (totalInserted > 0) {
+      await this.refreshMaterializedViews();
+    }
+  }
+
+  async refreshMaterializedViews(): Promise<void> {
+    for (const view of VarelectricSyncService.MATVIEWS) {
+      try {
+        await this.dataSource.query(`REFRESH MATERIALIZED VIEW ${view}`);
+      } catch (err) {
+        this.logger.warn(`Failed to refresh ${view}: ${(err as Error).message}`);
+      }
+    }
+    this.logger.log('Materialized views refreshed');
   }
 
   async syncSource(source: VarelectricSyncSource): Promise<{ inserted: number; skipped: number }> {

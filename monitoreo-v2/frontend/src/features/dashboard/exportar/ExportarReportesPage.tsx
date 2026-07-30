@@ -137,7 +137,7 @@ export function ExportarReportesPage() {
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
   const buildingsQuery = useBuildingsQuery();
-  const rawBuildings = filteredBuildingsForExport;
+  const rawBuildings = buildingsQuery.data ?? [];
   const filteredBuildingsForExport = useMemo(() => {
     if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
     return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));

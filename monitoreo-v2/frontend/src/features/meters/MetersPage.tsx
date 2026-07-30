@@ -8,6 +8,7 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useMetersQuery, useCreateMeter, useUpdateMeter, useDeleteMeter } from '../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { MeterForm } from './MeterForm';
 import { MeterImportTab } from './MeterImportTab';
 import { LOAD_CATEGORY_LABELS } from '../../lib/site-metadata-labels';
@@ -30,6 +31,8 @@ export function MetersPage() {
   const { has } = usePermissions();
   const canWrite = has('admin_meters', 'create');
 
+  const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery(buildingId);
   const qs = useQueryState(metersQuery, {
@@ -40,8 +43,12 @@ export function MetersPage() {
   const updateMutation = useUpdateMeter();
   const deleteMutation = useDeleteMeter();
 
-  const allMeters = metersQuery.data ?? [];
-  const { visible: meters, hasMore, sentinelRef, total } = useInfiniteScroll(allMeters, [buildingId]);
+  const rawMeters = metersQuery.data ?? [];
+  const allMeters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawMeters;
+    return rawMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [rawMeters, isFilteredMode, operatorMeterIds]);
+  const { visible: meters, hasMore, sentinelRef, total } = useInfiniteScroll(allMeters, [buildingId, operatorMeterIds]);
 
   const buildingMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -78,6 +85,17 @@ export function MetersPage() {
       setSearchParams({});
     }
   };
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -78,11 +78,8 @@ describe('finalizeAuthSession — violent scenarios', () => {
     expect(meMock).toHaveBeenCalledTimes(1);
   });
 
-  it('retries /me up to 4 times before refresh fallback', async () => {
+  it('retries /me once then falls back to refresh', async () => {
     meMock
-      .mockRejectedValueOnce(new Error('401'))
-      .mockRejectedValueOnce(new Error('401'))
-      .mockRejectedValueOnce(new Error('401'))
       .mockRejectedValueOnce(new Error('401'))
       .mockResolvedValueOnce({ data: mePayload });
 
@@ -98,7 +95,7 @@ describe('finalizeAuthSession — violent scenarios', () => {
     await vi.runAllTimersAsync();
     await run;
 
-    expect(meMock.mock.calls.length).toBeGreaterThanOrEqual(4);
+    expect(meMock).toHaveBeenCalledTimes(2);
     expect(refreshMock).toHaveBeenCalled();
     expect(applyMeResponse).toHaveBeenCalledWith(mePayload);
   });

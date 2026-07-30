@@ -27,11 +27,15 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   isLoading: true,
   error: null,
 
-  setSession: (user, tenant, buildings, idleTimeoutMinutes = 15) =>
-    set({ user, tenant, buildings, idleTimeoutMinutes, isAuthenticated: true, isLoading: false, error: null }),
+  setSession: (user, tenant, buildings, idleTimeoutMinutes = 15) => {
+    sessionStorage.setItem('auth_active', '1');
+    set({ user, tenant, buildings, idleTimeoutMinutes, isAuthenticated: true, isLoading: false, error: null });
+  },
 
-  clearSession: () =>
-    set({ user: null, tenant: null, buildings: [], idleTimeoutMinutes: 15, isAuthenticated: false, isLoading: false, error: null }),
+  clearSession: () => {
+    sessionStorage.removeItem('auth_active');
+    set({ user: null, tenant: null, buildings: [], idleTimeoutMinutes: 15, isAuthenticated: false, isLoading: false, error: null });
+  },
 
   setLoading: (isLoading) => set({ isLoading }),
 

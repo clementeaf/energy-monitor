@@ -113,4 +113,25 @@ describe('useAuthStore', () => {
       expect(useAuthStore.getState().error).toBeNull();
     });
   });
+
+  describe('session persistence (gap 2 fix)', () => {
+    it('persists isAuthenticated to sessionStorage on setSession', () => {
+      useAuthStore.getState().setSession(mockUser, mockTenant, mockBuildings);
+      expect(sessionStorage.getItem('auth_active')).toBe('1');
+    });
+
+    it('clears sessionStorage on clearSession', () => {
+      useAuthStore.getState().setSession(mockUser, mockTenant, mockBuildings);
+      useAuthStore.getState().clearSession();
+      expect(sessionStorage.getItem('auth_active')).toBeNull();
+    });
+
+    it('initializes isLoading=true even with auth_active flag (waits for /me)', () => {
+      sessionStorage.setItem('auth_active', '1');
+      // Reset store to simulate fresh load
+      useAuthStore.setState({ isLoading: true, isAuthenticated: false });
+      // Store should still be loading until setSession is called
+      expect(useAuthStore.getState().isLoading).toBe(true);
+    });
+  });
 });

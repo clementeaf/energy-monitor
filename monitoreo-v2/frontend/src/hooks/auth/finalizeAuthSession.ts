@@ -56,20 +56,15 @@ export async function finalizeAuthSession(options: FinalizeAuthSessionOptions): 
     return;
   }
 
-  const retryDelaysMs = [0, 50, 150, 300];
-
-  for (const waitMs of retryDelaysMs) {
-    if (waitMs > 0) {
-      await delay(waitMs);
-    }
-    try {
-      const { data } = await authEndpoints.me();
-      applyMeResponse(data);
-      return;
-    } catch {
-      // Retry — cookies or dev Bearer may not be ready on the first tick.
-    }
+  try {
+    const { data } = await authEndpoints.me();
+    applyMeResponse(data);
+    return;
+  } catch {
+    // First attempt failed — cookies may not be ready yet.
   }
+
+  await delay(200);
 
   try {
     const { data: refreshData } = await authEndpoints.refresh();

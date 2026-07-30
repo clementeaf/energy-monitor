@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.48.2] - 2026-07-29 — AGGREGATES + VARELECTRIC DBs
+
+### Fixed
+- **Queries aggregated 504** — `findFromRawBucket` ahora aplica `SET LOCAL statement_timeout = '15s'` para evitar queries de 6+ minutos (TDD: 2 tests).
+- **Materialized views** — `readings_hourly` (662K rows) y `readings_daily` (28K rows) creadas en prod con índices. Queries mensuales de 6 min → 600ms.
+
+### Changed
+- **Varelectric 3 DBs separadas** — `altopena`, `renaissance`, `quilicura` reemplazan `monitoreo_v3` única. IDs no colisionan entre edificios.
+- **`idvar_electric` autoincremental** — campo ahora es `GENERATED ALWAYS AS IDENTITY` en las 3 DBs. INSERT sin ese campo genera ID automático.
+- **Tabla `configuracion`** — creada y poblada en las 3 DBs (65 Alto Peña, 11 Quilicura, 1 Renaissance).
+- **SSL deshabilitado** — `rds.force_ssl=0` para compatibilidad con HeidiSQL de terceros.
+
+---
+
 ## [2.48.0] - 2026-07-29 — VARELECTRIC + AUTH FIX + UI
 
 ### Added

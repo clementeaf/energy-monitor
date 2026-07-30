@@ -128,7 +128,7 @@ export class VarelectricSyncService {
     await extDs.initialize();
     try {
       const rows: VarElectricRow[] = await extDs.query(
-        `SELECT * FROM var_electric WHERE fecha > $1 ORDER BY fecha ASC LIMIT 10000`,
+        `SELECT * FROM var_electric WHERE fecha > $1 ORDER BY fecha DESC LIMIT 50000`,
         [lastTimestamp],
       );
 

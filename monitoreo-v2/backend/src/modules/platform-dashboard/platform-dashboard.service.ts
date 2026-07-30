@@ -31,21 +31,16 @@ export class PlatformDashboardService {
         (SELECT COUNT(*) FROM tenants WHERE is_active = true AND slug != 'globe-power')::int AS tenants,
         (SELECT COUNT(*) FROM buildings WHERE is_active = true)::int AS buildings,
         (SELECT COUNT(*) FROM meters WHERE is_active = true)::int AS meters,
-        (SELECT COUNT(*) FROM readings)::int AS readings,
+        (SELECT reltuples::bigint FROM pg_class WHERE relname = 'readings')::int AS readings,
         (SELECT COUNT(*) FROM alerts WHERE status = 'active')::int AS active_alerts
     `);
 
-    // Online/offline: meter has reading in last 30 min = online
     const [connectivity] = await this.dataSource.query(`
       SELECT
-        COUNT(*) FILTER (WHERE lr.timestamp > NOW() - INTERVAL '30 minutes')::int AS online,
-        COUNT(*) FILTER (WHERE lr.timestamp IS NULL OR lr.timestamp <= NOW() - INTERVAL '30 minutes')::int AS offline
+        COUNT(*) FILTER (WHERE ms.last_reading_at > NOW() - INTERVAL '30 minutes')::int AS online,
+        COUNT(*) FILTER (WHERE ms.last_reading_at IS NULL OR ms.last_reading_at <= NOW() - INTERVAL '30 minutes')::int AS offline
       FROM meters m
-      LEFT JOIN LATERAL (
-        SELECT r.timestamp FROM readings r
-        WHERE r.meter_id = m.id
-        ORDER BY r.timestamp DESC LIMIT 1
-      ) lr ON true
+      LEFT JOIN meter_reading_status ms ON ms.meter_id = m.id
       WHERE m.is_active = true
     `);
 

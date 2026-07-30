@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { MapView } from '../../../components/ui/MapView';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
@@ -1084,6 +1085,7 @@ function FloorPlanView({ buildingId, buildingName, floorId, readings, alerts, co
 /* ── Demand Sparkline (24h bars) ── */
 
 function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[]; buildings: Building[] }>) {
+  const navigate = useNavigate();
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);
   const recent = useMemo(() =>
     [...alerts]
@@ -1101,7 +1103,11 @@ function RecentCriticalEvents({ alerts, buildings }: Readonly<{ alerts: Alert[];
         const ago = Math.round((Date.now() - new Date(a.createdAt).getTime()) / 60_000);
         const agoLabel = ago < 60 ? `${ago}m` : `${Math.round(ago / 60)}h`;
         return (
-          <li key={a.id} className="flex items-start gap-1.5">
+          <li
+            key={a.id}
+            className="flex cursor-pointer items-start gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-surface"
+            onClick={() => a.meterId && navigate(`/monitoring/meter/${a.meterId}`)}
+          >
             <span className={`mt-0.5 inline-block size-1.5 shrink-0 rounded-full ${a.severity === 'critical' ? 'bg-red-500' : 'bg-orange-400'}`} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1 text-foreground">
@@ -1160,19 +1166,19 @@ const HEATMAP_TOTAL = HEATMAP_COLS * HEATMAP_ROWS;
 const HEAT_COLORS = ['bg-emerald-200', 'bg-emerald-300', 'bg-yellow-200', 'bg-amber-300', 'bg-orange-300', 'bg-red-300'];
 
 function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) {
-  // Build cells from enriched buildings, fill remainder with placeholder
+  const navigate = useNavigate();
   const cells = useMemo(() => {
     const sorted = [...enriched].sort((a, b) => b.powerKw - a.powerKw);
     const maxPower = Math.max(1, ...sorted.map((e) => e.powerKw));
-    const result: { label: string; power: number; colorClass: string; status: EnergyStatus }[] = [];
+    const result: { id: string | null; label: string; power: number; colorClass: string; status: EnergyStatus }[] = [];
     for (let i = 0; i < HEATMAP_TOTAL; i++) {
       if (i < sorted.length) {
         const e = sorted[i];
         const ratio = e.powerKw / maxPower;
         const colorIdx = Math.min(HEAT_COLORS.length - 1, Math.floor(ratio * HEAT_COLORS.length));
-        result.push({ label: e.building.name, power: e.powerKw, colorClass: HEAT_COLORS[colorIdx], status: e.status });
+        result.push({ id: e.building.id, label: e.building.name, power: e.powerKw, colorClass: HEAT_COLORS[colorIdx], status: e.status });
       } else {
-        result.push({ label: '—', power: 0, colorClass: 'bg-gray-100', status: 'nodata' as EnergyStatus });
+        result.push({ id: null, label: '—', power: 0, colorClass: 'bg-gray-100', status: 'nodata' as EnergyStatus });
       }
     }
     return result;
@@ -1183,8 +1189,9 @@ function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) 
       {cells.map((cell, i) => (
         <div
           key={i}
-          className={`relative rounded-md px-1.5 py-2 text-center ${cell.colorClass}`}
+          className={`relative rounded-md px-1.5 py-2 text-center transition-opacity ${cell.colorClass} ${cell.id ? 'cursor-pointer hover:opacity-80' : ''}`}
           title={`${cell.label} — ${cell.power.toFixed(1)} kW`}
+          onClick={() => cell.id && navigate(`/buildings/${cell.id}`)}
         >
           <p className="truncate text-[9px] font-medium text-foreground/80">{cell.label}</p>
           {cell.power > 0 && (

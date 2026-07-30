@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 
 /* ── Types ── */
@@ -146,9 +146,8 @@ export function ConfigReleasesPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {PIPELINE.map((r, i) => (
-                <>
+                <Fragment key={r.version}>
                   <tr
-                    key={r.version}
                     className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
                     style={{ animationDelay: `${i * 30}ms` }}
                     onClick={() => setExpandedRow(expandedRow === r.version ? null : r.version)}
@@ -182,7 +181,7 @@ export function ConfigReleasesPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

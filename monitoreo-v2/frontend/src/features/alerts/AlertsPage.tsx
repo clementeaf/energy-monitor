@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { Drawer } from '../../components/ui/Drawer';
@@ -32,6 +32,7 @@ const STATUS_LABELS: Record<AlertStatus, string> = {
 };
 
 export function AlertsPage() {
+  const navigate = useNavigate();
   const { isFilteredMode, needsSelection, operatorMeterIds } = useOperatorFilter();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
@@ -182,7 +183,8 @@ export function AlertsPage() {
               <tr
                 key={a.id}
                 ref={a.id === highlightId ? highlightRef : undefined}
-                className={`transition-colors duration-500 ${
+                onClick={() => { if (a.meterId) navigate('/monitoring/meter/' + a.meterId); }}
+                className={`cursor-pointer transition-colors duration-500 ${
                   a.id === highlightId
                     ? 'bg-brand-muted ring-1 ring-inset ring-brand/30'
                     : 'hover:bg-surface'
@@ -193,7 +195,21 @@ export function AlertsPage() {
                     {a.severity}
                   </span>
                 </Td>
-                <Td>{a.alertTypeCode}</Td>
+                <Td>
+                  {a.alertTypeCode}
+                  {a.buildingId && (
+                    <>
+                      {' · '}
+                      <a
+                        href={`/buildings/${a.buildingId}`}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/buildings/${a.buildingId}`); }}
+                        className="text-xs text-brand hover:underline"
+                      >
+                        edificio
+                      </a>
+                    </>
+                  )}
+                </Td>
                 <Td className="max-w-xs truncate">{a.message}</Td>
                 <Td>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[a.status]}`}>
@@ -206,7 +222,7 @@ export function AlertsPage() {
                     {a.status === 'active' && (
                       <button
                         type="button"
-                        onClick={() => { acknowledgeMutation.mutate(a.id); }}
+                        onClick={(e) => { e.stopPropagation(); acknowledgeMutation.mutate(a.id); }}
                         disabled={acknowledgeMutation.isPending}
                         className="rounded px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
                       >
@@ -216,7 +232,7 @@ export function AlertsPage() {
                     {a.status !== 'resolved' && (
                       <button
                         type="button"
-                        onClick={() => { setResolvingAlert(a); setResolutionNotes(''); }}
+                        onClick={(e) => { e.stopPropagation(); setResolvingAlert(a); setResolutionNotes(''); }}
                         className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
                       >
                         Resolver

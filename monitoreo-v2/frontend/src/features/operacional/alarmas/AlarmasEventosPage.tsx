@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
@@ -365,12 +366,17 @@ function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buil
   alert: Alert; isSelected: boolean; sevStyle: string; statStyle: string; statLabel: string; buildingName: string; onSelect: () => void; index?: number;
 }>) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
   return (
     <>
       <tr
         className={`animate-fade-in cursor-pointer transition-colors hover:bg-surface ${isSelected ? 'bg-surface' : ''}`}
         style={{ animationDelay: `${index * 25}ms` }}
-        onClick={() => { onSelect(); setExpanded(!expanded); }}
+        onClick={() => {
+          onSelect();
+          setExpanded(!expanded);
+          if (alert.meterId) navigate(`/monitoring/meter/${alert.meterId}`);
+        }}
       >
         <td className="px-2 py-1.5 text-[10px] text-muted">{alert.id.slice(0, 6)}</td>
         <td className="px-2 py-1.5">
@@ -379,7 +385,12 @@ function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buil
           </span>
         </td>
         <td className="max-w-[180px] truncate px-2 py-1.5 text-foreground">{alert.message}</td>
-        <td className="px-2 py-1.5 text-muted">{buildingName}</td>
+        <td
+          className="cursor-pointer px-2 py-1.5 text-muted hover:bg-surface hover:underline"
+          onClick={(e) => { e.stopPropagation(); navigate(`/buildings/${alert.buildingId}`); }}
+        >
+          {buildingName}
+        </td>
         <td className="px-2 py-1.5 text-muted">{alert.meterId ? alert.meterId.slice(0, 8) : '—'}</td>
         <td className="px-2 py-1.5 text-muted">{new Date(alert.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</td>
         <td className="px-2 py-1.5 text-muted">{elapsed(alert.createdAt)}</td>

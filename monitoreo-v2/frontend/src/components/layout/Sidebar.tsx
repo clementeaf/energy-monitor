@@ -57,6 +57,7 @@ export function Sidebar() {
 
   const navEntries = useMemo(() => {
     const entries = PROFILE_NAV[profile];
+    if (profile === 'super_admin') return entries;
     return selectedTenantId ? entries.filter((e) => !e.platformOnly) : entries;
   }, [profile, selectedTenantId]);
   const activeIdx = findActiveIndex(navEntries, location.pathname);

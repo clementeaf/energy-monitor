@@ -241,11 +241,9 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.monitoring.modbusMapSite, element: <P any={DASH_TECH}><LazyModbusMapPage /></P> },
                   { path: APP_ROUTES.monitoring.concentrator, element: <P any={DEVICES}><LazyConcentratorPage /></P> },
                   { path: APP_ROUTES.monitoring.faultHistory, element: <P any={FAULTS}><LazyFaultHistoryPage /></P> },
-                  { path: APP_ROUTES.monitoring.meterDetail, element: <P any={MONITORING}><LazyMeterDetailPage /></P> },
-                  { path: APP_ROUTES.monitoring.meterReadings, element: <P any={MONITORING}><LazyMeterReadingsPage /></P> },
+                  /* meter detail/readings moved to cross-tenant */
 
-                  /* Edificio detalle (requiere tenant, lista no) */
-                  { path: APP_ROUTES.buildingDetail, element: <P any={BUILDINGS}><LazyBuildingDetailPage /></P> },
+                  /* Edificio detalle (tenant auto-detected from building) */
 
                   /* Facturación */
                   { path: APP_ROUTES.billing.invoices, element: <P any={BILLING_READ}><LazyInvoicesPage /></P> },
@@ -286,7 +284,6 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.registerMappings, element: <P any={ADMIN_REGISTER_MAPPINGS}><LazyRegisterMappingsPage /></P> },
                   { path: APP_ROUTES.admin.regions, element: <P any={BUILDINGS}><LazyRegionsPage /></P> },
                   { path: APP_ROUTES.admin.breachReports, element: <P any={AUDIT}><LazyBreachReportsPage /></P> },
-                  { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
                   /* Auditor — 6 pages (tenant-scoped) */
                   { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
                   { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
@@ -311,8 +308,12 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.throttleCargas, element: <P any={DASH_EXEC}><LazyThrottleCargasPage /></P> },
               { path: APP_ROUTES.retencionPrivacidad, element: <P any={DASH_EXEC}><LazyRetencionPrivacidadPage /></P> },
               { path: APP_ROUTES.replicaDatos, element: <P any={DASH_EXEC}><LazyReplicaDatosPage /></P> },
+              { path: APP_ROUTES.seguridadPam, element: <P any={AUDIT}><LazySeguridadPamPage /></P> },
 
               /* Edificios & Medidores (listas cross-tenant) */
+              { path: APP_ROUTES.buildingDetail, element: <P any={BUILDINGS}><LazyBuildingDetailPage /></P> },
+              { path: APP_ROUTES.monitoring.meterDetail, element: <P any={MONITORING}><LazyMeterDetailPage /></P> },
+              { path: APP_ROUTES.monitoring.meterReadings, element: <P any={MONITORING}><LazyMeterReadingsPage /></P> },
               { path: APP_ROUTES.buildings, element: <P any={BUILDINGS}><LazyBuildingsPage /></P> },
               { path: APP_ROUTES.map, element: <P any={BUILDINGS}><LazyMapPage /></P> },
               { path: APP_ROUTES.meters, element: <P any={METERS}><LazyMetersUnifiedPage /></P> },

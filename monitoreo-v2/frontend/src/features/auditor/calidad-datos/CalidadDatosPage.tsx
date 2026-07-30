@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
@@ -148,6 +149,7 @@ const PERIOD_OPTIONS = [
 /* ── Page ── */
 
 export function CalidadDatosPage() {
+  const navigate = useNavigate();
   const [mallFilter, setMallFilter] = useState('all');
   const [period, setPeriod] = useState('30');
   const [granularity, setGranularity] = useState<Granularity>('hourly');
@@ -343,7 +345,10 @@ export function CalidadDatosPage() {
                   onClick={() => setSelectedMall(row.buildingId === selectedMall ? null : row.buildingId)}
                 >
                   <td className="px-3 py-2 font-medium text-foreground">
-                    <span className="flex items-center gap-2">
+                    <span
+                      className="flex items-center gap-2 cursor-pointer hover:underline"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/buildings/${row.buildingId}`); }}
+                    >
                       <span className={`inline-block size-2 rounded-full ${SEMAPHORE_DOT[row.semaphore]}`} />
                       {row.buildingName}
                     </span>
@@ -461,8 +466,9 @@ export function CalidadDatosPage() {
                     {lowQualityMeters.map((m, i) => (
                       <tr
                         key={m.id}
-                        className="animate-fade-in hover:bg-surface"
+                        className="animate-fade-in cursor-pointer transition-colors hover:bg-surface"
                         style={{ animationDelay: `${i * 30}ms` }}
+                        onClick={() => navigate(`/monitoring/meter/${m.id}`)}
                       >
                         <td className="px-2 py-1.5 text-foreground">{m.name}</td>
                         <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-red-600' : 'text-amber-600'}`}>

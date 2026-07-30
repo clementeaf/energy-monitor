@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.48.9] - 2026-07-30 — NAVIGATION + SYNC + ROUTING FIXES
+
+### Fixed
+- **Super Admin sidebar** — ya no filtra items `platformOnly` al seleccionar empresa. Los 10 items siempre visibles.
+- **Seguridad y PAM** — movido fuera de `RequireTenantLayout`. No pide seleccionar empresa.
+- **Building/Meter detail cross-tenant** — `/buildings/:id`, `/monitoring/meter/:id` ya no requieren tenant seleccionado.
+- **ConfigReleasesPage key warning** — Fragment sin key corregido.
+- **Platform KPIs 504** — `COUNT(*) FROM readings` reemplazado con `pg_class.reltuples`; `LATERAL` subquery reemplazado con JOIN a `meter_reading_status`.
+- **Sync recientes primero** — `ORDER BY fecha DESC` + batch 50K. Datos de hoy aparecen en primer ciclo.
+
+### Added
+- **Click-through navigation** — AlertsPage, AlarmasEventosPage, MedidoresCatalogoPage, CalidadDatosPage, PanelConsolidado (heatmap + feed eventos).
+- **Generar reporte descarga** — botón ahora abre el archivo generado automáticamente.
+
+---
+
 ## [2.48.8] - 2026-07-30 — PORTFOLIO FIX + ALERTS + MATVIEW REFRESH
 
 ### Fixed

@@ -4,6 +4,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 // ponytail: PillToggle replaced with native selects per wireframe
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
+import { reportsEndpoints } from '../../../services/endpoints';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import type { ReportFormat, PlatformReportType } from '../../../types/report';
 
@@ -205,6 +206,13 @@ export function ReportesEjecutivosPage() {
       format: format as ReportFormat,
       periodStart: range.start,
       periodEnd: range.end,
+    }, {
+      onSuccess: (report) => {
+        if (report?.id) {
+          const url = reportsEndpoints.exportHref(report.id);
+          window.open(url, '_blank');
+        }
+      },
     });
   };
 

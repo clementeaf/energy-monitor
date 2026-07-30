@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -36,6 +37,7 @@ const FALLBACK_METERS: Meter[] = [
 ];
 
 export function MedidoresCatalogoPage() {
+  const navigate = useNavigate();
   const [search] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mallFilter, setMallFilter] = useState('all');
@@ -138,7 +140,10 @@ export function MedidoresCatalogoPage() {
                     key={meter.id}
                     className={`animate-fade-in cursor-pointer transition-colors hover:bg-surface ${selectedId === meter.id ? 'bg-surface' : ''}`}
                     style={{ animationDelay: `${i * 25}ms` }}
-                    onClick={() => setSelectedId(selectedId === meter.id ? null : meter.id)}
+                    onClick={() => {
+                      setSelectedId(selectedId === meter.id ? null : meter.id);
+                      navigate('/monitoring/meter/' + meter.id);
+                    }}
                   >
                     <td className="px-2 py-1.5 font-medium text-foreground">{meter.code ?? meter.name}</td>
                     <td className="px-2 py-1.5 text-center"><span className={`inline-block size-2 rounded-full ${COMM_DOT[status]}`} /></td>
@@ -182,7 +187,15 @@ export function MedidoresCatalogoPage() {
           <div className="mt-2 space-y-0.5 text-[11px] text-foreground">
             <p>• Tipo de sala · rack / tablero</p>
             <p>• Posición en tablero</p>
-            <p className="text-muted">{buildingMap.get(selected.buildingId) ?? '—'} · {(selected.metadata as Record<string, string>)?.zone ?? '—'}</p>
+            <p className="text-muted">
+              <span
+                className="cursor-pointer hover:underline"
+                onClick={() => navigate(`/buildings/${selected.buildingId}`)}
+              >
+                {buildingMap.get(selected.buildingId) ?? '—'}
+              </span>
+              {' · '}{(selected.metadata as Record<string, string>)?.zone ?? '—'}
+            </p>
           </div>
         ) : <p className="mt-2 text-[11px] text-muted">Selecciona un medidor</p>}
       </div>

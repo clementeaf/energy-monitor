@@ -28,14 +28,14 @@ const GERENCIAL_NAV: ProfileNavEntry[] = [
   { label: 'Panel Consolidado', icon: 'dashboard', to: APP_ROUTES.consolidado, basePath: '/dashboard/consolidado' },
   { label: 'Consumo Jerárquico', icon: 'monitoring', to: APP_ROUTES.consumo, basePath: '/dashboard/consumo' },
   { label: 'Costos y Tendencias', icon: 'analytics', to: APP_ROUTES.costos, basePath: '/dashboard/costos' },
-  { label: 'Reportes Ejecutivos', icon: 'analytics', to: APP_ROUTES.reportesEjecutivos, basePath: '/reports', extraPaths: ['/gerencial/reportes'] },
-  { label: 'Alarmas Agregadas', icon: 'alerts', to: APP_ROUTES.alarmasAgregadas, basePath: '/alerts', extraPaths: ['/gerencial/alarmas'] },
-  { label: 'Exportar Reportes', icon: 'admin', to: APP_ROUTES.exportarReportes, basePath: '/reports/exportar' },
+  { label: 'Reportes Ejecutivos', icon: 'analytics', to: APP_ROUTES.reportesEjecutivos, basePath: '/dashboard/reportes-ejecutivos' },
+  { label: 'Alarmas Agregadas', icon: 'alerts', to: APP_ROUTES.alarmasAgregadas, basePath: '/dashboard/alarmas' },
+  { label: 'Exportar Reportes', icon: 'admin', to: APP_ROUTES.exportarReportes, basePath: '/dashboard/exportar' },
 ];
 
 const OPERACIONAL_NAV: ProfileNavEntry[] = [
-  { label: 'Monitoreo en Vivo', icon: 'monitoring', to: APP_ROUTES.monitoreoVivo, basePath: '/monitoring/realtime', extraPaths: ['/operacional/monitoreo'] },
-  { label: 'Alarmas y Eventos', icon: 'alerts', to: APP_ROUTES.alarmasEventos, basePath: '/alerts/events', extraPaths: ['/operacional/alarmas'] },
+  { label: 'Monitoreo en Vivo', icon: 'monitoring', to: APP_ROUTES.monitoreoVivo, basePath: '/operacional/monitoreo' },
+  { label: 'Alarmas y Eventos', icon: 'alerts', to: APP_ROUTES.alarmasEventos, basePath: '/operacional/alarmas' },
   { label: 'Tickets y SLA', icon: 'analytics', to: APP_ROUTES.ticketsSla, basePath: '/operacional/tickets' },
   { label: 'Calidad y Backfill', icon: 'admin', to: APP_ROUTES.calidadBackfill, basePath: '/operacional/calidad' },
   { label: 'CNR Pendientes', icon: 'admin', to: APP_ROUTES.cnrPendientes, basePath: '/operacional/cnr' },

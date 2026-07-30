@@ -19,7 +19,6 @@ export class AlertsService {
   ): Promise<PlatformAlert[]> {
     const qb = this.repo
       .createQueryBuilder('a')
-      .leftJoinAndSelect('a.tenant', 'tenant')
       .orderBy('a.created_at', 'DESC');
 
     if (!crossTenant) {

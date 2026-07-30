@@ -94,8 +94,9 @@ function isRangeLongerThan7Days(from: string, to: string): boolean {
 function isUnpopulatedMatviewError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const driverErr = (err as unknown as { driverError?: { code?: string } }).driverError;
-  if (driverErr?.code === '55000') return true;
-  return err.message.toLowerCase().includes('has not been populated');
+  if (driverErr?.code === '55000' || driverErr?.code === '42P01') return true;
+  const msg = err.message.toLowerCase();
+  return msg.includes('has not been populated') || msg.includes('does not exist');
 }
 
 interface CacheEntry {

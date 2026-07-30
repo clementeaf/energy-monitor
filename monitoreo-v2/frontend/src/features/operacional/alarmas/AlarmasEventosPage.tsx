@@ -38,7 +38,6 @@ const SEVERITY_OPTIONS: SelectOption[] = [
 ];
 
 const STATUS_OPTIONS: SelectOption[] = [
-  { key: 'open', label: 'Abierta' },
   { key: 'active', label: 'Abiertas' },
   { key: 'acknowledged', label: 'Asignadas' },
   { key: 'resolved', label: 'Resueltas' },
@@ -97,7 +96,7 @@ function elapsed(createdAt: string): string {
 
 export function AlarmasEventosPage() {
   const [severityFilter, setSeverityFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<string>('open');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
   const [mallFilter, setMallFilter] = useState('all');
   const [paisFilter, setPaisFilter] = useState('all');
   const [rangoFecha, setRangoFecha] = useState('today');

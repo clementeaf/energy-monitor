@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Client } from 'pg';
 
 export interface VarelectricSyncSource {
   db: string;
@@ -96,20 +95,21 @@ export class VarelectricSyncService {
   async syncSource(source: VarelectricSyncSource): Promise<{ inserted: number; skipped: number }> {
     const lastTimestamp = await this.getLastSyncTimestamp(source.buildingId);
 
-    const client = new Client({
+    const extDs = new DataSource({
+      type: 'postgres',
       host: this.configService.get('DB_HOST'),
       port: Number(this.configService.get('DB_PORT', 5432)),
       database: source.db,
-      user: this.configService.get('DB_USERNAME'),
+      username: this.configService.get('DB_USERNAME'),
       password: this.configService.get('DB_PASSWORD'),
       ssl: this.configService.get('RDS_CA_BUNDLE_PATH')
         ? { rejectUnauthorized: true, ca: require('fs').readFileSync(this.configService.get('RDS_CA_BUNDLE_PATH')) }
-        : undefined,
+        : false,
     });
 
-    await client.connect();
+    await extDs.initialize();
     try {
-      const { rows } = await client.query<VarElectricRow>(
+      const rows: VarElectricRow[] = await extDs.query(
         `SELECT * FROM var_electric WHERE fecha > $1 ORDER BY fecha ASC LIMIT 10000`,
         [lastTimestamp],
       );
@@ -150,7 +150,7 @@ export class VarelectricSyncService {
       }
       return { inserted, skipped };
     } finally {
-      await client.end();
+      await extDs.destroy();
     }
   }
 

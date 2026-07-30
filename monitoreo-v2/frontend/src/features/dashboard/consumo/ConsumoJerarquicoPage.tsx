@@ -7,6 +7,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import { deriveBuildingStatus, getStatusStyle } from '../../../lib/energy-status';
 import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 import type { Building } from '../../../types/building';
@@ -156,6 +157,7 @@ const METRIC_ACCESSORS: Record<string, MetricAccessor> = {
 
 export function ConsumoJerarquicoPage() {
   const navigate = useNavigate();
+  const { isFilteredMode, needsSelection, operatorBuildingIds, operatorMeterIds } = useOperatorFilter();
   const [country, setCountry] = useState('CL');
   const [period, setPeriod] = useState('month');
   const [metric, setMetric] = useState('consumption');
@@ -176,14 +178,41 @@ export function ConsumoJerarquicoPage() {
   // Variation derived as null until matview is populated; sparkline uses placeholder
   const yesterdayQuery = { data: [] as import('../../../types/reading').AggregatedReading[] };
 
-  const allBuildings = buildingsQuery.data ?? [];
-  const allMeters = metersQuery.data ?? [];
-  const readings = latestQuery.data ?? [];
-  const alerts = alertsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const allBuildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
+  const rawMeters = metersQuery.data ?? [];
+  const allMeters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawMeters;
+    return rawMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [rawMeters, isFilteredMode, operatorMeterIds]);
+  const rawReadings = latestQuery.data ?? [];
+  const readings = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawReadings;
+    return rawReadings.filter((r) => operatorMeterIds.has(r.meter_id));
+  }, [rawReadings, isFilteredMode, operatorMeterIds]);
+  const rawAlerts = alertsQuery.data ?? [];
+  const alerts = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
+    return rawAlerts.filter((a) => a.meterId && operatorMeterIds.has(a.meterId));
+  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
   const yesterdayReadings = yesterdayQuery.data ?? [];
 
   const currentMetric = METRICS.find((m) => m.key === metric) ?? METRICS[0];
   const accessor = METRIC_ACCESSORS[metric] ?? METRIC_ACCESSORS.consumption;
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter by country
   const filteredBuildings = useMemo(

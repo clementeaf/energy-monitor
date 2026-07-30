@@ -8,6 +8,7 @@ import { DataWidget } from '../../components/ui/DataWidget';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
+import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import { useInvoicesQuery, useInvoiceLineItemsQuery } from '../../hooks/queries/useInvoicesQuery';
 import { InvoicePdfPreview } from '../../components/billing/InvoicePdfPreview';
 import { InvoicePdfDownloadLink } from '../../components/billing/InvoicePdfDownloadLink';
@@ -82,9 +83,17 @@ type Tab = 'billing' | 'meters';
 export function BuildingDetailPage() {
   const { buildingId } = useParams<{ buildingId: string }>();
   const navigate = useNavigate();
+  const { isFilteredMode, operatorBuildingIds } = useOperatorFilter();
 
   const buildingsQuery = useBuildingsQuery();
   const building = buildingsQuery.data?.find((b) => b.id === buildingId);
+
+  // Redirect when building doesn't belong to current context
+  if (building && isFilteredMode && operatorBuildingIds && !operatorBuildingIds.has(building.id)) {
+    const targetBuilding = [...operatorBuildingIds][0];
+    navigate(targetBuilding ? `/buildings/${targetBuilding}` : '/buildings', { replace: true });
+    return null;
+  }
 
   const metersQuery = useMetersQuery(buildingId);
   const invoicesQuery = useInvoicesQuery({ buildingId });

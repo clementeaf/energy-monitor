@@ -36,10 +36,10 @@ export const useAppStore = create<AppState>()(
       selectedOperator: null,
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-      setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId }),
+      setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId, selectedOperator: null }),
       setViewAsRole: (viewAsRole) => set({ viewAsRole, selectedOperator: null, selectedBuildingId: null }),
       setSelectedTenantId: (selectedTenantId) => set({ selectedTenantId, selectedOperator: null, selectedBuildingId: null }),
-      setSelectedOperator: (selectedOperator) => set({ selectedOperator, selectedBuildingId: null }),
+      setSelectedOperator: (selectedOperator) => set({ selectedOperator }),
     }),
     {
       name: 'ems-app-state',

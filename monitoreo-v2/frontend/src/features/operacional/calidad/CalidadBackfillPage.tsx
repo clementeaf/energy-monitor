@@ -4,6 +4,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useBackfillJobsQuery } from '../../../hooks/queries/useBackfillJobsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
@@ -134,6 +135,8 @@ const PLACEHOLDER_DEGRADED_METERS: { id: string; code: string; buildingName: str
 /* ── Page ── */
 
 export function CalidadBackfillPage() {
+  const { isFilteredMode, needsSelection, operatorBuildingIds, operatorMeterIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
@@ -148,8 +151,16 @@ export function CalidadBackfillPage() {
   }, []);
   const yesterdayQuery = useAggregatedReadingsQuery({ ...yesterdayRange, interval: 'daily' });
 
-  const buildings = buildingsQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
+  const rawMeters = metersQuery.data ?? [];
+  const meters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawMeters;
+    return rawMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [rawMeters, isFilteredMode, operatorMeterIds]);
   const readings = latestQuery.data ?? [];
   const backfillJobs = backfillQuery.data ?? [];
   const yesterdayMeterIds = useMemo(
@@ -158,6 +169,17 @@ export function CalidadBackfillPage() {
   );
 
   const meterMap = useMemo(() => new Map(meters.map((m) => [m.id, m.name])), [meters]);
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Quality scorecard
   const qualityRows = useMemo(

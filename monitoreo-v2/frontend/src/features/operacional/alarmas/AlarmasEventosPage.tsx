@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery, useResolveAlert, useAcknowledgeAlert } from '../../../hooks/queries/useAlertsQuery';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Alert, AlertSeverity, AlertStatus } from '../../../types/alert';
 
 /* ── Fallback alert data ── */
@@ -107,12 +108,18 @@ export function AlarmasEventosPage() {
   const [dateFrom] = useState('');
   const [dateTo] = useState('');
 
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
   const alertsQuery = useAlertsQuery({ status: statusFilter as AlertStatus });
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
 
-  const buildings = buildingsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const realAlerts = alertsQuery.data ?? [];
   const alerts = realAlerts.length > 0 ? realAlerts : FALLBACK_ALERTS;
 
@@ -120,6 +127,17 @@ export function AlarmasEventosPage() {
     () => new Map(buildings.map((b) => [b.id, b.name])),
     [buildings],
   );
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter by severity + mall
   const filtered = useMemo(() => {

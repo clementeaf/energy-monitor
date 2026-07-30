@@ -5,6 +5,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Report, ReportFormat } from '../../../types/report';
 
 /* ── Config options (pure data) ── */
@@ -131,9 +132,16 @@ export function ExportarReportesPage() {
   const [selectedMallIds, setSelectedMallIds] = useState<Set<string>>(new Set());
   const [mallSearch, setMallSearch] = useState('');
 
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
   const buildingsQuery = useBuildingsQuery();
+  const rawBuildings = filteredBuildingsForExport;
+  const filteredBuildingsForExport = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const realReports = reportsQuery.data ?? [];
   const reports = realReports.length > 0 ? realReports : (FALLBACK_EXPORTS as unknown as typeof realReports);
 
@@ -189,6 +197,17 @@ export function ExportarReportesPage() {
   const periodLabel = PERIOD_OPTIONS.find((o) => o.key === period)?.label ?? period;
   const formatLabel = FORMAT_OPTIONS.find((o) => o.key === format)?.label ?? format;
   const granLabel = GRANULARITY_OPTIONS.find((o) => o.key === granularity)?.label ?? granularity;
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
@@ -246,7 +265,7 @@ export function ExportarReportesPage() {
                     {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                   {scope === 'building' && (
-                    <MallMultiSelect buildings={buildingsQuery.data ?? []} selected={selectedMallIds} onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })} onClear={() => setSelectedMallIds(new Set())} search={mallSearch} onSearch={setMallSearch} />
+                    <MallMultiSelect buildings={filteredBuildingsForExport} selected={selectedMallIds} onToggle={(id) => setSelectedMallIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; })} onClear={() => setSelectedMallIds(new Set())} search={mallSearch} onSearch={setMallSearch} />
                   )}
                 </ConfigField>
                 <ConfigField label="Período (hasta 5 años)">

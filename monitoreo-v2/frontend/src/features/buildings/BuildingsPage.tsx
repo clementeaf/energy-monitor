@@ -52,7 +52,7 @@ export function BuildingsPage() {
   if (needsSelection) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted">Selecciona un operador en la barra lateral para ver edificios.</p>
+        <p className="text-sm text-muted">Selecciona un edificio en la barra lateral para ver edificios.</p>
       </div>
     );
   }

@@ -11,13 +11,21 @@ import { useQueryState } from '../../../hooks/useQueryState';
 import type { HierarchyNode } from '../../../types/hierarchy';
 import type { Concentrator } from '../../../types/concentrator';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 
 export function DrilldownPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
+  const { isFilteredMode, operatorBuildingIds } = useOperatorFilter();
 
   const buildingsQuery = useBuildingsQuery();
   const building = buildingsQuery.data?.find((b) => b.id === siteId);
+
+  if (building && isFilteredMode && operatorBuildingIds && !operatorBuildingIds.has(building.id)) {
+    const targetBuilding = [...operatorBuildingIds][0];
+    navigate(targetBuilding ? `/monitoring/drilldown/${targetBuilding}` : '/buildings', { replace: true });
+    return null;
+  }
 
   const hierarchyQuery = useHierarchyByBuildingQuery(siteId ?? '', !!siteId);
   const concentratorsQuery = useConcentratorsQuery(siteId);

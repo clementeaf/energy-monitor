@@ -4,6 +4,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useCnrQuery, useUpdateCnrStatus } from '../../../hooks/queries/useCnrQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 
 /* ── CNR types ── */
 
@@ -151,6 +152,7 @@ const API_STATUS_MAP: Record<string, CnrStatus> = {
 };
 
 export function CnrPendientesPage() {
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
   const [statusFilter] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -159,7 +161,11 @@ export function CnrPendientesPage() {
   const cnrQuery = useCnrQuery();
   const updateStatus = useUpdateCnrStatus();
 
-  const buildings = buildingsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const latestReadings = latestQuery.data ?? [];
   const apiCnrRecords = cnrQuery.data ?? [];
 
@@ -193,6 +199,17 @@ export function CnrPendientesPage() {
     const merged = [...real, ...derived];
     return merged.length > 0 ? merged : FALLBACK_CNR;
   }, [apiCnrRecords, derivedRecords, buildingMap, apiMeterIds]);
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter
   const filtered = useMemo(() => {

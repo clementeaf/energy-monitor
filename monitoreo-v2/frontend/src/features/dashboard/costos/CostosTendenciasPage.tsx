@@ -5,6 +5,7 @@ import { Chart } from '../../../components/charts/Chart';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Building } from '../../../types/building';
 import type { Invoice } from '../../../types/invoice';
 import type { LatestReading } from '../../../types/reading';
@@ -196,16 +197,33 @@ export function CostosTendenciasPage() {
   const [sortAsc, setSortAsc] = useState(false);
   const [varThreshold] = useState<number | null>(null);
 
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
   const latestQuery = useLatestReadingsQuery();
 
-  const buildings = buildingsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const invoices = invoicesQuery.data ?? [];
   const readings = latestQuery.data ?? [];
 
   const currencyRate = CURRENCY_RATES[currency] ?? 1;
   const currentCurrency = CURRENCIES.find((c) => c.key === currency) ?? CURRENCIES[0];
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter buildings by country + mall selection
   const filteredBuildings = useMemo(() => {

@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.49.0] - 2026-07-30 — JERARQUÍA FILTROS + OPERATOR FILTER PROPAGACIÓN
+
+### Fixed
+- **Jerarquía header corregida** — Orden cambiado de Tienda→Edificio a **Edificio→Tienda**. Refleja la jerarquía real: Rol → Tenant → Edificio → Tienda (operador).
+- **BuildingSwitcher** — Ahora muestra todos los edificios del tenant (con búsqueda), independiente de la tienda seleccionada.
+- **OperatorSwitcher** — Ahora filtra tiendas/operadores dentro del edificio seleccionado, no al revés.
+- **Store cascade reset** — Cambiar edificio resetea tienda. Cambiar tienda ya no resetea edificio.
+- **needsSelection** — Ahora requiere seleccionar edificio (no operador) para ver contenido filtrado.
+- **Páginas detalle cross-context** — MeterDetail, BuildingDetail y Drilldown redirigen a lista cuando el item no pertenece al contexto seleccionado.
+
+### Added
+- **useOperatorFilter propagado a 11 páginas** — Filtro operator/building ahora activo en todas las vistas gerenciales y operacionales:
+  - Gerencial: PanelConsolidado, ConsumoJerarquico, CostosTendencias, ReportesEjecutivos, AlarmasAgregadas, ExportarReportes
+  - Operacional: MonitoreoVivo, AlarmasEventos, CalidadBackfill, CnrPendientes, MapaCobertura
+- Cada página filtra buildings, meters, readings y alerts client-side según selección del header.
+- Mensaje "Selecciona un edificio" cuando no hay edificio seleccionado en modo filtrado.
+
+---
+
 ## [2.48.9] - 2026-07-30 — NAVIGATION + SYNC + ROUTING FIXES
 
 ### Fixed

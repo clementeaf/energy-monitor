@@ -8,6 +8,7 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Building } from '../../../types/building';
 import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
@@ -161,10 +162,39 @@ export function MapaCoberturaPage() {
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
 
-  const buildings = buildingsQuery.data ?? [];
-  const meters = metersQuery.data ?? [];
-  const readings = latestQuery.data ?? [];
-  const alerts = alertsQuery.data ?? [];
+  const { isFilteredMode, needsSelection, operatorBuildingIds, operatorMeterIds } = useOperatorFilter();
+
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
+  const rawMeters = metersQuery.data ?? [];
+  const meters = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawMeters;
+    return rawMeters.filter((m) => operatorMeterIds.has(m.id));
+  }, [rawMeters, isFilteredMode, operatorMeterIds]);
+  const rawReadings = latestQuery.data ?? [];
+  const readings = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawReadings;
+    return rawReadings.filter((r) => operatorMeterIds.has(r.meter_id));
+  }, [rawReadings, isFilteredMode, operatorMeterIds]);
+  const rawAlerts = alertsQuery.data ?? [];
+  const alerts = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
+    return rawAlerts.filter((a) => a.meterId && operatorMeterIds.has(a.meterId));
+  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Coverage rows
   const coverageRows = useMemo(() => {

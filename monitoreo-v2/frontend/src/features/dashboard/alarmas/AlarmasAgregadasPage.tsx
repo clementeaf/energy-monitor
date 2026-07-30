@@ -4,6 +4,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { MapView, type BuildingMarkerMeta } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Building } from '../../../types/building';
 import type { Alert, AlertSeverity } from '../../../types/alert';
 
@@ -143,13 +144,30 @@ export function AlarmasAgregadasPage() {
   const [sortCol, setSortCol] = useState<'critical' | 'warning' | 'resolved' | 'total' | 'resolution' | 'last'>('total');
   const [sortAsc, setSortAsc] = useState(false);
 
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
   const activeAlertsQuery = useAlertsQuery({ status: 'active' });
   const resolvedAlertsQuery = useAlertsQuery({ status: 'resolved' });
 
-  const buildings = buildingsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const activeAlerts = activeAlertsQuery.data ?? [];
   const resolvedAlerts = resolvedAlertsQuery.data ?? [];
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter buildings by country + mall
   const filteredBuildings = useMemo(() => {

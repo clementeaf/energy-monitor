@@ -80,15 +80,14 @@ export function AdminSwitchers() {
       />
       {(viewAsRole === 'corp_admin' || viewAsRole === 'site_admin') && (
         <>
+          <BuildingSwitcher
+            selectedId={selectedBuildingId}
+            onChange={setSelectedBuildingId}
+          />
           <OperatorSwitcher
             selectedName={selectedOperator}
             onChange={setSelectedOperator}
-            tenantId={selectedTenantId}
-          />
-          <BuildingSwitcher
-            selectedId={selectedBuildingId}
-            operatorName={selectedOperator}
-            onChange={setSelectedBuildingId}
+            buildingId={selectedBuildingId}
           />
         </>
       )}
@@ -305,41 +304,113 @@ function TenantSwitcher({
   );
 }
 
-/* ── Operator Switcher ── */
+/* ── Building Switcher ── */
+
+function BuildingSwitcher({
+  selectedId,
+  onChange,
+}: Readonly<{
+  selectedId: string | null;
+  onChange: (id: string | null) => void;
+}>) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const buildingsQuery = useBuildingsQuery();
+  const allBuildings = buildingsQuery.data ?? [];
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    const matched = q ? allBuildings.filter((b) => b.name.toLowerCase().includes(q)) : allBuildings;
+    return matched.slice(0, 10);
+  }, [allBuildings, search]);
+
+  const selectedName = selectedId
+    ? allBuildings.find((b) => b.id === selectedId)?.name ?? 'Edificio'
+    : 'Todos los edificios';
+
+  useEffect(() => {
+    open && (setSearch(''), inputRef.current?.focus());
+  }, [open]);
+
+  return (
+    <HeaderDropdown
+      label={selectedName}
+      open={open}
+      onToggle={() => setOpen((o) => !o)}
+    >
+      <div>
+        <div className="border-b border-border p-2">
+          <input
+            ref={inputRef}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar edificio..."
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+          />
+        </div>
+        <ul className="max-h-48 overflow-y-auto py-1">
+          <li>
+            <button
+              type="button"
+              onClick={() => { onChange(null); setOpen(false); }}
+              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
+                !selectedId ? 'font-semibold text-brand' : 'text-foreground'
+              }`}
+            >
+              Todos los edificios
+            </button>
+          </li>
+          {filtered.map((b) => (
+            <li key={b.id}>
+              <button
+                type="button"
+                onClick={() => { onChange(b.id); setOpen(false); }}
+                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
+                  selectedId === b.id ? 'font-semibold text-brand' : 'text-foreground'
+                }`}
+              >
+                {b.name}
+              </button>
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="px-3 py-2 text-[11px] text-subtle">Sin edificios</li>
+          )}
+        </ul>
+      </div>
+    </HeaderDropdown>
+  );
+}
+
+/* ── Operator (Tienda) Switcher ── */
 
 const OPERATOR_PAGE_SIZE = 10;
 
 function OperatorSwitcher({
   selectedName,
   onChange,
-  tenantId,
+  buildingId,
 }: Readonly<{
   selectedName: string | null;
   onChange: (name: string | null) => void;
-  tenantId: string | null;
+  buildingId: string | null;
 }>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const metersQuery = useMetersQuery();
-  const buildingsQuery = useBuildingsQuery();
   const allMeters = metersQuery.data ?? [];
-  const allBuildings = buildingsQuery.data ?? [];
-
-  const tenantBuildingIds = useMemo(() => {
-    const ids = new Set<string>();
-    tenantId && allBuildings.forEach((b) => { b.tenantId === tenantId && ids.add(b.id); });
-    return tenantId ? ids : null;
-  }, [tenantId, allBuildings]);
 
   const operators = useMemo(() => {
     const names = new Set<string>();
     allMeters.forEach((m) => {
-      m.name && (!tenantBuildingIds || tenantBuildingIds.has(m.buildingId)) && names.add(m.name);
+      if (m.name && (!buildingId || m.buildingId === buildingId)) names.add(m.name);
     });
     return Array.from(names).sort((a, b) => a.localeCompare(b));
-  }, [allMeters, tenantBuildingIds]);
+  }, [allMeters, buildingId]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -395,78 +466,6 @@ function OperatorSwitcher({
           {filtered.length === 0 && <li className="px-3 py-2 text-[11px] text-subtle">Sin resultados</li>}
         </ul>
       </div>
-    </HeaderDropdown>
-  );
-}
-
-/* ── Building Switcher ── */
-
-function BuildingSwitcher({
-  selectedId,
-  operatorName,
-  onChange,
-}: Readonly<{
-  selectedId: string | null;
-  operatorName: string;
-  onChange: (id: string | null) => void;
-}>) {
-  const [open, setOpen] = useState(false);
-
-  const metersQuery = useMetersQuery();
-  const buildingsQuery = useBuildingsQuery();
-  const allMeters = metersQuery.data ?? [];
-  const allBuildings = buildingsQuery.data ?? [];
-
-  const operatorBuildingIds = useMemo(() => {
-    const ids = new Set<string>();
-    allMeters.forEach((m) => { m.name === operatorName && ids.add(m.buildingId); });
-    return ids;
-  }, [allMeters, operatorName]);
-
-  const buildings = useMemo(
-    () => allBuildings.filter((b) => operatorBuildingIds.has(b.id)),
-    [allBuildings, operatorBuildingIds],
-  );
-
-  const selectedName = selectedId
-    ? buildings.find((b) => b.id === selectedId)?.name ?? 'Edificio'
-    : 'Todos los edificios';
-
-  return (
-    <HeaderDropdown
-      label={selectedName}
-      open={open}
-      onToggle={() => setOpen((o) => !o)}
-    >
-      <ul className="py-1">
-        <li>
-          <button
-            type="button"
-            onClick={() => { onChange(null); setOpen(false); }}
-            className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-              !selectedId ? 'font-semibold text-brand' : 'text-foreground'
-            }`}
-          >
-            Todos los edificios
-          </button>
-        </li>
-        {buildings.map((b) => (
-          <li key={b.id}>
-            <button
-              type="button"
-              onClick={() => { onChange(b.id); setOpen(false); }}
-              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                selectedId === b.id ? 'font-semibold text-brand' : 'text-foreground'
-              }`}
-            >
-              {b.name}
-            </button>
-          </li>
-        ))}
-        {buildings.length === 0 && (
-          <li className="px-3 py-2 text-[11px] text-subtle">Sin edificios para esta tienda</li>
-        )}
-      </ul>
     </HeaderDropdown>
   );
 }

@@ -6,6 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import { useReportsQuery, useGenerateReport } from '../../../hooks/queries/useReportsQuery';
 import api from '../../../services/api';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { ReportFormat, PlatformReportType } from '../../../types/report';
 
 /* ── Config options (pure data) ── */
@@ -171,8 +172,14 @@ export function ReportesEjecutivosPage() {
   const [historySearch] = useState('');
   const [selectedBuildingId, setSelectedBuildingId] = useState('');
 
+  const { isFilteredMode, needsSelection, operatorBuildingIds } = useOperatorFilter();
+
   const buildingsQuery = useBuildingsQuery();
-  const buildings = buildingsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const buildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
 
@@ -224,6 +231,17 @@ export function ReportesEjecutivosPage() {
       },
     });
   };
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">

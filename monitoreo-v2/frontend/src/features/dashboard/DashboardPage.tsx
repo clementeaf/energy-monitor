@@ -174,9 +174,9 @@ export function DashboardPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un operador</p>
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
           <p className="mt-1 text-sm text-muted">
-            Usa el selector en la barra lateral para elegir un operador y ver su dashboard.
+            Usa el selector en la barra lateral para elegir un edificio y ver su dashboard.
           </p>
         </div>
       </div>

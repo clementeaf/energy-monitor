@@ -6,10 +6,12 @@ import { useMetersQuery } from './queries/useMetersQuery';
 /**
  * Operator-scoped filtering for monitoreo-v2.
  *
+ * Hierarchy: Tenant → Building → Operator (tienda)
+ *
  * Maps viewAsRole to v1 user modes:
  *   super_admin (no impersonation) → Holding   (full access)
- *   corp_admin                     → Multi Operador (filter by operator name)
- *   site_admin                     → Operador  (filter by operator + building)
+ *   corp_admin                     → Multi Operador (filter by building, then operator)
+ *   site_admin                     → Operador  (filter by building + operator)
  *   operator                       → Técnico   (hide financial)
  *   tenant_user                    → Locatario  (own invoices only)
  */
@@ -24,36 +26,31 @@ export function useOperatorFilter() {
   const isLocatario = false; // ponytail: tenant_user consolidated into site_admin
   const isFilteredMode = isMultiOp || isOperadorMode;
 
-  const hasOperator = isMultiOp && !!selectedOperator;
-  const hasBuilding = isOperadorMode && !!selectedOperator && !!selectedBuildingId;
-  const needsSelection = isFilteredMode && !selectedOperator;
+  const hasBuilding = isFilteredMode && !!selectedBuildingId;
+  const hasOperator = isFilteredMode && !!selectedOperator;
+  const needsSelection = isFilteredMode && !selectedBuildingId;
 
-  // Fetch meters to map operator name → meter IDs
+  // Fetch meters to map selections → meter IDs
   const metersQuery = useMetersQuery();
   const allMeters = metersQuery.data ?? [];
 
-  // Meter IDs belonging to selected operator
+  // Meter IDs matching the selected building + optional operator
   const operatorMeterIds = useMemo(() => {
-    if (!selectedOperator || !isFilteredMode) return null;
+    if (!isFilteredMode || !selectedBuildingId) return null;
     const ids = new Set<string>();
     for (const m of allMeters) {
-      if (m.name === selectedOperator) {
-        if (isOperadorMode && selectedBuildingId && m.buildingId !== selectedBuildingId) continue;
-        ids.add(m.id);
-      }
+      if (m.buildingId !== selectedBuildingId) continue;
+      if (selectedOperator && m.name !== selectedOperator) continue;
+      ids.add(m.id);
     }
     return ids;
-  }, [selectedOperator, isFilteredMode, allMeters, isOperadorMode, selectedBuildingId]);
+  }, [isFilteredMode, selectedBuildingId, selectedOperator, allMeters]);
 
-  // Building IDs where operator has meters
+  // Building IDs — when a building is selected, just that one
   const operatorBuildingIds = useMemo(() => {
-    if (!selectedOperator || !isFilteredMode) return null;
-    const ids = new Set<string>();
-    for (const m of allMeters) {
-      if (m.name === selectedOperator) ids.add(m.buildingId);
-    }
-    return ids;
-  }, [selectedOperator, isFilteredMode, allMeters]);
+    if (!isFilteredMode || !selectedBuildingId) return null;
+    return new Set([selectedBuildingId]);
+  }, [isFilteredMode, selectedBuildingId]);
 
   return {
     isHolding,
@@ -62,8 +59,8 @@ export function useOperatorFilter() {
     isTecnico,
     isLocatario,
     isFilteredMode,
-    hasOperator,
     hasBuilding,
+    hasOperator,
     needsSelection,
     selectedOperator,
     selectedBuildingId,

@@ -16,6 +16,7 @@ import type { Meter } from '../../../types/meter';
 import type { LatestReading } from '../../../types/reading';
 import type { Alert, AlertSeverity } from '../../../types/alert';
 // ponytail: HierarchyNode type used via useHierarchyByBuildingQuery return
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 
 /* ── Country selector ── */
@@ -177,6 +178,7 @@ const KPI_PERIOD_OPTIONS: { key: KpiPeriod; label: string }[] = [
 ];
 
 export function PanelConsolidadoPage() {
+  const { isFilteredMode, needsSelection, operatorBuildingIds, operatorMeterIds } = useOperatorFilter();
   const [country, setCountry] = useState('CL');
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
@@ -199,9 +201,21 @@ export function PanelConsolidadoPage() {
   const yesterdayQuery = useAggregatedReadingsQuery(
     { ...yesterdayRange, interval: 'daily', groupBy: 'portfolio' },
   );
-  const allBuildings = buildingsQuery.data ?? [];
-  const readings = latestQuery.data ?? [];
-  const activeAlerts = alertsQuery.data ?? [];
+  const rawBuildings = buildingsQuery.data ?? [];
+  const allBuildings = useMemo(() => {
+    if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
+    return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
+  }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
+  const rawReadings = latestQuery.data ?? [];
+  const readings = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawReadings;
+    return rawReadings.filter((r) => operatorMeterIds.has(r.meter_id));
+  }, [rawReadings, isFilteredMode, operatorMeterIds]);
+  const rawAlerts = alertsQuery.data ?? [];
+  const activeAlerts = useMemo(() => {
+    if (!isFilteredMode || !operatorMeterIds) return rawAlerts;
+    return rawAlerts.filter((a) => a.meterId && operatorMeterIds.has(a.meterId));
+  }, [rawAlerts, isFilteredMode, operatorMeterIds]);
   const invoices = invoicesQuery.data ?? [];
   const yesterdayReadings = yesterdayQuery.data ?? [];
 
@@ -210,6 +224,17 @@ export function PanelConsolidadoPage() {
     () => allBuildings.filter((b) => (b.countryCode ?? 'CL') === country),
     [allBuildings, country],
   );
+
+  if (needsSelection) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">Selecciona un edificio</p>
+          <p className="mt-1 text-sm text-muted">Usa el selector en la barra superior para elegir un edificio.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Enrich with readings + alerts
   const enriched = useMemo(

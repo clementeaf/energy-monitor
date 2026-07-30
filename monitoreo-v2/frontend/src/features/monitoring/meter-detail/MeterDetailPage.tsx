@@ -9,6 +9,7 @@ import { DataWidget } from '../../../components/ui/DataWidget';
 import { useQueryState } from '../../../hooks/useQueryState';
 import { useMeterQuery } from '../../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
+import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useIotLatestQuery, useIotAlertsQuery, useIotTimeSeriesQuery } from '../../../hooks/queries/useIotReadingsQuery';
@@ -49,6 +50,7 @@ export function MeterDetailPage() {
   const { meterId } = useParams<{ meterId: string }>();
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState(0);
+  const { isFilteredMode, operatorMeterIds, operatorBuildingIds } = useOperatorFilter();
 
   const { from, to } = useMemo(getLast12MonthsRange, []);
   const meterQuery = useMeterQuery(meterId!);
@@ -62,6 +64,17 @@ export function MeterDetailPage() {
   const meter = meterQuery.data;
   const isIot = meter?.metadata?.source === 'iot';
   const building = buildingsQuery.data?.find((b) => b.id === meter?.buildingId);
+
+  // When user changes context and current meter doesn't belong, redirect to meters list
+  const meterOutOfContext = meter && isFilteredMode && (
+    (operatorMeterIds && !operatorMeterIds.has(meter.id))
+    || (operatorBuildingIds && !operatorBuildingIds.has(meter.buildingId))
+  );
+  if (meterOutOfContext) {
+    const targetBuilding = operatorBuildingIds ? [...operatorBuildingIds][0] : null;
+    navigate(targetBuilding ? `/meters?buildingId=${targetBuilding}` : '/meters', { replace: true });
+    return null;
+  }
   const rows = aggQuery.data ?? [];
   const alertCount = alertsQuery.data?.length ?? 0;
   const iotLatest = useIotLatestQuery(meterId, isIot);

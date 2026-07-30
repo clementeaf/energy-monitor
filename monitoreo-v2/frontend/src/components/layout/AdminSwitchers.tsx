@@ -65,30 +65,32 @@ export function AdminSwitchers() {
           const theme = tenantTheme ?? (tenant || undefined);
           theme && applyTenantTheme(theme);
           if (id) {
-            const platformPaths = ['/dashboard/platform', '/admin/observabilidad', '/admin/config-releases', '/admin/tenants-malls', '/admin/iot-devices'];
-            const onPlatformRoute = platformPaths.some((p) => location.pathname.startsWith(p));
-            if (onPlatformRoute) {
-              const profile = viewAsRole ? ROLE_TO_PROFILE[viewAsRole] ?? 'operacional' : 'super_admin';
-              navigate(PROFILE_LANDING[profile] ?? '/');
+            if (viewAsRole && viewAsRole !== 'super_admin') {
+              const platformPaths = ['/dashboard/platform', '/admin/observabilidad', '/admin/config-releases', '/admin/tenants-malls', '/admin/iot-devices'];
+              const onPlatformRoute = platformPaths.some((p) => location.pathname.startsWith(p));
+              if (onPlatformRoute) {
+                const profile = ROLE_TO_PROFILE[viewAsRole] ?? 'operacional';
+                navigate(PROFILE_LANDING[profile] ?? '/');
+              }
             }
-          } else {
+          } else if (viewAsRole && viewAsRole !== 'super_admin') {
             navigate('/dashboard/platform');
           }
         }}
       />
       {(viewAsRole === 'corp_admin' || viewAsRole === 'site_admin') && (
-        <OperatorSwitcher
-          selectedName={selectedOperator}
-          onChange={setSelectedOperator}
-          tenantId={selectedTenantId}
-        />
-      )}
-      {viewAsRole === 'site_admin' && selectedOperator && (
-        <BuildingSwitcher
-          selectedId={selectedBuildingId}
-          operatorName={selectedOperator}
-          onChange={setSelectedBuildingId}
-        />
+        <>
+          <OperatorSwitcher
+            selectedName={selectedOperator}
+            onChange={setSelectedOperator}
+            tenantId={selectedTenantId}
+          />
+          <BuildingSwitcher
+            selectedId={selectedBuildingId}
+            operatorName={selectedOperator}
+            onChange={setSelectedBuildingId}
+          />
+        </>
       )}
     </div>
   );

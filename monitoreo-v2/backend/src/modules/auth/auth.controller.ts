@@ -418,7 +418,7 @@ export class AuthController {
     res.cookie(refreshName, refreshToken, {
       ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: isProduction ? '/api/auth/refresh' : '/',
+      path: '/',
     });
   }
 

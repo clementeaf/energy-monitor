@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.48.7] - 2026-07-30 — AUTH REFRESH FIX + NAV + PERF
+
+### Fixed
+- **Refresh token cookie siempre fallaba** — `__Host-refresh_token` con `path=/api/auth/refresh` viola spec `__Host-` (requiere `path=/`). Browsers rechazaban la cookie silenciosamente → "Continuar trabajando" nunca funcionaba. Corregido a `path=/`.
+- **Sidebar basePath mismatches** — 5 entries en `profile-nav.ts` tenían `basePath` desalineado de la ruta real. Item activo no se resaltaba al cambiar de rol.
+- **Alerts 500** — `leftJoinAndSelect('a.tenant')` causaba `Cannot read 'databaseName'`. Removido + `take(500)` default.
+- **Portfolio aggregated 504** — matviews `portfolio_summary` + `building_summary` creadas y refrescadas. `statement_timeout 15s` en raw fallback.
+- **Varelectric sync activo** — cron cada 5 min sincroniza datos de altopena/renaissance/quilicura → readings.
+
+### Added
+- **E2E navigation test** — 85 rutas verificadas con Playwright (2 workers, 70s).
+- **Quilicura** — building + 11 meters creados en monitoreo_v2.
+
+---
+
 ## [2.48.2] - 2026-07-29 — AGGREGATES + VARELECTRIC DBs
 
 ### Fixed

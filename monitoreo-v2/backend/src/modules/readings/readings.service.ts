@@ -1089,24 +1089,29 @@ export class ReadingsService {
 
     const where = conditions.join(' AND ');
 
-    return this.dataSource.query(
-      `SELECT
-         time_bucket($1::interval, r.timestamp) AS bucket,
-         r.meter_id,
-         AVG(r.power_kw::numeric)::text AS avg_power_kw,
-         MAX(r.power_kw::numeric)::text AS max_power_kw,
-         MIN(r.power_kw::numeric)::text AS min_power_kw,
-         AVG(r.power_factor::numeric)::text AS avg_power_factor,
-         AVG(r.voltage_l1::numeric)::text AS avg_voltage_l1,
-         (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric))::text AS energy_delta_kwh,
-         COUNT(*)::text AS reading_count
-       FROM readings r
-       INNER JOIN meters m ON m.id = r.meter_id
-       WHERE ${where}
-       GROUP BY time_bucket($1::interval, r.timestamp), r.meter_id
-       ORDER BY bucket ASC, r.meter_id ASC`,
-      params,
-    );
+    await this.dataSource.query("SET LOCAL statement_timeout = '15s'");
+    try {
+      return await this.dataSource.query(
+        `SELECT
+           time_bucket($1::interval, r.timestamp) AS bucket,
+           r.meter_id,
+           AVG(r.power_kw::numeric)::text AS avg_power_kw,
+           MAX(r.power_kw::numeric)::text AS max_power_kw,
+           MIN(r.power_kw::numeric)::text AS min_power_kw,
+           AVG(r.power_factor::numeric)::text AS avg_power_factor,
+           AVG(r.voltage_l1::numeric)::text AS avg_voltage_l1,
+           (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric))::text AS energy_delta_kwh,
+           COUNT(*)::text AS reading_count
+         FROM readings r
+         INNER JOIN meters m ON m.id = r.meter_id
+         WHERE ${where}
+         GROUP BY time_bucket($1::interval, r.timestamp), r.meter_id
+         ORDER BY bucket ASC, r.meter_id ASC`,
+        params,
+      );
+    } finally {
+      await this.dataSource.query("SET LOCAL statement_timeout = '0'");
+    }
   }
 
   private async buildMeterScopeCheck(

@@ -403,10 +403,14 @@ describe('ReadingsService', () => {
         interval: '15min',
       });
 
-      const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('time_bucket');
+      // call[0] = SET statement_timeout, call[1] = actual query
+      const selectCall = ds.query.mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('time_bucket'),
+      );
+      expect(selectCall).toBeDefined();
+      const sql = selectCall![0] as string;
       expect(sql).not.toContain('readings_15min');
-      expect(ds.query.mock.calls[0][1][0]).toBe('15 minutes');
+      expect(selectCall![1][0]).toBe('15 minutes');
     });
 
     it('portfolio daily: queries portfolio_summary when populated', async () => {
@@ -561,6 +565,37 @@ describe('ReadingsService', () => {
       expect(result.to).toBeTruthy();
       expect(result.previousFrom).toBeTruthy();
       expect(result.previousTo).toBeTruthy();
+    });
+  });
+
+  describe('findFromRawBucket safety', () => {
+    it('applies statement_timeout to prevent runaway raw bucket queries', async () => {
+      ds.query.mockResolvedValue([]);
+
+      // 15min with short range hits findFromRawBucket
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-03T00:00:00Z',
+        interval: '15min',
+      });
+
+      const calls = ds.query.mock.calls.map((c: unknown[]) => c[0] as string);
+      const hasTimeout = calls.some((sql) => sql.includes('statement_timeout'));
+      expect(hasTimeout).toBe(true);
+    });
+
+    it('resets statement_timeout after raw bucket query', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-03T00:00:00Z',
+        interval: '15min',
+      });
+
+      const calls = ds.query.mock.calls.map((c: unknown[]) => c[0] as string);
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall).toContain("statement_timeout = '0'");
     });
   });
 });

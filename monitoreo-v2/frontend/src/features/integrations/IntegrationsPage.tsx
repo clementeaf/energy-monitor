@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router';
-import { isAxiosError } from 'axios';
 import { DropdownSelect } from '../../components/ui/DropdownSelect';
 import { TableStateBody } from '../../components/ui/TableStateBody';
 import { Modal } from '../../components/ui/Modal';
@@ -20,7 +19,6 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import type {
   Integration,
   IntegrationStatus,
-  IntegrationSyncLog,
   CreateIntegrationPayload,
   UpdateIntegrationPayload,
   IntegrationQueryParams,
@@ -32,94 +30,15 @@ import { IntegrationsBackfillTab } from './IntegrationsBackfillTab';
 import { IntegrationsIngestGapsTab } from './IntegrationsIngestGapsTab';
 import { IntegrationsWebhookDeliveriesTab } from './IntegrationsWebhookDeliveriesTab';
 import { INTEGRATION_TYPE_PRESETS, isStubIntegrationType } from './integration-types';
-
-/* ── Fallback data ── */
-
-const FALLBACK_INTEGRATIONS: Integration[] = [
-  {
-    id: 'fb-int-1', tenantId: 'fb-t1', name: 'API Facturación PASA', integrationType: 'rest_api',
-    status: 'active', config: { endpoint: 'https://api.pasa.cl/billing' }, lastSyncAt: new Date(Date.now() - 15 * 60_000).toISOString(),
-    errorMessage: null, createdAt: '2025-06-01T00:00:00Z', updatedAt: '2026-07-13T00:00:00Z',
-  },
-  {
-    id: 'fb-int-2', tenantId: 'fb-t1', name: 'Azure AD SSO PASA', integrationType: 'oauth_azure',
-    status: 'active', config: { tenantId: 'pasa.onmicrosoft.com' }, lastSyncAt: new Date(Date.now() - 60 * 60_000).toISOString(),
-    errorMessage: null, createdAt: '2025-06-15T00:00:00Z', updatedAt: '2026-07-10T00:00:00Z',
-  },
-  {
-    id: 'fb-int-3', tenantId: 'fb-t2', name: 'Drive Pipeline PASA', integrationType: 'google_drive',
-    status: 'error', config: { folderId: '1VwbEPmoB1fXvhJT' }, lastSyncAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    errorMessage: 'Token expirado — se requiere re-autorización', createdAt: '2025-04-01T00:00:00Z', updatedAt: '2026-07-07T00:00:00Z',
-  },
-];
-
-const FALLBACK_SYNC_LOGS: IntegrationSyncLog[] = [
-  { id: 'fb-sl-1', integrationId: 'fb-int-1', status: 'success', recordsSynced: 1842, errorMessage: null, startedAt: new Date(Date.now() - 15 * 60_000).toISOString(), completedAt: new Date(Date.now() - 14 * 60_000).toISOString(), createdAt: new Date(Date.now() - 15 * 60_000).toISOString() },
-  { id: 'fb-sl-2', integrationId: 'fb-int-1', status: 'success', recordsSynced: 1756, errorMessage: null, startedAt: new Date(Date.now() - 75 * 60_000).toISOString(), completedAt: new Date(Date.now() - 74 * 60_000).toISOString(), createdAt: new Date(Date.now() - 75 * 60_000).toISOString() },
-  { id: 'fb-sl-3', integrationId: 'fb-int-1', status: 'partial', recordsSynced: 943, errorMessage: 'Timeout en 3 registros batch', startedAt: new Date(Date.now() - 135 * 60_000).toISOString(), completedAt: new Date(Date.now() - 134 * 60_000).toISOString(), createdAt: new Date(Date.now() - 135 * 60_000).toISOString() },
-  { id: 'fb-sl-4', integrationId: 'fb-int-3', status: 'failed', recordsSynced: 0, errorMessage: 'Token expirado — se requiere re-autorización', startedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(), completedAt: new Date(Date.now() - 3 * 86_400_000 + 5000).toISOString(), createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString() },
-];
-
-const STATUS_OPTIONS: { value: IntegrationStatus; label: string }[] = [
-  { value: 'active', label: 'Activo' },
-  { value: 'inactive', label: 'Inactivo' },
-  { value: 'error', label: 'Error' },
-  { value: 'pending', label: 'Pendiente' },
-];
-
-const SYNC_STATUS_LABELS: Record<IntegrationSyncLog['status'], string> = {
-  success: 'Correcto',
-  partial: 'Parcial',
-  failed: 'Fallido',
-};
-
-/**
- * Type guard: plain object (not array) for JSON `config` payloads.
- * @param value - Parsed JSON value
- */
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-/**
- * Validates and parses JSON config as a plain object for API payloads.
- * @param raw - User-entered JSON string
- * @returns Record for `config` field
- */
-function parseConfigObject(raw: string): Record<string, unknown> {
-  const trimmed = raw.trim();
-  if (trimmed === '') {
-    return {};
-  }
-  const parsed: unknown = JSON.parse(trimmed);
-  if (!isPlainRecord(parsed)) {
-    throw new Error('La configuracion debe ser un objeto JSON (no un array ni un valor simple).');
-  }
-  return parsed;
-}
-
-/**
- * Returns the Spanish label for an integration status value.
- * @param s - Status enum value
- */
-function labelStatus(s: IntegrationStatus): string {
-  return STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
-}
-
-/**
- * Normalizes API or runtime errors to a single message string.
- * @param err - Thrown value from mutation or parse
- */
-function errorMessage(err: unknown): string {
-  if (isAxiosError(err)) {
-    const data = err.response?.data as { message?: string | string[] } | undefined;
-    if (data?.message != null) {
-      return Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    }
-  }
-  if (err instanceof Error) return err.message;
-  return 'Error desconocido';
-}
+import {
+  FALLBACK_INTEGRATIONS,
+  FALLBACK_SYNC_LOGS,
+  STATUS_OPTIONS,
+  parseConfigObject,
+  labelStatus,
+  errorMessage,
+} from './integration-utils';
+import { SyncLogsPanel } from './SyncLogsPanel';
 
 export function IntegrationsPage() {
   const location = useLocation();
@@ -547,105 +466,5 @@ export function IntegrationsPage() {
         </>
       ) : null}
     </div>
-  );
-}
-
-interface SyncLogsPanelProps {
-  query: ReturnType<typeof useIntegrationSyncLogsQuery>;
-  logsPage: number;
-  logsLimit: number;
-  logsTotalPages: number;
-  onPageChange: (page: number) => void;
-  fallbackLogs?: IntegrationSyncLog[];
-}
-
-/**
- * Renders paginated sync log rows with loading and error states.
- */
-function SyncLogsPanel({
-  query,
-  logsPage,
-  logsLimit,
-  logsTotalPages,
-  onPageChange,
-  fallbackLogs = [],
-}: Readonly<SyncLogsPanelProps>) {
-  const apiItems = query.data?.items ?? [];
-  const displayItems = apiItems.length > 0 ? apiItems : (!query.isLoading ? fallbackLogs : []);
-  const qs = useQueryState(query, {
-    isEmpty: () => displayItems.length === 0,
-  });
-
-  return (
-    <>
-      <div className="max-h-96 overflow-auto rounded border border-border">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10 bg-background">
-            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
-              <th className="px-3 py-2">Inicio</th>
-              <th className="px-3 py-2">Fin</th>
-              <th className="px-3 py-2">Estado</th>
-              <th className="px-3 py-2">Registros</th>
-              <th className="px-3 py-2">Mensaje</th>
-            </tr>
-          </thead>
-          <TableStateBody
-            phase={qs.phase}
-            colSpan={5}
-            error={qs.error}
-            onRetry={() => {
-              query.refetch();
-            }}
-            emptyMessage="No hay sincronizaciones registradas"
-            skeletonWidths={['w-24', 'w-24', 'w-16', 'w-16', 'w-28']}
-          >
-            {displayItems.map((log: IntegrationSyncLog) => (
-              <tr key={log.id}>
-                <td className="whitespace-nowrap px-3 py-2 text-foreground">
-                  {new Date(log.startedAt).toLocaleString('es-CL')}
-                </td>
-                <td className="whitespace-nowrap px-3 py-2 text-foreground">
-                  {log.completedAt ? new Date(log.completedAt).toLocaleString('es-CL') : '—'}
-                </td>
-                <td className="px-3 py-2">{SYNC_STATUS_LABELS[log.status]}</td>
-                <td className="px-3 py-2">{log.recordsSynced}</td>
-                <td className="max-w-xs truncate text-muted" title={log.errorMessage ?? undefined}>
-                  {log.errorMessage ?? '—'}
-                </td>
-              </tr>
-            ))}
-          </TableStateBody>
-        </table>
-      </div>
-      {query.data != null && query.data.total > logsLimit && (
-        <div className="mt-3 flex items-center justify-between text-sm text-muted">
-          <span>
-            Pagina {logsPage} de {logsTotalPages} ({query.data.total} registros)
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={logsPage <= 1}
-              onClick={() => {
-                onPageChange(Math.max(1, logsPage - 1));
-              }}
-              className="rounded border border-border px-3 py-1 hover:bg-surface disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <button
-              type="button"
-              disabled={logsPage >= logsTotalPages}
-              onClick={() => {
-                onPageChange(Math.min(logsTotalPages, logsPage + 1));
-              }}
-              className="rounded border border-border px-3 py-1 hover:bg-surface disabled:opacity-40"
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      )}
-    </>
   );
 }

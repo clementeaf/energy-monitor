@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses';
 
 export interface SesSendPlainTextResult {
   ok: boolean;
@@ -75,6 +75,63 @@ export class SesEmailService {
             Body: { Text: { Data: params.body, Charset: 'UTF-8' } },
           },
         }),
+      );
+      return { ok: true, messageId: out.MessageId };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { ok: false, errorMessage: msg };
+    }
+  }
+
+  buildRawEmail(params: {
+    from: string;
+    to: string[];
+    subject: string;
+    body: string;
+    attachment: { filename: string; content: Buffer; contentType: string };
+  }): Buffer {
+    const boundary = `----=_Part_${Date.now()}`;
+    const lines = [
+      `From: ${params.from}`,
+      `To: ${params.to.join(', ')}`,
+      `Subject: ${params.subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=UTF-8',
+      '',
+      params.body,
+      '',
+      `--${boundary}`,
+      `Content-Type: ${params.attachment.contentType}; name="${params.attachment.filename}"`,
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${params.attachment.filename}"`,
+      '',
+      params.attachment.content.toString('base64'),
+      '',
+      `--${boundary}--`,
+    ];
+    return Buffer.from(lines.join('\r\n'));
+  }
+
+  async sendWithAttachment(params: {
+    to: string[];
+    subject: string;
+    body: string;
+    attachment: { filename: string; content: Buffer; contentType: string };
+  }): Promise<SesSendPlainTextResult> {
+    const from = this.getFromAddress();
+    if (!from) return { ok: false, skippedReason: 'not_configured' };
+
+    const to = params.to.map((e) => e.trim()).filter((e) => e.length > 0);
+    if (to.length === 0) return { ok: false, skippedReason: 'no_recipients' };
+    if (!this.client) return { ok: false, skippedReason: 'not_configured' };
+
+    try {
+      const rawMessage = this.buildRawEmail({ from, to, ...params });
+      const out = await this.client.send(
+        new SendRawEmailCommand({ RawMessage: { Data: rawMessage } }),
       );
       return { ok: true, messageId: out.MessageId };
     } catch (err) {

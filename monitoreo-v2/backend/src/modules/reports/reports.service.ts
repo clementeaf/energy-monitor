@@ -28,6 +28,14 @@ interface ExportResult {
   filename: string;
 }
 
+export interface ScheduledReportResult {
+  report: Report;
+  buffer: Buffer;
+  filename: string;
+  mime: string;
+  recipients: string[];
+}
+
 /**
  * CRUD for reports, generation, scheduled runs, and binary export.
  */
@@ -263,7 +271,7 @@ export class ReportsService {
    * Processes scheduled reports that are due (cron worker).
    * @returns Number of schedules executed
    */
-  async processDueScheduledReports(): Promise<number> {
+  async processDueScheduledReports(): Promise<ScheduledReportResult[]> {
     const rows = await this.scheduledRepo
       .createQueryBuilder('s')
       .where('s.is_active = true')
@@ -271,7 +279,7 @@ export class ReportsService {
       .andWhere('s.next_run_at <= :now', { now: new Date() })
       .getMany();
 
-    let count = 0;
+    const results: ScheduledReportResult[] = [];
     for (const schedule of rows) {
       const periodEnd = new Date();
       const periodStart = new Date(periodEnd);
@@ -292,13 +300,38 @@ export class ReportsService {
       });
       await this.reportRepo.save(report);
 
+      const buildingIds = schedule.buildingId ? [schedule.buildingId] : [];
+      const dataset = await this.buildDataset(
+        schedule.tenantId,
+        schedule.reportType as PlatformReportType,
+        schedule.buildingId,
+        buildingIds,
+        periodStartStr,
+        periodEndStr,
+      );
+      const buffer = await this.renderBuffer(dataset, schedule.format);
+      const filename = exportFilename(schedule.reportType as PlatformReportType, periodStartStr, schedule.format);
+      const mime = mimeForFormat(schedule.format);
+
+      await this.reportRepo.update(
+        { id: report.id },
+        { fileSizeBytes: String(buffer.length) },
+      );
+
       schedule.lastRunAt = new Date();
       schedule.nextRunAt = this.computeNextRun(schedule.cronExpression, schedule.lastRunAt);
       await this.scheduledRepo.save(schedule);
-      count += 1;
+
+      results.push({
+        report,
+        buffer,
+        filename,
+        mime,
+        recipients: schedule.recipients ?? [],
+      });
     }
 
-    return count;
+    return results;
   }
 
   private computeNextRun(cronExpression: string, from: Date = new Date()): Date {

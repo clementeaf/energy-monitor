@@ -58,6 +58,8 @@ import { DataProcessingBlockGuard } from './common/guards/data-processing-block.
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
 import { VarelectricIngressModule } from './modules/varelectric-ingress/varelectric-ingress.module';
+import { CarbonFootprintModule } from './modules/carbon-footprint/carbon-footprint.module';
+import { BaselineModule } from './modules/baseline/baseline.module';
 
 @Module({
   imports: [
@@ -168,6 +170,8 @@ import { VarelectricIngressModule } from './modules/varelectric-ingress/varelect
     CnrModule,
     InterventionsModule,
     VarelectricIngressModule,
+    CarbonFootprintModule,
+    BaselineModule,
   ],
   controllers: [HealthController],
   providers: [

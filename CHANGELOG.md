@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.50.0] - 2026-07-31 — GAPS EMMA + USABILIDAD FRONTEND
+
+### Added (Backend — Gaps funcionales vs EMMA Energy)
+- **Módulo Huella de Carbono** — `GET /api/carbon-footprint/{by-building,summary,monthly}`. Factor de emisión por país+año (tabla `emission_factors`, seed Chile 2019-2025). 13 tests TDD.
+- **Migración 60** — `emission_factors` table con seed Coordinador Eléctrico Nacional.
+- **Módulo Baseline Predictiva** — `GET /api/baseline/{hourly,daily,summary}`. Baseline estadística: promedio ponderado por hora + día-de-semana sobre 4 semanas históricas. Actual vs esperado con % desviación. 11 tests TDD.
+- **Reportes automáticos con email** — `processDueScheduledReports()` ahora renderiza PDF/Excel/CSV y envía por email via SES con attachment MIME. `SesEmailService.sendWithAttachment()` + `buildRawEmail()`. 4 tests TDD.
+
+### Changed (Frontend — Usabilidad)
+- **PanelConsolidadoPage decomposed** — 1229 líneas → 9 archivos (max 312). Componentes: PortfolioPanel, BuildingDetail, FloorPlanView, AlertFeed, StoreHeatmap, ArcGauge, RecentCriticalEvents.
+- **CostosTendenciasPage decomposed** — 600 líneas → 3 archivos + **4 tabs** (Tendencia, Waterfall, Tabla, Proyecciones). Progressive disclosure: usuario ve una visualización a la vez.
+- **ConsumoJerarquicoPage decomposed** — 664 líneas → 4 archivos + **2 tabs** (Mapa+detalle vs Medidores). Filtros reducidos de 6→4 en barra principal.
+- **MeterReadingsPage decomposed** — 597 líneas → 4 archivos + **2 tabs** (Gráfico vs Resumen diario).
+- **endpoints.ts split** — 939 líneas monolíticas → 14 archivos por dominio (auth, buildings, meters, readings, alerts, billing, reports, users, imports, integrations, data-governance, privacy, platform, audit) + barrel re-export. Zero breaking changes en 59 import sites.
+
+### Tests
+- 28 nuevos tests backend (carbon-footprint 13, baseline 11, reports-scheduler 4)
+- TypeScript compile clean en todos los refactors frontend
+
+---
+
 ## [2.49.0] - 2026-07-30 — JERARQUÍA FILTROS + OPERATOR FILTER PROPAGACIÓN
 
 ### Fixed

@@ -78,41 +78,41 @@ export function ReplicaDatosPage() {
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.10 Réplica de Datos</h1>
-        <p className="text-[12px] text-muted">Estado de la réplica NRT, monitoreo de lag, acceso por tenant y contratos de datos versionados</p>
+        <p className="text-xs text-muted">Estado de la réplica NRT, monitoreo de lag, acceso por tenant y contratos de datos versionados</p>
       </div>
 
       {/* Row 1 */}
       <div className="flex gap-3">
         {/* Estado réplica */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Estado de la réplica (NRT)</h3>
-          <p className="mb-3 text-[11px] text-muted">alerta si el lag supera el umbral (&gt; 5 min)</p>
+          <h3 className="text-sm font-semibold text-foreground">Estado de la réplica (NRT)</h3>
+          <p className="mb-3 text-xs text-muted">alerta si el lag supera el umbral (&gt; 5 min)</p>
           <ul className="space-y-2">
             {REPLICA_STATUS.map((s, i) => (
-              <li key={i} className="animate-fade-in flex items-start gap-2 text-[13px]" style={{ animationDelay: `${i * 30}ms` }}>
-                <span className={`mt-0.5 flex-shrink-0 text-[11px] ${s.ok ? 'text-emerald-500' : 'text-red-500'}`}>{s.ok ? '✓' : '✕'}</span>
+              <li key={i} className="animate-fade-in flex items-start gap-2 text-sm" style={{ animationDelay: `${i * 30}ms` }}>
+                <span className={`mt-0.5 flex-shrink-0 text-xs ${s.ok ? 'text-success' : 'text-danger'}`}>{s.ok ? '✓' : '✕'}</span>
                 <span className="text-muted">{s.label}:</span>
                 <span className="font-medium text-foreground">{s.value}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-4 rounded border border-emerald-200 bg-emerald-50 px-3 py-2">
-            <p className="text-[11px] font-medium text-emerald-700">Réplica operando dentro de parámetros normales</p>
-            <p className="text-[10px] text-emerald-600 mt-0.5">Próxima ventana de mantenimiento: 2026-07-20 02:00 CLT</p>
+          <div className="mt-4 rounded border border-emerald-200 bg-success/10 px-3 py-2">
+            <p className="text-xs font-medium text-success">Réplica operando dentro de parámetros normales</p>
+            <p className="text-xs text-success mt-0.5">Próxima ventana de mantenimiento: 2026-07-20 02:00 CLT</p>
           </div>
         </div>
 
         {/* Histograma lag */}
         <div className="panel flex w-1/2 min-w-0 flex-col p-3">
           <div className="shrink-0">
-            <h3 className="text-[13px] font-semibold text-foreground">Histograma de lag de réplica</h3>
-            <p className="mb-2 text-[11px] text-muted">lag en segundos · últimas 24h</p>
+            <h3 className="text-sm font-semibold text-foreground">Histograma de lag de réplica</h3>
+            <p className="mb-2 text-xs text-muted">lag en segundos · últimas 24h</p>
             <div className="mb-1 flex items-center gap-3">
-              <span className="flex items-center gap-1 text-[11px] text-muted">
+              <span className="flex items-center gap-1 text-xs text-muted">
                 <span className="inline-block h-3 w-3 rounded-sm bg-brand" /> lag (s)
               </span>
-              <span className="flex items-center gap-1 text-[11px] text-muted">
-                <span className="inline-block h-0.5 w-4 bg-red-400" style={{ borderTop: '2px dashed #ef4444' }} /> umbral 300 s
+              <span className="flex items-center gap-1 text-xs text-muted">
+                <span className="inline-block h-0.5 w-4 bg-danger/60" style={{ borderTop: '2px dashed #ef4444' }} /> umbral 300 s
               </span>
             </div>
           </div>
@@ -147,31 +147,31 @@ export function ReplicaDatosPage() {
       <div className="flex gap-3">
         {/* Acceso réplica */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Acceso a réplica por tenant / proceso ETL de PASA</h3>
-          <p className="mb-3 text-[11px] text-muted">gestión de acceso con revocación individual (auditada)</p>
-          <table className="w-full text-[13px]">
+          <h3 className="text-sm font-semibold text-foreground">Acceso a réplica por tenant / proceso ETL de PASA</h3>
+          <p className="mb-3 text-xs text-muted">gestión de acceso con revocación individual (auditada)</p>
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Usuario</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Tenant / proceso</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Permisos</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Última conexión</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Vol. consultado</th>
-                <th className="sticky top-0 bg-white px-3 py-2" />
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Usuario</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Tenant / proceso</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Permisos</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Última conexión</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Vol. consultado</th>
+                <th className="sticky top-0 bg-background px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {REPLICA_USERS.map((u, i) => (
                 <tr key={u.usuario} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
-                  <td className="px-3 py-2 font-mono text-[12px] font-medium text-foreground">{u.usuario}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{u.tenant}</td>
+                  <td className="px-3 py-2 font-mono text-xs font-medium text-foreground">{u.usuario}</td>
+                  <td className="px-3 py-2 text-xs text-muted">{u.tenant}</td>
                   <td className="px-3 py-2">
-                    <span className="inline-block rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-blue-700">{u.permisos}</span>
+                    <span className="inline-block rounded bg-info/10 px-1.5 py-0.5 font-mono text-xs font-medium text-info">{u.permisos}</span>
                   </td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{u.ultimaConexion}</td>
-                  <td className="px-3 py-2 text-[11px] font-mono text-foreground">{u.vol}</td>
+                  <td className="px-3 py-2 text-xs text-muted">{u.ultimaConexion}</td>
+                  <td className="px-3 py-2 text-xs font-mono text-foreground">{u.vol}</td>
                   <td className="px-3 py-2">
-                    <button type="button" className="text-[10px] text-red-500 hover:underline">Revocar</button>
+                    <button type="button" className="text-xs text-danger hover:underline">Revocar</button>
                   </td>
                 </tr>
               ))}
@@ -181,17 +181,17 @@ export function ReplicaDatosPage() {
 
         {/* Monitor cambios de esquema */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Monitor de cambios de esquema</h3>
-          <p className="mb-3 text-[11px] text-muted">badge rojo si el plazo de aviso de 30 días no se cumple</p>
-          <table className="w-full text-[13px]">
+          <h3 className="text-sm font-semibold text-foreground">Monitor de cambios de esquema</h3>
+          <p className="mb-3 text-xs text-muted">badge rojo si el plazo de aviso de 30 días no se cumple</p>
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Tabla / endpoint</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Tipo</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Detección</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Despliegue</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Notif. PASA</th>
-                <th className="sticky top-0 bg-white px-3 py-2" />
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Tabla / endpoint</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Tipo</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Detección</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Despliegue</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Notif. PASA</th>
+                <th className="sticky top-0 bg-background px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -203,20 +203,20 @@ export function ReplicaDatosPage() {
                     style={{ animationDelay: `${i * 30}ms` }}
                     onClick={() => setExpandedSchema(expandedSchema === i ? null : i)}
                   >
-                    <td className="px-3 py-2 font-mono text-[12px] font-medium text-foreground">{s.tabla}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{s.tipo}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{s.deteccion}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{s.despliegue}</td>
+                    <td className="px-3 py-2 font-mono text-xs font-medium text-foreground">{s.tabla}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{s.tipo}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{s.deteccion}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{s.despliegue}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${s.notifPASA === 'enviada' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${s.notifPASA === 'enviada' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                         {s.notifPASA}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-[10px] text-brand">{expandedSchema === i ? '▲' : '▼'}</td>
+                    <td className="px-3 py-2 text-xs text-foreground">{expandedSchema === i ? '▲' : '▼'}</td>
                   </tr>
                   {expandedSchema === i && (
                     <tr key={`${i}-detail`}>
-                      <td colSpan={6} className="bg-surface px-4 py-2 text-[12px] text-muted">
+                      <td colSpan={6} className="bg-surface px-4 py-2 text-xs text-muted">
                         {s.detail}
                       </td>
                     </tr>
@@ -232,16 +232,16 @@ export function ReplicaDatosPage() {
       <div className="flex gap-3">
         {/* Contratos de datos */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Contratos de datos versionados</h3>
-          <p className="mb-3 text-[11px] text-muted">backward compatibility · deprecación de versiones antiguas</p>
-          <table className="w-full text-[13px]">
+          <h3 className="text-sm font-semibold text-foreground">Contratos de datos versionados</h3>
+          <p className="mb-3 text-xs text-muted">backward compatibility · deprecación de versiones antiguas</p>
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Integración</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Versión actual</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Versiones soportadas</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Esquema</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Deprecación</th>
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Integración</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Versión actual</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Versiones soportadas</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Esquema</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Deprecación</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -249,13 +249,13 @@ export function ReplicaDatosPage() {
                 <tr key={c.integracion} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
                   <td className="px-3 py-2 font-medium text-foreground">{c.integracion}</td>
                   <td className="px-3 py-2">
-                    <span className="inline-block rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-blue-700">{c.versionActual}</span>
+                    <span className="inline-block rounded bg-info/10 px-1.5 py-0.5 font-mono text-xs font-medium text-info">{c.versionActual}</span>
                   </td>
-                  <td className="px-3 py-2 font-mono text-[11px] text-muted">{c.versionesSoportadas}</td>
+                  <td className="px-3 py-2 font-mono text-xs text-muted">{c.versionesSoportadas}</td>
                   <td className="px-3 py-2">
-                    <button type="button" className="font-mono text-[10px] text-brand hover:underline">{c.esquema}</button>
+                    <button type="button" className="font-mono text-xs text-foreground hover:underline">{c.esquema}</button>
                   </td>
-                  <td className="px-3 py-2 text-[11px] text-muted">{c.deprecacion}</td>
+                  <td className="px-3 py-2 text-xs text-muted">{c.deprecacion}</td>
                 </tr>
               ))}
             </tbody>
@@ -264,32 +264,32 @@ export function ReplicaDatosPage() {
 
         {/* Alerta 30 días */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Alerta de anticipación de 30 días</h3>
-          <p className="mb-3 text-[11px] text-muted">aviso formal a PASA por cambio de esquema</p>
+          <h3 className="text-sm font-semibold text-foreground">Alerta de anticipación de 30 días</h3>
+          <p className="mb-3 text-xs text-muted">aviso formal a PASA por cambio de esquema</p>
           <ul className="space-y-3">
-            <li className="animate-fade-in flex items-start gap-2 text-[13px]" style={{ animationDelay: '0ms' }}>
-              <span className="mt-0.5 text-amber-500 flex-shrink-0">⚠</span>
+            <li className="animate-fade-in flex items-start gap-2 text-sm" style={{ animationDelay: '0ms' }}>
+              <span className="mt-0.5 text-warning flex-shrink-0">⚠</span>
               <span className="text-foreground">2 cambios detectados sin notificar</span>
             </li>
-            <li className="animate-fade-in flex items-start gap-2 text-[13px]" style={{ animationDelay: '30ms' }}>
-              <span className="mt-0.5 text-red-500 flex-shrink-0">✕</span>
+            <li className="animate-fade-in flex items-start gap-2 text-sm" style={{ animationDelay: '30ms' }}>
+              <span className="mt-0.5 text-danger flex-shrink-0">✕</span>
               <span className="text-foreground">
                 1 incumple el plazo de 30 días
-                <span className="ml-1.5 inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">plazo vencido</span>
+                <span className="ml-1.5 inline-block rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">plazo vencido</span>
               </span>
             </li>
-            <li className="animate-fade-in flex items-start gap-2 text-[13px]" style={{ animationDelay: '60ms' }}>
-              <span className="mt-0.5 text-blue-500 flex-shrink-0">ℹ</span>
+            <li className="animate-fade-in flex items-start gap-2 text-sm" style={{ animationDelay: '60ms' }}>
+              <span className="mt-0.5 text-info flex-shrink-0">ℹ</span>
               <span className="text-muted">Calcula si el despliegue respeta el aviso basado en fecha de detección vs. despliegue</span>
             </li>
           </ul>
-          <div className="mt-4 rounded border border-red-200 bg-red-50 p-3">
-            <p className="text-[11px] font-medium text-red-700 mb-1">invoices · tipo modificado</p>
-            <p className="text-[10px] text-red-600">Detectado: 2026-07-14 · Despliegue: 2026-07-17 · Plazo requerido: 2026-08-13</p>
-            <p className="text-[10px] text-red-600 mt-0.5">El cambio se desplegó 27 días antes de cumplir el aviso a PASA.</p>
+          <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3">
+            <p className="text-xs font-medium text-danger mb-1">invoices · tipo modificado</p>
+            <p className="text-xs text-danger">Detectado: 2026-07-14 · Despliegue: 2026-07-17 · Plazo requerido: 2026-08-13</p>
+            <p className="text-xs text-danger mt-0.5">El cambio se desplegó 27 días antes de cumplir el aviso a PASA.</p>
           </div>
           <div className="mt-3">
-            <button type="button" className="rounded-md bg-brand px-4 py-2 text-[13px] font-medium text-white hover:bg-brand/90">
+            <button type="button" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90">
               Notificar a PASA ahora
             </button>
           </div>

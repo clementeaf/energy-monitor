@@ -34,9 +34,9 @@ const ROWS_PAGE = 25;
 function SummaryCards({ summary }: Readonly<{ summary: UserImportSummary }>) {
   const items = [
     { label: 'Total filas', value: summary.totalRows, className: 'text-foreground' },
-    { label: 'Válidas', value: summary.validRows, className: 'text-green-700' },
-    { label: 'Errores', value: summary.errorRows, className: 'text-red-700' },
-    { label: 'Duplicadas', value: summary.duplicateRows, className: 'text-amber-700' },
+    { label: 'Válidas', value: summary.validRows, className: 'text-success' },
+    { label: 'Errores', value: summary.errorRows, className: 'text-danger' },
+    { label: 'Duplicadas', value: summary.duplicateRows, className: 'text-warning' },
   ];
   return (
     <div className="flex flex-wrap gap-3">
@@ -55,10 +55,10 @@ function SummaryCards({ summary }: Readonly<{ summary: UserImportSummary }>) {
  */
 function RowStatusBadge({ status }: Readonly<{ status: string }>) {
   const styles: Record<string, string> = {
-    valid: 'bg-green-50 text-green-800',
-    error: 'bg-red-50 text-red-800',
-    duplicate: 'bg-amber-50 text-amber-800',
-    created: 'bg-blue-50 text-blue-800',
+    valid: 'bg-success/10 text-success',
+    error: 'bg-danger/10 text-danger',
+    duplicate: 'bg-warning/10 text-warning',
+    created: 'bg-info/10 text-info',
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? 'bg-surface text-muted'}`}>
@@ -154,7 +154,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
             <button
               type="button"
               onClick={() => { void downloadUserImportTemplate(); }}
-              className="mt-3 text-sm font-medium text-brand underline hover:opacity-80"
+              className="mt-3 text-sm font-medium text-foreground underline hover:opacity-80"
             >
               Descargar plantilla CSV
             </button>
@@ -170,7 +170,7 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
             <p className="text-sm text-muted" role="status">Validando {filename}…</p>
           ) : null}
           {uploadError ? (
-            <p className="text-sm text-red-700" role="alert">{uploadError}</p>
+            <p className="text-sm text-danger" role="alert">{uploadError}</p>
           ) : null}
         </section>
       )}
@@ -286,20 +286,20 @@ export function UserImportTab({ onViewUsers }: Readonly<UserImportTabProps>) {
               Crear {validCount} usuario{validCount === 1 ? '' : 's'}
             </Button>
             {commitMutation.isError ? (
-              <p className="text-sm text-red-700" role="alert">{getFetchErrorMessage(commitMutation.error)}</p>
+              <p className="text-sm text-danger" role="alert">{getFetchErrorMessage(commitMutation.error)}</p>
             ) : null}
           </div>
         </section>
       ) : null}
 
       {step === 'done' && commitResult ? (
-        <section className="panel border-green-200 bg-green-50/80 p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-green-900">Importación completada</h3>
-          <ul className="text-sm text-green-900 space-y-1">
+        <section className="panel border-green-200 bg-success/10/80 p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-success">Importación completada</h3>
+          <ul className="text-sm text-success space-y-1">
             <li>{commitResult.created} usuario{commitResult.created === 1 ? '' : 's'} creado{commitResult.created === 1 ? '' : 's'}</li>
             <li>{commitResult.skipped} duplicado{commitResult.skipped === 1 ? '' : 's'} omitido{commitResult.skipped === 1 ? '' : 's'}</li>
             {commitResult.failed > 0 ? (
-              <li className="text-red-800">{commitResult.failed} fila{commitResult.failed === 1 ? '' : 's'} con error al crear</li>
+              <li className="text-danger">{commitResult.failed} fila{commitResult.failed === 1 ? '' : 's'} con error al crear</li>
             ) : null}
           </ul>
           <div className="flex flex-wrap gap-2">

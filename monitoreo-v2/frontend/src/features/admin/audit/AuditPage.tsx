@@ -166,7 +166,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
                 <Td className="max-w-[120px] truncate" title={log.resourceId ?? undefined}>
                   {log.resourceId ? log.resourceId.slice(0, 8) + '...' : '—'}
                 </Td>
-                <Td className="max-w-[150px] truncate text-[11px]">
+                <Td className="max-w-[150px] truncate text-xs">
                   {(log as unknown as Record<string, unknown>).changes ? String((log as unknown as Record<string, unknown>).changes) : '—'}
                 </Td>
                 <Td>{log.ipAddress ?? '—'}</Td>
@@ -203,7 +203,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
         return (
           <div className="flex flex-wrap gap-4">
             <div className="panel flex-1 min-w-[300px] p-4">
-              <h3 className="mb-3 text-[13px] font-medium text-foreground">Actividad por día y hora</h3>
+              <h3 className="mb-3 text-sm font-medium text-foreground">Actividad por día y hora</h3>
               <div className="overflow-x-auto">
                 <div className="inline-grid gap-[2px]" style={{ gridTemplateColumns: `auto repeat(24, 1fr)` }}>
                   <div />
@@ -212,7 +212,7 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
                   ))}
                   {DAYS.map((day, di) => (
                     <React.Fragment key={day}>
-                      <div className="pr-1 text-right text-[9px] text-muted">{day}</div>
+                      <div className="pr-1 text-right text-xs text-muted">{day}</div>
                       {heatmap[di].map((count, hi) => {
                         const intensity = count / maxHeat;
                         const bg = count === 0 ? '#f3f4f6' : `rgba(59, 130, 246, ${0.15 + intensity * 0.85})`;
@@ -224,18 +224,18 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
               </div>
             </div>
             <div className="panel flex-1 min-w-[300px] p-4">
-              <h3 className="mb-3 text-[13px] font-medium text-foreground">Top 10 usuarios por actividad</h3>
+              <h3 className="mb-3 text-sm font-medium text-foreground">Top 10 usuarios por actividad</h3>
               {top10.length > 0 ? (
                 <ul className="space-y-1.5">
                   {top10.map(([user, count], i) => (
-                    <li key={user} className="flex items-center justify-between text-[12px]">
+                    <li key={user} className="flex items-center justify-between text-xs">
                       <span className="text-foreground"><span className="mr-2 text-muted">{i + 1}.</span>{user}</span>
                       <span className="font-medium text-foreground">{count}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-[12px] text-muted">Sin datos de actividad.</p>
+                <p className="text-xs text-muted">Sin datos de actividad.</p>
               )}
             </div>
           </div>
@@ -261,10 +261,10 @@ export function AuditPage({ mode = 'all' }: AuditPageProps = {}) {
 function MethodBadge({ action }: Readonly<{ action: string }>) {
   const method = action.split(' ')[0] ?? action;
   const colors: Record<string, string> = {
-    POST: 'bg-green-50 text-green-700',
-    PATCH: 'bg-yellow-50 text-yellow-700',
-    PUT: 'bg-yellow-50 text-yellow-700',
-    DELETE: 'bg-red-50 text-red-700',
+    POST: 'bg-success/10 text-success',
+    PATCH: 'bg-warning/10 text-warning',
+    PUT: 'bg-warning/10 text-warning',
+    DELETE: 'bg-danger/10 text-danger',
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colors[method] ?? 'bg-raised text-muted'}`}>

@@ -14,12 +14,13 @@ export interface EnrichedBuilding {
 export interface Country {
   code: string;
   label: string;
+  enabled: boolean;
 }
 
 export const COUNTRIES: Country[] = [
-  { code: 'CL', label: 'Chile' },
-  { code: 'PE', label: 'Perú' },
-  { code: 'CO', label: 'Colombia' },
+  { code: 'CL', label: 'Chile', enabled: true },
+  { code: 'PE', label: 'Perú', enabled: false },
+  { code: 'CO', label: 'Colombia', enabled: false },
 ];
 
 export const SEVERITY_COLORS: Record<string, string> = {
@@ -108,7 +109,7 @@ export const FALLBACK_EVENTS: Alert[] = [
 ];
 
 export const FALLBACK_BUILDINGS_FOR_FEED: Building[] = [
-  { id: 'fb-building-1', name: 'Parque Arauco Kennedy', isActive: true, address: 'Av. Kennedy 5413, Las Condes', countryCode: 'CL' } as Building,
-  { id: 'fb-building-2', name: 'Mall Plaza Vespucio', isActive: true, address: 'Av. Vicuña Mackenna 7110, La Florida', countryCode: 'CL' } as Building,
-  { id: 'fb-building-3', name: 'Costanera Center', isActive: true, address: 'Av. Andrés Bello 2447, Providencia', countryCode: 'CL' } as Building,
+  { id: 'fb-building-1', name: 'Parque Arauco', isActive: true, address: 'Av. Presidente Kennedy 5413, Las Condes', countryCode: 'CL' } as Building,
+  { id: 'fb-building-2', name: 'Arauco Maipú', isActive: true, address: 'Av. Américo Vespucio 399, Maipú', countryCode: 'CL' } as Building,
+  { id: 'fb-building-3', name: 'Arauco Quilicura', isActive: true, address: 'Av. Manuel Antonio Matta 301, Quilicura', countryCode: 'CL' } as Building,
 ];

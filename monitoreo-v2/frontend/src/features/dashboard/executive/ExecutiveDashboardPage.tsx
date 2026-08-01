@@ -245,7 +245,7 @@ export function ExecutiveDashboardPage(): ReactElement {
           {!aggQuery.isPending && portfolioSeries.length > 0 && (
             <div className="panel p-4">
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-[13px] font-medium text-foreground">{chartOptions.title.text}</h2>
+                <h2 className="text-sm font-medium text-foreground">{chartOptions.title.text}</h2>
                 <PillToggle
                   options={CHART_VIEWS.map((v) => ({ key: v.key, label: v.label }))}
                   value={chartView}
@@ -264,7 +264,7 @@ export function ExecutiveDashboardPage(): ReactElement {
               emptyTitle="Sin datos en el periodo"
               emptyDescription="No hay lecturas agregadas para el rango seleccionado. Prueba Semana/Mes o verifica que el tenant PASA tenga lecturas cargadas."
             >
-              <div className="panel p-4 text-[13px] text-muted">
+              <div className="panel p-4 text-sm text-muted">
                 Rango consultado: {new Date(from).toLocaleDateString('es-CL')} — {new Date(to).toLocaleDateString('es-CL')}
               </div>
             </DataWidget>
@@ -275,7 +275,7 @@ export function ExecutiveDashboardPage(): ReactElement {
         <div className="flex w-full flex-col gap-4 lg:w-80">
           {/* Ranking */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-foreground">Ranking intensidad</h2>
+            <h2 className="text-sm font-medium text-foreground">Ranking intensidad</h2>
             {(buildingsQs.phase === 'loading' || latestQuery.isPending) ? (
               <div className="animate-pulse panel">
                 <div className="h-8 rounded-t bg-raised" />
@@ -297,8 +297,8 @@ export function ExecutiveDashboardPage(): ReactElement {
               emptyDescription="No hay edificios o lecturas agregadas."
             >
               <div className="overflow-auto panel">
-                <table className="min-w-full text-[13px]">
-                  <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                     <tr>
                       <th className="px-3 py-2">#</th>
                       <th className="px-3 py-2">Edificio</th>
@@ -320,7 +320,7 @@ export function ExecutiveDashboardPage(): ReactElement {
                         <td className="px-3 py-1.5 font-medium">
                           <Link
                             to={`/dashboard/executive/${row.buildingId}`}
-                            className="text-brand hover:underline"
+                            className="text-foreground hover:underline"
                           >
                             {row.buildingName}
                           </Link>
@@ -336,7 +336,7 @@ export function ExecutiveDashboardPage(): ReactElement {
                   </TableStateBody>
                 </table>
               </div>
-              <p className="text-[11px] text-muted">
+              <p className="text-xs text-muted">
                 Menor = menos consumo relativo (por m² o por medidor).
               </p>
             </DataWidget>
@@ -345,10 +345,10 @@ export function ExecutiveDashboardPage(): ReactElement {
 
           {/* Critical alerts */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               Alertas críticas
               {criticalAlerts.length > 0 && (
-                <span className="ml-1.5 text-[11px] font-normal text-muted">
+                <span className="ml-1.5 text-xs font-normal text-muted">
                   ({criticalAlerts.length})
                 </span>
               )}
@@ -364,11 +364,11 @@ export function ExecutiveDashboardPage(): ReactElement {
                 {criticalAlerts.map((a) => (
                   <li
                     key={a.id}
-                    className="cursor-pointer px-3 py-2 text-[13px] transition-colors hover:bg-surface"
+                    className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
                     onClick={() => navigate(`/alerts?highlight=${a.id}`)}
                   >
                     <span className="text-foreground">{a.message}</span>
-                    <div className="mt-0.5 text-[11px] text-muted">
+                    <div className="mt-0.5 text-xs text-muted">
                       {new Date(a.createdAt).toLocaleString('es-CL')}
                     </div>
                   </li>
@@ -385,7 +385,7 @@ export function ExecutiveDashboardPage(): ReactElement {
 function KpiCard({ title, value }: Readonly<{ title: string; value: string }>): ReactElement {
   return (
     <div className="flex-1 basis-32 panel px-3 py-2.5">
-      <p className="text-[11px] font-medium text-muted">{title}</p>
+      <p className="text-xs font-medium text-muted">{title}</p>
       <p className="mt-0.5 text-base font-semibold text-foreground">{value}</p>
     </div>
   );

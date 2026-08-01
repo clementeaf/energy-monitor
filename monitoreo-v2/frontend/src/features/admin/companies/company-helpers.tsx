@@ -1,7 +1,7 @@
 export function SectionHeader({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="border-t border-border pt-4">
-      <p className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
         {children}
       </p>
     </div>
@@ -11,7 +11,7 @@ export function SectionHeader({ children }: Readonly<{ children: React.ReactNode
 export function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <div className="mb-1 block text-[12px] font-medium text-muted">{label}</div>
+      <div className="mb-1 block text-xs font-medium text-muted">{label}</div>
       {children}
     </div>
   );

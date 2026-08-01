@@ -14,11 +14,11 @@ export function MeterTable({ meters, readings }: Readonly<MeterTableProps>) {
 
   return (
     <div className="panel flex min-h-0 flex-col overflow-hidden p-3">
-      <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
-      <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+      <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
+      <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-2 py-1.5">ID medidor</th>
               <th className="px-2 py-1.5">Zona</th>
               <th className="px-2 py-1.5 text-right">Consumo [MWh]</th>
@@ -39,7 +39,7 @@ export function MeterTable({ meters, readings }: Readonly<MeterTableProps>) {
                 const isOnline = !!reading;
                 const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;
                 const statusLabel = !isOnline ? 'offline' : stale ? 'stale' : 'online';
-                const statusDot = statusLabel === 'online' ? 'bg-emerald-500' : statusLabel === 'stale' ? 'bg-amber-400' : 'bg-gray-400';
+                const statusDot = statusLabel === 'online' ? 'bg-success/100' : statusLabel === 'stale' ? 'bg-warning/60' : 'bg-subtle';
                 const zone = (meter.metadata as Record<string, string>)?.zone ?? meter.loadCategory ?? '—';
                 return (
                   <tr

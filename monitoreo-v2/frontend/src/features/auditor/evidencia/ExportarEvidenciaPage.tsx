@@ -98,7 +98,7 @@ export function ExportarEvidenciaPage() {
       {/* Page heading */}
       <div>
         <h1 className="text-[18px] font-semibold text-foreground">6.6 Exportar Evidencia</h1>
-        <p className="mt-0.5 text-[12px] text-muted">
+        <p className="mt-0.5 text-xs text-muted">
           Generación de paquetes de evidencia firmados — exportación auditable con sello de integridad
         </p>
       </div>
@@ -109,20 +109,20 @@ export function ExportarEvidenciaPage() {
         <div className="relative flex-1">
           <div className="panel p-4 absolute inset-0 flex flex-col">
             <div className="mb-1">
-              <h2 className="text-[13px] font-semibold text-foreground">Configurador de paquete de evidencia</h2>
-              <p className="text-[11px] text-muted">Selección de contenido, alcance y formato</p>
+              <h2 className="text-sm font-semibold text-foreground">Configurador de paquete de evidencia</h2>
+              <p className="text-xs text-muted">Selección de contenido, alcance y formato</p>
             </div>
 
             <div className="mt-3 flex-1 space-y-4 overflow-y-auto">
               {/* Contenido a incluir */}
               <div>
-                <h3 className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted">Contenido a incluir</h3>
-                <p className="mb-2 text-[10px] text-muted">
+                <h3 className="mb-1 text-xs font-medium uppercase tracking-wider text-muted">Contenido a incluir</h3>
+                <p className="mb-2 text-xs text-muted">
                   (datos de consumo / cuadratura / pista de auditoría / scorecard de calidad / linaje) — multi-selección
                 </p>
                 <div className="space-y-1.5">
                   {CONTENT_TYPES.map((ct) => (
-                    <label key={ct.key} className="flex items-center gap-2 text-[12px] text-foreground cursor-pointer">
+                    <label key={ct.key} className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selected.has(ct.key)}
@@ -137,7 +137,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Mall(es) */}
               <div>
-                <h3 className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">Mall(es)</h3>
+                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">Mall(es)</h3>
                 <DropdownSelect
                   className="w-full"
                   options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
@@ -148,7 +148,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Período */}
               <div>
-                <h3 className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">Período</h3>
+                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">Período</h3>
                 <DropdownSelect
                   className="w-full"
                   options={[
@@ -163,7 +163,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Formato de salida */}
               <div>
-                <h3 className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">
+                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">
                   Formato de salida (PDF + CSV empaquetados en ZIP firmado)
                 </h3>
                 <DropdownSelect
@@ -187,10 +187,10 @@ export function ExportarEvidenciaPage() {
           {/* Firma digital */}
           <div className="panel p-4 flex flex-col flex-1">
             <div className="mb-2">
-              <h2 className="text-[13px] font-semibold text-foreground">Firma digital del paquete</h2>
-              <p className="text-[11px] text-muted">Sello de integridad aplicado al ZIP</p>
+              <h2 className="text-sm font-semibold text-foreground">Firma digital del paquete</h2>
+              <p className="text-xs text-muted">Sello de integridad aplicado al ZIP</p>
             </div>
-            <ul className="flex-1 space-y-1.5 text-[12px] text-foreground">
+            <ul className="flex-1 space-y-1.5 text-xs text-foreground">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-muted">•</span>
                 Sello de tiempo del servidor (timestamp de emisión)
@@ -212,7 +212,7 @@ export function ExportarEvidenciaPage() {
               <Button
                 disabled={selected.size === 0}
                 loading={generateReport.isPending}
-                className="bg-brand text-white"
+                className="bg-brand text-background"
                 onClick={handleGenerate}
               >
                 Generar paquete firmado
@@ -226,17 +226,17 @@ export function ExportarEvidenciaPage() {
           {/* Vista previa */}
           <div className="panel p-4 flex flex-col flex-1">
             <div className="mb-2">
-              <h2 className="text-[13px] font-semibold text-foreground">Vista previa del paquete</h2>
-              <p className="text-[11px] text-muted">Antes de generar</p>
+              <h2 className="text-sm font-semibold text-foreground">Vista previa del paquete</h2>
+              <p className="text-xs text-muted">Antes de generar</p>
             </div>
-            <ul className="flex-1 space-y-1.5 text-[12px] text-foreground">
+            <ul className="flex-1 space-y-1.5 text-xs text-foreground">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-muted">•</span>
                 Portada + índice de contenidos seleccionados
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 text-muted">•</span>
-                <span className="font-mono text-[11px]">Estructura del ZIP: /pdf /csv /manifest-firma.txt</span>
+                <span className="font-mono text-xs">Estructura del ZIP: /pdf /csv /manifest-firma.txt</span>
               </li>
             </ul>
           </div>
@@ -246,13 +246,13 @@ export function ExportarEvidenciaPage() {
       {/* Row 2 — historial full-width */}
       <div className="panel p-4">
         <div className="mb-3">
-          <h2 className="text-[13px] font-semibold text-foreground">Historial de evidencias exportadas</h2>
-          <p className="text-[11px] text-muted">Link de descarga válido 90 días</p>
+          <h2 className="text-sm font-semibold text-foreground">Historial de evidencias exportadas</h2>
+          <p className="text-xs text-muted">Link de descarga válido 90 días</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Fecha</th>
                 <th className="px-3 py-2">Usuario</th>
                 <th className="px-3 py-2">Contenido</th>
@@ -269,13 +269,13 @@ export function ExportarEvidenciaPage() {
                   style={{ animationDelay: `${i * 30}ms` }}
                 >
                   <td className="px-3 py-2 text-muted">{new Date(report.createdAt).toLocaleDateString('es-CL')}</td>
-                  <td className="px-3 py-2 text-muted text-[12px]">—</td>
-                  <td className="px-3 py-2 text-muted text-[11px] uppercase">{report.format}</td>
+                  <td className="px-3 py-2 text-muted text-xs">—</td>
+                  <td className="px-3 py-2 text-muted text-xs uppercase">{report.format}</td>
                   <td className="px-3 py-2 text-muted">{report.periodStart} — {report.periodEnd}</td>
                   <td className="px-3 py-2">
                     {report.fileUrl
-                      ? <span className="font-mono text-[10px] text-muted">SHA-256</span>
-                      : <span className="text-[10px] text-muted">—</span>}
+                      ? <span className="font-mono text-xs text-muted">SHA-256</span>
+                      : <span className="text-xs text-muted">—</span>}
                   </td>
                   <td className="px-3 py-2">
                     {report.fileUrl ? (
@@ -284,11 +284,11 @@ export function ExportarEvidenciaPage() {
                         const expiresMs = createdMs + 90 * 86_400_000;
                         const daysLeft = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86_400_000));
                         return daysLeft > 0
-                          ? <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand hover:underline">Descargar ({daysLeft}d)</a>
-                          : <span className="text-[10px] text-red-500">Expirado</span>;
+                          ? <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-foreground hover:underline">Descargar ({daysLeft}d)</a>
+                          : <span className="text-xs text-danger">Expirado</span>;
                       })()
                     ) : (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700`}>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium bg-warning/10 text-warning`}>
                         Generando
                       </span>
                     )}

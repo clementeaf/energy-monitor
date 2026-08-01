@@ -93,8 +93,8 @@ const FALLBACK_MONTH_DATA: { label: string; diff: number; differencePct: number 
 ];
 
 const TOLERANCE_BADGE: Record<string, string> = {
-  true: 'bg-emerald-100 text-emerald-700',
-  false: 'bg-red-100 text-red-700',
+  true: 'bg-success/10 text-success',
+  false: 'bg-danger/10 text-danger',
 };
 
 /* ── Page ── */
@@ -183,7 +183,7 @@ export function CuadraturaPage() {
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">6.2 Cuadratura y Agregación</h1>
-        <p className="text-[12px] text-muted">Reconciliación remarcador general vs. suma sub-medidores — análisis de desviaciones y exportación firmada</p>
+        <p className="text-xs text-muted">Reconciliación remarcador general vs. suma sub-medidores — análisis de desviaciones y exportación firmada</p>
       </div>
 
       {/* Filter banner */}
@@ -209,12 +209,12 @@ export function CuadraturaPage() {
 
       {/* Row 1 — Reconciliation table */}
       <div className="panel p-4">
-        <h3 className="text-[13px] font-medium text-foreground">Tabla de reconciliación</h3>
-        <p className="mb-3 text-[11px] text-muted">Remarcador general vs. suma sub-medidores · desglose por zona / piso</p>
+        <h3 className="text-sm font-medium text-foreground">Tabla de reconciliación</h3>
+        <p className="mb-3 text-xs text-muted">Remarcador general vs. suma sub-medidores · desglose por zona / piso</p>
         <div className="overflow-auto">
-          <table className="w-full text-[13px]">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Zona / Piso</th>
                 <th className="px-3 py-2 text-right">Remarcador general [kWh]</th>
                 <th className="px-3 py-2 text-right">Suma sub-medidores [kWh]</th>
@@ -236,7 +236,7 @@ export function CuadraturaPage() {
                   <td className="px-3 py-2 text-right text-foreground">{row.differenceKwh.toFixed(1)}</td>
                   <td className="px-3 py-2 text-right text-foreground">{row.differencePct.toFixed(2)}%</td>
                   <td className="px-3 py-2 text-center">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${TOLERANCE_BADGE[String(row.withinTolerance)]}`}>
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${TOLERANCE_BADGE[String(row.withinTolerance)]}`}>
                       {row.withinTolerance ? 'Sí' : 'No'}
                     </span>
                   </td>
@@ -257,8 +257,8 @@ export function CuadraturaPage() {
         {/* Left: bar chart */}
         <div className="panel relative flex-1 p-4">
           <div className="absolute inset-0 flex flex-col p-4">
-            <h3 className="text-[13px] font-medium text-foreground">Análisis de desviaciones — diferencia mensual</h3>
-            <p className="mb-3 text-[11px] text-muted">Últimos 12 meses · barras fuera de tolerancia resaltadas</p>
+            <h3 className="text-sm font-medium text-foreground">Análisis de desviaciones — diferencia mensual</h3>
+            <p className="mb-3 text-xs text-muted">Últimos 12 meses · barras fuera de tolerancia resaltadas</p>
             <div className="flex flex-1 items-end gap-[3px] overflow-hidden">
               {monthData.map((m) => {
                 const h = (Math.abs(m.diff) / maxDiff) * 100;
@@ -270,7 +270,7 @@ export function CuadraturaPage() {
                     title={`${m.label}: ${m.diff.toFixed(1)} kWh (${m.differencePct.toFixed(2)}%)`}
                   >
                     <div
-                      className={`w-full rounded-t ${isOut ? 'bg-red-400' : 'bg-emerald-400'}`}
+                      className={`w-full rounded-t ${isOut ? 'bg-danger/60' : 'bg-success/60'}`}
                       style={{ height: `${Math.max(3, h)}%` }}
                     />
                     <span className="text-[8px] text-subtle">{m.label}</span>
@@ -284,12 +284,12 @@ export function CuadraturaPage() {
         {/* Right: out-of-tolerance table */}
         <div className="panel relative flex-1 p-4">
           <div className="absolute inset-0 flex flex-col p-4">
-            <h3 className="text-[13px] font-medium text-foreground">Meses fuera de tolerancia</h3>
-            <p className="mb-3 text-[11px] text-muted">Con enlace a datos crudos del período</p>
+            <h3 className="text-sm font-medium text-foreground">Meses fuera de tolerancia</h3>
+            <p className="mb-3 text-xs text-muted">Con enlace a datos crudos del período</p>
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-[12px]">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-background">
+                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                     <th className="px-2 py-1.5">Mes</th>
                     <th className="px-2 py-1.5 text-right">Diferencia %</th>
                     <th className="px-2 py-1.5 text-center">Estado</th>
@@ -300,11 +300,11 @@ export function CuadraturaPage() {
                   {outOfTolerance.map((m) => (
                     <tr key={m.label} className="transition-colors hover:bg-surface">
                       <td className="px-2 py-1.5 font-medium text-foreground">{m.label}</td>
-                      <td className={`px-2 py-1.5 text-right font-medium ${m.differencePct > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                      <td className={`px-2 py-1.5 text-right font-medium ${m.differencePct > 0 ? 'text-danger' : 'text-success'}`}>
                         {m.differencePct.toFixed(2)}%
                       </td>
                       <td className="px-2 py-1.5 text-center">
-                        <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
+                        <span className="inline-block rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
                           Fuera
                         </span>
                       </td>
@@ -312,7 +312,7 @@ export function CuadraturaPage() {
                         <button
                           type="button"
                           onClick={() => navigate('/auditor/datos-crudos')}
-                          className="text-[11px] text-brand hover:underline"
+                          className="text-xs text-foreground hover:underline"
                         >
                           Ver datos
                         </button>
@@ -335,9 +335,9 @@ export function CuadraturaPage() {
 
       {/* Row 3 — Signed export */}
       <div className="panel p-4">
-        <h3 className="text-[13px] font-medium text-foreground">Exportación firmada de la reconciliación</h3>
-        <p className="mb-3 text-[11px] text-muted">Sello de integridad para adjuntar a la evidencia</p>
-        <ul className="mb-4 space-y-1 text-[12px] text-muted list-disc list-inside">
+        <h3 className="text-sm font-medium text-foreground">Exportación firmada de la reconciliación</h3>
+        <p className="mb-3 text-xs text-muted">Sello de integridad para adjuntar a la evidencia</p>
+        <ul className="mb-4 space-y-1 text-xs text-muted list-disc list-inside">
           <li>Metadatos incluidos: fecha de generación, filtros aplicados, usuario auditor</li>
           <li>Hash SHA-256 del contenido — cualquier modificación invalida el archivo</li>
           <li>La cuadratura descargada queda cerrada e íntegra</li>
@@ -346,13 +346,13 @@ export function CuadraturaPage() {
           <button
             type="button"
             onClick={handleExport}
-            className="rounded-md bg-brand px-4 py-2 text-[12px] font-medium text-white hover:opacity-90 transition-opacity"
+            className="rounded-md bg-brand px-4 py-2 text-xs font-medium text-background hover:opacity-90 transition-opacity"
           >
             Descargar reconciliación firmada
           </button>
           <button
             type="button"
-            className="rounded-md border border-border px-4 py-2 text-[12px] font-medium text-foreground hover:bg-surface transition-colors"
+            className="rounded-md border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors"
           >
             Verificar hash
           </button>

@@ -98,7 +98,7 @@ export function DiagnosticoCommsPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="flex items-center gap-1">
           Medidor
           <DropdownSelect options={meterOptions} value={selectedMeterId ?? 'all'} onChange={(v) => setSelectedMeterId(v === 'all' ? null : v)} />
@@ -120,27 +120,27 @@ export function DiagnosticoCommsPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Estado de comunicación</p>
           <p className="mt-1 text-xl font-bold text-foreground">{selectedState ?? 'online'}</p>
-          <p className="text-[11px] text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ' · sin cambios recientes'}</p>
+          <p className="text-xs text-muted">online / offline / intermitente{commMetrics.elapsed > 0 ? ` · cambió hace ${commMetrics.elapsed} min` : ' · sin cambios recientes'}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tasa de éxito 24 h</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Tasa de éxito 24 h</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.successRate}%</p>
-          <p className="text-[11px] text-muted">reintentos {commMetrics.retries} · timeouts {commMetrics.timeouts}</p>
+          <p className="text-xs text-muted">reintentos {commMetrics.retries} · timeouts {commMetrics.timeouts}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Último dato recibido</p>
           <p className="mt-1 text-xl font-bold text-foreground">{commMetrics.lastTs ?? '14:15'}</p>
-          <p className="text-[11px] text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : 'hace 00:03'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} MWh` : '0.5 MWh'}</p>
+          <p className="text-xs text-muted">{commMetrics.elapsed > 0 ? `hace ${String(Math.floor(commMetrics.elapsed / 60)).padStart(2, '0')}:${String(commMetrics.elapsed % 60).padStart(2, '0')}` : 'hace 00:03'} · {commMetrics.lastKwh > 0 ? `${(commMetrics.lastKwh / 1000).toFixed(1)} MWh` : '0.5 MWh'}</p>
         </div>
       </div>
 
       {/* Row 2: Histogram + Tools */}
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de disponibilidad 72 h</p>
-          <p className="shrink-0 text-[11px] text-muted">barras de 15 min · huecos = sin lectura</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Histograma de disponibilidad 72 h</p>
+          <p className="shrink-0 text-xs text-muted">barras de 15 min · huecos = sin lectura</p>
           <div className="mt-2 flex min-h-0 flex-1 items-end gap-[0.5px]">
             {HISTOGRAM_SLOTS.map((slot, i) => (
               <div
@@ -157,29 +157,29 @@ export function DiagnosticoCommsPage() {
         </div>
 
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Herramientas de diagnóstico</p>
-          <p className="shrink-0 text-[11px] text-muted">acción directa sobre el enlace</p>
-          <div className="mt-2 space-y-1 text-[11px] text-foreground">
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Herramientas de diagnóstico</p>
+          <p className="shrink-0 text-xs text-muted">acción directa sobre el enlace</p>
+          <div className="mt-2 space-y-1 text-xs text-foreground">
             <p>• Test de conexión al gateway</p>
             <p>• Forzar re-intento de lectura</p>
             <p>• Ver log de comunicación raw (100 líneas)</p>
           </div>
           <div className="mt-3 flex gap-2">
-            <button type="button" disabled={!selected} className="flex-1 rounded-lg bg-foreground px-3 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-40">Test de conexión</button>
-            <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Forzar re-lectura</button>
-            <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Ver log raw</button>
+            <button type="button" disabled={!selected} className="flex-1 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-40">Test de conexión</button>
+            <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Forzar re-lectura</button>
+            <button type="button" disabled={!selected} className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Ver log raw</button>
           </div>
         </div>
       </div>
 
       {/* Row 3: Log raw */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Log de comunicación raw (últimas 100 líneas)</p>
-        <p className="shrink-0 text-[11px] text-muted">solo lectura · exportable</p>
-        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Log de comunicación raw (últimas 100 líneas)</p>
+        <p className="shrink-0 text-xs text-muted">solo lectura · exportable</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Timestamp UTC</th>
                 <th className="px-2 py-1.5">Dirección</th>
                 <th className="px-2 py-1.5">Trama / evento</th>
@@ -200,13 +200,13 @@ export function DiagnosticoCommsPage() {
                   : FALLBACK_LOG
                 ).map((entry, i) => (
                   <tr key={i} className="animate-fade-in text-muted" style={{ animationDelay: `${i * 30}ms` }}>
-                    <td className="px-2 py-1.5 font-mono text-[10px]">{entry.ts}</td>
+                    <td className="px-2 py-1.5 font-mono text-xs">{entry.ts}</td>
                     <td className="px-2 py-1.5">{entry.dir}</td>
                     <td className="px-2 py-1.5 font-mono">{entry.frame}</td>
                     <td className="px-2 py-1.5">
-                      {entry.result === 'FAIL' ? <span className="text-red-500">FAIL</span>
-                        : entry.result === 'WARN' ? <span className="text-amber-500">WARN</span>
-                        : <span className="text-emerald-600">OK</span>}
+                      {entry.result === 'FAIL' ? <span className="text-danger">FAIL</span>
+                        : entry.result === 'WARN' ? <span className="text-warning">WARN</span>
+                        : <span className="text-success">OK</span>}
                     </td>
                   </tr>
                 ))}

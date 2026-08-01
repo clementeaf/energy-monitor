@@ -212,7 +212,7 @@ export function RegisterMappingsPage() {
                 <Td>{row.unit ?? '—'}</Td>
                 <Td>
                   {row.tenantId == null ? (
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">Global</span>
+                    <span className="rounded-full bg-info/10 px-2 py-0.5 text-xs text-info">Global</span>
                   ) : (
                     <span className="text-xs text-muted">Tenant</span>
                   )}
@@ -322,7 +322,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <label className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </label>

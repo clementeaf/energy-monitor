@@ -113,9 +113,9 @@ const FALLBACK_REPORTS: FallbackReport[] = [
 /* ── Report status badges ── */
 
 const STATUS_STYLE: Record<string, string> = {
-  generating: 'bg-amber-100 text-amber-700',
-  ready: 'bg-emerald-100 text-emerald-700',
-  error: 'bg-red-100 text-red-700',
+  generating: 'bg-warning/10 text-warning',
+  ready: 'bg-success/10 text-success',
+  error: 'bg-danger/10 text-danger',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -251,7 +251,7 @@ export function ReportesEjecutivosPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           Alcance geográfico
@@ -281,37 +281,37 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {/* Configurador de reporte */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
-            <p className="text-[11px] text-muted">los filtros determinan el contenido a generar</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
+            <p className="text-xs text-muted">los filtros determinan el contenido a generar</p>
             <div className="mt-3 space-y-3">
               <ConfigField label="Alcance geográfico (Portafolio / País / Mall)">
-                <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                   {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                 </select>
                 {scope === 'building' && (
-                  <select value={selectedBuildingId} onChange={(e) => setSelectedBuildingId(e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={selectedBuildingId} onChange={(e) => setSelectedBuildingId(e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     <option value="">Seleccionar centro...</option>
                     {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                   </select>
                 )}
               </ConfigField>
               <ConfigField label="Período (Mes / Trimestre / Año / Rango)">
-                <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                   {PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                 </select>
               </ConfigField>
               <ConfigField label="Comparación (vs. anterior / año anterior / sin)">
-                <select value={comparison} onChange={(e) => setComparison(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                <select value={comparison} onChange={(e) => setComparison(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                   {COMPARISON_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                 </select>
               </ConfigField>
               <ConfigField label="Métrica principal (Consumo / Costo / Intensidad)">
-                <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                   {METRIC_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                 </select>
               </ConfigField>
               <ConfigField label="Formato de salida (PDF / PPT / Excel)">
-                <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                   {FORMAT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                 </select>
               </ConfigField>
@@ -320,11 +320,11 @@ export function ReportesEjecutivosPage() {
 
           {/* Secciones a incluir */}
           <div className="panel px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
-            <p className="text-[11px] text-muted">todas activadas por defecto</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
+            <p className="text-xs text-muted">todas activadas por defecto</p>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
               {REPORT_SECTIONS.map((s) => (
-                <label key={s.key} className="flex items-center gap-1.5 text-[11px] text-foreground">
+                <label key={s.key} className="flex items-center gap-1.5 text-xs text-foreground">
                   <input type="checkbox" checked={sections.has(s.key)} onChange={() => toggleSection(s.key)} className="rounded border-border" />
                   {s.label}
                 </label>
@@ -337,9 +337,9 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           {/* Vista previa del reporte */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
-            <p className="text-[11px] text-muted">miniatura de portada e índice</p>
-            <div className="mt-2 text-[11px] text-muted">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
+            <p className="text-xs text-muted">miniatura de portada e índice</p>
+            <div className="mt-2 text-xs text-muted">
               <p>• Portada + logo</p>
               <p>• Índice de secciones seleccionadas:</p>
               <ul className="ml-3 mt-1 space-y-0.5">
@@ -356,19 +356,19 @@ export function ReportesEjecutivosPage() {
             <Button onClick={handleGenerate} loading={generateReport.isPending || downloading} disabled={generateReport.isPending || downloading} className="flex-1">
               {downloading ? 'Descargando reporte…' : generateReport.isPending ? 'Generando reporte…' : 'Generar reporte'}
             </Button>
-            <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">
+            <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">
               Programar envío
             </button>
           </div>
 
           {/* Historial de reportes */}
           <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
-            <p className="shrink-0 text-[11px] text-muted">retención de archivos ≥ 12 meses</p>
-            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+            <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
+            <p className="shrink-0 text-xs text-muted">retención de archivos ≥ 12 meses</p>
+            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                     <th className="px-2 py-1.5">Fecha</th>
                     <th className="px-2 py-1.5">Usuario</th>
                     <th className="px-2 py-1.5">Alcance</th>
@@ -387,7 +387,7 @@ export function ReportesEjecutivosPage() {
                         <td className="px-2 py-1.5 text-muted">{(report as unknown as Record<string, unknown>).scope as string ?? 'Portafolio'}</td>
                         <td className="px-2 py-1.5 uppercase text-muted">{report.format}</td>
                         <td className="px-2 py-1.5 text-center">
-                          <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-medium ${STATUS_STYLE[report.fileUrl ? 'ready' : 'generating'] ?? ''}`}>
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[report.fileUrl ? 'ready' : 'generating'] ?? ''}`}>
                             {STATUS_LABEL[report.fileUrl ? 'ready' : 'generating'] ?? '—'}
                           </span>
                         </td>
@@ -411,7 +411,7 @@ export function ReportesEjecutivosPage() {
 function ConfigField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <p className="mb-1 text-[10px] text-muted">{label}</p>
+      <p className="mb-1 text-xs text-muted">{label}</p>
       {children}
     </div>
   );

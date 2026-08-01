@@ -36,16 +36,16 @@ const HEATMAP: Record<string, Record<string, string>> = {
 };
 
 const HEATMAP_COLOR: Record<string, string> = {
-  'obligatorio': 'bg-blue-600 text-white',
-  'opcional': 'bg-blue-200 text-blue-800',
-  'no-req': 'bg-gray-100 text-gray-400',
-  'no-permitido': 'bg-red-100 text-red-600',
+  'obligatorio': 'bg-info text-background',
+  'opcional': 'bg-info/20 text-info',
+  'no-req': 'bg-surface text-subtle',
+  'no-permitido': 'bg-danger/10 text-danger',
 };
 
 const ACCION_BADGE: Record<string, string> = {
-  'archivar': 'bg-blue-100 text-blue-700',
+  'archivar': 'bg-info/10 text-info',
   'anonimizar': 'bg-purple-100 text-purple-700',
-  'eliminar': 'bg-red-100 text-red-700',
+  'eliminar': 'bg-danger/10 text-danger',
 };
 
 /* ── Page ── */
@@ -61,19 +61,19 @@ export function RetencionPrivacidadPage() {
     <div className="flex h-full flex-col gap-3 overflow-y-auto overflow-x-hidden">
       <div className="shrink-0">
         <h1 className="text-lg font-semibold text-foreground">7.9 Retención y Privacidad</h1>
-        <p className="text-[12px] text-muted">Políticas de retención de datos, minimización por proceso y ejecución de borrado auditado</p>
+        <p className="text-xs text-muted">Políticas de retención de datos, minimización por proceso y ejecución de borrado auditado</p>
       </div>
 
       {/* Row 1 */}
       <div className="flex gap-3">
         {/* Catálogo */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Catálogo de políticas de retención</h3>
-          <p className="mb-2 text-[11px] text-muted">acción al vencimiento · fila expandible</p>
+          <h3 className="text-sm font-semibold text-foreground">Catálogo de políticas de retención</h3>
+          <p className="mb-2 text-xs text-muted">acción al vencimiento · fila expandible</p>
           <div className="overflow-x-auto">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Tipo</th>
                   <th className="px-2 py-1.5">País</th>
@@ -95,9 +95,9 @@ export function RetencionPrivacidadPage() {
                     <td className="px-2 py-1.5 text-muted">{p.pais}</td>
                     <td className="px-2 py-1.5 text-muted">{p.retencion}</td>
                     <td className="px-2 py-1.5">
-                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${ACCION_BADGE[p.accion]}`}>{p.accion}</span>
+                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${ACCION_BADGE[p.accion]}`}>{p.accion}</span>
                     </td>
-                    <td className="px-2 py-1.5 text-[10px] text-brand">{expandedPolicy === i ? '▲' : '▼'}</td>
+                    <td className="px-2 py-1.5 text-xs text-foreground">{expandedPolicy === i ? '▲' : '▼'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -107,17 +107,17 @@ export function RetencionPrivacidadPage() {
 
         {/* Formulario nueva política */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Formulario de nueva política</h3>
-          <p className="mb-2 text-[11px] text-muted">minimización de datos por proceso, país y finalidad</p>
+          <h3 className="text-sm font-semibold text-foreground">Formulario de nueva política</h3>
+          <p className="mb-2 text-xs text-muted">minimización de datos por proceso, país y finalidad</p>
           <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-0.5 block text-[10px] font-medium text-muted">Tipo de dato</label>
-                <input className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" placeholder="ej. PII" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} />
+                <label className="mb-0.5 block text-xs font-medium text-muted">Tipo de dato</label>
+                <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="ej. PII" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} />
               </div>
               <div>
-                <label className="mb-0.5 block text-[10px] font-medium text-muted">País</label>
-                <select className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" value={form.pais} onChange={(e) => setForm({ ...form, pais: e.target.value })}>
+                <label className="mb-0.5 block text-xs font-medium text-muted">País</label>
+                <select className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" value={form.pais} onChange={(e) => setForm({ ...form, pais: e.target.value })}>
                   <option value="">—</option>
                   <option value="CL">Chile</option>
                   <option value="CO">Colombia</option>
@@ -128,33 +128,33 @@ export function RetencionPrivacidadPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-0.5 block text-[10px] font-medium text-muted">Retención activa [años]</label>
-                <input className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" placeholder="2" value={form.retencionActiva} onChange={(e) => setForm({ ...form, retencionActiva: e.target.value })} />
+                <label className="mb-0.5 block text-xs font-medium text-muted">Retención activa [años]</label>
+                <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="2" value={form.retencionActiva} onChange={(e) => setForm({ ...form, retencionActiva: e.target.value })} />
               </div>
               <div>
-                <label className="mb-0.5 block text-[10px] font-medium text-muted">Retención archivo</label>
-                <input className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" placeholder="5 años" value={form.retencionArchivo} onChange={(e) => setForm({ ...form, retencionArchivo: e.target.value })} />
+                <label className="mb-0.5 block text-xs font-medium text-muted">Retención archivo</label>
+                <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="5 años" value={form.retencionArchivo} onChange={(e) => setForm({ ...form, retencionArchivo: e.target.value })} />
               </div>
             </div>
             <div>
-              <label className="mb-0.5 block text-[10px] font-medium text-muted">Acción al vencimiento</label>
-              <select className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" value={form.accion} onChange={(e) => setForm({ ...form, accion: e.target.value })}>
+              <label className="mb-0.5 block text-xs font-medium text-muted">Acción al vencimiento</label>
+              <select className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" value={form.accion} onChange={(e) => setForm({ ...form, accion: e.target.value })}>
                 <option value="anonimizar">Anonimizar</option>
                 <option value="eliminar">Eliminar</option>
                 <option value="archivar">Archivar</option>
               </select>
             </div>
             <div>
-              <label className="mb-0.5 block text-[10px] font-medium text-muted">Base legal</label>
-              <input className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" placeholder="Ley 21.719 Art. 8" value={form.baseLegal} onChange={(e) => setForm({ ...form, baseLegal: e.target.value })} />
+              <label className="mb-0.5 block text-xs font-medium text-muted">Base legal</label>
+              <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="Ley 21.719 Art. 8" value={form.baseLegal} onChange={(e) => setForm({ ...form, baseLegal: e.target.value })} />
             </div>
             <div>
-              <label className="mb-0.5 block text-[10px] font-medium text-muted">Finalidad</label>
-              <input className="w-full rounded border border-border bg-white px-2 py-1 text-[12px] text-foreground" placeholder="Gestión facturación" value={form.finalidad} onChange={(e) => setForm({ ...form, finalidad: e.target.value })} />
+              <label className="mb-0.5 block text-xs font-medium text-muted">Finalidad</label>
+              <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="Gestión facturación" value={form.finalidad} onChange={(e) => setForm({ ...form, finalidad: e.target.value })} />
             </div>
             <div className="flex gap-2 pt-1">
-              <button type="submit" className="rounded-md bg-brand px-3 py-1.5 text-[12px] font-medium text-white hover:bg-brand/90">Guardar política</button>
-              <button type="button" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-muted hover:bg-surface">Cancelar</button>
+              <button type="submit" className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-background hover:bg-brand/90">Guardar política</button>
+              <button type="button" className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted hover:bg-surface">Cancelar</button>
             </div>
           </form>
         </div>
@@ -162,12 +162,12 @@ export function RetencionPrivacidadPage() {
 
       {/* Row 2 — Cola de ejecución full-width */}
       <div className="panel p-3">
-        <h3 className="text-[13px] font-semibold text-foreground">Cola de ejecución de políticas</h3>
-        <p className="mb-2 text-[11px] text-muted">GATE: eliminación masiva requiere aprobación PASA</p>
+        <h3 className="text-sm font-semibold text-foreground">Cola de ejecución de políticas</h3>
+        <p className="mb-2 text-xs text-muted">GATE: eliminación masiva requiere aprobación PASA</p>
         <div className="overflow-x-auto">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Tipo de dato</th>
                 <th className="px-2 py-1.5">Registros</th>
                 <th className="px-2 py-1.5">Acción</th>
@@ -181,7 +181,7 @@ export function RetencionPrivacidadPage() {
                   <td className="px-2 py-1.5 font-medium text-foreground">{q.tipo}</td>
                   <td className="px-2 py-1.5 font-mono text-foreground">{q.registros.toLocaleString()}</td>
                   <td className="px-2 py-1.5">
-                    <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${ACCION_BADGE[q.accion]}`}>{q.accion}</span>
+                    <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${ACCION_BADGE[q.accion]}`}>{q.accion}</span>
                   </td>
                   <td className="px-2 py-1.5 text-muted">{q.fechaLimite}</td>
                   <td className="px-2 py-1.5 text-muted">{q.responsable}</td>
@@ -191,8 +191,8 @@ export function RetencionPrivacidadPage() {
           </table>
         </div>
         <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
-          <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-[12px] font-medium text-white hover:bg-brand/90">Ejecutar borrado</button>
-          <button type="button" className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-muted hover:bg-surface">Enviar a aprobación PASA</button>
+          <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-background hover:bg-brand/90">Ejecutar borrado</button>
+          <button type="button" className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted hover:bg-surface">Enviar a aprobación PASA</button>
         </div>
       </div>
 
@@ -200,17 +200,17 @@ export function RetencionPrivacidadPage() {
       <div className="flex gap-3">
         {/* Heatmap */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Configurador de campos por proceso</h3>
-          <p className="mb-2 text-[11px] text-muted">obligatorio / opcional / no requerido / no permitido · auditado</p>
+          <h3 className="text-sm font-semibold text-foreground">Configurador de campos por proceso</h3>
+          <p className="mb-2 text-xs text-muted">obligatorio / opcional / no requerido / no permitido · auditado</p>
           <div className="mb-2 flex flex-wrap gap-1">
             {Object.entries(HEATMAP_COLOR).map(([k, v]) => (
-              <span key={k} className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${v}`}>{k}</span>
+              <span key={k} className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${v}`}>{k}</span>
             ))}
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-[10px]">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-[9px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-1.5 py-1 text-left">Proceso</th>
                   {FIELDS.map((f) => <th key={f} className="px-1.5 py-1 text-center">{f}</th>)}
                 </tr>
@@ -238,12 +238,12 @@ export function RetencionPrivacidadPage() {
 
         {/* Historial de ejecuciones */}
         <div className="panel w-1/2 min-w-0 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Historial de ejecuciones</h3>
-          <p className="mb-2 text-[11px] text-muted">inmutable · hash de verificación · usuario que aprobó</p>
+          <h3 className="text-sm font-semibold text-foreground">Historial de ejecuciones</h3>
+          <p className="mb-2 text-xs text-muted">inmutable · hash de verificación · usuario que aprobó</p>
           <div className="overflow-x-auto">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Fecha</th>
                   <th className="px-2 py-1.5">Registros</th>
@@ -255,10 +255,10 @@ export function RetencionPrivacidadPage() {
                 {EXEC_HISTORY.map((h, i) => (
                   <tr key={i} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
                     <td className="px-2 py-1.5 font-medium text-foreground">{h.politica}</td>
-                    <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{h.fecha}</td>
+                    <td className="px-2 py-1.5 font-mono text-xs text-muted">{h.fecha}</td>
                     <td className="px-2 py-1.5 font-mono text-foreground">{h.registros.toLocaleString()}</td>
                     <td className="px-2 py-1.5">
-                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${ACCION_BADGE[h.accion]}`}>{h.accion}</span>
+                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${ACCION_BADGE[h.accion]}`}>{h.accion}</span>
                     </td>
                     <td className="px-2 py-1.5 text-muted">{h.aprobo}</td>
                   </tr>

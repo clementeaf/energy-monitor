@@ -90,8 +90,8 @@ export function BreachReportsPage() {
       <Button onClick={() => { setCreateOpen(true); }}>Registrar brecha</Button>
 
       {openReports.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <h2 className="mb-2 font-medium text-amber-900">{openReports.length} brecha(s) abiertas</h2>
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <h2 className="mb-2 font-medium text-warning">{openReports.length} brecha(s) abiertas</h2>
         </div>
       )}
 

@@ -217,7 +217,7 @@ export function ExportarReportesPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           Tipo de contenido
@@ -247,13 +247,13 @@ export function ExportarReportesPage() {
           {/* Left: Configurador de exportación */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             <div className="panel px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
-              <p className="text-[11px] text-muted">selección de contenido, alcance y formato</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
+              <p className="text-xs text-muted">selección de contenido, alcance y formato</p>
               <div className="mt-3 space-y-3">
                 <ConfigField label="Tipo de contenido (multi-selección)">
                   <div className="space-y-1.5">
                     {CONTENT_TYPES.map((ct) => (
-                      <label key={ct.key} className="flex items-center gap-2 text-[11px] text-foreground">
+                      <label key={ct.key} className="flex items-center gap-2 text-xs text-foreground">
                         <input type="checkbox" checked={selectedContent.has(ct.key)} onChange={() => toggleContent(ct.key)} className="rounded border-border" />
                         {ct.label}
                       </label>
@@ -261,7 +261,7 @@ export function ExportarReportesPage() {
                   </div>
                 </ConfigField>
                 <ConfigField label="Alcance geográfico">
-                  <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={scope} onChange={(e) => setScope(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     {SCOPE_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                   {scope === 'building' && (
@@ -269,28 +269,28 @@ export function ExportarReportesPage() {
                   )}
                 </ConfigField>
                 <ConfigField label="Período (hasta 5 años)">
-                  <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     {PERIOD_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                   {period === 'custom' && (
                     <div className="mt-1 flex gap-2">
-                      <input type="date" value={customStart} min={fiveYearsAgo} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
-                      <input type="date" value={customEnd} min={customStart} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setCustomEnd(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none" />
+                      <input type="date" value={customStart} min={fiveYearsAgo} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none" />
+                      <input type="date" value={customEnd} min={customStart} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setCustomEnd(e.target.value)} className="flex-1 rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none" />
                     </div>
                   )}
                 </ConfigField>
                 <ConfigField label="Granularidad temporal (Mensual / Semanal)">
-                  <select value={granularity} onChange={(e) => setGranularity(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={granularity} onChange={(e) => setGranularity(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     {GRANULARITY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                 </ConfigField>
                 <ConfigField label="Formato de salida (PDF / Excel / CSV)">
-                  <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     {FORMAT_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                 </ConfigField>
                 <ConfigField label="Moneda de costos">
-                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none">
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
                     {CURRENCY_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
                   </select>
                 </ConfigField>
@@ -302,8 +302,8 @@ export function ExportarReportesPage() {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
             {/* Resumen de la exportación */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
-              <div className="mt-2 space-y-0.5 text-[11px] text-muted">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
+              <div className="mt-2 space-y-0.5 text-xs text-muted">
                 <p>• Contenido: {selectedTypes.map((t) => t.label).join(', ') || '—'}</p>
                 <p>• Alcance: {scopeLabel} · Período: {periodLabel}</p>
                 <p>• Granularidad: {granLabel} · Formato: {formatLabel}</p>
@@ -315,15 +315,15 @@ export function ExportarReportesPage() {
               <Button onClick={handleExport} loading={generateReport.isPending} disabled={selectedContent.size === 0} className="flex-1">
                 Exportar
               </Button>
-              <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">
+              <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">
                 Programar exportación
               </button>
             </div>
 
             {/* Limitación del perfil gerencial */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
-              <ul className="mt-2 space-y-0.5 text-[11px] text-muted">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
+              <ul className="mt-2 space-y-0.5 text-xs text-muted">
                 <li>• Solo datos agregados por mall y período</li>
                 <li>• Sin datos crudos de medidores individuales</li>
                 <li>• Sin información identificable de locatarios</li>
@@ -336,11 +336,11 @@ export function ExportarReportesPage() {
 
       {/* Row 2: Historial de exportaciones */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
-        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">Fecha</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Contenido</th>
@@ -362,9 +362,9 @@ export function ExportarReportesPage() {
                     <td className="px-2 py-1.5 uppercase text-muted">{report.format}</td>
                     <td className="px-2 py-1.5">
                       {report.fileUrl ? (
-                        <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">Descargar</a>
+                        <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline">Descargar</a>
                       ) : (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium text-amber-700">Generando</span>
+                        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">Generando</span>
                       )}
                     </td>
                   </tr>
@@ -412,7 +412,7 @@ function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSea
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground"
+        className="flex w-full items-center justify-between rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground"
       >
         {label}
         <svg className={`h-3 w-3 opacity-50 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5l3 3 3-3" /></svg>
@@ -424,21 +424,21 @@ function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSea
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Buscar mall..."
-              className="w-full rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none"
+              className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground outline-none"
               autoFocus
             />
           </div>
           <ul className="max-h-40 overflow-y-auto py-1">
             {selected.size > 0 && (
               <li>
-                <button type="button" onClick={onClear} className="w-full px-3 py-1.5 text-left text-[11px] text-brand hover:bg-surface">
+                <button type="button" onClick={onClear} className="w-full px-3 py-1.5 text-left text-xs text-foreground hover:bg-surface">
                   Limpiar selección
                 </button>
               </li>
             )}
             {filtered.map((b) => (
               <li key={b.id}>
-                <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-[11px] text-foreground hover:bg-surface">
+                <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-xs text-foreground hover:bg-surface">
                   <input type="checkbox" checked={selected.has(b.id)} onChange={() => onToggle(b.id)} className="size-3 rounded border-border" />
                   {b.name}
                 </label>
@@ -456,7 +456,7 @@ function MallMultiSelect({ buildings, selected, onToggle, onClear, search, onSea
 function ConfigField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <p className="mb-1 text-[10px] text-muted">{label}</p>
+      <p className="mb-1 text-xs text-muted">{label}</p>
       {children}
     </div>
   );

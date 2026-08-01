@@ -103,7 +103,7 @@ export function DatosCrudosPage() {
       {/* Page title */}
       <div>
         <h1 className="text-[18px] font-semibold text-foreground">6.5 Datos Crudos</h1>
-        <p className="mt-0.5 text-[12px] text-muted">
+        <p className="mt-0.5 text-xs text-muted">
           Vista previa de lecturas sin transformar — exportación para Data Science con sello de integridad
         </p>
       </div>
@@ -111,7 +111,7 @@ export function DatosCrudosPage() {
       {/* Filter banner */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor(es)</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Medidor(es)</label>
           <DropdownSelect
             options={meterOptions}
             value={selectedMeterIds[0] ?? ''}
@@ -121,25 +121,25 @@ export function DatosCrudosPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Desde</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Desde</label>
           <input
             type="date"
             value={dateRange.from}
             max={dateRange.to}
             onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Hasta</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Hasta</label>
           <input
             type="date"
             value={dateRange.to}
             min={dateRange.from}
             max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setDateRange((prev) => ({ ...prev, to: e.target.value }))}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground outline-none focus:border-brand"
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
           />
         </div>
       </div>
@@ -148,14 +148,14 @@ export function DatosCrudosPage() {
       <div className="panel flex flex-1 flex-col p-4" style={{ minHeight: 0 }}>
         <div className="mb-3 flex items-center gap-2">
           <div>
-            <h2 className="text-[13px] font-semibold text-foreground">Vista previa de datos raw</h2>
-            <p className="text-[11px] text-muted">Primeras 100 filas · sin transformar · solo lectura</p>
+            <h2 className="text-sm font-semibold text-foreground">Vista previa de datos raw</h2>
+            <p className="text-xs text-muted">Primeras 100 filas · sin transformar · solo lectura</p>
           </div>
         </div>
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-[12px]">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Timestamp UTC</th>
                 <th className="px-3 py-2 text-right">Valor raw</th>
                 <th className="px-3 py-2">Unidad</th>
@@ -170,7 +170,7 @@ export function DatosCrudosPage() {
                   className="animate-fade-in"
                   style={{ animationDelay: `${idx * 30}ms` }}
                 >
-                  <td className="px-3 py-1.5 font-mono text-[11px] text-foreground">{r.timestamp}</td>
+                  <td className="px-3 py-1.5 font-mono text-xs text-foreground">{r.timestamp}</td>
                   <td className="px-3 py-1.5 text-right text-muted">{Number(r.power_kw).toFixed(3)}</td>
                   <td className="px-3 py-1.5 text-muted">kW</td>
                   <td className="px-3 py-1.5 text-center">
@@ -178,16 +178,16 @@ export function DatosCrudosPage() {
                       const ageMs = Date.now() - new Date(r.timestamp).getTime();
                       const stale = ageMs > 4 * 3_600_000;
                       return stale
-                        ? <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-medium text-blue-700">estimado</span>
-                        : <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700">real</span>;
+                        ? <span className="rounded-full bg-info/10 px-1.5 py-0.5 text-xs font-medium text-info">estimado</span>
+                        : <span className="rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">real</span>;
                     })()}
                   </td>
-                  <td className="px-3 py-1.5 text-center text-[10px]">
+                  <td className="px-3 py-1.5 text-center text-xs">
                     {(() => {
                       const pw = Number(r.power_kw);
                       if (avgPower <= 0) return <span className="text-muted">—</span>;
-                      if (pw > avgPower * 2) return <span className="text-amber-600 font-medium">Alto (&gt;2x avg)</span>;
-                      if (pw < avgPower * 0.5) return <span className="text-amber-600 font-medium">Bajo (&lt;0.5x avg)</span>;
+                      if (pw > avgPower * 2) return <span className="text-warning font-medium">Alto (&gt;2x avg)</span>;
+                      if (pw < avgPower * 0.5) return <span className="text-warning font-medium">Bajo (&lt;0.5x avg)</span>;
                       return <span className="text-muted">—</span>;
                     })()}
                   </td>
@@ -211,11 +211,11 @@ export function DatosCrudosPage() {
         <div className="panel p-4">
           <div className="mb-3 flex items-center gap-2">
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground">Exportación</h2>
-              <p className="text-[11px] text-muted">Formatos para Data Science · retención de exports: 30 días</p>
+              <h2 className="text-sm font-semibold text-foreground">Exportación</h2>
+              <p className="text-xs text-muted">Formatos para Data Science · retención de exports: 30 días</p>
             </div>
           </div>
-          <ul className="space-y-2 text-[12px] text-foreground">
+          <ul className="space-y-2 text-xs text-foreground">
             <li className="flex items-start gap-2">
               <span className="mt-0.5 text-muted">•</span>
               <span>Formatos: <strong>Parquet</strong> · <strong>CSV</strong> · <strong>JSON</strong></span>
@@ -235,21 +235,21 @@ export function DatosCrudosPage() {
         <div className="panel p-4">
           <div className="mb-3 flex items-center gap-2">
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground">Restricción de uso</h2>
-              <p className="text-[11px] text-muted">Aviso permanente ligado a la exportación</p>
+              <h2 className="text-sm font-semibold text-foreground">Restricción de uso</h2>
+              <p className="text-xs text-muted">Aviso permanente ligado a la exportación</p>
             </div>
           </div>
-          <ul className="space-y-2 text-[12px] text-foreground">
+          <ul className="space-y-2 text-xs text-foreground">
             <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-amber-500">•</span>
+              <span className="mt-0.5 text-warning">•</span>
               <span>Los datos exportados <strong>NO pueden usarse</strong> para entrenar modelos de ML fuera de PASA.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-amber-500">•</span>
+              <span className="mt-0.5 text-warning">•</span>
               <span>Restricción contractual y técnica de entrenamiento con datos de PASA.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-amber-500">•</span>
+              <span className="mt-0.5 text-warning">•</span>
               <span>Aplica a Parquet, CSV y JSON descargados desde esta pantalla.</span>
             </li>
           </ul>
@@ -259,7 +259,7 @@ export function DatosCrudosPage() {
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
         <Button
-          className="bg-brand text-white hover:opacity-90"
+          className="bg-brand text-background hover:opacity-90"
           onClick={handleExportParquet}
           disabled={selectedMeterIds.length === 0}
         >

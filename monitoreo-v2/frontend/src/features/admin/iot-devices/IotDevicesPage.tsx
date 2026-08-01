@@ -93,9 +93,9 @@ export function IotDevicesPage() {
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
+            <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-3 py-2">Device ID</th>
                   <th className="px-3 py-2">Primera vez</th>
                   <th className="px-3 py-2">Ultima lectura</th>
@@ -110,11 +110,11 @@ export function IotDevicesPage() {
                     className={`cursor-pointer transition-colors hover:bg-surface ${selected?.id === device.id ? 'bg-surface' : ''}`}
                     onClick={() => setSelected(selected?.id === device.id ? null : device)}
                   >
-                    <td className="px-3 py-2 font-mono text-[12px] font-medium text-foreground">{device.deviceClientId}</td>
+                    <td className="px-3 py-2 font-mono text-xs font-medium text-foreground">{device.deviceClientId}</td>
                     <td className="px-3 py-2 text-muted">{new Date(device.firstSeen).toLocaleDateString()}</td>
                     <td className="px-3 py-2 text-muted">{timeSince(device.lastSeen)}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${device.assignedMeterId ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${device.assignedMeterId ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                         {device.assignedMeterId ? 'asignado' : 'sin asignar'}
                       </span>
                     </td>
@@ -135,17 +135,17 @@ export function IotDevicesPage() {
         <div className="hidden w-72 shrink-0 flex-col gap-3 overflow-y-auto lg:flex">
           {!selected ? (
             <div className="panel flex flex-1 items-center justify-center p-4">
-              <p className="text-[13px] text-muted">Selecciona un dispositivo.</p>
+              <p className="text-sm text-muted">Selecciona un dispositivo.</p>
             </div>
           ) : (
             <>
               <div className="panel px-3 py-3">
                 <p className="text-[15px] font-semibold text-foreground">Dispositivo IoT</p>
-                <p className="mt-0.5 font-mono text-[11px] text-muted">{selected.deviceClientId}</p>
+                <p className="mt-0.5 font-mono text-xs text-muted">{selected.deviceClientId}</p>
               </div>
               <div className="panel px-3 py-3">
-                <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Datos</h4>
-                <dl className="space-y-1 text-[12px]">
+                <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Datos</h4>
+                <dl className="space-y-1 text-xs">
                   <div className="flex justify-between"><dt className="text-muted">Primera vez</dt><dd className="text-foreground">{new Date(selected.firstSeen).toLocaleString()}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Ultima lectura</dt><dd className="text-foreground">{new Date(selected.lastSeen).toLocaleString()}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Estado</dt><dd className="text-foreground">{selected.assignedMeterId ? 'Asignado' : 'Sin asignar'}</dd></div>
@@ -156,14 +156,14 @@ export function IotDevicesPage() {
               </div>
               {selected.payloadSample && Object.keys(selected.payloadSample).length > 0 && (
                 <div className="panel px-3 py-3">
-                  <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Muestra payload</h4>
-                  <pre className="max-h-40 overflow-auto rounded bg-surface p-2 text-[10px] text-muted">
+                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Muestra payload</h4>
+                  <pre className="max-h-40 overflow-auto rounded bg-surface p-2 text-xs text-muted">
                     {JSON.stringify(selected.payloadSample, null, 2)}
                   </pre>
                 </div>
               )}
               <div className="panel space-y-2 px-3 py-3">
-                <h4 className="text-[11px] font-medium uppercase tracking-wider text-muted">Acciones</h4>
+                <h4 className="text-xs font-medium uppercase tracking-wider text-muted">Acciones</h4>
                 {selected.assignedMeterId ? (
                   <Button size="sm" variant="danger" loading={unassignMutation.isPending} onClick={() => handleUnassign(selected)}>
                     Desasignar
@@ -182,7 +182,7 @@ export function IotDevicesPage() {
       {/* Assign drawer */}
       <Drawer open={assignOpen} onClose={() => setAssignOpen(false)} title="Asignar dispositivo IoT">
         <div className="space-y-4">
-          <p className="text-[13px] text-muted">
+          <p className="text-sm text-muted">
             Dispositivo: <span className="font-mono font-medium text-foreground">{selected?.deviceClientId}</span>
           </p>
 

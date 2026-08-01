@@ -128,10 +128,10 @@ export function DevicesPage() {
   });
 
   const statusColors: Record<string, string> = {
-    online: 'bg-green-100 text-green-700',
+    online: 'bg-success/10 text-success',
     offline: 'bg-raised text-muted',
-    error: 'bg-red-100 text-red-700',
-    maintenance: 'bg-yellow-100 text-yellow-700',
+    error: 'bg-danger/10 text-danger',
+    maintenance: 'bg-warning/10 text-warning',
   };
 
   const typeLabels: Record<string, string> = {
@@ -187,7 +187,7 @@ export function DevicesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar dispositivo..."
-              className="w-44 rounded-md border border-border px-2.5 py-1.5 text-[12px]"
+              className="w-44 rounded-md border border-border px-2.5 py-1.5 text-xs"
             />
           </>
         }
@@ -196,9 +196,9 @@ export function DevicesPage() {
       {/* Compact KPIs */}
       <div className="flex flex-wrap gap-2">
         <MiniKpi label="Total" value={devices.length} />
-        <MiniKpi label="En linea" value={onlineCount} color="text-green-600" />
+        <MiniKpi label="En linea" value={onlineCount} color="text-success" />
         <MiniKpi label="Sin conexion" value={offlineCount} color="text-muted" />
-        <MiniKpi label="Error" value={errorCount} color="text-red-600" />
+        <MiniKpi label="Error" value={errorCount} color="text-danger" />
       </div>
 
       <div className="overflow-auto panel">
@@ -243,7 +243,7 @@ export function DevicesPage() {
                     {d.type === 'meter' && (
                       <Link
                         to={`/monitoring/fault-history/${d.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
+                        className="rounded px-2 py-1 text-xs font-medium text-warning hover:bg-warning/10"
                       >
                         Fallos
                       </Link>
@@ -251,7 +251,7 @@ export function DevicesPage() {
                     {d.type === 'concentrator' && (
                       <Link
                         to={`/monitoring/concentrator/${d.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-brand hover:bg-brand/10"
+                        className="rounded px-2 py-1 text-xs font-medium text-foreground hover:bg-brand/10"
                       >
                         Diagnostico
                       </Link>
@@ -271,8 +271,8 @@ export function DevicesPage() {
 function MiniKpi({ label, value, color = 'text-foreground' }: Readonly<{ label: string; value: number | string; color?: string }>) {
   return (
     <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
-      <span className="text-[11px] text-muted">{label}</span>
-      <span className={`text-[13px] font-semibold ${color}`}>{value}</span>
+      <span className="text-xs text-muted">{label}</span>
+      <span className={`text-sm font-semibold ${color}`}>{value}</span>
     </div>
   );
 }

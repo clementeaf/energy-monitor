@@ -217,7 +217,7 @@ export function PistaAuditoriaPage() {
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">6.3 Pista de Auditoría</h1>
-        <p className="text-[12px] text-muted">
+        <p className="text-xs text-muted">
           Timeline inmutable de acciones — sin edición ni borrado — retención 12 meses
         </p>
       </div>
@@ -239,22 +239,22 @@ export function PistaAuditoriaPage() {
           value={userFilter}
           onChange={setUserFilter}
         />
-        <label className="flex items-center gap-1 text-[12px] text-muted">
+        <label className="flex items-center gap-1 text-xs text-muted">
           Desde
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-foreground"
+            className="rounded border border-border bg-surface px-2 py-1 text-xs text-foreground"
           />
         </label>
-        <label className="flex items-center gap-1 text-[12px] text-muted">
+        <label className="flex items-center gap-1 text-xs text-muted">
           Hasta
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="rounded border border-border bg-surface px-2 py-1 text-[12px] text-foreground"
+            className="rounded border border-border bg-surface px-2 py-1 text-xs text-foreground"
           />
         </label>
       </div>
@@ -263,18 +263,18 @@ export function PistaAuditoriaPage() {
       <div className="flex flex-1 gap-4 min-h-0">
         {/* Left — Timeline */}
         <div className="panel flex flex-[2] flex-col p-4">
-          <h3 className="text-[13px] font-medium text-foreground">
+          <h3 className="text-sm font-medium text-foreground">
             Timeline de eventos (inmutable)
           </h3>
-          <p className="mb-3 text-[11px] text-muted">
+          <p className="mb-3 text-xs text-muted">
             Cronología inversa · sin botones de edición ni borrado · retención 12 meses
           </p>
 
           <div className="flex-1 overflow-y-auto">
             {filteredLogs.length === 0 ? (
-              <p className="py-8 text-center text-[13px] text-muted">Sin registros para los filtros seleccionados.</p>
+              <p className="py-8 text-center text-sm text-muted">Sin registros para los filtros seleccionados.</p>
             ) : (
-              <ul className="divide-y divide-border text-[12px]">
+              <ul className="divide-y divide-border text-xs">
                 {filteredLogs.map((log, i) => (
                   <li
                     key={log.id}
@@ -283,14 +283,14 @@ export function PistaAuditoriaPage() {
                   >
                     <span className="font-mono text-muted">{fmtTime(log.createdAt)}</span>
                     <span className="font-medium text-foreground">{stripDomain(log.userEmail)}</span>
-                    <span className="rounded bg-surface px-1.5 py-0.5 text-[12px] font-medium uppercase tracking-wider text-muted">
+                    <span className="rounded bg-surface px-1.5 py-0.5 text-xs font-medium uppercase tracking-wider text-muted">
                       {log.action}
                     </span>
                     <span className="flex-1 text-muted">{formatDetail(log)}</span>
-                    <span className="font-mono text-[11px] text-subtle">
+                    <span className="font-mono text-xs text-subtle">
                       IP {maskIp(log.ipAddress)}
                     </span>
-                    <span className="font-mono text-[11px] text-subtle">
+                    <span className="font-mono text-xs text-subtle">
                       sesión {shortSession(log.id)}
                     </span>
                   </li>
@@ -303,14 +303,14 @@ export function PistaAuditoriaPage() {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="rounded-md bg-brand px-4 py-2 text-[13px] font-medium text-white hover:bg-brand/90"
+              className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90"
             >
               Exportar CSV completo
             </button>
             <button
               type="button"
               onClick={handleVerifyIntegrity}
-              className="rounded-md border border-border px-4 py-2 text-[13px] font-medium text-muted hover:bg-surface"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface"
             >
               Verificar integridad de la pista
             </button>
@@ -322,10 +322,10 @@ export function PistaAuditoriaPage() {
         <div className="flex flex-1 flex-col gap-4">
           {/* Heatmap */}
           <div className="panel flex flex-col p-4">
-            <h3 className="text-[13px] font-medium text-foreground">
+            <h3 className="text-sm font-medium text-foreground">
               Resumen de actividad — acciones por día y hora
             </h3>
-            <p className="mb-3 text-[11px] text-muted">
+            <p className="mb-3 text-xs text-muted">
               7 días × 24 horas · densidad = nº de acciones
             </p>
 
@@ -342,18 +342,18 @@ export function PistaAuditoriaPage() {
               {/* Grid rows */}
               {DAY_LABELS.map((dayLabel, dayIdx) => (
                 <div key={dayLabel} className="mb-0.5 flex items-center gap-0.5">
-                  <span className="w-7 shrink-0 text-right text-[9px] text-muted pr-1">{dayLabel}</span>
+                  <span className="w-7 shrink-0 text-right text-xs text-muted pr-1">{dayLabel}</span>
                   {Array.from({ length: 24 }, (_, hourIdx) => {
                     const cell = heatmapCells.find((c) => c.day === dayIdx && c.hour === hourIdx);
                     const count = cell?.count ?? 0;
                     const intensity = count === 0 ? 0 : Math.ceil((count / maxDensity) * 5);
                     const bgClass = [
-                      'bg-gray-100',
-                      'bg-gray-200',
-                      'bg-gray-300',
-                      'bg-gray-400',
-                      'bg-gray-500',
-                      'bg-gray-700',
+                      'bg-surface',
+                      'bg-surface',
+                      'bg-border',
+                      'bg-subtle',
+                      'bg-surface0',
+                      'bg-raised',
                     ][intensity];
                     return (
                       <div
@@ -371,15 +371,15 @@ export function PistaAuditoriaPage() {
 
           {/* Top 10 */}
           <div className="panel flex flex-col p-4">
-            <h3 className="text-[13px] font-medium text-foreground">
+            <h3 className="text-sm font-medium text-foreground">
               Top 10 usuarios por nº de acciones
             </h3>
-            <p className="mb-3 text-[11px] text-muted">En el período filtrado</p>
+            <p className="mb-3 text-xs text-muted">En el período filtrado</p>
 
             <div className="flex-1 overflow-y-auto">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                     <th className="px-2 py-1.5">Usuario</th>
                     <th className="px-2 py-1.5 text-right">Nº acciones</th>
                     <th className="px-2 py-1.5 text-right">Última acción</th>

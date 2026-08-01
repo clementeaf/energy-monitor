@@ -172,7 +172,7 @@ export function ExecutiveSitePage(): ReactElement {
               onClick={() => { setPreset(p); }}
               className={`rounded-full px-3 py-1.5 text-xs font-medium ${
                 preset === p
-                  ? 'bg-brand/15 text-brand'
+                  ? 'bg-brand/15 text-foreground'
                   : 'text-muted hover:bg-surface'
               }`}
             >

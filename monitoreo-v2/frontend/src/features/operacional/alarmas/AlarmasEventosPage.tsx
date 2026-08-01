@@ -66,16 +66,16 @@ const RESPONSABLE_OPTIONS: SelectOption[] = [
 /* ── Badge styling ── */
 
 const SEVERITY_BADGE: Record<AlertSeverity, string> = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-blue-100 text-blue-700',
+  critical: 'bg-danger/10 text-danger',
+  high: 'bg-warning/10 text-warning',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-info/10 text-info',
 };
 
 const STATUS_BADGE: Record<AlertStatus, string> = {
-  active: 'bg-red-100 text-red-700',
-  acknowledged: 'bg-amber-100 text-amber-700',
-  resolved: 'bg-emerald-100 text-emerald-700',
+  active: 'bg-danger/10 text-danger',
+  acknowledged: 'bg-warning/10 text-warning',
+  resolved: 'bg-success/10 text-success',
 };
 
 const STATUS_LABEL: Record<AlertStatus, string> = {
@@ -187,7 +187,7 @@ export function AlarmasEventosPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           Severidad
@@ -221,12 +221,12 @@ export function AlarmasEventosPage() {
           {/* Left: Tabla de alarmas */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-              <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
-              <p className="shrink-0 text-[11px] text-muted">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
-              <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+              <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
+              <p className="shrink-0 text-xs text-muted">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
+              <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                       <th className="px-2 py-1.5">ID</th>
                       <th className="px-2 py-1.5">Sev.</th>
                       <th className="px-2 py-1.5">Descripción</th>
@@ -269,8 +269,8 @@ export function AlarmasEventosPage() {
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             {/* Resumen de SLA de alarmas */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
-              <p className="text-[11px] text-muted">% resueltas dentro / fuera del SLA, por severidad y período</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
+              <p className="text-xs text-muted">% resueltas dentro / fuera del SLA, por severidad y período</p>
               {(() => {
                 const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
                 const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
@@ -281,10 +281,10 @@ export function AlarmasEventosPage() {
                 const withinPct = resolvedWithTs.length > 0 ? Math.round((withinSla / resolvedWithTs.length) * 100) : 100;
                 return (
                   <div className="mt-2 flex items-center gap-3">
-                    <div className="h-4 flex-1 overflow-hidden rounded-full bg-gray-200">
-                      <div className="h-full rounded-full bg-emerald-400" style={{ width: `${withinPct}%` }} />
+                    <div className="h-4 flex-1 overflow-hidden rounded-full bg-surface">
+                      <div className="h-full rounded-full bg-success/60" style={{ width: `${withinPct}%` }} />
                     </div>
-                    <span className="text-[11px] font-medium text-foreground">{withinPct}% dentro SLA</span>
+                    <span className="text-xs font-medium text-foreground">{withinPct}% dentro SLA</span>
                   </div>
                 );
               })()}
@@ -292,13 +292,13 @@ export function AlarmasEventosPage() {
 
             {/* Panel de detalle — serie del medidor 48h */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
-              <p className="text-[11px] text-muted">línea de threshold del valor que disparó la alarma</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
+              <p className="text-xs text-muted">línea de threshold del valor que disparó la alarma</p>
               <div className="mt-2">
                 {selectedAlert ? (
                   <MeterSparkline48h meterId={selectedAlert.meterId} thresholdValue={selectedAlert.thresholdValue} />
                 ) : (
-                  <p className="py-4 text-center text-[11px] text-muted">Seleccione una alarma</p>
+                  <p className="py-4 text-center text-xs text-muted">Seleccione una alarma</p>
                 )}
               </div>
             </div>
@@ -306,20 +306,20 @@ export function AlarmasEventosPage() {
             {/* Action buttons */}
             <div className="flex shrink-0 gap-2">
               <Button size="sm" onClick={handleAcknowledge} loading={acknowledgeAlert.isPending} disabled={!selectedId} className="flex-1">Asignar</Button>
-              <button type="button" disabled={!selectedId} onClick={handleAcknowledge} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Escalar</button>
+              <button type="button" disabled={!selectedId} onClick={handleAcknowledge} className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Escalar</button>
               <Button size="sm" variant="danger" onClick={handleResolve} loading={resolveAlert.isPending} disabled={!selectedId} className="flex-1">Cerrar</Button>
-              <button type="button" disabled={!selectedAlert?.meterId} className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Iniciar backfill</button>
+              <button type="button" disabled={!selectedAlert?.meterId} className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-40">Iniciar backfill</button>
             </div>
 
             {/* Comentario de la alarma */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
-              <p className="text-[11px] text-muted">queda registrado en la pista de auditoría</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
+              <p className="text-xs text-muted">queda registrado en la pista de auditoría</p>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                className="mt-2 w-full rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+                className="mt-2 w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs text-foreground outline-none transition-colors focus:border-foreground"
                 placeholder="Comentario del operador (texto libre)"
               />
             </div>
@@ -362,7 +362,7 @@ function MeterSparkline48h({ meterId, thresholdValue }: Readonly<{ meterId?: str
   const h = 48;
   const displayPoints = points.some((v) => v > 0) ? points : FALLBACK_SPARKLINE_POINTS;
   const allVals = [...displayPoints, threshold].filter((v) => v > 0);
-  if (allVals.length === 0) return <p className="text-[10px] text-muted">Sin datos 48h.</p>;
+  if (allVals.length === 0) return <p className="text-xs text-muted">Sin datos 48h.</p>;
   const minV = Math.min(...allVals) * 0.95;
   const maxV = Math.max(...allVals) * 1.05;
   const toY = (v: number) => h - ((v - minV) / (maxV - minV)) * (h - 4);
@@ -396,9 +396,9 @@ function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buil
           if (alert.meterId) navigate(`/monitoring/meter/${alert.meterId}`);
         }}
       >
-        <td className="px-2 py-1.5 text-[10px] text-muted">{alert.id.slice(0, 6)}</td>
+        <td className="px-2 py-1.5 text-xs text-muted">{alert.id.slice(0, 6)}</td>
         <td className="px-2 py-1.5">
-          <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${sevStyle}`}>
+          <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${sevStyle}`}>
             {alert.severity.toUpperCase()}
           </span>
         </td>
@@ -414,13 +414,13 @@ function AlertTableRow({ alert, isSelected, sevStyle, statStyle, statLabel, buil
         <td className="px-2 py-1.5 text-muted">{elapsed(alert.createdAt)}</td>
         <td className="px-2 py-1.5 text-muted">{alert.assignedTo ?? '—'}</td>
         <td className="px-2 py-1.5 text-center">
-          <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${statStyle}`}>{statLabel}</span>
+          <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${statStyle}`}>{statLabel}</span>
         </td>
       </tr>
       {expanded && (
         <tr className="bg-surface/50">
           <td colSpan={9} className="px-6 py-2">
-            <div className="space-y-1 text-[11px] text-muted">
+            <div className="space-y-1 text-xs text-muted">
               <p><span className="font-medium">Valor:</span> {alert.triggeredValue ?? '—'} | <span className="font-medium">Umbral:</span> {alert.thresholdValue ?? '—'}</p>
               <p><span className="font-medium">Código:</span> {alert.alertTypeCode}</p>
               {alert.acknowledgedAt && <p>✓ Asignada: {new Date(alert.acknowledgedAt).toLocaleString('es-CL')}{alert.acknowledgedBy ? ` por ${alert.acknowledgedBy}` : ''}</p>}

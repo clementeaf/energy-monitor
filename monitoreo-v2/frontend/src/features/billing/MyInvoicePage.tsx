@@ -11,11 +11,11 @@ import { PageHeader } from '../../components/ui/PageHeader';
 
 const STATUS_BADGE: Record<InvoiceStatus, string> = {
   draft: 'bg-raised text-muted',
-  pending: 'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-emerald-100 text-emerald-700',
-  voided: 'bg-red-100 text-red-600',
+  pending: 'bg-warning/10 text-warning',
+  approved: 'bg-success/10 text-success',
+  sent: 'bg-info/10 text-info',
+  paid: 'bg-success/10 text-success',
+  voided: 'bg-danger/10 text-danger',
 };
 
 const STATUS_LABEL: Record<InvoiceStatus, string> = {
@@ -162,7 +162,7 @@ function MyInvoiceRow({ invoice }: Readonly<{ invoice: Invoice }>): ReactElement
           href={pdfUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-brand hover:underline"
+          className="text-sm font-medium text-foreground hover:underline"
         >
           Descargar
         </a>

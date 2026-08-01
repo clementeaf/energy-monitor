@@ -127,7 +127,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => { setNameValue(user.displayName ?? ''); setEditingName(true); }}
-                  className="text-sm font-medium text-brand hover:opacity-80"
+                  className="text-sm font-medium text-foreground hover:opacity-80"
                 >
                   Editar nombre
                 </button>
@@ -161,7 +161,7 @@ export function ProfilePage() {
           </div>
 
           {/* Rectification — email change request */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <div>
               <p className="text-sm font-medium text-foreground">Rectificación de email</p>
               <p className="text-xs text-muted">Solicita el cambio de tu correo electrónico (requiere aprobación admin)</p>
@@ -182,7 +182,7 @@ export function ProfilePage() {
           </div>
 
           {/* Opposition */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <div>
               <p className="text-sm font-medium text-foreground">Oposición al tratamiento</p>
               <p className="text-xs text-muted">Oponerte al procesamiento de tus datos. Esto bloqueará tu acceso a la plataforma.</p>
@@ -197,14 +197,14 @@ export function ProfilePage() {
                   });
                 }
               }}
-              className="rounded-md border border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50"
+              className="rounded-md border border-warning/50 px-4 py-2 text-sm font-medium text-warning hover:bg-warning/10"
             >
               Oponerme
             </button>
           </div>
 
           {/* Blocking */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <div>
               <p className="text-sm font-medium text-foreground">Bloqueo temporal</p>
               <p className="text-xs text-muted">Suspender temporalmente el procesamiento de tus datos mientras se resuelve una disputa</p>
@@ -218,14 +218,14 @@ export function ProfilePage() {
                   window.location.href = '/login';
                 });
               }}
-              className="rounded-md border border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50"
+              className="rounded-md border border-warning/50 px-4 py-2 text-sm font-medium text-warning hover:bg-warning/10"
             >
               Bloquear
             </button>
           </div>
 
           {/* Automated decisions opt-out */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <div>
               <p className="text-sm font-medium text-foreground">Decisiones automatizadas</p>
               <p className="text-xs text-muted">Excluirte de notificaciones y escalamientos automatizados de alertas</p>
@@ -242,7 +242,7 @@ export function ProfilePage() {
               }}
               className={`rounded-md border px-4 py-2 text-sm font-medium ${
                 user.optOutAutomatedDecisions
-                  ? 'border-green-300 text-green-700 hover:bg-green-50'
+                  ? 'border-green-300 text-success hover:bg-success/10'
                   : 'border-border text-foreground hover:bg-surface'
               }`}
             >
@@ -251,7 +251,7 @@ export function ProfilePage() {
           </div>
 
           {/* Cancellation — request deletion */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <div>
               <p className="text-sm font-medium text-foreground">Cancelación de cuenta</p>
               <p className="text-xs text-muted">Solicita la eliminación de tu cuenta y datos personales</p>
@@ -259,7 +259,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setDeleteOpen(true)}
-              className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+              className="rounded-md border border-danger/50 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10"
             >
               Solicitar eliminación
             </button>
@@ -267,7 +267,7 @@ export function ProfilePage() {
         </div>
 
         {deleteResult && (
-          <div className="mt-4 rounded-md bg-blue-50 p-3 text-sm text-blue-700">
+          <div className="mt-4 rounded-md bg-info/10 p-3 text-sm text-info">
             {deleteResult}
           </div>
         )}
@@ -281,14 +281,14 @@ export function ProfilePage() {
           personales, contacta a <strong>privacidad@globepower.cl</strong>.
         </p>
         <p className="mt-2 text-sm text-muted">
-          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:opacity-80">
+          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:opacity-80">
             Ver política de privacidad completa
           </a>
         </p>
         <p className="mt-2 text-xs text-subtle">
           Plazo de respuesta: 15 días hábiles conforme a la Ley 21.719.
         </p>
-        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+        <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
           <div>
             <p className="text-sm font-medium text-foreground">Revocar consentimiento</p>
             <p className="text-xs text-muted">Retira tu consentimiento al tratamiento de datos. Tu sesión será terminada.</p>
@@ -303,7 +303,7 @@ export function ProfilePage() {
                 });
               }
             }}
-            className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+            className="rounded-md border border-danger/50 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10"
           >
             Revocar
           </button>
@@ -312,7 +312,7 @@ export function ProfilePage() {
 
       {/* Deletion confirmation dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-foreground/50 p-4">
           <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
             <h3 className="text-2xl font-semibold tracking-tight text-foreground">Solicitar Eliminación de Cuenta</h3>
             <p className="mt-2 text-sm text-muted">
@@ -346,7 +346,7 @@ export function ProfilePage() {
                 type="button"
                 onClick={() => deletionMutation.mutate(deleteReason)}
                 disabled={deletionMutation.isPending}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-background hover:bg-danger/90 disabled:opacity-50"
               >
                 {deletionMutation.isPending ? 'Enviando...' : 'Solicitar Eliminación'}
               </button>

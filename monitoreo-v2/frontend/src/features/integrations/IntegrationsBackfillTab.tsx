@@ -103,7 +103,7 @@ export function IntegrationsBackfillTab() {
                         type="button"
                         onClick={() => { processMutation.mutate(job.id); }}
                         disabled={processMutation.isPending}
-                        className="text-sm text-brand hover:underline disabled:opacity-50"
+                        className="text-sm text-foreground hover:underline disabled:opacity-50"
                       >
                         Ejecutar
                       </button>

@@ -154,7 +154,7 @@ export function UsersPage() {
       {/* Page title */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.2 Usuarios y Roles</h1>
-        <p className="mt-0.5 text-[12px] text-muted">Gestión de accesos — permisos efectivos, historial y revocación masiva</p>
+        <p className="mt-0.5 text-xs text-muted">Gestión de accesos — permisos efectivos, historial y revocación masiva</p>
       </div>
 
       {/* Import tab toggle */}
@@ -179,8 +179,8 @@ export function UsersPage() {
             <div className="panel flex min-h-0 min-w-0 flex-[3] flex-col overflow-hidden">
               <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
                 <div>
-                  <p className="text-[13px] font-medium text-foreground">Lista de usuarios</p>
-                  <p className="text-[11px] text-muted">filtros: tenant / perfil / estado / sin acceso en &gt; 90 días · fila expandible</p>
+                  <p className="text-sm font-medium text-foreground">Lista de usuarios</p>
+                  <p className="text-xs text-muted">filtros: tenant / perfil / estado / sin acceso en &gt; 90 días · fila expandible</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <DropdownSelect
@@ -197,7 +197,7 @@ export function UsersPage() {
                     <button
                       type="button"
                       onClick={openCreate}
-                      className="rounded-full bg-brand px-3 py-1 text-[11px] font-medium text-brand-fg hover:opacity-90"
+                      className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-brand-fg hover:opacity-90"
                     >
                       + Nuevo
                     </button>
@@ -205,7 +205,7 @@ export function UsersPage() {
                 </div>
               </div>
               <div className="min-h-0 flex-1 overflow-auto">
-                <table className="min-w-full divide-y divide-border text-[13px]">
+                <table className="min-w-full divide-y divide-border text-sm">
                   <thead className="sticky top-0 z-10 bg-surface">
                     <tr>
                       <Th>Nombre</Th>
@@ -237,14 +237,14 @@ export function UsersPage() {
                         <Td className="text-muted">{u.email}</Td>
                         <Td className="text-muted">—</Td>
                         <Td>
-                          <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                          <span className="inline-flex rounded-full bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
                             {u.role.name}
                           </span>
                         </Td>
                         <Td><StatusBadge active={u.isActive} /></Td>
-                        <Td className="text-[11px] text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
+                        <Td className="text-xs text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : '—'}</Td>
                         <Td>
-                          <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                          <span className="inline-block rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-muted">
                             —
                           </span>
                         </Td>
@@ -263,7 +263,7 @@ export function UsersPage() {
                 {hasMore && <div ref={sentinelRef} className="h-4" />}
               </div>
               <div className="flex items-center justify-between border-t border-border px-3 py-1.5">
-                {total > 0 && <p className="text-[10px] text-muted">Mostrando {visibleUsers.length} de {total}</p>}
+                {total > 0 && <p className="text-xs text-muted">Mostrando {visibleUsers.length} de {total}</p>}
               </div>
             </div>
 
@@ -271,10 +271,10 @@ export function UsersPage() {
             <div className="flex min-w-0 flex-[2] flex-col gap-4">
               {/* Detalle de usuario */}
               <div className="panel flex-1 overflow-auto p-3">
-                <p className="text-[13px] font-medium text-foreground">Detalle de usuario — permisos efectivos</p>
-                <p className="mb-3 text-[11px] text-muted">recursos y acciones permitidas</p>
+                <p className="text-sm font-medium text-foreground">Detalle de usuario — permisos efectivos</p>
+                <p className="mb-3 text-xs text-muted">recursos y acciones permitidas</p>
                 {selectedUser ? (
-                  <ul className="space-y-1.5 text-[12px]">
+                  <ul className="space-y-1.5 text-xs">
                     <li className="text-foreground">
                       <span className="text-muted">Perfil: </span>{selectedUser.role.name} · tenant: —
                     </li>
@@ -291,7 +291,7 @@ export function UsersPage() {
                     </li>
                   </ul>
                 ) : (
-                  <ul className="space-y-1.5 text-[12px] text-muted">
+                  <ul className="space-y-1.5 text-xs text-muted">
                     <li>Perfil: Operacional · tenant: Costanera</li>
                     <li>Recursos: alarmas (R/W), tickets (R/W)</li>
                     <li>MFA activo · SSO Azure AD</li>
@@ -302,12 +302,12 @@ export function UsersPage() {
 
               {/* Historial de accesos */}
               <div className="panel flex-1 overflow-auto p-3">
-                <p className="text-[13px] font-medium text-foreground">Historial de accesos y cambios de rol</p>
-                <p className="mb-3 text-[11px] text-muted">últimas 30 sesiones · IP, timestamp, resultado</p>
+                <p className="text-sm font-medium text-foreground">Historial de accesos y cambios de rol</p>
+                <p className="mb-3 text-xs text-muted">últimas 30 sesiones · IP, timestamp, resultado</p>
                 {accessHistory.length > 0 ? (
                   <ul className="space-y-2">
                     {accessHistory.map((entry) => (
-                      <li key={entry.id} className="flex items-start gap-2 text-[12px]">
+                      <li key={entry.id} className="flex items-start gap-2 text-xs">
                         <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
                         <span className="text-foreground">{entry.label}</span>
                       </li>
@@ -315,12 +315,12 @@ export function UsersPage() {
                   </ul>
                 ) : (
                   <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-[12px]">
+                    <li className="flex items-start gap-2 text-xs">
                       <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
                       <span className="text-muted">Login OK · 10-07 08:14 · IP 190.x</span>
                     </li>
-                    <li className="flex items-start gap-2 text-[12px]">
-                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-amber-400" />
+                    <li className="flex items-start gap-2 text-xs">
+                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-warning/60" />
                       <span className="text-muted">Cambio de rol: Auditor → Operacional</span>
                     </li>
                   </ul>
@@ -334,13 +334,13 @@ export function UsersPage() {
             {/* Left 60% — Permisos sin uso >90d */}
             <div className="panel flex min-w-0 flex-[3] flex-col overflow-hidden" style={{ minHeight: '200px' }}>
               <div className="border-b border-border px-3 py-2">
-                <p className="text-[13px] font-medium text-foreground">Permisos sin uso en &gt; 90 días</p>
-                <p className="text-[11px] text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp</p>
+                <p className="text-sm font-medium text-foreground">Permisos sin uso en &gt; 90 días</p>
+                <p className="text-xs text-muted">ACCIÓN DESTRUCTIVA: revocación masiva · auditada usuario/timestamp</p>
               </div>
               <div className="min-h-0 flex-1 overflow-auto">
-                <table className="w-full text-[13px]">
+                <table className="w-full text-sm">
                   <thead className="sticky top-0 z-10 bg-background">
-                    <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                       <th className="px-3 py-2">Usuario</th>
                       <th className="px-3 py-2">Permiso / recurso</th>
                       <th className="px-3 py-2">Últ. uso</th>
@@ -353,14 +353,14 @@ export function UsersPage() {
                       <tr key={u.id} className="hover:bg-surface">
                         <td className="px-3 py-2 text-foreground">{u.email}</td>
                         <td className="px-3 py-2 text-muted">todos los permisos del rol</td>
-                        <td className="px-3 py-2 text-[11px] text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : 'nunca'}</td>
+                        <td className="px-3 py-2 text-xs text-muted">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('es-CL') : 'nunca'}</td>
                         <td className="px-3 py-2">
-                          <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">{u.role?.name ?? '—'}</span>
+                          <span className="inline-flex rounded-full bg-info/10 px-2 py-0.5 text-xs font-medium text-info">{u.role?.name ?? '—'}</span>
                         </td>
-                        <td className="px-3 py-2 text-[11px] text-amber-600">Revocar acceso</td>
+                        <td className="px-3 py-2 text-xs text-warning">Revocar acceso</td>
                       </tr>
                     )) : (
-                      <tr><td colSpan={5} className="px-3 py-6 text-center text-[12px] text-muted">Todos los usuarios con acceso reciente.</td></tr>
+                      <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-muted">Todos los usuarios con acceso reciente.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -372,7 +372,7 @@ export function UsersPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="rounded-md bg-brand px-3 py-2 text-[13px] font-medium text-brand-fg hover:opacity-90"
+                className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
               >
                 Asignar / cambiar perfil
               </button>
@@ -385,7 +385,7 @@ export function UsersPage() {
                     updateMutation.mutate({ id: u.id, payload: { isActive: false } });
                   });
                 }}
-                className="rounded-md border border-border px-3 py-2 text-[13px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+                className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-surface disabled:opacity-50"
               >
                 Revocar acceso{staleUsers.length > 0 ? ` (${staleUsers.length})` : ''}
               </button>

@@ -133,7 +133,7 @@ export function MetersByTypePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar tipo o medidor..."
-            className="w-52 rounded-md border border-border px-2.5 py-1.5 text-[12px]"
+            className="w-52 rounded-md border border-border px-2.5 py-1.5 text-xs"
           />
         }
       />
@@ -173,7 +173,7 @@ export function MetersByTypePage() {
                     <button
                       type="button"
                       onClick={() => { toggle(g.typeKey); }}
-                      className="text-sm font-medium text-brand hover:underline"
+                      className="text-sm font-medium text-foreground hover:underline"
                     >
                       {expanded.has(g.typeKey) ? 'Ocultar' : 'Ver medidores'}
                     </button>
@@ -207,14 +207,14 @@ export function MetersByTypePage() {
                                   <td className="py-2">
                                     <span
                                       className={`mr-2 inline-flex rounded-full px-2 py-0.5 text-xs ${
-                                        st === 'online' ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
+                                        st === 'online' ? 'bg-success/10 text-success' : 'bg-raised text-muted'
                                       }`}
                                     >
                                       {st === 'online' ? 'Online' : 'Offline'}
                                     </span>
                                     <Link
                                       to={`/meters?buildingId=${m.buildingId}`}
-                                      className="text-brand hover:underline"
+                                      className="text-foreground hover:underline"
                                     >
                                       Listado edificio
                                     </Link>
@@ -241,8 +241,8 @@ export function MetersByTypePage() {
 function MiniKpi({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
     <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
-      <span className="text-[11px] text-muted">{label}</span>
-      <span className="text-[13px] font-semibold text-foreground">{value}</span>
+      <span className="text-xs text-muted">{label}</span>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
     </div>
   );
 }

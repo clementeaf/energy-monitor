@@ -1,14 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapView } from '../../../components/ui/MapView';
+import type { BuildingMarkerMeta, SelectedPoint, IndoorConfig } from '../../../components/ui/MapView';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useLatestReadingsQuery, useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
+import { useMapVxMalls } from '../../../hooks/queries/useMapVxQuery';
 import { getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Building } from '../../../types/building';
-import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
+import type { MapPolygon } from '../../../components/ui/MapView';
 import {
   COUNTRIES,
   enrichBuildings,
@@ -16,7 +18,7 @@ import {
 import { PortfolioPanel } from './PortfolioPanel';
 import { BuildingDetail } from './BuildingDetail';
 import { FloorPlanView } from './FloorPlanView';
-import { StoreHeatmap } from './StoreHeatmap';
+import { BuildingList } from './BuildingList';
 
 type MapColorBy = 'alarm' | 'power' | 'variation' | 'coverage';
 type MapShowOnly = 'all' | 'critical' | 'warning' | 'nodata';
@@ -55,6 +57,9 @@ export function PanelConsolidadoPage() {
   const latestQuery = useLatestReadingsQuery();
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const invoicesQuery = useInvoicesQuery();
+  const mallsQuery = useMapVxMalls();
+  const malls = mallsQuery.data ?? [];
+  const [indoorFloorKey, setIndoorFloorKey] = useState('');
 
   const yesterdayRange = useMemo(() => {
     const now = new Date();
@@ -155,13 +160,13 @@ export function PanelConsolidadoPage() {
       }
       const alertCount = e.activeAlerts.length;
       const varLabel = demandVariationPct != null
-        ? `<p style="margin:2px 0 0;font-size:11px;color:${demandVariationPct > 0 ? '#ef4444' : demandVariationPct < 0 ? '#22c55e' : '#666'}">${demandVariationPct > 0 ? '↑' : demandVariationPct < 0 ? '↓' : '→'} ${Math.abs(demandVariationPct)}% vs ayer</p>`
+        ? `<p style="margin:4px 0 0;font-size:14px;font-weight:500;color:${demandVariationPct > 0 ? '#dc2626' : demandVariationPct < 0 ? '#16a34a' : '#333'}">${demandVariationPct > 0 ? '↑' : demandVariationPct < 0 ? '↓' : '→'} ${Math.abs(demandVariationPct)}% vs ayer</p>`
         : '';
-      const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
-        <strong style="font-size:14px">${e.building.name}</strong>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${e.powerKw.toFixed(1)} kW</p>
+      const popupHtml = `<div style="font-family:Inter,system-ui,sans-serif;padding:6px 2px">
+        <strong style="font-size:16px;color:#111">${e.building.name}</strong>
+        <p style="margin:4px 0 0;font-size:14px;color:#333">${e.powerKw.toFixed(1)} kW</p>
         ${varLabel}
-        ${alertCount > 0 ? `<p style="margin:2px 0 0;font-size:11px;color:#ef4444">${alertCount} alerta${alertCount > 1 ? 's' : ''} activa${alertCount > 1 ? 's' : ''}</p>` : ''}
+        ${alertCount > 0 ? `<p style="margin:4px 0 0;font-size:14px;font-weight:500;color:#dc2626">${alertCount} alerta${alertCount > 1 ? 's' : ''} activa${alertCount > 1 ? 's' : ''}</p>` : ''}
       </div>`;
       const scale = maxPowerAll > 0 ? 0.6 + 0.8 * (e.powerKw / maxPowerAll) : 1;
       map.set(e.building.id, { color, popupHtml, scale });
@@ -170,6 +175,47 @@ export function PanelConsolidadoPage() {
   }, [enriched, colorBy, maxPowerAll, demandVariationPct]);
 
   const selectedDetail = enriched.find((e) => e.building.id === selectedBuildingId) ?? null;
+
+  const matchedMall = useMemo(() => {
+    if (!selectedDetail) return null;
+    const b = selectedDetail.building;
+    if (b.externalSiteId) return malls.find((m) => m.externalId === b.externalSiteId) ?? null;
+    return malls.find((m) => m.name === b.name) ?? null;
+  }, [selectedDetail, malls]);
+
+  useEffect(() => {
+    if (matchedMall?.hasIndoor) {
+      const df = matchedMall.floors.find((f) => f.isDefault) ?? matchedMall.floors[0];
+      setIndoorFloorKey(df?.externalKey ?? '');
+    } else {
+      setIndoorFloorKey('');
+    }
+  }, [matchedMall]);
+
+  const indoorConfig = useMemo((): IndoorConfig | undefined =>
+    matchedMall?.hasIndoor && indoorFloorKey ? { floorKey: indoorFloorKey } : undefined,
+    [matchedMall, indoorFloorKey],
+  );
+
+  const indoorPolygon = useMemo((): MapPolygon[] => {
+    if (!matchedMall?.hasIndoor || !matchedMall.polygonCoords) return [];
+    return [{
+      id: matchedMall.id,
+      label: matchedMall.name,
+      coordinates: matchedMall.polygonCoords as [number, number][],
+      color: '#3b82f6',
+      opacity: 0.15,
+    }];
+  }, [matchedMall]);
+
+  const mapSelectedPoint = useMemo((): SelectedPoint | null => {
+    if (!selectedDetail) return null;
+    const b = selectedDetail.building;
+    if (b.latitude == null || b.longitude == null) return null;
+    return { lat: b.latitude, lng: b.longitude, label: b.name };
+  }, [selectedDetail]);
+
+  const mapZoom = matchedMall?.hasIndoor ? 17 : undefined;
 
   const handleBack = () => {
     if (selectedFloorId) {
@@ -184,7 +230,7 @@ export function PanelConsolidadoPage() {
       {/* Title + meta */}
       <div className="shrink-0">
         <h1 className="text-[22px] font-semibold tracking-[-0.03em] text-foreground">Resumen</h1>
-        <p className="mt-1 text-[12px] text-muted">
+        <p className="mt-1 text-xs text-muted">
           Ultima lectura hace 3 min &middot; {enriched.reduce((s, e) => s + e.meterCount, 0) || 200} medidores
         </p>
       </div>
@@ -197,16 +243,21 @@ export function PanelConsolidadoPage() {
               <button
                 key={c.code}
                 type="button"
-                onClick={() => { setCountry(c.code); setSelectedBuildingId(null); }}
-                className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
-                  country === c.code ? 'bg-foreground text-background' : 'bg-surface text-muted hover:text-foreground'
+                disabled={!c.enabled}
+                onClick={() => { if (c.enabled) { setCountry(c.code); setSelectedBuildingId(null); } }}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  !c.enabled
+                    ? 'cursor-not-allowed bg-surface text-subtle opacity-50'
+                    : country === c.code
+                      ? 'bg-foreground text-background'
+                      : 'bg-surface text-muted hover:text-foreground'
                 }`}
               >
                 {c.label}
               </button>
             ))}
           </div>
-          <div className="ml-auto flex items-center gap-2 text-[11px] text-muted">
+          <div className="ml-auto flex items-center gap-2 text-xs text-muted">
             <DropdownSelect options={COLOR_BY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={colorBy} onChange={(v) => setColorBy(v as MapColorBy)} />
             <DropdownSelect options={SHOW_ONLY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={showOnly} onChange={(v) => setShowOnly(v as MapShowOnly)} />
           </div>
@@ -232,34 +283,47 @@ export function PanelConsolidadoPage() {
                 <MapView
                   buildings={geoBuildings}
                   buildingMeta={buildingMeta}
+                  selectedPoint={mapSelectedPoint}
+                  indoor={indoorConfig}
+                  polygons={indoorPolygon}
+                  zoom={mapZoom}
                   onBuildingClick={setSelectedBuildingId}
                   className="h-full w-full"
                 />
               </div>
 
-              <div className="flex w-full items-center justify-around rounded-lg bg-surface px-3 py-1.5 text-[11px]">
+              <div className="flex w-full items-center justify-around rounded-lg bg-surface px-3 py-1.5 text-xs">
                 {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
                   const style = getStatusStyle(s);
+                  const count = enriched.filter((e) => e.status === s).length;
                   return (
                     <span key={s} className="flex items-center gap-1.5">
                       <span className={`inline-block size-2.5 rounded-full ${style.bg}`} />
                       <span className="text-muted">{style.label}</span>
+                      <span className="font-medium tabular-nums text-foreground">{count}</span>
                     </span>
                   );
                 })}
               </div>
 
-              <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-surface px-4 py-3">
-                <p className="mb-2 text-[13px] font-medium text-foreground">Tiendas</p>
-                <div className="min-h-0 flex-1">
-                  <StoreHeatmap enriched={enriched} />
-                </div>
+              <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-border bg-background">
+                <BuildingList enriched={enriched} selectedId={selectedBuildingId} onSelect={setSelectedBuildingId} />
               </div>
             </>
           )}
         </div>
 
         <div className="flex min-w-0 flex-[2] flex-col gap-3 overflow-y-auto">
+          {selectedDetail && (
+            <button
+              type="button"
+              onClick={() => { setSelectedBuildingId(null); setSelectedFloorId(null); }}
+              className="flex shrink-0 items-center gap-1.5 self-start rounded-lg px-2 py-1 text-xs text-muted transition-colors hover:bg-surface hover:text-foreground"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8 2L4 6l4 4" /></svg>
+              Volver al portafolio
+            </button>
+          )}
           {selectedDetail
             ? <BuildingDetail
                 detail={selectedDetail}
@@ -275,6 +339,7 @@ export function PanelConsolidadoPage() {
                 totalCostUf={totalCostUf}
                 totalConsumptionMwh={totalConsumptionMwh}
                 consumptionVariationPct={consumptionVariationPct}
+                onSelectBuilding={setSelectedBuildingId}
               />
           }
         </div>

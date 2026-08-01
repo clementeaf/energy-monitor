@@ -11,10 +11,10 @@ import type { LatestReading } from '../../../types/reading';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
 const STATUS_CONFIG: Record<ConcentratorStatus, { label: string; color: string }> = {
-  online: { label: 'Online', color: 'bg-green-100 text-green-700' },
-  offline: { label: 'Offline', color: 'bg-red-100 text-red-600' },
-  error: { label: 'Error', color: 'bg-orange-100 text-orange-700' },
-  maintenance: { label: 'Mantenimiento', color: 'bg-blue-100 text-blue-600' },
+  online: { label: 'Online', color: 'bg-success/10 text-success' },
+  offline: { label: 'Offline', color: 'bg-danger/10 text-danger' },
+  error: { label: 'Error', color: 'bg-warning/10 text-warning' },
+  maintenance: { label: 'Mantenimiento', color: 'bg-info/10 text-info' },
 };
 
 /**
@@ -116,7 +116,7 @@ export function ConcentratorPage(): ReactElement {
           <InfoCard
             label="MQTT"
             value={concentrator?.mqttConnected ? 'Conectado' : 'Desconectado'}
-            valueClass={concentrator?.mqttConnected ? 'text-green-600' : 'text-red-500'}
+            valueClass={concentrator?.mqttConnected ? 'text-success' : 'text-danger'}
           />
           <InfoCard label="Último heartbeat" value={lastHeartbeat} />
           <InfoCard
@@ -130,8 +130,8 @@ export function ConcentratorPage(): ReactElement {
       {/* Meter status summary */}
       {meters.length > 0 && (
         <div className="flex flex-wrap gap-4">
-          <StatusCard label="Online" count={onlineCount} color="text-green-600 bg-green-50" />
-          <StatusCard label="Offline" count={offlineCount} color="text-red-600 bg-red-50" />
+          <StatusCard label="Online" count={onlineCount} color="text-success bg-success/10" />
+          <StatusCard label="Offline" count={offlineCount} color="text-danger bg-danger/10" />
           <StatusCard label="Sin datos" count={noDataCount} color="text-muted bg-surface" />
         </div>
       )}
@@ -211,8 +211,8 @@ function StatusCard({ label, count, color }: Readonly<{ label: string; count: nu
 
 function MeterStatusBadge({ status }: Readonly<{ status: 'online' | 'offline' | 'sin datos' }>): ReactElement {
   const config = {
-    online: 'bg-green-100 text-green-700',
-    offline: 'bg-red-100 text-red-600',
+    online: 'bg-success/10 text-success',
+    offline: 'bg-danger/10 text-danger',
     'sin datos': 'bg-raised text-muted',
   };
   const labels = { online: 'Online', offline: 'Offline', 'sin datos': 'Sin datos' };

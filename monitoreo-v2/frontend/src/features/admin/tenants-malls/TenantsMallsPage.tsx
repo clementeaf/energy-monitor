@@ -21,9 +21,9 @@ interface TenantRow {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  activo: 'bg-emerald-100 text-emerald-700',
-  inactivo: 'bg-gray-100 text-gray-600',
-  onboarding: 'bg-blue-100 text-blue-700',
+  activo: 'bg-success/10 text-success',
+  inactivo: 'bg-surface text-muted',
+  onboarding: 'bg-info/10 text-info',
 };
 
 /* ── Fallback data ── */
@@ -193,7 +193,7 @@ export function TenantsMallsPage() {
       {/* Page title */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.1 Tenants y Malls</h1>
-        <p className="mt-0.5 text-[12px] text-muted">Gestión multi-tenant — configuración base, estadísticas de uso e historial de cambios</p>
+        <p className="mt-0.5 text-xs text-muted">Gestión multi-tenant — configuración base, estadísticas de uso e historial de cambios</p>
       </div>
 
       {/* Row 1 — Lista + Detalle/Stats */}
@@ -202,8 +202,8 @@ export function TenantsMallsPage() {
         <div className="panel flex min-h-0 min-w-0 flex-[3] flex-col overflow-hidden">
           <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
             <div>
-              <p className="text-[13px] font-medium text-foreground">Lista de tenants</p>
-              <p className="text-[11px] text-muted">Filtros: país / estado / con alertas activas · fila expandible con resumen del mall</p>
+              <p className="text-sm font-medium text-foreground">Lista de tenants</p>
+              <p className="text-xs text-muted">Filtros: país / estado / con alertas activas · fila expandible con resumen del mall</p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5 shrink-0">
               <DropdownSelect
@@ -221,16 +221,16 @@ export function TenantsMallsPage() {
                 value={statusFilter}
                 onChange={setStatusFilter}
               />
-              <label className="flex items-center gap-1 text-[11px] text-muted">
+              <label className="flex items-center gap-1 text-xs text-muted">
                 <input type="checkbox" checked={alertFilter} onChange={(e) => setAlertFilter(e.target.checked)} className="size-3.5 rounded border-border" />
                 Con alertas
               </label>
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full text-[13px]">
+            <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-3 py-2">Tenant ID</th>
                   <th className="px-3 py-2">Mall</th>
                   <th className="px-3 py-2">País</th>
@@ -246,7 +246,7 @@ export function TenantsMallsPage() {
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
                       {Array.from({ length: 8 }).map((__, j) => (
-                        <td key={j} className="px-3 py-2.5"><div className="h-3 rounded bg-gray-200" style={{ width: `${50 + (j * 7) % 40}%` }} /></td>
+                        <td key={j} className="px-3 py-2.5"><div className="h-3 rounded bg-surface" style={{ width: `${50 + (j * 7) % 40}%` }} /></td>
                       ))}
                     </tr>
                   ))
@@ -259,18 +259,18 @@ export function TenantsMallsPage() {
                         style={{ animationDelay: `${i * 30}ms` }}
                         onClick={() => setSelectedTenant(row)}
                       >
-                        <td className="px-3 py-2 font-mono text-[11px] text-muted">{row.tenant.id.slice(0, 8)}…</td>
+                        <td className="px-3 py-2 font-mono text-xs text-muted">{row.tenant.id.slice(0, 8)}…</td>
                         <td className="px-3 py-2 font-medium text-foreground">{row.tenant.name}</td>
                         <td className="px-3 py-2 text-muted">{row.country}</td>
                         <td className="px-3 py-2 text-center">
-                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[row.status]}`}>
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status]}`}>
                             {row.status}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-right text-foreground">{row.activeMeters}</td>
                         <td className="px-3 py-2 text-right text-foreground">{row.activeUsers}</td>
-                        <td className="px-3 py-2 text-[11px] text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
-                        <td className="px-3 py-2 text-[11px] text-muted">v1.0</td>
+                        <td className="px-3 py-2 text-xs text-muted">{new Date(row.tenant.createdAt).toLocaleDateString('es-CL')}</td>
+                        <td className="px-3 py-2 text-xs text-muted">v1.0</td>
                       </tr>
                     ))}
                     {filtered.length === 0 && (
@@ -289,8 +289,8 @@ export function TenantsMallsPage() {
           <div className="panel flex min-h-0 flex-1 flex-col p-3">
             {/* Sticky header — never scrolls away */}
             <div className="shrink-0 border-b border-border pb-2">
-              <p className="text-[13px] font-medium text-foreground">Detalle de tenant — configuración base</p>
-              <p className="text-[11px] text-muted">
+              <p className="text-sm font-medium text-foreground">Detalle de tenant — configuración base</p>
+              <p className="text-xs text-muted">
                 {selectedTenant
                   ? <><span className="font-medium text-foreground">{selectedTenant.tenant.name}</span> · {selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'}</>
                   : 'Seleccione un tenant en la lista'}
@@ -299,40 +299,40 @@ export function TenantsMallsPage() {
             {/* Scrollable content */}
             <div className="min-h-0 flex-1 overflow-y-auto pt-3">
               {selectedTenant ? (
-                <dl className="space-y-2.5 text-[12px]">
+                <dl className="space-y-2.5 text-xs">
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Nombre</dt>
+                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Nombre</dt>
                     <dd className="text-foreground">{selectedTenant.tenant.name}</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
+                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
                     <dd className="text-foreground">{selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
+                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
                     <dd className="text-foreground">Configurados (95% calidad dato)</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Integración de facturación</dt>
+                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Integración de facturación</dt>
                     <dd className="text-foreground">API REST — activa</dd>
                   </div>
                   <div>
-                    <dt className="text-[12px] font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall</dt>
+                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall</dt>
                     <dd className="text-foreground">Activo</dd>
                   </div>
                 </dl>
               ) : (
-                <p className="py-6 text-center text-[12px] text-muted">Seleccione un tenant para ver su configuración.</p>
+                <p className="py-6 text-center text-xs text-muted">Seleccione un tenant para ver su configuración.</p>
               )}
             </div>
           </div>
 
           {/* Estadísticas de uso */}
           <div className="panel flex-1 overflow-auto p-3">
-            <p className="text-[13px] font-medium text-foreground">Estadísticas de uso</p>
-            <p className="mb-3 text-[11px] text-muted">consumo del tenant, últimos 30 días</p>
+            <p className="text-sm font-medium text-foreground">Estadísticas de uso</p>
+            <p className="mb-3 text-xs text-muted">consumo del tenant, últimos 30 días</p>
             {usageStats ? (
-              <ul className="space-y-1.5 text-[12px]">
+              <ul className="space-y-1.5 text-xs">
                 <li className="flex items-center justify-between">
                   <span className="text-muted">Usuarios activos 30d</span>
                   <span className="font-semibold text-foreground">{usageStats.activeUsers30d}</span>
@@ -347,7 +347,7 @@ export function TenantsMallsPage() {
                 </li>
               </ul>
             ) : (
-              <ul className="space-y-1.5 text-[12px] text-muted">
+              <ul className="space-y-1.5 text-xs text-muted">
                 <li>Usuarios activos 30d: 42</li>
                 <li>Nº consultas API (mes): 1,2 M</li>
                 <li>Volumen de datos almacenados: 318 GB</li>
@@ -360,13 +360,13 @@ export function TenantsMallsPage() {
       {/* Row 2 — Historial + acciones integradas */}
       <div className="panel flex flex-col overflow-hidden" style={{ minHeight: '220px' }}>
         <div className="border-b border-border px-3 py-2">
-          <p className="text-[13px] font-medium text-foreground">Historial de cambios de configuración del tenant</p>
-          <p className="text-[11px] text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp</p>
+          <p className="text-sm font-medium text-foreground">Historial de cambios de configuración del tenant</p>
+          <p className="text-xs text-muted">Inmutable · quién, qué campo, valor anterior/nuevo, timestamp</p>
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Fecha</th>
                 <th className="px-3 py-2">Usuario</th>
                 <th className="px-3 py-2">Campo</th>
@@ -378,13 +378,13 @@ export function TenantsMallsPage() {
             <tbody className="divide-y divide-border">
               {configHistory.map((h) => (
                 <tr key={h.id} className="hover:bg-surface">
-                  <td className="px-3 py-2 text-[11px] text-muted">{h.date}</td>
+                  <td className="px-3 py-2 text-xs text-muted">{h.date}</td>
                   <td className="px-3 py-2 text-foreground">{h.user}</td>
                   <td className="px-3 py-2 text-muted">{h.field}</td>
                   <td className="px-3 py-2 text-muted">{h.prev}</td>
                   <td className="px-3 py-2 text-muted">{h.next}</td>
                   <td className="px-3 py-2">
-                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">aprobado</span>
+                    <span className="inline-block rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">aprobado</span>
                   </td>
                 </tr>
               ))}
@@ -396,7 +396,7 @@ export function TenantsMallsPage() {
           <button
             type="button"
             onClick={() => navigate('/admin/companies')}
-            className="rounded-md bg-brand px-4 py-1.5 text-[12px] font-medium text-brand-fg hover:opacity-90"
+            className="rounded-md bg-brand px-4 py-1.5 text-xs font-medium text-brand-fg hover:opacity-90"
           >
             Crear tenant
           </button>
@@ -407,7 +407,7 @@ export function TenantsMallsPage() {
               if (!selectedTenant) return;
               updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: true } });
             }}
-            className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+            className="rounded-md border border-border px-4 py-1.5 text-xs font-medium text-foreground hover:bg-surface disabled:opacity-50"
           >
             Activar
           </button>
@@ -419,11 +419,11 @@ export function TenantsMallsPage() {
               if (!window.confirm(`Desactivar tenant "${selectedTenant.tenant.name}"?`)) return;
               updateTenantMutation.mutate({ id: selectedTenant.tenant.id, payload: { isActive: false } });
             }}
-            className="rounded-md border border-border px-4 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface disabled:opacity-50"
+            className="rounded-md border border-border px-4 py-1.5 text-xs font-medium text-foreground hover:bg-surface disabled:opacity-50"
           >
             Desactivar
           </button>
-          <span className="ml-auto text-[10px] text-amber-600">Gate PASA · requiere aprobación</span>
+          <span className="ml-auto text-xs text-warning">Gate PASA · requiere aprobación</span>
         </div>
       </div>
     </div>

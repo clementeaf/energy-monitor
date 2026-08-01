@@ -36,9 +36,9 @@ function deriveSemaphore(pct: number): CoverageRow['semaphore'] {
 }
 
 const SEMAPHORE_DOT: Record<string, string> = {
-  green: 'bg-emerald-500',
-  yellow: 'bg-amber-500',
-  red: 'bg-red-500',
+  green: 'bg-success/100',
+  yellow: 'bg-warning',
+  red: 'bg-danger',
 };
 
 function buildCoverageRows(
@@ -256,7 +256,7 @@ export function MapaCoberturaPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           Métrica del marcador
@@ -267,8 +267,8 @@ export function MapaCoberturaPage() {
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Left: Mapa interactivo de cobertura */}
         <div className="panel flex min-w-0 flex-[2] flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
-          <p className="shrink-0 text-[11px] text-muted">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
+          <p className="shrink-0 text-xs text-muted">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
           </div>
@@ -276,18 +276,18 @@ export function MapaCoberturaPage() {
 
         {/* Right: Panel lateral de lista */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
-          <p className="shrink-0 text-[11px] text-muted">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
+          <p className="shrink-0 text-xs text-muted">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar mall..."
-            className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+            className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none transition-colors focus:border-foreground"
           />
-          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% online</th>
                   <th className="px-2 py-1.5 text-right">Alarmas</th>
@@ -311,11 +311,11 @@ export function MapaCoberturaPage() {
                           <span className="truncate font-medium text-foreground">{row.building.name}</span>
                         </span>
                       </td>
-                      <td className={`px-2 py-1.5 text-right font-medium ${row.onlinePct >= 95 ? 'text-emerald-600' : row.onlinePct >= 85 ? 'text-amber-600' : 'text-red-600'}`}>
+                      <td className={`px-2 py-1.5 text-right font-medium ${row.onlinePct >= 95 ? 'text-success' : row.onlinePct >= 85 ? 'text-warning' : 'text-danger'}`}>
                         {row.onlinePct.toFixed(0)}%
                       </td>
                       <td className="px-2 py-1.5 text-right text-muted">
-                        {row.alertCount > 0 ? <span className="font-medium text-red-600">{row.alertCount}</span> : '0'}
+                        {row.alertCount > 0 ? <span className="font-medium text-danger">{row.alertCount}</span> : '0'}
                       </td>
                       <td className="px-2 py-1.5 text-muted">{row.lastReading ?? '—'}</td>
                     </tr>

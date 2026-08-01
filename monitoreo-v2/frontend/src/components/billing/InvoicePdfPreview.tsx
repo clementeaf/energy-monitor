@@ -41,14 +41,14 @@ export function InvoicePdfPreview({ invoiceId }: Readonly<InvoicePdfPreviewProps
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-red-600">{error}</div>
+      <div className="flex h-full items-center justify-center text-sm text-danger">{error}</div>
     );
   }
 
   if (!blobUrl) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
       </div>
     );
   }

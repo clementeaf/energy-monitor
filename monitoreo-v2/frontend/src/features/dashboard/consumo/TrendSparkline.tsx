@@ -112,7 +112,7 @@ export function TrendSparkline({ buildingId, granularity = 'monthly', compareWit
   const toPath = (values: number[]) =>
     values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / (values.length - 1)) * w} ${h - (v / maxVal) * (h - 4)}`).join(' ');
 
-  if (aggQuery.isPending) return <p className="text-[10px] text-muted">Cargando tendencia...</p>;
+  if (aggQuery.isPending) return <p className="text-xs text-muted">Cargando tendencia...</p>;
 
   const compareLabel = COMPARE_LABELS[compareWith] ?? '';
 
@@ -124,10 +124,10 @@ export function TrendSparkline({ buildingId, granularity = 'monthly', compareWit
         )}
         <path d={toPath(slots.map((s) => s.current))} fill="none" stroke="#3b82f6" strokeWidth={2} />
       </svg>
-      <div className="flex gap-3 text-[10px] text-muted">
-        <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 bg-blue-500" /> Actual</span>
+      <div className="flex gap-3 text-xs text-muted">
+        <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 bg-info/100" /> Actual</span>
         {compareWith !== 'none' && (
-          <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 border-t border-dashed border-gray-400" /> {compareLabel}</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-0.5 w-3 border-t border-dashed border-border" /> {compareLabel}</span>
         )}
       </div>
     </div>

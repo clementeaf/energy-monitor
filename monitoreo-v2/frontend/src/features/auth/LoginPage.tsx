@@ -179,7 +179,7 @@ function OAuthPanel({
       <p className="rounded-lg bg-surface px-4 py-3 text-xs leading-relaxed text-muted">
         Al iniciar sesión, autorizas la recopilación de tu nombre y correo desde tu proveedor OAuth.
         Puedes ejercer tus derechos ARCO+ desde tu perfil.{' '}
-        <a href="/privacy-policy" className="font-medium text-brand underline-offset-2 hover:underline">
+        <a href="/privacy-policy" className="font-medium text-foreground underline-offset-2 hover:underline">
           Política de privacidad
         </a>
       </p>
@@ -290,7 +290,7 @@ function MfaSetupForm({
           type="button"
           onClick={onRegenerate}
           disabled={isLoading}
-          className="text-xs text-brand hover:underline disabled:opacity-50"
+          className="text-xs text-foreground hover:underline disabled:opacity-50"
         >
           Generar nuevo QR
         </button>

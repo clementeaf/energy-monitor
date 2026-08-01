@@ -209,7 +209,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <div className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </div>

@@ -215,19 +215,19 @@ function TariffRow({
           {tariff.effectiveFrom}{tariff.effectiveTo ? ` — ${tariff.effectiveTo}` : ' — vigente'}
         </td>
         <td className="px-4 py-3">
-          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tariff.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'}`}>
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${tariff.isActive ? 'bg-success/10 text-success' : 'bg-raised text-muted'}`}>
             {tariff.isActive ? 'Activa' : 'Inactiva'}
           </span>
         </td>
         <td className="px-4 py-3">
-          <button type="button" onClick={onToggle} className="text-sm text-brand hover:underline">
+          <button type="button" onClick={onToggle} className="text-sm text-foreground hover:underline">
             {expanded ? 'Ocultar' : 'Ver bloques'}
           </button>
         </td>
         {canWrite && (
           <td className="px-4 py-3 text-right">
             <button type="button" onClick={onEdit} className="mr-2 text-sm text-muted hover:text-foreground">Editar</button>
-            <button type="button" onClick={onDelete} className="text-sm text-red-500 hover:text-red-700">Eliminar</button>
+            <button type="button" onClick={onDelete} className="text-sm text-danger hover:text-danger">Eliminar</button>
           </td>
         )}
       </tr>
@@ -264,7 +264,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
   };
 
   if (blocksQuery.isPending) return <p className="text-sm text-subtle">Cargando bloques...</p>;
-  if (blocksQuery.isError) return <p className="text-sm text-red-500">Error cargando bloques</p>;
+  if (blocksQuery.isError) return <p className="text-sm text-danger">Error cargando bloques</p>;
 
   const blocks = blocksQuery.data ?? [];
 
@@ -273,7 +273,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase text-muted">Bloques Horarios</span>
         {canWrite && (
-          <button type="button" onClick={() => setAddOpen(!addOpen)} className="text-xs text-brand hover:underline">
+          <button type="button" onClick={() => setAddOpen(!addOpen)} className="text-xs text-foreground hover:underline">
             {addOpen ? 'Cancelar' : '+ Agregar bloque'}
           </button>
         )}
@@ -322,7 +322,7 @@ function TariffBlocksPanel({ tariffId, canWrite }: Readonly<{ tariffId: string; 
                     <button
                       type="button"
                       onClick={() => deleteBlock.mutate({ tariffId, blockId: b.id })}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-danger hover:text-danger"
                     >
                       Eliminar
                     </button>

@@ -17,7 +17,7 @@ export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
       {/* Y-axis area */}
       <div className="absolute bottom-8 left-0 top-2 flex w-12 flex-col justify-between py-1">
         {['120', '90', '60', '30', '0'].map((v) => (
-          <span key={v} className="text-right text-[10px] text-gray-300">{v}</span>
+          <span key={v} className="text-right text-xs text-subtle">{v}</span>
         ))}
       </div>
 
@@ -27,7 +27,7 @@ export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
         {[0, 25, 50, 75, 100].map((pct) => (
           <div
             key={pct}
-            className="absolute left-0 right-0 border-t border-gray-100"
+            className="absolute left-0 right-0 border-t border-border"
             style={{ top: `${pct}%` }}
           />
         ))}
@@ -68,7 +68,7 @@ export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
         </svg>
 
         {/* Crosshair hint */}
-        <div className="absolute bottom-0 top-0 left-[62%] w-px border-l border-dashed border-gray-200" />
+        <div className="absolute bottom-0 top-0 left-[62%] w-px border-l border-dashed border-border" />
         <div className="absolute top-[36%] left-[62%] -translate-x-1/2 -translate-y-1/2">
           <div className="size-2 rounded-full border border-border bg-background" />
         </div>
@@ -77,7 +77,7 @@ export function ChartSkeleton({ height = 280 }: ChartSkeletonProps) {
       {/* X-axis labels */}
       <div className="absolute bottom-0 left-12 right-2 flex justify-between px-1">
         {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((t) => (
-          <span key={t} className="text-[10px] text-gray-300">{t}</span>
+          <span key={t} className="text-xs text-subtle">{t}</span>
         ))}
       </div>
     </div>

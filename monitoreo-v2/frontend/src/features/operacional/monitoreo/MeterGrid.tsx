@@ -15,11 +15,11 @@ export function MeterGrid({ meters, readingByMeter, yesterdayPowerByMeter, now }
 
   return (
     <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-      <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Medidores del mall seleccionado</p>
-      <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+      <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Medidores del mall seleccionado</p>
+      <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-2 py-1.5">Serial</th>
               <th className="px-2 py-1.5">Zona</th>
               <th className="px-2 py-1.5 text-center">Estado</th>
@@ -46,7 +46,7 @@ export function MeterGrid({ meters, readingByMeter, yesterdayPowerByMeter, now }
                     <td className="px-2 py-1.5 text-center"><span className={`inline-block size-2 rounded-full ${sStyle.dot}`} title={sStyle.label} /></td>
                     <td className="px-2 py-1.5 text-right text-muted">{reading ? `${Number(reading.power_kw).toFixed(1)} kW` : '—'}</td>
                     <td className="px-2 py-1.5 text-muted">{reading ? new Date(reading.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                    <td className="px-2 py-1.5 text-right">{varPct != null ? <span className={`font-medium ${varPct > 0 ? 'text-red-500' : varPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>{varPct > 0 ? '↑' : varPct < 0 ? '↓' : '→'} {Math.abs(varPct)}%</span> : <span className="text-muted">—</span>}</td>
+                    <td className="px-2 py-1.5 text-right">{varPct != null ? <span className={`font-medium ${varPct > 0 ? 'text-danger' : varPct < 0 ? 'text-success' : 'text-muted'}`}>{varPct > 0 ? '↑' : varPct < 0 ? '↓' : '→'} {Math.abs(varPct)}%</span> : <span className="text-muted">—</span>}</td>
                   </tr>
                 );
               }) : (

@@ -93,7 +93,7 @@ export function CostosTendenciasPage() {
       />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
@@ -126,9 +126,9 @@ export function CostosTendenciasPage() {
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 text-[12px] font-medium transition-colors ${
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
               activeTab === tab.key
-                ? 'border-b-2 border-brand text-brand'
+                ? 'border-b-2 border-foreground text-foreground'
                 : 'text-muted hover:text-foreground'
             }`}
           >
@@ -237,12 +237,12 @@ function TendenciaTab({ monthlyData, filteredInvoices, filteredBuildings, curren
 
   return (
     <div className="panel p-4">
-      <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currencyKey}]</p>
-      <p className="text-[11px] text-muted">Línea eje secundario: precio medio [{currencyKey}/MWh]</p>
+      <p className="text-xs font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currencyKey}]</p>
+      <p className="text-xs text-muted">Línea eje secundario: precio medio [{currencyKey}/MWh]</p>
       {monthlyData.length > 0 ? (
         <Chart options={chartOptions} className="mt-2" />
       ) : (
-        <div className="flex h-40 items-center justify-center text-[11px] text-muted">Sin datos de facturación</div>
+        <div className="flex h-40 items-center justify-center text-xs text-muted">Sin datos de facturación</div>
       )}
     </div>
   );
@@ -252,7 +252,7 @@ function TendenciaTab({ monthlyData, filteredInvoices, filteredBuildings, curren
 
 function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }>) {
   if (monthlyData.length < 2) {
-    return <div className="flex h-40 items-center justify-center text-[11px] text-muted">Requiere ≥2 meses de datos</div>;
+    return <div className="flex h-40 items-center justify-center text-xs text-muted">Requiere ≥2 meses de datos</div>;
   }
 
   const prevB = monthlyData[monthlyData.length - 2];
@@ -268,18 +268,18 @@ function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }
   const mix = delta - vol - price;
 
   const bars = [
-    { label: 'Anterior', value: prev, color: 'bg-blue-400' },
-    { label: 'Δ Volumen', value: vol, color: vol >= 0 ? 'bg-red-400' : 'bg-emerald-400' },
-    { label: 'Δ Precio', value: price, color: price >= 0 ? 'bg-red-400' : 'bg-emerald-400' },
-    { label: 'Mix', value: mix, color: mix >= 0 ? 'bg-red-300' : 'bg-emerald-300' },
-    { label: 'Actual', value: curr, color: 'bg-blue-500' },
+    { label: 'Anterior', value: prev, color: 'bg-info/60' },
+    { label: 'Δ Volumen', value: vol, color: vol >= 0 ? 'bg-danger/60' : 'bg-success/60' },
+    { label: 'Δ Precio', value: price, color: price >= 0 ? 'bg-danger/60' : 'bg-success/60' },
+    { label: 'Mix', value: mix, color: mix >= 0 ? 'bg-danger/30' : 'bg-success/30' },
+    { label: 'Actual', value: curr, color: 'bg-info/100' },
   ];
   const maxVal = Math.max(prev, curr, 1);
 
   return (
     <div className="panel p-4">
-      <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
-      <p className="text-[11px] text-muted">volumen · precio · mix de malls (verde baja, rojo sube)</p>
+      <p className="text-xs font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
+      <p className="text-xs text-muted">volumen · precio · mix de malls (verde baja, rojo sube)</p>
       <div className="mt-4 flex items-end gap-3" style={{ height: '200px' }}>
         {bars.map((bar) => {
           const pct = (Math.abs(bar.value) / maxVal) * 100;
@@ -288,8 +288,8 @@ function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }
               <div className="flex w-full flex-1 items-end justify-center">
                 <div className={`w-full rounded-t ${bar.color}`} style={{ height: `${Math.max(4, pct)}%` }} />
               </div>
-              <p className="text-[10px] font-medium text-foreground">{bar.value >= 1000 ? `${(bar.value / 1000).toFixed(1)}k` : bar.value.toFixed(0)}</p>
-              <p className="text-[9px] text-muted">{bar.label}</p>
+              <p className="text-xs font-medium text-foreground">{bar.value >= 1000 ? `${(bar.value / 1000).toFixed(1)}k` : bar.value.toFixed(0)}</p>
+              <p className="text-xs text-muted">{bar.label}</p>
             </div>
           );
         })}
@@ -302,7 +302,7 @@ function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }
 
 function ProjectionTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }>) {
   if (monthlyData.length < 3) {
-    return <div className="flex h-40 items-center justify-center text-[11px] text-muted">Requiere ≥3 meses de datos</div>;
+    return <div className="flex h-40 items-center justify-center text-xs text-muted">Requiere ≥3 meses de datos</div>;
   }
 
   const last3 = monthlyData.slice(-3);
@@ -323,12 +323,12 @@ function ProjectionTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] 
     <div className="panel p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
-          <p className="text-[11px] text-muted">Base: tendencia últimos 3 meses</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
+          <p className="text-xs text-muted">Base: tendencia últimos 3 meses</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-[10px] text-muted"><span className="inline-block h-2.5 w-4 rounded-sm bg-blue-400" /> Real</span>
-          <span className="flex items-center gap-1 text-[10px] text-muted"><span className="inline-block h-2.5 w-4 rounded-sm border-2 border-dashed border-amber-400 bg-amber-50" /> Proyectado</span>
+          <span className="flex items-center gap-1 text-xs text-muted"><span className="inline-block h-2.5 w-4 rounded-sm bg-info/60" /> Real</span>
+          <span className="flex items-center gap-1 text-xs text-muted"><span className="inline-block h-2.5 w-4 rounded-sm border-2 border-dashed border-warning bg-warning/10" /> Proyectado</span>
         </div>
       </div>
       <div className="mt-4 flex items-end gap-2" style={{ height: '200px' }}>
@@ -337,12 +337,12 @@ function ProjectionTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] 
           const formatted = b.cost >= 1000 ? `${(b.cost / 1000).toFixed(0)}k` : b.cost.toFixed(0);
           return (
             <div key={b.month} className="flex flex-1 flex-col items-center gap-1">
-              <span className="text-[10px] font-medium text-foreground">{formatted}</span>
+              <span className="text-xs font-medium text-foreground">{formatted}</span>
               <div
-                className={`w-full rounded-t ${b.projected ? 'border-2 border-dashed border-amber-400 bg-amber-50' : 'bg-blue-400'}`}
+                className={`w-full rounded-t ${b.projected ? 'border-2 border-dashed border-warning bg-warning/10' : 'bg-info/60'}`}
                 style={{ height: `${Math.max(6, pct)}%` }}
               />
-              <span className="text-[9px] text-muted">{b.month.length > 7 ? b.month : b.month.slice(5)}</span>
+              <span className="text-xs text-muted">{b.month.length > 7 ? b.month : b.month.slice(5)}</span>
             </div>
           );
         })}

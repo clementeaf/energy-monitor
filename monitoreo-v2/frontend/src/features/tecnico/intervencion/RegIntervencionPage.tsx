@@ -73,24 +73,24 @@ export function RegIntervencionPage() {
 
       {/* Orden asociada */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Orden asociada</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">Orden asociada</p>
         {selectedMeter ? (
-          <div className="mt-1 text-[11px] text-foreground">
+          <div className="mt-1 text-xs text-foreground">
             <p className="font-semibold">OT — Medidor {selectedMeter.code}</p>
             <p>• Cierre de intervención en terreno</p>
           </div>
-        ) : <p className="mt-1 text-[11px] text-muted">Selecciona un medidor</p>}
+        ) : <p className="mt-1 text-xs text-muted">Selecciona un medidor</p>}
       </div>
 
       {/* Bitácora de intervención */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
         <form onSubmit={handleSubmit} className="mt-2 space-y-3">
             <FormField label="Medidor / activo">
               <select
                 value={selectedMeterId}
                 onChange={(e) => setSelectedMeterId(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
               >
                 <option value="">Seleccionar medidor</option>
                 {meters.map((m) => (
@@ -102,7 +102,7 @@ export function RegIntervencionPage() {
             </FormField>
 
             {selectedMeter && (
-              <div className="rounded-md bg-surface px-3 py-2 text-[12px] text-muted">
+              <div className="rounded-md bg-surface px-3 py-2 text-xs text-muted">
                 <span className="font-medium">Medidor:</span> {selectedMeter.name} · <span className="font-medium">Código:</span> {selectedMeter.code} · <span className="font-medium">Tipo:</span> {selectedMeter.meterType}
               </div>
             )}
@@ -111,7 +111,7 @@ export function RegIntervencionPage() {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
               >
                 {INTERVENTION_TYPES.map((t) => (
                   <option key={t.key} value={t.key}>{t.label}</option>
@@ -125,7 +125,7 @@ export function RegIntervencionPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Descripción del trabajo realizado..."
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
               />
             </FormField>
 
@@ -133,7 +133,7 @@ export function RegIntervencionPage() {
               <select
                 value={result}
                 onChange={(e) => setResult(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus:border-brand"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
               >
                 {RESULT_OPTIONS.map((r) => (
                   <option key={r.key} value={r.key}>{r.label}</option>
@@ -146,13 +146,13 @@ export function RegIntervencionPage() {
                 type="file"
                 accept=".jpg,.jpeg,.png,.pdf"
                 multiple
-                className="w-full text-[12px] text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[11px] file:text-foreground"
+                className="w-full text-xs text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-xs file:text-foreground"
                 onChange={() => { /* ponytail: handle file upload when backend available */ }}
               />
-              <p className="mt-1 text-[10px] text-muted">Máx 5 archivos.</p>
+              <p className="mt-1 text-xs text-muted">Máx 5 archivos.</p>
             </FormField>
 
-            <label className="flex items-center gap-2 text-[11px] text-foreground">
+            <label className="flex items-center gap-2 text-xs text-foreground">
               <input type="checkbox" checked={requiresCnr} onChange={(e) => setRequiresCnr(e.target.checked)} className="rounded border-border" />
               Requiere CNR → pre-llena formulario de CNR
             </label>
@@ -161,8 +161,8 @@ export function RegIntervencionPage() {
 
       {/* Adjuntos y firma */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
-        <div className="mt-2 space-y-1 text-[11px] text-foreground">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
+        <div className="mt-2 space-y-1 text-xs text-foreground">
           <p>• Fotos máx. 5 (JPG/PNG) + documentos (PDF)</p>
           <p>• □ Requiere CNR → pre-llena formulario de CNR</p>
           <p>• Firma digital del técnico</p>
@@ -170,7 +170,7 @@ export function RegIntervencionPage() {
       </div>
 
       {/* Inmutabilidad del registro */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-[10px] text-blue-800">
+      <div className="rounded-lg border border-blue-200 bg-info/10 px-3 py-2.5 text-xs text-info">
         <p className="font-semibold">Inmutabilidad del registro</p>
         <p className="mt-1">al firmar y guardar:</p>
         <p>• Timestamp del servidor + usuario + hash de integridad</p>
@@ -178,7 +178,7 @@ export function RegIntervencionPage() {
       </div>
 
       {submitted && (
-        <div className="rounded-md bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700">
+        <div className="rounded-md bg-success/10 px-3 py-2 text-xs text-success">
           Intervención registrada correctamente.
         </div>
       )}
@@ -186,7 +186,7 @@ export function RegIntervencionPage() {
       {/* Action buttons */}
       <div className="flex shrink-0 gap-2">
         <Button type="button" onClick={handleSubmit} disabled={!canSubmit} loading={createIntervention.isPending} className="flex-1">Firmar y guardar</Button>
-        <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
+        <button type="button" className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">Cancelar</button>
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ export function RegIntervencionPage() {
 function FormField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">{label}</label>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">{label}</label>
       {children}
     </div>
   );

@@ -157,9 +157,9 @@ export function AlertsHistoryPage(): ReactElement {
       {/* KPI pills */}
       <div className="flex flex-wrap gap-2">
         <MiniKpi label="Total" value={String(alerts.length)} />
-        <MiniKpi label="Resueltas" value={String(globalSla.totalResolved)} color="text-green-600" />
-        <MiniKpi label="Activas" value={String(globalSla.totalActive)} color={globalSla.totalActive > 0 ? 'text-red-600' : undefined} />
-        <MiniKpi label={`SLA (≤${SLA_TARGET_HOURS}h)`} value={`${globalSla.slaPct.toFixed(1)}%`} color={globalSla.slaPct >= 90 ? 'text-green-600' : globalSla.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'} />
+        <MiniKpi label="Resueltas" value={String(globalSla.totalResolved)} color="text-success" />
+        <MiniKpi label="Activas" value={String(globalSla.totalActive)} color={globalSla.totalActive > 0 ? 'text-danger' : undefined} />
+        <MiniKpi label={`SLA (≤${SLA_TARGET_HOURS}h)`} value={`${globalSla.slaPct.toFixed(1)}%`} color={globalSla.slaPct >= 90 ? 'text-success' : globalSla.slaPct >= 70 ? 'text-warning' : 'text-danger'} />
         <MiniKpi label="Tiempo medio" value={`${globalSla.avgHours.toFixed(1)} h`} />
         <MiniKpi label="Meses" value={String(monthlySla.length)} />
       </div>
@@ -174,7 +174,7 @@ export function AlertsHistoryPage(): ReactElement {
             <button
               type="button"
               onClick={() => setChartTab('trend')}
-              className={`px-2.5 py-0.5 text-[11px] rounded-l-full transition-colors ${
+              className={`px-2.5 py-0.5 text-xs rounded-l-full transition-colors ${
                 chartTab === 'trend' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
@@ -183,7 +183,7 @@ export function AlertsHistoryPage(): ReactElement {
             <button
               type="button"
               onClick={() => setChartTab('sla')}
-              className={`px-2.5 py-0.5 text-[11px] rounded-r-full transition-colors ${
+              className={`px-2.5 py-0.5 text-xs rounded-r-full transition-colors ${
                 chartTab === 'sla' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
@@ -225,10 +225,10 @@ export function AlertsHistoryPage(): ReactElement {
               <tr key={row.month} className="hover:bg-surface">
                 <td className="px-4 py-2 font-medium text-foreground">{row.month}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{row.total}</td>
-                <td className="px-4 py-2 text-right tabular-nums text-green-600">{row.resolved}</td>
+                <td className="px-4 py-2 text-right tabular-nums text-success">{row.resolved}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{row.avgResolutionHours.toFixed(1)}</td>
                 <td className="px-4 py-2 text-right tabular-nums">
-                  <span className={row.slaPct >= 90 ? 'text-green-600' : row.slaPct >= 70 ? 'text-yellow-600' : 'text-red-600'}>
+                  <span className={row.slaPct >= 90 ? 'text-success' : row.slaPct >= 70 ? 'text-warning' : 'text-danger'}>
                     {row.slaPct.toFixed(1)}%
                   </span>
                 </td>
@@ -244,8 +244,8 @@ export function AlertsHistoryPage(): ReactElement {
 function MiniKpi({ label, value, color }: Readonly<{ label: string; value: string; color?: string }>): ReactElement {
   return (
     <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
-      <span className="text-[11px] text-muted">{label}</span>
-      <span className={`text-[13px] font-semibold ${color ?? 'text-foreground'}`}>{value}</span>
+      <span className="text-xs text-muted">{label}</span>
+      <span className={`text-sm font-semibold ${color ?? 'text-foreground'}`}>{value}</span>
     </div>
   );
 }

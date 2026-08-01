@@ -6,10 +6,10 @@ import { ALERT_TYPE_LABELS } from '../../types/alert-engine';
 import { PageHeader } from '../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-100 text-red-800',
-  high: 'bg-orange-100 text-orange-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  low: 'bg-blue-100 text-blue-800',
+  critical: 'bg-danger/10 text-danger',
+  high: 'bg-warning/10 text-warning',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-info/10 text-info',
 };
 
 function minutesAgo(dateStr: string): number {
@@ -87,7 +87,7 @@ export function EscalationPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-muted">{alert.status}</td>
                   <td className="px-4 py-3 font-mono text-xs">
-                    <span className={mins > 1440 ? 'text-red-600 font-bold' : mins > 120 ? 'text-orange-600' : 'text-muted'}>
+                    <span className={mins > 1440 ? 'text-danger font-bold' : mins > 120 ? 'text-warning' : 'text-muted'}>
                       {formatDuration(mins)}
                     </span>
                   </td>

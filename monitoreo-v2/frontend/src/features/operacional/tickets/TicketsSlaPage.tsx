@@ -97,21 +97,21 @@ const QUICK_PREDICATES: Record<string, (t: Ticket) => boolean> = {
 /* ── Badge styling ── */
 
 const PRIORITY_BADGE: Record<TicketPriority, string> = {
-  alta: 'bg-red-100 text-red-700',
-  media: 'bg-amber-100 text-amber-700',
-  baja: 'bg-blue-100 text-blue-700',
+  alta: 'bg-danger/10 text-danger',
+  media: 'bg-warning/10 text-warning',
+  baja: 'bg-info/10 text-info',
 };
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  abierto: 'bg-red-100 text-red-700',
-  asignado: 'bg-amber-100 text-amber-700',
-  escalado: 'bg-orange-100 text-orange-700',
-  resuelto: 'bg-emerald-100 text-emerald-700',
+  abierto: 'bg-danger/10 text-danger',
+  asignado: 'bg-warning/10 text-warning',
+  escalado: 'bg-warning/10 text-warning',
+  resuelto: 'bg-success/10 text-success',
 };
 
 const DAYS_COLOR: Record<string, string> = {
-  overdue: 'text-red-600 font-medium',
-  due_soon: 'text-amber-600',
+  overdue: 'text-danger font-medium',
+  due_soon: 'text-warning',
   ok: 'text-muted',
 };
 
@@ -213,7 +213,7 @@ export function TicketsSlaPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
@@ -221,26 +221,26 @@ export function TicketsSlaPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
-          <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-red-600'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
-          <p className="text-[11px] text-muted">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
+          <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-danger'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
+          <p className="text-xs text-muted">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
-          <p className="text-[11px] text-muted">lecturas recibidas / esperadas</p>
+          <p className="text-xs text-muted">lecturas recibidas / esperadas</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
-          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
-          <p className="text-[11px] text-muted">indicador visual si supera el SLA</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
+          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
+          <p className="text-xs text-muted">indicador visual si supera el SLA</p>
         </div>
       </div>
 
       {/* Row 2: Evolución de SLA — últimos 3 meses */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
-        <p className="text-[11px] text-muted">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
+        <p className="text-xs text-muted">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
         <div className="mt-2" style={{ height: '80px' }}>
           {(() => {
             const w = 600;
@@ -273,23 +273,23 @@ export function TicketsSlaPage() {
               key={f.key}
               type="button"
               onClick={() => setQuickFilter(f.key)}
-              className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 quickFilter === f.key ? 'bg-foreground text-background' : 'bg-surface text-muted hover:text-foreground'
               }`}
             >
               {f.label}
             </button>
           ))}
-          <span className="ml-2 text-[11px] text-muted">esta pantalla: El filtro rápido «Mis tickets /</span>
+          <span className="ml-2 text-xs text-muted">esta pantalla: El filtro rápido «Mis tickets /</span>
         </div>
 
-        <p className="mt-2 shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
-        <p className="shrink-0 text-[11px] text-muted">días restantes en verde · vencidos en rojo</p>
+        <p className="mt-2 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
+        <p className="shrink-0 text-xs text-muted">días restantes en verde · vencidos en rojo</p>
 
-        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Descripción</th>
                 <th className="px-2 py-1.5">Tipo</th>
@@ -306,16 +306,16 @@ export function TicketsSlaPage() {
               <tbody className="divide-y divide-border">
                 {filtered.map((ticket, i) => (
                   <tr key={ticket.id} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 25}ms` }}>
-                    <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{ticket.id}</td>
+                    <td className="px-2 py-1.5 font-mono text-xs text-muted">{ticket.id}</td>
                     <td className="max-w-[200px] truncate px-2 py-1.5 text-foreground">{ticket.description}</td>
                     <td className="px-2 py-1.5 capitalize text-muted">{ticket.type}</td>
                     <td className="px-2 py-1.5">
-                      <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${PRIORITY_BADGE[ticket.priority]}`}>{ticket.priority.toUpperCase()}</span>
+                      <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${PRIORITY_BADGE[ticket.priority]}`}>{ticket.priority.toUpperCase()}</span>
                     </td>
                     <td className="px-2 py-1.5 text-muted">{new Date(ticket.openDate).toLocaleDateString('es-CL')}</td>
                     <td className="px-2 py-1.5 text-muted">{new Date(ticket.slaDeadline).toLocaleDateString('es-CL')}</td>
                     <td className="px-2 py-1.5 text-center">
-                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${STATUS_BADGE[ticket.status]}`}>{ticket.status}</span>
+                      <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${STATUS_BADGE[ticket.status]}`}>{ticket.status}</span>
                     </td>
                     <td className={`px-2 py-1.5 text-right font-medium ${daysClass(ticket.daysRemaining)}`}>
                       {daysLabel(ticket.daysRemaining)}

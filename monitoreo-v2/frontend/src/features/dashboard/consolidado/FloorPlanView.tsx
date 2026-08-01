@@ -37,28 +37,28 @@ function deriveZoneStatus(meterIds: string[], readings: LatestReading[], alerts:
 
 function getZoneColor(zone: ZoneBlock, mode: FloorColorMode, maxPower: number): string {
   if (mode === 'alarm') {
-    const colors: Record<EnergyStatus, string> = { normal: 'bg-emerald-200', warning: 'bg-amber-200', critical: 'bg-red-200', nodata: 'bg-gray-200' };
+    const colors: Record<EnergyStatus, string> = { normal: 'bg-success/20', warning: 'bg-warning/20', critical: 'bg-danger/20', nodata: 'bg-surface' };
     return colors[zone.status];
   }
   if (mode === 'intensity') {
     const ratio = maxPower > 0 ? zone.powerKw / maxPower : 0;
-    if (ratio > 0.75) return 'bg-red-200';
-    if (ratio > 0.5) return 'bg-amber-200';
-    if (ratio > 0.25) return 'bg-blue-200';
-    return 'bg-emerald-200';
+    if (ratio > 0.75) return 'bg-danger/20';
+    if (ratio > 0.5) return 'bg-warning/20';
+    if (ratio > 0.25) return 'bg-info/20';
+    return 'bg-success/20';
   }
   // variation: ponytail: approximate with power ratio as proxy
   const ratio = maxPower > 0 ? zone.powerKw / maxPower : 0;
-  if (ratio > 0.6) return 'bg-orange-200';
-  if (ratio > 0.3) return 'bg-yellow-200';
+  if (ratio > 0.6) return 'bg-warning/25';
+  if (ratio > 0.3) return 'bg-warning/20';
   return 'bg-sky-200';
 }
 
 const ZONE_BORDER: Record<EnergyStatus, string> = {
   normal: 'border-emerald-400',
-  warning: 'border-amber-400',
-  critical: 'border-red-400',
-  nodata: 'border-gray-300',
+  warning: 'border-warning',
+  critical: 'border-danger',
+  nodata: 'border-border',
 };
 
 interface FloorPlanViewProps {
@@ -192,21 +192,21 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
     <div className="flex h-full flex-col gap-3" data-testid="floor-plan-view">
       {/* Breadcrumb */}
       <div className="panel px-4 py-2.5">
-        <div className="flex items-center gap-1 text-[11px] text-muted">
-          <button type="button" onClick={onBackToCountry} className="text-brand hover:underline">{countryLabel}</button>
+        <div className="flex items-center gap-1 text-xs text-muted">
+          <button type="button" onClick={onBackToCountry} className="text-foreground hover:underline">{countryLabel}</button>
           <span>/</span>
-          <button type="button" onClick={onBackToMall} className="text-brand hover:underline">{buildingName}</button>
+          <button type="button" onClick={onBackToMall} className="text-foreground hover:underline">{buildingName}</button>
           <span>/</span>
           <span className="font-medium text-foreground">{floorName}</span>
         </div>
         <div className="mt-1 flex items-center justify-between">
-          <p className="text-[13px] font-semibold text-foreground">Plano de {floorName}</p>
-          <p className="text-[11px] text-muted">Carga total: {totalPower.toFixed(1)} kW</p>
+          <p className="text-sm font-semibold text-foreground">Plano de {floorName}</p>
+          <p className="text-xs text-muted">Carga total: {totalPower.toFixed(1)} kW</p>
         </div>
       </div>
 
       {/* Floor filters + color mode */}
-      <div className="flex flex-wrap items-center gap-3 px-1 text-[11px]">
+      <div className="flex flex-wrap items-center gap-3 px-1 text-xs">
         <span className="flex items-center gap-1 text-muted">
           Período:
           <DropdownSelect options={FLOOR_PERIOD_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorPeriod} onChange={(v) => setFloorPeriod(v as FloorPeriod)} />
@@ -216,13 +216,13 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
           <DropdownSelect options={FLOOR_SHOW_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorShowOnly} onChange={(v) => setFloorShowOnly(v as FloorShowOnly)} />
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted">Coloreo:</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted">Coloreo:</span>
           {COLOR_MODE_OPTIONS.map((opt) => (
             <button
               key={opt.key}
               type="button"
               onClick={() => setColorMode(opt.key)}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+              className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                 colorMode === opt.key ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'
               }`}
             >
@@ -236,7 +236,7 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
       <div ref={gridRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-surface/50 p-4" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
         {visibleZones.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-[12px] text-muted">Sin zonas configuradas para este piso.</p>
+            <p className="text-xs text-muted">Sin zonas configuradas para este piso.</p>
           </div>
         ) : (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(COLS, visibleZones.length)}, 1fr)` }}>
@@ -247,22 +247,22 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
               return (
                 <div
                   key={zone.id}
-                  className={`relative rounded-lg border-2 p-3 transition-all ${bg} ${border} ${isHovered ? 'ring-2 ring-brand shadow-md' : ''}`}
+                  className={`relative rounded-lg border-2 p-3 transition-all ${bg} ${border} ${isHovered ? 'ring-2 ring-foreground shadow-md' : ''}`}
                   onMouseEnter={() => setHoveredZone(zone.id)}
                   onMouseLeave={() => setHoveredZone(null)}
                   style={{ minHeight: '80px' }}
                 >
-                  <p className="text-[12px] font-medium text-foreground">{zone.name}</p>
-                  <p className="mt-0.5 text-[11px] text-muted">{zone.powerKw.toFixed(1)} kW</p>
-                  <p className="text-[10px] text-muted">{zone.meterCount} med.</p>
+                  <p className="text-xs font-medium text-foreground">{zone.name}</p>
+                  <p className="mt-0.5 text-xs text-muted">{zone.powerKw.toFixed(1)} kW</p>
+                  <p className="text-xs text-muted">{zone.meterCount} med.</p>
 
                   {/* Hover tooltip */}
                   {isHovered && (
-                    <div className="absolute -top-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-[11px] text-background shadow-lg">
+                    <div className="absolute -top-16 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs text-background shadow-lg">
                       <p className="font-medium">{zone.name}</p>
                       <p>{zone.powerKw.toFixed(1)} kW · {getStatusStyle(zone.status).label}</p>
                       {zone.lastAlarm && (
-                        <p className="text-[10px] opacity-80">{zone.lastAlarm.severity} · {zone.lastAlarm.time} · {zone.lastAlarm.message}</p>
+                        <p className="text-xs opacity-80">{zone.lastAlarm.severity} · {zone.lastAlarm.time} · {zone.lastAlarm.message}</p>
                       )}
                     </div>
                   )}
@@ -277,7 +277,7 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 px-1 text-[10px] text-muted">
+      <div className="flex flex-wrap items-center gap-3 px-1 text-xs text-muted">
         {colorMode === 'alarm' && (
           <>
             {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
@@ -293,17 +293,17 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
         )}
         {colorMode === 'intensity' && (
           <>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-200" /> Bajo</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> Medio</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-amber-200" /> Alto</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Muy alto</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-success/20" /> Bajo</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-info/20" /> Medio</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-warning/20" /> Alto</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-danger/20" /> Muy alto</span>
           </>
         )}
         {colorMode === 'variation' && (
           <>
             <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-sky-200" /> Estable</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-yellow-200" /> Moderado</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-orange-200" /> Elevado</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-warning/20" /> Moderado</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-warning/25" /> Elevado</span>
           </>
         )}
       </div>

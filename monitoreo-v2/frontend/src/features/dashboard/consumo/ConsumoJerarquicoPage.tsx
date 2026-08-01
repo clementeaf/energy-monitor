@@ -141,7 +141,7 @@ export function ConsumoJerarquicoPage() {
       />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
@@ -164,11 +164,11 @@ export function ConsumoJerarquicoPage() {
       {/* Tabs */}
       <div className="flex shrink-0 gap-1 border-b border-border">
         <button type="button" onClick={() => setActiveTab('mapa')}
-          className={`px-4 py-2 text-[12px] font-medium transition-colors ${activeTab === 'mapa' ? 'border-b-2 border-brand text-brand' : 'text-muted hover:text-foreground'}`}>
+          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'mapa' ? 'border-b-2 border-foreground text-foreground' : 'text-muted hover:text-foreground'}`}>
           Mapa y detalle
         </button>
         <button type="button" onClick={() => setActiveTab('medidores')}
-          className={`px-4 py-2 text-[12px] font-medium transition-colors ${activeTab === 'medidores' ? 'border-b-2 border-brand text-brand' : 'text-muted hover:text-foreground'}`}>
+          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'medidores' ? 'border-b-2 border-foreground text-foreground' : 'text-muted hover:text-foreground'}`}>
           Medidores {selectedRow ? `— ${selectedRow.building.name}` : ''}
         </button>
       </div>
@@ -178,7 +178,7 @@ export function ConsumoJerarquicoPage() {
         <div className="flex min-h-0 flex-1 gap-3">
           {/* Map */}
           <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Mapa geográfico</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Mapa geográfico</p>
             <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
               <MapView
                 buildings={geoBuildings}
@@ -191,8 +191,8 @@ export function ConsumoJerarquicoPage() {
 
           {/* Tree */}
           <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Árbol jerárquico</p>
-            <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-[12px]">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Árbol jerárquico</p>
+            <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-xs">
               <div className="font-semibold text-foreground">▼ Total país — Chile</div>
               <ul className="mt-1 space-y-0.5">
                 {sortedRows.map((row) => {
@@ -205,17 +205,17 @@ export function ConsumoJerarquicoPage() {
                         onClick={() => setExpandedId(isExp ? null : row.building.id)}
                         className="flex w-full items-center gap-1.5 rounded px-1 py-1 text-left transition-colors hover:bg-surface"
                       >
-                        <span className={`inline-block text-[10px] text-muted transition-transform duration-200 ${isExp ? 'rotate-90' : ''}`}>▶</span>
+                        <span className={`inline-block text-xs text-muted transition-transform duration-200 ${isExp ? 'rotate-90' : ''}`}>▶</span>
                         <span className={`inline-block size-2 shrink-0 rounded-full ${style.bg}`} />
                         <span className="truncate font-medium text-foreground">{row.building.name}</span>
-                        <span className="ml-auto text-[10px] text-muted">{formatMetric(accessor(row), currentMetric.unit)}</span>
+                        <span className="ml-auto text-xs text-muted">{formatMetric(accessor(row), currentMetric.unit)}</span>
                       </button>
                       <div className="overflow-hidden transition-all duration-300 ease-in-out" style={{ display: 'grid', gridTemplateRows: isExp ? '1fr' : '0fr' }}>
                         <div className="min-h-0">
                           {zones.length > 0 && (
                             <ul className="ml-5 mt-0.5 space-y-0.5 border-l border-border pl-2 pb-1">
                               {zones.map((z) => (
-                                <li key={z.name} className="text-[11px] text-muted">{z.name}</li>
+                                <li key={z.name} className="text-xs text-muted">{z.name}</li>
                               ))}
                             </ul>
                           )}
@@ -231,21 +231,21 @@ export function ConsumoJerarquicoPage() {
           {/* Detail panel */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
             <div className="panel px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">KPIs del mall</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">KPIs del mall</p>
               {selectedRow ? (
-                <div className="mt-2 space-y-1 text-[11px]">
-                  <p className="text-foreground">• Consumo <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-red-500' : 'text-emerald-500'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
+                <div className="mt-2 space-y-1 text-xs">
+                  <p className="text-foreground">• Consumo <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-danger' : 'text-success'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
                   <p className="text-foreground">• Intensidad <span className="font-semibold">{METRIC_ACCESSORS.intensity(selectedRow).toFixed(1)} kWh/m²</span></p>
                   <p className="text-foreground">• Costo <span className="font-semibold">{METRIC_ACCESSORS.cost(selectedRow).toFixed(1)} UF</span></p>
                 </div>
               ) : (
-                <p className="mt-2 text-[11px] text-muted">Seleccione un mall</p>
+                <p className="mt-2 text-xs text-muted">Seleccione un mall</p>
               )}
             </div>
 
             <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tendencia</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted">Tendencia</p>
                 <DropdownSelect options={GRANULARITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
                 <DropdownSelect options={COMPARE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={compareWith} onChange={setCompareWith} />
               </div>
@@ -253,23 +253,23 @@ export function ConsumoJerarquicoPage() {
                 {selectedRow ? (
                   <TrendSparkline buildingId={selectedRow.building.id} metricVal={accessor(selectedRow)} label={currentMetric.unit} granularity={granularity} compareWith={compareWith} />
                 ) : (
-                  <p className="text-[11px] text-muted">Seleccione un mall</p>
+                  <p className="text-xs text-muted">Seleccione un mall</p>
                 )}
               </div>
             </div>
 
             <div className="panel px-3 py-2.5">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Zonas</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Zonas</p>
               {zones.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {zones.map((z) => (
-                    <div key={z.name} className={`rounded px-2 py-1.5 text-center text-[10px] ${z.status === 'online' ? 'bg-emerald-100 text-emerald-700' : z.status === 'stale' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <div key={z.name} className={`rounded px-2 py-1.5 text-center text-xs ${z.status === 'online' ? 'bg-success/10 text-success' : z.status === 'stale' ? 'bg-warning/10 text-warning' : 'bg-surface text-muted'}`}>
                       {z.name}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-2 text-[11px] text-muted">Seleccione un mall</p>
+                <p className="mt-2 text-xs text-muted">Seleccione un mall</p>
               )}
             </div>
           </div>

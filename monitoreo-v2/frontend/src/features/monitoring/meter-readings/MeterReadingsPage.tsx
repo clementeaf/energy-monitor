@@ -78,30 +78,30 @@ export function MeterReadingsPage() {
           className="rounded-md border border-border px-2.5 py-1 text-xs text-muted hover:bg-surface">
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">Edificios</Link>
+        <Link to="/buildings" className="text-sm text-muted hover:text-foreground">Edificios</Link>
         <Sep />
         {building && (
           <>
-            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-muted hover:text-brand">
+            <Link to={`/meters?buildingId=${building.id}`} className="text-sm text-muted hover:text-foreground">
               {building.name}
             </Link>
             <Sep />
           </>
         )}
-        <Link to={`/monitoring/meter/${meterId}`} className="text-[13px] text-muted hover:text-brand">
+        <Link to={`/monitoring/meter/${meterId}`} className="text-sm text-muted hover:text-foreground">
           {meter?.name ?? '—'} ({meter?.code ?? meterId})
         </Link>
         <Sep />
-        <span className="text-[13px] font-semibold text-foreground">{monthLabel}</span>
-        <span className="text-[11px] text-muted">({readings.length} lecturas)</span>
+        <span className="text-sm font-semibold text-foreground">{monthLabel}</span>
+        <span className="text-xs text-muted">({readings.length} lecturas)</span>
         {building?.timezone && (
-          <span className="text-[11px] text-subtle" title="Zona horaria del edificio">TZ: {building.timezone}</span>
+          <span className="text-xs text-subtle" title="Zona horaria del edificio">TZ: {building.timezone}</span>
         )}
         {latestReading && (
           <ReadingQualityBadge quality={latestReading.quality} source={latestReading.source} />
         )}
         {latestReading?.timestamp_local && (
-          <span className="text-[11px] text-subtle">
+          <span className="text-xs text-subtle">
             Ultima: {latestReading.timestamp_local}
             {latestReading.timezone ? ` (${latestReading.timezone})` : ''}
           </span>
@@ -112,11 +112,11 @@ export function MeterReadingsPage() {
       {readings.length > 0 && (
         <div className="flex shrink-0 gap-1 border-b border-border">
           <button type="button" onClick={() => setActiveTab('grafico')}
-            className={`px-4 py-2 text-[12px] font-medium transition-colors ${activeTab === 'grafico' ? 'border-b-2 border-brand text-brand' : 'text-muted hover:text-foreground'}`}>
+            className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'grafico' ? 'border-b-2 border-foreground text-foreground' : 'text-muted hover:text-foreground'}`}>
             Gráfico
           </button>
           <button type="button" onClick={() => setActiveTab('tabla')}
-            className={`px-4 py-2 text-[12px] font-medium transition-colors ${activeTab === 'tabla' ? 'border-b-2 border-brand text-brand' : 'text-muted hover:text-foreground'}`}>
+            className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'tabla' ? 'border-b-2 border-foreground text-foreground' : 'text-muted hover:text-foreground'}`}>
             Resumen diario
           </button>
         </div>
@@ -134,5 +134,5 @@ export function MeterReadingsPage() {
 }
 
 function Sep() {
-  return <span className="text-[11px] text-subtle">/</span>;
+  return <span className="text-xs text-subtle">/</span>;
 }

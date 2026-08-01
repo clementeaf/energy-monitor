@@ -43,9 +43,9 @@ function deriveSemaphore(realPct: number): ScorecardRow['semaphore'] {
 }
 
 const SEMAPHORE_DOT: Record<string, string> = {
-  green: 'bg-emerald-500',
-  yellow: 'bg-amber-500',
-  red: 'bg-red-500',
+  green: 'bg-success/100',
+  yellow: 'bg-warning',
+  red: 'bg-danger',
 };
 
 function buildScorecard(
@@ -276,7 +276,7 @@ export function CalidadDatosPage() {
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">6.1 Calidad de Datos</h1>
-        <p className="text-[12px] text-muted">Scorecard de calidad por mall — tendencia de lecturas reales y detalle de medidores con baja cobertura</p>
+        <p className="text-xs text-muted">Scorecard de calidad por mall — tendencia de lecturas reales y detalle de medidores con baja cobertura</p>
       </div>
 
       {/* Filtros */}
@@ -306,7 +306,7 @@ export function CalidadDatosPage() {
         <button
           type="button"
           onClick={exportCsv}
-          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted hover:bg-surface"
+          className="rounded-md border border-border px-2 py-1 text-xs text-muted hover:bg-surface"
         >
           Exportar CSV
         </button>
@@ -315,13 +315,13 @@ export function CalidadDatosPage() {
       {/* Row 1 — Scorecard full-width */}
       <div className="panel flex flex-col overflow-hidden">
         <div className="shrink-0 px-4 pt-3 pb-1">
-          <h3 className="text-[13px] font-medium text-foreground">Scorecard de calidad por mall</h3>
-          <p className="text-[11px] text-muted">Solo lectura · semáforo por fila · exportable a CSV</p>
+          <h3 className="text-sm font-medium text-foreground">Scorecard de calidad por mall</h3>
+          <p className="text-xs text-muted">Solo lectura · semáforo por fila · exportable a CSV</p>
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-3 py-2">Mall</th>
                 <th className="px-3 py-2 text-right">Período</th>
                 <th className="px-3 py-2 text-right">Lecturas esperadas</th>
@@ -363,7 +363,7 @@ export function CalidadDatosPage() {
                   <td className="px-3 py-2 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
                   <td className="px-3 py-2 text-right text-muted">{row.missingCount.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right text-muted">{row.missingPct.toFixed(1)}%</td>
-                  <td className={`px-3 py-2 text-center ${row.trend === '↓' ? 'text-red-600' : 'text-muted'}`}>{row.trend}</td>
+                  <td className={`px-3 py-2 text-center ${row.trend === '↓' ? 'text-danger' : 'text-muted'}`}>{row.trend}</td>
                 </tr>
               ))}
               {rows.length === 0 && (
@@ -380,8 +380,8 @@ export function CalidadDatosPage() {
         <div className="relative flex-1">
           <div className="panel absolute inset-0 flex flex-col p-4">
             <div className="shrink-0">
-              <h3 className="text-[13px] font-medium text-foreground">Evolución de calidad — % lecturas reales</h3>
-              <p className="text-[11px] text-muted">
+              <h3 className="text-sm font-medium text-foreground">Evolución de calidad — % lecturas reales</h3>
+              <p className="text-xs text-muted">
                 Por mall seleccionado · últimos 12 meses o rango configurado
                 {selectedMall && (
                   <span className="ml-1">
@@ -444,18 +444,18 @@ export function CalidadDatosPage() {
         <div className="relative flex-1">
           <div className="panel absolute inset-0 flex flex-col p-4">
             <div className="shrink-0">
-              <h3 className="text-[13px] font-medium text-foreground">Medidores con baja calidad</h3>
-              <p className="text-[11px] text-muted">Al seleccionar un mall · % reales &lt; umbral</p>
+              <h3 className="text-sm font-medium text-foreground">Medidores con baja calidad</h3>
+              <p className="text-xs text-muted">Al seleccionar un mall · % reales &lt; umbral</p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto py-2">
               {!selectedMall ? (
-                <p className="py-8 text-center text-[12px] text-muted">Seleccione un mall en la tabla para ver detalle.</p>
+                <p className="py-8 text-center text-xs text-muted">Seleccione un mall en la tabla para ver detalle.</p>
               ) : lowQualityMeters.length === 0 ? (
-                <p className="py-8 text-center text-[12px] text-muted">Todos los medidores sobre {LOW_QUALITY_THRESHOLD}%.</p>
+                <p className="py-8 text-center text-xs text-muted">Todos los medidores sobre {LOW_QUALITY_THRESHOLD}%.</p>
               ) : (
-                <table className="w-full text-[12px]">
+                <table className="w-full text-xs">
                   <thead className="sticky top-0 bg-background">
-                    <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                       <th className="px-2 py-1">Medidor</th>
                       <th className="px-2 py-1 text-right">% Reales</th>
                       <th className="px-2 py-1">Causa más frecuente</th>
@@ -471,12 +471,12 @@ export function CalidadDatosPage() {
                         onClick={() => navigate(`/monitoring/meter/${m.id}`)}
                       >
                         <td className="px-2 py-1.5 text-foreground">{m.name}</td>
-                        <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-red-600' : 'text-amber-600'}`}>
+                        <td className={`px-2 py-1.5 text-right font-medium ${m.realPct < 60 ? 'text-danger' : 'text-warning'}`}>
                           {m.realPct.toFixed(1)}%
                         </td>
-                        <td className="px-2 py-1.5 text-[11px] text-muted">{m.causa}</td>
+                        <td className="px-2 py-1.5 text-xs text-muted">{m.causa}</td>
                         <td className="px-2 py-1.5">
-                          <span className={`inline-block size-2 rounded-full ${m.realPct < 60 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                          <span className={`inline-block size-2 rounded-full ${m.realPct < 60 ? 'bg-danger' : 'bg-warning'}`} />
                         </td>
                       </tr>
                     ))}

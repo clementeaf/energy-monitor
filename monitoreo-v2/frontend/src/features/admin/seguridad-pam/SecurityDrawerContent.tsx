@@ -4,7 +4,7 @@
 export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }: Readonly<{ type: string; data: any; auditLogs: any[]; pamUsageHistory: any[] }>) {
   if (type === 'breach') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Descripción" value={data.description} />
         <Row label="Estado" value={data.status} />
         <Row label="Fecha" value={new Date(data.createdAt).toLocaleString('es-CL')} />
@@ -15,7 +15,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   if (type === 'audit') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Acción" value={data.action} />
         <Row label="Recurso" value={data.resourceType} />
         <Row label="ID recurso" value={data.resourceId ?? '—'} mono />
@@ -28,7 +28,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   if (type === 'tls') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Servicio" value={data.service} />
         <Row label="Días restantes" value={`${data.days}d`} />
         <Row label="Emisor" value={data.issuer} />
@@ -39,7 +39,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   if (type === 'pamUsage') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Usuario" value={data.user} />
         <Row label="Recurso" value={data.resource} />
         <Row label="Acción" value={data.action} />
@@ -50,7 +50,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   if (type === 'incident') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Descripción" value={data.description} />
         <Row label="Tipo" value={data.type} />
         <Row label="Severidad" value={data.severity} />
@@ -63,7 +63,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   if (type === 'pam') {
     return (
-      <dl className="space-y-3 text-[13px]">
+      <dl className="space-y-3 text-sm">
         <Row label="Nombre" value={data.displayName} />
         <Row label="Email" value={data.email} />
         <Row label="Rol" value={data.role?.name ?? data.role?.slug ?? '—'} />
@@ -79,7 +79,7 @@ export function SecurityDrawerContent({ type, data, auditLogs, pamUsageHistory }
   }
   // suppress unused var warnings
   void auditLogs; void pamUsageHistory;
-  return <p className="text-[12px] text-muted">Sin detalle disponible.</p>;
+  return <p className="text-xs text-muted">Sin detalle disponible.</p>;
 }
 
 export function drawerTitle(type?: string): string {
@@ -97,8 +97,8 @@ export function drawerTitle(type?: string): string {
 function Row({ label, value, mono }: Readonly<{ label: string; value: string; mono?: boolean }>) {
   return (
     <div>
-      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">{label}</dt>
-      <dd className={`mt-0.5 text-foreground ${mono ? 'font-mono text-[12px]' : ''}`}>{value}</dd>
+      <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+      <dd className={`mt-0.5 text-foreground ${mono ? 'font-mono text-xs' : ''}`}>{value}</dd>
     </div>
   );
 }

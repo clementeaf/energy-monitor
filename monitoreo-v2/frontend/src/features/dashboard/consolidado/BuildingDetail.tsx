@@ -54,12 +54,12 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
     <>
       {/* Breadcrumb + header */}
       <div className="panel px-3 py-2.5">
-        <div className="mb-1.5 flex flex-wrap items-center gap-1 text-[11px] text-muted">
-          <button type="button" onClick={() => { onSelectFloor(null); onBack(); }} className="text-brand hover:underline">{countryLabel}</button>
+        <div className="mb-1.5 flex flex-wrap items-center gap-1 text-xs text-muted">
+          <button type="button" onClick={() => { onSelectFloor(null); onBack(); }} className="text-foreground hover:underline">{countryLabel}</button>
           <span>/</span>
           {selectedFloorId ? (
             <>
-              <button type="button" onClick={() => onSelectFloor(null)} className="text-brand hover:underline">{building.name}</button>
+              <button type="button" onClick={() => onSelectFloor(null)} className="text-foreground hover:underline">{building.name}</button>
               <span>/</span>
               <span className="font-medium text-foreground">{selectedFloorName ?? 'Piso'}</span>
             </>
@@ -71,11 +71,11 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
           <span className={`inline-block size-3 rounded-full ${style.bg}`} />
           <h3 className="text-[15px] font-semibold text-foreground">{building.name}</h3>
         </div>
-        <p className="mt-0.5 text-[11px] text-muted">
+        <p className="mt-0.5 text-xs text-muted">
           {building.address ?? 'Sin dirección'} · {style.label}
         </p>
         {/* Gap 1: Hora local del mall */}
-        <p className="mt-1 text-[10px] text-muted">
+        <p className="mt-1 text-xs text-muted">
           Hora local: {new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </p>
       </div>
@@ -83,7 +83,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
       {/* Metric cards — Gap 2: mini sparkline in Carga total */}
       <div className="flex flex-wrap gap-2">
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Carga total</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Carga total</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
           <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
             {PLACEHOLDER_24H.map((v, i) => (
@@ -92,12 +92,12 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
           </div>
         </div>
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—'}</p>
         </div>
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En alarma</p>
-          <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-red-600' : 'text-foreground'}`}>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">En alarma</p>
+          <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-danger' : 'text-foreground'}`}>
             {activeAlerts.length > 0 && <span className="mr-1">⚠</span>}
             {activeAlerts.length}
           </p>
@@ -107,7 +107,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
       {/* Floor tabs (Nivel 3 selector) */}
       {floors.length > 0 && (
         <div className="panel px-3 py-2.5" data-testid="floor-tabs">
-          <h4 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">Pisos</h4>
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Pisos</h4>
           <div className="flex flex-wrap gap-1.5">
             {floors.map((floor) => {
               const isActive = selectedFloorId === floor.id;
@@ -117,7 +117,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
                   key={floor.id}
                   type="button"
                   onClick={() => onSelectFloor(isActive ? null : floor.id)}
-                  className={`relative rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                  className={`relative rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
                       ? 'bg-brand text-brand-fg'
                       : 'bg-surface text-foreground hover:bg-surface/80'
@@ -125,7 +125,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
                 >
                   {floor.name}
                   {hasAlarm && !isActive && (
-                    <span className="absolute -right-0.5 -top-0.5 inline-block size-2 rounded-full bg-red-500" />
+                    <span className="absolute -right-0.5 -top-0.5 inline-block size-2 rounded-full bg-danger" />
                   )}
                 </button>
               );
@@ -153,8 +153,8 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
             {gauges.map((g) => (
               <div key={g.label} className="panel flex flex-1 min-w-[80px] flex-col items-center px-2 py-2">
                 <ArcGauge value={g.value ?? 0} min={g.min} max={g.max} color={g.color} size={64} />
-                <p className="mt-1 text-[12px] font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(g.unit ? 1 : 2)}${g.unit ? ` ${g.unit}` : ''}` : '—'}</p>
-                <p className="text-[9px] text-muted">{g.label}</p>
+                <p className="mt-1 text-xs font-semibold text-foreground">{g.value != null ? `${g.value.toFixed(g.unit ? 1 : 2)}${g.unit ? ` ${g.unit}` : ''}` : '—'}</p>
+                <p className="text-xs text-muted">{g.label}</p>
               </div>
             ))}
           </div>

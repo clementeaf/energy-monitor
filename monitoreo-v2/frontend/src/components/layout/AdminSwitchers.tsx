@@ -8,20 +8,45 @@ import { useTenantsAdminQuery } from '../../hooks/queries/useTenantsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { applyTenantTheme } from '../../lib/tenant-theme';
-import { PROFILE_NAV, type ProfileNavEntry } from '../../lib/profile-nav';
+import { getVisibleNav, findActiveEntry } from '../../lib/unified-nav';
 import { ROLE_TO_PROFILE, PROFILE_LANDING } from '../../lib/profiles';
 import type { RoleSlug, TenantTheme } from '../../types/auth';
 import type { Tenant } from '../../types/tenant';
 
 const VIEW_AS_ROLES: RoleSlug[] = ['super_admin', 'corp_admin', 'site_admin', 'operator', 'auditor'];
 
-function findActiveIndex(entries: ProfileNavEntry[], pathname: string): number {
-  return entries.findIndex((e) => {
-    const matchesDashboard = e.basePath === '/dashboard' && (pathname === '/' || pathname.startsWith('/dashboard'));
-    const matchesBase = pathname.startsWith(e.basePath);
-    const matchesExtra = e.extraPaths?.some((p) => pathname.startsWith(p)) ?? false;
-    return matchesDashboard || matchesBase || matchesExtra;
-  });
+/** Permission sets per role — used only for "view as" route accessibility check */
+const ROLE_PERM_SETS: Record<string, Set<string>> = {
+  super_admin: new Set(['*']),
+  corp_admin: new Set([
+    'dashboard_executive:read', 'dashboard_technical:read',
+    'admin_buildings:read', 'admin_meters:read',
+    'alerts:read', 'billing:read', 'reports:read', 'reports:view_own',
+    'integrations:read',
+  ]),
+  site_admin: new Set([
+    'dashboard_executive:read', 'dashboard_technical:read',
+    'admin_buildings:read', 'admin_meters:read',
+    'alerts:read', 'alerts:update', 'billing:read', 'billing:update',
+    'admin_users:read', 'admin_tenants_units:read', 'admin_hierarchy:read',
+    'reports:read', 'data_quality:read', 'readings:read',
+    'diagnostics:read', 'monitoring_faults:read',
+  ]),
+  operator: new Set([
+    'dashboard_technical:read', 'readings:read',
+    'diagnostics:read', 'admin_meters:read',
+    'alerts:read', 'alerts:update', 'monitoring_faults:read',
+  ]),
+  auditor: new Set([
+    'dashboard_executive:read', 'dashboard_technical:read',
+    'audit:read', 'reports:read',
+    'admin_buildings:read', 'admin_meters:read',
+  ]),
+};
+
+function makeHasAnyForRole(role: string): (...perms: string[]) => boolean {
+  const set = ROLE_PERM_SETS[role] ?? new Set<string>();
+  return (...perms) => set.has('*') || perms.some((p) => set.has(p));
 }
 
 export function AdminSwitchers() {
@@ -41,16 +66,19 @@ export function AdminSwitchers() {
         onChange={(val) => {
           const role = val === 'super_admin' ? null : val;
           setViewAsRole(role);
-          const newProfile = role ? ROLE_TO_PROFILE[role] ?? 'operacional' : 'super_admin';
-          const newEntries = PROFILE_NAV[newProfile];
-          const currentAccessible = findActiveIndex(newEntries, location.pathname) >= 0;
-          if (!currentAccessible) navigate(PROFILE_LANDING[newProfile] ?? '/');
+          const effectiveRole = role ?? 'super_admin';
+          const visibleNav = getVisibleNav(makeHasAnyForRole(effectiveRole), !!selectedTenantId);
+          const accessible = findActiveEntry(visibleNav, location.pathname) !== null;
+          if (!accessible) {
+            const profile = role ? ROLE_TO_PROFILE[role] ?? 'operacional' : 'super_admin';
+            navigate(PROFILE_LANDING[profile] ?? '/');
+          }
         }}
         isImpersonating={isImpersonating}
         onReset={() => {
           setViewAsRole(null);
-          const entries = PROFILE_NAV.super_admin;
-          const accessible = findActiveIndex(entries, location.pathname) >= 0;
+          const visibleNav = getVisibleNav(makeHasAnyForRole('super_admin'), !!selectedTenantId);
+          const accessible = findActiveEntry(visibleNav, location.pathname) !== null;
           if (!accessible) navigate(PROFILE_LANDING.super_admin);
         }}
       />
@@ -126,13 +154,13 @@ function HeaderDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+        className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
           highlighted
             ? 'border-danger bg-danger/10 text-danger'
             : 'border-border bg-surface text-foreground hover:bg-raised'
         }`}
       >
-        <span className="max-w-[140px] truncate">{label}</span>
+        <span className="whitespace-nowrap">{label}</span>
         <svg
           className={`h-3 w-3 shrink-0 opacity-50 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"
@@ -184,8 +212,8 @@ function RoleSwitcher({
               <button
                 type="button"
                 onClick={() => { onChange(slug); setOpen(false); }}
-                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                  value === slug ? 'font-semibold text-brand' : 'text-foreground'
+                className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                  value === slug ? 'font-semibold text-foreground' : 'text-foreground'
                 }`}
               >
                 {VIEW_AS_LABELS[slug]}
@@ -198,7 +226,7 @@ function RoleSwitcher({
         <button
           type="button"
           onClick={onReset}
-          className="rounded-md bg-danger px-2 py-1 text-[10px] font-medium text-brand-fg hover:bg-danger/90"
+          className="rounded-md bg-danger px-2 py-1 text-xs font-medium text-brand-fg hover:bg-danger/90"
         >
           Reset
         </button>
@@ -252,7 +280,7 @@ function TenantSwitcher({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar empresa..."
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none transition-colors focus:border-foreground"
           />
         </div>
         <ul className="max-h-48 overflow-y-auto py-1">
@@ -260,8 +288,8 @@ function TenantSwitcher({
             <button
               type="button"
               onClick={() => { onChange(null, null); setOpen(false); }}
-              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                !selectedId ? 'font-semibold text-brand' : 'text-foreground'
+              className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                !selectedId ? 'font-semibold text-foreground' : 'text-foreground'
               }`}
             >
               Todas las empresas
@@ -283,20 +311,20 @@ function TenantSwitcher({
                   });
                   setOpen(false);
                 }}
-                className={`flex w-full items-center justify-between px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                  selectedId === t.id ? 'font-semibold text-brand' : 'text-foreground'
+                className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                  selectedId === t.id ? 'font-semibold text-foreground' : 'text-foreground'
                 }`}
               >
                 <span className="truncate">{t.name}</span>
                 {!t.isActive && (
-                  <span className="ml-1 shrink-0 rounded bg-surface px-1 py-0.5 text-[9px] text-muted">Inactiva</span>
+                  <span className="ml-1 shrink-0 rounded bg-surface px-1 py-0.5 text-xs text-muted">Inactiva</span>
                 )}
               </button>
             </li>
           ))}
-          {tenantsQuery.isLoading && <li className="px-3 py-2 text-[11px] text-subtle">Cargando...</li>}
+          {tenantsQuery.isLoading && <li className="px-3 py-2 text-xs text-subtle">Cargando...</li>}
           {filtered.length === 0 && !tenantsQuery.isLoading && (
-            <li className="px-3 py-2 text-[11px] text-subtle">Sin resultados</li>
+            <li className="px-3 py-2 text-xs text-subtle">Sin resultados</li>
           )}
         </ul>
       </div>
@@ -347,7 +375,7 @@ function BuildingSwitcher({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar edificio..."
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none transition-colors focus:border-foreground"
           />
         </div>
         <ul className="max-h-48 overflow-y-auto py-1">
@@ -355,8 +383,8 @@ function BuildingSwitcher({
             <button
               type="button"
               onClick={() => { onChange(null); setOpen(false); }}
-              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                !selectedId ? 'font-semibold text-brand' : 'text-foreground'
+              className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                !selectedId ? 'font-semibold text-foreground' : 'text-foreground'
               }`}
             >
               Todos los edificios
@@ -367,8 +395,8 @@ function BuildingSwitcher({
               <button
                 type="button"
                 onClick={() => { onChange(b.id); setOpen(false); }}
-                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                  selectedId === b.id ? 'font-semibold text-brand' : 'text-foreground'
+                className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                  selectedId === b.id ? 'font-semibold text-foreground' : 'text-foreground'
                 }`}
               >
                 {b.name}
@@ -376,7 +404,7 @@ function BuildingSwitcher({
             </li>
           ))}
           {filtered.length === 0 && (
-            <li className="px-3 py-2 text-[11px] text-subtle">Sin edificios</li>
+            <li className="px-3 py-2 text-xs text-subtle">Sin edificios</li>
           )}
         </ul>
       </div>
@@ -435,7 +463,7 @@ function OperatorSwitcher({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar tienda..."
-            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-[11px] text-foreground outline-none transition-colors focus:border-brand"
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none transition-colors focus:border-foreground"
           />
         </div>
         <ul className="max-h-48 overflow-y-auto py-1">
@@ -443,8 +471,8 @@ function OperatorSwitcher({
             <button
               type="button"
               onClick={() => { onChange(null); setOpen(false); }}
-              className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                !selectedName ? 'font-semibold text-brand' : 'text-foreground'
+              className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                !selectedName ? 'font-semibold text-foreground' : 'text-foreground'
               }`}
             >
               Todas las tiendas
@@ -455,15 +483,15 @@ function OperatorSwitcher({
               <button
                 type="button"
                 onClick={() => { onChange(name); setOpen(false); }}
-                className={`flex w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-surface ${
-                  selectedName === name ? 'font-semibold text-brand' : 'text-foreground'
+                className={`flex w-full px-3 py-2 text-left text-xs transition-colors hover:bg-surface ${
+                  selectedName === name ? 'font-semibold text-foreground' : 'text-foreground'
                 }`}
               >
                 {name}
               </button>
             </li>
           ))}
-          {filtered.length === 0 && <li className="px-3 py-2 text-[11px] text-subtle">Sin resultados</li>}
+          {filtered.length === 0 && <li className="px-3 py-2 text-xs text-subtle">Sin resultados</li>}
         </ul>
       </div>
     </HeaderDropdown>

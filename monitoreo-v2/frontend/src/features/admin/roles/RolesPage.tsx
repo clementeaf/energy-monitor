@@ -231,7 +231,7 @@ export function RolesPage() {
                   {role.description ?? '—'}
                 </Td>
                 <Td>
-                  <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  <span className="inline-flex rounded-full bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
                     {role.permissions.length}
                   </span>
                 </Td>
@@ -378,7 +378,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <label className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </label>

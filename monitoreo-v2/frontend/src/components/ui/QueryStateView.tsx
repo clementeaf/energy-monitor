@@ -72,7 +72,7 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
       {isFetching ? (
         <div
           className={`pointer-events-none absolute right-0 top-0 z-10 flex items-center gap-2 rounded-md bg-background/90 shadow-sm ring-1 ring-border ${
-            variant === 'widget' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs text-muted'
+            variant === 'widget' ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-xs text-muted'
           }`}
           aria-live="polite"
         >
@@ -100,7 +100,7 @@ function QueryLoadingPanel(props: { variant: QueryStateVariant }): ReactElement 
       }`}
     >
       <div
-        className={`animate-spin rounded-full border-2 border-gray-200 border-t-gray-700 ${
+        className={`animate-spin rounded-full border-2 border-border border-t-gray-700 ${
           isWidget ? 'size-8' : 'size-10'
         }`}
         role="status"
@@ -120,12 +120,12 @@ function QueryErrorPanel(props: {
   const isWidget = variant === 'widget';
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50/80 text-center ${
+      className={`flex flex-col items-center justify-center rounded-lg border border-danger/30 bg-danger/10/80 text-center ${
         isWidget ? 'min-h-[8rem] gap-2 p-4' : 'min-h-[12rem] gap-4 p-8'
       }`}
       role="alert"
     >
-      <p className={isWidget ? 'max-w-full text-xs text-red-900' : 'max-w-md text-sm text-red-900'}>
+      <p className={isWidget ? 'max-w-full text-xs text-danger' : 'max-w-md text-sm text-danger'}>
         {message}
       </p>
       <button
@@ -133,8 +133,8 @@ function QueryErrorPanel(props: {
         onClick={onRetry}
         className={
           isWidget
-            ? 'rounded border border-red-900 px-2 py-1 text-xs font-medium text-red-950 hover:bg-red-100'
-            : 'rounded-md bg-red-900 px-4 py-2 text-sm font-medium text-white hover:bg-red-800'
+            ? 'rounded border border-danger px-2 py-1 text-xs font-medium text-danger hover:bg-danger/10'
+            : 'rounded-md bg-danger px-4 py-2 text-sm font-medium text-background hover:bg-danger/80'
         }
       >
         Reintentar
@@ -161,7 +161,7 @@ function QueryEmptyPanel(props: {
       </p>
       <p
         className={
-          isWidget ? 'line-clamp-3 max-w-full text-[11px] text-muted' : 'max-w-md text-sm text-muted'
+          isWidget ? 'line-clamp-3 max-w-full text-xs text-muted' : 'max-w-md text-sm text-muted'
         }
       >
         {description}

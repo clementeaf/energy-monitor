@@ -47,7 +47,7 @@ export function PrivacyPolicyModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-foreground/50 p-4">
       <div className="w-full max-w-2xl rounded-lg bg-background shadow-2xl">
         <div className="border-b border-border px-6 py-4">
           <h2 className="text-lg font-semibold text-foreground">Política de Privacidad</h2>
@@ -135,7 +135,7 @@ export function PrivacyPolicyModal() {
         <div className="flex items-center justify-between border-t border-border px-6 py-4">
           <div>
             {acceptError && (
-              <p className="mb-2 text-xs text-red-600">{acceptError}</p>
+              <p className="mb-2 text-xs text-danger">{acceptError}</p>
             )}
             <p className="text-xs text-subtle">
               {scrolledToBottom ? 'Puedes aceptar la política' : 'Lee la política completa para continuar'}
@@ -144,7 +144,7 @@ export function PrivacyPolicyModal() {
               href="/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-brand hover:opacity-80"
+              className="text-xs text-foreground hover:opacity-80"
             >
               Ver política completa en nueva pestaña
             </a>

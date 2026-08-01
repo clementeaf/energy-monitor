@@ -88,7 +88,7 @@ export function ModbusMapPage() {
               key={b.id}
               type="button"
               onClick={() => { navigate(`/monitoring/modbus-map/${b.id}`); }}
-              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
+              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-foreground"
             >
               <p className="font-medium text-foreground">{b.name}</p>
               <p className="text-xs text-muted">{b.code}</p>
@@ -185,7 +185,7 @@ export function ModbusMapPage() {
       </div>
 
       <p className="text-xs text-subtle">
-        <Link to={`/monitoring/drilldown/${siteId}`} className="text-brand hover:underline">
+        <Link to={`/monitoring/drilldown/${siteId}`} className="text-foreground hover:underline">
           Ver jerarquia electrica del sitio
         </Link>
       </p>
@@ -196,14 +196,14 @@ export function ModbusMapPage() {
 function StatusPill({ status, crcError }: Readonly<{ status: 'online' | 'offline'; crcError: boolean }>) {
   if (crcError) {
     return (
-      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+      <span className="inline-flex rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
         Error / CRC
       </span>
     );
   }
   if (status === 'online') {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+      <span className="inline-flex rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
         Online
       </span>
     );
@@ -223,16 +223,16 @@ function ConcentratorCard({ c }: Readonly<{ c: Concentrator }>) {
         ? 'error'
         : 'offline';
   return (
-    <div className="rounded-md border border-gray-100 bg-surface/80 p-3">
+    <div className="rounded-md border border-border bg-surface/80 p-3">
       <p className="font-medium text-foreground">{c.name}</p>
       <p className="text-xs text-muted">{c.model}</p>
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
         <span
           className={`rounded-full px-2 py-0.5 font-medium ${
             st === 'online'
-              ? 'bg-green-100 text-green-800'
+              ? 'bg-success/10 text-success'
               : st === 'error'
-                ? 'bg-red-100 text-red-800'
+                ? 'bg-danger/10 text-danger'
                 : 'bg-raised text-foreground'
           }`}
         >

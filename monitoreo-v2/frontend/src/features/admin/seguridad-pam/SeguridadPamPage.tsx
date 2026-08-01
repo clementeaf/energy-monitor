@@ -97,7 +97,7 @@ export function SeguridadPamPage() {
       {/* Header */}
       <div>
         <h1 className="text-[15px] font-semibold text-foreground">7.3 Seguridad y PAM</h1>
-        <p className="text-[11px] text-muted">Postura de seguridad de la plataforma — vulnerabilidades, accesos privilegiados, cumplimiento y respuesta a incidentes</p>
+        <p className="text-xs text-muted">Postura de seguridad de la plataforma — vulnerabilidades, accesos privilegiados, cumplimiento y respuesta a incidentes</p>
       </div>
 
       {/* Tabs */}
@@ -107,9 +107,9 @@ export function SeguridadPamPage() {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
               activeTab === tab.id
-                ? 'border-b-2 border-brand text-brand'
+                ? 'border-b-2 border-foreground text-foreground'
                 : 'text-muted hover:text-foreground'
             }`}
           >

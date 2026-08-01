@@ -13,16 +13,16 @@ import { useOperatorFilter } from '../../hooks/useOperatorFilter';
 import type { Alert, AlertStatus, AlertSeverity, AlertQueryParams } from '../../types/alert';
 
 const SEVERITY_COLORS: Record<AlertSeverity, string> = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-blue-100 text-blue-700',
+  critical: 'bg-danger/10 text-danger',
+  high: 'bg-warning/10 text-warning',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-info/10 text-info',
 };
 
 const STATUS_COLORS: Record<AlertStatus, string> = {
-  active: 'bg-red-100 text-red-700',
-  acknowledged: 'bg-yellow-100 text-yellow-700',
-  resolved: 'bg-green-100 text-green-700',
+  active: 'bg-danger/10 text-danger',
+  acknowledged: 'bg-warning/10 text-warning',
+  resolved: 'bg-success/10 text-success',
 };
 
 const STATUS_LABELS: Record<AlertStatus, string> = {
@@ -186,7 +186,7 @@ export function AlertsPage() {
                 onClick={() => { if (a.meterId) navigate('/monitoring/meter/' + a.meterId); }}
                 className={`cursor-pointer transition-colors duration-500 ${
                   a.id === highlightId
-                    ? 'bg-brand-muted ring-1 ring-inset ring-brand/30'
+                    ? 'bg-brand-muted ring-1 ring-inset ring-foreground/30'
                     : 'hover:bg-surface'
                 }`}
               >
@@ -203,7 +203,7 @@ export function AlertsPage() {
                       <a
                         href={`/buildings/${a.buildingId}`}
                         onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/buildings/${a.buildingId}`); }}
-                        className="text-xs text-brand hover:underline"
+                        className="text-xs text-foreground hover:underline"
                       >
                         edificio
                       </a>
@@ -224,7 +224,7 @@ export function AlertsPage() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); acknowledgeMutation.mutate(a.id); }}
                         disabled={acknowledgeMutation.isPending}
-                        className="rounded px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-50"
+                        className="rounded px-2 py-1 text-xs font-medium text-warning hover:bg-warning/10"
                       >
                         Reconocer
                       </button>
@@ -233,7 +233,7 @@ export function AlertsPage() {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setResolvingAlert(a); setResolutionNotes(''); }}
-                        className="rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+                        className="rounded px-2 py-1 text-xs font-medium text-success hover:bg-success/10"
                       >
                         Resolver
                       </button>
@@ -266,7 +266,7 @@ export function AlertsPage() {
               type="button"
               onClick={handleResolve}
               disabled={resolveMutation.isPending}
-              className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-md bg-success px-4 py-2 text-sm font-medium text-background hover:bg-success/90 disabled:opacity-50"
             >
               {resolveMutation.isPending ? 'Resolviendo...' : 'Confirmar resolucion'}
             </button>

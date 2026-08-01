@@ -153,7 +153,7 @@ export function MonitoreoVivoPage() {
       <PageHeader title="Monitoreo en Vivo" description="Estado operativo del parque de medidores" />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
@@ -164,24 +164,24 @@ export function MonitoreoVivoPage() {
       {/* KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total medidores</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total medidores</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">En línea</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600">{onlinePct}%</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">En línea</p>
+          <p className="mt-1 text-2xl font-bold text-success">{onlinePct}%</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Offline</p>
-          <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-red-600' : 'text-foreground'}`}>{offlineCount}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Offline</p>
+          <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-danger' : 'text-foreground'}`}>{offlineCount}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Estancado &gt;4h</p>
-          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Estancado &gt;4h</p>
+          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
-          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-amber-600' : 'text-foreground'}`}>{staleCount}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
+          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
         </div>
       </div>
 
@@ -193,7 +193,7 @@ export function MonitoreoVivoPage() {
           { key: 'eventos' as const, label: 'Eventos' },
         ]).map((tab) => (
           <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 text-[12px] font-medium transition-colors ${activeTab === tab.key ? 'border-b-2 border-brand text-brand' : 'text-muted hover:text-foreground'}`}>
+            className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === tab.key ? 'border-b-2 border-foreground text-foreground' : 'text-muted hover:text-foreground'}`}>
             {tab.label}
           </button>
         ))}

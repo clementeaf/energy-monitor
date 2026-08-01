@@ -10,9 +10,9 @@ import type { LatestReading } from '../../../types/reading';
 type ReadingType = 'real' | 'estimado' | 'cnr' | 'backfill';
 
 const TYPE_BADGE: Record<ReadingType, string> = {
-  real: 'bg-emerald-100 text-emerald-700',
-  estimado: 'bg-blue-100 text-blue-700',
-  cnr: 'bg-amber-100 text-amber-700',
+  real: 'bg-success/10 text-success',
+  estimado: 'bg-info/10 text-info',
+  cnr: 'bg-warning/10 text-warning',
   backfill: 'bg-purple-100 text-purple-700',
 };
 
@@ -68,7 +68,7 @@ export function TrazabilidadPage() {
       {/* Title */}
       <div>
         <h1 className="text-[18px] font-semibold text-foreground">6.4 Trazabilidad</h1>
-        <p className="mt-0.5 text-[12px] text-muted">
+        <p className="mt-0.5 text-xs text-muted">
           Cadena de origen del valor mostrado en la plataforma — auditoría de transformaciones aplicadas
         </p>
       </div>
@@ -76,7 +76,7 @@ export function TrazabilidadPage() {
       {/* Filter banner */}
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface px-4 py-3">
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Medidor</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Medidor</label>
           <DropdownSelect
             options={[{ value: '', label: 'Seleccionar medidor' }, ...meterOptions]}
             value={selectedMeterId}
@@ -84,12 +84,12 @@ export function TrazabilidadPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
           <input
             type="datetime-local"
             value={selectedTimestamp}
             onChange={(e) => setSelectedTimestamp(e.target.value)}
-            className="rounded-md border border-border bg-background px-3 py-2 text-[12px] text-foreground outline-none focus:border-brand"
+            className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-foreground"
           />
         </div>
       </div>
@@ -101,20 +101,20 @@ export function TrazabilidadPage() {
       >
         <div className="mb-1 flex items-start justify-between">
           <div>
-            <h2 className="text-[13px] font-semibold text-foreground">Panel de linaje por lectura</h2>
-            <p className="text-[11px] text-muted">
+            <h2 className="text-sm font-semibold text-foreground">Panel de linaje por lectura</h2>
+            <p className="text-xs text-muted">
               Cadena de origen del valor mostrado en la plataforma · solo lectura
             </p>
           </div>
           {readingType && (
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${TYPE_BADGE[readingType]}`}>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_BADGE[readingType]}`}>
               {readingType}
             </span>
           )}
         </div>
 
         <div className="mt-3 rounded-lg border border-border bg-background px-4 py-3">
-          <p className="text-[13px] font-medium text-foreground">
+          <p className="text-sm font-medium text-foreground">
             {selectedReading
               ? `Valor mostrado: ${Number(selectedReading.energy_kwh_total).toFixed(0)} kWh · tipo: ${readingType === 'cnr' ? 'CNR (dato manual)' : readingType === 'estimado' ? 'Estimado' : (readingType as string) === 'backfill' ? 'Backfill' : 'Real (medición directa)'}`
               : 'Valor mostrado: — · selecciona un medidor para ver el linaje'}
@@ -123,7 +123,7 @@ export function TrazabilidadPage() {
 
         <ul className="mt-3 space-y-1.5">
           {DERIVATION_RULES.map((rule) => (
-            <li key={rule} className="flex items-start gap-2 text-[12px] text-foreground">
+            <li key={rule} className="flex items-start gap-2 text-xs text-foreground">
               <span className="mt-0.5 shrink-0 text-muted">•</span>
               <span>{rule}</span>
             </li>
@@ -146,7 +146,7 @@ export function TrazabilidadPage() {
           className="panel flex items-center justify-center p-8 animate-fade-in"
           style={{ animationDelay: '30ms' }}
         >
-          <p className="text-[13px] text-muted">Selecciona un medidor para ver la comparación raw vs. procesado.</p>
+          <p className="text-sm text-muted">Selecciona un medidor para ver la comparación raw vs. procesado.</p>
         </div>
       )}
     </div>
@@ -202,8 +202,8 @@ function RawVsShownRow({
     { tsUtc: readingDate.toISOString(), processed: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: typeDetail[readingType][2]?.info ?? 'Sin transformación', dashboard: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
   ];
 
-  const thClass = 'pb-2 text-left text-[12px] font-medium uppercase tracking-wider text-muted';
-  const tdClass = 'py-1.5 text-[12px]';
+  const thClass = 'pb-2 text-left text-xs font-medium uppercase tracking-wider text-muted';
+  const tdClass = 'py-1.5 text-xs';
 
   return (
     <div
@@ -213,8 +213,8 @@ function RawVsShownRow({
       {/* Left — Raw */}
       <div className="relative flex-1 panel p-4">
         <div className="mb-1">
-          <h2 className="text-[13px] font-semibold text-foreground">Valor crudo del medidor (raw)</h2>
-          <p className="text-[11px] text-muted">Lado izquierdo de la comparación · inmutable, solo lectura</p>
+          <h2 className="text-sm font-semibold text-foreground">Valor crudo del medidor (raw)</h2>
+          <p className="text-xs text-muted">Lado izquierdo de la comparación · inmutable, solo lectura</p>
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full">
@@ -229,11 +229,11 @@ function RawVsShownRow({
             <tbody className="divide-y divide-border">
               {rawRows.map((row, i) => (
                 <tr key={i}>
-                  <td className={`${tdClass} font-mono text-[11px] text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
+                  <td className={`${tdClass} font-mono text-xs text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
                   <td className={`${tdClass} font-mono text-foreground`}>{row.raw}</td>
                   <td className={`${tdClass} text-muted`}>{row.unit}</td>
                   <td className={tdClass}>
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${row.flag === 'OK' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${row.flag === 'OK' ? 'bg-success/10 text-success' : 'bg-surface text-muted'}`}>
                       {row.flag}
                     </span>
                   </td>
@@ -249,8 +249,8 @@ function RawVsShownRow({
       {/* Right — Processed */}
       <div className="relative flex-1 panel p-4">
         <div className="mb-1">
-          <h2 className="text-[13px] font-semibold text-foreground">Valor procesado &rarr; mostrado en dashboard</h2>
-          <p className="text-[11px] text-muted">Lado derecho · cada transformación identificada</p>
+          <h2 className="text-sm font-semibold text-foreground">Valor procesado &rarr; mostrado en dashboard</h2>
+          <p className="text-xs text-muted">Lado derecho · cada transformación identificada</p>
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full">
@@ -265,9 +265,9 @@ function RawVsShownRow({
             <tbody className="divide-y divide-border">
               {shownRows.map((row, i) => (
                 <tr key={i}>
-                  <td className={`${tdClass} font-mono text-[11px] text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
+                  <td className={`${tdClass} font-mono text-xs text-muted`}>{row.tsUtc.slice(0, 19).replace('T', ' ')}</td>
                   <td className={`${tdClass} text-foreground`}>{row.processed}</td>
-                  <td className={`${tdClass} text-[11px] text-muted`}>{row.transform}</td>
+                  <td className={`${tdClass} text-xs text-muted`}>{row.transform}</td>
                   <td className={`${tdClass} font-medium text-foreground`}>{row.dashboard}</td>
                 </tr>
               ))}

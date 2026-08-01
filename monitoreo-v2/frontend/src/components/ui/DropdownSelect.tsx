@@ -111,7 +111,7 @@ function DropdownSelectInner<T extends string = string>({
         className={
           'flex w-full items-center justify-between whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm ' +
           'text-left transition-all duration-150 ' +
-          'hover:border-subtle focus:border-brand focus:outline-none ' +
+          'hover:border-subtle focus:border-foreground focus:outline-none ' +
           (disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer')
         }
       >
@@ -135,7 +135,7 @@ function DropdownSelectInner<T extends string = string>({
               value={search}
               onChange={(e) => { setSearch(e.target.value); setHighlightIdx(0); }}
               placeholder="Buscar..."
-              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground outline-none transition-all duration-150 focus:border-brand"
+              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground outline-none transition-all duration-150 focus:border-foreground"
             />
           </div>
         )}
@@ -153,8 +153,8 @@ function DropdownSelectInner<T extends string = string>({
               onClick={() => select(opt.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(opt.value); } }}
               className={
-                'cursor-pointer px-3 py-2 text-sm transition-colors duration-150 ' +
-                (opt.value === value ? 'font-medium text-brand' : 'text-foreground') + ' ' +
+                'cursor-pointer px-3 py-2 text-sm outline-none transition-colors duration-150 ' +
+                (opt.value === value ? 'font-medium text-foreground' : 'text-foreground') + ' ' +
                 (i === highlightIdx ? 'bg-surface' : 'hover:bg-surface')
               }
             >

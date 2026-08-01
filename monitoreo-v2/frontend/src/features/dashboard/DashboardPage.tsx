@@ -218,9 +218,9 @@ export function DashboardPage() {
             <KpiCard title="Medidores" value={String(totalMeters)} />
             <KpiCard title="Potencia total" value={`${totalPowerKw.toFixed(1)} kW`} />
             <KpiCard title="FP promedio" value={avgPowerFactor > 0 ? avgPowerFactor.toFixed(3) : '—'} />
-            <KpiCard title="Pagadas" value={fmtClp(billingKpis.paid)} color="text-emerald-600" />
-            <KpiCard title="Por cobrar" value={fmtClp(billingKpis.pending)} color="text-amber-600" />
-            <KpiCard title="Vencidas" value={fmtClp(billingKpis.overdue)} color={billingKpis.overdue > 0 ? 'text-red-600' : undefined} />
+            <KpiCard title="Pagadas" value={fmtClp(billingKpis.paid)} color="text-success" />
+            <KpiCard title="Por cobrar" value={fmtClp(billingKpis.pending)} color="text-warning" />
+            <KpiCard title="Vencidas" value={fmtClp(billingKpis.overdue)} color={billingKpis.overdue > 0 ? 'text-danger' : undefined} />
           </div>
 
           {/* Chart */}
@@ -268,10 +268,10 @@ export function DashboardPage() {
         <div className="flex w-full flex-col gap-4 lg:w-80">
           {/* Alerts */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               Alertas activas
               {activeAlerts.length > 0 && (
-                <span className="ml-1.5 text-[11px] font-normal text-muted">
+                <span className="ml-1.5 text-xs font-normal text-muted">
                   ({activeAlerts.length})
                 </span>
               )}
@@ -287,14 +287,14 @@ export function DashboardPage() {
                 {activeAlerts.map((a) => (
                   <li
                     key={a.id}
-                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface"
                     onClick={() => navigate(`/alerts?highlight=${a.id}`)}
                   >
                     <div className="flex items-center gap-2">
                       <SeverityDot severity={a.severity} />
                       <span className="text-foreground">{a.message}</span>
                     </div>
-                    <span className="shrink-0 text-[11px] text-muted">
+                    <span className="shrink-0 text-xs text-muted">
                       {new Date(a.createdAt).toLocaleDateString('es-CL')}
                     </span>
                   </li>
@@ -305,7 +305,7 @@ export function DashboardPage() {
 
           {/* Buildings */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-[13px] font-medium text-foreground">Edificios</h2>
+            <h2 className="text-sm font-medium text-foreground">Edificios</h2>
             <DataWidget
               phase={buildingsQs.phase}
               error={buildingsQs.error}
@@ -320,13 +320,13 @@ export function DashboardPage() {
                   return (
                     <li
                       key={b.id}
-                      className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
+                      className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface"
                       onClick={() => navigate(`/buildings/${b.id}`)}
                     >
                       <span className="font-medium text-foreground">{b.name}</span>
                       <div className="text-right">
                         <span className="text-foreground">{power.toFixed(1)} kW</span>
-                        <span className="ml-2 text-[11px] text-muted">{buildingReadings.length} med.</span>
+                        <span className="ml-2 text-xs text-muted">{buildingReadings.length} med.</span>
                       </div>
                     </li>
                   );
@@ -338,9 +338,9 @@ export function DashboardPage() {
           {/* Overdue invoices */}
           {billingKpis.overdueInvoices.length > 0 && (
             <div className="flex flex-col gap-2">
-              <h2 className="text-[13px] font-medium text-foreground">
+              <h2 className="text-sm font-medium text-foreground">
                 Facturas vencidas
-                <span className="ml-1.5 text-[11px] font-normal text-red-500">
+                <span className="ml-1.5 text-xs font-normal text-danger">
                   ({billingKpis.overdueInvoices.length})
                 </span>
               </h2>
@@ -348,14 +348,14 @@ export function DashboardPage() {
                 {billingKpis.overdueInvoices.map((inv) => (
                   <li
                     key={inv.id}
-                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] transition-colors hover:bg-surface"
+                    className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-surface"
                     onClick={() => navigate(`/billing?highlight=${inv.id}`)}
                   >
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{inv.invoiceNumber}</span>
-                      <span className="text-[11px] text-muted">{inv.periodStart.slice(0, 7)}</span>
+                      <span className="text-xs text-muted">{inv.periodStart.slice(0, 7)}</span>
                     </div>
-                    <span className="shrink-0 text-[12px] font-medium text-red-600">
+                    <span className="shrink-0 text-xs font-medium text-danger">
                       {fmtClp(inv.total)}
                     </span>
                   </li>
@@ -413,7 +413,7 @@ function computeBillingKpis(invoices: Invoice[]): BillingKpis {
 function KpiCard({ title, value, color }: Readonly<{ title: string; value: string; color?: string }>) {
   return (
     <div className="panel min-w-[7.5rem] flex-1 px-4 py-3">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{title}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">{title}</p>
       <p className={`mt-1 text-lg font-semibold tracking-tight ${color ?? 'text-foreground'}`}>{value}</p>
     </div>
   );
@@ -423,7 +423,7 @@ function SeverityDot({ severity }: Readonly<{ severity: string }>) {
   const colors: Record<string, string> = {
     critical: 'bg-danger',
     high: 'bg-warning',
-    medium: 'bg-yellow-500',
+    medium: 'bg-warning/100',
     low: 'bg-brand',
   };
   return <span className={`inline-block size-2 rounded-full ${colors[severity] ?? 'bg-subtle'}`} />;

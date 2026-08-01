@@ -32,7 +32,7 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={
           `relative inline-flex shrink-0 items-center rounded-full transition-all duration-200 ease-in-out ` +
-          `focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 ${s.track} ` +
+          `focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-1 ${s.track} ` +
           (checked ? 'bg-brand' : 'bg-border')
         }
       >

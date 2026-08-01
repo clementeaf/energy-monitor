@@ -10,7 +10,7 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 function KpiCard({ title, value, loading }: { title: string; value: string | number; loading: boolean }) {
   return (
     <div className="panel flex-1 min-w-[100px] px-2.5 py-1.5">
-      <p className="text-[10px] font-medium uppercase text-muted">{title}</p>
+      <p className="text-xs font-medium uppercase text-muted">{title}</p>
       {loading ? (
         <div className="mt-0.5 h-4 w-12 animate-pulse rounded bg-raised" />
       ) : (
@@ -70,7 +70,7 @@ export function PlatformDashboardPage(): ReactElement {
                   <td className="px-4 py-2.5 text-right">{t.meters}</td>
                   <td className="px-4 py-2.5 text-right">
                     {t.activeAlerts > 0 ? (
-                      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                      <span className="inline-flex items-center rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
                         {t.activeAlerts}
                       </span>
                     ) : (

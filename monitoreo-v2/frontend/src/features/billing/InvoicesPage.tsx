@@ -29,11 +29,11 @@ export interface InvoicesPageProps {
 
 const STATUS_BADGE: Record<InvoiceStatus, string> = {
   draft: 'bg-raised text-muted',
-  pending: 'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-emerald-100 text-emerald-700',
-  voided: 'bg-red-100 text-red-600',
+  pending: 'bg-warning/10 text-warning',
+  approved: 'bg-success/10 text-success',
+  sent: 'bg-info/10 text-info',
+  paid: 'bg-success/10 text-success',
+  voided: 'bg-danger/10 text-danger',
 };
 
 const STATUS_LABEL: Record<InvoiceStatus, string> = {
@@ -334,17 +334,17 @@ function InvoiceRow({
             </svg>
           </button>
           {canUpdate && invoice.status === 'pending' && (
-            <button type="button" onClick={onApprove} className="text-xs text-green-600 hover:text-green-800">
+            <button type="button" onClick={onApprove} className="text-xs text-success hover:text-success">
               Aprobar
             </button>
           )}
           {canUpdate && invoice.status !== 'voided' && (
-            <button type="button" onClick={onVoid} className="text-xs text-orange-500 hover:text-orange-700">
+            <button type="button" onClick={onVoid} className="text-xs text-warning hover:text-warning">
               Anular
             </button>
           )}
           {canWrite && invoice.status === 'draft' && (
-            <button type="button" onClick={onDelete} className="text-xs text-red-500 hover:text-red-700">
+            <button type="button" onClick={onDelete} className="text-xs text-danger hover:text-danger">
               Eliminar
             </button>
           )}

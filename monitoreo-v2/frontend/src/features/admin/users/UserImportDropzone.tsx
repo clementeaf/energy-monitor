@@ -100,7 +100,7 @@ export function UserImportDropzone({
       >
         <p className="text-sm font-medium text-foreground">Arrastre un archivo CSV o Excel aquí</p>
         <p className="mt-1 text-xs text-muted">Máximo 500 filas · 1 MB · .csv o .xlsx</p>
-        <p className="mt-3 text-xs text-brand underline">Seleccionar archivo</p>
+        <p className="mt-3 text-xs text-foreground underline">Seleccionar archivo</p>
         <input
           ref={inputRef}
           type="file"
@@ -111,7 +111,7 @@ export function UserImportDropzone({
         />
       </div>
       {localError ? (
-        <p className="text-sm text-red-700" role="alert">{localError}</p>
+        <p className="text-sm text-danger" role="alert">{localError}</p>
       ) : null}
     </div>
   );

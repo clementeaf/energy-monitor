@@ -218,22 +218,22 @@ export function CompareDashboardPage(): ReactElement {
             type="checkbox"
             checked={compareWithPrevious}
             onChange={(e) => setCompareWithPrevious(e.target.checked)}
-            className="mt-1 size-4 rounded border-border text-brand focus:ring-brand"
+            className="mt-1 size-4 rounded border-border text-foreground focus:ring-border"
           />
           <span>
-            <span className="text-[13px] font-medium text-foreground">Comparar con periodo anterior</span>
-            <span className="mt-0.5 block text-[11px] text-muted">
+            <span className="text-sm font-medium text-foreground">Comparar con periodo anterior</span>
+            <span className="mt-0.5 block text-xs text-muted">
               Misma duración, termina justo antes del periodo actual.
             </span>
           </span>
         </label>
         {compareWithPrevious && bundle && (
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
+            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-xs">
               <span className="font-medium text-foreground">Actual</span>
               <div className="tabular-nums text-muted">{formatRangeLabel(from, to)}</div>
             </div>
-            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-[11px]">
+            <div className="flex-1 rounded-lg bg-surface px-3 py-2 text-xs">
               <span className="font-medium text-foreground">Anterior</span>
               <div className="tabular-nums text-muted">{formatRangeLabel(prevRange.from, prevRange.to)}</div>
             </div>
@@ -243,15 +243,15 @@ export function CompareDashboardPage(): ReactElement {
 
       <div className="panel p-4">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-[13px] font-medium text-foreground">Edificios</span>
-          <button type="button" onClick={selectAll} className="text-[11px] text-brand hover:underline">
+          <span className="text-sm font-medium text-foreground">Edificios</span>
+          <button type="button" onClick={selectAll} className="text-xs text-foreground hover:underline">
             Seleccionar todos
           </button>
-          <button type="button" onClick={clearSelection} className="text-[11px] text-muted hover:underline">
+          <button type="button" onClick={clearSelection} className="text-xs text-muted hover:underline">
             Limpiar
           </button>
           {!canCompare && (
-            <span className="text-[11px] text-warning">
+            <span className="text-xs text-warning">
               {compareWithPrevious ? 'Selecciona al menos un edificio.' : 'Elige al menos dos.'}
             </span>
           )}
@@ -264,9 +264,9 @@ export function CompareDashboardPage(): ReactElement {
                 key={b.id}
                 type="button"
                 onClick={() => toggleBuilding(b.id)}
-                className={`rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   on
-                    ? 'border-brand bg-brand-muted text-brand'
+                    ? 'border-brand bg-brand-muted text-foreground'
                     : 'border-border bg-surface text-muted hover:bg-background'
                 }`}
               >
@@ -300,22 +300,22 @@ export function CompareDashboardPage(): ReactElement {
           <div className="space-y-4">
             {compareWithPrevious ? (
               <div className="panel p-4">
-                <h2 className="mb-2 text-[13px] font-medium text-foreground">Energía total: actual vs anterior</h2>
+                <h2 className="mb-2 text-sm font-medium text-foreground">Energía total: actual vs anterior</h2>
                 <Chart options={columnChartOptions} loading={compareQuery.isFetching && !compareQuery.isPending} />
               </div>
             ) : (
               <div className="panel p-4">
-                <h2 className="mb-2 text-[13px] font-medium text-foreground">Curvas superpuestas</h2>
+                <h2 className="mb-2 text-sm font-medium text-foreground">Curvas superpuestas</h2>
                 <Chart options={lineChartOptions} loading={compareQuery.isFetching && !compareQuery.isPending} />
               </div>
             )}
 
             <div className="space-y-2">
-              <h2 className="text-[13px] font-medium text-foreground">Tabla comparativa</h2>
+              <h2 className="text-sm font-medium text-foreground">Tabla comparativa</h2>
               <div className="overflow-auto panel">
                 {compareWithPrevious ? (
-                  <table className="min-w-full text-[13px]">
-                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
+                  <table className="min-w-full text-sm">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Actual (kWh)</th>
@@ -350,8 +350,8 @@ export function CompareDashboardPage(): ReactElement {
                     </TableStateBody>
                   </table>
                 ) : (
-                  <table className="min-w-full text-[13px]">
-                    <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] font-medium uppercase text-muted">
+                  <table className="min-w-full text-sm">
+                    <thead className="sticky top-0 z-10 bg-surface text-left text-xs font-medium uppercase text-muted">
                       <tr>
                         <th className="px-3 py-2">Edificio</th>
                         <th className="px-3 py-2 text-right">Energía (kWh)</th>
@@ -382,7 +382,7 @@ export function CompareDashboardPage(): ReactElement {
                   </table>
                 )}
               </div>
-              <p className="text-[11px] text-muted">
+              <p className="text-xs text-muted">
                 {compareWithPrevious
                   ? 'Δ: variación energía actual vs anterior.'
                   : 'Delta referido al promedio del grupo.'}
@@ -393,7 +393,7 @@ export function CompareDashboardPage(): ReactElement {
       </DataWidget>
 
       {!buildingsQuery.isPending && buildings.length === 0 && (
-        <p className="text-[13px] text-muted">No hay edificios disponibles en tu alcance.</p>
+        <p className="text-sm text-muted">No hay edificios disponibles en tu alcance.</p>
       )}
     </div>
   );

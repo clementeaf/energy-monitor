@@ -238,7 +238,7 @@ export function PatternsPage(): ReactElement {
         <KpiCard
           title="Anomalías detectadas"
           value={String(anomalies.length)}
-          color={anomalies.length > 0 ? 'text-red-600' : 'text-green-600'}
+          color={anomalies.length > 0 ? 'text-danger' : 'text-success'}
         />
         <KpiCard title="Sensibilidad" value={`z ≥ ${SENSITIVITY_THRESHOLD[sensitivity]}`} />
       </div>
@@ -293,7 +293,7 @@ export function PatternsPage(): ReactElement {
                     <td className="px-4 py-2 text-right tabular-nums">{Math.round(a.value).toLocaleString('es-CL')}</td>
                     <td className="px-4 py-2 text-right tabular-nums text-muted">{Math.round(a.expected).toLocaleString('es-CL')}</td>
                     <td className="px-4 py-2 text-right tabular-nums">
-                      <span className={a.deviationPct > 0 ? 'text-red-600' : 'text-green-600'}>
+                      <span className={a.deviationPct > 0 ? 'text-danger' : 'text-success'}>
                         {a.deviationPct > 0 ? '+' : ''}{a.deviationPct.toFixed(1)}%
                       </span>
                     </td>

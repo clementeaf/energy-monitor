@@ -51,19 +51,19 @@ export function CompanyForm({
       {/* Edit-only: isActive toggle */}
       {!isCreate && (
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
-          <span className="text-[13px] font-medium text-foreground">Estado</span>
+          <span className="text-sm font-medium text-foreground">Estado</span>
           <button
             type="button"
             onClick={() => onFieldChange('isActive', !editValues.isActive)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${
-              editValues.isActive ? 'bg-green-500' : 'bg-gray-300'
+              editValues.isActive ? 'bg-success/100' : 'bg-border'
             }`}
           >
             <span className={`inline-block size-4 transform rounded-full bg-background shadow transition-transform duration-200 ${
               editValues.isActive ? 'translate-x-6' : 'translate-x-1'
             }`} />
           </button>
-          <span className={`text-[12px] font-medium ${editValues.isActive ? 'text-green-700' : 'text-muted'}`}>
+          <span className={`text-xs font-medium ${editValues.isActive ? 'text-success' : 'text-muted'}`}>
             {editValues.isActive ? 'Activa' : 'Inactiva'}
           </span>
         </div>
@@ -134,7 +134,7 @@ export function CompanyForm({
         />
       </Field>
       {addressCollision && (
-        <p className="text-[12px] text-amber-600">
+        <p className="text-xs text-warning">
           Otra empresa usa esta dirección. Especifique piso u oficina.
         </p>
       )}
@@ -269,7 +269,7 @@ export function CompanyForm({
       <button
         type="submit"
         disabled={isSubmitDisabled}
-        className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-[13px] font-medium text-brand-fg transition-colors hover:bg-brand-hover disabled:opacity-50"
+        className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover disabled:opacity-50"
       >
         {isPending
           ? (isCreate ? 'Creando...' : 'Guardando...')
@@ -277,7 +277,7 @@ export function CompanyForm({
       </button>
 
       {isError && (
-        <p className="text-[13px] text-red-600">
+        <p className="text-sm text-danger">
           {errorMessage ?? (isCreate ? 'Error al crear la empresa' : 'Error al actualizar la empresa')}
         </p>
       )}

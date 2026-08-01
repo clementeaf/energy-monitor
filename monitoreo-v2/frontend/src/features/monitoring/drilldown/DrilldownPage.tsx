@@ -85,7 +85,7 @@ export function DrilldownPage() {
               key={b.id}
               type="button"
               onClick={() => navigate(`/monitoring/drilldown/${b.id}`)}
-              className="flex-1 min-w-[200px] rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
+              className="flex-1 min-w-[200px] rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-foreground"
             >
               <p className="font-medium text-foreground">{b.name}</p>
               <p className="text-xs text-muted">{b.code}</p>
@@ -217,7 +217,7 @@ export function DrilldownPage() {
                   <Td>{reading ? Number(reading.power_kw || 0).toFixed(2) : '—'}</Td>
                   <Td>{reading?.power_factor ? Number(reading.power_factor).toFixed(3) : '—'}</Td>
                   <Td>
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${m.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'}`}>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${m.isActive ? 'bg-success/10 text-success' : 'bg-raised text-muted'}`}>
                       {m.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </Td>
@@ -225,7 +225,7 @@ export function DrilldownPage() {
                     <div className="flex gap-1">
                       <Link
                         to={`/monitoring/demand/${siteId}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                        className="rounded px-2 py-1 text-xs font-medium text-info hover:bg-info/10"
                       >
                         Demanda
                       </Link>
@@ -237,7 +237,7 @@ export function DrilldownPage() {
                       </Link>
                       <Link
                         to={`/monitoring/fault-history/${m.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-50"
+                        className="rounded px-2 py-1 text-xs font-medium text-warning hover:bg-warning/10"
                       >
                         Fallos
                       </Link>
@@ -272,7 +272,7 @@ function HierarchyTreeNode({
         onClick={() => onSelect(node.id)}
         className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors ${
           isSelected
-            ? 'bg-brand/10 text-brand'
+            ? 'bg-brand/10 text-foreground'
             : 'text-foreground hover:bg-surface'
         }`}
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
@@ -295,10 +295,10 @@ function HierarchyTreeNode({
 
 function ConcentratorRow({ concentrator }: Readonly<{ concentrator: Concentrator }>) {
   const statusColors: Record<string, string> = {
-    online: 'bg-green-100 text-green-700',
+    online: 'bg-success/10 text-success',
     offline: 'bg-raised text-muted',
-    error: 'bg-red-100 text-red-700',
-    maintenance: 'bg-yellow-100 text-yellow-700',
+    error: 'bg-danger/10 text-danger',
+    maintenance: 'bg-warning/10 text-warning',
   };
   return (
     <div className="flex items-center justify-between px-4 py-3">

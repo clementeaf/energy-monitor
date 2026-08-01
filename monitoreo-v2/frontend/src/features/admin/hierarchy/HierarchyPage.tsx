@@ -22,10 +22,10 @@ const LEVEL_LABELS: Record<HierarchyLevelType, string> = {
 };
 
 const LEVEL_COLORS: Record<HierarchyLevelType, string> = {
-  floor: 'bg-blue-50 text-blue-700',
+  floor: 'bg-info/10 text-info',
   zone: 'bg-purple-50 text-purple-700',
-  panel: 'bg-amber-50 text-amber-700',
-  circuit: 'bg-green-50 text-green-700',
+  panel: 'bg-warning/10 text-warning',
+  circuit: 'bg-success/10 text-success',
   sub_circuit: 'bg-raised text-muted',
 };
 
@@ -191,7 +191,7 @@ function TreeNode({
             <button
               type="button"
               onClick={() => { onAdd(node.id); }}
-              className="rounded px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50"
+              className="rounded px-2 py-0.5 text-xs text-info hover:bg-info/10"
             >
               + Hijo
             </button>
@@ -205,7 +205,7 @@ function TreeNode({
             <button
               type="button"
               onClick={() => { onDelete(node); }}
-              className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50"
+              className="rounded px-2 py-0.5 text-xs text-danger hover:bg-danger/10"
             >
               Eliminar
             </button>
@@ -306,7 +306,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <div className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </div>

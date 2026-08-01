@@ -46,13 +46,13 @@ export function SessionExpiredModal() {
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" aria-hidden="true" />
+      <div className="absolute inset-0 bg-foreground/30 backdrop-blur-[2px]" aria-hidden="true" />
 
       {/* Modal */}
       <div className="relative z-10 w-full max-w-sm rounded-lg bg-background p-6 shadow-2xl">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-amber-100">
-            <svg className="size-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex size-10 items-center justify-center rounded-full bg-warning/10">
+            <svg className="size-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
           </div>

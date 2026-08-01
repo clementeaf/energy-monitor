@@ -129,26 +129,26 @@ export function MeterDetailPage() {
         >
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">Edificios</Link>
-        <span className="text-[11px] text-subtle">/</span>
+        <Link to="/buildings" className="text-sm text-muted hover:text-foreground">Edificios</Link>
+        <span className="text-xs text-subtle">/</span>
         {building && (
           <>
-            <Link to={`/meters?buildingId=${building.id}`} className="text-[13px] text-muted hover:text-brand">
+            <Link to={`/meters?buildingId=${building.id}`} className="text-sm text-muted hover:text-foreground">
               {building.name}
             </Link>
-            <span className="text-[11px] text-subtle">/</span>
+            <span className="text-xs text-subtle">/</span>
           </>
         )}
-        <span className="text-[13px] font-semibold text-foreground">
+        <span className="text-sm font-semibold text-foreground">
           {meter?.name ?? '—'} <span className="font-normal text-muted">({meter?.code ?? meterId})</span>
         </span>
         {(isIot ? (iotAlerts.data?.length ?? 0) : alertCount) > 0 && (
-          <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
+          <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
             {isIot ? iotAlerts.data?.length : alertCount} alerta{(isIot ? (iotAlerts.data?.length ?? 0) : alertCount) > 1 ? 's' : ''}
           </span>
         )}
         {isIot && (
-          <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+          <span className="ml-2 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
             IoT
           </span>
         )}
@@ -179,7 +179,7 @@ export function MeterDetailPage() {
           <div className="flex flex-wrap gap-2">
             {iotLatest.data.map((r) => (
               <div key={r.variable_name} className="min-w-[100px] flex-1 rounded border border-border px-2 py-1.5">
-                <div className="truncate text-[10px] font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
+                <div className="truncate text-xs font-medium uppercase text-muted">{formatVarName(r.variable_name)}</div>
                 <div className="text-sm font-semibold text-foreground">{fmtNum(r.value, 2)}</div>
               </div>
             ))}
@@ -264,7 +264,7 @@ export function MeterDetailPage() {
                       <button
                         type="button"
                         onClick={() => navigate(`/monitoring/meter/${meterId}/readings/${monthKey}`)}
-                        className="text-xs font-medium text-brand hover:underline"
+                        className="text-xs font-medium text-foreground hover:underline"
                       >
                         Ver &rarr;
                       </button>

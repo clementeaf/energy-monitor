@@ -147,13 +147,13 @@ export function CompaniesPage() {
                 onClick={() => handleEditOpen(t)}
               >
                 <Td className="font-medium">{t.name}</Td>
-                <Td className="font-mono text-[12px]">{t.slug}</Td>
+                <Td className="font-mono text-xs">{t.slug}</Td>
                 <Td>{t.address || '—'}</Td>
                 <Td>{t.phone || '—'}</Td>
-                <Td className="font-mono text-[12px]">{t.taxId || '—'}</Td>
+                <Td className="font-mono text-xs">{t.taxId || '—'}</Td>
                 <Td>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    t.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
+                    t.isActive ? 'bg-success/10 text-success' : 'bg-raised text-muted'
                   }`}>
                     {t.isActive ? 'Activa' : 'Inactiva'}
                   </span>
@@ -163,7 +163,7 @@ export function CompaniesPage() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleEditOpen(t); }}
-                    className="text-[13px] font-medium text-brand hover:underline"
+                    className="text-sm font-medium text-foreground hover:underline"
                   >
                     Editar
                   </button>
@@ -180,17 +180,17 @@ export function CompaniesPage() {
       <Drawer open={createOpen} onClose={handleCreateClose} title="Nueva empresa" side="right" size="lg">
         {result ? (
           <div className="space-y-4">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <h3 className="text-sm font-semibold text-green-800">Empresa creada exitosamente</h3>
-              <ul className="mt-2 space-y-1 text-[13px] text-green-700">
+            <div className="rounded-lg border border-green-200 bg-success/10 p-4">
+              <h3 className="text-sm font-semibold text-success">Empresa creada exitosamente</h3>
+              <ul className="mt-2 space-y-1 text-sm text-success">
                 <li>{result.rolesCreated} roles creados</li>
-                <li>Admin ID: <span className="font-mono text-[12px]">{result.adminUserId}</span></li>
+                <li>Admin ID: <span className="font-mono text-xs">{result.adminUserId}</span></li>
               </ul>
             </div>
             <button
               type="button"
               onClick={handleCreateClose}
-              className="w-full rounded-lg bg-brand px-4 py-2 text-[13px] font-medium text-brand-fg hover:bg-brand-hover"
+              className="w-full rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-hover"
             >
               Cerrar
             </button>

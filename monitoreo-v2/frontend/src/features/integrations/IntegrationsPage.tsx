@@ -262,10 +262,10 @@ export function IntegrationsPage() {
                           {labelStatus(row.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[11px] text-muted">
+                      <td className="px-4 py-3 text-xs text-muted">
                         {row.lastSyncAt ? `${Math.round((Date.now() - new Date(row.lastSyncAt).getTime()) / 60_000)} min` : '—'}
                       </td>
-                      <td className="px-4 py-3 text-[11px] text-muted">
+                      <td className="px-4 py-3 text-xs text-muted">
                         {(() => {
                           if (!row.lastSyncAt) return '—';
                           const daysSinceSync = (Date.now() - new Date(row.lastSyncAt).getTime()) / 86_400_000;
@@ -323,7 +323,7 @@ export function IntegrationsPage() {
             open={formOpen}
             onClose={closeForm}
             title={editing ? 'Editar integracion' : 'Nueva integracion'}
-            dialogClassName="m-auto max-w-2xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40"
+            dialogClassName="m-auto max-w-2xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-foreground/40"
           >
             <div className="space-y-3">
               <label className="block text-sm font-medium text-foreground">
@@ -380,7 +380,7 @@ export function IntegrationsPage() {
                 />
               </label>
               {formError != null && (
-                <p className="text-sm text-red-600">{formError}</p>
+                <p className="text-sm text-danger">{formError}</p>
               )}
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -406,7 +406,7 @@ export function IntegrationsPage() {
             open={logsFor != null}
             onClose={closeLogs}
             title={logsFor ? `Historial: ${logsFor.name}` : 'Historial'}
-            dialogClassName="m-auto max-w-4xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40"
+            dialogClassName="m-auto max-w-4xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-foreground/40"
           >
             {logsFor != null && (
               <>
@@ -422,16 +422,16 @@ export function IntegrationsPage() {
                     const totalRecords = logs.reduce((sum, l) => sum + (l.recordsSynced ?? 0), 0);
                     return (
                       <>
-                        <div><p className="text-[10px] text-muted">Tasa exito</p><p className="text-[13px] font-semibold text-foreground">{successRate}</p></div>
-                        <div><p className="text-[10px] text-muted">Syncs totales</p><p className="text-[13px] font-semibold text-foreground">{totalLogs}</p></div>
-                        <div><p className="text-[10px] text-muted">Registros sincronizados</p><p className="text-[13px] font-semibold text-foreground">{totalRecords.toLocaleString()}</p></div>
-                        <div><p className="text-[10px] text-muted">Errores</p><p className="text-[13px] font-semibold text-foreground">{failedCount}</p></div>
+                        <div><p className="text-xs text-muted">Tasa exito</p><p className="text-sm font-semibold text-foreground">{successRate}</p></div>
+                        <div><p className="text-xs text-muted">Syncs totales</p><p className="text-sm font-semibold text-foreground">{totalLogs}</p></div>
+                        <div><p className="text-xs text-muted">Registros sincronizados</p><p className="text-sm font-semibold text-foreground">{totalRecords.toLocaleString()}</p></div>
+                        <div><p className="text-xs text-muted">Errores</p><p className="text-sm font-semibold text-foreground">{failedCount}</p></div>
                       </>
                     );
                   })()}
                 </div>
                 {/* Contrato interfaz */}
-                <div className="border-b border-border px-4 py-2 text-[11px] text-muted">
+                <div className="border-b border-border px-4 py-2 text-xs text-muted">
                   <span className="font-medium text-foreground">Contrato:</span> API {logsFor.integrationType} · Esquema datos: propietario
                 </div>
                 <SyncLogsPanel

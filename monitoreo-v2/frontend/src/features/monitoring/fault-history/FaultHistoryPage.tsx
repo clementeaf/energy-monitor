@@ -10,17 +10,17 @@ import type { FaultEventQueryParams } from '../../../types/fault-event';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-100 text-red-700 border-red-300',
-  high: 'bg-orange-100 text-orange-700 border-orange-300',
-  medium: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-  low: 'bg-blue-100 text-blue-700 border-blue-300',
+  critical: 'bg-danger/10 text-danger border-danger/50',
+  high: 'bg-warning/10 text-warning border-warning',
+  medium: 'bg-warning/10 text-warning border-yellow-300',
+  low: 'bg-info/10 text-info border-blue-300',
 };
 
 const SEVERITY_DOT: Record<string, string> = {
-  critical: 'bg-red-500',
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-blue-500',
+  critical: 'bg-danger',
+  high: 'bg-warning',
+  medium: 'bg-warning/100',
+  low: 'bg-info/100',
 };
 
 export function FaultHistoryPage() {
@@ -87,16 +87,16 @@ export function FaultHistoryPage() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex-1 min-w-[120px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-20 rounded bg-raised" />
-              <div className="mt-2 h-5 w-10 rounded bg-gray-300" />
+              <div className="mt-2 h-5 w-10 rounded bg-border" />
             </div>
           ))}
         </div>
       ) : (
         <div className="flex flex-wrap gap-4">
           <SummaryCard label="Total eventos" value={String(events.length)} />
-          <SummaryCard label="Abiertos" value={String(openCount)} color="text-red-600" />
-          <SummaryCard label="Resueltos" value={String(resolvedCount)} color="text-green-600" />
-          <SummaryCard label="Criticos" value={String(criticalCount)} color="text-red-600" />
+          <SummaryCard label="Abiertos" value={String(openCount)} color="text-danger" />
+          <SummaryCard label="Resueltos" value={String(resolvedCount)} color="text-success" />
+          <SummaryCard label="Criticos" value={String(criticalCount)} color="text-danger" />
         </div>
       )}
 
@@ -131,7 +131,7 @@ export function FaultHistoryPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="panel p-4">
               <div className="flex items-start gap-3">
-                <div className="mt-1 size-3 rounded-full bg-gray-300" />
+                <div className="mt-1 size-3 rounded-full bg-border" />
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-16 rounded-full bg-raised" />
@@ -168,7 +168,7 @@ export function FaultHistoryPage() {
             return (
               <div
                 key={event.id}
-                className={`relative rounded-lg border bg-background p-4 ${isOpen ? 'border-red-200' : 'border-gray-200'}`}
+                className={`relative rounded-lg border bg-background p-4 ${isOpen ? 'border-danger/30' : 'border-border'}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
@@ -184,7 +184,7 @@ export function FaultHistoryPage() {
                         </span>
                         <span className="text-sm font-medium text-foreground">{event.faultType}</span>
                         {isOpen && (
-                          <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          <span className="inline-flex rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">
                             Abierto
                           </span>
                         )}

@@ -318,7 +318,7 @@ export function AlarmasAgregadasPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="flex items-center gap-1">
           País
@@ -349,24 +349,24 @@ export function AlarmasAgregadasPage() {
       {/* Row 1: 4 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
-          <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{totalActive}</p>
-          <p className="text-[11px] text-muted">en el período filtrado</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
+          <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-danger' : 'text-success'}`}>{totalActive}</p>
+          <p className="text-xs text-muted">en el período filtrado</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Críticas activas</p>
-          <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{criticalActive}</p>
-          <p className="text-[11px] text-muted">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Críticas activas</p>
+          <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-danger' : 'text-success'}`}>{criticalActive}</p>
+          <p className="text-xs text-muted">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600">{resolved24h}</p>
-          <p className="text-[11px] text-muted">últimas 24 horas</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
+          <p className="mt-1 text-2xl font-bold text-success">{resolved24h}</p>
+          <p className="text-xs text-muted">últimas 24 horas</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
-          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-red-600' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
-          <p className="text-[11px] text-muted">indicador si supera SLA</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
+          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
+          <p className="text-xs text-muted">indicador si supera SLA</p>
         </div>
       </div>
 
@@ -374,8 +374,8 @@ export function AlarmasAgregadasPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Mapa geográfico de alarmas */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
-          <p className="shrink-0 text-[11px] text-muted">marcadores SIEMPRE por estado de alarma</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
+          <p className="shrink-0 text-xs text-muted">marcadores SIEMPRE por estado de alarma</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
           </div>
@@ -385,8 +385,8 @@ export function AlarmasAgregadasPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {/* Evolución 30 días */}
           <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-            <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
-            <p className="shrink-0 text-[11px] text-muted">abiertas / escaladas / resueltas por día</p>
+            <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
+            <p className="shrink-0 text-xs text-muted">abiertas / escaladas / resueltas por día</p>
             <div className="mt-2 flex min-h-0 flex-1 items-end gap-[2px]">
               {evolutionData.map((d) => {
                 const aH = (d.active / maxEvoValue) * 100;
@@ -394,31 +394,31 @@ export function AlarmasAgregadasPage() {
                 const rH = (d.resolved / maxEvoValue) * 100;
                 return (
                   <div key={d.label} className="group relative flex h-full flex-1 flex-col justify-end" title={`${d.label}: ${d.active} abiertas, ${d.escalated} escaladas, ${d.resolved} resueltas`}>
-                    {aH > 0 && <div className="w-full rounded-t bg-red-400" style={{ height: `${aH}%` }} />}
-                    {eH > 0 && <div className={`w-full bg-orange-400 ${aH > 0 ? '' : 'rounded-t'}`} style={{ height: `${eH}%` }} />}
-                    {rH > 0 && <div className={`w-full bg-emerald-400 ${aH + eH > 0 ? '' : 'rounded-t'}`} style={{ height: `${rH}%` }} />}
+                    {aH > 0 && <div className="w-full rounded-t bg-danger/60" style={{ height: `${aH}%` }} />}
+                    {eH > 0 && <div className={`w-full bg-warning/60 ${aH > 0 ? '' : 'rounded-t'}`} style={{ height: `${eH}%` }} />}
+                    {rH > 0 && <div className={`w-full bg-success/60 ${aH + eH > 0 ? '' : 'rounded-t'}`} style={{ height: `${rH}%` }} />}
                   </div>
                 );
               })}
             </div>
-            <div className="mt-1 flex shrink-0 items-center gap-3 text-[9px] text-muted">
-              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-400" /> Abiertas</span>
-              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-orange-400" /> Escaladas</span>
-              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-400" /> Resueltas</span>
+            <div className="mt-1 flex shrink-0 items-center gap-3 text-xs text-muted">
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-danger/60" /> Abiertas</span>
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-warning/60" /> Escaladas</span>
+              <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-success/60" /> Resueltas</span>
             </div>
           </div>
 
           {/* Top 5 malls con más alarmas */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
-            <p className="text-[11px] text-muted">con tendencia ↑↓→ vs. semana anterior</p>
-            <ul className="mt-2 space-y-1 text-[11px]">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
+            <p className="text-xs text-muted">con tendencia ↑↓→ vs. semana anterior</p>
+            <ul className="mt-2 space-y-1 text-xs">
               {top5.map((row, i) => (
                 <li key={row.buildingId} className="flex items-center gap-2">
                   <span className="w-4 text-muted">{i + 1}.</span>
                   <span className="min-w-0 flex-1 truncate text-foreground">{row.buildingName}</span>
                   <span className="text-muted">— {row.criticalCount} crít / {row.warningCount} warn</span>
-                  <span className={`font-medium ${row.totalActive > 2 ? 'text-red-500' : row.totalActive === 0 ? 'text-emerald-500' : 'text-muted'}`}>
+                  <span className={`font-medium ${row.totalActive > 2 ? 'text-danger' : row.totalActive === 0 ? 'text-success' : 'text-muted'}`}>
                     {row.totalActive > 2 ? '↑' : row.totalActive === 0 ? '↓' : '→'}
                   </span>
                 </li>
@@ -431,11 +431,11 @@ export function AlarmasAgregadasPage() {
 
       {/* Row 3: Tabla de alarmas por mall */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
-        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 {([['total', 'Mall'], ['critical', 'País'], ['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['resolution', 'T.medio [h]'], ['last', 'Última alarma']] as [string, string][]).map(([col, label], idx) => (
                   <th
                     key={`${col}-${idx}`}
@@ -479,11 +479,11 @@ export function AlarmasAgregadasPage() {
 /* ── Badge components ── */
 
 function CriticalBadge({ count }: Readonly<{ count: number }>) {
-  const style = count > 0 ? 'bg-red-100 text-red-700' : 'text-muted';
-  return <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${style}`}>{count}</span>;
+  const style = count > 0 ? 'bg-danger/10 text-danger' : 'text-muted';
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>{count}</span>;
 }
 
 function WarningBadge({ count }: Readonly<{ count: number }>) {
-  const style = count > 0 ? 'bg-amber-100 text-amber-700' : 'text-muted';
-  return <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${style}`}>{count}</span>;
+  const style = count > 0 ? 'bg-warning/10 text-warning' : 'text-muted';
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>{count}</span>;
 }

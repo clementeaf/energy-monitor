@@ -178,7 +178,7 @@ export function OAuthClientsPage() {
                 <Td>
                   <div className="flex flex-wrap gap-1">
                     {client.scopes.slice(0, 3).map((scope) => (
-                      <span key={scope} className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      <span key={scope} className="inline-flex rounded-full bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
                         {scope}
                       </span>
                     ))}
@@ -215,7 +215,7 @@ export function OAuthClientsPage() {
       </div>
       {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleClients.length} de {total}</p>}
 
-      <Modal open={createOpen} onClose={closeCreate} title="Nuevo Cliente OAuth" dialogClassName="m-auto max-w-xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-black/40">
+      <Modal open={createOpen} onClose={closeCreate} title="Nuevo Cliente OAuth" dialogClassName="m-auto max-w-xl rounded-lg bg-background p-0 shadow-xl backdrop:bg-foreground/40">
         <form onSubmit={handleCreate} className="space-y-4">
           <Field label="Nombre" required>
             <input
@@ -334,7 +334,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <label className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </label>

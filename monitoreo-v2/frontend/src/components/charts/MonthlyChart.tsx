@@ -146,7 +146,7 @@ function MonthlyChartInner({
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
-                className={`px-2.5 py-0.5 text-[11px] transition-colors first:rounded-l-full last:rounded-r-full ${
+                className={`px-2.5 py-0.5 text-xs transition-colors first:rounded-l-full last:rounded-r-full ${
                   mode === m
                     ? 'bg-brand text-brand-fg'
                     : 'text-muted hover:bg-surface'

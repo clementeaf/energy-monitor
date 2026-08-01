@@ -56,7 +56,7 @@ function PdfPreviewModalInner({ pdfPath, title, onClose }: Readonly<PdfPreviewMo
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-foreground/50" onClick={handleClose} aria-hidden="true" />
 
       {/* Modal */}
       <div className="relative z-10 flex h-[85vh] w-[70vw] flex-col rounded-lg bg-background shadow-2xl">
@@ -78,11 +78,11 @@ function PdfPreviewModalInner({ pdfPath, title, onClose }: Readonly<PdfPreviewMo
         {/* Body */}
         {loading && (
           <div className="flex flex-1 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
           </div>
         )}
         {error && (
-          <div className="flex flex-1 items-center justify-center text-sm text-red-600">{error}</div>
+          <div className="flex flex-1 items-center justify-center text-sm text-danger">{error}</div>
         )}
         {blobUrl && !loading && (
           <iframe src={blobUrl} className="flex-1 rounded-b-xl" title="Previsualizacion PDF" />

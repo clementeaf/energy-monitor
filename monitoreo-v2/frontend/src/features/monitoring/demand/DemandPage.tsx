@@ -211,7 +211,7 @@ export function DemandPage() {
                   <Td>{new Date(p.bucket).toLocaleString('es-CL')}</Td>
                   {maxContracted > 0 && (
                     <Td>
-                      <span className={p.maxPower > maxContracted ? 'font-semibold text-red-600' : ''}>
+                      <span className={p.maxPower > maxContracted ? 'font-semibold text-danger' : ''}>
                         {((p.maxPower / maxContracted) * 100).toFixed(1)}%
                       </span>
                     </Td>

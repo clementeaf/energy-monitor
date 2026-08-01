@@ -9,16 +9,16 @@ import { PageHeader } from '../../components/ui/PageHeader';
 const PAGE_SIZE = 50;
 
 const CHANNEL_COLORS: Record<string, string> = {
-  email: 'bg-blue-100 text-blue-800',
+  email: 'bg-info/10 text-info',
   webhook: 'bg-purple-100 text-purple-800',
-  push: 'bg-green-100 text-green-800',
-  whatsapp: 'bg-emerald-100 text-emerald-800',
-  sms: 'bg-yellow-100 text-yellow-800',
+  push: 'bg-success/10 text-success',
+  whatsapp: 'bg-success/10 text-success',
+  sms: 'bg-warning/10 text-warning',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  sent: 'bg-green-100 text-green-800',
-  failed: 'bg-red-100 text-red-800',
+  sent: 'bg-success/10 text-success',
+  failed: 'bg-danger/10 text-danger',
   pending: 'bg-raised text-foreground',
 };
 
@@ -128,7 +128,7 @@ export function NotificationsPage() {
                 </td>
                 <td className="px-4 py-3 max-w-xs truncate" title={log.subject}>{log.subject}</td>
                 <td className="px-4 py-3 text-xs text-muted">{log.recipient ?? '—'}</td>
-                <td className="px-4 py-3 text-xs text-red-600 max-w-xs truncate" title={log.errorMessage ?? ''}>
+                <td className="px-4 py-3 text-xs text-danger max-w-xs truncate" title={log.errorMessage ?? ''}>
                   {log.errorMessage ?? '—'}
                 </td>
               </tr>

@@ -158,10 +158,10 @@ export function SsoConfigSection({ tenantId }: Readonly<SsoConfigSectionProps>) 
                 Guardar SSO
               </Button>
               {saved && (
-                <span className="text-sm font-medium text-green-600">Guardado correctamente</span>
+                <span className="text-sm font-medium text-success">Guardado correctamente</span>
               )}
               {upsertMutation.isError && (
-                <span className="text-sm text-red-600">Error al guardar SSO.</span>
+                <span className="text-sm text-danger">Error al guardar SSO.</span>
               )}
             </div>
           )}
@@ -175,7 +175,7 @@ function Field({ label, required, children }: Readonly<{ label: string; required
   return (
     <label className="block">
       <span className="text-sm font-medium text-foreground">
-        {label}{required && <span className="text-red-500"> *</span>}
+        {label}{required && <span className="text-danger"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
     </label>

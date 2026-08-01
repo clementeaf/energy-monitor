@@ -29,11 +29,11 @@ const BILLING_METRICS: Record<BillingMetricKey, MetricMeta> = {
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   draft:    { label: 'Borrador',  cls: 'bg-raised text-muted' },
-  pending:  { label: 'Pendiente', cls: 'bg-amber-100 text-amber-700' },
-  approved: { label: 'Aprobada',  cls: 'bg-green-100 text-green-700' },
-  sent:     { label: 'Enviada',   cls: 'bg-blue-100 text-blue-700' },
-  paid:     { label: 'Pagada',    cls: 'bg-emerald-100 text-emerald-700' },
-  voided:   { label: 'Anulada',   cls: 'bg-red-100 text-red-600' },
+  pending:  { label: 'Pendiente', cls: 'bg-warning/10 text-warning' },
+  approved: { label: 'Aprobada',  cls: 'bg-success/10 text-success' },
+  sent:     { label: 'Enviada',   cls: 'bg-info/10 text-info' },
+  paid:     { label: 'Pagada',    cls: 'bg-success/10 text-success' },
+  voided:   { label: 'Anulada',   cls: 'bg-danger/10 text-danger' },
 };
 
 /* ── Helpers ── */
@@ -152,15 +152,15 @@ export function BuildingDetailPage() {
         >
           &larr; Volver
         </button>
-        <Link to="/buildings" className="text-[13px] text-muted hover:text-brand">
+        <Link to="/buildings" className="text-sm text-muted hover:text-foreground">
           Edificios
         </Link>
-        <span className="text-[11px] text-subtle">/</span>
-        <span className="text-[13px] font-semibold text-foreground">
+        <span className="text-xs text-subtle">/</span>
+        <span className="text-sm font-semibold text-foreground">
           {building?.name ?? '—'}
         </span>
         {building?.address && (
-          <span className="text-[11px] text-subtle">— {building.address}</span>
+          <span className="text-xs text-subtle">— {building.address}</span>
         )}
       </div>
 
@@ -208,7 +208,7 @@ export function BuildingDetailPage() {
           <Card className="flex min-h-0 flex-1 flex-col" noPadding>
             <div className="flex items-center justify-between px-6 pt-4 pb-2">
               <h2 className="text-sm font-semibold text-foreground">Facturas del edificio</h2>
-              <span className="text-[11px] text-muted">{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-muted">{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
             </div>
             <DataWidget
               phase={invoicesQs.phase === 'loading' ? 'ready' : invoicesQs.phase}
@@ -258,7 +258,7 @@ export function BuildingDetailPage() {
                           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                             <InvoicePdfDownloadLink
                               invoiceId={inv.id}
-                              className="text-brand hover:opacity-70"
+                              className="text-foreground hover:opacity-70"
                               title="Descargar PDF"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -268,7 +268,7 @@ export function BuildingDetailPage() {
                             <button
                               type="button"
                               onClick={() => setPreviewInvoiceId(inv.id)}
-                              className="text-brand hover:opacity-70"
+                              className="text-foreground hover:opacity-70"
                               title="Previsualizar PDF"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -306,7 +306,7 @@ export function BuildingDetailPage() {
         <Card className="flex min-h-0 flex-1 flex-col" noPadding>
           <div className="flex items-center justify-between px-6 pt-4 pb-2">
             <h2 className="text-sm font-semibold text-foreground">Medidores</h2>
-            <span className="text-[11px] text-muted">{meters.length} medidor{meters.length !== 1 ? 'es' : ''}</span>
+            <span className="text-xs text-muted">{meters.length} medidor{meters.length !== 1 ? 'es' : ''}</span>
           </div>
           <DataWidget
             phase={metersQs.phase === 'loading' ? 'ready' : metersQs.phase}
@@ -346,7 +346,7 @@ export function BuildingDetailPage() {
                     <Td>{m.model ?? '—'}</Td>
                     <Td>
                       <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        m.isActive ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
+                        m.isActive ? 'bg-success/10 text-success' : 'bg-raised text-muted'
                       }`}>
                         {m.isActive ? 'Activo' : 'Inactivo'}
                       </span>
@@ -477,12 +477,12 @@ function Td({ children, className = '' }: Readonly<{ children?: React.ReactNode;
 
 function ThSm({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-muted">
+    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
       {children}
     </th>
   );
 }
 
 function TdSm({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <td className={`whitespace-nowrap px-3 py-2 text-[12px] text-foreground ${className}`}>{children}</td>;
+  return <td className={`whitespace-nowrap px-3 py-2 text-xs text-foreground ${className}`}>{children}</td>;
 }

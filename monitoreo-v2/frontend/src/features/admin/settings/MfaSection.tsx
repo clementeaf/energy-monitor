@@ -83,15 +83,15 @@ export function MfaSection(): ReactElement {
 
         {/* MFA enabled — show status + disable */}
         {mfaEnabled && !setupData && (
-          <div className="flex items-center justify-between rounded-lg bg-green-50 p-4">
+          <div className="flex items-center justify-between rounded-lg bg-success/10 p-4">
             <div>
-              <p className="font-medium text-green-800">MFA habilitado</p>
-              <p className="text-sm text-green-600">Tu cuenta está protegida con segundo factor.</p>
+              <p className="font-medium text-success">MFA habilitado</p>
+              <p className="text-sm text-success">Tu cuenta está protegida con segundo factor.</p>
             </div>
             <button
               type="button"
               onClick={() => setDisableOpen(true)}
-              className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+              className="rounded-md border border-danger/50 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10"
             >
               Desactivar
             </button>
@@ -155,7 +155,7 @@ export function MfaSection(): ReactElement {
                   Cancelar
                 </button>
               </div>
-              {verifyError && <p className="mt-1 text-sm text-red-600">{verifyError}</p>}
+              {verifyError && <p className="mt-1 text-sm text-danger">{verifyError}</p>}
             </div>
           </div>
         )}

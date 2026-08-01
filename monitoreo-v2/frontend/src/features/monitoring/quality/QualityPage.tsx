@@ -113,7 +113,7 @@ export function QualityPage() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex-1 min-w-[140px] rounded-lg bg-background p-4 shadow-sm ring-1 ring-border">
               <div className="h-3 w-24 rounded bg-raised" />
-              <div className="mt-2 h-6 w-16 rounded bg-gray-300" />
+              <div className="mt-2 h-6 w-16 rounded bg-border" />
               <div className="mt-1 h-3 w-20 rounded bg-raised" />
             </div>
           ))}
@@ -272,9 +272,9 @@ function ThresholdCard({ label, value, threshold, ok }: {
   label: string; value: string; threshold: string; ok: boolean;
 }) {
   return (
-    <div className={`flex-1 min-w-[140px] rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-background ring-border' : 'bg-red-50 ring-red-200'}`}>
+    <div className={`flex-1 min-w-[140px] rounded-lg p-4 shadow-sm ring-1 ${ok ? 'bg-background ring-border' : 'bg-danger/10 ring-red-200'}`}>
       <p className="text-xs font-medium text-muted">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${ok ? 'text-foreground' : 'text-red-600'}`}>{value}</p>
+      <p className={`mt-1 text-lg font-semibold ${ok ? 'text-foreground' : 'text-danger'}`}>{value}</p>
       <p className="text-xs text-subtle">Umbral: {threshold}</p>
     </div>
   );
@@ -291,10 +291,10 @@ function ChartCard({ title, children }: Readonly<{ title: string; children: Reac
 
 function SeverityDot({ severity }: Readonly<{ severity: string }>) {
   const colors: Record<string, string> = {
-    critical: 'bg-red-500',
-    high: 'bg-orange-500',
-    medium: 'bg-yellow-500',
-    low: 'bg-blue-500',
+    critical: 'bg-danger',
+    high: 'bg-warning',
+    medium: 'bg-warning/100',
+    low: 'bg-info/100',
   };
-  return <span className={`inline-block size-2 rounded-full ${colors[severity] ?? 'bg-gray-400'}`} />;
+  return <span className={`inline-block size-2 rounded-full ${colors[severity] ?? 'bg-subtle'}`} />;
 }

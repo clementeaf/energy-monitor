@@ -192,7 +192,7 @@ export function GenerationSitePage() {
               key={b.id}
               type="button"
               onClick={() => { navigate(`/monitoring/generation/${b.id}`); }}
-              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-brand"
+              className="rounded-lg bg-background p-4 text-left shadow-sm ring-1 ring-border transition-colors hover:ring-foreground"
             >
               <p className="font-medium text-foreground">{b.name}</p>
               <p className="text-xs text-muted">{b.code}</p>
@@ -225,7 +225,7 @@ export function GenerationSitePage() {
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="panel p-4 shadow-sm">
                 <div className="h-3 w-24 rounded bg-raised" />
-                <div className="mt-2 h-6 w-20 rounded bg-gray-300" />
+                <div className="mt-2 h-6 w-20 rounded bg-border" />
                 <div className="mt-1 h-3 w-32 rounded bg-raised" />
               </div>
             ))}
@@ -234,7 +234,7 @@ export function GenerationSitePage() {
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="panel p-4 shadow-sm">
                 <div className="h-3 w-24 rounded bg-raised" />
-                <div className="mt-2 h-6 w-28 rounded bg-gray-300" />
+                <div className="mt-2 h-6 w-28 rounded bg-border" />
                 <div className="mt-1 h-3 w-36 rounded bg-raised" />
               </div>
             ))}
@@ -274,7 +274,7 @@ export function GenerationSitePage() {
       </div>
 
       {genCount === 0 && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
           No hay medidores marcados como generacion en este edificio. Asigne tipo (p. ej. solar o generation) en
           Medidores o use la vista solo para curva de carga.
         </div>

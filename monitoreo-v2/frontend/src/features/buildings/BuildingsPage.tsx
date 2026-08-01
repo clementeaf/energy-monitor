@@ -198,7 +198,7 @@ function StatusBadge({ active }: Readonly<{ active: boolean }>) {
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        active ? 'bg-green-100 text-green-700' : 'bg-raised text-muted'
+        active ? 'bg-success/10 text-success' : 'bg-raised text-muted'
       }`}
     >
       {active ? 'Activo' : 'Inactivo'}
@@ -208,7 +208,7 @@ function StatusBadge({ active }: Readonly<{ active: boolean }>) {
 
 function ActionBtn({ label, onClick, variant = 'default' }: Readonly<{ label: string; onClick: () => void; variant?: 'default' | 'danger' }>) {
   const cls = variant === 'danger'
-    ? 'text-red-600 hover:bg-red-50'
+    ? 'text-danger hover:bg-danger/10'
     : 'text-muted hover:bg-surface';
   return (
     <button type="button" onClick={onClick} className={`rounded px-2 py-1 text-xs font-medium ${cls}`}>

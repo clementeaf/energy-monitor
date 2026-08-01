@@ -15,7 +15,7 @@ interface PillToggleProps<T extends string> {
 }
 
 const SIZE_CLS: Record<'sm' | 'md', { track: string; item: string }> = {
-  sm: { track: 'p-0.5', item: 'px-2.5 py-1 text-[11px]' },
+  sm: { track: 'p-0.5', item: 'px-2.5 py-1 text-xs' },
   md: { track: 'p-1', item: 'px-3.5 py-1.5 text-xs' },
 };
 

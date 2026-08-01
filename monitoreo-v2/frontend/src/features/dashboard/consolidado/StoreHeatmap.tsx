@@ -6,7 +6,7 @@ import type { EnrichedBuilding } from './consolidado-utils';
 const HEATMAP_COLS = 6;
 const HEATMAP_ROWS = 3;
 const HEATMAP_TOTAL = HEATMAP_COLS * HEATMAP_ROWS;
-const HEAT_COLORS = ['bg-emerald-200', 'bg-emerald-300', 'bg-yellow-200', 'bg-amber-300', 'bg-orange-300', 'bg-red-300'];
+const HEAT_COLORS = ['bg-success/20', 'bg-success/30', 'bg-warning/20', 'bg-warning/30', 'bg-warning/40', 'bg-danger/30'];
 
 export function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding[] }>) {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding
         const colorIdx = Math.min(HEAT_COLORS.length - 1, Math.floor(ratio * HEAT_COLORS.length));
         result.push({ id: e.building.id, label: e.building.name, power: e.powerKw, colorClass: HEAT_COLORS[colorIdx], status: e.status });
       } else {
-        result.push({ id: null, label: '—', power: 0, colorClass: 'bg-gray-100', status: 'nodata' as EnergyStatus });
+        result.push({ id: null, label: '—', power: 0, colorClass: 'bg-surface', status: 'nodata' as EnergyStatus });
       }
     }
     return result;
@@ -36,7 +36,7 @@ export function StoreHeatmap({ enriched }: Readonly<{ enriched: EnrichedBuilding
           title={`${cell.label} — ${cell.power.toFixed(1)} kW`}
           onClick={() => cell.id && navigate(`/buildings/${cell.id}`)}
         >
-          <p className="truncate text-[9px] font-medium text-foreground/80">{cell.label}</p>
+          <p className="truncate text-xs font-medium text-foreground/80">{cell.label}</p>
           {cell.power > 0 && (
             <p className="text-[8px] text-foreground/60">{cell.power.toFixed(0)} kW</p>
           )}

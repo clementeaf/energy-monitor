@@ -55,7 +55,7 @@ export function DaySummaryTable({ readings, alertTimestamps, meterId }: Readonly
                 <Td>{d.count}</Td>
                 <Td>
                   {d.alertCount > 0 ? (
-                    <Link to={`/alerts?meterId=${meterId}&date=${d.day}`} className="text-red-500 underline hover:text-red-400">
+                    <Link to={`/alerts?meterId=${meterId}&date=${d.day}`} className="text-danger underline hover:text-danger">
                       {d.alertCount}
                     </Link>
                   ) : '—'}
@@ -105,7 +105,7 @@ function Th({ children, colSpan }: Readonly<{ children?: React.ReactNode; colSpa
 }
 
 function ThSub({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <th className="px-3 py-1 text-left text-[10px] font-medium text-subtle">{children}</th>;
+  return <th className="px-3 py-1 text-left text-xs font-medium text-subtle">{children}</th>;
 }
 
 function Td({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {

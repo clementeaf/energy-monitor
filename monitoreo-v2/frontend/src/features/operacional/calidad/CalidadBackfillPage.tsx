@@ -33,9 +33,9 @@ function deriveSemaphore(pct: number): QualityRow['semaphore'] {
 }
 
 const SEMAPHORE_DOT: Record<string, string> = {
-  green: 'bg-emerald-500',
-  yellow: 'bg-amber-500',
-  red: 'bg-red-500',
+  green: 'bg-success/100',
+  yellow: 'bg-warning',
+  red: 'bg-danger',
 };
 
 function buildQualityRows(
@@ -234,7 +234,7 @@ export function CalidadBackfillPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
@@ -243,12 +243,12 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Scorecard de calidad por mall */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
-          <p className="shrink-0 text-[11px] text-muted">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
-          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
+          <p className="shrink-0 text-xs text-muted">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% Reales</th>
                   <th className="px-2 py-1.5 text-right">% Estimadas</th>
@@ -275,7 +275,7 @@ export function CalidadBackfillPage() {
                         <td className="px-2 py-1.5 text-right text-muted">{row.estimatedPct.toFixed(1)}%</td>
                         <td className="px-2 py-1.5 text-right text-muted">{row.cnrPct.toFixed(1)}%</td>
                         <td className="px-2 py-1.5 text-right text-muted">{row.realPct >= 95 ? '100%' : `${(row.realPct + (100 - row.realPct) * 0.3).toFixed(0)}%`}</td>
-                        <td className={`px-2 py-1.5 text-center font-medium ${row.trend === '↓' ? 'text-red-600' : row.trend === '↑' ? 'text-emerald-600' : 'text-muted'}`}>{row.trend}</td>
+                        <td className={`px-2 py-1.5 text-center font-medium ${row.trend === '↓' ? 'text-danger' : row.trend === '↑' ? 'text-success' : 'text-muted'}`}>{row.trend}</td>
                       </tr>
                     );
                   })}
@@ -287,8 +287,8 @@ export function CalidadBackfillPage() {
 
         {/* Histograma de calidad — 30 días */}
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
-          <p className="shrink-0 text-[11px] text-muted">área apilada por día: real / estimado / CNR / faltante</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
+          <p className="shrink-0 text-xs text-muted">área apilada por día: real / estimado / CNR / faltante</p>
           {(() => {
             const hasRealBars = histogramBars.some((b) => b.realPct > 0);
             const displayBars = hasRealBars ? histogramBars : PLACEHOLDER_HISTOGRAM_30D;
@@ -297,20 +297,20 @@ export function CalidadBackfillPage() {
               <div className={`mt-2 flex min-h-0 flex-1 items-end gap-[1px] ${isPlaceholder ? 'opacity-70' : ''}`}>
                 {displayBars.map((b) => (
                   <div key={b.label} className="flex flex-1 flex-col justify-end" style={{ height: '100%' }} title={`${b.label}: ${b.realPct.toFixed(0)}% real`}>
-                    <div className="w-full bg-red-200" style={{ height: `${b.missingPct}%` }} />
-                    <div className="w-full bg-blue-200" style={{ height: `${b.cnrPct}%` }} />
-                    <div className="w-full bg-amber-200" style={{ height: `${b.estimatedPct}%` }} />
-                    <div className="w-full rounded-b bg-emerald-300" style={{ height: `${b.realPct}%` }} />
+                    <div className="w-full bg-danger/20" style={{ height: `${b.missingPct}%` }} />
+                    <div className="w-full bg-info/20" style={{ height: `${b.cnrPct}%` }} />
+                    <div className="w-full bg-warning/20" style={{ height: `${b.estimatedPct}%` }} />
+                    <div className="w-full rounded-b bg-success/30" style={{ height: `${b.realPct}%` }} />
                   </div>
                 ))}
               </div>
             );
           })()}
-          <div className="mt-2 flex shrink-0 items-center gap-3 text-[9px] text-muted">
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-emerald-300" /> Real</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-amber-200" /> Estimado</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-200" /> CNR</span>
-            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-200" /> Faltante</span>
+          <div className="mt-2 flex shrink-0 items-center gap-3 text-xs text-muted">
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-success/30" /> Real</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-warning/20" /> Estimado</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-info/20" /> CNR</span>
+            <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-danger/20" /> Faltante</span>
           </div>
         </div>
       </div>
@@ -319,12 +319,12 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Panel de backfill activo */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
-          <p className="shrink-0 text-[11px] text-muted">procesos en curso · % completado y ETA</p>
-          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
+          <p className="shrink-0 text-xs text-muted">procesos en curso · % completado y ETA</p>
+          <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                   <th className="px-2 py-1.5">Medidor</th>
                   <th className="px-2 py-1.5">Tipo de gap</th>
                   <th className="px-2 py-1.5">Período a reponer</th>
@@ -347,7 +347,7 @@ export function CalidadBackfillPage() {
                             <td className="px-2 py-1.5 text-muted">{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}</td>
                             <td className="px-2 py-1.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
+                                <div className="h-1.5 w-16 rounded-full bg-surface"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
                                 <span className="font-medium text-foreground">{pct}%</span>
                               </div>
                             </td>
@@ -362,7 +362,7 @@ export function CalidadBackfillPage() {
                           <td className="px-2 py-1.5 text-muted">{job.fromLabel} — {job.toLabel}</td>
                           <td className="px-2 py-1.5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <div className="h-1.5 w-16 rounded-full bg-gray-200"><div className="h-full rounded-full bg-brand" style={{ width: `${job.pct}%` }} /></div>
+                              <div className="h-1.5 w-16 rounded-full bg-surface"><div className="h-full rounded-full bg-brand" style={{ width: `${job.pct}%` }} /></div>
                               <span className="font-medium text-foreground">{job.pct}%</span>
                             </div>
                           </td>
@@ -374,15 +374,15 @@ export function CalidadBackfillPage() {
               </table>
             </div>
           </div>
-          <button type="button" className="mt-2 shrink-0 self-start rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">
+          <button type="button" className="mt-2 shrink-0 self-start rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition-colors hover:bg-foreground/90">
             Lanzar backfill manual
           </button>
         </div>
 
         {/* Alertas de degradación de calidad */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
-          <p className="shrink-0 text-[11px] text-muted">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
+          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
+          <p className="shrink-0 text-xs text-muted">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
               {degradedMeters.length > 0
@@ -393,19 +393,19 @@ export function CalidadBackfillPage() {
                     const buildingName = buildings.find((b) => b.id === meter.buildingId)?.name ?? '';
                     const cause = gapH && gapH > 24 ? 'comunicación perdida' : gapH ? 'dato tardío' : 'causa n/d';
                     return (
-                      <li key={meter.id} className="flex items-start gap-2 text-[11px]">
-                        <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${deltaPct > 10 ? 'bg-red-500' : deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                      <li key={meter.id} className="flex items-start gap-2 text-xs">
+                        <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${deltaPct > 10 ? 'bg-danger' : deltaPct > 5 ? 'bg-warning' : 'bg-subtle'}`} />
                         <p className="text-foreground">
-                          <span className="font-medium text-red-600">-{deltaPct}%</span> · Medidor {meter.code} {buildingName} — cae a {Math.max(70, 100 - deltaPct * 2)}% reales · causa: {cause}
+                          <span className="font-medium text-danger">-{deltaPct}%</span> · Medidor {meter.code} {buildingName} — cae a {Math.max(70, 100 - deltaPct * 2)}% reales · causa: {cause}
                         </p>
                       </li>
                     );
                   })
                 : PLACEHOLDER_DEGRADED_METERS.map((item) => (
-                    <li key={item.id} className="flex items-start gap-2 text-[11px] opacity-70">
-                      <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${item.deltaPct > 10 ? 'bg-red-500' : item.deltaPct > 5 ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                    <li key={item.id} className="flex items-start gap-2 text-xs opacity-70">
+                      <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${item.deltaPct > 10 ? 'bg-danger' : item.deltaPct > 5 ? 'bg-warning' : 'bg-subtle'}`} />
                       <p className="text-foreground">
-                        <span className="font-medium text-red-600">-{item.deltaPct}%</span> · Medidor {item.code} {item.buildingName} — cae a {Math.max(70, 100 - item.deltaPct * 2)}% reales · causa: {item.cause}
+                        <span className="font-medium text-danger">-{item.deltaPct}%</span> · Medidor {item.code} {item.buildingName} — cae a {Math.max(70, 100 - item.deltaPct * 2)}% reales · causa: {item.cause}
                       </p>
                     </li>
                   ))

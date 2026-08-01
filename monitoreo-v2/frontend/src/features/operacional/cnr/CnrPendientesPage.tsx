@@ -29,8 +29,8 @@ interface CnrRecord {
 /* ── Status styling ── */
 
 const STATUS_BADGE: Record<CnrStatus, string> = {
-  pendiente: 'bg-amber-100 text-amber-700',
-  'en revisión': 'bg-blue-100 text-blue-700',
+  pendiente: 'bg-warning/10 text-warning',
+  'en revisión': 'bg-info/10 text-info',
 };
 
 /* ── Gap thresholds ── */
@@ -243,7 +243,7 @@ export function CnrPendientesPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
         <span className="font-semibold text-foreground">Filtros:</span>
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
@@ -251,38 +251,38 @@ export function CnrPendientesPage() {
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
-          <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{totalOpen}</p>
-          <p className="text-[11px] text-muted">a la espera de resolución</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
+          <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-warning' : 'text-success'}`}>{totalOpen}</p>
+          <p className="text-xs text-muted">a la espera de resolución</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
-          <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-red-600' : 'text-foreground'}`}>{over7d}</p>
-          <p className="text-[11px] text-muted">badge de alerta de antigüedad</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
+          <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-danger' : 'text-foreground'}`}>{over7d}</p>
+          <p className="text-xs text-muted">badge de alerta de antigüedad</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{ingestedToday}</p>
-          <p className="text-[11px] text-muted">nuevas en el turno</p>
+          <p className="text-xs text-muted">nuevas en el turno</p>
         </div>
       </div>
 
       {/* Action bar */}
       <div className="flex shrink-0 gap-2">
-        <button type="button" className="rounded-lg bg-foreground px-4 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/90">Asignar responsable</button>
-        <button type="button" className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Cambiar estado</button>
-        <button type="button" className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Agregar comentario</button>
-        <button type="button" onClick={handleExportCsv} className="rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-foreground transition-colors hover:bg-surface">Exportar CNR a CSV</button>
+        <button type="button" className="rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition-colors hover:bg-foreground/90">Asignar responsable</button>
+        <button type="button" className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">Cambiar estado</button>
+        <button type="button" className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">Agregar comentario</button>
+        <button type="button" onClick={handleExportCsv} className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface">Exportar CNR a CSV</button>
       </div>
 
       {/* Tabla de CNR */}
       <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
-        <p className="shrink-0 text-[11px] text-muted">fila expandible: detalle, justificación e historial</p>
-        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-[11px]">
+        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
+        <p className="shrink-0 text-xs text-muted">fila expandible: detalle, justificación e historial</p>
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-[12px] font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Medidor</th>
                 <th className="px-2 py-1.5">Mall</th>
@@ -338,7 +338,7 @@ function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readon
         style={{ animationDelay: `${index * 25}ms` }}
         onClick={onToggle}
       >
-        <td className="px-2 py-1.5 font-mono text-[10px] text-muted">{cnr.id}</td>
+        <td className="px-2 py-1.5 font-mono text-xs text-muted">{cnr.id}</td>
         <td className="px-2 py-1.5 font-medium text-foreground">{cnr.meterName}</td>
         <td className="px-2 py-1.5 text-muted">{cnr.buildingName}</td>
         <td className="px-2 py-1.5 text-muted">
@@ -348,7 +348,7 @@ function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readon
         <td className="px-2 py-1.5 text-muted">{cnr.realCnrId ? '—' : 'auto'}</td>
         <td className="px-2 py-1.5 text-muted">{new Date(cnr.lastReading).toLocaleDateString('es-CL')}</td>
         <td className="px-2 py-1.5 text-center">
-          <span className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-medium ${STATUS_BADGE[cnr.status]}`}>
+          <span className={`inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${STATUS_BADGE[cnr.status]}`}>
             {cnr.status}
           </span>
         </td>
@@ -359,7 +359,7 @@ function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readon
       {isExpanded && (
         <tr className="bg-surface/50">
           <td colSpan={9} className="px-6 py-3">
-            <div className="space-y-2 text-[12px]">
+            <div className="space-y-2 text-xs">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                 <div><span className="font-medium text-muted">Meter ID:</span> <span className="font-mono text-foreground">{cnr.meterId}</span></div>
                 <div><span className="font-medium text-muted">Edificio:</span> <span className="text-foreground">{cnr.buildingName}</span></div>
@@ -378,12 +378,12 @@ function CnrRow({ cnr, isExpanded, onToggle, onUpdateStatus, index = 0 }: Readon
               <div className="flex gap-2 pt-1">
                 {cnr.realCnrId && onUpdateStatus ? (
                   <>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'in_review'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-brand hover:bg-surface">En revisión</button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'approved'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-emerald-600 hover:bg-emerald-50">Aprobar</button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'rejected'); }} className="rounded-md border border-border px-2 py-1 text-[10px] text-red-600 hover:bg-red-50">Rechazar</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'in_review'); }} className="rounded-md border border-border px-2 py-1 text-xs text-foreground hover:bg-surface">En revisión</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'approved'); }} className="rounded-md border border-border px-2 py-1 text-xs text-success hover:bg-success/10">Aprobar</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onUpdateStatus(cnr.realCnrId!, 'rejected'); }} className="rounded-md border border-border px-2 py-1 text-xs text-danger hover:bg-danger/10">Rechazar</button>
                   </>
                 ) : (
-                  <span className="text-[10px] italic text-muted">Auto-detectado — registrar vía Ingreso CNR para gestionar.</span>
+                  <span className="text-xs italic text-muted">Auto-detectado — registrar vía Ingreso CNR para gestionar.</span>
                 )}
               </div>
             </div>

@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.51.0] - 2026-08-01 — UX REDISEÑO GIGA.AI + THEME SYSTEM
+
+### Changed (Frontend — UX Rediseño)
+- **Navegación unificada** — 5 sidebars por perfil reemplazados por nav única agrupada (7 grupos: Visión General, Operaciones, Técnico, Facturación, Analítica, Auditoría, Administración). Permisos ocultan items, no el perfil. `unified-nav.ts` con `getVisibleNav()` + 33 tests.
+- **Sidebar toggle** — Hamburger en header eliminado + botón "Colapsar" eliminado. Reemplazados por chevron en borde del sidebar, siempre visible.
+- **Brand removido** — Bloque "energy.monitor" eliminado del sidebar.
+- **Theme dark mode arreglado** — Bordes `#2e2e33` → `#3a3a40` (+50% contraste). Texto muted `#8a8a92` → `#9f9fa8`. Sidebar border crema visible.
+- **706 colores hardcodeados → tokens semánticos** — `bg-white` → `bg-background`, `text-emerald-600` → `text-success`, `bg-red-100` → `bg-danger/10`, etc. Dark/light theme respetado en todas las vistas.
+- **Tamaños texto** — Piso subido de 9-11px a 12px (`text-xs`). `text-[13px]` → `text-sm` (14px). Nada por debajo de 12px.
+- **Focus rings** — `focus:border-brand` y `focus:ring-brand` (azul ilegible en dark) reemplazados por `focus:border-foreground` / `focus:ring-border`.
+- **`text-brand` eliminado** — Links, tabs activos, items seleccionados: `text-brand` (#3a5b1e, ilegible en dark) → `text-foreground`.
+- **Selector de rol** — Ya no trunca nombre con "..." (`max-w-[140px] truncate` → `whitespace-nowrap`).
+
+### Changed (Panel Consolidado)
+- **KPI grid 2×2** — Strip horizontal de 4 celdas comprimidas → grilla 2×2 legible.
+- **Building list** — Heatmap de rectángulos vacíos reemplazado por lista rankeada: nombre, dirección, consumo kW, medidores, m², W/m², alertas. Click selecciona building en mapa.
+- **Mapa ↔ lista sincronizados** — Seleccionar building en lista hace `flyTo` + popup en mapa. Seleccionar pin en mapa marca en lista.
+- **Indoor planimetría** — Al seleccionar building con indoor (MapVx), mapa muestra planimetría con tiles PBF. Match por `externalSiteId` o nombre exacto.
+- **Semáforo con conteo** — Leyenda del mapa ahora muestra cantidad de buildings por estado.
+- **Eventos recientes** — Tabla compacta con severidad (URGENTE/ALERTA), click selecciona building del evento. Sin navegación a vistas inexistentes.
+- **Popups legibles** — Nombre 16px bold, datos 14px. Colores de contraste alto.
+- **País deshabilitado** — Perú y Colombia visibles pero no seleccionables (sin locales).
+- **"Volver al portafolio"** — Botón visible para deseleccionar building y volver a KPIs portafolio.
+- **Fallbacks corregidos** — Buildings placeholder de Mallplaza/Cencosud → nombres reales PASA.
+
+### Database
+- **Migración 61** — `pasa-buildings-real`: 5 buildings corregidos a malls reales de Parque Arauco S.A. con coordenadas, áreas y `external_site_id` para link con MapVx indoor.
+
+### Removed
+- `profile-nav.ts` / `profile-nav.test.ts` — Código muerto, reemplazado por `unified-nav.ts`.
+- Bloque "Calidad del dato" con data hardcodeada falsa del PortfolioPanel.
+
+---
+
 ## [2.50.0] - 2026-07-31 — GAPS EMMA + USABILIDAD FRONTEND
 
 ### Added (Backend — Gaps funcionales vs EMMA Energy)

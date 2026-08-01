@@ -76,7 +76,7 @@ function ReportRow({
           href={exportHref}
           target="_blank"
           rel="noreferrer"
-          className="mr-3 text-sm font-medium text-brand hover:underline"
+          className="mr-3 text-sm font-medium text-foreground hover:underline"
         >
           Descargar
         </a>
@@ -84,7 +84,7 @@ function ReportRow({
           <button
             type="button"
             onClick={onDelete}
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm text-danger hover:underline"
           >
             Eliminar
           </button>
@@ -259,7 +259,7 @@ export function ReportsPage() {
                             })
                           }
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            row.isActive ? 'bg-green-100 text-green-800' : 'bg-raised text-muted'
+                            row.isActive ? 'bg-success/10 text-success' : 'bg-raised text-muted'
                           }`}
                         >
                           {row.isActive ? 'Sí' : 'No'}
@@ -276,7 +276,7 @@ export function ReportsPage() {
                         <button
                           type="button"
                           onClick={() => setDeletingScheduled(row)}
-                          className="text-sm text-red-600 hover:underline"
+                          className="text-sm text-danger hover:underline"
                         >
                           Eliminar
                         </button>

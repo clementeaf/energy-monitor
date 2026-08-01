@@ -5,10 +5,10 @@ import type { DeletionRequestItem } from '../../../services/endpoints';
 import { PageHeader } from '../../../components/ui/PageHeader';
 
 const STATUS_LABELS: Record<string, { text: string; cls: string }> = {
-  pending: { text: 'Pendiente', cls: 'bg-amber-100 text-amber-800' },
-  approved: { text: 'Aprobada', cls: 'bg-green-100 text-green-800' },
+  pending: { text: 'Pendiente', cls: 'bg-warning/10 text-warning' },
+  approved: { text: 'Aprobada', cls: 'bg-success/10 text-success' },
   rejected: { text: 'Rechazada', cls: 'bg-raised text-muted' },
-  executed: { text: 'Ejecutada', cls: 'bg-red-100 text-red-800' },
+  executed: { text: 'Ejecutada', cls: 'bg-danger/10 text-danger' },
 };
 
 export function DeletionRequestsPage() {
@@ -56,8 +56,8 @@ export function DeletionRequestsPage() {
 
       {/* Pending requests */}
       {pending.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <h2 className="mb-3 font-medium text-amber-900">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <h2 className="mb-3 font-medium text-warning">
             Pendientes ({pending.length})
           </h2>
           <div className="space-y-3">
@@ -132,7 +132,7 @@ export function DeletionRequestsPage() {
                         <button
                           type="button"
                           onClick={() => setConfirmExecute(item.id)}
-                          className="text-xs font-medium text-red-600 hover:text-red-800"
+                          className="text-xs font-medium text-danger hover:text-danger"
                         >
                           Ejecutar eliminación
                         </button>
@@ -148,7 +148,7 @@ export function DeletionRequestsPage() {
 
       {/* Resolve modal */}
       {selected && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-foreground/50 p-4">
           <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
             <h3 className="text-2xl font-semibold tracking-tight text-foreground">Gestionar Solicitud</h3>
             <p className="mt-2 text-sm text-muted">
@@ -185,7 +185,7 @@ export function DeletionRequestsPage() {
                 type="button"
                 onClick={() => resolveMutation.mutate({ id: selected.id, status: 'approved' })}
                 disabled={resolveMutation.isPending}
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-background hover:bg-success/90 disabled:opacity-50"
               >
                 Aprobar
               </button>
@@ -196,9 +196,9 @@ export function DeletionRequestsPage() {
 
       {/* Execute confirmation */}
       {confirmExecute && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-foreground/50 p-4">
           <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-red-900">Ejecutar Eliminación</h3>
+            <h3 className="text-lg font-semibold text-danger">Ejecutar Eliminación</h3>
             <p className="mt-2 text-sm text-muted">
               Esta acción es <strong>irreversible</strong>. Los datos personales del usuario serán
               anonimizados permanentemente. Los registros de auditoría se conservan con referencia anonimizada.
@@ -215,7 +215,7 @@ export function DeletionRequestsPage() {
                 type="button"
                 onClick={() => executeMutation.mutate(confirmExecute)}
                 disabled={executeMutation.isPending}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-background hover:bg-danger/90 disabled:opacity-50"
               >
                 {executeMutation.isPending ? 'Anonimizando...' : 'Confirmar Eliminación'}
               </button>

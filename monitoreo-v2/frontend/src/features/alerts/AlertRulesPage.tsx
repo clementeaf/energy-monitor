@@ -20,10 +20,10 @@ import type { AlertRule, UpdateAlertRulePayload } from '../../types/alert';
 import { PageHeader } from '../../components/ui/PageHeader';
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-100 text-red-800',
-  high: 'bg-orange-100 text-orange-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  low: 'bg-blue-100 text-blue-800',
+  critical: 'bg-danger/10 text-danger',
+  high: 'bg-warning/10 text-warning',
+  medium: 'bg-warning/10 text-warning',
+  low: 'bg-info/10 text-info',
 };
 
 export function AlertRulesPage() {
@@ -87,7 +87,7 @@ export function AlertRulesPage() {
       </div>
 
       {evaluate.data && (
-        <div className="rounded-md bg-green-50 border border-green-200 px-4 py-2 text-sm text-green-800">
+        <div className="rounded-md bg-success/10 border border-green-200 px-4 py-2 text-sm text-success">
           Evaluacion completada: {evaluate.data.created} alertas creadas, {evaluate.data.autoResolved} auto-resueltas
         </div>
       )}
@@ -158,7 +158,7 @@ export function AlertRulesPage() {
                     type="button"
                     onClick={() => { handleToggle(rule); }}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      rule.isActive ? 'bg-brand' : 'bg-gray-300'
+                      rule.isActive ? 'bg-brand' : 'bg-border'
                     }`}
                   >
                     <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform ${
@@ -170,14 +170,14 @@ export function AlertRulesPage() {
                   <button
                     type="button"
                     onClick={() => { setEditingRule({ ...rule }); }}
-                    className="text-brand hover:underline text-xs mr-2"
+                    className="text-foreground hover:underline text-xs mr-2"
                   >
                     Editar
                   </button>
                   <button
                     type="button"
                     onClick={() => { if (confirm('Eliminar regla?')) deleteRule.mutate(rule.id); }}
-                    className="text-red-600 hover:underline text-xs"
+                    className="text-danger hover:underline text-xs"
                   >
                     Eliminar
                   </button>
@@ -191,7 +191,7 @@ export function AlertRulesPage() {
       {total > 0 && <p className="px-4 py-2 text-xs text-muted">Mostrando {visibleRules.length} de {total}</p>}
 
       {editingRule && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30">
           <div className="w-full max-w-lg rounded-lg bg-background p-6 shadow-xl space-y-4">
             <h2 className="text-lg font-semibold">
               Editar: {ALERT_TYPE_LABELS[editingRule.alertTypeCode] ?? editingRule.alertTypeCode}

@@ -260,10 +260,10 @@ export function TenantSettingsPage() {
                       Guardar Cambios
                     </Button>
                     {saved && (
-                      <span className="text-sm font-medium text-green-600">Guardado correctamente</span>
+                      <span className="text-sm font-medium text-success">Guardado correctamente</span>
                     )}
                     {updateMutation.isError && (
-                      <span className="text-sm text-red-600">Error al guardar. Intente nuevamente.</span>
+                      <span className="text-sm text-danger">Error al guardar. Intente nuevamente.</span>
                     )}
                   </div>
                 )}
@@ -317,7 +317,7 @@ export function TenantSettingsPage() {
                   </Field>
 
                   {(logoUrl || faviconUrl) && (
-                    <div className="flex items-center gap-4 rounded-md border border-gray-100 bg-surface p-3">
+                    <div className="flex items-center gap-4 rounded-md border border-border bg-surface p-3">
                       {logoUrl && (
                         <div className="text-center">
                           <img src={logoUrl} alt="Logo preview" className="mx-auto h-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -343,10 +343,10 @@ export function TenantSettingsPage() {
                       Guardar Cambios
                     </Button>
                     {saved && (
-                      <span className="text-sm font-medium text-green-600">Guardado correctamente</span>
+                      <span className="text-sm font-medium text-success">Guardado correctamente</span>
                     )}
                     {updateMutation.isError && (
-                      <span className="text-sm text-red-600">Error al guardar. Intente nuevamente.</span>
+                      <span className="text-sm text-danger">Error al guardar. Intente nuevamente.</span>
                     )}
                   </div>
                 )}
@@ -413,7 +413,7 @@ export function TenantSettingsPage() {
                         Guardar Operacion
                       </Button>
                       {operationalSaved && (
-                        <span className="text-sm font-medium text-green-600">Operacion guardada</span>
+                        <span className="text-sm font-medium text-success">Operacion guardada</span>
                       )}
                     </div>
                   )}
@@ -476,7 +476,7 @@ export function TenantSettingsPage() {
                         Guardar Seguridad
                       </Button>
                       {securitySaved && (
-                        <span className="text-sm font-medium text-green-600">Seguridad guardada</span>
+                        <span className="text-sm font-medium text-success">Seguridad guardada</span>
                       )}
                     </div>
                   )}

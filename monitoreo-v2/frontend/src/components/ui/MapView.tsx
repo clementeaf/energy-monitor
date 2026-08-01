@@ -316,10 +316,9 @@ export function MapView({
 
     markersRef.current = geoBuildings.map((b) => {
       const meta = buildingMeta?.get(b.id);
-      const popupContent = meta?.popupHtml ?? `<div style="font-family:Inter,system-ui,sans-serif;padding:4px 0">
-          <strong style="font-size:14px">${escapeHtml(b.name)}</strong>
-          ${b.address ? `<p style="margin:4px 0 0;font-size:12px;color:#666">${escapeHtml(b.address)}</p>` : ''}
-          <p style="margin:4px 0 0;font-size:11px;color:#999">${b.code}</p>
+      const popupContent = meta?.popupHtml ?? `<div style="font-family:Inter,system-ui,sans-serif;padding:8px 4px">
+          <strong style="font-size:16px;color:#111">${escapeHtml(b.name)}</strong>
+          ${b.address ? `<p style="margin:4px 0 0;font-size:14px;color:#333">${escapeHtml(b.address)}</p>` : ''}
         </div>`;
       const popup = new maplibregl.Popup({ offset: 25 }).setHTML(popupContent);
       const markerColor = meta?.color ?? '#22c55e';
@@ -396,9 +395,9 @@ export function MapView({
         ? `<p style="margin:4px 0 0;font-size:12px;color:#6366f1;font-weight:600">${formatArea(areaSqm)} m²</p>`
         : '';
 
-      const popup = new maplibregl.Popup({ offset: 30, maxWidth: '280px', className: 'store-popup' }).setHTML(
-        `<div style="font-family:Inter,system-ui,sans-serif;padding:10px 12px">
-          <strong style="font-size:14px;line-height:1.4;display:block">${escapeHtml(selectedPoint.label)}</strong>
+      const popup = new maplibregl.Popup({ offset: 30, maxWidth: '320px', className: 'store-popup' }).setHTML(
+        `<div style="font-family:Inter,system-ui,sans-serif;padding:12px 14px">
+          <strong style="font-size:16px;line-height:1.3;display:block;color:#111">${escapeHtml(selectedPoint.label)}</strong>
           ${areaText}
           ${selectedPoint.extraHtml ?? ''}
         </div>`,

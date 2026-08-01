@@ -16,15 +16,15 @@ interface ComponentStatus {
 }
 
 const HEALTH_DOT: Record<ComponentHealth, string> = {
-  ok: 'bg-emerald-500',
-  degraded: 'bg-amber-500',
-  down: 'bg-red-500',
+  ok: 'bg-success/100',
+  degraded: 'bg-warning',
+  down: 'bg-danger',
 };
 
 const HEALTH_BADGE: Record<ComponentHealth, string> = {
-  ok: 'bg-emerald-100 text-emerald-700',
-  degraded: 'bg-amber-100 text-amber-700',
-  down: 'bg-red-100 text-red-700',
+  ok: 'bg-success/10 text-success',
+  degraded: 'bg-warning/10 text-warning',
+  down: 'bg-danger/10 text-danger',
 };
 
 /* ── Page ── */
@@ -77,30 +77,30 @@ export function ObservabilidadPage() {
       {/* Header */}
       <div>
         <h1 className="text-[15px] font-semibold text-foreground">7.4 Observabilidad</h1>
-        <p className="text-[11px] text-muted">Estado operativo de la plataforma — uptime, latencia, errores, ingestión y salud de componentes</p>
+        <p className="text-xs text-muted">Estado operativo de la plataforma — uptime, latencia, errores, ingestión y salud de componentes</p>
       </div>
 
       {/* Row 1 — 4 KPI cards */}
       <div className="flex gap-3">
         <div className="panel flex-1 p-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
-          <p className="mt-0.5 text-[20px] font-semibold leading-tight text-emerald-600">{uptimeEst >= 99 ? '99,82%' : `${uptimeEst.toFixed(2)}%`}</p>
-          <p className="text-[10px] text-emerald-600">▲ sobre SLA 99,5%</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
+          <p className="mt-0.5 text-[20px] font-semibold leading-tight text-success">{uptimeEst >= 99 ? '99,82%' : `${uptimeEst.toFixed(2)}%`}</p>
+          <p className="text-xs text-success">▲ sobre SLA 99,5%</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-foreground">{latencyP50} ms</p>
-          <p className="text-[10px] text-muted">p50 · últimas 24h</p>
+          <p className="text-xs text-muted">p50 · últimas 24h</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Error rate</p>
-          <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${errorRate < 1 ? 'text-emerald-600' : 'text-red-600'}`}>{errorRate.toFixed(1)}%</p>
-          <p className="text-[10px] text-muted">(4xx+5xx) / total</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Error rate</p>
+          <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${errorRate < 1 ? 'text-success' : 'text-danger'}`}>{errorRate.toFixed(1)}%</p>
+          <p className="text-xs text-muted">(4xx+5xx) / total</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
-          <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-emerald-600' : 'text-amber-600'}`}>{latencyP95} ms</p>
-          <p className="text-[10px] text-muted">umbral &lt; 500 ms</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
+          <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-success' : 'text-warning'}`}>{latencyP95} ms</p>
+          <p className="text-xs text-muted">umbral &lt; 500 ms</p>
         </div>
       </div>
 
@@ -108,11 +108,11 @@ export function ObservabilidadPage() {
       <div className="flex gap-3">
         {/* Health dashboard */}
         <div className="panel flex-1 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Health dashboard — semáforo por componente</h3>
-          <p className="mb-2 text-[10px] text-muted">API / BD / cola de mensajes / ingestión / backfill</p>
-          <table className="w-full text-[11px]">
+          <h3 className="text-sm font-semibold text-foreground">Health dashboard — semáforo por componente</h3>
+          <p className="mb-2 text-xs text-muted">API / BD / cola de mensajes / ingestión / backfill</p>
+          <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-[10px] text-muted">
+              <tr className="border-b border-border text-left text-xs text-muted">
                 <th className="pb-1 font-medium">Componente</th>
                 <th className="pb-1 font-medium">Estado</th>
                 <th className="pb-1 font-medium">Latencia</th>
@@ -126,7 +126,7 @@ export function ObservabilidadPage() {
                   <td className="py-1.5">
                     <div className="flex items-center gap-1.5">
                       <span className={`inline-block size-2 rounded-full ${HEALTH_DOT[c.status]}`} />
-                      <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${HEALTH_BADGE[c.status]}`}>{c.status}</span>
+                      <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${HEALTH_BADGE[c.status]}`}>{c.status}</span>
                     </div>
                   </td>
                   <td className="py-1.5 text-muted">{c.latency}</td>
@@ -139,12 +139,12 @@ export function ObservabilidadPage() {
 
         {/* Métricas ingestión */}
         <div className="panel flex-1 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Métricas de ingestión de datos</h3>
-          <p className="mb-2 text-[10px] text-muted">Salud del flujo de datos hacia la plataforma</p>
-          <ul className="space-y-1.5 text-[11px]">
+          <h3 className="text-sm font-semibold text-foreground">Métricas de ingestión de datos</h3>
+          <p className="mb-2 text-xs text-muted">Salud del flujo de datos hacia la plataforma</p>
+          <ul className="space-y-1.5 text-xs">
             <li className="flex items-center justify-between">
               <span className="text-muted">Medidores reportando en el último ciclo</span>
-              <span className="font-semibold text-emerald-600">98,4%</span>
+              <span className="font-semibold text-success">98,4%</span>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted">Mensajes procesados / hora</span>
@@ -156,14 +156,14 @@ export function ObservabilidadPage() {
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted">Errores de parsing (24h)</span>
-              <span className="font-semibold text-amber-600">41 ▼</span>
+              <span className="font-semibold text-warning">41 ▼</span>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-muted">Anomalías detectadas automáticamente</span>
               <span className="font-semibold text-foreground">{alerts.length}</span>
             </li>
           </ul>
-          <p className="mt-3 text-[10px] text-muted">detección automática activa</p>
+          <p className="mt-3 text-xs text-muted">detección automática activa</p>
         </div>
       </div>
 
@@ -171,8 +171,8 @@ export function ObservabilidadPage() {
       <div className="flex gap-3">
         {/* Latencia por endpoint — line chart */}
         <div className="panel flex-1 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Latencia de API por endpoint</h3>
-          <p className="mb-2 text-[10px] text-muted">Últimas 24h / 7 días · líneas por endpoint</p>
+          <h3 className="text-sm font-semibold text-foreground">Latencia de API por endpoint</h3>
+          <p className="mb-2 text-xs text-muted">Últimas 24h / 7 días · líneas por endpoint</p>
           {(() => {
             const w = 260; const h = 80;
             const maxVal = Math.max(THRESHOLD_MS * 1.2, ...latencyData.map((d) => d.value));
@@ -186,7 +186,7 @@ export function ObservabilidadPage() {
               </svg>
             );
           })()}
-          <div className="mt-1 flex justify-between text-[9px] text-muted">
+          <div className="mt-1 flex justify-between text-xs text-muted">
             <span>{latencyData[0]?.label}</span>
             <span>{latencyData[latencyData.length - 1]?.label}</span>
           </div>
@@ -194,8 +194,8 @@ export function ObservabilidadPage() {
 
         {/* Tasa errores — bar chart */}
         <div className="panel flex-1 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Tasa de errores por tipo</h3>
-          <p className="mb-2 text-[10px] text-muted">4xx / 5xx · barras</p>
+          <h3 className="text-sm font-semibold text-foreground">Tasa de errores por tipo</h3>
+          <p className="mb-2 text-xs text-muted">4xx / 5xx · barras</p>
           {(() => {
             const maxVal = Math.max(0.1, ...errorData.map((d) => d.value));
             return (
@@ -206,7 +206,7 @@ export function ObservabilidadPage() {
               </div>
             );
           })()}
-          <div className="mt-1 flex justify-between text-[9px] text-muted">
+          <div className="mt-1 flex justify-between text-xs text-muted">
             <span>{errorData[0]?.label}</span>
             <span>{errorData[errorData.length - 1]?.label}</span>
           </div>
@@ -214,8 +214,8 @@ export function ObservabilidadPage() {
 
         {/* Throughput — area chart */}
         <div className="panel flex-1 p-3">
-          <h3 className="text-[13px] font-semibold text-foreground">Throughput de mensajes</h3>
-          <p className="mb-2 text-[10px] text-muted">Mensajes procesados · área</p>
+          <h3 className="text-sm font-semibold text-foreground">Throughput de mensajes</h3>
+          <p className="mb-2 text-xs text-muted">Mensajes procesados · área</p>
           {(() => {
             const w = 260; const h = 80;
             const maxVal = Math.max(1, ...throughputData.map((d) => d.value));
@@ -228,7 +228,7 @@ export function ObservabilidadPage() {
               </svg>
             );
           })()}
-          <div className="mt-1 flex justify-between text-[9px] text-muted">
+          <div className="mt-1 flex justify-between text-xs text-muted">
             <span>{throughputData[0]?.label}</span>
             <span>{throughputData[throughputData.length - 1]?.label}</span>
           </div>

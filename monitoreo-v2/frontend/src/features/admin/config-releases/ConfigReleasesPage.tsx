@@ -6,10 +6,10 @@ import { useAuditLogsQuery } from '../../../hooks/queries/useAuditLogsQuery';
 type ReleaseStatus = 'development' | 'qa' | 'approval' | 'production';
 
 const STATUS_BADGE: Record<ReleaseStatus, string> = {
-  development: 'bg-blue-100 text-blue-700',
-  qa: 'bg-amber-100 text-amber-700',
+  development: 'bg-info/10 text-info',
+  qa: 'bg-warning/10 text-warning',
   approval: 'bg-purple-100 text-purple-700',
-  production: 'bg-emerald-100 text-emerald-700',
+  production: 'bg-success/10 text-success',
 };
 
 const STATUS_LABEL: Record<ReleaseStatus, string> = {
@@ -124,24 +124,24 @@ export function ConfigReleasesPage() {
       {/* Header */}
       <div>
         <h1 className="text-lg font-semibold text-foreground">7.5 Config y Releases</h1>
-        <p className="text-[12px] text-muted">Pipeline de releases, control de despliegue e infraestructura como código</p>
+        <p className="text-xs text-muted">Pipeline de releases, control de despliegue e infraestructura como código</p>
       </div>
 
       {/* Row 1: Pipeline + Right column */}
       <div className="flex gap-4">
         {/* Left: Pipeline */}
         <div className="panel min-w-0 flex-1 p-4">
-          <h3 className="text-[13px] font-semibold text-foreground">Pipeline de releases</h3>
-          <p className="mb-3 text-[11px] text-muted">estado: En desarrollo → QA → Aprobación → Producción · fila expandible con diff y resultados de tests</p>
-          <table className="w-full text-[13px]">
+          <h3 className="text-sm font-semibold text-foreground">Pipeline de releases</h3>
+          <p className="mb-3 text-xs text-muted">estado: En desarrollo → QA → Aprobación → Producción · fila expandible con diff y resultados de tests</p>
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Versión</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Descripción de cambios</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Estado</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Tests QA</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Aprobaciones</th>
-                <th className="sticky top-0 bg-white px-3 py-2" />
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Versión</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Descripción de cambios</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Estado</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Tests QA</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Aprobaciones</th>
+                <th className="sticky top-0 bg-background px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -153,26 +153,26 @@ export function ConfigReleasesPage() {
                     onClick={() => setExpandedRow(expandedRow === r.version ? null : r.version)}
                   >
                     <td className="px-3 py-2 font-mono font-medium text-foreground">{r.version}</td>
-                    <td className="px-3 py-2 text-[12px] text-muted">{r.description}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{r.description}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[r.status]}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[r.status]}`}>
                         {STATUS_LABEL[r.status]}
                       </span>
                     </td>
-                    <td className={`px-3 py-2 text-[11px] ${r.testsQa.includes('✓') ? 'text-emerald-600' : 'text-muted'}`}>{r.testsQa}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{r.approvals}</td>
-                    <td className="px-3 py-2 text-[10px] text-brand">
+                    <td className={`px-3 py-2 text-xs ${r.testsQa.includes('✓') ? 'text-success' : 'text-muted'}`}>{r.testsQa}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{r.approvals}</td>
+                    <td className="px-3 py-2 text-xs text-foreground">
                       {r.diff ? (expandedRow === r.version ? '▲ cerrar' : '▼ diff') : ''}
                     </td>
                   </tr>
                   {expandedRow === r.version && r.diff && (
                     <tr key={`${r.version}-diff`}>
                       <td colSpan={6} className="bg-surface px-3 py-2">
-                        <pre className="overflow-x-auto rounded border border-border bg-[#0d1117] p-3 text-[11px] leading-5">
+                        <pre className="overflow-x-auto rounded border border-border bg-[#0d1117] p-3 text-xs leading-5">
                           {r.diff.map((line, li) => (
                             <div
                               key={li}
-                              className={line.startsWith('+') ? 'text-emerald-400' : line.startsWith('-') ? 'text-red-400' : 'text-gray-400'}
+                              className={line.startsWith('+') ? 'text-success' : line.startsWith('-') ? 'text-danger' : 'text-subtle'}
                             >
                               {line}
                             </div>
@@ -191,19 +191,19 @@ export function ConfigReleasesPage() {
         <div className="min-w-0 flex-1 flex flex-col gap-4">
           {/* Control de despliegue */}
           <div className="panel p-4">
-            <h3 className="text-[13px] font-semibold text-foreground">Control de despliegue</h3>
-            <p className="mb-3 text-[11px] text-muted">GATE: requiere aprobación de al menos un rol PASA configurado</p>
-            <ul className="mb-4 space-y-1.5 text-[12px] text-muted">
-              <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Etapas: build → deploy QA → aprobación → prod</li>
-              <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Logs de despliegue en tiempo real</li>
-              <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Rollback disponible a la versión anterior</li>
-              <li className="flex items-start gap-2"><span className="mt-0.5 text-brand">•</span>Ambientes QA/sandbox y Producción independientes</li>
+            <h3 className="text-sm font-semibold text-foreground">Control de despliegue</h3>
+            <p className="mb-3 text-xs text-muted">GATE: requiere aprobación de al menos un rol PASA configurado</p>
+            <ul className="mb-4 space-y-1.5 text-xs text-muted">
+              <li className="flex items-start gap-2"><span className="mt-0.5 text-foreground">•</span>Etapas: build → deploy QA → aprobación → prod</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 text-foreground">•</span>Logs de despliegue en tiempo real</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 text-foreground">•</span>Rollback disponible a la versión anterior</li>
+              <li className="flex items-start gap-2"><span className="mt-0.5 text-foreground">•</span>Ambientes QA/sandbox y Producción independientes</li>
             </ul>
             <div className="flex gap-2">
-              <button type="button" className="rounded-md bg-brand px-4 py-2 text-[13px] font-medium text-white hover:bg-brand/90">
+              <button type="button" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90">
                 Solicitar despliegue a producción
               </button>
-              <button type="button" className="rounded-md border border-border px-4 py-2 text-[13px] font-medium text-muted hover:bg-surface">
+              <button type="button" className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface">
                 Rollback
               </button>
             </div>
@@ -211,25 +211,25 @@ export function ConfigReleasesPage() {
 
           {/* Historial de despliegues */}
           <div className="panel p-4">
-            <h3 className="text-[13px] font-semibold text-foreground">Historial de despliegues</h3>
-            <p className="mb-3 text-[11px] text-muted">éxito / rollback · link a logs</p>
-            <table className="w-full text-[13px]">
+            <h3 className="text-sm font-semibold text-foreground">Historial de despliegues</h3>
+            <p className="mb-3 text-xs text-muted">éxito / rollback · link a logs</p>
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                  <th className="sticky top-0 bg-white px-3 py-2">Versión</th>
-                  <th className="sticky top-0 bg-white px-3 py-2">Fecha</th>
-                  <th className="sticky top-0 bg-white px-3 py-2">Responsable</th>
-                  <th className="sticky top-0 bg-white px-3 py-2">Resultado</th>
+                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <th className="sticky top-0 bg-background px-3 py-2">Versión</th>
+                  <th className="sticky top-0 bg-background px-3 py-2">Fecha</th>
+                  <th className="sticky top-0 bg-background px-3 py-2">Responsable</th>
+                  <th className="sticky top-0 bg-background px-3 py-2">Resultado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {deployHistory.map((d, i) => (
                   <tr key={`${d.version}-${i}`} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
-                    <td className="px-3 py-2 font-mono text-[12px] font-medium text-foreground">{d.version}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{d.date}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{d.responsible}</td>
+                    <td className="px-3 py-2 font-mono text-xs font-medium text-foreground">{d.version}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{d.date}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{d.responsible}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${d.result === 'éxito' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${d.result === 'éxito' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                         {d.result}
                       </span>
                     </td>
@@ -243,27 +243,27 @@ export function ConfigReleasesPage() {
 
       {/* Row 2: IaC diff viewer */}
       <div className="panel p-4">
-        <h3 className="text-[13px] font-semibold text-foreground">Configuración como código — diff viewer (IaC)</h3>
-        <p className="mb-3 text-[11px] text-muted">cambios versionados en git · link al commit correspondiente</p>
+        <h3 className="text-sm font-semibold text-foreground">Configuración como código — diff viewer (IaC)</h3>
+        <p className="mb-3 text-xs text-muted">cambios versionados en git · link al commit correspondiente</p>
         <div className="flex items-center gap-3 mb-3">
-          <span className="text-[11px] text-muted font-mono">commit <span className="text-brand">a3f9c12</span></span>
-          <span className="text-[11px] text-muted">·</span>
-          <span className="text-[11px] text-muted">c.falcone@hoktus.ai</span>
-          <span className="text-[11px] text-muted">·</span>
-          <span className="text-[11px] text-muted">2026-07-13 09:41 CLT</span>
-          <span className="text-[11px] text-muted">·</span>
-          <span className="text-[11px] font-medium text-foreground">infra/rds-replica.tf</span>
-          <button type="button" className="ml-auto text-[11px] text-brand hover:underline">Ver en git →</button>
+          <span className="text-xs text-muted font-mono">commit <span className="text-foreground">a3f9c12</span></span>
+          <span className="text-xs text-muted">·</span>
+          <span className="text-xs text-muted">c.falcone@hoktus.ai</span>
+          <span className="text-xs text-muted">·</span>
+          <span className="text-xs text-muted">2026-07-13 09:41 CLT</span>
+          <span className="text-xs text-muted">·</span>
+          <span className="text-xs font-medium text-foreground">infra/rds-replica.tf</span>
+          <button type="button" className="ml-auto text-xs text-foreground hover:underline">Ver en git →</button>
         </div>
         <div className="flex gap-2 mb-2">
-          <span className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">+5 adiciones</span>
-          <span className="rounded bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">-2 eliminaciones</span>
+          <span className="rounded bg-success/10 px-2 py-0.5 text-xs font-medium text-success">+5 adiciones</span>
+          <span className="rounded bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">-2 eliminaciones</span>
         </div>
-        <pre className="overflow-x-auto rounded border border-border bg-[#0d1117] p-4 text-[11px] leading-6">
+        <pre className="overflow-x-auto rounded border border-border bg-[#0d1117] p-4 text-xs leading-6">
           {IAC_DIFF.map((line, i) => (
             <div
               key={i}
-              className={line.type === 'add' ? 'text-emerald-400' : line.type === 'remove' ? 'text-red-400' : 'text-gray-400'}
+              className={line.type === 'add' ? 'text-success' : line.type === 'remove' ? 'text-danger' : 'text-subtle'}
             >
               {line.line}
             </div>

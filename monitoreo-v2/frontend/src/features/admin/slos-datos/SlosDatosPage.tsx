@@ -74,37 +74,37 @@ export function SlosDatosPage() {
       {/* Header */}
       <div className="shrink-0">
         <h1 className="text-lg font-semibold text-foreground">7.7 SLOs de Datos</h1>
-        <p className="text-[12px] text-muted">Objetivos de nivel de servicio para datos — cumplimiento, historial de incumplimientos y configuración</p>
+        <p className="text-xs text-muted">Objetivos de nivel de servicio para datos — cumplimiento, historial de incumplimientos y configuración</p>
       </div>
 
       {/* Row 1 — compact */}
       <div className="flex shrink-0 gap-3">
         {/* SLOs por dimensión */}
         <div className="panel min-w-0 flex-1 p-4">
-          <h3 className="text-[13px] font-semibold text-foreground">SLOs por dimensión de dato</h3>
-          <p className="mb-2 text-[11px] text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
-          <table className="w-full text-[13px]">
+          <h3 className="text-sm font-semibold text-foreground">SLOs por dimensión de dato</h3>
+          <p className="mb-2 text-xs text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Dimensión</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Objetivo</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Actual</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Estado</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Tend. 7d</th>
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Dimensión</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Objetivo</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Actual</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Estado</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Tend. 7d</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {SLO_DIMENSIONS.map((s, i) => (
                 <tr key={s.dimension} className="animate-fade-in transition-colors hover:bg-surface" style={{ animationDelay: `${i * 30}ms` }}>
                   <td className="px-3 py-2 font-medium text-foreground">{s.dimension}</td>
-                  <td className="px-3 py-2 text-[11px] text-muted font-mono">{s.objetivo}</td>
-                  <td className="px-3 py-2 text-[11px] font-mono font-medium text-foreground">{s.actual}</td>
+                  <td className="px-3 py-2 text-xs text-muted font-mono">{s.objetivo}</td>
+                  <td className="px-3 py-2 text-xs font-mono font-medium text-foreground">{s.actual}</td>
                   <td className="px-3 py-2">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${s.estado === 'cumple' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${s.estado === 'cumple' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                       {s.estado}
                     </span>
                   </td>
-                  <td className={`px-3 py-2 text-[11px] ${s.tend.startsWith('↑') ? 'text-emerald-600' : s.tend.startsWith('↓') ? 'text-red-500' : 'text-muted'}`}>
+                  <td className={`px-3 py-2 text-xs ${s.tend.startsWith('↑') ? 'text-success' : s.tend.startsWith('↓') ? 'text-danger' : 'text-muted'}`}>
                     {s.tend}
                   </td>
                 </tr>
@@ -116,13 +116,13 @@ export function SlosDatosPage() {
         {/* Latency chart */}
         <div className="panel min-w-0 flex-1 flex flex-col p-4">
           <div className="shrink-0">
-            <h3 className="text-[13px] font-semibold text-foreground">SLO de latencia de API — p95</h3>
-            <p className="mb-2 text-[11px] text-muted">umbral contractual 500 ms · badge rojo si lo supera</p>
+            <h3 className="text-sm font-semibold text-foreground">SLO de latencia de API — p95</h3>
+            <p className="mb-2 text-xs text-muted">umbral contractual 500 ms · badge rojo si lo supera</p>
             <div className="mb-2 flex items-center gap-3">
-              <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+              <span className="inline-block rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
                 487 ms — dentro de umbral
               </span>
-              <span className="text-[11px] text-muted">umbral: 500 ms</span>
+              <span className="text-xs text-muted">umbral: 500 ms</span>
             </div>
           </div>
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-h-0 flex-1" preserveAspectRatio="none">
@@ -167,7 +167,7 @@ export function SlosDatosPage() {
             ))}
           </svg>
           <div className="flex shrink-0 items-center justify-between pt-1">
-            <p className="text-[10px] text-muted">últimas 15 mediciones · ms</p>
+            <p className="text-xs text-muted">últimas 15 mediciones · ms</p>
           </div>
         </div>
       </div>
@@ -177,20 +177,20 @@ export function SlosDatosPage() {
         {/* Historial de incumplimientos */}
         <div className="panel min-w-0 flex-1 flex min-h-0 flex-col">
           <div className="shrink-0 p-4 pb-2">
-            <h3 className="text-[13px] font-semibold text-foreground">Historial de incumplimientos de SLO</h3>
-            <p className="text-[11px] text-muted">causa raíz registrada · exportable para revisión con PASA</p>
+            <h3 className="text-sm font-semibold text-foreground">Historial de incumplimientos de SLO</h3>
+            <p className="text-xs text-muted">causa raíz registrada · exportable para revisión con PASA</p>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted">
-                <th className="sticky top-0 bg-white px-3 py-2">Dimensión</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Período</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Objetivo</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Valor real</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Causa raíz</th>
-                <th className="sticky top-0 bg-white px-3 py-2">Acción</th>
-                <th className="sticky top-0 bg-white px-3 py-2" />
+              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <th className="sticky top-0 bg-background px-3 py-2">Dimensión</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Período</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Objetivo</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Valor real</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Causa raíz</th>
+                <th className="sticky top-0 bg-background px-3 py-2">Acción</th>
+                <th className="sticky top-0 bg-background px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -203,24 +203,24 @@ export function SlosDatosPage() {
                     onClick={() => setExpandedBreach(expandedBreach === i ? null : i)}
                   >
                     <td className="px-3 py-2 font-medium text-foreground">{b.dimension}</td>
-                    <td className="px-3 py-2 text-[11px] text-muted">{b.periodo}</td>
-                    <td className="px-3 py-2 text-[11px] font-mono text-muted">{b.objetivo}</td>
-                    <td className="px-3 py-2 text-[11px] font-mono text-red-600">{b.valorReal}</td>
-                    <td className="max-w-[140px] truncate px-3 py-2 text-[11px] text-muted">{b.causaRaiz}</td>
-                    <td className="max-w-[140px] truncate px-3 py-2 text-[11px] text-emerald-600">{b.accion}</td>
-                    <td className="px-3 py-2 text-[10px] text-brand">{expandedBreach === i ? '▲' : '▼'}</td>
+                    <td className="px-3 py-2 text-xs text-muted">{b.periodo}</td>
+                    <td className="px-3 py-2 text-xs font-mono text-muted">{b.objetivo}</td>
+                    <td className="px-3 py-2 text-xs font-mono text-danger">{b.valorReal}</td>
+                    <td className="max-w-[140px] truncate px-3 py-2 text-xs text-muted">{b.causaRaiz}</td>
+                    <td className="max-w-[140px] truncate px-3 py-2 text-xs text-success">{b.accion}</td>
+                    <td className="px-3 py-2 text-xs text-foreground">{expandedBreach === i ? '▲' : '▼'}</td>
                   </tr>
                   {expandedBreach === i && (
                     <tr key={`${i}-detail`}>
                       <td colSpan={7} className="bg-surface px-4 py-3">
-                        <div className="grid grid-cols-2 gap-4 text-[12px]">
+                        <div className="grid grid-cols-2 gap-4 text-xs">
                           <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Causa raíz completa</p>
+                            <p className="text-xs uppercase tracking-wider text-muted mb-1">Causa raíz completa</p>
                             <p className="text-muted">{b.causaRaiz}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Acción correctiva</p>
-                            <p className="text-emerald-700">{b.accion}</p>
+                            <p className="text-xs uppercase tracking-wider text-muted mb-1">Acción correctiva</p>
+                            <p className="text-success">{b.accion}</p>
                           </div>
                         </div>
                       </td>
@@ -236,15 +236,15 @@ export function SlosDatosPage() {
         {/* Configurador de SLOs */}
         <div className="panel min-w-0 flex-1 flex min-h-0 flex-col">
           <div className="shrink-0 px-4 pt-4 pb-2">
-            <h3 className="text-[13px] font-semibold text-foreground">Configurador de SLOs</h3>
-            <p className="text-[11px] text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>
+            <h3 className="text-sm font-semibold text-foreground">Configurador de SLOs</h3>
+            <p className="text-xs text-muted">los valores no pueden bajar de los mínimos contractuales · cada cambio auditado</p>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted">Dimensión de dato</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Dimensión de dato</label>
               <select
-                className="w-full rounded border border-border bg-white px-2 py-1.5 text-[13px] text-foreground"
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                 value={form.dimension}
                 onChange={(e) => setForm({ ...form, dimension: e.target.value })}
               >
@@ -253,9 +253,9 @@ export function SlosDatosPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted">Tipo de dato</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Tipo de dato</label>
               <select
-                className="w-full rounded border border-border bg-white px-2 py-1.5 text-[13px] text-foreground"
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                 value={form.tipo}
                 onChange={(e) => setForm({ ...form, tipo: e.target.value })}
               >
@@ -264,18 +264,18 @@ export function SlosDatosPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted">Valor objetivo</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Valor objetivo</label>
               <input
-                className="w-full rounded border border-border bg-white px-2 py-1.5 text-[13px] text-foreground"
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                 placeholder="ej. 99.5%"
                 value={form.objetivo}
                 onChange={(e) => setForm({ ...form, objetivo: e.target.value })}
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted">Ventana de evaluación</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Ventana de evaluación</label>
               <select
-                className="w-full rounded border border-border bg-white px-2 py-1.5 text-[13px] text-foreground"
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                 value={form.ventana}
                 onChange={(e) => setForm({ ...form, ventana: e.target.value })}
               >
@@ -285,19 +285,19 @@ export function SlosDatosPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted">Umbral de alerta</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Umbral de alerta</label>
               <input
-                className="w-full rounded border border-border bg-white px-2 py-1.5 text-[13px] text-foreground"
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                 placeholder="ej. 99.0%"
                 value={form.umbral}
                 onChange={(e) => setForm({ ...form, umbral: e.target.value })}
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <button type="submit" className="rounded-md bg-brand px-4 py-2 text-[13px] font-medium text-white hover:bg-brand/90">
+              <button type="submit" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90">
                 Guardar SLO
               </button>
-              <button type="button" className="rounded-md border border-border px-4 py-2 text-[13px] font-medium text-muted hover:bg-surface">
+              <button type="button" className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface">
                 Cancelar
               </button>
             </div>

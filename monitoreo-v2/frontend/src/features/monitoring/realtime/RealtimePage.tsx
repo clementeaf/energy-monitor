@@ -166,10 +166,10 @@ export function RealtimePage() {
 
       {/* Compact KPI row */}
       <div className="flex flex-wrap gap-2">
-        <MiniKpi label="En linea" value={onlineCount} color="text-green-600" />
-        <MiniKpi label="Obsoleto" value={staleCount} color="text-amber-600" />
+        <MiniKpi label="En linea" value={onlineCount} color="text-success" />
+        <MiniKpi label="Obsoleto" value={staleCount} color="text-warning" />
         <MiniKpi label="Sin datos" value={offlineCount} color="text-muted" />
-        <MiniKpi label="Alarma" value={alarmCount} color="text-red-600" />
+        <MiniKpi label="Alarma" value={alarmCount} color="text-danger" />
         <MiniKpi label="Potencia" value={`${totalPower.toFixed(1)} kW`} color="text-foreground" />
       </div>
 
@@ -236,8 +236,8 @@ export function RealtimePage() {
 function MiniKpi({ label, value, color }: Readonly<{ label: string; value: number | string; color: string }>) {
   return (
     <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5">
-      <span className="text-[11px] text-muted">{label}</span>
-      <span className={`text-[13px] font-semibold ${color}`}>{value}</span>
+      <span className="text-xs text-muted">{label}</span>
+      <span className={`text-sm font-semibold ${color}`}>{value}</span>
     </div>
   );
 }

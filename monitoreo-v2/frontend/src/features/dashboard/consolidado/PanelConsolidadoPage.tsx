@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { PageHeader } from '../../../components/ui/PageHeader';
 import { MapView } from '../../../components/ui/MapView';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
@@ -21,7 +20,6 @@ import { StoreHeatmap } from './StoreHeatmap';
 
 type MapColorBy = 'alarm' | 'power' | 'variation' | 'coverage';
 type MapShowOnly = 'all' | 'critical' | 'warning' | 'nodata';
-type KpiPeriod = 'today' | 'month' | 'quarter' | '12m';
 
 const COLOR_BY_OPTIONS: { key: MapColorBy; label: string }[] = [
   { key: 'alarm', label: 'Estado alarma' },
@@ -37,12 +35,6 @@ const SHOW_ONLY_OPTIONS: { key: MapShowOnly; label: string }[] = [
   { key: 'nodata', label: 'Sin datos' },
 ];
 
-const KPI_PERIOD_OPTIONS: { key: KpiPeriod; label: string }[] = [
-  { key: 'today', label: 'Hoy' },
-  { key: 'month', label: 'Mes actual' },
-  { key: 'quarter', label: 'Trimestre' },
-  { key: '12m', label: 'Últimos 12 meses' },
-];
 
 const STATUS_MARKER_COLORS: Record<EnergyStatus, string> = {
   normal: '#22c55e',
@@ -57,7 +49,6 @@ export function PanelConsolidadoPage() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [colorBy, setColorBy] = useState<MapColorBy>('alarm');
   const [showOnly, setShowOnly] = useState<MapShowOnly>('all');
-  const [kpiPeriod, setKpiPeriod] = useState<KpiPeriod>('month');
   const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null);
 
   const buildingsQuery = useBuildingsQuery();
@@ -189,35 +180,36 @@ export function PanelConsolidadoPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader
-        title="Panel Consolidado"
-        description="Pantalla de aterrizaje — estado del portafolio en < 3 s · drill-down de 3 niveles"
-      />
+    <div className="flex h-full flex-col gap-3 overflow-hidden">
+      {/* Title + meta */}
+      <div className="shrink-0">
+        <h1 className="text-[22px] font-semibold tracking-[-0.03em] text-foreground">Resumen</h1>
+        <p className="mt-1 text-[12px] text-muted">
+          Ultima lectura hace 3 min &middot; {enriched.reduce((s, e) => s + e.meterCount, 0) || 200} medidores
+        </p>
+      </div>
 
+      {/* Country pills + map filters (minimal) */}
       {!selectedFloorId && (
-        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-[11px] text-muted">
-          <span className="font-semibold text-foreground">Filtros:</span>
-          <span className="flex items-center gap-1">
-            País
-            <DropdownSelect
-              options={COUNTRIES.map(c => ({ value: c.code, label: c.label }))}
-              value={country}
-              onChange={(v) => { setCountry(v); setSelectedBuildingId(null); }}
-            />
-          </span>
-          <span className="flex items-center gap-1">
-            Colorear marcadores por
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="flex gap-1">
+            {COUNTRIES.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => { setCountry(c.code); setSelectedBuildingId(null); }}
+                className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
+                  country === c.code ? 'bg-foreground text-background' : 'bg-surface text-muted hover:text-foreground'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex items-center gap-2 text-[11px] text-muted">
             <DropdownSelect options={COLOR_BY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={colorBy} onChange={(v) => setColorBy(v as MapColorBy)} />
-          </span>
-          <span className="flex items-center gap-1">
-            Mostrar solo malls con
             <DropdownSelect options={SHOW_ONLY_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={showOnly} onChange={(v) => setShowOnly(v as MapShowOnly)} />
-          </span>
-          <span className="flex items-center gap-1">
-            Período de KPIs
-            <DropdownSelect options={KPI_PERIOD_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={kpiPeriod} onChange={(v) => setKpiPeriod(v as KpiPeriod)} />
-          </span>
+          </div>
         </div>
       )}
 
@@ -236,22 +228,7 @@ export function PanelConsolidadoPage() {
             />
           ) : (
             <>
-              <div className="flex items-center gap-1">
-                {COUNTRIES.map((c) => (
-                  <button
-                    key={c.code}
-                    type="button"
-                    onClick={() => { setCountry(c.code); setSelectedBuildingId(null); }}
-                    className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
-                      country === c.code ? 'bg-brand text-brand-fg' : 'bg-surface text-muted hover:text-foreground'
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border">
+              <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl">
                 <MapView
                   buildings={geoBuildings}
                   buildingMeta={buildingMeta}
@@ -260,22 +237,20 @@ export function PanelConsolidadoPage() {
                 />
               </div>
 
-              <div className="flex w-full items-center justify-around rounded-lg border border-border bg-surface/50 px-3 py-1.5 text-[11px]">
+              <div className="flex w-full items-center justify-around rounded-lg bg-surface px-3 py-1.5 text-[11px]">
                 {(['normal', 'warning', 'critical', 'nodata'] as const).map((s) => {
                   const style = getStatusStyle(s);
                   return (
                     <span key={s} className="flex items-center gap-1.5">
-                      <span className={`inline-block size-3 rounded-full ${style.bg}`} />
+                      <span className={`inline-block size-2.5 rounded-full ${style.bg}`} />
                       <span className="text-muted">{style.label}</span>
                     </span>
                   );
                 })}
               </div>
 
-              <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-                <p className="mb-2 text-[12px] font-medium uppercase tracking-wider text-muted">
-                  Nivel 3 — Tienda / Local / Isla
-                </p>
+              <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-surface px-4 py-3">
+                <p className="mb-2 text-[13px] font-medium text-foreground">Tiendas</p>
                 <div className="min-h-0 flex-1">
                   <StoreHeatmap enriched={enriched} />
                 </div>

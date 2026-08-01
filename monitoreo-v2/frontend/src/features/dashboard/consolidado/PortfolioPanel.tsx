@@ -33,7 +33,6 @@ export function PortfolioPanel({
   const displayVariationPct = consumptionVariationPct ?? FALLBACK_VARIATION_PCT;
   const displayIntensity = intensityKwhM2 > 0 ? intensityKwhM2 : 37;
   const displayCoveragePct = coveragePct > 0 ? coveragePct : 94;
-  const displayCoverageColor = displayCoveragePct >= 95 ? 'text-emerald-600' : displayCoveragePct >= 85 ? 'text-amber-600' : 'text-red-600';
 
   const realAlerts = enriched.flatMap((e) => e.activeAlerts);
   const feedAlerts = realAlerts.length > 0 ? realAlerts : FALLBACK_EVENTS;
@@ -41,59 +40,82 @@ export function PortfolioPanel({
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        <div className="panel flex-1 min-w-[140px] px-3 py-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Consumo [MWh]</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayConsumptionMwh, 3)}</p>
-          <div className="mt-1 flex items-center gap-1">
-            <span className={`text-[10px] font-medium ${displayVariationPct > 0 ? 'text-red-500' : displayVariationPct < 0 ? 'text-emerald-500' : 'text-muted'}`}>
-              {displayVariationPct > 0 ? '▲' : displayVariationPct < 0 ? '▼' : '→'} {Math.abs(displayVariationPct)}% vs. mes ant.
-            </span>
-          </div>
-        </div>
-
-        <div className="panel flex-1 min-w-[140px] px-3 py-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Tarjeta Costo [UF]</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{fmtNum(displayCostUf, 3)}</p>
-          <p className="mt-1 text-[10px] text-muted">moneda UF/CLP/USD</p>
-        </div>
-
-        <div className="panel flex-1 min-w-[140px] px-3 py-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Intensidad energética</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{displayIntensity}</p>
-          <p className="mt-1 text-[10px] text-muted">kWh/m² · desde Nivel 2</p>
-        </div>
-
-        <div className="panel flex-1 min-w-[140px] px-3 py-3">
-          <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Cobertura de medición</p>
-          <p className={`mt-1 text-2xl font-bold ${displayCoverageColor}`}>{displayCoveragePct}%</p>
-          <p className="mt-1 text-[10px] text-muted">medidores activos · semáforo ≥95%</p>
-        </div>
+      {/* KPI strip — joined cells, no individual borders */}
+      <div className="flex overflow-hidden rounded-xl border border-border">
+        <KpiCell
+          label="Consumo este mes"
+          value={fmtNum(displayConsumptionMwh, 3)}
+          unit="MWh"
+          delta={displayVariationPct}
+          source={`${enriched.reduce((s, e) => s + e.meterCount, 0) || 156} medidores activos`}
+        />
+        <KpiCell
+          label="Gasto acumulado"
+          value={fmtNum(displayCostUf, 3)}
+          unit="UF"
+          source="Boletas importadas"
+          className="border-l border-border"
+        />
+        <KpiCell
+          label="Intensidad"
+          value={String(displayIntensity)}
+          unit="kWh/m²"
+          source="Promedio portafolio"
+          className="border-l border-border"
+        />
+        <KpiCell
+          label="Medidores en linea"
+          value={`${displayCoveragePct}`}
+          unit="%"
+          source={`${enriched.reduce((s, e) => s + e.meterCount, 0) || 200} totales`}
+          valueColor={displayCoveragePct >= 95 ? 'text-success' : displayCoveragePct >= 85 ? 'text-warning' : 'text-danger'}
+          className="border-l border-border"
+        />
       </div>
 
-      <div className="panel flex min-h-0 flex-1 flex-col px-3 py-3">
-        <p className="shrink-0 text-[12px] font-medium uppercase tracking-wider text-muted">Feed de eventos críticos</p>
-        <p className="shrink-0 text-[10px] text-subtle">Solo lectura · últimos 4-5 del nivel activo</p>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+      {/* Eventos recientes */}
+      <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-surface px-4 py-3">
+        <p className="shrink-0 text-[13px] font-medium text-foreground">Eventos recientes</p>
+        <div className="min-h-0 flex-1 overflow-y-auto pt-2">
           <RecentCriticalEvents alerts={feedAlerts} buildings={feedBuildings} />
         </div>
       </div>
 
-      <div className="panel px-3 py-3">
-        <p className="text-[12px] font-medium uppercase tracking-wider text-muted">Semáforo calidad del dato</p>
-        <p className="mt-1 text-[10px] text-muted">% reales / estimadas / CNR del período (pills de color)</p>
+      {/* Calidad del dato */}
+      <div className="rounded-xl bg-surface px-4 py-3">
+        <p className="text-[13px] font-medium text-foreground">Calidad del dato</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Reales 88%</span>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">Estimadas 9%</span>
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">CNR 3%</span>
+          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-medium text-success">Medidas 88%</span>
+          <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-[11px] font-medium text-warning">Estimadas 9%</span>
+          <span className="rounded-full bg-danger/10 px-2.5 py-0.5 text-[11px] font-medium text-danger">Sin dato 3%</span>
         </div>
-        <p className="mt-1 text-[10px] text-subtle">Aplica desde Nivel 2 (centro comercial) en adelante</p>
-      </div>
-
-      <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-[10px] text-blue-800">
-        <p className="font-semibold">Nota</p>
-        <p className="mt-0.5">Personalización v2.1: el informe fuente (v2.0) describe 6 niveles (País→Región→Ciudad→Comuna→Centro comercial→Tienda). Por instrucción v2.1 el mapa se reduce a 3 niveles: País → Centro comercial → Tienda/Local.</p>
       </div>
     </>
+  );
+}
+
+function KpiCell({ label, value, unit, delta, source, valueColor, className = '' }: Readonly<{
+  label: string;
+  value: string;
+  unit: string;
+  delta?: number | null;
+  source: string;
+  valueColor?: string;
+  className?: string;
+}>) {
+  return (
+    <div className={`flex-1 bg-background px-5 py-5 ${className}`}>
+      <p className="text-[11px] text-muted">{label}</p>
+      <p className={`mt-2 text-[28px] font-medium tracking-[-0.03em] tabular-nums leading-none ${valueColor ?? 'text-foreground'}`}>
+        {value}
+        <span className="ml-1 text-[13px] font-normal text-muted">{unit}</span>
+      </p>
+      {delta != null && (
+        <p className={`mt-2 text-[11px] font-medium ${delta > 0 ? 'text-danger' : delta < 0 ? 'text-success' : 'text-muted'}`}>
+          {delta > 0 ? '↑' : delta < 0 ? '↓' : '→'} {Math.abs(delta)}% vs mes anterior
+        </p>
+      )}
+      <p className="mt-1 text-[10px] text-subtle">{source}</p>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { TenantTheme } from '../types/auth';
-import { contrastForeground, deriveBrandTokens } from './color-utils';
+import { deriveBrandTokens } from './color-utils';
 
 /**
  * Sets a CSS custom property on the document root.
@@ -26,14 +26,6 @@ export function applyTenantTheme(theme: TenantTheme): void {
   });
 
   setVar(root, '--color-secondary', theme.secondaryColor);
-  setVar(root, '--color-sidebar', theme.sidebarColor);
-  const sidebarFg = contrastForeground(theme.sidebarColor);
-  setVar(root, '--color-sidebar-fg', sidebarFg);
-  setVar(
-    root,
-    '--color-sidebar-muted',
-    `color-mix(in srgb, ${sidebarFg} 55%, transparent)`,
-  );
   setVar(root, '--color-accent', theme.accentColor);
   setVar(root, '--color-chart-3', theme.secondaryColor);
   setVar(root, '--color-chart-4', theme.accentColor);

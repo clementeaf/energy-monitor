@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { getStatusStyle, type EnergyStatus } from '../../../lib/energy-status';
+import { type EnergyStatus } from '../../../lib/energy-status';
 import type { EnrichedBuilding } from './consolidado-utils';
 
 const HEATMAP_COLS = 6;

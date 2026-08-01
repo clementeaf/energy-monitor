@@ -38,7 +38,7 @@ export function SeguridadPamPage() {
     const nextReview = new Date(lastReview.getTime() + reviewCycleDays * 86_400_000);
     const daysUntilReview = Math.ceil((nextReview.getTime() - now.getTime()) / 86_400_000);
     const pamStatus: PamStatus = !acc.isActive ? 'inactivo' : daysUntilReview <= 0 ? 'en revisión' : daysUntilReview <= -30 ? 'suspendido' : 'activo';
-    return { ...acc, lastReview, nextReview, daysUntilReview, pamStatus };
+    return { ...acc, displayName: acc.displayName ?? undefined, lastReview, nextReview, daysUntilReview, pamStatus };
   }), [pamAccounts]);
 
   // PAM usage history (from audit logs by privileged users)

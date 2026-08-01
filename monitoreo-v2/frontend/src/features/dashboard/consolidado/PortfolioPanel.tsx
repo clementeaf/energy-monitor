@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { fmtNum } from '../../../lib/formatters';
 import { RecentCriticalEvents } from './RecentCriticalEvents';
 import {

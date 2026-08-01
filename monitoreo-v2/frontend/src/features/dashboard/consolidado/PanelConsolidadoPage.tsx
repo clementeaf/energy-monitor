@@ -13,7 +13,6 @@ import type { BuildingMarkerMeta } from '../../../components/ui/MapView';
 import {
   COUNTRIES,
   enrichBuildings,
-  type EnrichedBuilding,
 } from './consolidado-utils';
 import { PortfolioPanel } from './PortfolioPanel';
 import { BuildingDetail } from './BuildingDetail';

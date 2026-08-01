@@ -4,7 +4,7 @@ import { MainContentOutlet } from './MainContentOutlet';
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen flex-col bg-surface">
+    <div className="flex h-screen flex-col bg-background">
       <Header />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="relative z-20 flex shrink-0 self-stretch overflow-visible">

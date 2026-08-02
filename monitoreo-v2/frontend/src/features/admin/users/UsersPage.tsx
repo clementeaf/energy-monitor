@@ -11,56 +11,6 @@ import { UserImportTab } from './UserImportTab';
 import type { UserListItem, CreateUserPayload, UpdateUserPayload } from '../../../types/user';
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 
-/* ── Fallback users (shown when API returns empty) ── */
-
-const FALLBACK_USERS: UserListItem[] = [
-  {
-    id: 'fb-u1-0000-0000-0000-000000000001',
-    email: 'admin@pasa.cl',
-    displayName: 'Administrador PASA',
-    isActive: true,
-    lastLoginAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
-    createdAt: '2025-01-15T00:00:00Z',
-    role: { id: 'r1', name: 'Súper Admin', slug: 'super_admin' },
-  },
-  {
-    id: 'fb-u2-0000-0000-0000-000000000002',
-    email: 'gerente@pasa.cl',
-    displayName: 'Gerente Costanera',
-    isActive: true,
-    lastLoginAt: new Date(Date.now() - 24 * 3_600_000).toISOString(),
-    createdAt: '2025-02-01T00:00:00Z',
-    role: { id: 'r2', name: 'Gerencial', slug: 'corp_admin' },
-  },
-  {
-    id: 'fb-u3-0000-0000-0000-000000000003',
-    email: 'operacional@pasa.cl',
-    displayName: 'Operador de turno',
-    isActive: true,
-    lastLoginAt: new Date(Date.now() - 4 * 3_600_000).toISOString(),
-    createdAt: '2025-03-10T00:00:00Z',
-    role: { id: 'r3', name: 'Operacional', slug: 'site_admin' },
-  },
-  {
-    id: 'fb-u4-0000-0000-0000-000000000004',
-    email: 'auditor@pasa.cl',
-    displayName: 'Auditor Interno',
-    isActive: true,
-    lastLoginAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    createdAt: '2025-04-01T00:00:00Z',
-    role: { id: 'r4', name: 'Auditor', slug: 'auditor' },
-  },
-  {
-    id: 'fb-u5-0000-0000-0000-000000000005',
-    email: 'tecnico@pasa.cl',
-    displayName: 'Técnico IoT',
-    isActive: true,
-    lastLoginAt: new Date(Date.now() - 6 * 3_600_000).toISOString(),
-    createdAt: '2025-05-01T00:00:00Z',
-    role: { id: 'r5', name: 'Técnico', slug: 'operator' },
-  },
-] as unknown as UserListItem[];
-
 type UsersTab = 'list' | 'import';
 
 const TAB_CLASS = (active: boolean): string =>
@@ -92,7 +42,7 @@ export function UsersPage() {
   const { has } = usePermissions();
   const canWrite = has('admin_users', 'create');
 
-  const rawUsers = (query.data && query.data.length > 0) ? query.data : (!query.isLoading ? FALLBACK_USERS : []);
+  const rawUsers = query.data ?? [];
   const qs = useQueryState(query, {
     isEmpty: () => rawUsers.length === 0,
   });

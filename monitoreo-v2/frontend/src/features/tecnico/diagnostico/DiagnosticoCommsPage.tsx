@@ -23,20 +23,6 @@ const HISTOGRAM_SLOTS = Array.from({ length: 288 }, (_, i) => {
   return { has, height };
 });
 
-// Fallback comm log shown when no meter is selected or no real data.
-const FALLBACK_LOG = [
-  { ts: '14:15:03', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
-  { ts: '14:15:03', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
-  { ts: '13:00:01', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
-  { ts: '13:00:01', dir: '← RX', frame: 'TIMEOUT (3000 ms)', result: 'FAIL' },
-  { ts: '13:00:04', dir: 'TX →', frame: 'RETRY #1 READ_HOLDING_REGS', result: 'OK' },
-  { ts: '13:00:04', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
-  { ts: '11:45:00', dir: 'TX →', frame: 'RECONNECT (link down 2 min)', result: 'OK' },
-  { ts: '11:43:12', dir: '← RX', frame: 'LINK_DOWN event', result: 'WARN' },
-  { ts: '10:30:01', dir: 'TX →', frame: 'READ_HOLDING_REGS', result: 'OK' },
-  { ts: '10:30:01', dir: '← RX', frame: 'RESPONSE_OK [12 bytes]', result: 'OK' },
-];
-
 function deriveState(reading: LatestReading | undefined, now: number): CommState {
   if (!reading) return 'offline';
   if (now - new Date(reading.timestamp).getTime() > STALE_MS) return 'intermitente';
@@ -194,7 +180,7 @@ export function DiagnosticoCommsPage() {
                       frame: i % 3 === 0 ? 'READ_HOLDING_REGS' : i % 3 === 1 ? 'RESPONSE_OK [12 bytes]' : 'TIMEOUT (3000 ms)',
                       result: i % 3 === 2 ? 'FAIL' : 'OK',
                     }))
-                  : FALLBACK_LOG
+                  : []
                 ).map((entry, i) => (
                   <tr key={i} className="animate-fade-in text-muted" style={{ animationDelay: `${i * 30}ms` }}>
                     <td className="px-2 py-1.5 font-mono text-xs">{entry.ts}</td>

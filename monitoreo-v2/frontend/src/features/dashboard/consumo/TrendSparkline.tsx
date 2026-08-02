@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
 import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
-import { FALLBACK_AGG_MONTHS } from './consumo-utils';
-
 const COMPARE_LABELS: Record<string, string> = {
   none: '',
   previous: 'Período ant.',
@@ -56,16 +54,6 @@ export function TrendSparkline({ buildingId, granularity = 'monthly', compareWit
   const slots = useMemo(() => {
     const now = new Date();
     const sumEnergy = (rows: typeof aggData) => rows.reduce((s, r) => s + parseFloat(r.energy_delta_kwh ?? '0'), 0) / 1000;
-    const hasRealData = aggData.length > 0;
-
-    if (!hasRealData && !isWeekly) {
-      const scale = 0.8 + Math.random() * 0.4;
-      return FALLBACK_AGG_MONTHS.map((fb, i) => ({
-        label: fb.label,
-        current: fb.mwh * scale,
-        compare: compareWith !== 'none' ? fb.mwh * scale * (0.9 + (i % 3) * 0.05) : 0,
-      }));
-    }
 
     const result: { label: string; current: number; compare: number }[] = [];
 

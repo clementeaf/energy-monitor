@@ -1,5 +1,5 @@
 import { DropdownSelect } from '../../../components/ui/DropdownSelect';
-import { type PamStatus, PAM_BADGE, INCIDENT_STATUS_BADGE, FALLBACK_PAM, FALLBACK_INCIDENTS } from './seguridad-utils';
+import { type PamStatus, PAM_BADGE, INCIDENT_STATUS_BADGE } from './seguridad-utils';
 
 /* ── Shared types ── */
 
@@ -204,7 +204,7 @@ export function PamCards({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {(pamWithReview.length > 0 ? pamWithReview : FALLBACK_PAM).slice(0, 4).map((acc) => (
+            {pamWithReview.slice(0, 4).map((acc) => (
               <tr key={acc.id} className="cursor-pointer hover:bg-surface" onClick={() => onOpenDrawer('pam', acc)}>
                 <td className="py-1 text-foreground">{acc.displayName ?? acc.email}</td>
                 <td className={`py-1 text-xs ${acc.daysUntilReview <= 7 ? 'font-medium text-danger' : 'text-muted'}`}>{acc.nextReview.toLocaleDateString('es-CL')}</td>
@@ -296,7 +296,7 @@ export function IncidentesCards({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {(incidents.length > 0 ? incidents : FALLBACK_INCIDENTS).slice(0, 4).map((inc) => (
+            {incidents.slice(0, 4).map((inc) => (
               <tr key={inc.id} className="cursor-pointer hover:bg-surface" onClick={() => onOpenDrawer('incident', inc)}>
                 <td className="py-1 text-muted">{inc.date}</td>
                 <td className="py-1 text-foreground">{inc.type}</td>

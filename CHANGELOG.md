@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.55.0] - 2026-08-02 — ELIMINACIÓN TOTAL FALLBACKS
+
+### Removed (Frontend — 763 líneas de data falsa)
+- **27 archivos limpiados** — Todas las constantes `FALLBACK_*` eliminadas: `FALLBACK_MALL_ROWS`, `FALLBACK_ALERTS`, `FALLBACK_COST_ROWS`, `FALLBACK_MONTHLY_DATA`, `FALLBACK_SCORECARD_ROWS`, `FALLBACK_TENANTS`, `FALLBACK_USERS`, `FALLBACK_PAM`, `FALLBACK_INCIDENTS`, `FALLBACK_EVIDENCE_HISTORY`, `FALLBACK_AUDIT_LOGS`, `FALLBACK_RECON_ROWS`, y ~15 más.
+- **Seed arrays** para charts placeholder eliminados (AlarmasAgregadas, sparklines).
+- **Ternarios `realData.length > 0 ? realData : FALLBACK`** reemplazados por data directa de la API.
+- Todas las vistas ahora muestran data real o estado vacío — cero números inventados en toda la aplicación.
+
+---
+
 ## [2.54.0] - 2026-08-02 — DATA REAL + ELIMINACIÓN FALLBACKS
 
 ### Changed (Frontend — Data real)

@@ -26,50 +26,6 @@ const STATUS_BADGE: Record<string, string> = {
   onboarding: 'bg-info/10 text-info',
 };
 
-/* ── Fallback data ── */
-
-const FALLBACK_TENANTS: TenantRow[] = [
-  {
-    tenant: { id: 'fb-t1-0000-0000-0000-000000000001', name: 'PASA Costanera', isActive: true, defaultCountryCode: 'CL', defaultCurrency: 'CLP', timezone: 'America/Santiago', createdAt: '2025-01-15T00:00:00Z' } as Tenant,
-    country: 'CL',
-    activeMeters: 875,
-    activeUsers: 42,
-    hasActiveAlerts: true,
-    status: 'activo',
-  },
-  {
-    tenant: { id: 'fb-t2-0000-0000-0000-000000000002', name: 'PASA Parque Arauco', isActive: true, defaultCountryCode: 'CL', defaultCurrency: 'CLP', timezone: 'America/Santiago', createdAt: '2025-03-01T00:00:00Z' } as Tenant,
-    country: 'CL',
-    activeMeters: 312,
-    activeUsers: 18,
-    hasActiveAlerts: false,
-    status: 'activo',
-  },
-  {
-    tenant: { id: 'fb-t3-0000-0000-0000-000000000003', name: 'Siemens IoT Demo', isActive: true, defaultCountryCode: 'CO', defaultCurrency: 'COP', timezone: 'America/Bogota', createdAt: '2025-06-01T00:00:00Z' } as Tenant,
-    country: 'CO',
-    activeMeters: 4,
-    activeUsers: 6,
-    hasActiveAlerts: false,
-    status: 'onboarding',
-  },
-  {
-    tenant: { id: 'fb-t4-0000-0000-0000-000000000004', name: 'Mall Plaza Perú', isActive: false, defaultCountryCode: 'PE', defaultCurrency: 'PEN', timezone: 'America/Lima', createdAt: '2024-11-01T00:00:00Z' } as Tenant,
-    country: 'PE',
-    activeMeters: 0,
-    activeUsers: 0,
-    hasActiveAlerts: false,
-    status: 'inactivo',
-  },
-];
-
-const FALLBACK_CHANGELOG = [
-  { id: 'fb-cl-1', date: '13-07-2026', user: 'c.falcone@hoktus.ai', action: 'UPDATE', field: 'idleTimeoutMinutes', prev: '30', next: '15', approval: 'aprobado' },
-  { id: 'fb-cl-2', date: '07-07-2026', user: 'admin@pasa.cl', action: 'UPDATE', field: 'defaultCurrency', prev: 'USD', next: 'CLP', approval: 'aprobado' },
-  { id: 'fb-cl-3', date: '06-07-2026', user: 'c.falcone@hoktus.ai', action: 'UPDATE', field: 'isActive', prev: 'false', next: 'true', approval: 'aprobado' },
-  { id: 'fb-cl-4', date: '04-07-2026', user: 'admin@pasa.cl', action: 'UPDATE', field: 'timezone', prev: 'UTC', next: 'America/Santiago', approval: 'aprobado' },
-];
-
 /* ── Page ── */
 
 export function TenantsMallsPage() {
@@ -143,12 +99,8 @@ export function TenantsMallsPage() {
     });
   }, [tenants, buildings, meters, users, alerts]);
 
-  // Filters — fall back to FALLBACK_TENANTS when API returns nothing and no filters active
   const filtered = useMemo(() => {
-    const source = enriched.length > 0 ? enriched : (
-      countryFilter === 'all' && statusFilter === 'all' && !alertFilter ? FALLBACK_TENANTS : []
-    );
-    let rows = source;
+    let rows = enriched;
     if (countryFilter !== 'all') rows = rows.filter((r) => r.country === countryFilter);
     if (statusFilter !== 'all') rows = rows.filter((r) => r.status === statusFilter);
     if (alertFilter) rows = rows.filter((r) => r.hasActiveAlerts);
@@ -173,8 +125,7 @@ export function TenantsMallsPage() {
         next: '—',
         approval: 'aprobado' as const,
       }));
-    if (fromAudit.length > 0) return fromAudit;
-    return FALLBACK_CHANGELOG;
+    return fromAudit;
   }, [selectedTenant, auditLogs]);
 
   // Usage stats for selected tenant (derived from real data where possible)

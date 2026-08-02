@@ -90,56 +90,6 @@ function buildCoverageRows(
 }
 
 
-/* ── Fallback coverage rows (shown when buildings query returns empty) ── */
-
-const FALLBACK_COVERAGE_ROWS: CoverageRow[] = [
-  {
-    building: { id: 'fb-01', name: 'Mall Plaza Norte', countryCode: 'CL', latitude: -33.394, longitude: -70.603 } as Building,
-    totalMeters: 42,
-    onlineCount: 42,
-    onlinePct: 100,
-    alertCount: 0,
-    lastReading: '10:30, 18 jul',
-    semaphore: 'green',
-  },
-  {
-    building: { id: 'fb-02', name: 'Mall Arauco Maipú', countryCode: 'CL', latitude: -33.519, longitude: -70.769 } as Building,
-    totalMeters: 38,
-    onlineCount: 35,
-    onlinePct: 92.1,
-    alertCount: 1,
-    lastReading: '10:28, 18 jul',
-    semaphore: 'yellow',
-  },
-  {
-    building: { id: 'fb-03', name: 'Mall Costanera Center', countryCode: 'CL', latitude: -33.418, longitude: -70.606 } as Building,
-    totalMeters: 61,
-    onlineCount: 49,
-    onlinePct: 80.3,
-    alertCount: 3,
-    lastReading: '09:55, 18 jul',
-    semaphore: 'red',
-  },
-  {
-    building: { id: 'fb-04', name: 'Mall Plaza Vespucio', countryCode: 'CL', latitude: -33.535, longitude: -70.582 } as Building,
-    totalMeters: 55,
-    onlineCount: 53,
-    onlinePct: 96.4,
-    alertCount: 0,
-    lastReading: '10:31, 18 jul',
-    semaphore: 'green',
-  },
-  {
-    building: { id: 'fb-05', name: 'Parque Arauco Kennedy', countryCode: 'CL', latitude: -33.398, longitude: -70.576 } as Building,
-    totalMeters: 48,
-    onlineCount: 40,
-    onlinePct: 83.3,
-    alertCount: 2,
-    lastReading: '10:10, 18 jul',
-    semaphore: 'red',
-  },
-];
-
 /* ── Filter options ── */
 
 const METRICA_MARCADOR_OPTIONS = [
@@ -198,9 +148,8 @@ export function MapaCoberturaPage() {
 
   // Coverage rows
   const coverageRows = useMemo(() => {
-    const rows = buildCoverageRows(buildings, meters, readings, alerts)
+    return buildCoverageRows(buildings, meters, readings, alerts)
       .sort((a, b) => a.onlinePct - b.onlinePct); // worst first
-    return rows.length > 0 ? rows : FALLBACK_COVERAGE_ROWS;
   }, [buildings, meters, readings, alerts]);
 
   // Search filter

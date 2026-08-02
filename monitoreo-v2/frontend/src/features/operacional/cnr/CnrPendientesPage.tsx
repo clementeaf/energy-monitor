@@ -38,71 +38,6 @@ const STATUS_BADGE: Record<CnrStatus, string> = {
 const GAP_THRESHOLD_H = 4;
 const CRITICAL_GAP_H = 24;
 
-/* ── Fallback CNR entries (shown when no real/derived data) ── */
-
-const FALLBACK_CNR: CnrRecord[] = [
-  {
-    id: 'CNR-0001',
-    meterId: 'meter-fallback-01',
-    meterName: 'M-PISO3-K14',
-    buildingId: 'building-fallback-01',
-    buildingName: 'Mall Plaza Norte',
-    lastReading: new Date(Date.now() - 72 * 3_600_000).toISOString(),
-    gapHours: 72,
-    status: 'pendiente',
-    realCnrId: null,
-    valueKwh: 284.5,
-    motivo: 'Falla comunicación',
-    justification: null,
-    apiStatus: null,
-  },
-  {
-    id: 'CNR-0002',
-    meterId: 'meter-fallback-02',
-    meterName: 'M-SUB-B02',
-    buildingId: 'building-fallback-02',
-    buildingName: 'Mall Plaza Vespucio',
-    lastReading: new Date(Date.now() - 30 * 3_600_000).toISOString(),
-    gapHours: 30,
-    status: 'pendiente',
-    realCnrId: null,
-    valueKwh: null,
-    motivo: 'auto-detectado',
-    justification: null,
-    apiStatus: null,
-  },
-  {
-    id: 'CNR-0003',
-    meterId: 'meter-fallback-03',
-    meterName: 'M-ACOND-L01',
-    buildingId: 'building-fallback-03',
-    buildingName: 'Mall Arauco Maipú',
-    lastReading: new Date(Date.now() - 10 * 3_600_000).toISOString(),
-    gapHours: 10,
-    status: 'en revisión',
-    realCnrId: null,
-    valueKwh: 92.0,
-    motivo: 'Mantenimiento',
-    justification: 'Mantenimiento preventivo programado.',
-    apiStatus: 'in_review',
-  },
-  {
-    id: 'CNR-0004',
-    meterId: 'meter-fallback-04',
-    meterName: 'M-ILUM-P1-09',
-    buildingId: 'building-fallback-04',
-    buildingName: 'Mall Costanera Center',
-    lastReading: new Date(Date.now() - 5 * 3_600_000).toISOString(),
-    gapHours: 5,
-    status: 'en revisión',
-    realCnrId: null,
-    valueKwh: 47.3,
-    motivo: 'Reemplazo',
-    justification: null,
-    apiStatus: null,
-  },
-];
-
 /* ── Derive CNR from stale meters ── */
 
 function deriveCnrRecords(
@@ -196,8 +131,7 @@ export function CnrPendientesPage() {
     const derived = derivedRecords
       .filter((d) => !apiMeterIds.has(d.meterId))
       .map((d) => ({ ...d, realCnrId: null as string | null, valueKwh: null as number | null, motivo: 'auto-detectado', justification: null as string | null, apiStatus: null as string | null }));
-    const merged = [...real, ...derived];
-    return merged.length > 0 ? merged : FALLBACK_CNR;
+    return [...real, ...derived];
   }, [apiCnrRecords, derivedRecords, buildingMap, apiMeterIds]);
 
   if (needsSelection) {

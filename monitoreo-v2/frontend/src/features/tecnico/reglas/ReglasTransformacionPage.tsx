@@ -25,14 +25,6 @@ const ESTADO_REGLA_OPTIONS = [
   { value: 'all', label: 'Todas' },
 ];
 
-// Fallback change history shown until backend API exists.
-const FALLBACK_HISTORY = [
-  { ts: '2026-07-17 09:12:44', user: 'j.perez@pasa.cl', rule: 'SN-4471 · Factor escala', field: 'factor', prev: '1.000', next: '0.001' },
-  { ts: '2026-07-15 14:35:09', user: 'c.molina@pasa.cl', rule: 'SN-5510 · Fórmula custom', field: 'formula', prev: 'raw × 1.00', next: 'raw × 1.02' },
-  { ts: '2026-07-14 08:20:33', user: 'j.perez@pasa.cl', rule: 'SN-3120 · Conversión unidad', field: 'activa', prev: 'false', next: 'true' },
-  { ts: '2026-07-10 16:45:58', user: 'admin@globepower.cl', rule: 'SN-2088 · Offset', field: 'offset', prev: '+0.0', next: '+0.5' },
-];
-
 export function ReglasTransformacionPage() {
   const [selectedRule, setSelectedRule] = useState<number | null>(null);
   const [testValue, setTestValue] = useState('48200');
@@ -183,18 +175,7 @@ export function ReglasTransformacionPage() {
           </table>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
-              <tbody className="divide-y divide-border">
-                {FALLBACK_HISTORY.map((entry, i) => (
-                  <tr key={i} className="animate-fade-in text-muted" style={{ animationDelay: `${i * 25}ms` }}>
-                    <td className="px-2 py-1.5 font-mono text-xs text-foreground">{entry.ts}</td>
-                    <td className="px-2 py-1.5">{entry.user}</td>
-                    <td className="px-2 py-1.5">{entry.rule}</td>
-                    <td className="px-2 py-1.5">{entry.field}</td>
-                    <td className="px-2 py-1.5 text-danger line-through">{entry.prev}</td>
-                    <td className="px-2 py-1.5 text-success font-medium">{entry.next}</td>
-                  </tr>
-                ))}
-              </tbody>
+              <tbody className="divide-y divide-border" />
             </table>
           </div>
         </div>

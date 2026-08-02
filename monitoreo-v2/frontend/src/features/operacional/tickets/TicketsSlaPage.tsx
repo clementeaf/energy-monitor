@@ -66,16 +66,6 @@ function alertToTicket(alert: Alert): Ticket {
   };
 }
 
-/* ── Fallback ticket data ── */
-
-const FALLBACK_TICKETS: Ticket[] = [
-  { id: 'fb-t-001', description: 'Voltaje fase R fuera de rango en TG-3 (245 V)', type: 'alarma', priority: 'alta', buildingId: 'fb-b1', openDate: new Date(Date.now() - 2 * 3_600_000).toISOString(), slaDeadline: new Date(Date.now() + 2 * 3_600_000).toISOString(), status: 'abierto', daysRemaining: 0, acknowledged: false },
-  { id: 'fb-t-002', description: 'Factor de potencia bajo umbral contractual (0.83)', type: 'alarma', priority: 'alta', buildingId: 'fb-b1', openDate: new Date(Date.now() - 5 * 3_600_000).toISOString(), slaDeadline: new Date(Date.now() - 1 * 3_600_000).toISOString(), status: 'asignado', daysRemaining: -1, acknowledged: true },
-  { id: 'fb-t-003', description: 'THD corriente > 8% en circuito alumbrado zona norte', type: 'alarma', priority: 'media', buildingId: 'fb-b2', openDate: new Date(Date.now() - 10 * 3_600_000).toISOString(), slaDeadline: new Date(Date.now() + 14 * 3_600_000).toISOString(), status: 'abierto', daysRemaining: 1, acknowledged: false },
-  { id: 'fb-t-004', description: 'Consumo supera demanda contratada 300 kW → 320 kW', type: 'cnr', priority: 'media', buildingId: 'fb-b2', openDate: new Date(Date.now() - 18 * 3_600_000).toISOString(), slaDeadline: new Date(Date.now() + 6 * 3_600_000).toISOString(), status: 'escalado', daysRemaining: 0, acknowledged: true },
-  { id: 'fb-t-005', description: 'Interrupción comunicación medidor M-07 (45 min)', type: 'alarma', priority: 'baja', buildingId: 'fb-b3', openDate: new Date(Date.now() - 26 * 3_600_000).toISOString(), slaDeadline: new Date(Date.now() + 46 * 3_600_000).toISOString(), status: 'resuelto', daysRemaining: 2, acknowledged: true },
-];
-
 /* ── Filter options ── */
 
 interface SelectOption { key: string; label: string }
@@ -138,8 +128,7 @@ export function TicketsSlaPage() {
     () => [...(activeQuery.data ?? []), ...(acknowledgedQuery.data ?? []), ...(resolvedQuery.data ?? [])],
     [activeQuery.data, acknowledgedQuery.data, resolvedQuery.data],
   );
-  const realTickets = useMemo(() => allAlerts.map(alertToTicket), [allAlerts]);
-  const tickets = realTickets.length > 0 ? realTickets : FALLBACK_TICKETS;
+  const tickets = useMemo(() => allAlerts.map(alertToTicket), [allAlerts]);
 
   // Apply quick filter
   const predicate = QUICK_PREDICATES[quickFilter] ?? QUICK_PREDICATES.all;

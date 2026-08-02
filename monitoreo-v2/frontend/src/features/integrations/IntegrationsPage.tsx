@@ -31,8 +31,6 @@ import { IntegrationsIngestGapsTab } from './IntegrationsIngestGapsTab';
 import { IntegrationsWebhookDeliveriesTab } from './IntegrationsWebhookDeliveriesTab';
 import { INTEGRATION_TYPE_PRESETS, isStubIntegrationType } from './integration-types';
 import {
-  FALLBACK_INTEGRATIONS,
-  FALLBACK_SYNC_LOGS,
   STATUS_OPTIONS,
   parseConfigObject,
   labelStatus,
@@ -61,9 +59,7 @@ export function IntegrationsPage() {
   const deleteMutation = useDeleteIntegration();
   const syncMutation = useTriggerIntegrationSync();
 
-  const allIntegrations = (listQuery.data && listQuery.data.length > 0) ? listQuery.data : (!listQuery.isLoading ? FALLBACK_INTEGRATIONS : []);
-  // Use fallback so phase never shows 'empty' when FALLBACK_INTEGRATIONS covers the gap
-  const qsPhase = (qs.phase === 'empty' && allIntegrations.length > 0) ? 'ready' as const : qs.phase;
+  const allIntegrations = listQuery.data ?? [];
   const { visible: visibleIntegrations, hasMore, sentinelRef, total } = useInfiniteScroll(allIntegrations, [filters.integrationType, filters.status]);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -244,7 +240,7 @@ export function IntegrationsPage() {
                   </tr>
                 </thead>
                 <TableStateBody
-                  phase={qsPhase}
+                  phase={qs.phase}
                   colSpan={6}
                   error={qs.error}
                   onRetry={() => {
@@ -413,8 +409,7 @@ export function IntegrationsPage() {
                 {/* Detail metrics — derived from sync log data */}
                 <div className="flex flex-wrap gap-2 border-b border-border px-4 py-3">
                   {(() => {
-                    const apiLogs = syncLogsQuery.data?.items ?? [];
-                    const logs = apiLogs.length > 0 ? apiLogs : FALLBACK_SYNC_LOGS.filter((l) => l.integrationId === logsFor.id || logsFor.id.startsWith('fb-'));
+                    const logs = syncLogsQuery.data?.items ?? [];
                     const successCount = logs.filter((l) => l.status === 'success').length;
                     const failedCount = logs.filter((l) => l.status === 'failed').length;
                     const totalLogs = logs.length;
@@ -440,7 +435,6 @@ export function IntegrationsPage() {
                   logsLimit={logsLimit}
                   logsTotalPages={logsTotalPages}
                   onPageChange={setLogsPage}
-                  fallbackLogs={FALLBACK_SYNC_LOGS}
                 />
               </>
             )}

@@ -114,26 +114,6 @@ export function aggregateMonthlyCosts(invoices: Invoice[], currencyRate: number)
     .sort((a, b) => a.month.localeCompare(b.month));
 }
 
-export const FALLBACK_MONTHLY_DATA: MonthlyBucket[] = (() => {
-  const now = new Date();
-  const MONTHLY_COSTS = [572, 619, 641, 598, 555, 610];
-  return Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-    const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const cost = MONTHLY_COSTS[i];
-    const mwh = cost / 0.32;
-    return { month, cost, mwh };
-  });
-})();
-
-export const FALLBACK_COST_ROWS: CostRow[] = [
-  { buildingId: 'fb-1', buildingName: 'Parque Arauco Kennedy', countryCode: 'CL', consumptionMwh: 4350, totalCost: 1392000, invoiceCount: 6, avgPricePerMwh: 320, variationPct: -3.1 },
-  { buildingId: 'fb-2', buildingName: 'Costanera Center', countryCode: 'CL', consumptionMwh: 5600, totalCost: 1792000, invoiceCount: 6, avgPricePerMwh: 320, variationPct: -5.4 },
-  { buildingId: 'fb-3', buildingName: 'Mall Plaza Vespucio', countryCode: 'CL', consumptionMwh: 3200, totalCost: 1024000, invoiceCount: 6, avgPricePerMwh: 320, variationPct: 1.8 },
-  { buildingId: 'fb-4', buildingName: 'Parque Arauco La Reina', countryCode: 'CL', consumptionMwh: 2250, totalCost: 720000, invoiceCount: 6, avgPricePerMwh: 320, variationPct: 2.2 },
-  { buildingId: 'fb-5', buildingName: 'Mall Sport', countryCode: 'CL', consumptionMwh: 1900, totalCost: 608000, invoiceCount: 6, avgPricePerMwh: 320, variationPct: -1.7 },
-];
-
 export function formatCurrency(value: number, currency: string): string {
   const FORMAT: Record<string, Intl.NumberFormatOptions> = {
     CLP: { style: 'decimal', maximumFractionDigits: 0 },

@@ -89,27 +89,6 @@ const REPORT_SECTIONS: SectionDef[] = [
   { key: 'coverage', label: 'Mapa de cobertura', defaultChecked: false },
 ];
 
-/* ── Fallback report history entries ── */
-
-interface FallbackReport {
-  id: string;
-  createdAt: string;
-  userEmail: string;
-  scope: string;
-  format: string;
-  fileUrl: string | null;
-  reportType: string;
-  periodStart: string;
-  periodEnd: string;
-}
-
-const FALLBACK_REPORTS: FallbackReport[] = [
-  { id: 'fb-rep-1', createdAt: '2026-07-15T09:22:00Z', userEmail: 'gerencia@pasa.cl', scope: 'Portafolio', format: 'pdf', fileUrl: '#', reportType: 'consumption', periodStart: '2026-07-01', periodEnd: '2026-07-14' },
-  { id: 'fb-rep-2', createdAt: '2026-07-01T08:05:00Z', userEmail: 'gerencia@pasa.cl', scope: 'Por país', format: 'excel', fileUrl: '#', reportType: 'billing', periodStart: '2026-06-01', periodEnd: '2026-06-30' },
-  { id: 'fb-rep-3', createdAt: '2026-06-30T17:45:00Z', userEmail: 'analista@pasa.cl', scope: 'Portafolio', format: 'ppt', fileUrl: null, reportType: 'consumption', periodStart: '2026-04-01', periodEnd: '2026-06-30' },
-  { id: 'fb-rep-4', createdAt: '2026-06-01T07:30:00Z', userEmail: 'gerencia@pasa.cl', scope: 'Portafolio', format: 'csv', fileUrl: '#', reportType: 'quality', periodStart: '2026-05-01', periodEnd: '2026-05-31' },
-];
-
 /* ── Report status badges ── */
 
 const STATUS_STYLE: Record<string, string> = {
@@ -183,8 +162,7 @@ export function ReportesEjecutivosPage() {
   const reportsQuery = useReportsQuery();
   const generateReport = useGenerateReport();
 
-  const realReports = reportsQuery.data ?? [];
-  const reports = realReports.length > 0 ? realReports : (FALLBACK_REPORTS as unknown as typeof realReports);
+  const reports = reportsQuery.data ?? [];
 
   // Sorted + filtered history (newest first)
   const sortedReports = useMemo(() => {

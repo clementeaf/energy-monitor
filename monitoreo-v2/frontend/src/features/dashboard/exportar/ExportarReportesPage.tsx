@@ -89,25 +89,6 @@ const FILTER_FORMAT_OPTIONS: SelectOption[] = [
   { key: 'zip', label: 'ZIP' },
 ];
 
-/* ── Fallback export history entries ── */
-
-interface FallbackExport {
-  id: string;
-  createdAt: string;
-  userEmail: string;
-  reportType: string;
-  periodStart: string;
-  periodEnd: string;
-  format: string;
-  fileUrl: string | null;
-}
-
-const FALLBACK_EXPORTS: FallbackExport[] = [
-  { id: 'fb-exp-1', createdAt: '2026-07-15T10:12:00Z', userEmail: 'gerencia@pasa.cl', reportType: 'consumption', periodStart: '2026-07-01', periodEnd: '2026-07-15', format: 'excel', fileUrl: '#' },
-  { id: 'fb-exp-2', createdAt: '2026-07-01T08:30:00Z', userEmail: 'analista@pasa.cl', reportType: 'billing', periodStart: '2026-06-01', periodEnd: '2026-06-30', format: 'csv', fileUrl: '#' },
-  { id: 'fb-exp-3', createdAt: '2026-06-15T16:55:00Z', userEmail: 'gerencia@pasa.cl', reportType: 'alerts_compliance', periodStart: '2026-06-01', periodEnd: '2026-06-15', format: 'pdf', fileUrl: null },
-];
-
 /* ── Page ── */
 
 export function ExportarReportesPage() {
@@ -142,8 +123,7 @@ export function ExportarReportesPage() {
     if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
     return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
   }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
-  const realReports = reportsQuery.data ?? [];
-  const reports = realReports.length > 0 ? realReports : (FALLBACK_EXPORTS as unknown as typeof realReports);
+  const reports = reportsQuery.data ?? [];
 
   // Queue (recent exports, newest first)
   const queue = useMemo(

@@ -100,42 +100,6 @@ function buildScorecard(
   });
 }
 
-/* ── Fallback scorecard rows when no building/meter data is available ── */
-
-const FALLBACK_SCORECARD_ROWS: ScorecardRow[] = [
-  { buildingId: 'fb-1', buildingName: 'Mall Arauco Maipú', totalExpected: 172800, realCount: 165888, realPct: 96.0, estimatedCount: 3456, estimatedPct: 2.0, cnrCount: 1728, cnrPct: 1.0, missingCount: 1728, missingPct: 1.0, trend: '→', semaphore: 'green' },
-  { buildingId: 'fb-2', buildingName: 'Mall Arauco Quilicura', totalExpected: 144000, realCount: 132480, realPct: 92.0, estimatedCount: 7200, estimatedPct: 5.0, cnrCount: 2880, cnrPct: 2.0, missingCount: 1440, missingPct: 1.0, trend: '↓', semaphore: 'yellow' },
-  { buildingId: 'fb-3', buildingName: 'Mall Arauco Chillán', totalExpected: 115200, realCount: 111744, realPct: 97.0, estimatedCount: 1152, estimatedPct: 1.0, cnrCount: 576, cnrPct: 0.5, missingCount: 1728, missingPct: 1.5, trend: '→', semaphore: 'green' },
-  { buildingId: 'fb-4', buildingName: 'Mall Arauco Temuco', totalExpected: 129600, realCount: 108864, realPct: 84.0, estimatedCount: 12960, estimatedPct: 10.0, cnrCount: 3888, cnrPct: 3.0, missingCount: 3888, missingPct: 3.0, trend: '↓', semaphore: 'red' },
-  { buildingId: 'fb-5', buildingName: 'Mall Arauco Estación', totalExpected: 158400, realCount: 152064, realPct: 96.0, estimatedCount: 3168, estimatedPct: 2.0, cnrCount: 1584, cnrPct: 1.0, missingCount: 1584, missingPct: 1.0, trend: '→', semaphore: 'green' },
-];
-
-/* ── Fallback data for evolution chart when aggregated query is empty ── */
-
-const CURRENT_YEAR = new Date().getFullYear();
-const CURRENT_MONTH = new Date().getMonth(); // 0-indexed
-
-function makeFallbackEvoLabel(monthsAgo: number): string {
-  const d = new Date(CURRENT_YEAR, CURRENT_MONTH - monthsAgo, 1);
-  return d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' });
-}
-
-// 12 months of realistic quality % (oscillating 92–98%)
-const FALLBACK_EVO_DATA: { label: string; realPct: number }[] = [
-  { label: makeFallbackEvoLabel(11), realPct: 93.4 },
-  { label: makeFallbackEvoLabel(10), realPct: 95.1 },
-  { label: makeFallbackEvoLabel(9),  realPct: 94.7 },
-  { label: makeFallbackEvoLabel(8),  realPct: 96.2 },
-  { label: makeFallbackEvoLabel(7),  realPct: 97.0 },
-  { label: makeFallbackEvoLabel(6),  realPct: 95.8 },
-  { label: makeFallbackEvoLabel(5),  realPct: 92.3 },
-  { label: makeFallbackEvoLabel(4),  realPct: 94.1 },
-  { label: makeFallbackEvoLabel(3),  realPct: 96.5 },
-  { label: makeFallbackEvoLabel(2),  realPct: 97.8 },
-  { label: makeFallbackEvoLabel(1),  realPct: 95.3 },
-  { label: makeFallbackEvoLabel(0),  realPct: 96.9 },
-];
-
 /* ── Period options ── */
 
 const PERIOD_OPTIONS = [
@@ -178,15 +142,14 @@ export function CalidadDatosPage() {
 
   const allRows = useMemo(() => {
     const derived = buildScorecard(filteredBuildings, meters, readings, days, granularity);
-    return derived.length > 0 ? derived : FALLBACK_SCORECARD_ROWS;
+    return derived;
   }, [filteredBuildings, meters, readings, days, granularity]);
   const rows = mallFilter === 'all' ? allRows : allRows.filter((r) => r.buildingId === mallFilter);
 
   // Evolution chart: distinct meters reporting per month / total meters
   const totalMeterCount = meters.length;
   const evolutionData = useMemo(() => {
-    // If no aggregated data from API, use realistic fallback
-    if (evoAgg.length === 0) return FALLBACK_EVO_DATA;
+    if (evoAgg.length === 0) return [];
 
     const months: { label: string; realPct: number }[] = [];
     const now = new Date();
@@ -215,32 +178,8 @@ export function CalidadDatosPage() {
   // Low-quality meters for selected mall
   const LOW_QUALITY_THRESHOLD = 90;
 
-  const FALLBACK_LOW_QUALITY: Record<string, { id: string; name: string; code: string; realPct: number; causa: string }[]> = {
-    'fb-1': [
-      { id: 'flq-1', name: 'PAC-MAIPU-B2-04', code: 'MM-104', realPct: 42.3, causa: 'Comunicación perdida' },
-      { id: 'flq-2', name: 'PAC-MAIPU-P3-11', code: 'MM-211', realPct: 67.8, causa: 'Dato estancado' },
-      { id: 'flq-3', name: 'PAC-MAIPU-P1-07', code: 'MM-307', realPct: 81.5, causa: 'Intermitencia' },
-    ],
-    'fb-2': [
-      { id: 'flq-4', name: 'PAC-QUIL-P2-03', code: 'QM-203', realPct: 55.1, causa: 'Comunicación perdida' },
-      { id: 'flq-5', name: 'PAC-QUIL-P1-09', code: 'QM-109', realPct: 72.4, causa: 'Dato estancado' },
-    ],
-    'fb-3': [],
-    'fb-4': [
-      { id: 'flq-6', name: 'PAC-TEMU-B1-02', code: 'TM-102', realPct: 38.9, causa: 'Comunicación perdida' },
-      { id: 'flq-7', name: 'PAC-TEMU-P2-06', code: 'TM-206', realPct: 61.2, causa: 'Dato estancado' },
-      { id: 'flq-8', name: 'PAC-TEMU-P3-14', code: 'TM-314', realPct: 79.0, causa: 'Intermitencia' },
-      { id: 'flq-9', name: 'PAC-TEMU-P1-01', code: 'TM-101', realPct: 83.7, causa: 'Intermitencia' },
-    ],
-    'fb-5': [
-      { id: 'flq-10', name: 'PAC-EST-P2-08', code: 'EM-208', realPct: 85.3, causa: 'Intermitencia' },
-    ],
-  };
-
   const lowQualityMeters = useMemo(() => {
     if (!selectedMall) return [];
-    // If using fallback scorecard (no real meters), return fallback low-quality list
-    if (meters.length === 0) return FALLBACK_LOW_QUALITY[selectedMall] ?? [];
     const readingMap = new Map(readings.map((r) => [r.meter_id, r]));
     const STALE_MS = 4 * 60 * 60 * 1000;
     const now = Date.now();

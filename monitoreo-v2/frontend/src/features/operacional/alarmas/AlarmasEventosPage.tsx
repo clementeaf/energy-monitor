@@ -9,24 +9,6 @@ import { useAggregatedReadingsQuery } from '../../../hooks/queries/useReadingsQu
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import type { Alert, AlertSeverity, AlertStatus } from '../../../types/alert';
 
-/* ── Fallback alert data ── */
-
-const FALLBACK_ALERTS: Alert[] = [
-  { id: 'fb-al-001-uuid', buildingId: 'fb-b1', meterId: 'fb-m1-uuid-x', severity: 'critical', status: 'active', message: 'Voltaje fase R fuera de rango (245 V > 220±5%)', alertTypeCode: 'VOLT_HIGH', alertRuleId: null, triggeredValue: 245, thresholdValue: 231, createdAt: new Date(Date.now() - 2 * 3_600_000).toISOString(), acknowledgedAt: null, acknowledgedBy: null, assignedTo: null, resolvedAt: null, resolvedBy: null, resolutionNotes: null },
-  { id: 'fb-al-002-uuid', buildingId: 'fb-b1', meterId: 'fb-m2-uuid-x', severity: 'high', status: 'acknowledged', message: 'Factor de potencia bajo umbral contractual (0.83 < 0.90)', alertTypeCode: 'PF_LOW', alertRuleId: null, triggeredValue: 0.83, thresholdValue: 0.90, createdAt: new Date(Date.now() - 5 * 3_600_000).toISOString(), acknowledgedAt: new Date(Date.now() - 3 * 3_600_000).toISOString(), acknowledgedBy: 'operador@pasa.cl', assignedTo: 'operador@pasa.cl', resolvedAt: null, resolvedBy: null, resolutionNotes: null },
-  { id: 'fb-al-003-uuid', buildingId: 'fb-b2', meterId: 'fb-m3-uuid-x', severity: 'medium', status: 'active', message: 'THD corriente supera 8% en circuito alumbrado zona norte', alertTypeCode: 'THD_HIGH', alertRuleId: null, triggeredValue: 9.2, thresholdValue: 8.0, createdAt: new Date(Date.now() - 8 * 3_600_000).toISOString(), acknowledgedAt: null, acknowledgedBy: null, assignedTo: null, resolvedAt: null, resolvedBy: null, resolutionNotes: null },
-  { id: 'fb-al-004-uuid', buildingId: 'fb-b2', meterId: null, severity: 'medium', status: 'active', message: 'Consumo supera demanda contratada (320 kW > 300 kW)', alertTypeCode: 'DEMAND_EXCEED', alertRuleId: null, triggeredValue: 320, thresholdValue: 300, createdAt: new Date(Date.now() - 12 * 3_600_000).toISOString(), acknowledgedAt: null, acknowledgedBy: null, assignedTo: null, resolvedAt: null, resolvedBy: null, resolutionNotes: null },
-  { id: 'fb-al-005-uuid', buildingId: 'fb-b3', meterId: 'fb-m5-uuid-x', severity: 'low', status: 'resolved', message: 'Comunicación interrumpida por 45 min en medidor M-07', alertTypeCode: 'COMM_LOSS', alertRuleId: null, triggeredValue: null, thresholdValue: null, createdAt: new Date(Date.now() - 26 * 3_600_000).toISOString(), acknowledgedAt: new Date(Date.now() - 25 * 3_600_000).toISOString(), acknowledgedBy: 'tecnico@pasa.cl', assignedTo: 'tecnico@pasa.cl', resolvedAt: new Date(Date.now() - 20 * 3_600_000).toISOString(), resolvedBy: 'tecnico@pasa.cl', resolutionNotes: 'Reconexión manual en tablero secundario' },
-];
-
-/* ── Fallback sparkline data (48 hourly points) ── */
-
-const FALLBACK_SPARKLINE_POINTS: number[] = [
-  42,44,46,48,51,53,55,58,62,67,71,74,72,68,64,60,58,56,54,52,
-  50,49,51,54,58,63,68,73,78,82,85,83,79,74,69,64,59,55,52,49,
-  47,46,48,51,55,60,65,70,
-];
-
 /* ── Filter options ── */
 
 interface SelectOption { key: string; label: string }
@@ -120,8 +102,7 @@ export function AlarmasEventosPage() {
     if (!isFilteredMode || !operatorBuildingIds) return rawBuildings;
     return rawBuildings.filter((b) => operatorBuildingIds.has(b.id));
   }, [rawBuildings, isFilteredMode, operatorBuildingIds]);
-  const realAlerts = alertsQuery.data ?? [];
-  const alerts = realAlerts.length > 0 ? realAlerts : FALLBACK_ALERTS;
+  const alerts = alertsQuery.data ?? [];
 
   const buildingMap = useMemo(
     () => new Map(buildings.map((b) => [b.id, b.name])),
@@ -355,13 +336,12 @@ function MeterSparkline48h({ meterId, thresholdValue }: Readonly<{ meterId?: str
   const threshold = thresholdValue ?? 0;
   const w = 240;
   const h = 48;
-  const displayPoints = points.some((v) => v > 0) ? points : FALLBACK_SPARKLINE_POINTS;
-  const allVals = [...displayPoints, threshold].filter((v) => v > 0);
+  const allVals = [...points, threshold].filter((v) => v > 0);
   if (allVals.length === 0) return <p className="text-xs text-muted">Sin datos 48h.</p>;
   const minV = Math.min(...allVals) * 0.95;
   const maxV = Math.max(...allVals) * 1.05;
   const toY = (v: number) => h - ((v - minV) / (maxV - minV)) * (h - 4);
-  const linePath = displayPoints.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${toY(v)}`).join(' ');
+  const linePath = points.map((v, i) => `${i === 0 ? 'M' : 'L'} ${(i / 47) * w} ${toY(v)}`).join(' ');
   const threshY = threshold > 0 ? toY(threshold) : -10;
 
   return (

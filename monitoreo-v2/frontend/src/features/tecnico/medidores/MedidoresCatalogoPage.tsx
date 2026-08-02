@@ -6,7 +6,6 @@ import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
 import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
 import type { LatestReading } from '../../../types/reading';
-import type { Meter } from '../../../types/meter';
 
 type CommStatus = 'online' | 'offline' | 'stale';
 
@@ -26,16 +25,6 @@ function deriveCommStatus(reading: LatestReading | undefined, now: number): Comm
   return checks.find(([c]) => c)?.[1] ?? 'online';
 }
 
-/* ── Fallback meters (shown when metersQuery returns empty) ── */
-
-const FALLBACK_METERS: Meter[] = [
-  { id: 'fb-m01', buildingId: 'fb-b01', name: 'Medidor Principal Piso 1', code: 'MP-P1-01', meterType: 'PAC3200', isActive: true, metadata: { zone: 'Zona A' }, externalId: null, model: 'PAC3200', serialNumber: 'SN-00123', ipAddress: null, modbusAddress: 1, busId: '192.168.1.10', uplinkRoute: null, crcErrorsLastPoll: 0, phaseType: 'three_phase', nominalVoltage: '380', nominalCurrent: '200', contractedDemandKw: '50', loadCategory: 'main', parentMeterId: null, iotDeviceId: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { id: 'fb-m02', buildingId: 'fb-b01', name: 'Medidor Iluminación L2', code: 'IL-P2-02', meterType: 'PAC3200', isActive: true, metadata: { zone: 'Zona B' }, externalId: null, model: 'PAC3200', serialNumber: 'SN-00124', ipAddress: null, modbusAddress: 2, busId: '192.168.1.10', uplinkRoute: null, crcErrorsLastPoll: 0, phaseType: 'three_phase', nominalVoltage: '380', nominalCurrent: '100', contractedDemandKw: '25', loadCategory: 'lighting', parentMeterId: 'fb-m01', iotDeviceId: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { id: 'fb-m03', buildingId: 'fb-b02', name: 'Medidor HVAC Torre B', code: 'HV-TB-03', meterType: 'PAC3200', isActive: true, metadata: { zone: 'Torre B' }, externalId: null, model: 'PAC4200', serialNumber: 'SN-00125', ipAddress: null, modbusAddress: 3, busId: '192.168.1.11', uplinkRoute: null, crcErrorsLastPoll: 2, phaseType: 'three_phase', nominalVoltage: '380', nominalCurrent: '150', contractedDemandKw: '40', loadCategory: 'hvac', parentMeterId: null, iotDeviceId: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { id: 'fb-m04', buildingId: 'fb-b02', name: 'Medidor Locatario L3-14', code: 'LOC-L3-14', meterType: 'PAC3200', isActive: true, metadata: { zone: 'Nivel 3' }, externalId: null, model: 'PAC3200', serialNumber: 'SN-00126', ipAddress: null, modbusAddress: 4, busId: '192.168.1.11', uplinkRoute: null, crcErrorsLastPoll: 0, phaseType: 'single_phase', nominalVoltage: '220', nominalCurrent: '32', contractedDemandKw: '5', loadCategory: 'tenant', parentMeterId: 'fb-m03', iotDeviceId: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-  { id: 'fb-m05', buildingId: 'fb-b03', name: 'Medidor Sub-estación SE2', code: 'SE2-SUB-05', meterType: 'ION7650', isActive: false, metadata: { zone: 'Sub-estación' }, externalId: null, model: 'ION7650', serialNumber: 'SN-00127', ipAddress: '10.0.1.5', modbusAddress: null, busId: null, uplinkRoute: null, crcErrorsLastPoll: 0, phaseType: 'three_phase', nominalVoltage: '13800', nominalCurrent: '500', contractedDemandKw: '200', loadCategory: 'main', parentMeterId: null, iotDeviceId: null, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-];
-
 export function MedidoresCatalogoPage() {
   const navigate = useNavigate();
   const [search] = useState('');
@@ -50,8 +39,7 @@ export function MedidoresCatalogoPage() {
 
 
   const buildings = buildingsQuery.data ?? [];
-  const rawMeters = metersQuery.data ?? [];
-  const meters = rawMeters.length > 0 ? rawMeters : FALLBACK_METERS;
+  const meters = metersQuery.data ?? [];
   const readings = latestQuery.data ?? [];
 
   const buildingMap = useMemo(() => new Map(buildings.map((b) => [b.id, b.name])), [buildings]);

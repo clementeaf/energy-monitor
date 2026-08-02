@@ -13,8 +13,6 @@ import {
   CURRENCIES,
   GROUPING_OPTIONS,
   CURRENCY_RATES,
-  FALLBACK_MONTHLY_DATA,
-  FALLBACK_COST_ROWS,
   buildCostRows,
   aggregateMonthlyCosts,
   type MonthlyBucket,
@@ -72,18 +70,10 @@ export function CostosTendenciasPage() {
   const filteredReadings = readings.filter((r) => buildingIds.has(r.building_id));
 
   const costRows = buildCostRows(finalBuildings, filteredInvoices, filteredReadings, currencyRate);
-  const effectiveCostRows = costRows.length > 0 ? costRows : FALLBACK_COST_ROWS.map((r) => ({
-    ...r,
-    totalCost: r.totalCost * currencyRate,
-    avgPricePerMwh: r.avgPricePerMwh * currencyRate,
-  }));
 
-  const rawMonthlyData = aggregateMonthlyCosts(filteredInvoices, currencyRate);
-  const monthlyData = rawMonthlyData.length > 0
-    ? rawMonthlyData
-    : FALLBACK_MONTHLY_DATA.map((d) => ({ ...d, cost: d.cost * currencyRate }));
+  const monthlyData = aggregateMonthlyCosts(filteredInvoices, currencyRate);
 
-  const totalMwh = effectiveCostRows.reduce((sum, r) => sum + r.consumptionMwh, 0);
+  const totalMwh = costRows.reduce((sum, r) => sum + r.consumptionMwh, 0);
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
@@ -153,7 +143,7 @@ export function CostosTendenciasPage() {
           <WaterfallTab monthlyData={monthlyData} />
         )}
         {activeTab === 'tabla' && (
-          <CostTable rows={effectiveCostRows} currencyKey={currencyKey} />
+          <CostTable rows={costRows} currencyKey={currencyKey} />
         )}
         {activeTab === 'proyeccion' && (
           <ProjectionTab monthlyData={monthlyData} />

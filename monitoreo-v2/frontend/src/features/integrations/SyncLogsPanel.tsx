@@ -10,7 +10,6 @@ interface SyncLogsPanelProps {
   logsLimit: number;
   logsTotalPages: number;
   onPageChange: (page: number) => void;
-  fallbackLogs?: IntegrationSyncLog[];
 }
 
 /**
@@ -22,10 +21,8 @@ export function SyncLogsPanel({
   logsLimit,
   logsTotalPages,
   onPageChange,
-  fallbackLogs = [],
 }: Readonly<SyncLogsPanelProps>) {
-  const apiItems = query.data?.items ?? [];
-  const displayItems = apiItems.length > 0 ? apiItems : (!query.isLoading ? fallbackLogs : []);
+  const displayItems = query.data?.items ?? [];
   const qs = useQueryState(query, {
     isEmpty: () => displayItems.length === 0,
   });

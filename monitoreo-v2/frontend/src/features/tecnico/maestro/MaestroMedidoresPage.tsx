@@ -29,23 +29,6 @@ const ESTADO_COMMS_OPTIONS = [
   { value: 'intermitente', label: 'Intermitente' },
 ];
 
-/* ── Fallback changelog entries ── */
-
-interface ChangelogEntry {
-  timestamp: string;
-  user: string;
-  field: string;
-  oldValue: string;
-  newValue: string;
-}
-
-const FALLBACK_CHANGELOG: ChangelogEntry[] = [
-  { timestamp: '2026-06-12 09:14:32', user: 'tecnico.garcia', field: 'firmware', oldValue: '2.1.0', newValue: '2.3.1' },
-  { timestamp: '2026-05-28 14:02:05', user: 'admin.lopez', field: 'sampling_interval', oldValue: '30 min', newValue: '15 min' },
-  { timestamp: '2026-04-15 11:45:17', user: 'tecnico.garcia', field: 'modbus_address', oldValue: '04', newValue: '07' },
-  { timestamp: '2026-03-03 08:30:00', user: 'admin.lopez', field: 'is_active', oldValue: 'false', newValue: 'true' },
-];
-
 /* ── Asset status ── */
 
 type AssetStatus = 'activo' | 'en mantención' | 'baja';
@@ -205,17 +188,7 @@ export function MaestroMedidoresPage() {
           </table>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
-              <tbody className="divide-y divide-border">
-                {FALLBACK_CHANGELOG.map((entry) => (
-                  <tr key={entry.timestamp} className="transition-colors hover:bg-surface">
-                    <td className="px-2 py-1.5 font-mono text-xs text-muted">{entry.timestamp}</td>
-                    <td className="px-2 py-1.5 text-muted">{entry.user}</td>
-                    <td className="px-2 py-1.5 text-foreground">{entry.field}</td>
-                    <td className="px-2 py-1.5 text-muted">{entry.oldValue}</td>
-                    <td className="px-2 py-1.5 text-foreground">{entry.newValue}</td>
-                  </tr>
-                ))}
-              </tbody>
+              <tbody className="divide-y divide-border" />
             </table>
           </div>
         </div>

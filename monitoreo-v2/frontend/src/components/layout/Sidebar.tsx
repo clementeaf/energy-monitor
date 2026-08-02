@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
-import { UNIFIED_NAV, getVisibleNav, findActiveEntry } from '../../lib/unified-nav';
+import { getVisibleNav, findActiveEntry } from '../../lib/unified-nav';
 import { NavModuleIcon } from './sidebar-icons';
 import { SidebarFlyout } from './SidebarFlyout';
 import { SidebarCollapsible, SidebarReveal } from './sidebar-motion';

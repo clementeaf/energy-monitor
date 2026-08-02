@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.56.0] - 2026-08-02 — WEBAUTHN / PASSKEYS
+
+### Added (Backend)
+- **WebAuthn service** — `webauthn.service.ts` con `@simplewebauthn/server@11`. Registro, verificación, CRUD de credenciales biométricas. 6 tests.
+- **6 endpoints** — `POST /auth/webauthn/{register-options,register-verify,login-options,login-verify}`, `GET /auth/webauthn/credentials`, `DELETE /auth/webauthn/credentials`.
+- **Migración 62** — Tabla `user_credentials` (credential_id, public_key, counter, transports, device_name).
+
+### Added (Frontend)
+- **`@simplewebauthn/browser@11`** instalado.
+- **Sección Passkeys** en MfaSection (Perfil): lista credenciales registradas, registrar nueva passkey con nombre de dispositivo, eliminar.
+- **Endpoints frontend** — `webauthnRegisterOptions`, `webauthnRegisterVerify`, `webauthnLoginOptions`, `webauthnLoginVerify`, `webauthnCredentials`, `webauthnDeleteCredential`.
+
+### Flujo
+1. Perfil → Passkeys → "Registrar passkey" → prompt biométrico del browser → credencial guardada.
+2. Login → usuario con passkey → verificación biométrica → tokens emitidos sin código TOTP.
+
+---
+
 ## [2.55.0] - 2026-08-02 — ELIMINACIÓN TOTAL FALLBACKS
 
 ### Removed (Frontend — 763 líneas de data falsa)

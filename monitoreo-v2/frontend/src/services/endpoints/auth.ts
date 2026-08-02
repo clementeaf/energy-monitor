@@ -62,6 +62,24 @@ export const authEndpoints = {
   mfaDisable: () =>
     api.delete<{ success: boolean; mfaEnabled: boolean }>(API_ROUTES.auth.mfaDisable),
 
+  webauthnRegisterOptions: () =>
+    api.post(API_ROUTES.auth.webauthnRegisterOptions),
+
+  webauthnRegisterVerify: (response: unknown, deviceName?: string) =>
+    api.post(API_ROUTES.auth.webauthnRegisterVerify, { response, deviceName }),
+
+  webauthnLoginOptions: (userId: string) =>
+    api.post(API_ROUTES.auth.webauthnLoginOptions, { userId }),
+
+  webauthnLoginVerify: (userId: string, response: unknown) =>
+    api.post(API_ROUTES.auth.webauthnLoginVerify, { userId, response }),
+
+  webauthnCredentials: () =>
+    api.get<{ id: string; credential_id: string; device_name: string | null; created_at: string }[]>(API_ROUTES.auth.webauthnCredentials),
+
+  webauthnDeleteCredential: (credentialId: string) =>
+    api.delete(API_ROUTES.auth.webauthnCredentials, { data: { credentialId } }),
+
   acceptPrivacy: () =>
     api.post<{ success: boolean; version: string }>(API_ROUTES.auth.acceptPrivacy),
 

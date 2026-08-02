@@ -20,6 +20,7 @@
     "@azure/msal-react": "^5.1.0",
     "@fontsource-variable/inter": "^5.2.8",
     "@react-oauth/google": "^0.13.4",
+    "@simplewebauthn/browser": "^11.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-query": "^5.95.2",
     "axios": "^1.13.6",

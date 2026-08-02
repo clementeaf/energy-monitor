@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
+import { WebAuthnService } from './webauthn.service';
 import { TenantsService } from '../tenants/tenants.service';
 
 jest.mock('jose', () => ({
@@ -79,6 +80,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: MfaService, useValue: mfaService },
+        { provide: WebAuthnService, useValue: {} },
         { provide: TenantsService, useValue: {} },
         {
           provide: ConfigService,
@@ -140,6 +142,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: MfaService, useValue: mfaService },
+        { provide: WebAuthnService, useValue: {} },
         { provide: TenantsService, useValue: {} },
         {
           provide: ConfigService,
@@ -184,6 +187,7 @@ describe('AuthController — violent session/cookie scenarios', () => {
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: MfaService, useValue: mfaService },
+        { provide: WebAuthnService, useValue: {} },
         { provide: TenantsService, useValue: {} },
         {
           provide: ConfigService,

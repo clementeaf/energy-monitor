@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +20,7 @@ import { AuthService } from './auth.service';
 import type { OAuthProfile } from './auth.service';
 import { PRIVACY_POLICY_VERSION } from './auth.service';
 import { MfaService } from './mfa.service';
+import { WebAuthnService } from './webauthn.service';
 import { OAuthLoginDto, RefreshTokenDto } from './dto/oauth-login.dto';
 import { MfaCodeDto, MfaSetupDto, MfaValidateDto } from './dto/mfa.dto';
 import { DeletionRequestDto } from './dto/deletion-request.dto';
@@ -36,10 +38,12 @@ import { Throttle } from '@nestjs/throttler';
 export class AuthController {
   private readonly msJwks;
   private readonly googleJwks;
+  private readonly challengeStore = new Map<string, { challenge: string; expires: number }>();
 
   constructor(
     private readonly authService: AuthService,
     private readonly mfaService: MfaService,
+    private readonly webauthnService: WebAuthnService,
     private readonly configService: ConfigService,
     private readonly tenantsService: TenantsService,
   ) {
@@ -486,5 +490,81 @@ export class AuthController {
     }
 
     throw new UnauthorizedException('Unsupported provider');
+  }
+
+  // ── WebAuthn (Passkeys) ──────────────────────────────
+
+  private storeChallenge(userId: string, challenge: string) {
+    this.challengeStore.set(userId, { challenge, expires: Date.now() + 60_000 });
+  }
+
+  private consumeChallenge(userId: string): string {
+    const entry = this.challengeStore.get(userId);
+    this.challengeStore.delete(userId);
+    if (!entry || entry.expires < Date.now()) throw new BadRequestException('Challenge expirado');
+    return entry.challenge;
+  }
+
+  @Post('webauthn/register-options')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate WebAuthn registration options' })
+  async webauthnRegisterOptions(@CurrentUser() user: JwtPayload) {
+    const options = await this.webauthnService.generateRegistrationOptions(user.sub, user.email);
+    this.storeChallenge(user.sub, options.challenge);
+    return options;
+  }
+
+  @Post('webauthn/register-verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify and save WebAuthn registration' })
+  async webauthnRegisterVerify(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { response: any; deviceName?: string },
+  ) {
+    const challenge = this.consumeChallenge(user.sub);
+    return this.webauthnService.verifyAndSaveRegistration(user.sub, body.response, challenge, body.deviceName);
+  }
+
+  @Public()
+  @Post('webauthn/login-options')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate WebAuthn authentication options' })
+  async webauthnLoginOptions(@Body() body: { userId: string }) {
+    const options = await this.webauthnService.generateAuthenticationOptions(body.userId);
+    this.storeChallenge(body.userId, options.challenge);
+    return options;
+  }
+
+  @Public()
+  @Post('webauthn/login-verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify WebAuthn authentication and issue tokens' })
+  async webauthnLoginVerify(
+    @Body() body: { userId: string; response: any },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const challenge = this.consumeChallenge(body.userId);
+    const verified = await this.webauthnService.verifyAuthentication(body.userId, body.response, challenge);
+    if (!verified) throw new UnauthorizedException('Verificación biométrica falló');
+    const tokens = await this.authService.issueTokensForUser(body.userId);
+    this.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+    return { success: true, ...this.devTokenFields(tokens.accessToken) };
+  }
+
+  @Get('webauthn/credentials')
+  @ApiOperation({ summary: 'List registered passkeys' })
+  async webauthnCredentials(@CurrentUser() user: JwtPayload) {
+    return this.webauthnService.getUserCredentials(user.sub);
+  }
+
+  @Delete('webauthn/credentials')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a passkey' })
+  async webauthnDeleteCredential(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { credentialId: string },
+  ) {
+    await this.webauthnService.deleteCredential(body.credentialId, user.sub);
+    return { success: true };
   }
 }

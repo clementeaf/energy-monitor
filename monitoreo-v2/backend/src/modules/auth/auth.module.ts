@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
+import { WebAuthnService } from './webauthn.service';
 import { DataRetentionService } from './data-retention.service';
 import { AuthController } from './auth.controller';
 import { PrivacyController } from './privacy.controller';
@@ -38,6 +39,7 @@ import { JwtBlacklistService } from './jwt-blacklist.service';
   providers: [
     AuthService,
     MfaService,
+    WebAuthnService,
     DataRetentionService,
     JwtBlacklistService,
     JwtStrategy,

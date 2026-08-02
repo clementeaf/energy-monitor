@@ -1,5 +1,6 @@
 import { useState, type ReactElement } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { startRegistration } from '@simplewebauthn/browser';
 import { authEndpoints } from '../../../services/endpoints';
 import type { MfaSetupResponse } from '../../../services/endpoints';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
@@ -169,6 +170,87 @@ export function MfaSection(): ReactElement {
         message="¿Desactivar la autenticación de dos factores? Tu cuenta será menos segura."
         isPending={disableMutation.isPending}
       />
+
+      <PasskeySection />
+    </div>
+  );
+}
+
+function PasskeySection() {
+  const queryClient = useQueryClient();
+  const [deviceName, setDeviceName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const credentialsQuery = useQuery({
+    queryKey: ['webauthn', 'credentials'],
+    queryFn: () => authEndpoints.webauthnCredentials().then((r) => r.data),
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      const options = (await authEndpoints.webauthnRegisterOptions()).data;
+      const attestation = await startRegistration({ optionsJSON: options });
+      await authEndpoints.webauthnRegisterVerify(attestation, deviceName || undefined);
+    },
+    onSuccess: () => {
+      setDeviceName('');
+      setError(null);
+      queryClient.invalidateQueries({ queryKey: ['webauthn', 'credentials'] });
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => authEndpoints.webauthnDeleteCredential(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['webauthn', 'credentials'] }),
+  });
+
+  const credentials = credentialsQuery.data ?? [];
+
+  return (
+    <div className="mt-6 border-t border-border pt-6">
+      <h2 className="text-lg font-semibold text-foreground">Passkeys (biométrico)</h2>
+      <p className="mt-1 text-sm text-muted">
+        Usa tu huella, rostro o llave de seguridad para iniciar sesión sin códigos.
+      </p>
+
+      <div className="mt-4 space-y-3">
+        {credentials.map((c) => (
+          <div key={c.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">{c.device_name ?? 'Passkey'}</p>
+              <p className="text-xs text-muted">Registrada {new Date(c.created_at).toLocaleDateString('es-CL')}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => deleteMutation.mutate(c.id)}
+              disabled={deleteMutation.isPending}
+              className="text-xs text-danger hover:underline disabled:opacity-50"
+            >
+              Eliminar
+            </button>
+          </div>
+        ))}
+
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={deviceName}
+            onChange={(e) => setDeviceName(e.target.value)}
+            placeholder="Nombre del dispositivo (opcional)"
+            className="flex-1 rounded-md border border-border px-3 py-2 text-sm outline-none focus:border-foreground"
+          />
+          <button
+            type="button"
+            onClick={() => registerMutation.mutate()}
+            disabled={registerMutation.isPending}
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+          >
+            {registerMutation.isPending ? 'Registrando...' : 'Registrar passkey'}
+          </button>
+        </div>
+        {error && <p className="text-sm text-danger">{error}</p>}
+      </div>
     </div>
   );
 }

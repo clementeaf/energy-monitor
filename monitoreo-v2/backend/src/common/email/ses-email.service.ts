@@ -129,7 +129,7 @@ export class SesEmailService {
     if (!this.client) return { ok: false, skippedReason: 'not_configured' };
 
     try {
-      const rawMessage = this.buildRawEmail({ from, to, ...params });
+      const rawMessage = this.buildRawEmail({ ...params, from, to });
       const out = await this.client.send(
         new SendRawEmailCommand({ RawMessage: { Data: rawMessage } }),
       );

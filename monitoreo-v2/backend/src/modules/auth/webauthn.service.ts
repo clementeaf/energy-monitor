@@ -15,7 +15,7 @@ import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
-} from '@simplewebauthn/server/script/deps';
+} from '@simplewebauthn/types';
 
 interface DbCredential {
   credential_id: string;

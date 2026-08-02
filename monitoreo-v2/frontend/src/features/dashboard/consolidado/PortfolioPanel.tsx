@@ -1,13 +1,6 @@
 import { fmtNum } from '../../../lib/formatters';
 import { RecentCriticalEvents } from './RecentCriticalEvents';
-import {
-  type EnrichedBuilding,
-  FALLBACK_CONSUMPTION_MWH,
-  FALLBACK_COST_UF,
-  FALLBACK_VARIATION_PCT,
-  FALLBACK_EVENTS,
-  FALLBACK_BUILDINGS_FOR_FEED,
-} from './consolidado-utils';
+import { type EnrichedBuilding } from './consolidado-utils';
 
 interface PortfolioPanelProps {
   enriched: EnrichedBuilding[];
@@ -30,15 +23,8 @@ export function PortfolioPanel({
     : 0;
   const intensityKwhM2 = totalConsumptionMwh > 0 ? Math.round(totalConsumptionMwh * 1000 / Math.max(1, activeCount * 5000)) : 0;
 
-  const displayConsumptionMwh = totalConsumptionMwh > 0 ? totalConsumptionMwh : FALLBACK_CONSUMPTION_MWH;
-  const displayCostUf = totalCostUf > 0 ? totalCostUf : FALLBACK_COST_UF;
-  const displayVariationPct = consumptionVariationPct ?? FALLBACK_VARIATION_PCT;
-  const displayIntensity = intensityKwhM2 > 0 ? intensityKwhM2 : 37;
-  const displayCoveragePct = coveragePct > 0 ? coveragePct : 94;
-
-  const realAlerts = enriched.flatMap((e) => e.activeAlerts);
-  const feedAlerts = realAlerts.length > 0 ? realAlerts : FALLBACK_EVENTS;
-  const feedBuildings = realAlerts.length > 0 ? enriched.map((e) => e.building) : FALLBACK_BUILDINGS_FOR_FEED;
+  const feedAlerts = enriched.flatMap((e) => e.activeAlerts);
+  const feedBuildings = enriched.map((e) => e.building);
 
   return (
     <>
@@ -46,29 +32,29 @@ export function PortfolioPanel({
       <div className="grid shrink-0 grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border">
         <KpiCell
           label="Consumo este mes"
-          value={fmtNum(displayConsumptionMwh, 3)}
+          value={fmtNum(totalConsumptionMwh, 3)}
           unit="MWh"
-          delta={displayVariationPct}
-          source={`${enriched.reduce((s, e) => s + e.meterCount, 0) || 156} medidores activos`}
+          delta={consumptionVariationPct}
+          source={`${enriched.reduce((s, e) => s + e.meterCount, 0)} medidores activos`}
         />
         <KpiCell
           label="Gasto acumulado"
-          value={fmtNum(displayCostUf, 3)}
+          value={fmtNum(totalCostUf, 3)}
           unit="UF"
           source="Boletas importadas"
         />
         <KpiCell
           label="Intensidad"
-          value={String(displayIntensity)}
+          value={String(intensityKwhM2)}
           unit="kWh/m²"
           source="Promedio portafolio"
         />
         <KpiCell
           label="Medidores en línea"
-          value={`${displayCoveragePct}`}
+          value={`${coveragePct}`}
           unit="%"
-          source={`${enriched.reduce((s, e) => s + e.meterCount, 0) || 200} totales`}
-          valueColor={displayCoveragePct >= 95 ? 'text-success' : displayCoveragePct >= 85 ? 'text-warning' : 'text-danger'}
+          source={`${enriched.reduce((s, e) => s + e.meterCount, 0)} totales`}
+          valueColor={coveragePct >= 95 ? 'text-success' : coveragePct >= 85 ? 'text-warning' : 'text-danger'}
         />
       </div>
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.54.0] - 2026-08-02 — DATA REAL + ELIMINACIÓN FALLBACKS
+
+### Changed (Frontend — Data real)
+- **Panel Consolidado sin fallbacks** — KPIs (consumo, gasto, intensidad, cobertura) y eventos recientes ahora muestran data real de la API. Sin data = 0, no números inventados.
+- **Fallbacks eliminados** — `FALLBACK_CONSUMPTION_MWH`, `FALLBACK_COST_UF`, `FALLBACK_VARIATION_PCT`, `FALLBACK_EVENTS`, `FALLBACK_BUILDINGS_FOR_FEED` removidos de `consolidado-utils.ts`.
+
+### Investigación prod
+- **Data verificada via ECS Exec**: 10 buildings, 690 meters, 5.09M readings (oldest 2021-07, newest hoy), 803 alertas reales, 2648 facturas.
+- **Pipeline activo**: Alto Penalolen (55m) y Quilicura (11m) reciben lecturas en tiempo real. PASA (446m) detenido desde abril.
+- **Flujo confirmado**: `GET /readings/latest` → `crossTenant=true` para super_admin → devuelve readings de todos los tenants con `power_kw > 0`. La data llega al frontend correctamente.
+
+---
+
 ## [2.53.0] - 2026-08-02 — TRATAMIENTO VISUAL GIGA.AI
 
 ### Changed (Frontend — UX limpieza global)

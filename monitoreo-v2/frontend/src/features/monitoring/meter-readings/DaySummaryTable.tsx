@@ -101,7 +101,7 @@ export function DaySummaryTable({ readings, alertTimestamps, meterId }: Readonly
 }
 
 function Th({ children, colSpan }: Readonly<{ children?: React.ReactNode; colSpan?: number }>) {
-  return <th colSpan={colSpan} className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{children}</th>;
+  return <th colSpan={colSpan} className="px-3 py-2 text-left text-xs font-medium text-muted">{children}</th>;
 }
 
 function ThSub({ children }: Readonly<{ children: React.ReactNode }>) {

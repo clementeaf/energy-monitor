@@ -84,7 +84,7 @@ export function BreachReportsPage() {
       <PageHeader
         title="Reportes de brecha de seguridad"
         eyebrow="Administración"
-        description="Ley 21.719 — plazo 24h para notificar a la Agencia."
+       
       />
 
       <Button onClick={() => { setCreateOpen(true); }}>Registrar brecha</Button>

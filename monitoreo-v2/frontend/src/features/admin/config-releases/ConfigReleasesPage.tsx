@@ -132,10 +132,9 @@ export function ConfigReleasesPage() {
         {/* Left: Pipeline */}
         <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-sm font-semibold text-foreground">Pipeline de releases</h3>
-          <p className="mb-3 text-xs text-muted">estado: En desarrollo → QA → Aprobación → Producción · fila expandible con diff y resultados de tests</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Versión</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Descripción de cambios</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Estado</th>
@@ -215,7 +214,7 @@ export function ConfigReleasesPage() {
             <p className="mb-3 text-xs text-muted">éxito / rollback · link a logs</p>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="sticky top-0 bg-background px-3 py-2">Versión</th>
                   <th className="sticky top-0 bg-background px-3 py-2">Fecha</th>
                   <th className="sticky top-0 bg-background px-3 py-2">Responsable</th>

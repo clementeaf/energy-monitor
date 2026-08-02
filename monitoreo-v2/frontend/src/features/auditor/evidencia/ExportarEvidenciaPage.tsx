@@ -116,7 +116,7 @@ export function ExportarEvidenciaPage() {
             <div className="mt-3 flex-1 space-y-4 overflow-y-auto">
               {/* Contenido a incluir */}
               <div>
-                <h3 className="mb-1 text-xs font-medium uppercase tracking-wider text-muted">Contenido a incluir</h3>
+                <h3 className="mb-1 text-xs font-medium text-muted">Contenido a incluir</h3>
                 <p className="mb-2 text-xs text-muted">
                   (datos de consumo / cuadratura / pista de auditoría / scorecard de calidad / linaje) — multi-selección
                 </p>
@@ -137,7 +137,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Mall(es) */}
               <div>
-                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">Mall(es)</h3>
+                <h3 className="mb-1.5 text-xs font-medium text-muted">Mall(es)</h3>
                 <DropdownSelect
                   className="w-full"
                   options={[{ value: 'all', label: 'Todos' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
@@ -148,7 +148,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Período */}
               <div>
-                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">Período</h3>
+                <h3 className="mb-1.5 text-xs font-medium text-muted">Período</h3>
                 <DropdownSelect
                   className="w-full"
                   options={[
@@ -163,7 +163,7 @@ export function ExportarEvidenciaPage() {
 
               {/* Formato de salida */}
               <div>
-                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted">
+                <h3 className="mb-1.5 text-xs font-medium text-muted">
                   Formato de salida (PDF + CSV empaquetados en ZIP firmado)
                 </h3>
                 <DropdownSelect
@@ -252,7 +252,7 @@ export function ExportarEvidenciaPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-3 py-2">Fecha</th>
                 <th className="px-3 py-2">Usuario</th>
                 <th className="px-3 py-2">Contenido</th>

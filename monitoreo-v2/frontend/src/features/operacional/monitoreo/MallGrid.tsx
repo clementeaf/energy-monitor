@@ -11,7 +11,7 @@ export function MallGrid({ mallCards, expandedMallId, onSelectMall }: Readonly<M
 
   return (
     <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-      <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Centros comerciales</p>
+      <p className="shrink-0 text-xs font-medium text-muted">Centros comerciales</p>
       <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-wrap gap-2">
           {displayPlaceholder

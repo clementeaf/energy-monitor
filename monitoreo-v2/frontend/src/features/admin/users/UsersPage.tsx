@@ -180,7 +180,6 @@ export function UsersPage() {
               <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
                 <div>
                   <p className="text-sm font-medium text-foreground">Lista de usuarios</p>
-                  <p className="text-xs text-muted">filtros: tenant / perfil / estado / sin acceso en &gt; 90 días · fila expandible</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <DropdownSelect
@@ -340,7 +339,7 @@ export function UsersPage() {
               <div className="min-h-0 flex-1 overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 z-10 bg-background">
-                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium text-muted">
                       <th className="px-3 py-2">Usuario</th>
                       <th className="px-3 py-2">Permiso / recurso</th>
                       <th className="px-3 py-2">Últ. uso</th>

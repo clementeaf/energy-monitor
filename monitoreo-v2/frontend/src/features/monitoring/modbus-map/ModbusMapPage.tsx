@@ -112,7 +112,7 @@ export function ModbusMapPage() {
       <PageHeader
         title={`Mapa Modbus — ${building?.name ?? 'Sitio'}`}
         eyebrow="Monitoreo"
-        description="Concentradores del sitio y medidores agrupados por identificador de bus, ordenados por dirección Modbus."
+       
       />
 
       <section className="panel p-4 shadow-sm">

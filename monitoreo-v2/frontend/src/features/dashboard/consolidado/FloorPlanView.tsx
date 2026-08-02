@@ -216,7 +216,7 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
           <DropdownSelect options={FLOOR_SHOW_OPTIONS.map(o => ({ value: o.key, label: o.label }))} value={floorShowOnly} onChange={(v) => setFloorShowOnly(v as FloorShowOnly)} />
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted">Coloreo:</span>
+          <span className="text-xs font-medium text-muted">Coloreo:</span>
           {COLOR_MODE_OPTIONS.map((opt) => (
             <button
               key={opt.key}

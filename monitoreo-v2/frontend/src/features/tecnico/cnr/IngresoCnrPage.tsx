@@ -68,11 +68,11 @@ export function IngresoCnrPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
-      <PageHeader title="5.5 Ingreso CNR manual" description="Vista mobile-first — registro de Consumo No Registrado con firma digital" />
+      <PageHeader title="5.5 Ingreso CNR manual" />
 
       {/* Medidor y contexto */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Medidor y contexto</p>
+        <p className="text-xs font-medium text-muted">Medidor y contexto</p>
         <select value={selectedMeterId} onChange={(e) => setSelectedMeterId(e.target.value)} className="mt-2 w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none">
           <option value="">Seleccionar medidor</option>
           {meters.map((m) => <option key={m.id} value={m.id}>{m.code} — {buildingMap.get(m.buildingId) ?? ''}</option>)}
@@ -83,7 +83,7 @@ export function IngresoCnrPage() {
 
       {/* Datos del CNR */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Datos del CNR</p>
+        <p className="text-xs font-medium text-muted">Datos del CNR</p>
         <form onSubmit={handleSubmit} className="mt-2 space-y-3">
           <div><p className="text-xs text-muted">Período afectado (fecha/hora inicio – fin)</p><div className="flex gap-2"><input type="datetime-local" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none" /><input type="datetime-local" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none" /></div></div>
           <div><p className="text-xs text-muted">Valor real [kWh]</p><input type="number" step="0.01" value={valueKwh} onChange={(e) => setValueKwh(e.target.value)} placeholder="Lectura manual" className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none" /></div>
@@ -93,7 +93,7 @@ export function IngresoCnrPage() {
 
       {/* Justificación y evidencia */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Justificación y evidencia</p>
+        <p className="text-xs font-medium text-muted">Justificación y evidencia</p>
         <div className="mt-2 space-y-2">
           <div><p className="text-xs text-muted">Justificación (texto libre)</p><textarea value={justification} onChange={(e) => setJustification(e.target.value)} rows={2} placeholder="Justificación detallada..." className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none" /></div>
           <div><p className="text-xs text-muted">Adjunto de evidencia</p><input type="file" accept=".jpg,.jpeg,.png,.pdf" className="w-full text-xs text-muted file:mr-2 file:rounded-md file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-xs file:text-foreground" /></div>
@@ -102,7 +102,7 @@ export function IngresoCnrPage() {
 
       {/* Marcado del valor */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Marcado del valor</p>
+        <p className="text-xs font-medium text-muted">Marcado del valor</p>
         <div className="mt-1 space-y-0.5 text-xs text-foreground">
           <p>• Se marca 'dato manual — CNR' en todos los dashboards</p>
           <p>• Firma digital obligatoria</p>

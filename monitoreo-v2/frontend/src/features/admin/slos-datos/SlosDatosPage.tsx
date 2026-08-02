@@ -85,7 +85,7 @@ export function SlosDatosPage() {
           <p className="mb-2 text-xs text-muted">objetivo vs. actual · estado (cumple/incumple) · tendencia 7 días</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Dimensión</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Objetivo</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Actual</th>
@@ -117,7 +117,6 @@ export function SlosDatosPage() {
         <div className="panel min-w-0 flex-1 flex flex-col p-4">
           <div className="shrink-0">
             <h3 className="text-sm font-semibold text-foreground">SLO de latencia de API — p95</h3>
-            <p className="mb-2 text-xs text-muted">umbral contractual 500 ms · badge rojo si lo supera</p>
             <div className="mb-2 flex items-center gap-3">
               <span className="inline-block rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
                 487 ms — dentro de umbral
@@ -183,7 +182,7 @@ export function SlosDatosPage() {
           <div className="min-h-0 flex-1 overflow-y-auto px-4">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Dimensión</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Período</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Objetivo</th>
@@ -215,11 +214,11 @@ export function SlosDatosPage() {
                       <td colSpan={7} className="bg-surface px-4 py-3">
                         <div className="grid grid-cols-2 gap-4 text-xs">
                           <div>
-                            <p className="text-xs uppercase tracking-wider text-muted mb-1">Causa raíz completa</p>
+                            <p className="text-xs text-muted mb-1">Causa raíz completa</p>
                             <p className="text-muted">{b.causaRaiz}</p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wider text-muted mb-1">Acción correctiva</p>
+                            <p className="text-xs text-muted mb-1">Acción correctiva</p>
                             <p className="text-success">{b.accion}</p>
                           </div>
                         </div>

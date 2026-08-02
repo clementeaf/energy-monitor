@@ -83,7 +83,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
       {/* Metric cards — Gap 2: mini sparkline in Carga total */}
       <div className="flex flex-wrap gap-2">
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Carga total</p>
+          <p className="text-xs font-medium text-muted">Carga total</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
           <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
             {PLACEHOLDER_24H.map((v, i) => (
@@ -92,11 +92,11 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
           </div>
         </div>
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Voltaje prom.</p>
+          <p className="text-xs font-medium text-muted">Voltaje prom.</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{avgVoltage ? `${avgVoltage.toFixed(0)} V` : '—'}</p>
         </div>
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">En alarma</p>
+          <p className="text-xs font-medium text-muted">En alarma</p>
           <p className={`mt-0.5 text-base font-semibold ${activeAlerts.length > 0 ? 'text-danger' : 'text-foreground'}`}>
             {activeAlerts.length > 0 && <span className="mr-1">⚠</span>}
             {activeAlerts.length}
@@ -107,7 +107,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
       {/* Floor tabs (Nivel 3 selector) */}
       {floors.length > 0 && (
         <div className="panel px-3 py-2.5" data-testid="floor-tabs">
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Pisos</h4>
+          <h4 className="mb-2 text-xs font-medium text-muted">Pisos</h4>
           <div className="flex flex-wrap gap-1.5">
             {floors.map((floor) => {
               const isActive = selectedFloorId === floor.id;

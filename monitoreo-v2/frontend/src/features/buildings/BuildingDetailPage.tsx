@@ -465,7 +465,7 @@ function TabBtn({ label, active, onClick, count }: Readonly<{ label: string; act
 
 function Th({ children }: Readonly<{ children?: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
+    <th className="px-4 py-2 text-left text-xs font-medium text-muted">
       {children}
     </th>
   );
@@ -477,7 +477,7 @@ function Td({ children, className = '' }: Readonly<{ children?: React.ReactNode;
 
 function ThSm({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
+    <th className="px-3 py-2 text-left text-xs font-medium text-muted">
       {children}
     </th>
   );

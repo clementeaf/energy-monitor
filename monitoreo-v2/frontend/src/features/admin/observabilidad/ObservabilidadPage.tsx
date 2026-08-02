@@ -83,22 +83,22 @@ export function ObservabilidadPage() {
       {/* Row 1 — 4 KPI cards */}
       <div className="flex gap-3">
         <div className="panel flex-1 p-3">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Uptime (30 días)</p>
+          <p className="text-xs font-medium text-muted">Uptime (30 días)</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-success">{uptimeEst >= 99 ? '99,82%' : `${uptimeEst.toFixed(2)}%`}</p>
           <p className="text-xs text-success">▲ sobre SLA 99,5%</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Latencia media de API</p>
+          <p className="text-xs font-medium text-muted">Latencia media de API</p>
           <p className="mt-0.5 text-[20px] font-semibold leading-tight text-foreground">{latencyP50} ms</p>
           <p className="text-xs text-muted">p50 · últimas 24h</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Error rate</p>
+          <p className="text-xs font-medium text-muted">Error rate</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${errorRate < 1 ? 'text-success' : 'text-danger'}`}>{errorRate.toFixed(1)}%</p>
           <p className="text-xs text-muted">(4xx+5xx) / total</p>
         </div>
         <div className="panel flex-1 p-3">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Tiempo de respuesta p95</p>
+          <p className="text-xs font-medium text-muted">Tiempo de respuesta p95</p>
           <p className={`mt-0.5 text-[20px] font-semibold leading-tight ${latencyP95 < 500 ? 'text-success' : 'text-warning'}`}>{latencyP95} ms</p>
           <p className="text-xs text-muted">umbral &lt; 500 ms</p>
         </div>

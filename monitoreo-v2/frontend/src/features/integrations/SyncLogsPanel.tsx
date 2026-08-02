@@ -35,7 +35,7 @@ export function SyncLogsPanel({
       <div className="max-h-96 overflow-auto rounded border border-border">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-background">
-            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
+            <tr className="bg-surface text-left text-xs font-medium text-muted">
               <th className="px-3 py-2">Inicio</th>
               <th className="px-3 py-2">Fin</th>
               <th className="px-3 py-2">Estado</th>

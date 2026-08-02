@@ -209,37 +209,35 @@ export function TicketsSlaPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.3 Tickets y SLA"
-        description="Seguimiento de SLA contractual — uptime, disponibilidad y resolución de alarmas"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
 
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Uptime del servicio (30 días)</p>
+          <p className="text-xs font-medium text-muted">Uptime del servicio (30 días)</p>
           <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-danger'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
           <p className="text-xs text-muted">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Disponibilidad de datos [%]</p>
+          <p className="text-xs font-medium text-muted">Disponibilidad de datos [%]</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
           <p className="text-xs text-muted">lecturas recibidas / esperadas</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">T. medio resolución críticas [h]</p>
+          <p className="text-xs font-medium text-muted">T. medio resolución críticas [h]</p>
           <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
-          <p className="text-xs text-muted">indicador visual si supera el SLA</p>
         </div>
       </div>
 
       {/* Row 2: Evolución de SLA — últimos 3 meses */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Evolución de SLA — últimos 3 meses</p>
+        <p className="text-xs font-medium text-muted">Evolución de SLA — últimos 3 meses</p>
         <p className="text-xs text-muted">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
         <div className="mt-2" style={{ height: '80px' }}>
           {(() => {
@@ -283,13 +281,12 @@ export function TicketsSlaPage() {
           <span className="ml-2 text-xs text-muted">esta pantalla: El filtro rápido «Mis tickets /</span>
         </div>
 
-        <p className="mt-2 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tablero de tickets</p>
-        <p className="shrink-0 text-xs text-muted">días restantes en verde · vencidos en rojo</p>
+        <p className="mt-2 shrink-0 text-xs font-medium text-muted">Tablero de tickets</p>
 
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Descripción</th>
                 <th className="px-2 py-1.5">Tipo</th>

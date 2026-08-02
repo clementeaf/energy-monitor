@@ -183,12 +183,11 @@ export function AlarmasEventosPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.2 Alarmas y Eventos"
-        description="Gestión de alarmas operacionales — asignar, escalar, cerrar, backfill (MFA requerido)"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Severidad
           <DropdownSelect options={SEVERITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={severityFilter} onChange={setSeverityFilter} />
@@ -221,12 +220,11 @@ export function AlarmasEventosPage() {
           {/* Left: Tabla de alarmas */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-              <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de alarmas</p>
-              <p className="shrink-0 text-xs text-muted">orden por defecto: severidad + antigüedad · fila expandible: valor que disparó, baseline esperado, historial de acciones</p>
+              <p className="shrink-0 text-xs font-medium text-muted">Tabla de alarmas</p>
               <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium text-muted">
                       <th className="px-2 py-1.5">ID</th>
                       <th className="px-2 py-1.5">Sev.</th>
                       <th className="px-2 py-1.5">Descripción</th>
@@ -269,8 +267,7 @@ export function AlarmasEventosPage() {
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             {/* Resumen de SLA de alarmas */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Resumen de SLA de alarmas</p>
-              <p className="text-xs text-muted">% resueltas dentro / fuera del SLA, por severidad y período</p>
+              <p className="text-xs font-medium text-muted">Resumen de SLA de alarmas</p>
               {(() => {
                 const resolvedWithTs = resolvedAlerts.filter((a) => a.resolvedAt);
                 const SLA_H: Record<string, number> = { critical: 4, high: 8, medium: 24, low: 72 };
@@ -292,8 +289,7 @@ export function AlarmasEventosPage() {
 
             {/* Panel de detalle — serie del medidor 48h */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Panel de detalle — serie del medidor 48h</p>
-              <p className="text-xs text-muted">línea de threshold del valor que disparó la alarma</p>
+              <p className="text-xs font-medium text-muted">Panel de detalle — serie del medidor 48h</p>
               <div className="mt-2">
                 {selectedAlert ? (
                   <MeterSparkline48h meterId={selectedAlert.meterId} thresholdValue={selectedAlert.thresholdValue} />
@@ -313,8 +309,7 @@ export function AlarmasEventosPage() {
 
             {/* Comentario de la alarma */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Comentario de la alarma</p>
-              <p className="text-xs text-muted">queda registrado en la pista de auditoría</p>
+              <p className="text-xs font-medium text-muted">Comentario de la alarma</p>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}

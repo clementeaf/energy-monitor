@@ -97,7 +97,7 @@ export function drawerTitle(type?: string): string {
 function Row({ label, value, mono }: Readonly<{ label: string; value: string; mono?: boolean }>) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+      <dt className="text-xs font-medium text-muted">{label}</dt>
       <dd className={`mt-0.5 text-foreground ${mono ? 'font-mono text-xs' : ''}`}>{value}</dd>
     </div>
   );

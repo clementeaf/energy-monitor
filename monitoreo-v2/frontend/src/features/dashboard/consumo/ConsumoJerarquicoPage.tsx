@@ -137,12 +137,11 @@ export function ConsumoJerarquicoPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="Consumo Jerárquico"
-        description="Mapa + árbol expandible + panel de detalle sincronizados"
+       
       />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           País
           <DropdownSelect options={COUNTRY_OPTIONS.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
@@ -178,7 +177,7 @@ export function ConsumoJerarquicoPage() {
         <div className="flex min-h-0 flex-1 gap-3">
           {/* Map */}
           <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Mapa geográfico</p>
+            <p className="text-xs font-medium text-muted">Mapa geográfico</p>
             <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
               <MapView
                 buildings={geoBuildings}
@@ -191,7 +190,7 @@ export function ConsumoJerarquicoPage() {
 
           {/* Tree */}
           <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Árbol jerárquico</p>
+            <p className="text-xs font-medium text-muted">Árbol jerárquico</p>
             <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-xs">
               <div className="font-semibold text-foreground">▼ Total país — Chile</div>
               <ul className="mt-1 space-y-0.5">
@@ -231,7 +230,7 @@ export function ConsumoJerarquicoPage() {
           {/* Detail panel */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
             <div className="panel px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">KPIs del mall</p>
+              <p className="text-xs font-medium text-muted">KPIs del mall</p>
               {selectedRow ? (
                 <div className="mt-2 space-y-1 text-xs">
                   <p className="text-foreground">• Consumo <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-danger' : 'text-success'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
@@ -245,7 +244,7 @@ export function ConsumoJerarquicoPage() {
 
             <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted">Tendencia</p>
+                <p className="text-xs font-medium text-muted">Tendencia</p>
                 <DropdownSelect options={GRANULARITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
                 <DropdownSelect options={COMPARE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={compareWith} onChange={setCompareWith} />
               </div>
@@ -259,7 +258,7 @@ export function ConsumoJerarquicoPage() {
             </div>
 
             <div className="panel px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Zonas</p>
+              <p className="text-xs font-medium text-muted">Zonas</p>
               {zones.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {zones.map((z) => (

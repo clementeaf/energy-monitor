@@ -76,7 +76,7 @@ export function TrazabilidadPage() {
       {/* Filter banner */}
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface px-4 py-3">
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Medidor</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Medidor</label>
           <DropdownSelect
             options={[{ value: '', label: 'Seleccionar medidor' }, ...meterOptions]}
             value={selectedMeterId}
@@ -84,7 +84,7 @@ export function TrazabilidadPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Fecha/hora lectura</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Fecha/hora lectura</label>
           <input
             type="datetime-local"
             value={selectedTimestamp}
@@ -202,7 +202,7 @@ function RawVsShownRow({
     { tsUtc: readingDate.toISOString(), processed: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—', transform: typeDetail[readingType][2]?.info ?? 'Sin transformación', dashboard: reading.power_factor ? Number(reading.power_factor).toFixed(3) : '—' },
   ];
 
-  const thClass = 'pb-2 text-left text-xs font-medium uppercase tracking-wider text-muted';
+  const thClass = 'pb-2 text-left text-xs font-medium text-muted';
   const tdClass = 'py-1.5 text-xs';
 
   return (

@@ -252,12 +252,11 @@ export function MapaCoberturaPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.6 Mapa de Cobertura"
-        description="Visualización geográfica de cobertura de medidores — click abre grilla del mall"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Métrica del marcador
           <DropdownSelect options={METRICA_MARCADOR_OPTIONS} value={metricaMarcador} onChange={setMetricaMarcador} />
@@ -267,8 +266,7 @@ export function MapaCoberturaPage() {
       <div className="flex min-h-0 flex-1 gap-3">
         {/* Left: Mapa interactivo de cobertura */}
         <div className="panel flex min-w-0 flex-[2] flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Mapa interactivo de cobertura</p>
-          <p className="shrink-0 text-xs text-muted">marcadores por mall coloreados según % medidores online · hover: nombre, % online, alarmas activas, último dato · click: grilla de medidores</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Mapa interactivo de cobertura</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} className="h-full w-full" />
           </div>
@@ -276,8 +274,7 @@ export function MapaCoberturaPage() {
 
         {/* Right: Panel lateral de lista */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Panel lateral de lista</p>
-          <p className="shrink-0 text-xs text-muted">malls ordenados por % online ascendente (los más problemáticos primero) · búsqueda</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Panel lateral de lista</p>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -287,7 +284,7 @@ export function MapaCoberturaPage() {
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% online</th>
                   <th className="px-2 py-1.5 text-right">Alarmas</th>

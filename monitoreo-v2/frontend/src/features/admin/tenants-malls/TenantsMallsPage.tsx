@@ -203,7 +203,6 @@ export function TenantsMallsPage() {
           <div className="flex items-start justify-between gap-2 border-b border-border px-3 py-2">
             <div>
               <p className="text-sm font-medium text-foreground">Lista de tenants</p>
-              <p className="text-xs text-muted">Filtros: país / estado / con alertas activas · fila expandible con resumen del mall</p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5 shrink-0">
               <DropdownSelect
@@ -230,7 +229,7 @@ export function TenantsMallsPage() {
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-3 py-2">Tenant ID</th>
                   <th className="px-3 py-2">Mall</th>
                   <th className="px-3 py-2">País</th>
@@ -301,23 +300,23 @@ export function TenantsMallsPage() {
               {selectedTenant ? (
                 <dl className="space-y-2.5 text-xs">
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Nombre</dt>
+                    <dt className="text-xs font-medium text-muted">Nombre</dt>
                     <dd className="text-foreground">{selectedTenant.tenant.name}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">País · Moneda · Zona horaria</dt>
+                    <dt className="text-xs font-medium text-muted">País · Moneda · Zona horaria</dt>
                     <dd className="text-foreground">{selectedTenant.country} · {selectedTenant.tenant.defaultCurrency ?? '—'} · {selectedTenant.tenant.timezone}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Umbrales de alerta</dt>
+                    <dt className="text-xs font-medium text-muted">Umbrales de alerta</dt>
                     <dd className="text-foreground">Configurados (95% calidad dato)</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Integración de facturación</dt>
+                    <dt className="text-xs font-medium text-muted">Integración de facturación</dt>
                     <dd className="text-foreground">API REST — activa</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Aislamiento lógico por mall</dt>
+                    <dt className="text-xs font-medium text-muted">Aislamiento lógico por mall</dt>
                     <dd className="text-foreground">Activo</dd>
                   </div>
                 </dl>
@@ -366,7 +365,7 @@ export function TenantsMallsPage() {
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-3 py-2">Fecha</th>
                 <th className="px-3 py-2">Usuario</th>
                 <th className="px-3 py-2">Campo</th>

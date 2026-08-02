@@ -97,10 +97,10 @@ export function MaestroMedidoresPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader title="5.6 Maestro de Medidores" description="Alta, edición y baja de medidores — pista de cambios inmutable (desktop)" />
+      <PageHeader title="5.6 Maestro de Medidores" />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           País
           <DropdownSelect options={[{ value: 'all', label: 'Todos' }, { value: 'cl', label: 'Chile' }, { value: 'pe', label: 'Perú' }, { value: 'co', label: 'Colombia' }]} value={paisFilter} onChange={setPaisFilter} />
@@ -127,13 +127,12 @@ export function MaestroMedidoresPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Maestro de medidores */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Maestro de medidores</p>
-          <p className="shrink-0 text-xs text-muted">búsqueda y filtros completos · selecciona para editar</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Maestro de medidores</p>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="mt-2 w-full shrink-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none focus:border-foreground" />
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Serial</th>
                   <th className="px-2 py-1.5">Tag</th>
                   <th className="px-2 py-1.5">Mall</th>
@@ -167,8 +166,7 @@ export function MaestroMedidoresPage() {
 
         {/* Alta / edición de medidor */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-y-auto px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Alta / edición de medidor</p>
-          <p className="shrink-0 text-xs text-muted">agrupado por secciones</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Alta / edición de medidor</p>
           {sel ? (
             <div className="mt-2 space-y-3 text-xs">
               <div><p className="text-xs text-muted">Identificación: serial · fabricante · modelo · firmware</p><input readOnly value={`${sel.serialNumber ?? '—'} · ${sel.model ?? '—'}`} className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
@@ -192,12 +190,11 @@ export function MaestroMedidoresPage() {
 
       {/* Row 2: Pista de cambios del maestro */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Pista de cambios del maestro (inmutable)</p>
-        <p className="shrink-0 text-xs text-muted">campo · valor anterior → valor nuevo · usuario · timestamp</p>
+        <p className="shrink-0 text-xs font-medium text-muted">Pista de cambios del maestro (inmutable)</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">Timestamp</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Campo</th>

@@ -267,7 +267,7 @@ export function MisOrdenesPage() {
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Estado
           <DropdownSelect options={ESTADO_OPTIONS} value={estadoFilter} onChange={setEstadoFilter} />
@@ -282,7 +282,7 @@ export function MisOrdenesPage() {
       <div className="flex shrink-0 flex-wrap gap-2">
         {kpis.map((k) => (
           <div key={k.title} className="panel flex-1 min-w-[120px] px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">{k.title}</p>
+            <p className="text-xs font-medium text-muted">{k.title}</p>
             <p className={`mt-0.5 text-lg font-semibold tracking-tight ${k.color}`}>{k.value}</p>
           </div>
         ))}
@@ -294,7 +294,7 @@ export function MisOrdenesPage() {
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-3 py-2">ID</th>
                   <th className="px-3 py-2">Descripción</th>
                   <th className="px-3 py-2">Tipo</th>
@@ -401,7 +401,7 @@ function OrderDetail({ order, buildingName, onStart, onPause, onClose, starting,
       </div>
 
       <div className="panel px-3 py-3">
-        <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Detalle</h4>
+        <h4 className="mb-2 text-xs font-medium text-muted">Detalle</h4>
         <dl className="space-y-1.5">
           {details.map((d) => (
             <div key={d.label} className="flex justify-between text-xs">
@@ -413,7 +413,7 @@ function OrderDetail({ order, buildingName, onStart, onPause, onClose, starting,
       </div>
 
       <div className="panel space-y-2 px-3 py-3">
-        <h4 className="text-xs font-medium uppercase tracking-wider text-muted">Acciones</h4>
+        <h4 className="text-xs font-medium text-muted">Acciones</h4>
         <div className="flex gap-2">
           <Button size="sm" onClick={onStart} loading={starting}>Iniciar</Button>
           <Button size="sm" variant="secondary" onClick={onPause} loading={pausing}>Pausar</Button>
@@ -424,7 +424,7 @@ function OrderDetail({ order, buildingName, onStart, onPause, onClose, starting,
 
       {history.length > 0 && (
         <div className="panel px-3 py-3">
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Historial del medidor</h4>
+          <h4 className="mb-2 text-xs font-medium text-muted">Historial del medidor</h4>
           <ul className="space-y-1.5">
             {history.map((a) => (
               <li key={a.id} className="flex justify-between text-xs">

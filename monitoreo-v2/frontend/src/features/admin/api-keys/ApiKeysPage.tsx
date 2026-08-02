@@ -254,7 +254,7 @@ export function ApiKeysPage() {
       <PageHeader
         title="API Keys"
         eyebrow="Administracion"
-        description="Claves para consumir la API externa v1 (header X-API-Key)."
+       
         actions={canCreate ? (
           <button
             type="button"

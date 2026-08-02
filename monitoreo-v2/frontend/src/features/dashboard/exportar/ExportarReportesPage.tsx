@@ -213,12 +213,11 @@ export function ExportarReportesPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="3.6 Exportar Reportes"
-        description="Exportación de datos agregados del portafolio con configuración de contenido, alcance y formato"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Tipo de contenido
           <DropdownSelect options={FILTER_CONTENT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterContent} onChange={setFilterContent} />
@@ -247,7 +246,7 @@ export function ExportarReportesPage() {
           {/* Left: Configurador de exportación */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
             <div className="panel px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Configurador de exportación</p>
+              <p className="text-xs font-medium text-muted">Configurador de exportación</p>
               <p className="text-xs text-muted">selección de contenido, alcance y formato</p>
               <div className="mt-3 space-y-3">
                 <ConfigField label="Tipo de contenido (multi-selección)">
@@ -302,7 +301,7 @@ export function ExportarReportesPage() {
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
             {/* Resumen de la exportación */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Resumen de la exportación</p>
+              <p className="text-xs font-medium text-muted">Resumen de la exportación</p>
               <div className="mt-2 space-y-0.5 text-xs text-muted">
                 <p>• Contenido: {selectedTypes.map((t) => t.label).join(', ') || '—'}</p>
                 <p>• Alcance: {scopeLabel} · Período: {periodLabel}</p>
@@ -322,7 +321,7 @@ export function ExportarReportesPage() {
 
             {/* Limitación del perfil gerencial */}
             <div className="panel shrink-0 px-3 py-2.5">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted">Limitación del perfil gerencial</p>
+              <p className="text-xs font-medium text-muted">Limitación del perfil gerencial</p>
               <ul className="mt-2 space-y-0.5 text-xs text-muted">
                 <li>• Solo datos agregados por mall y período</li>
                 <li>• Sin datos crudos de medidores individuales</li>
@@ -336,11 +335,11 @@ export function ExportarReportesPage() {
 
       {/* Row 2: Historial de exportaciones */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Historial de exportaciones</p>
+        <p className="shrink-0 text-xs font-medium text-muted">Historial de exportaciones</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">Fecha</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Contenido</th>

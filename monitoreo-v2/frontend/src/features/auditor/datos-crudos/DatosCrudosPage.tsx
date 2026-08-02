@@ -111,7 +111,7 @@ export function DatosCrudosPage() {
       {/* Filter banner */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Medidor(es)</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Medidor(es)</label>
           <DropdownSelect
             options={meterOptions}
             value={selectedMeterIds[0] ?? ''}
@@ -121,7 +121,7 @@ export function DatosCrudosPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Desde</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Desde</label>
           <input
             type="date"
             value={dateRange.from}
@@ -132,7 +132,7 @@ export function DatosCrudosPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">Hasta</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Hasta</label>
           <input
             type="date"
             value={dateRange.to}
@@ -155,7 +155,7 @@ export function DatosCrudosPage() {
         <div className="flex-1 overflow-auto">
           <table className="w-full text-xs">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-3 py-2">Timestamp UTC</th>
                 <th className="px-3 py-2 text-right">Valor raw</th>
                 <th className="px-3 py-2">Unidad</th>

@@ -257,7 +257,7 @@ export function MapPage() {
 function SelectorField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">{label}</span>
+      <span className="mb-1 block text-xs font-medium text-muted">{label}</span>
       {children}
     </div>
   );

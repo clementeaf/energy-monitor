@@ -214,7 +214,7 @@ export function CuadraturaPage() {
         <div className="overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-3 py-2">Zona / Piso</th>
                 <th className="px-3 py-2 text-right">Remarcador general [kWh]</th>
                 <th className="px-3 py-2 text-right">Suma sub-medidores [kWh]</th>
@@ -289,7 +289,7 @@ export function CuadraturaPage() {
             <div className="flex-1 overflow-auto">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-background">
-                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-xs font-medium text-muted">
                     <th className="px-2 py-1.5">Mes</th>
                     <th className="px-2 py-1.5 text-right">Diferencia %</th>
                     <th className="px-2 py-1.5 text-center">Estado</th>

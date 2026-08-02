@@ -61,10 +61,10 @@ export function ReglasTransformacionPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader title="5.7 Reglas de Transformación" description="Configuración de reglas de conversión por medidor — simulador en tiempo real (desktop)" />
+      <PageHeader title="5.7 Reglas de Transformación" />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Medidor
           <DropdownSelect options={MEDIDOR_FILTER_OPTIONS} value={medidorFilter} onChange={setMedidorFilter} />
@@ -83,12 +83,11 @@ export function ReglasTransformacionPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Reglas activas por medidor */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Reglas activas por medidor</p>
-          <p className="shrink-0 text-xs text-muted">entrada esperada → salida resultante</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Reglas activas por medidor</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Medidor</th>
                   <th className="px-2 py-1.5">Tipo de regla</th>
                   <th className="px-2 py-1.5">Entrada</th>
@@ -128,7 +127,7 @@ export function ReglasTransformacionPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {/* Alta / edición de regla */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Alta / edición de regla</p>
+            <p className="text-xs font-medium text-muted">Alta / edición de regla</p>
             <div className="mt-2 space-y-2 text-xs">
               <div><p className="text-xs text-muted">Medidor al que aplica</p><input readOnly value={sel?.meter ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
               <div><p className="text-xs text-muted">Tipo (factor / unidad / offset / fórmula)</p><input readOnly value={sel?.type ?? ''} placeholder="Seleccionar..." className="w-full rounded-md border border-border bg-surface/50 px-2 py-1.5 text-foreground" /></div>
@@ -138,7 +137,7 @@ export function ReglasTransformacionPage() {
 
           {/* Simulador de valor de prueba */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Simulador de valor de prueba</p>
+            <p className="text-xs font-medium text-muted">Simulador de valor de prueba</p>
             <p className="text-xs text-muted">en tiempo real, antes de guardar</p>
             <div className="mt-2 space-y-1 text-xs text-foreground">
               <p>• Valor raw: <input value={testValue} onChange={(e) => setTestValue(e.target.value)} className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-center outline-none" /> Wh</p>
@@ -149,7 +148,7 @@ export function ReglasTransformacionPage() {
 
           {/* Indicador de impacto */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Indicador de impacto</p>
+            <p className="text-xs font-medium text-muted">Indicador de impacto</p>
             <p className="text-xs text-muted">al editar sobre datos históricos</p>
             <div className="mt-2 space-y-0.5 text-xs text-foreground">
               <p>• 12 dashboards · 5 exports · 3 alertas afectadas</p>
@@ -168,12 +167,11 @@ export function ReglasTransformacionPage() {
 
       {/* Row 2: Historial de cambios de reglas */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Historial de cambios de reglas (inmutable)</p>
-        <p className="shrink-0 text-xs text-muted">regla · campo · valor anterior → nuevo · usuario · timestamp</p>
+        <p className="shrink-0 text-xs font-medium text-muted">Historial de cambios de reglas (inmutable)</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">Timestamp</th>
                 <th className="px-2 py-1.5">Usuario</th>
                 <th className="px-2 py-1.5">Regla</th>

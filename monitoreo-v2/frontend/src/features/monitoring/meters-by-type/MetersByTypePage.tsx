@@ -249,7 +249,7 @@ function MiniKpi({ label, value }: Readonly<{ label: string; value: number | str
 
 function Th({ children, className = '' }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <th className={`px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted ${className}`}>
+    <th className={`px-4 py-2 text-left text-xs font-medium text-muted ${className}`}>
       {children}
     </th>
   );

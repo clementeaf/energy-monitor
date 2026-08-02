@@ -66,7 +66,7 @@ export function IntegrationsHealthTab() {
             <div className="overflow-auto rounded-lg border border-border">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-surface">
-                  <tr className="text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <tr className="text-left text-xs font-medium text-muted">
                     <th className="px-4 py-3">Integracion</th>
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Estado</th>
@@ -124,7 +124,7 @@ function KpiCard({
 }: Readonly<{ label: string; value: string; variant?: 'default' | 'warning' }>) {
   return (
     <div className={`flex-1 min-w-[160px] rounded-lg border p-4 ${variant === 'warning' ? 'border-warning/40 bg-warning/5' : 'border-border bg-surface'}`}>
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
+      <p className="text-xs font-medium text-muted">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );

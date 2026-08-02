@@ -247,12 +247,11 @@ export function ReportesEjecutivosPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="3.4 Reportes Ejecutivos"
-        description="Configurador de reportes con vista previa, generación e historial de archivos"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Alcance geográfico
           <DropdownSelect options={FILTER_SCOPE_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={filterScope} onChange={setFilterScope} />
@@ -281,7 +280,7 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
           {/* Configurador de reporte */}
           <div className="panel px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Configurador de reporte</p>
+            <p className="text-xs font-medium text-muted">Configurador de reporte</p>
             <p className="text-xs text-muted">los filtros determinan el contenido a generar</p>
             <div className="mt-3 space-y-3">
               <ConfigField label="Alcance geográfico (Portafolio / País / Mall)">
@@ -320,7 +319,7 @@ export function ReportesEjecutivosPage() {
 
           {/* Secciones a incluir */}
           <div className="panel px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Secciones a incluir (checkboxes)</p>
+            <p className="text-xs font-medium text-muted">Secciones a incluir (checkboxes)</p>
             <p className="text-xs text-muted">todas activadas por defecto</p>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
               {REPORT_SECTIONS.map((s) => (
@@ -337,7 +336,7 @@ export function ReportesEjecutivosPage() {
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
           {/* Vista previa del reporte */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Vista previa del reporte</p>
+            <p className="text-xs font-medium text-muted">Vista previa del reporte</p>
             <p className="text-xs text-muted">miniatura de portada e índice</p>
             <div className="mt-2 text-xs text-muted">
               <p>• Portada + logo</p>
@@ -363,12 +362,11 @@ export function ReportesEjecutivosPage() {
 
           {/* Historial de reportes */}
           <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Historial de reportes</p>
-            <p className="shrink-0 text-xs text-muted">retención de archivos ≥ 12 meses</p>
+            <p className="shrink-0 text-xs font-medium text-muted">Historial de reportes</p>
             <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-xs font-medium text-muted">
                     <th className="px-2 py-1.5">Fecha</th>
                     <th className="px-2 py-1.5">Usuario</th>
                     <th className="px-2 py-1.5">Alcance</th>

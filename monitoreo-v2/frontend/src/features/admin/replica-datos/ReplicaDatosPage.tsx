@@ -151,7 +151,7 @@ export function ReplicaDatosPage() {
           <p className="mb-3 text-xs text-muted">gestión de acceso con revocación individual (auditada)</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Usuario</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Tenant / proceso</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Permisos</th>
@@ -182,10 +182,9 @@ export function ReplicaDatosPage() {
         {/* Monitor cambios de esquema */}
         <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-sm font-semibold text-foreground">Monitor de cambios de esquema</h3>
-          <p className="mb-3 text-xs text-muted">badge rojo si el plazo de aviso de 30 días no se cumple</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Tabla / endpoint</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Tipo</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Detección</th>
@@ -236,7 +235,7 @@ export function ReplicaDatosPage() {
           <p className="mb-3 text-xs text-muted">backward compatibility · deprecación de versiones antiguas</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Integración</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Versión actual</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Versiones soportadas</th>

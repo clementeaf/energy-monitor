@@ -66,7 +66,7 @@ export function SsoConfigSection({ tenantId }: Readonly<SsoConfigSectionProps>) 
   return (
     <div className="max-w-2xl space-y-4 panel p-6">
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">SSO Enterprise (OIDC)</h2>
+        <h2 className="text-sm font-semibold text-muted">SSO Enterprise (OIDC)</h2>
         <p className="mt-1 text-xs text-subtle">
           Configura el proveedor OIDC. Activa el proveedor en la sección Seguridad antes de guardar aquí.
         </p>

@@ -193,7 +193,7 @@ export function ExecutiveDashboardPage(): ReactElement {
       <PageHeader
         title="Dashboard ejecutivo"
         eyebrow="Dashboard"
-        description="Vista consolidada multi-edificio"
+       
         actions={
           <PillToggle
             options={RANGE_PRESETS.map((r) => ({ key: r.key, label: r.label }))}

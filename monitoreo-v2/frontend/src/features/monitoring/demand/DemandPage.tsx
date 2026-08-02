@@ -238,7 +238,7 @@ function Card({ title, value, sub }: Readonly<{ title: string; value: string; su
 
 function Th({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
+    <th className="px-4 py-2 text-left text-xs font-medium text-muted">
       {children}
     </th>
   );

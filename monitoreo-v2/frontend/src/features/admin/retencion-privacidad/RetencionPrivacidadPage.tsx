@@ -69,11 +69,10 @@ export function RetencionPrivacidadPage() {
         {/* Catálogo */}
         <div className="panel w-1/2 min-w-0 p-3">
           <h3 className="text-sm font-semibold text-foreground">Catálogo de políticas de retención</h3>
-          <p className="mb-2 text-xs text-muted">acción al vencimiento · fila expandible</p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Tipo</th>
                   <th className="px-2 py-1.5">País</th>
@@ -167,7 +166,7 @@ export function RetencionPrivacidadPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">Tipo de dato</th>
                 <th className="px-2 py-1.5">Registros</th>
                 <th className="px-2 py-1.5">Acción</th>
@@ -210,7 +209,7 @@ export function RetencionPrivacidadPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-xs font-medium text-muted">
                   <th className="px-1.5 py-1 text-left">Proceso</th>
                   {FIELDS.map((f) => <th key={f} className="px-1.5 py-1 text-center">{f}</th>)}
                 </tr>
@@ -243,7 +242,7 @@ export function RetencionPrivacidadPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Política</th>
                   <th className="px-2 py-1.5">Fecha</th>
                   <th className="px-2 py-1.5">Registros</th>

@@ -314,12 +314,11 @@ export function AlarmasAgregadasPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="3.5 Alarmas Agregadas"
-        description="Supervisión de alarmas a nivel portafolio — sin gestión de alarmas individuales (rol gerencial)"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           País
           <DropdownSelect options={COUNTRIES.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
@@ -349,24 +348,22 @@ export function AlarmasAgregadasPage() {
       {/* Row 1: 4 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total alarmas activas</p>
+          <p className="text-xs font-medium text-muted">Total alarmas activas</p>
           <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-danger' : 'text-success'}`}>{totalActive}</p>
           <p className="text-xs text-muted">en el período filtrado</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Críticas activas</p>
+          <p className="text-xs font-medium text-muted">Críticas activas</p>
           <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-danger' : 'text-success'}`}>{criticalActive}</p>
-          <p className="text-xs text-muted">{criticalActive > 0 ? 'badge rojo si > 0' : 'sin críticas'}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Resueltas 24h</p>
+          <p className="text-xs font-medium text-muted">Resueltas 24h</p>
           <p className="mt-1 text-2xl font-bold text-success">{resolved24h}</p>
           <p className="text-xs text-muted">últimas 24 horas</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">T. medio de resolución</p>
+          <p className="text-xs font-medium text-muted">T. medio de resolución</p>
           <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
-          <p className="text-xs text-muted">indicador si supera SLA</p>
         </div>
       </div>
 
@@ -374,8 +371,7 @@ export function AlarmasAgregadasPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Mapa geográfico de alarmas */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Mapa geográfico de alarmas</p>
-          <p className="shrink-0 text-xs text-muted">marcadores SIEMPRE por estado de alarma</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Mapa geográfico de alarmas</p>
           <div className="relative mt-2 min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
             <MapView buildings={geoBuildings} buildingMeta={buildingMeta} onBuildingClick={setSelectedBuildingId} className="h-full w-full" />
           </div>
@@ -385,8 +381,7 @@ export function AlarmasAgregadasPage() {
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           {/* Evolución 30 días */}
           <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
-            <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Evolución 30 días</p>
-            <p className="shrink-0 text-xs text-muted">abiertas / escaladas / resueltas por día</p>
+            <p className="shrink-0 text-xs font-medium text-muted">Evolución 30 días</p>
             <div className="mt-2 flex min-h-0 flex-1 items-end gap-[2px]">
               {evolutionData.map((d) => {
                 const aH = (d.active / maxEvoValue) * 100;
@@ -410,8 +405,7 @@ export function AlarmasAgregadasPage() {
 
           {/* Top 5 malls con más alarmas */}
           <div className="panel shrink-0 px-3 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Top 5 malls con más alarmas</p>
-            <p className="text-xs text-muted">con tendencia ↑↓→ vs. semana anterior</p>
+            <p className="text-xs font-medium text-muted">Top 5 malls con más alarmas</p>
             <ul className="mt-2 space-y-1 text-xs">
               {top5.map((row, i) => (
                 <li key={row.buildingId} className="flex items-center gap-2">
@@ -431,11 +425,11 @@ export function AlarmasAgregadasPage() {
 
       {/* Row 3: Tabla de alarmas por mall */}
       <div className="panel flex min-h-0 flex-1 basis-1/2 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
+        <p className="shrink-0 text-xs font-medium text-muted">Tabla de alarmas por mall (sin datos de medidores individuales)</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 {([['total', 'Mall'], ['critical', 'País'], ['critical', 'Críticas'], ['warning', 'Warnings'], ['resolved', 'Resueltas'], ['resolution', 'T.medio [h]'], ['last', 'Última alarma']] as [string, string][]).map(([col, label], idx) => (
                   <th
                     key={`${col}-${idx}`}

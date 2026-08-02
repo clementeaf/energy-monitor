@@ -18,7 +18,7 @@ export function EventFeed({ events }: Readonly<EventFeedProps>) {
 
   return (
     <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-      <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Feed de eventos recientes</p>
+      <p className="shrink-0 text-xs font-medium text-muted">Feed de eventos recientes</p>
       <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
         <ul className="space-y-1.5">
           {display.map((evt) => (

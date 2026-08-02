@@ -49,7 +49,7 @@ export function DeletionRequestsPage() {
       <PageHeader
         title="Solicitudes de eliminación"
         eyebrow="Administración"
-        description="Gestión de solicitudes ARCO+ (Ley 21.719). Plazo máximo: 15 días hábiles."
+       
       />
 
       {query.isPending && <p className="text-sm text-subtle">Cargando...</p>}

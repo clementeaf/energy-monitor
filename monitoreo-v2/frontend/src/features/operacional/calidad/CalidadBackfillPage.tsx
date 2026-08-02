@@ -230,12 +230,11 @@ export function CalidadBackfillPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.4 Calidad y Backfill"
-        description="Monitoreo de calidad del dato y procesos de recuperación de gaps"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
 
@@ -243,12 +242,11 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Scorecard de calidad por mall */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Scorecard de calidad por mall</p>
-          <p className="shrink-0 text-xs text-muted">semáforo por fila · tendencia ↑↓ · vs. período anterior</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Scorecard de calidad por mall</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Mall</th>
                   <th className="px-2 py-1.5 text-right">% Reales</th>
                   <th className="px-2 py-1.5 text-right">% Estimadas</th>
@@ -287,8 +285,7 @@ export function CalidadBackfillPage() {
 
         {/* Histograma de calidad — 30 días */}
         <div className="panel flex min-w-0 flex-1 flex-col px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Histograma de calidad — 30 días</p>
-          <p className="shrink-0 text-xs text-muted">área apilada por día: real / estimado / CNR / faltante</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Histograma de calidad — 30 días</p>
           {(() => {
             const hasRealBars = histogramBars.some((b) => b.realPct > 0);
             const displayBars = hasRealBars ? histogramBars : PLACEHOLDER_HISTOGRAM_30D;
@@ -319,12 +316,11 @@ export function CalidadBackfillPage() {
       <div className="flex min-h-0 flex-1 basis-1/2 gap-3">
         {/* Panel de backfill activo */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Panel de backfill activo</p>
-          <p className="shrink-0 text-xs text-muted">procesos en curso · % completado y ETA</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Panel de backfill activo</p>
           <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-2 py-1.5">Medidor</th>
                   <th className="px-2 py-1.5">Tipo de gap</th>
                   <th className="px-2 py-1.5">Período a reponer</th>
@@ -381,8 +377,7 @@ export function CalidadBackfillPage() {
 
         {/* Alertas de degradación de calidad */}
         <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-          <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Alertas de degradación de calidad</p>
-          <p className="shrink-0 text-xs text-muted">medidores que bajaron su % lecturas reales en los últimos 7 días</p>
+          <p className="shrink-0 text-xs font-medium text-muted">Alertas de degradación de calidad</p>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
             <ul className="space-y-1.5">
               {degradedMeters.length > 0

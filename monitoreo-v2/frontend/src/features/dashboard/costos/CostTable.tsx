@@ -48,7 +48,7 @@ export function CostTable({ rows, currencyKey }: Readonly<CostTableProps>) {
   return (
     <div className="panel flex min-h-0 min-w-0 shrink flex-col overflow-hidden p-3">
       <div className="flex shrink-0 items-center gap-2">
-        <p className="flex-1 text-xs font-medium uppercase tracking-wider text-muted">Tabla de costos por mall</p>
+        <p className="flex-1 text-xs font-medium text-muted">Tabla de costos por mall</p>
         <button
           type="button"
           onClick={() => downloadCsv(sorted, currencyKey)}
@@ -60,7 +60,7 @@ export function CostTable({ rows, currencyKey }: Readonly<CostTableProps>) {
       <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+            <tr className="border-b border-border text-left text-xs font-medium text-muted">
               <SortTh col="buildingName" label="Mall" sortCol={sortCol} sortAsc={sortAsc} onSort={handleSort} />
               <SortTh col="countryCode" label="País" sortCol={sortCol} sortAsc={sortAsc} onSort={handleSort} />
               <SortTh col="consumptionMwh" label="Consumo [MWh]" sortCol={sortCol} sortAsc={sortAsc} onSort={handleSort} right />

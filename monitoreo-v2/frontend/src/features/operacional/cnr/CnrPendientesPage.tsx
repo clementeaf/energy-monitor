@@ -239,29 +239,27 @@ export function CnrPendientesPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="4.5 CNR Pendientes"
-        description="Consumo No Registrado — gestión de gaps pendientes de resolución"
+       
       />
 
       {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="italic">(esta pantalla no declara filtros en el informe)</span>
       </div>
 
       {/* Row 1: 3 KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total CNR abiertas</p>
+          <p className="text-xs font-medium text-muted">Total CNR abiertas</p>
           <p className={`mt-1 text-2xl font-bold ${totalOpen > 0 ? 'text-warning' : 'text-success'}`}>{totalOpen}</p>
           <p className="text-xs text-muted">a la espera de resolución</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Con &gt; 7 días sin resolución</p>
+          <p className="text-xs font-medium text-muted">Con &gt; 7 días sin resolución</p>
           <p className={`mt-1 text-2xl font-bold ${over7d > 0 ? 'text-danger' : 'text-foreground'}`}>{over7d}</p>
-          <p className="text-xs text-muted">badge de alerta de antigüedad</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Ingresadas hoy</p>
+          <p className="text-xs font-medium text-muted">Ingresadas hoy</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{ingestedToday}</p>
           <p className="text-xs text-muted">nuevas en el turno</p>
         </div>
@@ -277,12 +275,11 @@ export function CnrPendientesPage() {
 
       {/* Tabla de CNR */}
       <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-        <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Tabla de CNR</p>
-        <p className="shrink-0 text-xs text-muted">fila expandible: detalle, justificación e historial</p>
+        <p className="shrink-0 text-xs font-medium text-muted">Tabla de CNR</p>
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">ID</th>
                 <th className="px-2 py-1.5">Medidor</th>
                 <th className="px-2 py-1.5">Mall</th>

@@ -95,7 +95,7 @@ export function IotDevicesPage() {
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 z-10 bg-background">
-                <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted">
                   <th className="px-3 py-2">Device ID</th>
                   <th className="px-3 py-2">Primera vez</th>
                   <th className="px-3 py-2">Ultima lectura</th>
@@ -144,7 +144,7 @@ export function IotDevicesPage() {
                 <p className="mt-0.5 font-mono text-xs text-muted">{selected.deviceClientId}</p>
               </div>
               <div className="panel px-3 py-3">
-                <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Datos</h4>
+                <h4 className="mb-2 text-xs font-medium text-muted">Datos</h4>
                 <dl className="space-y-1 text-xs">
                   <div className="flex justify-between"><dt className="text-muted">Primera vez</dt><dd className="text-foreground">{new Date(selected.firstSeen).toLocaleString()}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Ultima lectura</dt><dd className="text-foreground">{new Date(selected.lastSeen).toLocaleString()}</dd></div>
@@ -156,14 +156,14 @@ export function IotDevicesPage() {
               </div>
               {selected.payloadSample && Object.keys(selected.payloadSample).length > 0 && (
                 <div className="panel px-3 py-3">
-                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">Muestra payload</h4>
+                  <h4 className="mb-2 text-xs font-medium text-muted">Muestra payload</h4>
                   <pre className="max-h-40 overflow-auto rounded bg-surface p-2 text-xs text-muted">
                     {JSON.stringify(selected.payloadSample, null, 2)}
                   </pre>
                 </div>
               )}
               <div className="panel space-y-2 px-3 py-3">
-                <h4 className="text-xs font-medium uppercase tracking-wider text-muted">Acciones</h4>
+                <h4 className="text-xs font-medium text-muted">Acciones</h4>
                 {selected.assignedMeterId ? (
                   <Button size="sm" variant="danger" loading={unassignMutation.isPending} onClick={() => handleUnassign(selected)}>
                     Desasignar

@@ -102,7 +102,7 @@ export function TariffsPage() {
       <div className="overflow-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-background">
-            <tr className="bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted">
+            <tr className="bg-surface text-left text-xs font-medium text-muted">
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Vigencia</th>
               <th className="px-4 py-3">Estado</th>

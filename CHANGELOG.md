@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.53.0] - 2026-08-02 — TRATAMIENTO VISUAL GIGA.AI
+
+### Changed (Frontend — UX limpieza global)
+- **PageHeader** — `text-2xl` → `text-lg`, tracking tight, description compacta. 67 páginas afectadas.
+- **Filtros** — Wrapper pesado (`rounded-lg border bg-surface/50`) eliminado de 16 páginas. Label "Filtros:" redundante eliminado de 11 páginas.
+- **Títulos** — Números de sección del spec ("3.5", "4.2", "5.7") eliminados de 15 páginas.
+- **Descriptions** — 31 descriptions de desarrollo eliminadas de PageHeaders. ~30 mini-descriptions de spec embebidas en paneles eliminadas ("badge rojo si > 0", "fila expandible", "marcadores SIEMPRE por estado de alarma").
+- **Labels** — `uppercase tracking-wider` eliminado de 184 labels de sección. Sentence case en todo. Solo table headers mantienen formato columnar.
+- **ComponentsPage** — Section component simplificado (removida prop `description` obligatoria).
+
+---
+
 ## [2.52.0] - 2026-08-02 — CONSOLIDACIÓN VISTAS DUPLICADAS
 
 ### Changed (Frontend — Consolidación)

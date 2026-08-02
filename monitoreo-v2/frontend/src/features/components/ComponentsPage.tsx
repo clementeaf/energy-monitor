@@ -104,45 +104,42 @@ export function ComponentsPage() {
       <PageHeader title="Componentes" eyebrow="Desarrollo" />
 
       {/* Chart */}
-      <Section title="Chart" description="Highcharts basico con merge de tema.">
+      <Section title="Chart">
         <Chart options={BASIC_CHART_OPTIONS} />
       </Section>
 
       {/* MonthlyChart — kWh */}
-      <Section title="MonthlyChart — kWh" description="Chart mensual con toggle de tipo (column, line, area, pie).">
+      <Section title="MonthlyChart — kWh">
         <MonthlyChart data={MONTHLY_DATA} seriesName="Consumo" unit="kWh" />
       </Section>
 
       {/* MonthlyChart — Currency */}
-      <Section title="MonthlyChart — CLP" description="Mismo componente con prefijo de moneda.">
+      <Section title="MonthlyChart — CLP">
         <MonthlyChart data={MONTHLY_CURRENCY} seriesName="Gasto" unit="CLP" currency="$" />
       </Section>
 
       {/* StockChart */}
-      <Section title="StockChart" description="Highcharts Stock con navigator y range selector.">
+      <Section title="StockChart">
         <StockChart options={STOCK_CHART_OPTIONS} />
       </Section>
 
       {/* StockChart dual axis */}
-      <Section title="StockChart — Dual Axis" description="Dos ejes Y: consumo (area) + factor de potencia (line).">
+      <Section title="StockChart — Dual Axis">
         <StockChart options={DUAL_AXIS_OPTIONS} />
       </Section>
 
       {/* StockChart loading */}
-      <Section title="StockChart — Loading" description="Overlay de carga sobre el chart.">
+      <Section title="StockChart — Loading">
         <StockChart options={STOCK_CHART_OPTIONS} loading />
       </Section>
     </div>
   );
 }
 
-function Section({ title, description, children }: Readonly<{ title: string; description: string; children: React.ReactNode }>) {
+function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="space-y-2">
-      <div>
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-        <p className="text-xs text-muted">{description}</p>
-      </div>
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <div className="panel p-4">{children}</div>
     </div>
   );

@@ -202,7 +202,7 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
 }
 
 function SectionTitle({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <h3 className="pt-2 text-xs font-semibold uppercase tracking-wider text-muted">{children}</h3>;
+  return <h3 className="pt-2 text-xs font-semibold text-muted">{children}</h3>;
 }
 
 function Field({ label, required, children }: Readonly<{ label: string; required?: boolean; children: React.ReactNode }>) {

@@ -150,11 +150,10 @@ export function MonitoreoVivoPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader title="Monitoreo en Vivo" description="Estado operativo del parque de medidores" />
+      <PageHeader title="Monitoreo en Vivo" />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           País
           <DropdownSelect options={PAIS_OPTIONS} value={paisFilter} onChange={setPaisFilter} />
@@ -164,23 +163,23 @@ export function MonitoreoVivoPage() {
       {/* KPI cards */}
       <div className="flex shrink-0 gap-3">
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Total medidores</p>
+          <p className="text-xs font-medium text-muted">Total medidores</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">En línea</p>
+          <p className="text-xs font-medium text-muted">En línea</p>
           <p className="mt-1 text-2xl font-bold text-success">{onlinePct}%</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Offline</p>
+          <p className="text-xs font-medium text-muted">Offline</p>
           <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-danger' : 'text-foreground'}`}>{offlineCount}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Estancado &gt;4h</p>
+          <p className="text-xs font-medium text-muted">Estancado &gt;4h</p>
           <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
         </div>
         <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">CNR pendientes</p>
+          <p className="text-xs font-medium text-muted">CNR pendientes</p>
           <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
         </div>
       </div>

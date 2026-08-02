@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 export function Section({ title, children }: Readonly<{ title: string; children: ReactNode }>) {
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">{title}</h2>
+      <h2 className="text-sm font-semibold text-muted">{title}</h2>
       {children}
     </div>
   );

@@ -71,7 +71,7 @@ export function ThrottleCargasPage() {
           <div className="min-h-0 flex-1 overflow-auto px-4">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-2 py-1.5">Tenant</th>
                 <th className="sticky top-0 bg-background px-2 py-1.5">Req/h</th>
                 <th className="sticky top-0 bg-background px-2 py-1.5">Req/d</th>
@@ -146,7 +146,7 @@ export function ThrottleCargasPage() {
           <p className="mb-3 text-xs text-muted">detecta falsos positivos que afecten ETL legítimos de PASA</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Tenant</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Endpoint</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Bloqueadas</th>
@@ -206,10 +206,9 @@ export function ThrottleCargasPage() {
         {/* Estado extracciones incrementales */}
         <div className="panel min-w-0 flex-1 p-4">
           <h3 className="text-sm font-semibold text-foreground">Estado de extracciones incrementales</h3>
-          <p className="mb-3 text-xs text-muted">indicador si el cursor lleva &gt; 4h sin avanzar</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Integración</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Modo</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Cursor</th>
@@ -280,7 +279,7 @@ export function ThrottleCargasPage() {
           <p className="mb-3 text-xs text-muted">últimas 100 por integración · audita eficiencia incremental vs. full-load</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="sticky top-0 bg-background px-3 py-2">Inicio</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Fin</th>
                 <th className="sticky top-0 bg-background px-3 py-2">Modo</th>

@@ -283,7 +283,7 @@ export function PistaAuditoriaPage() {
                   >
                     <span className="font-mono text-muted">{fmtTime(log.createdAt)}</span>
                     <span className="font-medium text-foreground">{stripDomain(log.userEmail)}</span>
-                    <span className="rounded bg-surface px-1.5 py-0.5 text-xs font-medium uppercase tracking-wider text-muted">
+                    <span className="rounded bg-surface px-1.5 py-0.5 text-xs font-medium text-muted">
                       {log.action}
                     </span>
                     <span className="flex-1 text-muted">{formatDetail(log)}</span>
@@ -379,7 +379,7 @@ export function PistaAuditoriaPage() {
             <div className="flex-1 overflow-y-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-border text-left text-xs font-medium text-muted">
                     <th className="px-2 py-1.5">Usuario</th>
                     <th className="px-2 py-1.5 text-right">Nº acciones</th>
                     <th className="px-2 py-1.5 text-right">Última acción</th>

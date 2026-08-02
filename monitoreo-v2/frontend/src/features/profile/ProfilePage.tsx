@@ -78,7 +78,7 @@ export function ProfilePage() {
       <PageHeader
         title="Mi perfil"
         eyebrow="Cuenta"
-        description="Información personal y derechos ARCO+ conforme a la Ley 21.719."
+       
       />
 
       {/* Personal data */}

@@ -89,12 +89,11 @@ export function CostosTendenciasPage() {
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
         title="Costos y Tendencias"
-        description="Análisis de costos energéticos con proyecciones y descomposición"
+       
       />
 
       {/* Filters */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
-        <span className="font-semibold text-foreground">Filtros:</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           País
           <DropdownSelect options={COUNTRY_OPTIONS.map((c) => ({ value: c.key, label: c.label }))} value={country} onChange={setCountry} />
@@ -237,7 +236,7 @@ function TendenciaTab({ monthlyData, filteredInvoices, filteredBuildings, curren
 
   return (
     <div className="panel p-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">Barras apiladas mensual — costo [{currencyKey}]</p>
+      <p className="text-xs font-medium text-muted">Barras apiladas mensual — costo [{currencyKey}]</p>
       <p className="text-xs text-muted">Línea eje secundario: precio medio [{currencyKey}/MWh]</p>
       {monthlyData.length > 0 ? (
         <Chart options={chartOptions} className="mt-2" />
@@ -278,7 +277,7 @@ function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }
 
   return (
     <div className="panel p-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">Waterfall de variación de costo</p>
+      <p className="text-xs font-medium text-muted">Waterfall de variación de costo</p>
       <p className="text-xs text-muted">volumen · precio · mix de malls (verde baja, rojo sube)</p>
       <div className="mt-4 flex items-end gap-3" style={{ height: '200px' }}>
         {bars.map((bar) => {
@@ -323,7 +322,7 @@ function ProjectionTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] 
     <div className="panel p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted">Proyecciones — 2 meses</p>
+          <p className="text-xs font-medium text-muted">Proyecciones — 2 meses</p>
           <p className="text-xs text-muted">Base: tendencia últimos 3 meses</p>
         </div>
         <div className="flex items-center gap-3">

@@ -69,11 +69,11 @@ export function RegIntervencionPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
-      <PageHeader title="5.4 Registro de intervención" description="Vista mobile-first — bitácora de intervención con firma digital e inmutabilidad" />
+      <PageHeader title="5.4 Registro de intervención" />
 
       {/* Orden asociada */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Orden asociada</p>
+        <p className="text-xs font-medium text-muted">Orden asociada</p>
         {selectedMeter ? (
           <div className="mt-1 text-xs text-foreground">
             <p className="font-semibold">OT — Medidor {selectedMeter.code}</p>
@@ -84,7 +84,7 @@ export function RegIntervencionPage() {
 
       {/* Bitácora de intervención */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Bitácora de intervención</p>
+        <p className="text-xs font-medium text-muted">Bitácora de intervención</p>
         <form onSubmit={handleSubmit} className="mt-2 space-y-3">
             <FormField label="Medidor / activo">
               <select
@@ -161,7 +161,7 @@ export function RegIntervencionPage() {
 
       {/* Adjuntos y firma */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Adjuntos y firma</p>
+        <p className="text-xs font-medium text-muted">Adjuntos y firma</p>
         <div className="mt-2 space-y-1 text-xs text-foreground">
           <p>• Fotos máx. 5 (JPG/PNG) + documentos (PDF)</p>
           <p>• □ Requiere CNR → pre-llena formulario de CNR</p>
@@ -195,7 +195,7 @@ export function RegIntervencionPage() {
 function FormField({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted">{label}</label>
+      <label className="mb-1 block text-xs font-medium text-muted">{label}</label>
       {children}
     </div>
   );

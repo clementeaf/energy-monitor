@@ -321,7 +321,7 @@ export function CalidadDatosPage() {
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-background">
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-3 py-2">Mall</th>
                 <th className="px-3 py-2 text-right">Período</th>
                 <th className="px-3 py-2 text-right">Lecturas esperadas</th>
@@ -455,7 +455,7 @@ export function CalidadDatosPage() {
               ) : (
                 <table className="w-full text-xs">
                   <thead className="sticky top-0 bg-background">
-                    <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+                    <tr className="border-b border-border text-left text-xs font-medium text-muted">
                       <th className="px-2 py-1">Medidor</th>
                       <th className="px-2 py-1 text-right">% Reales</th>
                       <th className="px-2 py-1">Causa más frecuente</th>

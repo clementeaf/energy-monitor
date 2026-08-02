@@ -14,11 +14,11 @@ export function MeterTable({ meters, readings }: Readonly<MeterTableProps>) {
 
   return (
     <div className="panel flex min-h-0 flex-col overflow-hidden p-3">
-      <p className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
+      <p className="shrink-0 text-xs font-medium text-muted">Medidores del mall</p>
       <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+            <tr className="border-b border-border text-left text-xs font-medium text-muted">
               <th className="px-2 py-1.5">ID medidor</th>
               <th className="px-2 py-1.5">Zona</th>
               <th className="px-2 py-1.5 text-right">Consumo [MWh]</th>

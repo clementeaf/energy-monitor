@@ -54,7 +54,7 @@ export function RectificationRequestsPage() {
       <PageHeader
         title="Solicitudes de rectificación"
         eyebrow="Administración"
-        description="Gestión de solicitudes ARCO+ de rectificación de datos (Ley 21.719). Plazo máximo: 15 días hábiles."
+       
       />
 
       {query.isPending && <p className="text-sm text-subtle">Cargando...</p>}

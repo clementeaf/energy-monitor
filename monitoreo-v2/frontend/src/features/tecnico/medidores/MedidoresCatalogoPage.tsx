@@ -88,10 +88,10 @@ export function MedidoresCatalogoPage() {
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
       <PageHeader
         title="5.2 Activos (medidores)"
-        description="Vista mobile-first — búsqueda y ficha técnica de medidores en campo"
+       
       />
 
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-surface/50 px-4 py-2 text-xs text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
         <span className="flex items-center gap-1">
           Mall
           <DropdownSelect
@@ -119,12 +119,12 @@ export function MedidoresCatalogoPage() {
       </div>
 
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Medidores del mall</p>
+        <p className="text-xs font-medium text-muted">Medidores del mall</p>
         <p className="text-xs text-muted">serial · estado · protocolo · último dato</p>
         <div className="mt-2 text-xs">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted">
                 <th className="px-2 py-1.5">Serial</th>
                 <th className="px-2 py-1.5 text-center">Estado</th>
                 <th className="px-2 py-1.5">Prot.</th>
@@ -160,7 +160,7 @@ export function MedidoresCatalogoPage() {
 
       {/* Ficha — Identificación */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Ficha — Identificación</p>
+        <p className="text-xs font-medium text-muted">Ficha — Identificación</p>
         {selected ? (
           <div className="mt-2 space-y-2 text-xs">
             <div>
@@ -181,7 +181,7 @@ export function MedidoresCatalogoPage() {
 
       {/* Ubicación física */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Ubicación física</p>
+        <p className="text-xs font-medium text-muted">Ubicación física</p>
         <p className="text-xs text-muted">ref. Estándar Técnico Salas</p>
         {selected ? (
           <div className="mt-2 space-y-0.5 text-xs text-foreground">
@@ -202,7 +202,7 @@ export function MedidoresCatalogoPage() {
 
       {/* Disponibilidad 72h */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Disponibilidad 72 h (barras 15 min)</p>
+        <p className="text-xs font-medium text-muted">Disponibilidad 72 h (barras 15 min)</p>
         <p className="text-xs text-muted">estado de comunicación · reintentos</p>
         <div className="mt-2 flex h-8 items-end gap-[0.5px]">
           {avail72h.map((v, i) => (
@@ -213,7 +213,7 @@ export function MedidoresCatalogoPage() {
 
       {/* Serie temporal 48h */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Serie temporal 48 h (gaps marcados)</p>
+        <p className="text-xs font-medium text-muted">Serie temporal 48 h (gaps marcados)</p>
         <p className="text-xs text-muted">tipo de valor: real / estimado / CNR</p>
         <div className="mt-2" style={{ height: '60px' }}>
           {selected && selectedReading ? (
@@ -227,7 +227,7 @@ export function MedidoresCatalogoPage() {
 
       {/* Historial de fallas e intervenciones */}
       <div className="panel shrink-0 px-3 py-2.5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Historial de fallas e intervenciones</p>
+        <p className="text-xs font-medium text-muted">Historial de fallas e intervenciones</p>
         <div className="mt-2 space-y-1.5 text-xs">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-subtle" />

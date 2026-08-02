@@ -216,7 +216,7 @@ export function GenerationSitePage() {
       <PageHeader
         title={`Generación — ${building?.name ?? 'Sitio'}`}
         eyebrow="Monitoreo"
-        description="Medidores con tipo generación / solar / PV se suman como generación; el resto del sitio como carga. Configure el tipo de medidor en la ficha de cada medidor."
+       
       />
 
       {isLoading ? (

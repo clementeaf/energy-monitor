@@ -153,6 +153,26 @@ export const LazyAlarmasAgregadasPage = lazy(async () => {
   return { default: m.AlarmasAgregadasPage };
 });
 
+export const LazyAlertasUnifiedPage = lazy(async () => {
+  const m = await import('../features/alertas/AlertasUnifiedPage');
+  return { default: m.AlertasUnifiedPage };
+});
+
+export const LazyCalidadUnifiedPage = lazy(async () => {
+  const m = await import('../features/calidad/CalidadUnifiedPage');
+  return { default: m.CalidadUnifiedPage };
+});
+
+export const LazyExportarUnifiedPage = lazy(async () => {
+  const m = await import('../features/exportar/ExportarUnifiedPage');
+  return { default: m.ExportarUnifiedPage };
+});
+
+export const LazyCnrUnifiedPage = lazy(async () => {
+  const m = await import('../features/cnr/CnrUnifiedPage');
+  return { default: m.CnrUnifiedPage };
+});
+
 export const LazyCostosTendenciasPage = lazy(async () => {
   const m = await import('../features/dashboard/costos/CostosTendenciasPage');
   return { default: m.CostosTendenciasPage };

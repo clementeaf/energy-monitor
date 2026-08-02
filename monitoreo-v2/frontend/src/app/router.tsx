@@ -30,20 +30,18 @@ import {
   LazyPanelConsolidadoPage,
   LazyConsumoJerarquicoPage,
   LazyCostosTendenciasPage,
-  LazyAlarmasAgregadasPage,
+  LazyAlertasUnifiedPage,
   LazyReportesEjecutivosPage,
-  LazyExportarReportesPage,
+  LazyExportarUnifiedPage,
   LazyMonitoreoVivoPage,
-  LazyAlarmasEventosPage,
   LazyTicketsSlaPage,
-  LazyCalidadBackfillPage,
-  LazyCnrPendientesPage,
+  LazyCalidadUnifiedPage,
+  LazyCnrUnifiedPage,
   LazyMapaCoberturaPage,
   LazyMisOrdenesPage,
   LazyMedidoresCatalogoPage,
   LazyDiagnosticoCommsPage,
   LazyRegIntervencionPage,
-  LazyIngresoCnrPage,
   LazyMaestroMedidoresPage,
   LazyReglasTransformacionPage,
   LazyObservabilidadPage,
@@ -52,8 +50,6 @@ import {
   LazyCuadraturaPage,
   LazyTrazabilidadPage,
   LazyDatosCrudosPage,
-  LazyExportarEvidenciaPage,
-  LazyCalidadDatosPage,
   LazyPistaAuditoriaPage,
   LazyTenantsMallsPage,
   LazySlosDatosPage,
@@ -183,22 +179,22 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.consumo, element: <P any={DASH_EXEC}><LazyConsumoJerarquicoPage /></P> },
               /* Dashboard — Costos y Tendencias (cross-tenant, gerencial profile) */
               { path: APP_ROUTES.costos, element: <P any={DASH_EXEC}><LazyCostosTendenciasPage /></P> },
-              /* Dashboard — Alarmas Agregadas (cross-tenant, gerencial profile) */
-              { path: APP_ROUTES.alarmasAgregadas, element: <P any={DASH_EXEC}><LazyAlarmasAgregadasPage /></P> },
+              /* Alertas unificadas (resumen + gestión, permisos controlan tabs) */
+              { path: APP_ROUTES.alarmasAgregadas, element: <P any={[...DASH_EXEC, ...ALERTS]}><LazyAlertasUnifiedPage /></P> },
               /* Dashboard — Reportes Ejecutivos (cross-tenant, gerencial profile) */
               { path: APP_ROUTES.reportesEjecutivos, element: <P any={['reports:read', 'reports:view_own']}><LazyReportesEjecutivosPage /></P> },
-              /* Dashboard — Exportar Reportes (cross-tenant, gerencial profile) */
-              { path: APP_ROUTES.exportarReportes, element: <P any={['reports:read', 'reports:view_own']}><LazyExportarReportesPage /></P> },
+              /* Exportar unificado (reportes + evidencia, permisos controlan tabs) */
+              { path: APP_ROUTES.exportarReportes, element: <P any={['reports:read', 'reports:view_own', ...AUDIT]}><LazyExportarUnifiedPage /></P> },
               /* Operacional — Monitoreo en Vivo (cross-tenant) */
               { path: APP_ROUTES.monitoreoVivo, element: <P any={MONITORING}><LazyMonitoreoVivoPage /></P> },
-              /* Operacional — Alarmas y Eventos (cross-tenant) */
-              { path: APP_ROUTES.alarmasEventos, element: <P any={ALERTS}><LazyAlarmasEventosPage /></P> },
+              /* Operacional — Alarmas y Eventos → redirige a vista unificada */
+              { path: APP_ROUTES.alarmasEventos, element: <P any={[...DASH_EXEC, ...ALERTS]}><LazyAlertasUnifiedPage /></P> },
               /* Operacional — Tickets y SLA (cross-tenant) */
               { path: APP_ROUTES.ticketsSla, element: <P any={ALERTS}><LazyTicketsSlaPage /></P> },
-              /* Operacional — Calidad y Backfill (cross-tenant) */
-              { path: APP_ROUTES.calidadBackfill, element: <P any={ADMIN_DATA_QUALITY}><LazyCalidadBackfillPage /></P> },
-              /* Operacional — CNR Pendientes (cross-tenant) */
-              { path: APP_ROUTES.cnrPendientes, element: <P any={ADMIN_DATA_QUALITY}><LazyCnrPendientesPage /></P> },
+              /* Calidad de datos unificada (scorecard + backfill, permisos controlan tabs) */
+              { path: APP_ROUTES.calidadBackfill, element: <P any={[...ADMIN_DATA_QUALITY, ...AUDIT]}><LazyCalidadUnifiedPage /></P> },
+              /* CNR unificado (pendientes + ingreso, permisos controlan tabs) */
+              { path: APP_ROUTES.cnrPendientes, element: <P any={[...ADMIN_DATA_QUALITY, ...MONITORING]}><LazyCnrUnifiedPage /></P> },
               /* Operacional — Mapa de Cobertura (cross-tenant) */
               { path: APP_ROUTES.mapaCobertura, element: <P any={MONITORING}><LazyMapaCoberturaPage /></P> },
               /* Técnico — 6 pages */
@@ -206,7 +202,7 @@ export const router = createBrowserRouter([
               { path: APP_ROUTES.medidoresCatalogo, element: <P any={DEVICES}><LazyMedidoresCatalogoPage /></P> },
               { path: APP_ROUTES.diagnosticoComms, element: <P any={DEVICES}><LazyDiagnosticoCommsPage /></P> },
               { path: APP_ROUTES.regIntervencion, element: <P any={MONITORING}><LazyRegIntervencionPage /></P> },
-              { path: APP_ROUTES.ingresoCnr, element: <P any={MONITORING}><LazyIngresoCnrPage /></P> },
+              { path: APP_ROUTES.ingresoCnr, element: <P any={[...ADMIN_DATA_QUALITY, ...MONITORING]}><LazyCnrUnifiedPage /></P> },
               { path: APP_ROUTES.maestroMedidores, element: <P any={DEVICES}><LazyMaestroMedidoresPage /></P> },
               { path: APP_ROUTES.reglasTransformacion, element: <P any={DEVICES}><LazyReglasTransformacionPage /></P> },
               /* Dashboard — Platform (cross-tenant, no tenant needed) */
@@ -285,12 +281,12 @@ export const router = createBrowserRouter([
                   { path: APP_ROUTES.admin.regions, element: <P any={BUILDINGS}><LazyRegionsPage /></P> },
                   { path: APP_ROUTES.admin.breachReports, element: <P any={AUDIT}><LazyBreachReportsPage /></P> },
                   /* Auditor — 6 pages (tenant-scoped) */
-                  { path: APP_ROUTES.calidadDatos, element: <P any={AUDIT}><LazyCalidadDatosPage /></P> },
+                  { path: APP_ROUTES.calidadDatos, element: <P any={[...AUDIT, ...ADMIN_DATA_QUALITY]}><LazyCalidadUnifiedPage /></P> },
                   { path: APP_ROUTES.cuadratura, element: <P any={AUDIT}><LazyCuadraturaPage /></P> },
                   { path: APP_ROUTES.pistaAuditoria, element: <P any={AUDIT}><LazyPistaAuditoriaPage /></P> },
                   { path: APP_ROUTES.trazabilidad, element: <P any={AUDIT}><LazyTrazabilidadPage /></P> },
                   { path: APP_ROUTES.datosCrudos, element: <P any={AUDIT}><LazyDatosCrudosPage /></P> },
-                  { path: APP_ROUTES.exportarEvidencia, element: <P any={AUDIT}><LazyExportarEvidenciaPage /></P> },
+                  { path: APP_ROUTES.exportarEvidencia, element: <P any={[...AUDIT, 'reports:read', 'reports:view_own']}><LazyExportarUnifiedPage /></P> },
                   { path: APP_ROUTES.admin.roles, element: <P any={ADMIN_ROLES}><LazyRolesPage /></P> },
                   { path: APP_ROUTES.admin.deletionRequests, element: <P any={ADMIN_USERS}><LazyDeletionRequestsPage /></P> },
                   { path: APP_ROUTES.admin.rectificationRequests, element: <P any={ADMIN_USERS}><LazyRectificationRequestsPage /></P> },

@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.52.0] - 2026-08-02 — CONSOLIDACIÓN VISTAS DUPLICADAS
+
+### Changed (Frontend — Consolidación)
+- **Alertas** — `AlarmasAgregadasPage` (gerencial) + `AlarmasEventosPage` (operacional) fusionadas en `AlertasUnifiedPage`. Tabs "Resumen" / "Gestión" controlados por permisos. corp_admin/auditor ven solo Resumen, site_admin/operator ven ambos. 7 tests.
+- **Calidad de Datos** — `CalidadBackfillPage` (operacional) + `CalidadDatosPage` (auditor) fusionadas en `CalidadUnifiedPage`. Tabs "Scorecard" / "Backfill". auditor ve solo Scorecard, site_admin ve ambos. 4 tests.
+- **Exportar** — `ExportarReportesPage` (gerencial) + `ExportarEvidenciaPage` (auditor) fusionadas en `ExportarUnifiedPage`. Tabs "Reportes" / "Evidencia". corp_admin ve solo Reportes, auditor ve ambos. 3 tests.
+- **CNR** — `CnrPendientesPage` (operacional) + `IngresoCnrPage` (técnico) fusionadas en `CnrUnifiedPage`. Tabs "Pendientes" / "Ingreso". operator ve solo Ingreso, site_admin ve ambos. 3 tests.
+- **Nav unificada** — 43 → 39 items. 4 entradas duplicadas eliminadas, reemplazadas por entradas únicas con `extraPaths` para ambas rutas.
+- **Patrón consistente** — Cada vista unificada: 1 tab visible = renderiza directo sin barra de tabs. 0 tabs = mensaje "sin permisos". Tabs internos controlan qué se muestra, no la ruta.
+
+### Tests
+- 17 nuevos tests (alertas 7, calidad 4, exportar 3, cnr 3)
+- Build strict (`tsc --noEmit -p tsconfig.build.json && vite build`) limpio
+- 0 regresiones (97 fallos preexistentes sin cambio)
+
+---
+
 ## [2.51.0] - 2026-08-01 — UX REDISEÑO GIGA.AI + THEME SYSTEM
 
 ### Changed (Frontend — UX Rediseño)

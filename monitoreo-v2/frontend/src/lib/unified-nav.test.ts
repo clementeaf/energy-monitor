@@ -75,8 +75,8 @@ describe('unified-nav', () => {
       expect(new Set(basePaths).size).toBe(basePaths.length);
     });
 
-    it('total entries = 43 (35 original + 1 executive + 4 billing + 3 analytics)', () => {
-      expect(allEntries().length).toBe(43);
+    it('total entries = 39 (43 minus 4 merged: alerts + calidad + exportar + cnr)', () => {
+      expect(allEntries().length).toBe(39);
     });
   });
 
@@ -130,9 +130,9 @@ describe('unified-nav', () => {
       expect(entry?.requiredPerms).toEqual(['dashboard_technical:read', 'dashboard_executive:read', 'readings:read']);
     });
 
-    it('Calidad de Datos requires audit:read', () => {
-      const entry = allEntries().find((e) => e.basePath === '/auditor/calidad-datos');
-      expect(entry?.requiredPerms).toEqual(['audit:read']);
+    it('Calidad de Datos requires data_quality:read or audit:read', () => {
+      const entry = allEntries().find((e) => e.basePath === '/operacional/calidad');
+      expect(entry?.requiredPerms).toEqual(['data_quality:read', 'audit:read']);
     });
 
     it('Usuarios y Roles requires admin_users:read', () => {
@@ -142,10 +142,10 @@ describe('unified-nav', () => {
   });
 
   describe('getVisibleNav', () => {
-    it('super_admin sees all 43 items (bypass)', () => {
+    it('super_admin sees all 39 items (bypass)', () => {
       const visible = getVisibleNav(makeHasAny('super_admin'), false);
       const count = visible.flatMap((g) => g.entries).length;
-      expect(count).toBe(43);
+      expect(count).toBe(39);
     });
 
     it('super_admin with tenant hides platformOnly items', () => {

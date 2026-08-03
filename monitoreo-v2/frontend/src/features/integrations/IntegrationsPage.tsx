@@ -185,7 +185,7 @@ export function IntegrationsPage() {
         <>
           <section>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <PageHeader title="7.6 Integraciones" />
+              <PageHeader title="Integraciones" />
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="text"

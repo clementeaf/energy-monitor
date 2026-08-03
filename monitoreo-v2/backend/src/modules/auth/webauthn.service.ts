@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import {
@@ -105,6 +105,26 @@ export class WebAuthnService {
 
     this.logger.log(`WebAuthn credential registered for user ${userId}`);
     return { credentialId: credential.id };
+  }
+
+  async resolveUserIdByEmail(email: string): Promise<string> {
+    const { hmacPii } = await import('../../common/crypto/pii-encryption.js');
+    const normalised = email.toLowerCase().trim();
+    const emailHmac = hmacPii(normalised);
+    const rows = await this.dataSource.query<{ id: string }[]>(
+      `SELECT id FROM users WHERE (email = $1 OR email_hmac = $2) AND is_active = true LIMIT 1`,
+      [normalised, emailHmac],
+    );
+    if (rows.length === 0) throw new NotFoundException('No se encontró usuario con ese correo');
+    return rows[0].id;
+  }
+
+  async hasPasskeys(userId: string): Promise<boolean> {
+    const rows = await this.dataSource.query<{ count: string }[]>(
+      `SELECT COUNT(*)::text AS count FROM user_credentials WHERE user_id = $1`,
+      [userId],
+    );
+    return parseInt(rows[0]?.count ?? '0', 10) > 0;
   }
 
   async generateAuthenticationOptions(

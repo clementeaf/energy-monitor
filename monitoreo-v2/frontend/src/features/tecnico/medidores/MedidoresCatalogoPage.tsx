@@ -75,7 +75,7 @@ export function MedidoresCatalogoPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
       <PageHeader
-        title="5.2 Activos (medidores)"
+        title="Activos (medidores)"
        
       />
 

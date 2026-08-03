@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
 vi.mock('../../../hooks/queries/useBuildingsQuery', () => ({
@@ -38,9 +39,17 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   }),
 }));
 
-// Mock Chart (avoids Highcharts in jsdom)
 vi.mock('../../../components/charts/Chart', () => ({
   Chart: () => <div data-testid="chart">Chart</div>,
+}));
+
+vi.mock('../../../hooks/useOperatorFilter', () => ({
+  useOperatorFilter: () => ({
+    isFilteredMode: false,
+    needsSelection: false,
+    operatorBuildingIds: null,
+    operatorMeterIds: null,
+  }),
 }));
 
 import { CostosTendenciasPage } from './CostosTendenciasPage';
@@ -56,105 +65,57 @@ function renderPage() {
 describe('CostosTendenciasPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  describe('layout and filters', () => {
-    it('renders page header with "3.3 Costos y Tendencias"', () => {
+  describe('layout', () => {
+    it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: /3\.3 Costos y Tendencias/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Costos y Tendencias' })).toBeInTheDocument();
     });
 
-    it('renders filter banner', () => {
+    it('renders filter dropdowns without banner label', () => {
       renderPage();
-      expect(screen.getByText('Filtros:')).toBeInTheDocument();
-    });
-
-    it('renders period selector with default "Mes actual"', () => {
-      renderPage();
-      expect(screen.getAllByText('Mes actual').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders currency selector', () => {
-      renderPage();
-      // CLP appears as the default DropdownSelect button value and as option
-      expect(screen.getAllByText('CLP').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders grouping selector', () => {
-      renderPage();
-      expect(screen.getByText('Agrupación de gráficos')).toBeInTheDocument();
-      expect(screen.getAllByText('Por mall').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders sort table selector', () => {
-      renderPage();
-      expect(screen.getByText('Ordenar tabla por')).toBeInTheDocument();
+      expect(screen.queryByText('Filtros:')).not.toBeInTheDocument();
+      expect(screen.getByText('País')).toBeInTheDocument();
+      expect(screen.getByText('Moneda')).toBeInTheDocument();
     });
   });
 
-  describe('chart section', () => {
-    it('renders stacked bar chart area', () => {
+  describe('tabs', () => {
+    it('renders all tab buttons', () => {
       renderPage();
-      // Chart is mocked — no real invoices in same month so "Sin datos de facturación" shown
-      // Either the chart or the empty state renders
+      expect(screen.getByRole('button', { name: 'Tendencia mensual' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Variación de costo' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Tabla por mall' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Proyecciones' })).toBeInTheDocument();
+    });
+
+    it('shows tendencia tab by default', () => {
+      renderPage();
       const chartOrEmpty = screen.queryByTestId('chart') ?? screen.queryByText('Sin datos de facturación');
       expect(chartOrEmpty).toBeInTheDocument();
     });
 
-    it('renders chart section label', () => {
+    it('shows cost table on tabla tab click', async () => {
+      const user = userEvent.setup();
       renderPage();
-      expect(screen.getByText(/Barras apiladas mensual/)).toBeInTheDocument();
-    });
-
-    it('renders waterfall section', () => {
-      renderPage();
-      expect(screen.getByText('Waterfall de variación de costo')).toBeInTheDocument();
-    });
-  });
-
-  describe('cost table', () => {
-    it('renders table section label', () => {
-      renderPage();
-      expect(screen.getByText(/Tabla de costos por mall/)).toBeInTheDocument();
-    });
-
-    it('renders sortable table headers', () => {
-      renderPage();
-      expect(screen.getAllByText('Mall').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('País').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Variación %')).toBeInTheDocument();
-    });
-
-    it('renders export CSV button', () => {
-      renderPage();
+      await user.click(screen.getByRole('button', { name: 'Tabla por mall' }));
       expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeInTheDocument();
-    });
-
-    it('renders all buildings in table (default country is "all")', () => {
-      renderPage();
-      // Building names may appear in both the Mall filter dropdown and table
       expect(screen.getAllByText('Mall Costanera').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Mall Arauco').length).toBeGreaterThanOrEqual(1);
-      // Default country is 'all', so PE buildings also appear
-      expect(screen.getAllByText('Mall Lima').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('excludes voided invoices from calculation', () => {
+    it('excludes voided invoices from table', async () => {
+      const user = userEvent.setup();
       renderPage();
-      // Mall Arauco has only 1 non-voided invoice (inv3); inv4 is voided
-      // Country code column shows CL for both buildings
+      await user.click(screen.getByRole('button', { name: 'Tabla por mall' }));
       const clCells = screen.getAllByText('CL');
       expect(clCells.length).toBeGreaterThanOrEqual(1);
     });
-  });
 
-  describe('projections section', () => {
-    it('renders projections row', () => {
+    it('shows waterfall on variation tab click', async () => {
+      const user = userEvent.setup();
       renderPage();
-      expect(screen.getByText('Proyecciones — 2 meses')).toBeInTheDocument();
-    });
-
-    it('renders projection legend', () => {
-      renderPage();
-      expect(screen.getByText(/Proyectado/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Variación de costo' }));
+      expect(screen.getByText('Anterior')).toBeInTheDocument();
+      expect(screen.getByText('Actual')).toBeInTheDocument();
     });
   });
 });

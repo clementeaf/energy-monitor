@@ -224,16 +224,10 @@ function TendenciaTab({ monthlyData, filteredInvoices, filteredBuildings, curren
     };
   }, [monthlyData, filteredInvoices, filteredBuildings, currencyRate, currencyKey, totalMwh, grouping, months]);
 
-  return (
-    <div className="panel p-4">
-      <p className="text-xs font-medium text-muted">Barras apiladas mensual — costo [{currencyKey}]</p>
-      <p className="text-xs text-muted">Línea eje secundario: precio medio [{currencyKey}/MWh]</p>
-      {monthlyData.length > 0 ? (
-        <Chart options={chartOptions} className="mt-2" />
-      ) : (
-        <div className="flex h-40 items-center justify-center text-xs text-muted">Sin datos de facturación</div>
-      )}
-    </div>
+  return monthlyData.length > 0 ? (
+    <Chart options={chartOptions} />
+  ) : (
+    <div className="flex h-40 items-center justify-center text-xs text-muted">Sin datos de facturación</div>
   );
 }
 
@@ -266,10 +260,8 @@ function WaterfallTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] }
   const maxVal = Math.max(prev, curr, 1);
 
   return (
-    <div className="panel p-4">
-      <p className="text-xs font-medium text-muted">Waterfall de variación de costo</p>
-      <p className="text-xs text-muted">volumen · precio · mix de malls (verde baja, rojo sube)</p>
-      <div className="mt-4 flex items-end gap-3" style={{ height: '200px' }}>
+    <div className="px-1">
+      <div className="flex items-end gap-3" style={{ height: '200px' }}>
         {bars.map((bar) => {
           const pct = (Math.abs(bar.value) / maxVal) * 100;
           return (
@@ -309,12 +301,9 @@ function ProjectionTab({ monthlyData }: Readonly<{ monthlyData: MonthlyBucket[] 
   const maxCost = Math.max(1, ...allBars.map((b) => b.cost));
 
   return (
-    <div className="panel p-4">
+    <div className="px-1">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium text-muted">Proyecciones — 2 meses</p>
-          <p className="text-xs text-muted">Base: tendencia últimos 3 meses</p>
-        </div>
+        <p className="text-xs text-muted">Base: tendencia últimos 3 meses</p>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1 text-xs text-muted"><span className="inline-block h-2.5 w-4 rounded-sm bg-info/60" /> Real</span>
           <span className="flex items-center gap-1 text-xs text-muted"><span className="inline-block h-2.5 w-4 rounded-sm border-2 border-dashed border-warning bg-warning/10" /> Proyectado</span>

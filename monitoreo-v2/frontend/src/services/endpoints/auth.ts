@@ -68,11 +68,11 @@ export const authEndpoints = {
   webauthnRegisterVerify: (response: unknown, deviceName?: string) =>
     api.post(API_ROUTES.auth.webauthnRegisterVerify, { response, deviceName }),
 
-  webauthnLoginOptions: (userId: string) =>
-    api.post(API_ROUTES.auth.webauthnLoginOptions, { userId }),
+  webauthnLoginOptions: (email: string) =>
+    api.post<{ userId: string }>(API_ROUTES.auth.webauthnLoginOptions, { email }),
 
   webauthnLoginVerify: (userId: string, response: unknown) =>
-    api.post(API_ROUTES.auth.webauthnLoginVerify, { userId, response }),
+    api.post<{ success: boolean }>(API_ROUTES.auth.webauthnLoginVerify, { userId, response }),
 
   webauthnCredentials: () =>
     api.get<{ id: string; credential_id: string; device_name: string | null; created_at: string }[]>(API_ROUTES.auth.webauthnCredentials),

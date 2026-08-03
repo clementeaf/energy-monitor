@@ -69,7 +69,7 @@ export function RegIntervencionPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
-      <PageHeader title="5.4 Registro de intervención" />
+      <PageHeader title="Registro de intervención" />
 
       {/* Orden asociada */}
       <div className="panel shrink-0 px-3 py-2.5">

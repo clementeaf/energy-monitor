@@ -79,7 +79,7 @@ export function DiagnosticoCommsPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
       <PageHeader
-        title="5.3 Diagnóstico Comms"
+        title="Diagnóstico Comms"
        
       />
 

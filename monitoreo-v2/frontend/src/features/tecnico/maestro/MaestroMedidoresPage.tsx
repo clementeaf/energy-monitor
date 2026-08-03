@@ -80,7 +80,7 @@ export function MaestroMedidoresPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader title="5.6 Maestro de Medidores" />
+      <PageHeader title="Maestro de Medidores" />
 
       {/* Filter banner */}
       <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">

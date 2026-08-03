@@ -190,7 +190,7 @@ export function ConsumoJerarquicoPage() {
 
           {/* Tree */}
           <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-            <p className="text-xs font-medium text-muted">Árbol jerárquico</p>
+            <p className="text-xs font-medium text-muted">Jerarquía</p>
             <div className="mt-2 min-h-0 flex-1 overflow-y-auto text-xs">
               <div className="font-semibold text-foreground">▼ Total país — Chile</div>
               <ul className="mt-1 space-y-0.5">
@@ -228,21 +228,21 @@ export function ConsumoJerarquicoPage() {
           </div>
 
           {/* Detail panel */}
-          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
-            <div className="panel px-3 py-2.5">
-              <p className="text-xs font-medium text-muted">KPIs del mall</p>
+          <div className="panel flex min-w-0 flex-1 flex-col divide-y divide-border overflow-hidden">
+            <div className="px-3 py-2.5">
+              <p className="text-xs font-medium text-muted">KPIs</p>
               {selectedRow ? (
-                <div className="mt-2 space-y-1 text-xs">
-                  <p className="text-foreground">• Consumo <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-danger' : 'text-success'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
-                  <p className="text-foreground">• Intensidad <span className="font-semibold">{METRIC_ACCESSORS.intensity(selectedRow).toFixed(1)} kWh/m²</span></p>
-                  <p className="text-foreground">• Costo <span className="font-semibold">{METRIC_ACCESSORS.cost(selectedRow).toFixed(1)} UF</span></p>
+                <div className="mt-1.5 space-y-1 text-xs">
+                  <p className="text-foreground">Consumo <span className="font-semibold">{formatMetric(accessor(selectedRow), currentMetric.unit)}</span> {selectedRow.variationPct != null && <span className={selectedRow.variationPct > 0 ? 'text-danger' : 'text-success'}>▲{Math.abs(selectedRow.variationPct)}%</span>}</p>
+                  <p className="text-foreground">Intensidad <span className="font-semibold">{METRIC_ACCESSORS.intensity(selectedRow).toFixed(1)} kWh/m²</span></p>
+                  <p className="text-foreground">Costo <span className="font-semibold">{METRIC_ACCESSORS.cost(selectedRow).toFixed(1)} UF</span></p>
                 </div>
               ) : (
-                <p className="mt-2 text-xs text-muted">Seleccione un mall</p>
+                <p className="mt-1.5 text-xs text-muted">Seleccione un mall</p>
               )}
             </div>
 
-            <div className="panel flex min-h-0 flex-1 flex-col px-3 py-2.5">
+            <div className="flex min-h-0 flex-1 flex-col px-3 py-2.5">
               <div className="flex items-center gap-2">
                 <p className="text-xs font-medium text-muted">Tendencia</p>
                 <DropdownSelect options={GRANULARITY_OPTIONS.map((o) => ({ value: o.key, label: o.label }))} value={granularity} onChange={(v) => setGranularity(v as 'monthly' | 'weekly')} />
@@ -257,10 +257,10 @@ export function ConsumoJerarquicoPage() {
               </div>
             </div>
 
-            <div className="panel px-3 py-2.5">
+            <div className="px-3 py-2.5">
               <p className="text-xs font-medium text-muted">Zonas</p>
               {zones.length > 0 ? (
-                <div className="mt-2 flex flex-wrap gap-1">
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   {zones.map((z) => (
                     <div key={z.name} className={`rounded px-2 py-1.5 text-center text-xs ${z.status === 'online' ? 'bg-success/10 text-success' : z.status === 'stale' ? 'bg-warning/10 text-warning' : 'bg-surface text-muted'}`}>
                       {z.name}
@@ -268,7 +268,7 @@ export function ConsumoJerarquicoPage() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-2 text-xs text-muted">Seleccione un mall</p>
+                <p className="mt-1.5 text-xs text-muted">Seleccione un mall</p>
               )}
             </div>
           </div>

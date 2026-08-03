@@ -15,7 +15,7 @@ export function MeterGrid({ meters, readingByMeter, yesterdayPowerByMeter, now }
 
   return (
     <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-      <p className="shrink-0 text-xs font-medium text-muted">Medidores del mall seleccionado</p>
+      <p className="shrink-0 text-xs font-medium text-muted">Medidores</p>
       <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden text-xs">
         <table className="w-full">
           <thead>

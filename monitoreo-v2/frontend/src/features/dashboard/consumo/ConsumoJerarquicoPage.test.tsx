@@ -37,12 +37,7 @@ vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
     isLoading: false,
     isSuccess: true,
   }),
-  useAggregatedReadingsQuery: () => ({
-    data: [],
-    isLoading: false,
-    isPending: false,
-    isSuccess: true,
-  }),
+  useAggregatedReadingsQuery: () => ({ data: [], isLoading: false, isPending: false, isSuccess: true }),
 }));
 
 vi.mock('../../../hooks/queries/useAlertsQuery', () => ({
@@ -62,6 +57,15 @@ vi.mock('../../../components/ui/MapView', () => ({
   ),
 }));
 
+vi.mock('../../../hooks/useOperatorFilter', () => ({
+  useOperatorFilter: () => ({
+    isFilteredMode: false,
+    needsSelection: false,
+    operatorBuildingIds: null,
+    operatorMeterIds: null,
+  }),
+}));
+
 import { ConsumoJerarquicoPage } from './ConsumoJerarquicoPage';
 
 function renderPage() {
@@ -75,32 +79,44 @@ function renderPage() {
 describe('ConsumoJerarquicoPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  describe('layout and filters', () => {
-    it('renders page header with "3.2 Consumo Jerárquico"', () => {
+  describe('layout', () => {
+    it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: /3\.2 Consumo Jerárquico/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Consumo Jerárquico' })).toBeInTheDocument();
     });
 
-    it('renders filter banner', () => {
+    it('renders filter dropdowns without banner label', () => {
       renderPage();
-      expect(screen.getByText('Filtros:')).toBeInTheDocument();
+      expect(screen.queryByText('Filtros:')).not.toBeInTheDocument();
+      expect(screen.getByText('País')).toBeInTheDocument();
+      expect(screen.getByText('Período')).toBeInTheDocument();
     });
 
-    it('renders period selector with default "Mes actual"', () => {
-      renderPage();
-      expect(screen.getAllByText('Mes actual').length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders map view', () => {
+    it('renders map view on mapa tab', () => {
       renderPage();
       expect(screen.getByTestId('map-view')).toBeInTheDocument();
     });
   });
 
-  describe('tree panel', () => {
-    it('renders hierarchical tree section', () => {
+  describe('tabs', () => {
+    it('renders tab buttons', () => {
       renderPage();
-      expect(screen.getByText('Árbol jerárquico expandible')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Mapa y detalle' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Medidores/ })).toBeInTheDocument();
+    });
+
+    it('shows medidores tab on click', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await user.click(screen.getByRole('button', { name: /Medidores/ }));
+      expect(screen.getByText('Seleccione un mall para ver sus medidores')).toBeInTheDocument();
+    });
+  });
+
+  describe('tree panel', () => {
+    it('renders hierarchy section', () => {
+      renderPage();
+      expect(screen.getByText('Jerarquía')).toBeInTheDocument();
     });
 
     it('renders portfolio root label', () => {
@@ -120,63 +136,23 @@ describe('ConsumoJerarquicoPage', () => {
     });
   });
 
-  describe('table (remarcadores)', () => {
-    it('renders table section label', () => {
+  describe('detail panel', () => {
+    it('renders KPIs section', () => {
       renderPage();
-      expect(screen.getByText('Tabla de remarcadores del mall')).toBeInTheDocument();
-    });
-
-    it('renders table column headers', () => {
-      renderPage();
-      expect(screen.getByText('ID medidor')).toBeInTheDocument();
-      expect(screen.getByText('Zona')).toBeInTheDocument();
-      expect(screen.getByText('Timestamp')).toBeInTheDocument();
-      expect(screen.getByText('Estado')).toBeInTheDocument();
-    });
-
-    it('shows empty state when no mall selected', () => {
-      renderPage();
-      expect(screen.getByText('Seleccione un mall para ver sus medidores')).toBeInTheDocument();
-    });
-  });
-
-  describe('KPI panel (right column)', () => {
-    it('renders KPI section label', () => {
-      renderPage();
-      expect(screen.getByText('KPIs del mall (3 tarjetas)')).toBeInTheDocument();
+      expect(screen.getByText('KPIs')).toBeInTheDocument();
     });
 
     it('shows placeholder when no mall selected', () => {
       renderPage();
       expect(screen.getAllByText('Seleccione un mall').length).toBeGreaterThanOrEqual(1);
     });
-  });
 
-  describe('expand building in tree', () => {
-    it('shows zones/meters when tree building is clicked', async () => {
+    it('shows KPIs when building clicked', async () => {
       const user = userEvent.setup();
       renderPage();
-
-      // Click the building row button in the tree
       await user.click(screen.getByText('Mall Costanera'));
-
-      // Expanded building shows meter codes/zones in sub-list
-      // b1 meters: 'main' and 'hvac' load categories
-      expect(screen.getAllByText('Mall Costanera').length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  describe('map + filter interactions', () => {
-    it('renders sort and compare dropdowns', () => {
-      renderPage();
-      expect(screen.getByText('Ordenar malls por')).toBeInTheDocument();
-      expect(screen.getByText('Comparar con')).toBeInTheDocument();
-    });
-
-    it('renders granularity selector', () => {
-      renderPage();
-      expect(screen.getAllByText('Granularidad').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Mensual').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Intensidad/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/kWh\/m²/).length).toBeGreaterThanOrEqual(1);
     });
   });
 });

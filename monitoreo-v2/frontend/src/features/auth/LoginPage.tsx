@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, type ReactElement } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { startAuthentication } from '@simplewebauthn/browser';
 import { useSearchParams, useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { clearSessionFlag } from '../../hooks/auth/useSessionResolver';
@@ -25,6 +26,10 @@ export function LoginPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [setupCode, setSetupCode] = useState('');
   const [ssoCallbackHandled, setSsoCallbackHandled] = useState(false);
+  const [passkeyMode, setPasskeyMode] = useState(false);
+  const [passkeyEmail, setPasskeyEmail] = useState('');
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
 
   useEffect(() => {
     clearSessionFlag();
@@ -45,6 +50,25 @@ export function LoginPage() {
       }
     });
   }, [searchParams, handleSsoCallbackParams, navigate, ssoCallbackHandled]);
+
+  const handlePasskeyLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passkeyEmail.trim()) return;
+    setPasskeyError(null);
+    setPasskeyLoading(true);
+    try {
+      const { data: options } = await authEndpoints.webauthnLoginOptions(passkeyEmail.trim());
+      const { userId, ...authOptions } = options;
+      const assertion = await startAuthentication({ optionsJSON: authOptions as Parameters<typeof startAuthentication>[0]['optionsJSON'] });
+      await authEndpoints.webauthnLoginVerify(userId, assertion);
+      window.location.href = '/';
+    } catch (err: unknown) {
+      const axiosMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setPasskeyError(axiosMsg ?? (err instanceof Error ? err.message : 'Error en autenticación biométrica'));
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   const googleLogin = useGoogleLogin({
     onSuccess: useCallback((response: { access_token: string }) => {
@@ -72,7 +96,9 @@ export function LoginPage() {
     ? 'Configura tu autenticación de dos factores'
     : mfaPending
       ? 'Ingresa tu código de verificación'
-      : 'Accede con tu cuenta corporativa';
+      : passkeyMode
+        ? 'Ingresa tu correo para autenticarte con biométrico'
+        : 'Accede con tu cuenta corporativa';
 
   return (
     <div className="flex min-h-screen">
@@ -144,12 +170,24 @@ export function LoginPage() {
               isLoading={isLoading}
               primaryBtnClass={primaryBtnClass}
             />
+          ) : passkeyMode ? (
+            <PasskeyLoginForm
+              email={passkeyEmail}
+              onEmailChange={setPasskeyEmail}
+              onSubmit={handlePasskeyLogin}
+              onBack={() => { setPasskeyMode(false); setPasskeyError(null); }}
+              isLoading={passkeyLoading}
+              error={passkeyError}
+              primaryBtnClass={primaryBtnClass}
+              oauthBtnClass={oauthBtnClass}
+            />
           ) : (
             <OAuthPanel
               oauthBtnClass={oauthBtnClass}
               isLoading={isLoading}
               onMicrosoft={loginMicrosoft}
               onGoogle={() => googleLogin()}
+              onPasskey={() => setPasskeyMode(true)}
             />
           )}
         </div>
@@ -163,16 +201,15 @@ interface OAuthPanelProps {
   isLoading: boolean;
   onMicrosoft: () => void;
   onGoogle: () => void;
+  onPasskey: () => void;
 }
 
-/**
- * OAuth provider buttons and privacy notice.
- */
 function OAuthPanel({
   oauthBtnClass,
   isLoading,
   onMicrosoft,
   onGoogle,
+  onPasskey,
 }: Readonly<OAuthPanelProps>) {
   return (
     <div className="space-y-4">
@@ -191,7 +228,70 @@ function OAuthPanel({
         <GoogleIcon />
         Continuar con Google
       </button>
+      <div className="relative flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-subtle">o</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <button type="button" onClick={onPasskey} disabled={isLoading} className={oauthBtnClass}>
+        <PasskeyIcon />
+        Iniciar con passkey
+      </button>
     </div>
+  );
+}
+
+interface PasskeyLoginFormProps {
+  email: string;
+  onEmailChange: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onBack: () => void;
+  isLoading: boolean;
+  error: string | null;
+  primaryBtnClass: string;
+  oauthBtnClass: string;
+}
+
+function PasskeyLoginForm({
+  email,
+  onEmailChange,
+  onSubmit,
+  onBack,
+  isLoading,
+  error,
+  primaryBtnClass,
+  oauthBtnClass,
+}: Readonly<PasskeyLoginFormProps>) {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <label className="mb-2 block text-sm font-medium text-foreground">Correo electrónico</label>
+        <input
+          type="email"
+          autoFocus
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)}
+          placeholder="tu@empresa.com"
+          className="input-field"
+        />
+      </div>
+      {error && (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-foreground">
+          <p className="font-medium">{error}</p>
+          {error.includes('passkeys registradas') && (
+            <p className="mt-1.5 text-xs text-muted">
+              Inicia sesión con Microsoft o Google, luego ve a <strong>Perfil → Passkeys</strong> para registrar tu huella o Face ID.
+            </p>
+          )}
+        </div>
+      )}
+      <button type="submit" disabled={isLoading || !email.trim()} className={primaryBtnClass}>
+        {isLoading ? 'Verificando...' : 'Continuar con biométrico'}
+      </button>
+      <button type="button" onClick={onBack} className={oauthBtnClass}>
+        Volver a opciones de inicio
+      </button>
+    </form>
   );
 }
 
@@ -343,6 +443,18 @@ function RecoveryCodesPanel({
         Ya los guardé, entrar a la plataforma
       </button>
     </div>
+  );
+}
+
+function PasskeyIcon(): ReactElement {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 11c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3Z" />
+      <path d="M15 21v-4l2-2" />
+      <path d="M15 17h2" />
+      <path d="M9 14v7" />
+      <path d="M5 14h8" />
+    </svg>
   );
 }
 

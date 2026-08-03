@@ -1,4 +1,4 @@
-import { PLACEHOLDER_FEED_EVENTS, type FeedEvent } from './monitoreo-utils';
+import type { FeedEvent } from './monitoreo-utils';
 
 const EVENT_DOT: Record<string, string> = {
   alert: 'bg-danger',
@@ -13,16 +13,16 @@ interface EventFeedProps {
 }
 
 export function EventFeed({ events }: Readonly<EventFeedProps>) {
-  const display = events.length > 0 ? events : PLACEHOLDER_FEED_EVENTS;
-  const isPlaceholder = events.length === 0;
-
   return (
     <div className="panel flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-2.5">
-      <p className="shrink-0 text-xs font-medium text-muted">Feed de eventos recientes</p>
+      <p className="shrink-0 text-xs font-medium text-muted">Eventos recientes</p>
       <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+        {events.length === 0 ? (
+          <p className="py-4 text-center text-xs text-muted">Sin eventos recientes</p>
+        ) : (
         <ul className="space-y-1.5">
-          {display.map((evt) => (
-            <li key={evt.id} className={`flex items-start gap-2 text-xs ${isPlaceholder ? 'opacity-60' : ''}`}>
+          {events.map((evt) => (
+            <li key={evt.id} className="flex items-start gap-2 text-xs">
               <span className={`mt-0.5 inline-block size-2 shrink-0 rounded-full ${EVENT_DOT[evt.type] ?? 'bg-subtle'}`} />
               <div className="min-w-0 flex-1">
                 <p className="text-foreground">
@@ -34,6 +34,7 @@ export function EventFeed({ events }: Readonly<EventFeedProps>) {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </div>
   );

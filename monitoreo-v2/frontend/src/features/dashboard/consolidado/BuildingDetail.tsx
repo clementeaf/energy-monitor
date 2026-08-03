@@ -17,8 +17,6 @@ interface BuildingDetailProps {
   onBack: () => void;
 }
 
-const PLACEHOLDER_24H = [12, 10, 8, 7, 6, 7, 14, 22, 35, 42, 48, 50, 47, 44, 40, 38, 42, 46, 44, 38, 30, 24, 18, 14];
-
 export function BuildingDetail({ detail, readings, alerts, country, selectedFloorId, onSelectFloor, onBack }: Readonly<BuildingDetailProps>) {
   const { building, powerKw, activeAlerts } = detail;
   const style = getStatusStyle(detail.status);
@@ -85,11 +83,6 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
           <p className="text-xs font-medium text-muted">Carga total</p>
           <p className="mt-0.5 text-base font-semibold text-foreground">{powerKw.toFixed(1)} kW</p>
-          <div className="mx-auto mt-1 flex h-3 w-full items-end gap-[1px]">
-            {PLACEHOLDER_24H.map((v, i) => (
-              <div key={i} className="flex-1 rounded-t bg-brand/40" style={{ height: `${(v / 50) * 100}%` }} />
-            ))}
-          </div>
         </div>
         <div className="panel flex-1 min-w-[120px] px-2.5 py-2 text-center">
           <p className="text-xs font-medium text-muted">Voltaje prom.</p>

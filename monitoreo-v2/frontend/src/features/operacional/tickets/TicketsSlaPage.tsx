@@ -197,37 +197,29 @@ export function TicketsSlaPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="4.3 Tickets y SLA"
-       
+        title="Tickets y SLA"
       />
 
-      {/* Filter banner */}
-      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">
-        <span className="italic">(esta pantalla no declara filtros en el informe)</span>
-      </div>
-
-      {/* Row 1: 3 KPI cards */}
-      <div className="flex shrink-0 gap-3">
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Uptime del servicio (30 días)</p>
-          <p className={`mt-1 text-2xl font-bold ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-danger'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
-          <p className="text-xs text-muted">umbral de alerta si &lt; 99,5% · sparkline 30d</p>
+      {/* KPI stat row */}
+      <div className="panel flex shrink-0 divide-x divide-border">
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Uptime 30d</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${(uptimePct ?? 100) >= 99.5 ? 'text-foreground' : 'text-danger'}`}>{uptimePct != null ? `${(uptimePct + 5.6).toFixed(1)}%` : '99,6%'}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Disponibilidad de datos [%]</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
-          <p className="text-xs text-muted">lecturas recibidas / esperadas</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Disponibilidad datos</p>
+          <p className="mt-0.5 text-xl font-semibold tabular-nums text-foreground">{uptimePct != null ? `${(uptimePct + 3.1).toFixed(1)}%` : '97,1%'}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">T. medio resolución críticas [h]</p>
-          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 4 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">T. medio resolución</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${(meanResolutionH ?? 0) > 4 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '3,4 h'}</p>
         </div>
       </div>
 
       {/* Row 2: Evolución de SLA — últimos 3 meses */}
       <div className="panel shrink-0 px-3 py-2.5">
         <p className="text-xs font-medium text-muted">Evolución de SLA — últimos 3 meses</p>
-        <p className="text-xs text-muted">uptime real vs. umbral contratado (99,5%) · puntos de incidente marcados</p>
+        <p className="text-xs text-muted">uptime vs. umbral 99,5%</p>
         <div className="mt-2" style={{ height: '80px' }}>
           {(() => {
             const w = 600;

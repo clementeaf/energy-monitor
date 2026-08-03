@@ -192,7 +192,7 @@ export function ExportarReportesPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="3.6 Exportar Reportes"
+        title="Exportar Reportes"
        
       />
 

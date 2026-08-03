@@ -26,15 +26,14 @@ vi.mock('../../../hooks/queries/useMetersQuery', () => ({
   }),
 }));
 
-const RECENT_TS = new Date(Date.now() - 10 * 60 * 1000).toISOString(); // 10 min ago
-const STALE_TS = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(); // 5h ago
+const RECENT_TS = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+const STALE_TS = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
 
 vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
   useLatestReadingsQuery: () => ({
     data: [
       { meter_id: 'm1', meter_name: 'Principal', building_id: 'b1', timestamp: RECENT_TS, power_kw: '500', energy_kwh_total: '120000', voltage_l1: '220', current_l1: '30', power_factor: '0.95', frequency_hz: '50' },
       { meter_id: 'm2', meter_name: 'HVAC', building_id: 'b1', timestamp: STALE_TS, power_kw: '200', energy_kwh_total: '50000', voltage_l1: '221', current_l1: '12', power_factor: '0.93', frequency_hz: '50' },
-      // m3 has no reading → offline
     ],
     isLoading: false,
     isSuccess: true,
@@ -60,7 +59,16 @@ vi.mock('../../../hooks/queries/useBackfillJobsQuery', () => ({
     isSuccess: true,
   }),
 }));
-vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [], isLoading: false, isSuccess: true }) }));
+vi.mock('../../../hooks/queries/useCnrQuery', () => ({ useCnrQuery: () => ({ data: [{ id: 'cnr1', created_at: '2026-06-24T10:00:00Z', justification: 'test' }], isLoading: false, isSuccess: true }) }));
+
+vi.mock('../../../hooks/useOperatorFilter', () => ({
+  useOperatorFilter: () => ({
+    isFilteredMode: false,
+    needsSelection: false,
+    operatorBuildingIds: null,
+    operatorMeterIds: null,
+  }),
+}));
 
 import { MonitoreoVivoPage } from './MonitoreoVivoPage';
 
@@ -78,127 +86,78 @@ describe('MonitoreoVivoPage', () => {
   describe('layout', () => {
     it('renders page header', () => {
       renderPage();
-      expect(screen.getByRole('heading', { name: '4.1 Monitoreo en Vivo' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Monitoreo en Vivo' })).toBeInTheDocument();
     });
   });
 
-  describe('KPI header', () => {
-    it('renders total meters label', () => {
+  describe('KPI stat row', () => {
+    it('renders total meters', () => {
       renderPage();
       expect(screen.getByText('Total medidores')).toBeInTheDocument();
-    });
-
-    it('renders total meters value', () => {
-      renderPage();
-      // 3 meters total — value appears in KPI card
       expect(screen.getByText('3')).toBeInTheDocument();
     });
 
-    it('renders online KPI label', () => {
+    it('renders online percentage', () => {
       renderPage();
-      expect(screen.getByText('En línea [%]')).toBeInTheDocument();
+      expect(screen.getByText('En línea')).toBeInTheDocument();
     });
 
-    it('renders offline KPI label', () => {
+    it('renders offline count', () => {
       renderPage();
-      // 'Offline' appears in KPI label and in "Estado del medidor" filter dropdown option
       expect(screen.getAllByText('Offline').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders stale KPI label', () => {
+    it('renders stale count', () => {
       renderPage();
-      // The label uses HTML entity > rendered as text
-      expect(screen.getByText('Dato estancado > 4h')).toBeInTheDocument();
+      expect(screen.getByText(/Estancado/)).toBeInTheDocument();
     });
 
-    it('renders CNR pendientes KPI label', () => {
+    it('renders CNR pendientes with actual count from cnrQuery', () => {
       renderPage();
-      expect(screen.getByText('CNR pendientes')).toBeInTheDocument();
+      const cnrLabel = screen.getByText('CNR pendientes');
+      const cnrStat = cnrLabel.closest('div')!;
+      expect(cnrStat.textContent).toContain('1');
     });
   });
 
-  describe('mall grid', () => {
-    it('renders mall cards', () => {
+  describe('tabs', () => {
+    it('renders tab buttons', () => {
       renderPage();
+      expect(screen.getByRole('button', { name: 'Panorama' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Medidores/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Eventos' })).toBeInTheDocument();
+    });
+
+    it('shows panorama tab by default with mall cards', () => {
+      renderPage();
+      expect(screen.getByText('Centros comerciales')).toBeInTheDocument();
       expect(screen.getAllByText('Mall Arauco').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Mall Plaza').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders centros comerciales panel label', () => {
+    it('shows eventos tab content on click', async () => {
+      const user = userEvent.setup();
       renderPage();
-      expect(screen.getByText('Mapa / grilla de centros comerciales')).toBeInTheDocument();
-    });
-
-    it('shows meter count badge', () => {
-      renderPage();
-      // Mall Arauco has 2 meters — shown in card as "2 med."
-      expect(screen.getAllByText(/2 med\./).length).toBeGreaterThanOrEqual(1);
+      await user.click(screen.getByRole('button', { name: 'Eventos' }));
+      expect(screen.getByText('Eventos recientes')).toBeInTheDocument();
     });
   });
 
-  describe('expand mall', () => {
-    it('shows meter table on mall click', async () => {
+  describe('mall interaction', () => {
+    it('navigates to medidores tab on mall click', async () => {
       const user = userEvent.setup();
       renderPage();
-
-      // Click the mall card button
       const mallButtons = screen.getAllByText('Mall Arauco');
       const cardButton = mallButtons.find((el) => el.closest('button[type="button"]'))!;
       await user.click(cardButton);
-      // Expanded row shows meter codes (meter.code ?? meter.name)
-      expect(screen.getByText('P1')).toBeInTheDocument();
-      expect(screen.getByText('H1')).toBeInTheDocument();
-    });
-
-    it('collapses on second click', async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      const mallButtons = screen.getAllByText('Mall Arauco');
-      const cardButton = mallButtons.find((el) => el.closest('button[type="button"]'))!;
-      await user.click(cardButton);
-      expect(screen.getByText('P1')).toBeInTheDocument();
-
-      await user.click(cardButton);
-      expect(screen.queryByText('P1')).not.toBeInTheDocument();
+      expect(screen.getByText('Medidores')).toBeInTheDocument();
     });
   });
 
-  describe('events feed', () => {
-    it('renders feed panel label', () => {
+  describe('no placeholder data', () => {
+    it('does not show placeholder mall cards when data is empty', () => {
       renderPage();
-      expect(screen.getByText('Feed de eventos recientes')).toBeInTheDocument();
-    });
-
-    it('renders alert events', () => {
-      renderPage();
-      // Feed renders event type + message inside a <p> — message may be split across elements
-      expect(screen.getByText(/Sobrevoltaje en Principal/)).toBeInTheDocument();
-    });
-
-    it('shows event type badge', () => {
-      renderPage();
-      // evt.type is 'alert' (lowercase); CSS class uppercase renders it visually as ALERT
-      expect(screen.getByText(/^alert$/i)).toBeInTheDocument();
-    });
-  });
-
-  describe('histogram panel', () => {
-    it('renders histogram panel label', () => {
-      renderPage();
-      expect(screen.getByText('Comportamiento del parque — 24h')).toBeInTheDocument();
-    });
-  });
-
-  describe('meter grid panel', () => {
-    it('renders meter grid panel label', () => {
-      renderPage();
-      expect(screen.getByText('Grilla de medidores del mall seleccionado')).toBeInTheDocument();
-    });
-
-    it('shows placeholder when no mall selected', () => {
-      renderPage();
-      expect(screen.getByText('Seleccione un mall para ver sus medidores')).toBeInTheDocument();
+      expect(screen.queryByText('Mall del Mar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Open Temuco')).not.toBeInTheDocument();
     });
   });
 });

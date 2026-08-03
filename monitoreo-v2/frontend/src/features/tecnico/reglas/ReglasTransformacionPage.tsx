@@ -53,7 +53,7 @@ export function ReglasTransformacionPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <PageHeader title="5.7 Reglas de Transformación" />
+      <PageHeader title="Reglas de Transformación" />
 
       {/* Filter banner */}
       <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs text-muted">

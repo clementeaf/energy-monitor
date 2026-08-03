@@ -68,7 +68,7 @@ export function IngresoCnrPage() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
-      <PageHeader title="5.5 Ingreso CNR manual" />
+      <PageHeader title="Ingreso CNR manual" />
 
       {/* Medidor y contexto */}
       <div className="panel shrink-0 px-3 py-2.5">

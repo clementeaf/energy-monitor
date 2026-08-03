@@ -172,7 +172,7 @@ export function CnrPendientesPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="4.5 CNR Pendientes"
+        title="CNR Pendientes"
        
       />
 

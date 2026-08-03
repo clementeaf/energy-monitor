@@ -291,7 +291,7 @@ export function AlarmasAgregadasPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="3.5 Alarmas Agregadas"
+        title="Alarmas Agregadas"
        
       />
 
@@ -323,25 +323,23 @@ export function AlarmasAgregadasPage() {
         </span>
       </div>
 
-      {/* Row 1: 4 KPI cards */}
-      <div className="flex shrink-0 gap-3">
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Total alarmas activas</p>
-          <p className={`mt-1 text-2xl font-bold ${totalActive > 0 ? 'text-danger' : 'text-success'}`}>{totalActive}</p>
-          <p className="text-xs text-muted">en el período filtrado</p>
+      {/* KPI stat row */}
+      <div className="panel flex shrink-0 divide-x divide-border">
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Activas</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${totalActive > 0 ? 'text-danger' : 'text-success'}`}>{totalActive}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Críticas activas</p>
-          <p className={`mt-1 text-2xl font-bold ${criticalActive > 0 ? 'text-danger' : 'text-success'}`}>{criticalActive}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Críticas</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${criticalActive > 0 ? 'text-danger' : 'text-success'}`}>{criticalActive}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Resueltas 24h</p>
-          <p className="mt-1 text-2xl font-bold text-success">{resolved24h}</p>
-          <p className="text-xs text-muted">últimas 24 horas</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Resueltas 24h</p>
+          <p className="mt-0.5 text-xl font-semibold tabular-nums text-success">{resolved24h}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">T. medio de resolución</p>
-          <p className={`mt-1 text-2xl font-bold ${(meanResolutionH ?? 0) > 24 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">T. medio resolución</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${(meanResolutionH ?? 0) > 24 ? 'text-danger' : 'text-foreground'}`}>{meanResolutionH != null ? `${meanResolutionH} h` : '—'}</p>
         </div>
       </div>
 

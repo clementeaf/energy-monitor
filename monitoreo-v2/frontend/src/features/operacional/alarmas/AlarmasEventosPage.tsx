@@ -163,7 +163,7 @@ export function AlarmasEventosPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="4.2 Alarmas y Eventos"
+        title="Alarmas y Eventos"
        
       />
 

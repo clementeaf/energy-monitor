@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.57.0] - 2026-08-03 — GIGA.AI VISUAL + PASSKEY LOGIN + MULTI-TENANT
+
+### Changed (Frontend — tratamiento visual giga.ai)
+- **KPI stat-row unificado** — MonitoreoVivo, AlarmasAgregadas, TicketsSla: N paneles separados → 1 panel con `divide-x` y `tabular-nums`.
+- **PLACEHOLDER eliminados** — MonitoreoVivo (MallGrid, EventFeed, histogram, KPIs), CalidadBackfill (5 constantes), BuildingDetail (sparkline 24h). Cero PLACEHOLDERs en todo el frontend.
+- **Tab content sin wrappers** — CostosTendencias: `panel p-4` eliminados de contenido de tabs.
+- **3 panels → 1 con dividers** — ConsumoJerarquico: detalle (KPIs + Tendencia + Zonas) consolidado.
+- **Labels compactos** — CostTable, MeterGrid, MeterTable, EventFeed: etiquetas redundantes eliminadas.
+- **Section numbers eliminados** — 13 páginas restantes (`3.4`, `4.2`, `4.3`, `4.5`, `4.6`, `5.2`–`5.7`, `7.6`).
+- **Tests actualizados** — 3 archivos reescritos (30 tests verdes).
+
+### Fixed (Frontend/Backend — passkey login)
+- **Login con passkey** — botón "Iniciar con passkey" en LoginPage: email → biométrico → tokens. Separador visual "o" entre OAuth y passkey.
+- **Backend `login-options`** acepta `{ email }` en vez de `{ userId }` — resuelve vía `email_hmac` (PII encryption).
+- **Validación de passkeys** — si el usuario no tiene passkeys registradas, muestra mensaje guía en vez de lanzar prompt biométrico vacío.
+- **Bug fix** — MonitoreoVivo KPI "CNR pendientes" mostraba `staleCount` → ahora usa `cnrQuery.data.length`.
+
+### Fixed (Backend — Microsoft multi-tenant)
+- **JWKS endpoint** — `common/discovery/v2.0/keys` acepta signing keys de cualquier tenant Microsoft Entra.
+- **Issuer validation** — acepta cualquier `https://login.microsoftonline.com/{tenant}/v2.0` en vez de tenant fijo.
+- **Frontend authority** — `organizations` permite cualquier cuenta Microsoft corporativa sin invitación previa.
+
+### Infra
+- **ECS task-def rev 32** — `WEBAUTHN_RP_ID=power-monitor.cloud`, `WEBAUTHN_ORIGIN=https://power-monitor.cloud`.
+
+---
+
 ## [2.56.0] - 2026-08-02 — WEBAUTHN / PASSKEYS
 
 ### Added (Backend)

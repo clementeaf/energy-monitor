@@ -47,9 +47,8 @@ export class AuthController {
     private readonly configService: ConfigService,
     private readonly tenantsService: TenantsService,
   ) {
-    const msTenantId = this.configService.getOrThrow<string>('MICROSOFT_TENANT_ID');
     this.msJwks = createRemoteJWKSet(
-      new URL(`https://login.microsoftonline.com/${msTenantId}/discovery/v2.0/keys`),
+      new URL('https://login.microsoftonline.com/common/discovery/v2.0/keys'),
     );
     this.googleJwks = createRemoteJWKSet(
       new URL('https://www.googleapis.com/oauth2/v3/certs'),
@@ -473,13 +472,16 @@ export class AuthController {
 
     if (provider === 'microsoft') {
       const expectedClientId = this.configService.getOrThrow<string>('MICROSOFT_CLIENT_ID');
-      const msTenantId = this.configService.getOrThrow<string>('MICROSOFT_TENANT_ID');
       const { payload } = await jwtVerify(idToken, this.msJwks, {
-        issuer: `https://login.microsoftonline.com/${msTenantId}/v2.0`,
         audience: expectedClientId,
       }).catch(() => {
         throw new UnauthorizedException('Invalid Microsoft token');
       });
+      // Multi-tenant: accept any Microsoft Entra issuer
+      const iss = payload.iss ?? '';
+      if (!iss.startsWith('https://login.microsoftonline.com/') || !iss.endsWith('/v2.0')) {
+        throw new UnauthorizedException('Invalid Microsoft token issuer');
+      }
 
       return {
         provider: 'microsoft',
@@ -529,10 +531,13 @@ export class AuthController {
   @Post('webauthn/login-options')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate WebAuthn authentication options' })
-  async webauthnLoginOptions(@Body() body: { userId: string }) {
-    const options = await this.webauthnService.generateAuthenticationOptions(body.userId);
-    this.storeChallenge(body.userId, options.challenge);
-    return options;
+  async webauthnLoginOptions(@Body() body: { email: string }) {
+    const userId = await this.webauthnService.resolveUserIdByEmail(body.email);
+    const has = await this.webauthnService.hasPasskeys(userId);
+    if (!has) throw new BadRequestException('No tienes passkeys registradas. Registra una desde tu perfil después de iniciar sesión.');
+    const options = await this.webauthnService.generateAuthenticationOptions(userId);
+    this.storeChallenge(userId, options.challenge);
+    return { ...options, userId };
   }
 
   @Public()

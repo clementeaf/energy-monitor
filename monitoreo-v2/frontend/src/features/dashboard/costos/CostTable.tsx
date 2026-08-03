@@ -46,9 +46,8 @@ export function CostTable({ rows, currencyKey }: Readonly<CostTableProps>) {
   };
 
   return (
-    <div className="panel flex min-h-0 min-w-0 shrink flex-col overflow-hidden p-3">
-      <div className="flex shrink-0 items-center gap-2">
-        <p className="flex-1 text-xs font-medium text-muted">Tabla de costos por mall</p>
+    <div className="flex min-h-0 min-w-0 shrink flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center justify-end gap-2">
         <button
           type="button"
           onClick={() => downloadCsv(sorted, currencyKey)}

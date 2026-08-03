@@ -224,7 +224,7 @@ export function ReportesEjecutivosPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="3.4 Reportes Ejecutivos"
+        title="Reportes Ejecutivos"
        
       />
 

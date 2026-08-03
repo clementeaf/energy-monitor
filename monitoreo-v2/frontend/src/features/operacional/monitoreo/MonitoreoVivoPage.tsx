@@ -14,8 +14,7 @@ import { ParkHistogram } from './ParkHistogram';
 import { MeterGrid } from './MeterGrid';
 import { EventFeed } from './EventFeed';
 import {
-  deriveMeterStatus, buildMallCards, PLACEHOLDER_MALL_CARDS,
-  PLACEHOLDER_HISTOGRAM, PAIS_OPTIONS, STATUS_STYLES,
+  deriveMeterStatus, buildMallCards, PAIS_OPTIONS, STATUS_STYLES,
   type FeedEvent,
 } from './monitoreo-utils';
 
@@ -88,17 +87,11 @@ export function MonitoreoVivoPage() {
 
   const readingByMeter = new Map(readings.map((r) => [r.meter_id, r]));
 
-  // KPIs
-  const totalMeters = meters.length > 0 ? meters.length : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.totalMeters, 0);
-  const onlineCount = meters.length > 0
-    ? meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'online').length
-    : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.onlineCount, 0);
-  const offlineCount = meters.length > 0
-    ? meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'offline').length
-    : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.offlineCount, 0);
-  const staleCount = meters.length > 0
-    ? meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'stale').length
-    : PLACEHOLDER_MALL_CARDS.reduce((s, c) => s + c.staleCount, 0);
+  const totalMeters = meters.length;
+  const onlineCount = meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'online').length;
+  const offlineCount = meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'offline').length;
+  const staleCount = meters.filter((m) => deriveMeterStatus(readingByMeter.get(m.id), now) === 'stale').length;
+  const cnrCount = cnrQuery.data?.length ?? 0;
   const onlinePct = totalMeters > 0 ? ((onlineCount / totalMeters) * 100).toFixed(1) : '0';
 
   const expandedMeters = expandedMallId ? meters.filter((m) => m.buildingId === expandedMallId) : [];
@@ -118,8 +111,6 @@ export function MonitoreoVivoPage() {
       const pct = totalMeters > 0 ? (hourMeters.size / totalMeters) * 100 : 0;
       hours.push({ label, pctOnline: Math.min(100, pct) });
     }
-    const hasData = hours.some((h) => h.pctOnline > 0);
-    if (!hasData) return hours.map((h, i) => ({ ...h, pctOnline: PLACEHOLDER_HISTOGRAM[i] }));
     return hours;
   }, [hourlyAgg, totalMeters, now]);
 
@@ -160,27 +151,27 @@ export function MonitoreoVivoPage() {
         </span>
       </div>
 
-      {/* KPI cards */}
-      <div className="flex shrink-0 gap-3">
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Total medidores</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{totalMeters}</p>
+      {/* KPI stat row */}
+      <div className="panel flex shrink-0 divide-x divide-border">
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Total medidores</p>
+          <p className="mt-0.5 text-xl font-semibold tabular-nums text-foreground">{totalMeters}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">En línea</p>
-          <p className="mt-1 text-2xl font-bold text-success">{onlinePct}%</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">En línea</p>
+          <p className="mt-0.5 text-xl font-semibold tabular-nums text-success">{onlinePct}%</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Offline</p>
-          <p className={`mt-1 text-2xl font-bold ${offlineCount > 0 ? 'text-danger' : 'text-foreground'}`}>{offlineCount}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Offline</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${offlineCount > 0 ? 'text-danger' : 'text-foreground'}`}>{offlineCount}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">Estancado &gt;4h</p>
-          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">Estancado &gt;4h</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
         </div>
-        <div className="panel flex-1 px-3 py-2.5">
-          <p className="text-xs font-medium text-muted">CNR pendientes</p>
-          <p className={`mt-1 text-2xl font-bold ${staleCount > 0 ? 'text-warning' : 'text-foreground'}`}>{staleCount}</p>
+        <div className="flex-1 px-3 py-2">
+          <p className="text-xs text-muted">CNR pendientes</p>
+          <p className={`mt-0.5 text-xl font-semibold tabular-nums ${cnrCount > 0 ? 'text-warning' : 'text-foreground'}`}>{cnrCount}</p>
         </div>
       </div>
 

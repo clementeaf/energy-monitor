@@ -200,7 +200,7 @@ export function MapaCoberturaPage() {
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
       <PageHeader
-        title="4.6 Mapa de Cobertura"
+        title="Mapa de Cobertura"
        
       />
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.57.1] - 2026-08-04 — DOCUMENTACION COMPLETA APP
+
+### Added (Docs)
+- **Documentacion completa de la plataforma** — 24 secciones con screenshots de produccion de cada modulo.
+- Secciones: overview, arquitectura, auth, Panel Consolidado, Consumo Jerarquico, Costos y Tendencias, Reportes Ejecutivos, Alertas Agregadas, Exportar, Dashboard Ejecutivo, Monitoreo en Vivo, Tickets y SLA, Calidad de Datos, CNR, Mapa de Cobertura, Mis Ordenes, Activos, Diagnostico Comms, Registro Intervencion, Usuarios y Roles, Empresas, IoT Devices, Tenants y Malls, Perfil.
+- 20 screenshots capturados de `power-monitor.cloud` (prod).
+- Publicado en `power-monitor.cloud/docs/documentacion-app/` — acceso publico sin credenciales.
+
 ## [2.57.0] - 2026-08-03 — GIGA.AI VISUAL + PASSKEY LOGIN + MULTI-TENANT
 
 ### Changed (Frontend — tratamiento visual giga.ai)

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energy Monitor (EMS) - Documentacion Completa</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e4e4e7;
+      --muted: #9ca3af;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --success: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .header .subtitle { color: var(--muted); font-size: 1.1rem; }
+    .header .version {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--accent);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .header .date { color: var(--muted); font-size: 0.85rem; margin-top: 0.5rem; }
+
+    /* TOC */
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+    .toc h2 { font-size: 1.3rem; margin-bottom: 1rem; }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.5rem;
+    }
+    .toc a {
+      color: var(--accent2);
+      text-decoration: none;
+      padding: 0.35rem 0;
+      display: block;
+      font-size: 0.95rem;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Section */
+    .section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--accent);
+    }
+    .section-number {
+      background: var(--accent);
+      color: white;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .section h2 { font-size: 1.5rem; font-weight: 700; }
+    .section h3 { font-size: 1.15rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--accent2); }
+
+    /* Screenshot */
+    .screenshot-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    .screenshot-container img {
+      width: 100%;
+      display: block;
+    }
+    .screenshot-caption {
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Info cards */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .info-card h4 {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .info-card p { font-size: 0.95rem; }
+
+    /* Description */
+    .desc {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin: 0.75rem 0;
+    }
+    .desc strong { color: var(--accent2); }
+
+    /* Feature list */
+    .features {
+      list-style: none;
+      margin: 0.75rem 0;
+    }
+    .features li {
+      padding: 0.4rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      font-size: 0.95rem;
+    }
+    .features li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.75rem;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-right: 0.25rem;
+    }
+    .tag-api { background: #1e3a5f; color: #60a5fa; }
+    .tag-data { background: #1a3a2a; color: #4ade80; }
+    .tag-ui { background: #3b1f4a; color: #c084fc; }
+
+    /* Architecture */
+    .arch-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      margin: 1rem 0;
+      white-space: pre;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.6rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    @media print {
+      body { background: white; color: #1a1a1a; }
+      .screenshot-container { border: 1px solid #ddd; }
+      .section { page-break-inside: avoid; }
+    }
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Energy Monitor (EMS)</h1>
+    <div class="subtitle">Plataforma de Monitoreo Energetico Multi-Tenant</div>
+    <div class="version">v2.44.0</div>
+    <div class="date">Documentacion generada: 4 de agosto de 2026</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>Indice</h2>
+    <div class="toc-grid">
+      <div>
+        <strong style="color:var(--muted);font-size:0.8rem">GENERAL</strong>
+        <a href="#overview">1. Que es Energy Monitor</a>
+        <a href="#architecture">2. Arquitectura</a>
+        <a href="#auth">3. Autenticacion y Seguridad</a>
+      </div>
+      <div>
+        <strong style="color:var(--muted);font-size:0.8rem">VISION GENERAL</strong>
+        <a href="#consolidado">4. Panel Consolidado</a>
+        <a href="#consumo">5. Consumo Jerarquico</a>
+        <a href="#costos">6. Costos y Tendencias</a>
+        <a href="#reportes">7. Reportes Ejecutivos</a>
+        <a href="#alertas">8. Alertas Agregadas</a>
+        <a href="#exportar">9. Exportar Reportes</a>
+        <a href="#executive">10. Dashboard Ejecutivo</a>
+      </div>
+      <div>
+        <strong style="color:var(--muted);font-size:0.8rem">OPERACIONES</strong>
+        <a href="#monitoreo">11. Monitoreo en Vivo</a>
+        <a href="#tickets">12. Tickets y SLA</a>
+        <a href="#calidad">13. Calidad de Datos</a>
+        <a href="#cnr">14. CNR Pendientes</a>
+        <a href="#cobertura">15. Mapa de Cobertura</a>
+      </div>
+      <div>
+        <strong style="color:var(--muted);font-size:0.8rem">TECNICO</strong>
+        <a href="#ordenes">16. Mis Ordenes</a>
+        <a href="#medidores">17. Activos (Medidores)</a>
+        <a href="#diagnostico">18. Diagnostico Comms</a>
+        <a href="#intervencion">19. Registro de Intervencion</a>
+      </div>
+      <div>
+        <strong style="color:var(--muted);font-size:0.8rem">ADMINISTRACION</strong>
+        <a href="#usuarios">20. Usuarios y Roles</a>
+        <a href="#empresas">21. Empresas</a>
+        <a href="#iot">22. Dispositivos IoT</a>
+        <a href="#tenants">23. Tenants y Malls</a>
+        <a href="#perfil">24. Perfil de Usuario</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. OVERVIEW -->
+  <div class="section" id="overview">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2>Que es Energy Monitor</h2>
+    </div>
+    <p class="desc">
+      <strong>Energy Monitor (EMS)</strong> es una plataforma web de monitoreo energetico multi-tenant desarrollada por Grupo Globe.
+      Permite a empresas de administracion de centros comerciales, edificios y plantas industriales visualizar, analizar y gestionar
+      el consumo electrico de sus instalaciones en tiempo real.
+    </p>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Proposito</h4>
+        <p>Centralizar la medicion, alertas y facturacion de energia electrica para edificios y operadores, con precision operativa.</p>
+      </div>
+      <div class="info-card">
+        <h4>Usuarios objetivo</h4>
+        <p>Gerentes de operaciones, ingenieros de mantenimiento, auditores energeticos, ejecutivos, y administradores de facilities.</p>
+      </div>
+      <div class="info-card">
+        <h4>Escala actual</h4>
+        <p>690 medidores activos, 10 centros comerciales/edificios, 3 tenants (Globe Power, PASA, Siemens), 8 usuarios.</p>
+      </div>
+      <div class="info-card">
+        <h4>URL de produccion</h4>
+        <p><code>https://power-monitor.cloud</code></p>
+      </div>
+    </div>
+
+    <h3>Capacidades principales</h3>
+    <ul class="features">
+      <li>Dashboard consolidado con mapa geografico, KPIs de consumo y eventos en tiempo real</li>
+      <li>Consumo jerarquico: drill-down por pais, mall, zona, local comercial</li>
+      <li>Costos y tendencias con proyecciones y comparativas mensuales/anuales</li>
+      <li>Sistema de alertas configurables con SLA, tickets y escalamiento automatico</li>
+      <li>Monitoreo en vivo de estado de comunicacion de medidores (online/offline)</li>
+      <li>Calidad de datos: scorecard de lecturas reales vs esperadas, backfill automatico</li>
+      <li>Gestion de CNR (Consumo No Registrado) con workflow de resolucion</li>
+      <li>Reportes ejecutivos generables en PDF/PPT/Excel con programacion de envio</li>
+      <li>Exportacion de datos con control de alcance segun perfil</li>
+      <li>Ordenes de trabajo y registro de intervencion tecnica con firma digital</li>
+      <li>Diagnostico de comunicaciones con histograma de disponibilidad 72h</li>
+      <li>Mapa de cobertura geografico interactivo</li>
+      <li>Administracion multi-tenant: empresas, usuarios, roles, permisos RBAC</li>
+      <li>Integracion IoT: auto-discovery de dispositivos via MQTT/IoT Core</li>
+      <li>Autenticacion SSO (Microsoft, Google) + Passkey (WebAuthn) + MFA (TOTP)</li>
+    </ul>
+  </div>
+
+  <!-- 2. ARCHITECTURE -->
+  <div class="section" id="architecture">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>Arquitectura</h2>
+    </div>
+    <p class="desc">Arquitectura cloud-native en AWS con separacion frontend/backend y pipelines IoT independientes.</p>
+
+    <div class="arch-box">CloudFront (power-monitor.cloud)
+  |-- /* ----------> S3 (frontend SPA - React)
+  |-- /api/* ------> API Gateway -> Lambda (NestJS) -> RDS PostgreSQL 16
+
+Siemens POC3000 --> MQTT (IoT Core) --> S3 --> Lambda iot-ingest --> RDS
+EventBridge (15min) --> Lambda synthetic-readings --> RDS</div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Frontend</h4>
+        <p>React 19 + Vite 8 + TypeScript 5.9 + Tailwind v4 + Highcharts Stock 12 + TanStack Query v5 + Zustand 5</p>
+      </div>
+      <div class="info-card">
+        <h4>Backend</h4>
+        <p>NestJS 11 + TypeORM 0.3 + PostgreSQL 16 + jose (JWT/JWKS)</p>
+      </div>
+      <div class="info-card">
+        <h4>Infraestructura</h4>
+        <p>ECS Fargate + RDS + S3 + CloudFront + IoT Core + EventBridge + Lambda + SES</p>
+      </div>
+      <div class="info-card">
+        <h4>Seguridad</h4>
+        <p>JWT 15min + step-up auth + Redis rate limiting + JWT blacklist + WAF + pentest 91/0/22</p>
+      </div>
+    </div>
+
+    <h3>Fuentes de datos</h3>
+    <table>
+      <tr><th>Fuente</th><th>Protocolo</th><th>Frecuencia</th><th>Descripcion</th></tr>
+      <tr><td>PASA</td><td>Drive -> S3 -> RDS</td><td>Diaria (pendiente)</td><td>875 medidores, billing, datos historicos de centros comerciales</td></tr>
+      <tr><td>Siemens POC3000</td><td>MQTT via IoT Core</td><td>Cada 15 min</td><td>Lecturas IoT de dispositivos Siemens, auto-discovery</td></tr>
+      <tr><td>Synthetic</td><td>EventBridge -> Lambda</td><td>Cada 15 min</td><td>Lecturas sinteticas para medidores sin comunicacion</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. AUTH -->
+  <div class="section" id="auth">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>Autenticacion y Seguridad</h2>
+    </div>
+    <p class="desc">El sistema soporta multiples metodos de autenticacion y control de acceso granular basado en roles (RBAC).</p>
+
+    <h3>Metodos de login</h3>
+    <ul class="features">
+      <li><strong>Microsoft SSO:</strong> via MSAL v5, autenticacion corporativa con Azure AD</li>
+      <li><strong>Google SSO:</strong> via @react-oauth/google para cuentas personales/corporativas</li>
+      <li><strong>Passkey (WebAuthn):</strong> autenticacion biometrica sin contrasena (huella, Face ID)</li>
+      <li><strong>MFA (TOTP):</strong> segundo factor con Google Authenticator / Authy</li>
+    </ul>
+
+    <h3>Perfiles de acceso</h3>
+    <table>
+      <tr><th>Perfil</th><th>Acceso</th></tr>
+      <tr><td>Super-administrador</td><td>Acceso total: todos los tenants, todas las vistas, gestion de usuarios/roles</td></tr>
+      <tr><td>Operacional</td><td>Monitoreo en vivo, tickets, ordenes, diagnostico, alertas</td></tr>
+      <tr><td>Ejecutivo</td><td>Dashboards, reportes, costos, comparativas (solo lectura)</td></tr>
+      <tr><td>Auditor</td><td>Calidad de datos, cuadratura, trazabilidad, evidencia firmada</td></tr>
+      <tr><td>Tecnico</td><td>Ordenes de trabajo, intervencion, diagnostico de comunicaciones</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. PANEL CONSOLIDADO -->
+  <div class="section" id="consolidado">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>Panel Consolidado</h2>
+    </div>
+    <p class="desc">
+      Vista principal del sistema. Muestra un <strong>resumen ejecutivo</strong> del estado de todo el portafolio energetico:
+      mapa geografico con estado de sitios, KPIs de consumo, gasto, intensidad y disponibilidad de medidores,
+      junto con eventos recientes urgentes.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/01-panel-consolidado.jpg" alt="Panel Consolidado">
+      <div class="screenshot-caption">Panel Consolidado: mapa de sitios con indicadores de estado, KPIs globales (consumo mensual, gasto acumulado, intensidad, % online), lista de centros con potencia en tiempo real, y eventos recientes urgentes.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Mapa geografico:</strong> ubicacion de todos los centros con indicador de estado (Normal, Alerta, Critico, Sin datos)</li>
+      <li><strong>Consumo este mes:</strong> total MWh con variacion porcentual vs mes anterior</li>
+      <li><strong>Gasto acumulado:</strong> total en UF de boletas importadas</li>
+      <li><strong>Intensidad:</strong> kWh/m2 promedio del portafolio</li>
+      <li><strong>Medidores en linea:</strong> porcentaje de medidores reportando</li>
+      <li><strong>Lista de centros:</strong> cada sitio con cantidad de medidores, superficie, alertas activas y potencia kW en tiempo real</li>
+      <li><strong>Eventos recientes:</strong> ultimas alertas urgentes con detalle de medidor y tiempo transcurrido</li>
+    </ul>
+    <h3>Que consume</h3>
+    <p class="desc">
+      <span class="tag tag-api">API</span> <code>/api/buildings</code> (lista de sitios),
+      <code>/api/readings/latest</code> (ultima lectura por medidor),
+      <code>/api/alerts/active</code> (alertas vigentes),
+      <code>/api/kpis/portfolio</code> (KPIs consolidados).
+      Filtros por pais (Chile, Peru, Colombia).
+    </p>
+  </div>
+
+  <!-- 5. CONSUMO JERARQUICO -->
+  <div class="section" id="consumo">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2>Consumo Jerarquico</h2>
+    </div>
+    <p class="desc">
+      Vista de drill-down jerarquico que permite explorar el consumo desde nivel pais hasta medidor individual.
+      Combina un mapa geografico con un arbol de jerarquia y KPIs por nodo seleccionado.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/02-consumo-jerarquico.jpg" alt="Consumo Jerarquico">
+      <div class="screenshot-caption">Consumo Jerarquico: mapa geografico a la izquierda, arbol jerarquico expandible al centro (pais > mall > zona > medidor) con consumo MWh por nodo, y panel de KPIs con tendencia mensual a la derecha.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Mapa geografico:</strong> markers de cada mall con zoom interactivo</li>
+      <li><strong>Arbol jerarquico:</strong> Total pais > Mall > Zona > Medidor, expandible, con consumo MWh por cada nodo</li>
+      <li><strong>KPIs:</strong> consumo total, tendencia mensual, comparativa con periodo anterior</li>
+      <li><strong>Tabs:</strong> "Mapa y detalle" (vista principal) y "Medidores" (listado plano)</li>
+    </ul>
+    <h3>Filtros disponibles</h3>
+    <p class="desc">Pais | Periodo (mes actual, mes anterior, trimestre, ano) | Metrica (Consumo MWh, Potencia kW, Corriente A) | Ordenamiento (mayor/menor consumo)</p>
+  </div>
+
+  <!-- 6. COSTOS -->
+  <div class="section" id="costos">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>Costos y Tendencias</h2>
+    </div>
+    <p class="desc">
+      Analisis financiero del consumo energetico. Muestra tendencias de costos, variaciones,
+      comparativas por mall y proyecciones de gasto.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/03-costos-tendencias.jpg" alt="Costos y Tendencias">
+      <div class="screenshot-caption">Costos y Tendencias: filtros por pais, mall, periodo, moneda (UF/CLP/USD) y agrupacion. Tabs para tendencia mensual, variacion de costo, tabla por mall y proyecciones.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Tendencia mensual:</strong> grafico de linea con costos mensuales</li>
+      <li><strong>Variacion de costo:</strong> cambio porcentual entre periodos</li>
+      <li><strong>Tabla por mall:</strong> desglose de costo por cada centro comercial</li>
+      <li><strong>Proyecciones:</strong> estimacion de gasto basada en tendencia historica</li>
+    </ul>
+    <h3>Filtros</h3>
+    <p class="desc">Pais | Mall | Periodo (ano en curso, personalizado) | Moneda (UF, CLP, USD) | Agrupacion (por pais, por mall)</p>
+  </div>
+
+  <!-- 7. REPORTES EJECUTIVOS -->
+  <div class="section" id="reportes">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <h2>Reportes Ejecutivos</h2>
+    </div>
+    <p class="desc">
+      Generador de reportes configurables para la gerencia. Permite seleccionar secciones a incluir,
+      formato de salida, alcance geografico y programar envios automaticos.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/04-reportes-ejecutivos.jpg" alt="Reportes Ejecutivos">
+      <div class="screenshot-caption">Reportes Ejecutivos: configurador con alcance (portafolio/pais/mall), periodo, metrica principal, formato (PDF/PPT/Excel). Vista previa del indice. Historial de reportes generados. Boton "Programar envio" para automatizacion.</div>
+    </div>
+    <h3>Secciones disponibles</h3>
+    <ul class="features">
+      <li>KPIs ejecutivos</li>
+      <li>Tendencia de consumo</li>
+      <li>Ranking de malls</li>
+      <li>Analisis de costos</li>
+      <li>Calidad del dato</li>
+      <li>Resumen de alarmas</li>
+      <li>Mapa de cobertura</li>
+    </ul>
+    <h3>Formatos de salida</h3>
+    <p class="desc">PDF (con portada y logo) | PPT (presentacion ejecutiva) | Excel (datos tabulares)</p>
+  </div>
+
+  <!-- 8. ALERTAS AGREGADAS -->
+  <div class="section" id="alertas">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <h2>Alertas Agregadas</h2>
+    </div>
+    <p class="desc">
+      Vista consolidada de todas las alertas del portafolio. Muestra KPIs de alertas activas,
+      mapa geografico de incidencias, evolucion temporal y ranking de sitios problematicos.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/05-alertas-agregadas.jpg" alt="Alertas Agregadas">
+      <div class="screenshot-caption">Alertas Agregadas: KPIs (activas, criticas, resueltas 24h, tiempo medio resolucion), mapa de alarmas, evolucion 30 dias (abiertas/escaladas/resueltas), top 5 malls con mas alarmas, tabla por mall con detalle.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>KPIs:</strong> alertas activas, criticas, resueltas en 24h, tiempo medio de resolucion</li>
+      <li><strong>Mapa geografico:</strong> distribucion de alarmas por ubicacion</li>
+      <li><strong>Evolucion 30 dias:</strong> grafico de abiertas vs escaladas vs resueltas</li>
+      <li><strong>Top 5 malls:</strong> ranking de sitios con mas incidencias</li>
+      <li><strong>Tabla por mall:</strong> criticas, warnings, resueltas, tiempo medio, ultima alarma</li>
+      <li><strong>Tabs:</strong> Resumen (vista general) y Gestion (acciones sobre alertas)</li>
+    </ul>
+    <h3>Filtros</h3>
+    <p class="desc">Pais | Mall | Periodo de analisis | Severidad | Estado (activas/resueltas/todas) | Agrupacion temporal (dia/semana/mes)</p>
+  </div>
+
+  <!-- 9. EXPORTAR -->
+  <div class="section" id="exportar">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <h2>Exportar Reportes</h2>
+    </div>
+    <p class="desc">
+      Exportacion de datos tabulares con control de alcance segun perfil de usuario.
+      Permite seleccionar tipo de contenido, granularidad temporal y formato de salida.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/06-exportar-reportes.jpg" alt="Exportar Reportes">
+      <div class="screenshot-caption">Exportar: configurador con tipo de contenido (consumos, costos, calidad, cobertura, alarmas), alcance geografico, periodo, granularidad (horaria/diaria/mensual), formato (Excel/CSV/PDF). Historial de exportaciones y limitaciones por perfil.</div>
+    </div>
+    <h3>Tipos de contenido exportable</h3>
+    <ul class="features">
+      <li>Consumos agregados por mall</li>
+      <li>Costos y facturacion</li>
+      <li>Calidad del dato</li>
+      <li>Cobertura de medicion</li>
+      <li>Resumen de alarmas del periodo</li>
+    </ul>
+    <h3>Control de acceso</h3>
+    <p class="desc">El perfil gerencial solo accede a datos agregados por mall y periodo. Para datos crudos de medidores individuales o trazabilidad firmada se requiere perfil Auditor.</p>
+  </div>
+
+  <!-- 10. DASHBOARD EJECUTIVO -->
+  <div class="section" id="executive">
+    <div class="section-header">
+      <div class="section-number">10</div>
+      <h2>Dashboard Ejecutivo</h2>
+    </div>
+    <p class="desc">
+      Vista dedicada por empresa (tenant). Al seleccionar una empresa en el selector superior,
+      muestra KPIs, tendencias y metricas especificas de ese tenant.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/07-dashboard-ejecutivo.jpg" alt="Dashboard Ejecutivo">
+      <div class="screenshot-caption">Dashboard Ejecutivo: requiere seleccionar una empresa en el selector de la barra lateral para ver datos especificos del tenant.</div>
+    </div>
+    <h3>Funcionalidad</h3>
+    <p class="desc">Presenta una vista ejecutiva personalizada por empresa, con KPIs de consumo, costos y operacion filtrados al scope del tenant seleccionado. Util para reuniones gerenciales donde se revisa una empresa a la vez.</p>
+  </div>
+
+  <!-- 11. MONITOREO EN VIVO -->
+  <div class="section" id="monitoreo">
+    <div class="section-header">
+      <div class="section-number">11</div>
+      <h2>Monitoreo en Vivo</h2>
+    </div>
+    <p class="desc">
+      Vista operacional en tiempo real del estado de comunicacion de todos los medidores.
+      Muestra que centros estan online, cuales tienen alertas, y el comportamiento de potencia en las ultimas 24h.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/08-monitoreo-vivo.jpg" alt="Monitoreo en Vivo">
+      <div class="screenshot-caption">Monitoreo en Vivo: KPIs (total medidores, % en linea, offline, estancados >4h, CNR pendientes). Cards por centro comercial con semaforo de estado (verde/rojo) y conteo de alertas. Grafico de comportamiento del parque 24h a la derecha. Tabs: Panorama, Medidores, Eventos.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>KPIs globales:</strong> total medidores (200), % en linea, offline, estancados >4h, CNR pendientes</li>
+      <li><strong>Cards por centro:</strong> cada mall con semaforo de estado, cantidad de medidores y conteo de alertas activas</li>
+      <li><strong>Comportamiento 24h:</strong> grafico de potencia agregada del parque completo</li>
+      <li><strong>Tab Medidores:</strong> listado individual de cada medidor con estado</li>
+      <li><strong>Tab Eventos:</strong> log de eventos recientes (conexion/desconexion/alerta)</li>
+    </ul>
+  </div>
+
+  <!-- 12. TICKETS Y SLA -->
+  <div class="section" id="tickets">
+    <div class="section-header">
+      <div class="section-number">12</div>
+      <h2>Tickets y SLA</h2>
+    </div>
+    <p class="desc">
+      Sistema de gestion de tickets generados automaticamente por alertas. Controla cumplimiento de SLA
+      con metricas de uptime, disponibilidad y tiempo medio de resolucion.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/09-tickets-sla.jpg" alt="Tickets y SLA">
+      <div class="screenshot-caption">Tickets y SLA: KPIs (uptime 30d: 99.6%, disponibilidad datos: 97.1%, tiempo medio resolucion: 974.4h). Grafico de evolucion SLA vs umbral 99.5%. Tablero de tickets con ID, descripcion, tipo, prioridad, apertura, compromiso SLA, estado y dias restantes/vencidos.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Uptime 30d:</strong> porcentaje de tiempo con medidores reportando</li>
+      <li><strong>Disponibilidad datos:</strong> % de lecturas recibidas vs esperadas</li>
+      <li><strong>Tiempo medio resolucion:</strong> promedio en horas desde apertura a cierre</li>
+      <li><strong>Evolucion SLA:</strong> grafico comparativo uptime vs umbral configurado (99.5%)</li>
+      <li><strong>Tablero de tickets:</strong> cada ticket con ID, descripcion, tipo (alarma/mantencion), prioridad, fechas, estado (abierto/asignado/resuelto/vencido)</li>
+    </ul>
+    <h3>Filtros</h3>
+    <p class="desc">Todos | Mis tickets | Por vencer | Vencidos</p>
+  </div>
+
+  <!-- 13. CALIDAD DE DATOS -->
+  <div class="section" id="calidad">
+    <div class="section-header">
+      <div class="section-number">13</div>
+      <h2>Calidad de Datos</h2>
+    </div>
+    <p class="desc">
+      Scorecard de calidad de lecturas por mall. Compara lecturas reales vs esperadas,
+      identifica lecturas estimadas por CNR y faltantes, con tendencia historica y drill-down por medidor.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/10-calidad-datos.jpg" alt="Calidad de Datos">
+      <div class="screenshot-caption">Calidad de Datos: scorecard por mall con columnas (lecturas esperadas, reales #/%, estimadas #/%, CNR #/%, faltantes #/%, tendencia). Grafico de evolucion de calidad (% lecturas reales) con umbral 95%. Panel de medidores con baja calidad al seleccionar un mall. Tabs: Scorecard y Backfill.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Scorecard por mall:</strong> tabla con lecturas esperadas vs reales vs estimadas vs CNR vs faltantes</li>
+      <li><strong>Evolucion de calidad:</strong> grafico mensual de % lecturas reales con umbral 95%</li>
+      <li><strong>Medidores baja calidad:</strong> detalle de medidores bajo umbral al seleccionar un mall</li>
+      <li><strong>Tab Backfill:</strong> gestion de rellenado de huecos de datos</li>
+    </ul>
+    <h3>Filtros</h3>
+    <p class="desc">Mall (todos/individual) | Periodo (ultimos 30 dias, personalizado) | Granularidad (horaria/diaria)</p>
+  </div>
+
+  <!-- 14. CNR -->
+  <div class="section" id="cnr">
+    <div class="section-header">
+      <div class="section-number">14</div>
+      <h2>CNR Pendientes</h2>
+    </div>
+    <p class="desc">
+      Gestion de Consumo No Registrado (CNR). Cuando un medidor deja de reportar, se genera un CNR
+      que debe ser investigado, asignado a un responsable y resuelto.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/11-cnr-pendientes.jpg" alt="CNR Pendientes">
+      <div class="screenshot-caption">CNR Pendientes: KPIs (total abiertas, con >7 dias sin resolucion, ingresadas hoy). Acciones (asignar responsable, cambiar estado, agregar comentario, exportar CSV). Tabla de CNR con ID, medidor, mall, periodo afectado, tipo, responsable, fecha ingreso, estado, valor estimado kWh. Tabs: Pendientes e Ingreso.</div>
+    </div>
+    <h3>Workflow CNR</h3>
+    <ul class="features">
+      <li>Deteccion automatica de medidor sin datos</li>
+      <li>Creacion de registro CNR con periodo afectado y estimacion de consumo</li>
+      <li>Asignacion a responsable tecnico</li>
+      <li>Investigacion y documentacion</li>
+      <li>Resolucion con valor real o estimado</li>
+      <li>Exportacion a CSV para auditoria</li>
+    </ul>
+  </div>
+
+  <!-- 15. MAPA COBERTURA -->
+  <div class="section" id="cobertura">
+    <div class="section-header">
+      <div class="section-number">15</div>
+      <h2>Mapa de Cobertura</h2>
+    </div>
+    <p class="desc">
+      Visualizacion geografica del estado de cobertura de medicion de todos los sitios.
+      Cada marker muestra el % de medidores online y cantidad de alarmas activas.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/12-mapa-cobertura.jpg" alt="Mapa de Cobertura">
+      <div class="screenshot-caption">Mapa de Cobertura: mapa interactivo con markers de cada mall. Panel lateral con lista de malls mostrando % online, cantidad de alarmas y ultimo dato recibido. Filtro por metrica del marcador (Online %, Alarmas, Consumo).</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Mapa interactivo:</strong> markers coloreados por estado en cada ubicacion</li>
+      <li><strong>Panel lateral:</strong> lista de malls con % online, alarmas activas y timestamp del ultimo dato</li>
+      <li><strong>Busqueda:</strong> filtro rapido por nombre de mall</li>
+      <li><strong>Metrica del marcador:</strong> configurable entre Online %, Alarmas, Consumo</li>
+    </ul>
+  </div>
+
+  <!-- 16. MIS ORDENES -->
+  <div class="section" id="ordenes">
+    <div class="section-header">
+      <div class="section-number">16</div>
+      <h2>Mis Ordenes</h2>
+    </div>
+    <p class="desc">
+      Sistema de ordenes de trabajo para tecnicos de campo. Cada alerta puede generar una orden de mantencion
+      que se asigna, ejecuta y cierra con evidencia.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/13-mis-ordenes.jpg" alt="Mis Ordenes">
+      <div class="screenshot-caption">Mis Ordenes: KPIs (pendientes, en curso, cerradas hoy, vencidas). Tabla con ID, descripcion, tipo (mantencion), centro, zona, prioridad (ALTA/MEDIA/BAJA), fecha asignacion, plazo, estado (pendiente/en curso/vencida). Panel lateral de detalle al seleccionar. Filtros: Todos, Pendientes, Vencidas, En curso.</div>
+    </div>
+    <h3>Estados de una orden</h3>
+    <ul class="features">
+      <li><strong>Pendiente:</strong> creada pero no iniciada</li>
+      <li><strong>En curso:</strong> tecnico trabajando en la orden</li>
+      <li><strong>Cerrada:</strong> trabajo completado con evidencia</li>
+      <li><strong>Vencida:</strong> paso el plazo sin resolucion</li>
+    </ul>
+  </div>
+
+  <!-- 17. ACTIVOS -->
+  <div class="section" id="medidores">
+    <div class="section-header">
+      <div class="section-number">17</div>
+      <h2>Activos (Medidores)</h2>
+    </div>
+    <p class="desc">
+      Catalogo completo de medidores del portafolio. Muestra serial, estado de comunicacion,
+      protocolo y ultimo dato recibido para cada dispositivo.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/14-activos-medidores.jpg" alt="Activos Medidores">
+      <div class="screenshot-caption">Activos (Medidores): listado de todos los medidores con Serial, Estado (semaforo rojo/verde), Protocolo (DLMS), y Ultimo dato recibido. Filtros por Mall, Estado comms (online/offline/todos), Tipo.</div>
+    </div>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Serial:</strong> identificador unico del medidor (ej: OT-010, MG-010, SC53-010)</li>
+      <li><strong>Estado:</strong> semaforo visual rojo (offline) / verde (online)</li>
+      <li><strong>Protocolo:</strong> tipo de comunicacion (DLMS, Modbus, etc.)</li>
+      <li><strong>Ultimo dato:</strong> timestamp de la ultima lectura recibida</li>
+    </ul>
+  </div>
+
+  <!-- 18. DIAGNOSTICO -->
+  <div class="section" id="diagnostico">
+    <div class="section-header">
+      <div class="section-number">18</div>
+      <h2>Diagnostico Comms</h2>
+    </div>
+    <p class="desc">
+      Herramienta tecnica para diagnosticar problemas de comunicacion con medidores.
+      Muestra estado en tiempo real, tasa de exito, histograma de disponibilidad y herramientas de diagnostico activo.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/15-diagnostico-comms.jpg" alt="Diagnostico Comms">
+      <div class="screenshot-caption">Diagnostico Comms: KPIs (estado online, tasa exito 24h: 96%, ultimo dato recibido). Histograma de disponibilidad 72h con barras verdes/rojas por hora. Herramientas: test de conexion al gateway, forzar re-lectura, ver log de comunicacion raw (100 lineas). Log raw con timestamp UTC, direccion, trama/evento y resultado.</div>
+    </div>
+    <h3>Herramientas de diagnostico</h3>
+    <ul class="features">
+      <li><strong>Test de conexion:</strong> ping activo al gateway del medidor</li>
+      <li><strong>Forzar re-lectura:</strong> solicita lectura inmediata fuera de ciclo</li>
+      <li><strong>Ver log raw:</strong> ultimas 100 lineas del log de comunicacion con timestamp, direccion, trama y resultado</li>
+      <li><strong>Histograma 72h:</strong> disponibilidad hora a hora con barras verdes (exitoso) y rojas (fallido)</li>
+    </ul>
+  </div>
+
+  <!-- 19. REG INTERVENCION -->
+  <div class="section" id="intervencion">
+    <div class="section-header">
+      <div class="section-number">19</div>
+      <h2>Registro de Intervencion</h2>
+    </div>
+    <p class="desc">
+      Formulario de bitacora para registrar intervenciones tecnicas en medidores.
+      Cada registro queda firmado digitalmente y es inmutable una vez guardado.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/16-registro-intervencion.jpg" alt="Registro de Intervencion">
+      <div class="screenshot-caption">Registro de Intervencion: formulario con orden asociada, medidor/activo, tipo de intervencion (inspeccion/mantencion/reemplazo), descripcion detallada, resultado (solucionado/parcial/no solucionado). Adjuntos (max 5 fotos JPG/PNG + PDF). Checkbox "Requiere CNR". Inmutabilidad: timestamp servidor + usuario + hash de integridad, no editable una vez firmado.</div>
+    </div>
+    <h3>Campos del registro</h3>
+    <ul class="features">
+      <li><strong>Orden asociada:</strong> vinculacion a orden de trabajo existente</li>
+      <li><strong>Medidor/activo:</strong> selector del medidor intervenido</li>
+      <li><strong>Tipo:</strong> Inspeccion, Mantencion preventiva, Mantencion correctiva, Reemplazo</li>
+      <li><strong>Descripcion:</strong> texto libre del trabajo realizado</li>
+      <li><strong>Resultado:</strong> Solucionado, Parcial, No solucionado</li>
+      <li><strong>Adjuntos:</strong> hasta 5 archivos (fotos JPG/PNG, documentos PDF)</li>
+      <li><strong>Firma digital:</strong> inmutabilidad con timestamp + hash de integridad</li>
+    </ul>
+  </div>
+
+  <!-- 20. USUARIOS -->
+  <div class="section" id="usuarios">
+    <div class="section-header">
+      <div class="section-number">20</div>
+      <h2>Usuarios y Roles</h2>
+    </div>
+    <p class="desc">
+      Gestion de accesos del sistema. Permite crear usuarios, asignar perfiles y permisos,
+      ver historial de accesos y revocar permisos sin uso.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/17-admin-usuarios.jpg" alt="Usuarios y Roles">
+      <div class="screenshot-caption">Usuarios y Roles: lista de usuarios con nombre, email, tenant/mall, perfil (Super-admin, Operacional, etc.), estado (activo/inactivo), ultimo acceso, MFA. Panel derecho: detalle de permisos efectivos del usuario seleccionado, historial de sesiones (IP, timestamp, cambios de rol). Seccion inferior: permisos sin uso >90 dias con sugerencia de revocacion masiva.</div>
+    </div>
+    <h3>Funcionalidades</h3>
+    <ul class="features">
+      <li><strong>Lista de usuarios:</strong> tabla con todos los usuarios registrados y su estado</li>
+      <li><strong>Detalle de permisos:</strong> panel lateral con recursos y acciones permitidas</li>
+      <li><strong>Historial de sesiones:</strong> ultimas 30 sesiones con IP, timestamp y resultado</li>
+      <li><strong>Revocacion masiva:</strong> permisos sin uso en >90 dias marcados para revocacion</li>
+      <li><strong>Importacion:</strong> carga masiva de usuarios via CSV</li>
+    </ul>
+  </div>
+
+  <!-- 21. EMPRESAS -->
+  <div class="section" id="empresas">
+    <div class="section-header">
+      <div class="section-number">21</div>
+      <h2>Empresas</h2>
+    </div>
+    <p class="desc">
+      Administracion de las empresas (tenants) registradas en la plataforma.
+      Cada empresa tiene su slug, datos comerciales y estado.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/19-admin-empresas.jpg" alt="Empresas">
+      <div class="screenshot-caption">Empresas: tabla con Nombre, Slug, Direccion, Telefono, RUT, Estado (Activa), Fecha creacion, Acciones (Editar). Boton "Nueva empresa" para crear. 3 empresas registradas: Globe Power, PASA, Siemens.</div>
+    </div>
+  </div>
+
+  <!-- 22. IOT DEVICES -->
+  <div class="section" id="iot">
+    <div class="section-header">
+      <div class="section-number">22</div>
+      <h2>Dispositivos IoT</h2>
+    </div>
+    <p class="desc">
+      Administracion de dispositivos IoT descubiertos via MQTT/IoT Core.
+      Auto-discovery: cuando un dispositivo Siemens se conecta por primera vez, aparece como "sin asignar"
+      y puede ser vinculado a un medidor del sistema.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/18-admin-iot-devices.jpg" alt="Dispositivos IoT">
+      <div class="screenshot-caption">Dispositivos IoT: tabla con Device ID, Primera vez (fecha descubrimiento), Ultima lectura, Estado, Medidor asignado. Filtros: Todos, Sin asignar, Asignados. Panel lateral de detalle al seleccionar un dispositivo.</div>
+    </div>
+    <h3>Flujo IoT</h3>
+    <ul class="features">
+      <li>Dispositivo Siemens POC3000 se conecta via MQTT a IoT Core</li>
+      <li>Auto-discovery detecta el nuevo Device ID</li>
+      <li>Aparece en la lista como "sin asignar"</li>
+      <li>Administrador lo vincula a un medidor existente o crea uno nuevo</li>
+      <li>A partir de la asignacion, las lecturas IoT se integran al sistema de monitoreo</li>
+    </ul>
+  </div>
+
+  <!-- 23. TENANTS -->
+  <div class="section" id="tenants">
+    <div class="section-header">
+      <div class="section-number">23</div>
+      <h2>Tenants y Malls</h2>
+    </div>
+    <p class="desc">
+      Gestion multi-tenant: configuracion base de cada tenant, estadisticas de uso y
+      historial inmutable de cambios de configuracion. Solo visible para super-administradores.
+    </p>
+    <h3>Que muestra</h3>
+    <ul class="features">
+      <li><strong>Lista de tenants:</strong> ID, nombre (mall), pais, estado (activo/onboarding), N medidores, N usuarios, fecha alta, version contrato</li>
+      <li><strong>Detalle de configuracion:</strong> parametros base del tenant seleccionado</li>
+      <li><strong>Estadisticas de uso:</strong> usuarios activos 30d, consultas API mensuales, volumen datos almacenados</li>
+      <li><strong>Historial de cambios:</strong> registro inmutable de quien cambio que, cuando, valor anterior y nuevo, con aprobacion</li>
+      <li><strong>Acciones:</strong> crear tenant, activar, desactivar</li>
+    </ul>
+    <h3>Tenants actuales</h3>
+    <table>
+      <tr><th>Tenant</th><th>Estado</th><th>Medidores</th><th>Usuarios</th></tr>
+      <tr><td>Globe Power</td><td style="color:var(--success)">Activo</td><td>44</td><td>3</td></tr>
+      <tr><td>PASA</td><td style="color:var(--success)">Activo</td><td>156</td><td>3</td></tr>
+      <tr><td>Siemens</td><td style="color:var(--warn)">Onboarding</td><td>0</td><td>2</td></tr>
+    </table>
+  </div>
+
+  <!-- 24. PERFIL -->
+  <div class="section" id="perfil">
+    <div class="section-header">
+      <div class="section-number">24</div>
+      <h2>Perfil de Usuario</h2>
+    </div>
+    <p class="desc">
+      Pagina de cuenta del usuario autenticado. Muestra datos personales,
+      configuracion de seguridad (MFA, Passkeys) y edificios asignados.
+    </p>
+    <div class="screenshot-container">
+      <img src="screenshots/20-perfil.jpg" alt="Perfil de Usuario">
+      <div class="screenshot-caption">Mi Perfil: datos personales (email, nombre, rol, proveedor auth, ultimo acceso, MFA, edificios asignados). Seccion MFA con opcion de habilitar/deshabilitar TOTP. Seccion Passkeys para registrar autenticacion biometrica. Rectificacion de nombre (ARCO+).</div>
+    </div>
+    <h3>Funcionalidades</h3>
+    <ul class="features">
+      <li><strong>Datos personales:</strong> email, nombre, rol, proveedor de autenticacion, ultimo acceso</li>
+      <li><strong>Edificios asignados:</strong> lista de centros a los que tiene acceso</li>
+      <li><strong>MFA:</strong> activar/desactivar segundo factor (Google Authenticator, Authy)</li>
+      <li><strong>Passkeys:</strong> registrar/eliminar autenticacion biometrica (WebAuthn)</li>
+      <li><strong>Rectificacion:</strong> editar nombre (cumplimiento ARCO+)</li>
+    </ul>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center; padding:3rem 0; border-top:1px solid var(--border); margin-top:3rem; color:var(--muted); font-size:0.85rem;">
+    <p>Energy Monitor (EMS) v2.44.0 &mdash; Grupo Globe</p>
+    <p>Documentacion generada el 4 de agosto de 2026</p>
+    <p style="margin-top:0.5rem">power-monitor.cloud</p>
+  </div>
+
+</div>
+</body>
+</html>

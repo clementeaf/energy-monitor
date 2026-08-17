@@ -259,19 +259,16 @@ export class ReadingsService {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const readingConditions: string[] = [];
-    if (!crossTenant) readingConditions.push('r.tenant_id = $1');
+    const lateralConditions: string[] = ['r.meter_id = m.id'];
 
     const qualities = parseQualityFilter(query.quality);
     const qf = qualityWhereFragment('r', paramIdx, qualities);
     if (qf) {
-      readingConditions.push(qf.clause);
+      lateralConditions.push(qf.clause);
       params.push(...qf.params);
     }
 
-    const readingScope = readingConditions.length > 0
-      ? `WHERE ${readingConditions.join(' AND ')}`
-      : '';
+    const lateralWhere = lateralConditions.join(' AND ');
 
     const rows: LatestRow[] = await this.dataSource.query(
       `SELECT
@@ -290,20 +287,14 @@ export class ReadingsService {
        FROM meters m
        JOIN buildings b ON b.id = m.building_id
        JOIN tenants t ON t.id = m.tenant_id
-       LEFT JOIN (
-         SELECT DISTINCT ON (r.meter_id)
-           r.meter_id,
-           r.timestamp,
-           r.power_kw,
-           r.energy_kwh_total,
-           r.voltage_l1,
-           r.current_l1,
-           r.power_factor,
-           r.frequency_hz
+       LEFT JOIN LATERAL (
+         SELECT r.timestamp, r.power_kw, r.energy_kwh_total,
+                r.voltage_l1, r.current_l1, r.power_factor, r.frequency_hz
          FROM readings r
-         ${readingScope}
-         ORDER BY r.meter_id, r.timestamp DESC
-       ) lr ON lr.meter_id = m.id
+         WHERE ${lateralWhere}
+         ORDER BY r.timestamp DESC
+         LIMIT 1
+       ) lr ON true
        ${whereClause}
        ORDER BY m.name`,
       params,

@@ -82,32 +82,59 @@ export class VarelectricSyncService {
   }
 
   private static readonly MATVIEWS = ['readings_hourly', 'readings_daily', 'portfolio_summary', 'building_summary'];
+  // ponytail: advisory lock prevents REFRESH pile-up when previous cycle is still running
+  private static readonly SYNC_LOCK_ID = 839271;
+  private syncing = false;
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async syncAll(): Promise<void> {
-    let totalInserted = 0;
-    for (const source of this.sources) {
-      try {
-        const { inserted } = await this.syncSource(source);
-        totalInserted += inserted;
-      } catch (err) {
-        this.logger.error(`Sync failed for ${source.db}: ${(err as Error).message}`);
-      }
+    if (this.syncing) {
+      this.logger.warn('Sync already running, skipping cycle');
+      return;
     }
-    if (totalInserted > 0) {
-      await this.refreshMaterializedViews();
+    this.syncing = true;
+    try {
+      let totalInserted = 0;
+      for (const source of this.sources) {
+        try {
+          const { inserted } = await this.syncSource(source);
+          totalInserted += inserted;
+        } catch (err) {
+          this.logger.error(`Sync failed for ${source.db}: ${(err as Error).message}`);
+        }
+      }
+      if (totalInserted > 0) {
+        await this.refreshMaterializedViews();
+      }
+    } finally {
+      this.syncing = false;
     }
   }
 
   async refreshMaterializedViews(): Promise<void> {
-    for (const view of VarelectricSyncService.MATVIEWS) {
-      try {
-        await this.dataSource.query(`REFRESH MATERIALIZED VIEW ${view}`);
-      } catch (err) {
-        this.logger.warn(`Failed to refresh ${view}: ${(err as Error).message}`);
-      }
+    const [{ locked }] = await this.dataSource.query(
+      `SELECT pg_try_advisory_lock($1) AS locked`,
+      [VarelectricSyncService.SYNC_LOCK_ID],
+    );
+    if (!locked) {
+      this.logger.warn('Another REFRESH is running, skipping');
+      return;
     }
-    this.logger.log('Materialized views refreshed');
+    try {
+      for (const view of VarelectricSyncService.MATVIEWS) {
+        try {
+          await this.dataSource.query(`REFRESH MATERIALIZED VIEW ${view}`);
+        } catch (err) {
+          this.logger.warn(`Failed to refresh ${view}: ${(err as Error).message}`);
+        }
+      }
+      this.logger.log('Materialized views refreshed');
+    } finally {
+      await this.dataSource.query(
+        `SELECT pg_advisory_unlock($1)`,
+        [VarelectricSyncService.SYNC_LOCK_ID],
+      );
+    }
   }
 
   async syncSource(source: VarelectricSyncSource): Promise<{ inserted: number; skipped: number }> {
@@ -132,8 +159,8 @@ export class VarelectricSyncService {
         [lastTimestamp],
       );
 
-      let inserted = 0;
       let skipped = 0;
+      const batch: unknown[][] = [];
 
       for (const row of rows) {
         if (VarelectricSyncService.shouldSkipRow(row)) {
@@ -148,19 +175,31 @@ export class VarelectricSyncService {
         }
 
         const mapped = VarelectricSyncService.mapTagsToReadings(row);
-        await this.dataSource.query(
-          `INSERT INTO readings (tenant_id, meter_id, timestamp, voltage_l1, voltage_l2, voltage_l3,
-             current_l1, current_l2, current_l3, power_kw, power_factor, energy_kwh_total)
-           VALUES ($1, $2, $3 AT TIME ZONE 'America/Santiago', $4, $5, $6, $7, $8, $9, $10, $11, $12)
-           ON CONFLICT DO NOTHING`,
-          [
-            source.tenantId, meterId, row.fecha,
-            mapped.voltage_l1, mapped.voltage_l2, mapped.voltage_l3,
-            mapped.current_l1, mapped.current_l2, mapped.current_l3,
-            mapped.power_kw, mapped.power_factor, mapped.energy_kwh_total,
-          ],
+        batch.push([
+          source.tenantId, meterId, row.fecha,
+          mapped.voltage_l1, mapped.voltage_l2, mapped.voltage_l3,
+          mapped.current_l1, mapped.current_l2, mapped.current_l3,
+          mapped.power_kw, mapped.power_factor, mapped.energy_kwh_total,
+        ]);
+      }
+
+      const CHUNK = 500;
+      let inserted = 0;
+      for (let i = 0; i < batch.length; i += CHUNK) {
+        const chunk = batch.slice(i, i + CHUNK);
+        const values: unknown[] = [];
+        const tuples: string[] = [];
+        for (let j = 0; j < chunk.length; j++) {
+          const o = j * 12;
+          tuples.push(`($${o+1},$${o+2},$${o+3} AT TIME ZONE 'America/Santiago',$${o+4},$${o+5},$${o+6},$${o+7},$${o+8},$${o+9},$${o+10},$${o+11},$${o+12})`);
+          values.push(...chunk[j]);
+        }
+        const result = await this.dataSource.query(
+          `INSERT INTO readings (tenant_id,meter_id,timestamp,voltage_l1,voltage_l2,voltage_l3,current_l1,current_l2,current_l3,power_kw,power_factor,energy_kwh_total)
+           VALUES ${tuples.join(',')} ON CONFLICT DO NOTHING`,
+          values,
         );
-        inserted++;
+        inserted += result?.[1] ?? chunk.length;
       }
 
       if (inserted > 0) {

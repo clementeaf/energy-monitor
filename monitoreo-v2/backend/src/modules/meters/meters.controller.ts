@@ -68,7 +68,7 @@ export class MetersController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    const meter = await this.metersService.findOne(id, user.tenantId, user.buildingIds);
+    const meter = await this.metersService.findOne(id, user.tenantId, user.buildingIds, user.crossTenant);
     if (!meter) throw new NotFoundException('Meter not found');
     return meter;
   }

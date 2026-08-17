@@ -28,6 +28,7 @@ export class TenantOverrideInterceptor implements NestInterceptor {
         user.buildingIds = [];
         user.crossTenant = false;
       } else {
+        user.buildingIds = [];
         user.crossTenant = true;
       }
     } else {

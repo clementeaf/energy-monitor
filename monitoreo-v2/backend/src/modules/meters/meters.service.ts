@@ -52,11 +52,15 @@ export class MetersService {
     id: string,
     tenantId: string,
     buildingIds: string[],
+    crossTenant = false,
   ): Promise<Meter | null> {
     const qb = this.repo
       .createQueryBuilder('m')
-      .where('m.id = :id', { id })
-      .andWhere('m.tenant_id = :tenantId', { tenantId });
+      .where('m.id = :id', { id });
+
+    if (!crossTenant) {
+      qb.andWhere('m.tenant_id = :tenantId', { tenantId });
+    }
 
     if (buildingIds.length > 0) {
       qb.andWhere('m.building_id IN (:...buildingIds)', { buildingIds });

@@ -102,8 +102,11 @@ describe('VarelectricSyncService', () => {
   });
 
   describe('refreshMaterializedViews', () => {
-    it('refreshes all 4 materialized views after sync', async () => {
-      ds.query.mockResolvedValue([]);
+    it('refreshes all 4 materialized views when lock acquired', async () => {
+      ds.query.mockImplementation((sql: string) => {
+        if (typeof sql === 'string' && sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+        return [];
+      });
 
       await service.refreshMaterializedViews();
 
@@ -112,6 +115,16 @@ describe('VarelectricSyncService', () => {
       expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW readings_daily'));
       expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW portfolio_summary'));
       expect(calls).toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW building_summary'));
+      expect(calls).toContainEqual(expect.stringContaining('pg_advisory_unlock'));
+    });
+
+    it('skips refresh when lock not acquired', async () => {
+      ds.query.mockResolvedValue([{ locked: false }]);
+
+      await service.refreshMaterializedViews();
+
+      const calls = ds.query.mock.calls.map((c: unknown[]) => (c[0] as string).trim());
+      expect(calls).not.toContainEqual(expect.stringContaining('REFRESH MATERIALIZED VIEW'));
     });
   });
 });

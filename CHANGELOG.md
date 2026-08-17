@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.58.0] - 2026-08-17 — PERFORMANCE + VARELECTRIC SYNC FIX
+
+### Fixed (Backend — Performance)
+- **Index `idx_readings_meter_ts`** creado en prod — `(meter_id, timestamp DESC)`. Query `findLatest` pasó de full seq scan (9.7M rows, timeout) a index seek (~ms).
+- **`findLatest` reescrito con LATERAL JOIN** — reemplaza `DISTINCT ON` que PostgreSQL no optimizaba con el index. Ahora 1 index lookup por medidor en vez de sort de toda la tabla.
+- **60+ sesiones zombie `REFRESH MATERIALIZED VIEW`** terminadas en RDS — el cron de Varelectric sync las acumulaba cada 5 min sin guard.
+
+### Fixed (Backend — Cross-tenant)
+- **`GET /meters/:id` 404 para super_admin** — `findOne` no respetaba `crossTenant`. Ahora omite filtro de `tenant_id` cuando `crossTenant=true`.
+- **`TenantOverrideInterceptor`** — limpia `buildingIds` cuando `crossTenant=true`. Sin esto, el JWT mantenía buildings restrictivos incluso en modo "Todas las empresas".
+
+### Changed (Backend — Varelectric sync)
+- **Guard anti-pile-up** — `pg_try_advisory_lock` previene que múltiples `REFRESH MATERIALIZED VIEW` se apilen. Flag `syncing` en `syncAll()` previene ejecuciones concurrentes del cron.
+- **Batch INSERT** — de 1 INSERT por row a chunks de 500. Reduce round-trips de miles a ~un par por sync cycle.
+
+### Infra
+- **ECS task-def rev 35** — imagen `fix-lateral-20260817-133917`.
+- **Usuario `mcaceres@grupoglobe.com`** creado como super_admin en tenant Globe Power con acceso a 4 buildings.
+
+---
+
 ## [2.57.1] - 2026-08-04 — DOCUMENTACION COMPLETA APP
 
 ### Added (Docs)

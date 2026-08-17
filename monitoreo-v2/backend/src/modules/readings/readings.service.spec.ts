@@ -171,7 +171,7 @@ describe('ReadingsService', () => {
       expect(result[0]?.timestamp_utc).toBeDefined();
       expect(result[0]?.timestamp_local).toBeDefined();
       const sql = ds.query.mock.calls[0][0] as string;
-      expect(sql).toContain('DISTINCT ON');
+      expect(sql).toContain('LATERAL');
       expect(sql).toContain('COALESCE(b.timezone, t.timezone');
       expect(sql).toContain('m.tenant_id = $1');
     });

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.58.1] - 2026-08-19 — MFA LOGIN FIX
+
+### Fixed (Prod DB)
+- **nmatus y mcaceres no podían ingresar** — MFA reseteado para ambos usuarios (`mfa_enabled=false`, `mfa_secret=NULL`). Al próximo login se les pedirá configurar MFA de nuevo (QR + código 6 dígitos).
+- **Usuario duplicado mcaceres eliminado** — Existían 2 rows con `mcaceres@grupoglobe.com`: uno creado por migración (plaintext, nunca usado) y otro por OAuth (PII-encrypted, activo). El duplicado plaintext fue eliminado.
+
+---
+
 ## [2.58.0] - 2026-08-17 — PERFORMANCE + VARELECTRIC SYNC FIX
 
 ### Fixed (Backend — Performance)

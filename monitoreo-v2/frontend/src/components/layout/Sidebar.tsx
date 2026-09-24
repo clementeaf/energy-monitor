@@ -59,9 +59,9 @@ export function Sidebar() {
             {[
               { label: 'Consumo', path: '/consumo' },
               { label: 'Márgenes', path: '/margenes' },
+              { label: 'Sostenibilidad', path: '/sostenibilidad' },
               { label: 'Alertas', path: '/alertas' },
               { label: 'Reportes', path: '/reportes' },
-              { label: 'Facturas', path: '/facturas' },
             ].map((item) => (
               <NavItem key={item.path} label={item.label} path={item.path} currentPath={location.pathname} onNavigate={navigate} />
             ))}

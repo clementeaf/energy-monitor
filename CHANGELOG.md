@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.60.8] - 2026-09-24 — SOSTENIBILIDAD NEW VIEW
+
+### Added (Frontend — Sostenibilidad)
+- **Vista nueva `/sostenibilidad`** — add-on alineado a demo interactiva EMS.
+- **4 KPIs** — Huella del periodo (tCO₂), Factor de emisión (kg/kWh, Matriz SEN 2026), Ahorro potencial ($M), Ahorro comprometido ($M dinámico).
+- **Huella de CO₂ por centro** — barras horizontales accent, toneladas equivalentes del mes. Link "Sostenibilidad".
+- **Eficiencia de la cartera** — donut SVG 82,4% con label "eficiencia". Consumo real contra línea base.
+- **Recomendaciones priorizadas por impacto** — 3 cards con título, detalle y botón "Aplicar". State funcional: al aplicar cambia a "Aplicada" verde + actualiza KPI ahorro comprometido.
+- **Ruta** — `/sostenibilidad` registrada en router + lazy import.
+- **Sidebar** — Sostenibilidad agregada en ADD-ONS entre Márgenes y Alertas. Facturas removida del sidebar (no existe en demo).
+
+---
+
 ## [2.60.7] - 2026-09-24 — REPORTES ALIGN TO DEMO
 
 ### Changed (Frontend — Reportes)

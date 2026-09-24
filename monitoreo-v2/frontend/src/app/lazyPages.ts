@@ -463,6 +463,11 @@ export const LazyReportesMockPage = lazy(async () => {
   return { default: m.ReportesPage };
 });
 
+export const LazySostenibilidadPage = lazy(async () => {
+  const m = await import('../features/ems/SostenibilidadPage');
+  return { default: m.SostenibilidadPage };
+});
+
 export const LazyFacturasMockPage = lazy(async () => {
   const m = await import('../features/ems/FacturasPage');
   return { default: m.FacturasPage };

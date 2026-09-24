@@ -96,6 +96,7 @@ import {
   LazyMargenesPage,
   LazyAlertasMockPage,
   LazyReportesMockPage,
+  LazySostenibilidadPage,
   LazyFacturasMockPage,
   LazyMeterDetailPage,
   LazyMeterReadingsPage,
@@ -331,6 +332,7 @@ export const router = createBrowserRouter([
               { path: 'margenes', element: <LazyMargenesPage /> },
               { path: 'alertas', element: <LazyAlertasMockPage /> },
               { path: 'reportes', element: <LazyReportesMockPage /> },
+              { path: 'sostenibilidad', element: <LazySostenibilidadPage /> },
               { path: 'facturas', element: <LazyFacturasMockPage /> },
 
               { path: APP_ROUTES.unitDetail, element: <P any={BUILDINGS}><LazyTenantUnitDetailPage /></P> },

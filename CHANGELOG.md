@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.61.0] - 2026-09-24 — MODULE TOGGLE SYSTEM
+
+### Added (Frontend — Sistema de Módulos)
+- **Toggles Configuración → Sidebar** — apagar un módulo en Configuración oculta su entrada del sidebar inmediatamente.
+- **Estado en Zustand** — `modulosActivos` (consumo, margenes, sostenibilidad, alertas, reportes) persistido en `sessionStorage` via `useAppStore`.
+- **Sidebar reactivo** — ADD-ONS filtra items según `modulosActivos`. NÚCLEO (Resumen, Centros, Remarcadores) siempre visible.
+
+---
+
 ## [2.60.9] - 2026-09-24 — CONFIGURACIÓN NEW VIEW
 
 ### Added (Frontend — Configuración)

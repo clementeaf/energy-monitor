@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/auth/useAuth';
+import { useAppStore, type ModuloId } from '../../store/useAppStore';
 import { NavModuleIcon } from './sidebar-icons';
 import { SidebarReveal } from './sidebar-motion';
 
@@ -39,6 +40,7 @@ export function Sidebar() {
   const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const modulosActivos = useAppStore((s) => s.modulosActivos);
 
   return (
     <aside className="relative flex h-full min-h-0 w-[240px] shrink-0 flex-col bg-[var(--color-sidebar)]">
@@ -56,13 +58,13 @@ export function Sidebar() {
         <div className="mt-6">
           <SidebarSection label="Add-ons" expanded />
           <div className="space-y-0.5">
-            {[
-              { label: 'Consumo', path: '/consumo' },
-              { label: 'Márgenes', path: '/margenes' },
-              { label: 'Sostenibilidad', path: '/sostenibilidad' },
-              { label: 'Alertas', path: '/alertas' },
-              { label: 'Reportes', path: '/reportes' },
-            ].map((item) => (
+            {([
+              { label: 'Consumo', path: '/consumo', moduloId: 'consumo' as ModuloId },
+              { label: 'Márgenes', path: '/margenes', moduloId: 'margenes' as ModuloId },
+              { label: 'Sostenibilidad', path: '/sostenibilidad', moduloId: 'sostenibilidad' as ModuloId },
+              { label: 'Alertas', path: '/alertas', moduloId: 'alertas' as ModuloId },
+              { label: 'Reportes', path: '/reportes', moduloId: 'reportes' as ModuloId },
+            ]).filter((item) => modulosActivos[item.moduloId]).map((item) => (
               <NavItem key={item.path} label={item.label} path={item.path} currentPath={location.pathname} onNavigate={navigate} />
             ))}
           </div>

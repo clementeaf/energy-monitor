@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAppStore, type ModuloId } from '../../store/useAppStore';
 
 interface Usuario {
   id: string;
@@ -8,11 +9,7 @@ interface Usuario {
   rol: string;
 }
 
-interface Modulo {
-  id: string;
-  nombre: string;
-  activo: boolean;
-}
+
 
 const USUARIOS_INIT: Usuario[] = [
   { id: 'u1', nombre: 'Rocío Mendoza', email: 'rocio@energiaaustral.cl', iniciales: 'RM', rol: 'Administrador' },
@@ -21,12 +18,12 @@ const USUARIOS_INIT: Usuario[] = [
   { id: 'u4', nombre: 'Pablo Núñez', email: 'pablo@energiaaustral.cl', iniciales: 'PN', rol: 'Técnico de Campo' },
 ];
 
-const MODULOS_INIT: Modulo[] = [
-  { id: 'm1', nombre: 'Analítica de Consumo', activo: true },
-  { id: 'm2', nombre: 'Márgenes', activo: true },
-  { id: 'm3', nombre: 'Sostenibilidad', activo: true },
-  { id: 'm4', nombre: 'Alertas', activo: true },
-  { id: 'm5', nombre: 'Reportes', activo: true },
+const MODULOS: { id: ModuloId; nombre: string }[] = [
+  { id: 'consumo', nombre: 'Analítica de Consumo' },
+  { id: 'margenes', nombre: 'Márgenes' },
+  { id: 'sostenibilidad', nombre: 'Sostenibilidad' },
+  { id: 'alertas', nombre: 'Alertas' },
+  { id: 'reportes', nombre: 'Reportes' },
 ];
 
 const ROLES = ['Administrador', 'Gestor de Energía', 'Técnico de Campo'];
@@ -42,7 +39,8 @@ const CUENTA = [
 
 export function ConfiguracionPage() {
   const [usuarios, setUsuarios] = useState(USUARIOS_INIT);
-  const [modulos, setModulos] = useState(MODULOS_INIT);
+  const modulosActivos = useAppStore((s) => s.modulosActivos);
+  const toggleModulo = useAppStore((s) => s.toggleModulo);
 
   const cambiarRol = (id: string, rol: string) => {
     setUsuarios((prev) => prev.map((u) => u.id === id ? { ...u, rol } : u));
@@ -50,10 +48,6 @@ export function ConfiguracionPage() {
 
   const eliminarUsuario = (id: string) => {
     setUsuarios((prev) => prev.filter((u) => u.id !== id));
-  };
-
-  const toggleModulo = (id: string) => {
-    setModulos((prev) => prev.map((m) => m.id === id ? { ...m, activo: !m.activo } : m));
   };
 
   return (
@@ -117,18 +111,21 @@ export function ConfiguracionPage() {
           <h2 className="text-sm font-semibold text-card-fg">Módulos habilitados</h2>
           <p className="mb-4 text-xs text-card-muted">El cobro se ajusta a los módulos activos. Al apagar uno, su sección queda con candado.</p>
           <div className="space-y-3">
-            {modulos.map((m) => (
-              <div key={m.id} className="flex items-center justify-between">
-                <span className="text-sm text-card-fg">{m.nombre}</span>
-                <button
-                  type="button"
-                  onClick={() => toggleModulo(m.id)}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${m.activo ? 'bg-accent' : 'bg-raised'}`}
-                >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${m.activo ? 'left-[18px]' : 'left-0.5'}`} />
-                </button>
-              </div>
-            ))}
+            {MODULOS.map((m) => {
+              const activo = modulosActivos[m.id];
+              return (
+                <div key={m.id} className="flex items-center justify-between">
+                  <span className="text-sm text-card-fg">{m.nombre}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleModulo(m.id)}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${activo ? 'bg-accent' : 'bg-raised'}`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${activo ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
           <div className="mt-4 flex items-center justify-between rounded-lg border border-card-border px-3 py-2.5">
             <span className="text-xs text-card-muted">Núcleo (Resumen · Centros · Remarcadores)</span>

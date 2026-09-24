@@ -12,6 +12,8 @@ export const VIEW_AS_LABELS: Record<string, string> = {
   auditor: 'Auditor',
 };
 
+export type ModuloId = 'consumo' | 'margenes' | 'sostenibilidad' | 'alertas' | 'reportes';
+
 interface AppState {
   sidebarOpen: boolean;
   selectedBuildingId: string | null;
@@ -19,6 +21,7 @@ interface AppState {
   selectedTenantId: string | null;
   selectedOperator: string | null;
   workProfile: string;
+  modulosActivos: Record<ModuloId, boolean>;
   setSidebarOpen: (open: boolean) => void;
   toggleSidebar: () => void;
   setSelectedBuildingId: (id: string | null) => void;
@@ -26,6 +29,7 @@ interface AppState {
   setSelectedTenantId: (id: string | null) => void;
   setSelectedOperator: (name: string | null) => void;
   setWorkProfile: (profile: string) => void;
+  toggleModulo: (id: ModuloId) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -37,6 +41,7 @@ export const useAppStore = create<AppState>()(
       selectedTenantId: null,
       selectedOperator: null,
       workProfile: 'Auditoría',
+      modulosActivos: { consumo: true, margenes: true, sostenibilidad: true, alertas: true, reportes: true },
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
       setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId, selectedOperator: null }),
@@ -44,6 +49,7 @@ export const useAppStore = create<AppState>()(
       setSelectedTenantId: (selectedTenantId) => set({ selectedTenantId, selectedOperator: null, selectedBuildingId: null }),
       setSelectedOperator: (selectedOperator) => set({ selectedOperator }),
       setWorkProfile: (workProfile) => set({ workProfile }),
+      toggleModulo: (id) => set((s) => ({ modulosActivos: { ...s.modulosActivos, [id]: !s.modulosActivos[id] } })),
     }),
     {
       name: 'ems-app-state',
@@ -61,6 +67,7 @@ export const useAppStore = create<AppState>()(
         selectedTenantId: state.selectedTenantId,
         selectedOperator: state.selectedOperator,
         selectedBuildingId: state.selectedBuildingId,
+        modulosActivos: state.modulosActivos,
       }) as unknown as AppState,
     },
   ),

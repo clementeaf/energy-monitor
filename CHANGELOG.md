@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.60.5] - 2026-09-24 — MÁRGENES ALIGN TO DEMO
+
+### Changed (Frontend — Márgenes)
+- **Vista reescrita** para match con demo interactiva EMS.
+- **Toggle Monto/Porcentaje** — selector visual en barra superior.
+- **Mínimo contractual editable** — input numérico con "%" suffix. Controla el umbral de "Sobre el mínimo" / "Alarma" en tabla y KPI.
+- **4 KPIs** — Ingreso por venta, Costo de compra, Margen bruto, Centros bajo el mínimo (dinámico según input).
+- **Tabla** — columnas CENTRO (name+cliente), COMPRA, VENTA, MARGEN (accent), %, ESTADO (badge Sobre el mínimo/Alarma).
+- **Barras "Compra vs venta"** — barra compra sobre barra venta con leyenda. Panel izquierdo.
+- **Barras "Margen en monto"** — barras horizontales coloreadas por umbral. Panel derecho.
+- **Botón Exportar** — outline en barra superior.
+- **Removidos** — columna Tendencia, columna Cliente separada (ahora sub-línea), fila Total.
+
+---
+
 ## [2.60.4] - 2026-09-24 — CONSUMO ALIGN TO DEMO
 
 ### Changed (Frontend — Consumo)

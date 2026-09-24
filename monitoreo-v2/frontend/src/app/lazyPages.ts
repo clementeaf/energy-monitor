@@ -468,6 +468,11 @@ export const LazySostenibilidadPage = lazy(async () => {
   return { default: m.SostenibilidadPage };
 });
 
+export const LazyConfiguracionPage = lazy(async () => {
+  const m = await import('../features/ems/ConfiguracionPage');
+  return { default: m.ConfiguracionPage };
+});
+
 export const LazyFacturasMockPage = lazy(async () => {
   const m = await import('../features/ems/FacturasPage');
   return { default: m.FacturasPage };

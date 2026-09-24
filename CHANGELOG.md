@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.60.9] - 2026-09-24 — CONFIGURACIÓN NEW VIEW
+
+### Added (Frontend — Configuración)
+- **Vista nueva `/configuracion`** — alineada a demo interactiva EMS.
+- **Usuarios** — tabla con avatar (iniciales), nombre, email, dropdown rol (Administrador/Gestor de Energía/Técnico de Campo), botón eliminar. Botón "+ Invitar" accent.
+- **Módulos habilitados** — panel derecho con toggle por add-on (Analítica de Consumo, Márgenes, Sostenibilidad, Alertas, Reportes). Núcleo siempre incluido.
+- **Cuenta** — key-value: Razón social, Plan, Centros contratados, Remarcadores activos, Usuarios, Periodo de facturación.
+- **Sidebar** — sección SISTEMA con Configuración agregada debajo de ADD-ONS.
+
+---
+
 ## [2.60.8] - 2026-09-24 — SOSTENIBILIDAD NEW VIEW
 
 ### Added (Frontend — Sostenibilidad)

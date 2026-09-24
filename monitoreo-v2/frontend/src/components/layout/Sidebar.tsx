@@ -67,6 +67,12 @@ export function Sidebar() {
             ))}
           </div>
         </div>
+        <div className="mt-6">
+          <SidebarSection label="Sistema" expanded />
+          <div className="space-y-0.5">
+            <NavItem label="Configuración" path="/configuracion" currentPath={location.pathname} onNavigate={navigate} />
+          </div>
+        </div>
       </nav>
 
       <div className="shrink-0 border-t border-[var(--color-sidebar-border)] px-3 py-3">

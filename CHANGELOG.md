@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.60.2] - 2026-09-24 — CENTROS ALIGN TO DEMO
+
+### Changed (Frontend — Centros)
+- **Search input** — "Buscar centro, cliente o c..." filtra por nombre, cliente y comuna.
+- **Filter pills** — Todos / Operativos / Con advertencia / Con incidencia. Pill activa en accent.
+- **Botón Exportar** — outline, al lado de "+ Nuevo centro" (accent filled).
+- **Checkboxes** — checkbox header (select all) + checkbox por fila. Selección no navega.
+- **Header "CONSUMO MES" en accent** — columna principal destacada en verde.
+- **Footer tabla** — "N de N centros" izquierda + "Haz clic en una fila para ver el detalle" derecha.
+- **Card wrapper removido** — tabla directa con barra de filtros, sin sección "Cartera de centros".
+
+---
+
 ## [2.60.1] - 2026-09-24 — RESUMEN ALIGN TO DEMO
 
 ### Changed (Frontend — Resumen)

@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.60.6] - 2026-09-24 — ALERTAS ALIGN TO DEMO
+
+### Changed (Frontend — Alertas)
+- **Vista reescrita** para match con demo interactiva EMS.
+- **4 KPIs** — Alertas activas (últimas 72h), Críticas (requieren acción), Resueltas hoy, Reglas activas N/total.
+- **Filter pills** — Todas / Críticas / Advertencias / Informativas / Resueltas.
+- **Botones** — "Resolver todas" (outline) + "+ Nueva regla" (accent).
+- **Lista de alertas** — cards con icono severidad (⊘/⚠/ℹ), título, detalle, "Ver equipo/centro" + "Resolver". Reemplaza tabla historial anterior.
+- **Resolver funcional** — click "Resolver" mueve alerta a resuelta. "Resolver todas" resuelve todas.
+- **Reglas de alerta** — tabla con REGLA, TIPO, APLICA A, NOTIFICA, ESTADO (toggle activa/pausado + eliminar). Toggle funcional.
+- **Data mock nueva** — 5 alertas alineadas a demo (desconexión, pico, consumo, margen, señal) + 4 reglas.
+
+---
+
 ## [2.60.5] - 2026-09-24 — MÁRGENES ALIGN TO DEMO
 
 ### Changed (Frontend — Márgenes)

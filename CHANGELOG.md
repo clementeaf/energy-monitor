@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.60.1] - 2026-09-24 — RESUMEN ALIGN TO DEMO
+
+### Changed (Frontend — Resumen)
+- **KPI "Peak de demanda" reemplazado por "Alertas activas"** — muestra count + "↓ 2 críticas" en rojo. Alineado con demo interactiva.
+- **Banner alerta rediseñado** — "Sin conexión · N en cola" cuenta caídos + sin señal. Botón "Ver flota" navega a `/remarcadores`. Botón × para dismiss (state local).
+- **Curva de carga: tabs de rango** — selector "Hoy / 7 días / 30 días" con toggle visual. Data mock igual por ahora.
+- **Leyenda curva mejorada** — "Consumo (kWh)" + "Pico 16:00 · 1.628 kWh" con iconos.
+- **Hint en centros por consumo** — subtítulo "haz clic para abrir el centro".
+
+---
+
 ## [2.60.0] - 2026-09-16 — EMS POWER DIGITAL PRODUCT PIVOT
 
 ### Changed (Frontend — Design System)

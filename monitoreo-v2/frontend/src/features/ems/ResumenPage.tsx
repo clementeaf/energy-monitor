@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { RESUMEN_KPIS, CENTROS, REMARCADORES, CURVA_CARGA_GLOBAL } from './mock-data';
 
@@ -8,7 +9,8 @@ function fmt(n: number, d = 0): string {
 export function ResumenPage() {
   const navigate = useNavigate();
   const k = RESUMEN_KPIS;
-  const desconectados = REMARCADORES.filter((r) => r.estado === 'caido');
+  const sinConexion = REMARCADORES.filter((r) => r.estado === 'caido' || r.estado === 'sin_senal');
+  const [bannerVisible, setBannerVisible] = useState(true);
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
@@ -29,45 +31,43 @@ export function ResumenPage() {
         <KpiCard label="Consumo del mes" value={fmt(k.consumoMes, 1)} unit="MWh" delta={`↑ ${k.consumoDelta}% vs agosto`} positive />
         <KpiCard label="Gasto en compra" value={`$${fmt(k.gastoCompra, 1)}M`} delta={`↑ ${k.gastoDelta}% vs agosto`} />
         <KpiCard label="Margen estimado" value={`$${fmt(k.margenEstimado, 1)}M`} delta={`↑ ${k.margenDelta}% sobre venta`} positive />
-        <KpiCard label="Centros activos" value={String(k.centrosActivos)} delta={`+${k.centrosDelta} este trimestre`} positive />
+        <KpiCard label="Centros activos" value={String(k.centrosActivos)} delta={`↑ +${k.centrosDelta} este trimestre`} positive />
         <KpiCard label="Remarcadores" value={`${k.remarcadoresConectados}`} unit={`/${k.remarcadoresTotal}`} delta={`↓ ${k.remarcadoresCaidos} caído · ${k.remarcadoresSinSenal} sin señal`} negative />
-        <KpiCard label="Peak de demanda" value={fmt(k.peakDemanda)} unit="kWh" delta={`Peak a las ${k.peakHora}`} />
+        <KpiCard label="Alertas activas" value={String(k.alertasActivas)} delta={`↓ ${k.alertasCriticas} críticas`} negative />
       </div>
 
-      {desconectados.length > 0 && (
+      {sinConexion.length > 0 && bannerVisible && (
         <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-bg px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="text-warning">⚠</span>
             <div>
               <p className="text-sm font-medium text-foreground">
-                {desconectados[0].code} lleva 3 h 12 min sin reportar
+                Sin conexión · {sinConexion.length} en cola
               </p>
               <p className="text-xs text-muted">
-                Se generó automáticamente una alerta de desconexión para {desconectados[0].centroName}.
+                Sin lecturas desde las {sinConexion[0].ultimaLectura} en {sinConexion[0].centroName}. Revisa la flota para reanudar la medición.
               </p>
             </div>
           </div>
-          <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/alertas')}>
-            Ver alertas
-          </button>
+          <div className="flex items-center gap-3">
+            <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/remarcadores')}>
+              Ver flota
+            </button>
+            <button type="button" className="text-muted hover:text-foreground" onClick={() => setBannerVisible(false)}>
+              ×
+            </button>
+          </div>
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-card-fg">Curva de carga global · hoy</h2>
-              <p className="mb-3 text-xs text-card-muted">Consumo agregado de los {k.centrosActivos} centros, por hora</p>
-            </div>
-            <span className="rounded-full bg-surface px-2.5 py-1 font-mono text-xs font-medium text-card-fg">Peak{k.peakHora}</span>
-          </div>
-          <AreaChart data={CURVA_CARGA_GLOBAL} />
+          <CurvaCarga data={CURVA_CARGA_GLOBAL} centrosActivos={k.centrosActivos} peakHora={k.peakHora} peakValue={k.peakDemanda} />
         </div>
 
         <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2">
           <h2 className="text-sm font-semibold text-card-fg">Centros por consumo</h2>
-          <p className="mb-3 text-xs text-card-muted">Acumulado del mes</p>
+          <p className="mb-3 text-xs text-card-muted">Acumulado del mes · haz clic para abrir el centro</p>
           <div className="space-y-3">
             {[...CENTROS].sort((a, b) => b.consumoMes - a.consumoMes).map((c) => {
               const max = Math.max(...CENTROS.map((x) => x.consumoMes));
@@ -89,6 +89,51 @@ export function ResumenPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function CurvaCarga({ data, centrosActivos, peakHora, peakValue }: Readonly<{
+  data: number[]; centrosActivos: number; peakHora: string; peakValue: number;
+}>) {
+  const [rango, setRango] = useState<'hoy' | '7dias' | '30dias'>('hoy');
+  const rangos = [
+    { key: 'hoy' as const, label: 'Hoy' },
+    { key: '7dias' as const, label: '7 días' },
+    { key: '30dias' as const, label: '30 días' },
+  ];
+
+  return (
+    <>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-card-fg">Curva de carga global</h2>
+          <p className="mb-3 text-xs text-card-muted">Consumo agregado de los {centrosActivos} centros</p>
+        </div>
+        <div className="flex rounded-lg border border-card-border bg-surface">
+          {rangos.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => setRango(r.key)}
+              className={`px-3 py-1 text-xs font-medium transition-colors ${rango === r.key ? 'bg-card-fg text-card rounded-lg' : 'text-card-muted hover:text-card-fg'}`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <AreaChart data={data} />
+      <div className="mt-2 flex items-center gap-4 px-1">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-sm bg-accent" />
+          <span className="text-[10px] text-card-muted">Consumo (kWh)</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full border border-card-muted" />
+          <span className="text-[10px] text-card-muted">Pico {peakHora} · {fmt(peakValue)} kWh</span>
+        </span>
+      </div>
+    </>
   );
 }
 
@@ -117,34 +162,28 @@ function AreaChart({ data }: Readonly<{ data: number[] }>) {
   }));
 
   return (
-    <div className="relative">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.03" />
-          </linearGradient>
-        </defs>
-        {yTicks.map((t) => (
-          <g key={t.y}>
-            <line x1={padX} y1={t.y} x2={W} y2={t.y} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-            <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">{t.label}</text>
-          </g>
-        ))}
-        <line x1={padX} y1={baseline} x2={W} y2={baseline} stroke="var(--color-border)" strokeWidth="0.5" />
-        {data.map((_, i) => i % 3 === 0 ? (
-          <text key={i} x={points[i].x} y={baseline + 14} textAnchor="middle" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">
-            {String(i).padStart(2, '0')}:00
-          </text>
-        ) : null)}
-        <path d={areaPath} fill="url(#areaGrad)" />
-        <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinejoin="round" />
-      </svg>
-      <div className="mt-1 flex items-center gap-1.5 px-1">
-        <span className="h-0.5 w-3 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />
-        <span className="text-[10px] text-card-muted">Consumo horario (kWh)</span>
-      </div>
-    </div>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.03" />
+        </linearGradient>
+      </defs>
+      {yTicks.map((t) => (
+        <g key={t.y}>
+          <line x1={padX} y1={t.y} x2={W} y2={t.y} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+          <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">{t.label}</text>
+        </g>
+      ))}
+      <line x1={padX} y1={baseline} x2={W} y2={baseline} stroke="var(--color-border)" strokeWidth="0.5" />
+      {data.map((_, i) => i % 3 === 0 ? (
+        <text key={i} x={points[i].x} y={baseline + 14} textAnchor="middle" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">
+          {String(i).padStart(2, '0')}:00
+        </text>
+      ) : null)}
+      <path d={areaPath} fill="url(#areaGrad)" />
+      <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
   );
 }
 

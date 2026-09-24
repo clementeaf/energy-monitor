@@ -62,6 +62,8 @@ export const RESUMEN_KPIS = {
   remarcadoresSinSenal: 1,
   peakDemanda: 1628,
   peakHora: '16:00',
+  alertasActivas: 5,
+  alertasCriticas: 2,
 };
 
 export const CURVA_CARGA_GLOBAL = [

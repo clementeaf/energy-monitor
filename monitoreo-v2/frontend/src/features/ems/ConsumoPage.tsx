@@ -79,14 +79,9 @@ export function ConsumoPage() {
       </div>
 
       <div className="rounded-xl border border-card-border bg-card p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-card-fg">Curva de carga agregada</h2>
-            <p className="text-xs text-card-muted">Todos los centros · por hora</p>
-          </div>
-          <button type="button" className="flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-            ↗ Analítica de Consumo
-          </button>
+        <div>
+          <h2 className="text-sm font-semibold text-card-fg">Curva de carga agregada</h2>
+          <p className="text-xs text-card-muted">Todos los centros · por hora</p>
         </div>
         <LineChart data={CURVA_CARGA_GLOBAL} color="var(--color-accent)" />
         <div className="mt-2 flex items-center gap-1.5 px-1">

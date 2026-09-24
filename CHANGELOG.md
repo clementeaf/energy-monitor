@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.61.1] - 2026-09-24 — CROSS-VIEW NAVIGATION
+
+### Added (Frontend — Interconectividad)
+- **Resumen KPI cards clickables** — cada card navega a su vista: Consumo del mes → `/consumo`, Gasto en compra → `/margenes`, Margen estimado → `/margenes`, Centros activos → `/centros`, Remarcadores → `/remarcadores`, Alertas activas → `/alertas`. Hover con borde accent.
+- **Sidebar badge Alertas** — badge rojo con count (2) de alertas críticas en el item Alertas del sidebar.
+
+---
+
 ## [2.61.0] - 2026-09-24 — MODULE TOGGLE SYSTEM
 
 ### Added (Frontend — Sistema de Módulos)

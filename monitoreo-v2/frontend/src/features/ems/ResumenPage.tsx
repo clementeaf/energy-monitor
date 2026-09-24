@@ -28,12 +28,12 @@ export function ResumenPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiCard label="Consumo del mes" value={fmt(k.consumoMes, 1)} unit="MWh" delta={`↑ ${k.consumoDelta}% vs agosto`} positive />
-        <KpiCard label="Gasto en compra" value={`$${fmt(k.gastoCompra, 1)}M`} delta={`↑ ${k.gastoDelta}% vs agosto`} />
-        <KpiCard label="Margen estimado" value={`$${fmt(k.margenEstimado, 1)}M`} delta={`↑ ${k.margenDelta}% sobre venta`} positive />
-        <KpiCard label="Centros activos" value={String(k.centrosActivos)} delta={`↑ +${k.centrosDelta} este trimestre`} positive />
-        <KpiCard label="Remarcadores" value={`${k.remarcadoresConectados}`} unit={`/${k.remarcadoresTotal}`} delta={`↓ ${k.remarcadoresCaidos} caído · ${k.remarcadoresSinSenal} sin señal`} negative />
-        <KpiCard label="Alertas activas" value={String(k.alertasActivas)} delta={`↓ ${k.alertasCriticas} críticas`} negative />
+        <KpiCard label="Consumo del mes" value={fmt(k.consumoMes, 1)} unit="MWh" delta={`↑ ${k.consumoDelta}% vs agosto`} positive onClick={() => navigate('/consumo')} />
+        <KpiCard label="Gasto en compra" value={`$${fmt(k.gastoCompra, 1)}M`} delta={`↑ ${k.gastoDelta}% vs agosto`} onClick={() => navigate('/margenes')} />
+        <KpiCard label="Margen estimado" value={`$${fmt(k.margenEstimado, 1)}M`} delta={`↑ ${k.margenDelta}% sobre venta`} positive onClick={() => navigate('/margenes')} />
+        <KpiCard label="Centros activos" value={String(k.centrosActivos)} delta={`↑ +${k.centrosDelta} este trimestre`} positive onClick={() => navigate('/centros')} />
+        <KpiCard label="Remarcadores" value={`${k.remarcadoresConectados}`} unit={`/${k.remarcadoresTotal}`} delta={`↓ ${k.remarcadoresCaidos} caído · ${k.remarcadoresSinSenal} sin señal`} negative onClick={() => navigate('/remarcadores')} />
+        <KpiCard label="Alertas activas" value={String(k.alertasActivas)} delta={`↓ ${k.alertasCriticas} críticas`} negative onClick={() => navigate('/alertas')} />
       </div>
 
       {sinConexion.length > 0 && bannerVisible && (
@@ -187,18 +187,19 @@ function AreaChart({ data }: Readonly<{ data: number[] }>) {
   );
 }
 
-function KpiCard({ label, value, unit, delta, positive, negative }: Readonly<{
-  label: string; value: string; unit?: string; delta?: string; positive?: boolean; negative?: boolean;
+function KpiCard({ label, value, unit, delta, positive, negative, onClick }: Readonly<{
+  label: string; value: string; unit?: string; delta?: string; positive?: boolean; negative?: boolean; onClick?: () => void;
 }>) {
   const deltaColor = negative ? 'text-danger' : positive ? 'text-success' : 'text-muted';
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div className="rounded-xl border border-card-border bg-card px-4 py-3">
+    <Tag type={onClick ? 'button' : undefined} onClick={onClick} className={`rounded-xl border border-card-border bg-card px-4 py-3 text-left ${onClick ? 'cursor-pointer transition-colors hover:border-accent/50' : ''}`}>
       <p className="text-xs text-card-muted">{label}</p>
       <p className="mt-1 font-mono text-2xl font-bold text-card-fg tabular-nums">
         {value}
         {unit && <span className="ml-0.5 text-sm font-normal text-card-muted">{unit}</span>}
       </p>
       {delta && <p className={`mt-1 text-[11px] ${deltaColor}`}>{delta}</p>}
-    </div>
+    </Tag>
   );
 }

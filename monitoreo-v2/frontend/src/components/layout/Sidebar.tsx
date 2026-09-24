@@ -14,13 +14,13 @@ function SidebarSection({ label, expanded }: { label: string; expanded: boolean 
   );
 }
 
-function NavItem({ label, path, currentPath, onNavigate }: { label: string; path: string; currentPath: string; onNavigate: (to: string) => void }) {
+function NavItem({ label, path, currentPath, onNavigate, badge }: { label: string; path: string; currentPath: string; onNavigate: (to: string) => void; badge?: number }) {
   const isActive = currentPath === path || currentPath.startsWith(path + '/');
   return (
     <button
       type="button"
       onClick={() => onNavigate(path)}
-      className="w-full rounded-md py-2 text-left transition-colors block"
+      className="w-full rounded-md py-2 text-left transition-colors flex items-center justify-between"
       style={{
         fontSize: '13px',
         fontWeight: isActive ? 500 : 400,
@@ -32,6 +32,9 @@ function NavItem({ label, path, currentPath, onNavigate }: { label: string; path
       }}
     >
       {label}
+      {badge !== undefined && badge > 0 && (
+        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{badge}</span>
+      )}
     </button>
   );
 }
@@ -59,13 +62,13 @@ export function Sidebar() {
           <SidebarSection label="Add-ons" expanded />
           <div className="space-y-0.5">
             {([
-              { label: 'Consumo', path: '/consumo', moduloId: 'consumo' as ModuloId },
-              { label: 'Márgenes', path: '/margenes', moduloId: 'margenes' as ModuloId },
-              { label: 'Sostenibilidad', path: '/sostenibilidad', moduloId: 'sostenibilidad' as ModuloId },
-              { label: 'Alertas', path: '/alertas', moduloId: 'alertas' as ModuloId },
-              { label: 'Reportes', path: '/reportes', moduloId: 'reportes' as ModuloId },
+              { label: 'Consumo', path: '/consumo', moduloId: 'consumo' as ModuloId, badge: 0 },
+              { label: 'Márgenes', path: '/margenes', moduloId: 'margenes' as ModuloId, badge: 0 },
+              { label: 'Sostenibilidad', path: '/sostenibilidad', moduloId: 'sostenibilidad' as ModuloId, badge: 0 },
+              { label: 'Alertas', path: '/alertas', moduloId: 'alertas' as ModuloId, badge: 2 },
+              { label: 'Reportes', path: '/reportes', moduloId: 'reportes' as ModuloId, badge: 0 },
             ]).filter((item) => modulosActivos[item.moduloId]).map((item) => (
-              <NavItem key={item.path} label={item.label} path={item.path} currentPath={location.pathname} onNavigate={navigate} />
+              <NavItem key={item.path} label={item.label} path={item.path} currentPath={location.pathname} onNavigate={navigate} badge={item.badge} />
             ))}
           </div>
         </div>

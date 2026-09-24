@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.60.3] - 2026-09-24 — REMARCADORES ALIGN TO DEMO
+
+### Changed (Frontend — Remarcadores)
+- **Search input** — "Buscar por ID, centro o n..." filtra por código, centro y modelo.
+- **Filter pills** — Todos / Conectados / Sin señal / Caídos / En mantención. Pill activa en accent.
+- **Forzar lectura** movido a barra de filtros (al lado de pills, no en card header).
+- **Banner alerta mejorado** — "MTR-03310 sin reportar desde las 09:33:02" con dos botones: "Ver alertas" + "Diagnosticar".
+- **Checkboxes** — checkbox header (select all) + checkbox por fila.
+- **Header "ID" en accent** — columna principal destacada en verde.
+- **Card wrapper removido** — tabla directa sin sección "Flota de remarcadores".
+
+---
+
 ## [2.60.2] - 2026-09-24 — CENTROS ALIGN TO DEMO
 
 ### Changed (Frontend — Centros)

@@ -12,7 +12,6 @@ const HUELLA_POR_CENTRO = CENTROS.map((c) => ({
 })).sort((a, b) => b.huella - a.huella);
 
 const HUELLA_TOTAL = HUELLA_POR_CENTRO.reduce((s, c) => s + c.huella, 0);
-const CONSUMO_TOTAL = CENTROS.reduce((s, c) => s + c.consumoMes, 0);
 const EFICIENCIA = 82.4;
 
 interface Recomendacion {

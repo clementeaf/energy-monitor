@@ -110,7 +110,7 @@ export function ConsumoPage() {
         </div>
         {centrosSeleccionados.size > 0 && (
           <MultiLineChart
-            series={CENTROS.filter((c) => centrosSeleccionados.has(c.id)).map((c, i) => ({
+            series={CENTROS.filter((c) => centrosSeleccionados.has(c.id)).map((c) => ({
               data: CURVAS_CENTRO[c.id] ?? CURVA_CARGA_GLOBAL,
               color: CENTRO_COLORS[CENTROS.findIndex((x) => x.id === c.id) % CENTRO_COLORS.length],
               label: c.name,

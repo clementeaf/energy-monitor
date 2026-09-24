@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.60.7] - 2026-09-24 — REPORTES ALIGN TO DEMO
+
+### Changed (Frontend — Reportes)
+- **Vista reescrita** para match con demo interactiva EMS.
+- **Botones top** — "+ Nuevo reporte" (accent) + "Exportar consumo (Excel)" + "Exportar márgenes (PDF)".
+- **Reportes programados** — tabla con REPORTE, ALCANCE, FRECUENCIA, FORMATO (badge PDF rojo / Excel verde), PROGRAMACIÓN (toggle + "Generar ahora").
+- **Toggle funcional** — switch activa/pausado con state local.
+- **Link "Módulo Reportes"** — accent, esquina superior derecha de la sección.
+- **Empty state** — "Sin reportes generados hoy" con próximo envío automático.
+- **Removidos** — 4 KPIs, tabla reportes generados con descarga, sección programados con cards.
+
+---
+
 ## [2.60.6] - 2026-09-24 — ALERTAS ALIGN TO DEMO
 
 ### Changed (Frontend — Alertas)

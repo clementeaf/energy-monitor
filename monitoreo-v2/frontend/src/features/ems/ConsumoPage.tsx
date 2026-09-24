@@ -1,185 +1,238 @@
 import { useState } from 'react';
-import { CENTROS } from './mock-data';
+import { CENTROS, CURVA_CARGA_GLOBAL } from './mock-data';
 
 function fmt(n: number, d = 0): string {
   return n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
 
-type Periodo = 'semana' | 'mes' | 'trimestre';
+type Franja = 'todas' | 'hoy' | '7dias' | '30dias' | 'punta' | 'valle';
 
-const PICOS: { fecha: string; hora: string; kw: number; centro: string; duracion: string }[] = [
-  { fecha: '2026-09-16', hora: '16:00', kw: 1628, centro: 'Planta Quilicura', duracion: '45 min' },
-  { fecha: '2026-09-15', hora: '15:30', kw: 1580, centro: 'Planta Quilicura', duracion: '30 min' },
-  { fecha: '2026-09-12', hora: '16:15', kw: 1545, centro: 'Centro Costanera', duracion: '20 min' },
-  { fecha: '2026-09-10', hora: '14:45', kw: 1510, centro: 'Bodega San Bernardo', duracion: '55 min' },
-  { fecha: '2026-09-09', hora: '16:00', kw: 1490, centro: 'Planta Quilicura', duracion: '25 min' },
-  { fecha: '2026-09-05', hora: '15:00', kw: 1465, centro: 'Centro Costanera', duracion: '35 min' },
-  { fecha: '2026-09-03', hora: '17:00', kw: 1420, centro: 'Bodega San Bernardo', duracion: '40 min' },
-  { fecha: '2026-09-01', hora: '16:30', kw: 1395, centro: 'Planta Quilicura', duracion: '15 min' },
+const FRANJA_TABS: { key: Franja; label: string }[] = [
+  { key: 'hoy', label: 'Hoy' },
+  { key: '7dias', label: '7 días' },
+  { key: '30dias', label: '30 días' },
+  { key: 'todas', label: 'Todas las franjas' },
+  { key: 'punta', label: 'Punta 18–23 h' },
+  { key: 'valle', label: 'Valle 00–07 h' },
 ];
 
-const COMPARATIVA = {
-  actual:   { label: 'Sep 2026', consumo: 867.5, peak: 1628, promedio: 36.1, factorCarga: 62.3 },
-  anterior: { label: 'Ago 2026', consumo: 832.1, peak: 1590, promedio: 34.7, factorCarga: 60.8 },
+const CURVAS_CENTRO: Record<string, number[]> = {
+  c1: [20, 25, 30, 37, 75, 133, 195, 250, 290, 320, 310, 298, 275, 263, 270, 285, 304, 325, 271, 210, 165, 124, 83, 48],
+  c2: [5, 6, 7, 9, 20, 38, 62, 80, 95, 105, 100, 98, 90, 85, 88, 92, 98, 104, 88, 65, 50, 38, 25, 15],
+  c3: [45, 50, 55, 63, 145, 265, 355, 440, 510, 560, 548, 530, 490, 468, 478, 500, 530, 565, 480, 375, 295, 225, 155, 90],
+  c4: [4, 5, 6, 7, 18, 32, 52, 68, 80, 90, 85, 82, 75, 70, 72, 78, 82, 88, 74, 55, 42, 32, 22, 12],
+  c5: [33, 37, 41, 47, 108, 197, 265, 330, 380, 195, 190, 185, 172, 165, 168, 175, 185, 198, 170, 130, 100, 78, 55, 32],
+  c6: [3, 4, 4, 5, 12, 22, 35, 45, 55, 62, 60, 58, 52, 48, 50, 54, 58, 62, 52, 38, 28, 22, 15, 8],
 };
 
-const FRANJAS = [
-  { label: 'Punta', horario: '18:00 – 23:00', color: 'var(--color-danger)', actual: 245.2, anterior: 228.8 },
-  { label: 'Llano', horario: '08:00 – 18:00', color: 'var(--color-warning)', actual: 498.1, anterior: 482.4 },
-  { label: 'Valle', horario: '23:00 – 08:00', color: 'var(--color-success)', actual: 124.2, anterior: 120.9 },
-];
+const CENTRO_COLORS = ['var(--color-accent)', 'var(--color-warning)', 'var(--color-danger)', 'var(--color-info)', '#a78bfa', '#f472b6'];
 
 export function ConsumoPage() {
-  const [periodo, setPeriodo] = useState<Periodo>('mes');
+  const [franja, setFranja] = useState<Franja>('todas');
+  const [centrosSeleccionados, setCentrosSeleccionados] = useState<Set<string>>(new Set(['c1', 'c3']));
 
-  const delta = (a: number, b: number) => {
-    const pct = b > 0 ? ((a - b) / b) * 100 : 0;
-    return { pct, label: `${pct >= 0 ? '↑' : '↓'} ${fmt(Math.abs(pct), 1)}%`, positive: pct <= 0 };
+  const peak = Math.max(...CURVA_CARGA_GLOBAL);
+  const promedio = Math.round(CURVA_CARGA_GLOBAL.reduce((a, b) => a + b, 0) / CURVA_CARGA_GLOBAL.filter((v) => v > 0).length);
+  const factorCarga = peak > 0 ? (promedio / peak) * 100 : 0;
+
+  const toggleCentro = (id: string) => {
+    setCentrosSeleccionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
-
-  const c = COMPARATIVA;
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-foreground">Analítica de Consumo</h1>
-          <p className="text-xs text-muted">Peaks de demanda, franjas horarias y comparativas entre períodos</p>
+          <h1 className="text-lg font-bold text-foreground">Consumo</h1>
+          <p className="text-xs text-muted">Picos y curvas de carga</p>
         </div>
-        <div className="flex rounded-lg border border-border">
-          {(['semana', 'mes', 'trimestre'] as Periodo[]).map((p) => (
-            <button key={p} type="button" onClick={() => setPeriodo(p)}
-              className={`px-3 py-1.5 text-xs font-medium capitalize ${periodo === p ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'} ${p === 'semana' ? 'rounded-l-lg' : ''} ${p === 'trimestre' ? 'rounded-r-lg' : ''}`}>
-              {p}
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex gap-1">
+          {FRANJA_TABS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFranja(f.key)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${franja === f.key ? 'bg-accent text-accent-ink' : 'border border-border text-foreground hover:bg-surface'}`}
+            >
+              {f.label}
             </button>
           ))}
         </div>
+        <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised">
+          ↓ Exportar serie
+        </button>
       </div>
 
-      {/* Comparativa período actual vs anterior */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <KpiCard label="Pico de demanda" value={fmt(peak)} unit="kWh" sub="↑ Máximo del periodo" positive />
+        <KpiCard label="Consumo medio" value={fmt(promedio)} unit="kWh" sub="Promedio por punto" />
+        <KpiCard label="Factor de carga" value={fmt(factorCarga, 1)} unit="%" sub="Media / pico" />
+        <KpiCard label="Puntos de la serie" value={String(CURVA_CARGA_GLOBAL.length)} sub="Serie completa" />
+      </div>
+
       <div className="rounded-xl border border-card-border bg-card p-4">
-        <h2 className="text-sm font-semibold text-card-fg">Comparativa de períodos</h2>
-        <p className="mb-4 text-xs text-card-muted">{c.actual.label} vs {c.anterior.label}</p>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <CompareCard label="Consumo total" actual={`${fmt(c.actual.consumo, 1)} MWh`} anterior={`${fmt(c.anterior.consumo, 1)} MWh`} delta={delta(c.actual.consumo, c.anterior.consumo)} />
-          <CompareCard label="Peak de demanda" actual={`${fmt(c.actual.peak)} kW`} anterior={`${fmt(c.anterior.peak)} kW`} delta={delta(c.actual.peak, c.anterior.peak)} />
-          <CompareCard label="Promedio diario" actual={`${fmt(c.actual.promedio, 1)} MWh/d`} anterior={`${fmt(c.anterior.promedio, 1)} MWh/d`} delta={delta(c.actual.promedio, c.anterior.promedio)} />
-          <CompareCard label="Factor de carga" actual={`${fmt(c.actual.factorCarga, 1)}%`} anterior={`${fmt(c.anterior.factorCarga, 1)}%`} delta={delta(c.actual.factorCarga, c.anterior.factorCarga)} />
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-card-fg">Curva de carga agregada</h2>
+            <p className="text-xs text-card-muted">Todos los centros · por hora</p>
+          </div>
+          <button type="button" className="flex items-center gap-1 text-xs font-medium text-accent hover:underline">
+            ↗ Analítica de Consumo
+          </button>
+        </div>
+        <LineChart data={CURVA_CARGA_GLOBAL} color="var(--color-accent)" />
+        <div className="mt-2 flex items-center gap-1.5 px-1">
+          <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: 'var(--color-accent)' }} />
+          <span className="text-[10px] text-card-muted">Consumo (kWh)</span>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        {/* Franjas horarias */}
-        <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-card-fg">Consumo por franja horaria</h2>
-          <p className="mb-4 text-xs text-card-muted">Distribución tarifaria del consumo</p>
-          <div className="space-y-5">
-            {FRANJAS.map((f) => {
-              const totalActual = FRANJAS.reduce((s, x) => s + x.actual, 0);
-              const pct = (f.actual / totalActual) * 100;
-              const d = delta(f.actual, f.anterior);
-              return (
-                <div key={f.label}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-card-fg">{f.label}</span>
-                      <span className="ml-2 text-xs text-card-muted">{f.horario}</span>
-                    </div>
-                    <span className="font-mono text-xs text-card-muted tabular-nums">{fmt(f.actual, 1)} MWh</span>
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-3">
-                    <div className="h-3 flex-1 rounded-full bg-raised">
-                      <div className="h-3 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: f.color }} />
-                    </div>
-                    <span className="w-12 text-right font-mono text-[11px] text-card-muted tabular-nums">{fmt(pct, 0)}%</span>
-                  </div>
-                  <p className={`mt-1 text-[10px] ${d.positive ? 'text-success' : 'text-danger'}`}>
-                    {d.label} vs {c.anterior.label}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Top picos */}
-        <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3 flex flex-col">
-          <h2 className="text-sm font-semibold text-card-fg">Top peaks de demanda</h2>
-          <p className="mb-3 text-xs text-card-muted">Máximos registrados en el período</p>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <table className="min-w-full">
-              <thead className="sticky top-0 bg-card">
-                <tr className="border-b border-card-border">
-                  <Th>#</Th>
-                  <Th>Fecha</Th>
-                  <Th>Hora</Th>
-                  <Th>Demanda</Th>
-                  <Th>Centro</Th>
-                  <Th>Duración</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border">
-                {PICOS.map((p, i) => (
-                  <tr key={p.fecha + p.hora} className="hover:bg-surface">
-                    <td className="px-4 py-2.5 font-mono text-xs text-muted">{i + 1}</td>
-                    <td className="px-4 py-2.5 font-mono text-sm text-foreground tabular-nums">{p.fecha}</td>
-                    <td className="px-4 py-2.5 font-mono text-sm text-foreground tabular-nums">{p.hora}</td>
-                    <td className="px-4 py-2.5">
-                      <span className="font-mono text-sm font-medium text-foreground tabular-nums">{fmt(p.kw)}</span>
-                      <span className="ml-1 text-xs text-muted">kW</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-sm text-muted">{p.centro}</td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-muted">{p.duracion}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Comparativa centros */}
       <div className="rounded-xl border border-card-border bg-card p-4">
-        <h2 className="text-sm font-semibold text-card-fg">Intensidad por centro</h2>
-        <p className="mb-3 text-xs text-card-muted">kWh/m² — eficiencia de consumo por superficie</p>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {[...CENTROS].sort((a, b) => b.intensidad - a.intensidad).map((c) => {
-            const maxInt = Math.max(...CENTROS.map((x) => x.intensidad));
-            const pct = (c.intensidad / maxInt) * 100;
-            return (
-              <div key={c.id} className="rounded-lg border border-card-border px-3 py-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-card-fg truncate">{c.name}</span>
-                  <span className="font-mono text-xs text-card-muted tabular-nums">{fmt(c.intensidad, 1)}</span>
-                </div>
-                <div className="mt-1.5 h-1.5 rounded-full bg-raised">
-                  <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: pct > 80 ? 'var(--color-danger)' : pct > 50 ? 'var(--color-warning)' : 'var(--color-success)' }} />
-                </div>
-                <p className="mt-1 text-[10px] text-muted">{fmt(c.superficie)} m² · {fmt(c.consumoMes, 1)} MWh</p>
-              </div>
-            );
-          })}
+        <div>
+          <h2 className="text-sm font-semibold text-card-fg">Comparativa entre centros</h2>
+          <p className="mb-3 text-xs text-card-muted">Elige dos centros para contrastar su patrón</p>
         </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {CENTROS.map((c, i) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => toggleCentro(c.id)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${centrosSeleccionados.has(c.id) ? 'text-white' : 'border border-border text-foreground hover:bg-surface'}`}
+              style={centrosSeleccionados.has(c.id) ? { backgroundColor: CENTRO_COLORS[i % CENTRO_COLORS.length] } : undefined}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+        {centrosSeleccionados.size > 0 && (
+          <MultiLineChart
+            series={CENTROS.filter((c) => centrosSeleccionados.has(c.id)).map((c, i) => ({
+              data: CURVAS_CENTRO[c.id] ?? CURVA_CARGA_GLOBAL,
+              color: CENTRO_COLORS[CENTROS.findIndex((x) => x.id === c.id) % CENTRO_COLORS.length],
+              label: c.name,
+            }))}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function CompareCard({ label, actual, anterior, delta }: Readonly<{
-  label: string; actual: string; anterior: string; delta: { label: string; positive: boolean };
+function LineChart({ data, color }: Readonly<{ data: number[]; color: string }>) {
+  const max = Math.max(...data, 1);
+  const W = 700;
+  const H = 200;
+  const padTop = 10;
+  const padBottom = 22;
+  const padX = 40;
+  const chartW = W - padX;
+  const chartH = H - padTop - padBottom;
+  const baseline = padTop + chartH;
+
+  const points = data.map((v, i) => ({
+    x: padX + (i / (data.length - 1)) * chartW,
+    y: padTop + chartH - (v / max) * chartH,
+  }));
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((pct) => ({
+    y: padTop + chartH - pct * chartH,
+    label: fmt(Math.round(max * pct)),
+  }));
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full" preserveAspectRatio="xMidYMid meet">
+      {yTicks.map((t) => (
+        <g key={t.y}>
+          <line x1={padX} y1={t.y} x2={W} y2={t.y} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+          <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">{t.label}</text>
+        </g>
+      ))}
+      <line x1={padX} y1={baseline} x2={W} y2={baseline} stroke="var(--color-border)" strokeWidth="0.5" />
+      {data.map((_, i) => i % 3 === 0 ? (
+        <text key={i} x={points[i].x} y={baseline + 14} textAnchor="middle" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">
+          {String(i).padStart(2, '0')}:00
+        </text>
+      ) : null)}
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MultiLineChart({ series }: Readonly<{ series: { data: number[]; color: string; label: string }[] }>) {
+  const allData = series.flatMap((s) => s.data);
+  const max = Math.max(...allData, 1);
+  const W = 700;
+  const H = 200;
+  const padTop = 10;
+  const padBottom = 22;
+  const padX = 40;
+  const chartW = W - padX;
+  const chartH = H - padTop - padBottom;
+  const baseline = padTop + chartH;
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((pct) => ({
+    y: padTop + chartH - pct * chartH,
+    label: fmt(Math.round(max * pct)),
+  }));
+
+  return (
+    <>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" preserveAspectRatio="xMidYMid meet">
+        {yTicks.map((t) => (
+          <g key={t.y}>
+            <line x1={padX} y1={t.y} x2={W} y2={t.y} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+            <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">{t.label}</text>
+          </g>
+        ))}
+        <line x1={padX} y1={baseline} x2={W} y2={baseline} stroke="var(--color-border)" strokeWidth="0.5" />
+        {Array.from({ length: 24 }).map((_, i) => i % 3 === 0 ? (
+          <text key={i} x={padX + (i / 23) * chartW} y={baseline + 14} textAnchor="middle" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">
+            {String(i).padStart(2, '0')}:00
+          </text>
+        ) : null)}
+        {series.map((s) => {
+          const points = s.data.map((v, i) => ({
+            x: padX + (i / (s.data.length - 1)) * chartW,
+            y: padTop + chartH - (v / max) * chartH,
+          }));
+          const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+          return <path key={s.label} d={path} fill="none" stroke={s.color} strokeWidth="2" strokeLinejoin="round" />;
+        })}
+      </svg>
+      <div className="mt-2 flex flex-wrap gap-4 px-1">
+        {series.map((s) => (
+          <span key={s.label} className="flex items-center gap-1.5">
+            <span className="h-0.5 w-3 rounded-full" style={{ backgroundColor: s.color }} />
+            <span className="text-[10px] text-card-muted">{s.label}</span>
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function KpiCard({ label, value, unit, sub, positive }: Readonly<{
+  label: string; value: string; unit?: string; sub: string; positive?: boolean;
 }>) {
   return (
-    <div className="rounded-lg border border-card-border px-3 py-2.5">
-      <p className="text-[11px] text-card-muted">{label}</p>
-      <p className="mt-1 font-mono text-lg font-bold text-card-fg tabular-nums">{actual}</p>
-      <div className="mt-1 flex items-center justify-between">
-        <span className="text-[10px] text-card-muted">ant: {anterior}</span>
-        <span className={`text-[10px] font-medium ${delta.positive ? 'text-success' : 'text-danger'}`}>{delta.label}</span>
-      </div>
+    <div className="rounded-xl border border-card-border bg-card px-4 py-3">
+      <p className="text-xs text-card-muted">{label}</p>
+      <p className="mt-1 font-mono text-2xl font-bold text-card-fg tabular-nums">
+        {value}
+        {unit && <span className="ml-0.5 text-sm font-normal text-card-muted">{unit}</span>}
+      </p>
+      <p className={`mt-1 text-[11px] ${positive ? 'text-success' : 'text-muted'}`}>{sub}</p>
     </div>
   );
-}
-
-function Th({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{children}</th>;
 }

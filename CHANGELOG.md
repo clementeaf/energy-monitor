@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.60.4] - 2026-09-24 — CONSUMO ALIGN TO DEMO
+
+### Changed (Frontend — Consumo)
+- **Vista reescrita desde cero** para match con demo interactiva EMS.
+- **Título** — "Consumo" + "Picos y curvas de carga" (antes: "Analítica de Consumo").
+- **Tabs franja** — Hoy / 7 días / 30 días / Todas las franjas / Punta 18–23h / Valle 00–07h. Pills con accent activo.
+- **Botón "Exportar serie"** — outline en barra de filtros.
+- **4 KPIs** — Pico de demanda, Consumo medio, Factor de carga, Puntos de la serie.
+- **Curva de carga agregada** — gráfico línea SVG + link "Analítica de Consumo" accent.
+- **Comparativa entre centros** — pills toggle por centro (multi-select), gráfico multi-línea superpuesto con colores por centro. Default: Centro Costanera + Planta Quilicura.
+- **Removidos** — comparativa períodos, franjas horarias barras, top peaks tabla, intensidad por centro (diseño anterior propio, no en demo).
+
+---
+
 ## [2.60.3] - 2026-09-24 — REMARCADORES ALIGN TO DEMO
 
 ### Changed (Frontend — Remarcadores)

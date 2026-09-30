@@ -5,6 +5,7 @@ const sharedOptions = {
   lang: { rangeSelectorZoom: '' },
   // Suppress HC warning; full a11y module needs separate init per bundle (core vs stock).
   accessibility: { enabled: false },
+  time: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
 };
 
 HighchartsStock.setOptions(sharedOptions);

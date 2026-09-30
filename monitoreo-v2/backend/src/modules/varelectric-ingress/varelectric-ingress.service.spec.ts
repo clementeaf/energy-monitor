@@ -99,16 +99,17 @@ describe('VarelectricIngressService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('skips records without power and does not touch meters when none remain', async () => {
+  it('skips records missing power or energy and does not touch meters when none remain', async () => {
     query.mockResolvedValueOnce([
       { id: BUILDING_ID, code: 'VE-ALTOPENA', timezone: 'America/Santiago' },
     ]);
 
     const result = await service.ingest(buildKeyUser([BUILDING_ID]), [
       buildRecord({ tag9: null }),
+      buildRecord({ tag14: undefined }),
     ]);
 
-    expect(result).toEqual({ inserted: 0, skipped: 1 });
+    expect(result).toEqual({ inserted: 0, skipped: 2 });
     expect(query).toHaveBeenCalledTimes(1);
   });
 

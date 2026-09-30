@@ -24,6 +24,8 @@ const TAG_COLUMNS = {
   energy_kwh_total: 'tag14',
 } as const satisfies Record<string, keyof CreateVarElectricDto>;
 
+const REQUIRED_TAGS = [TAG_COLUMNS.power_kw, TAG_COLUMNS.energy_kwh_total];
+
 const READING_COLUMNS = Object.keys(
   TAG_COLUMNS,
 ) as (keyof typeof TAG_COLUMNS)[];
@@ -43,8 +45,8 @@ export interface VarelectricIngestResult {
 export class VarelectricIngressService {
   constructor(private readonly dataSource: DataSource) {}
 
-  static hasPower(record: CreateVarElectricDto): boolean {
-    return record.tag9 != null;
+  static hasRequiredTags(record: CreateVarElectricDto): boolean {
+    return REQUIRED_TAGS.every((tag) => record[tag] != null);
   }
 
   static mapTagsToReadings(record: CreateVarElectricDto): (number | null)[] {
@@ -65,12 +67,12 @@ export class VarelectricIngressService {
     records: CreateVarElectricDto[],
   ): Promise<VarelectricIngestResult> {
     const building = await this.resolveBuilding(user);
-    const withPower = records.filter((record) =>
-      VarelectricIngressService.hasPower(record),
+    const complete = records.filter((record) =>
+      VarelectricIngressService.hasRequiredTags(record),
     );
-    if (withPower.length === 0) return { inserted: 0, skipped: records.length };
+    if (complete.length === 0) return { inserted: 0, skipped: records.length };
 
-    const remarcadorIds = [...new Set(withPower.map((r) => r.id_remarcador))];
+    const remarcadorIds = [...new Set(complete.map((r) => r.id_remarcador))];
     const meterIdByRemarcador = await this.ensureMeters(
       user.tenantId,
       building,
@@ -78,8 +80,8 @@ export class VarelectricIngressService {
     );
 
     let inserted = 0;
-    for (let i = 0; i < withPower.length; i += INSERT_CHUNK_SIZE) {
-      const chunk = withPower.slice(i, i + INSERT_CHUNK_SIZE);
+    for (let i = 0; i < complete.length; i += INSERT_CHUNK_SIZE) {
+      const chunk = complete.slice(i, i + INSERT_CHUNK_SIZE);
       inserted += await this.insertReadings(
         user.tenantId,
         building,
@@ -162,8 +164,8 @@ export class VarelectricIngressService {
     });
 
     const inserted = await this.dataSource.query<unknown[]>(
-      `INSERT INTO readings (tenant_id, meter_id, timestamp, source, ${READING_COLUMNS.join(', ')})
-       SELECT v.tenant_id::uuid, v.meter_id, v.ts, v.source, ${READING_COLUMNS.map((c) => `v.${c}::double precision`).join(', ')}
+      `INSERT INTO readings (tenant_id, meter_id, timestamp, source, ingested_at, ${READING_COLUMNS.join(', ')})
+       SELECT v.tenant_id::uuid, v.meter_id, v.ts, v.source, NOW(), ${READING_COLUMNS.map((c) => `v.${c}::double precision`).join(', ')}
        FROM (VALUES ${tuples.join(', ')}) AS v(tenant_id, meter_id, ts, source, ${READING_COLUMNS.join(', ')})
        ON CONFLICT DO NOTHING
        RETURNING 1`,

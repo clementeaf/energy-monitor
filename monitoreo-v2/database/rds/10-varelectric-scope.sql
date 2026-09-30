@@ -1,5 +1,6 @@
 DELETE FROM tenants WHERE id = 'b0000002-0000-0000-0000-000000000001';
 DELETE FROM buildings WHERE code = 'SIEM-01';
+UPDATE buildings SET name = 'Alto Peñalolén', address = 'Peñalolén, Santiago, Chile' WHERE code = 'VE-ALTOPENA';
 
 INSERT INTO buildings (id, tenant_id, name, code, address, area_sqm)
 VALUES ('b0000003-0000-0000-0000-000000000000', '84adf8d4-830d-46e1-bef5-e2eac6a19014', 'Quilicura', 'VE-QUILICURA', 'Quilicura, Santiago, Chile', 0)

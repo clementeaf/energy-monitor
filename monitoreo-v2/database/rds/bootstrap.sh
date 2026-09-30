@@ -20,9 +20,9 @@ apply_sql() {
 }
 
 ordered_sql_files() {
-  ls "$DATABASE_DIR"/init/*.sql | sort | grep -v seed
-  ls "$DATABASE_DIR"/init/*seed*.sql | sort
-  ls "$DATABASE_DIR"/migrations/*.sql | sort -V | while read -r file; do
+  find "$DATABASE_DIR/init" -name "*.sql" ! -name "*seed*" | sort
+  find "$DATABASE_DIR/init" -name "*seed*.sql" | sort
+  find "$DATABASE_DIR/migrations" -name "*.sql" | sort -V | while read -r file; do
     [[ "$(basename "$file")" =~ $SKIPPED_MIGRATIONS ]] || echo "$file"
   done
   find "$DATABASE_DIR/rds" -name "[1-9]*.sql" | sort -V

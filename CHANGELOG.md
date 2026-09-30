@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.62.0] - 2026-09-30 — MIGRACIÓN A CUENTA AWS NUEVA + VARELECTRIC DIRECTO
+
+### Added (Infra)
+- **Deploy de un comando a cualquier cuenta** — `monitoreo-v2/infra/aws/stack.yml` (CloudFormation) + `infra/aws/deploy.sh`: RDS PostgreSQL 16, Lambda + API Gateway HTTP, EventBridge Scheduler, S3 + CloudFront, secretos generados y dominio opcional (ACM + Route 53). Mismo comando para la primera instalación y para cada actualización.
+- **Bootstrap de base en PostgreSQL sin TimescaleDB** — `database/rds/bootstrap.sh` + capa de compatibilidad (`time_bucket`, políticas no-op, agregados como vistas). Semilla acotada a los edificios Varelectric.
+- **Runbook** — `docs/ops/aws-account-setup.md` reescrito para la arquitectura Lambda. `docs/ops/varelectric-integration.md` para entregar al proveedor.
+
+### Changed (Backend)
+- **Varelectric ingresa directo a `readings`** — el edificio sale de la API key, los remarcadores nuevos se crean solos y el reenvío no duplica. Se eliminan las bases intermedias (`monitoreo_v3`, `altopena`, `quilicura`, `renaissance`) y el cron de sincronización. El payload de Varelectric no cambia.
+- **Cron jobs en Lambda** — los 8 `@Cron` (motor de alertas, escalamiento, reportes, retención…) no corrían en Lambda. Ahora EventBridge invoca la Lambda con `{"job": ...}`. Un test falla si un cron no tiene su schedule.
+- **Setup HTTP compartido** entre `main.ts` y `lambda.ts` (`http-app.ts`); la Lambda ahora valida las variables de entorno. Runtime Node 24.
+
+### Changed (Frontend)
+- **Vistas núcleo con datos reales** — Resumen, Centros, Remarcadores (lista y detalle) y Consumo leen la API. Estado de conexión por antigüedad de la última lectura (≤30 min conectado, ≤24 h sin señal, más: caído). Los campos sin fuente (margen, señal, firmware, IP) muestran "—".
+- **Curvas de carga = demanda total** (suma de medidores). Un solo `LoadCurveChart` reemplaza 4 gráficos locales.
+
+### Fixed
+- **Auditoría de requests con API key** — fallaban siempre (`user_id` no era UUID); ahora se registran con `apiKeyId`.
+- **Gráficos Highcharts en UTC** — ahora usan la zona horaria del navegador.
+- **Registros Varelectric sin energía** — antes daban 500 y se perdía el lote completo; ahora se omiten.
+
+---
+
 ## [2.61.1] - 2026-09-24 — CROSS-VIEW NAVIGATION
 
 ### Added (Frontend — Interconectividad)

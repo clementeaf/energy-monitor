@@ -1,122 +1,44 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
-import type { INestApplication } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { JsonLoggerService } from './common/logging/json-logger.service';
 import { validateEnv } from './common/validation/env-validation';
+import { configureHttpApp, isProductionEnv } from './http-app';
 
-/**
- * Activa logs en una línea JSON (CloudWatch / agregadores).
- * @returns true si se usa JsonLoggerService
- */
 function useJsonLogging(): boolean {
-  return (
-    process.env.NODE_ENV === 'production' || process.env.LOG_FORMAT === 'json'
-  );
-}
-
-/**
- * Confía en el primer proxy (ALB / API Gateway) para IP y HSTS correctos.
- * @param app - Aplicación Nest
- */
-function configureTrustProxy(app: INestApplication): void {
-  if (process.env.NODE_ENV !== 'production') {
-    return;
-  }
-  const expressApp = app.getHttpAdapter().getInstance() as {
-    set: (key: string, value: unknown) => void;
-  };
-  expressApp.set('trust proxy', 1);
+  return isProductionEnv() || process.env.LOG_FORMAT === 'json';
 }
 
 async function bootstrap() {
-  // ISO 27001: validate critical env vars before startup
   validateEnv();
 
   const jsonLogs = useJsonLogging();
-  const jsonLogger = new JsonLoggerService();
   const app = await NestFactory.create(AppModule, {
     bufferLogs: jsonLogs,
-    logger: jsonLogs ? jsonLogger : ['error', 'warn', 'log'],
+    logger: jsonLogs ? new JsonLoggerService() : ['error', 'warn', 'log'],
   });
 
-  const port = process.env.PORT ?? 4000;
-  const isProduction = process.env.NODE_ENV === 'production';
+  configureHttpApp(app);
 
-  configureTrustProxy(app);
-
-  // ISO 27001: Security headers
-  app.use(
-    helmet({
-      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // OAuth popups
-      hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
-      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-      contentSecurityPolicy: false, // Handled by frontend CSP meta tag
-    }),
-  );
-
-  // Request body size limits (prevent DoS via large payloads)
-  app.use(require('express').json({ limit: '1mb' }));
-  app.use(require('express').urlencoded({ limit: '1mb', extended: true }));
-
-  // ISO 27001: Secure cookie parsing
-  app.use(cookieParser(process.env.COOKIE_SECRET));
-
-  // Tenant override: read x-tenant-id header (preferred) or ?tenantId query param (fallback)
-  app.use((req: { headers?: Record<string, unknown>; query?: Record<string, unknown>; _tenantOverride?: string }, _res: unknown, next: () => void) => {
-    const headerTenantId = req.headers?.['x-tenant-id'] as string | undefined;
-    const queryTenantId = req.query?.tenantId as string | undefined;
-    const tenantId = headerTenantId || queryTenantId;
-    if (tenantId) {
-      req._tenantOverride = tenantId;
-      delete req.query?.tenantId;
-    }
-    next();
-  });
-
-  // ISO 27001: Strict CORS
-  app.enableCors({
-    origin: isProduction
-      ? [process.env.FRONTEND_URL ?? 'https://monitoreo.cl']
-      : [
-          'http://localhost:5173',
-          'http://127.0.0.1:5173',
-          'http://localhost:3000',
-          'http://127.0.0.1:3000',
-        ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'x-api-key'],
-  });
-
-  // Global validation (ISO 27001: input validation at boundary)
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  // API prefix
-  app.setGlobalPrefix('api');
-
-  // Swagger / OpenAPI — full platform API
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Energy Monitor API')
-    .setDescription('Multi-tenant energy monitoring platform. JWT cookie auth for internal, X-API-Key for external.')
-    .setVersion('1.1')
-    .addCookieAuth('access_token')
-    .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  if (!isProduction) {
-    SwaggerModule.setup('api/docs', app, document);
+  if (!isProductionEnv()) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Energy Monitor API')
+      .setDescription(
+        'Multi-tenant energy monitoring platform. JWT cookie auth for internal, X-API-Key for external.',
+      )
+      .setVersion('1.1')
+      .addCookieAuth('access_token')
+      .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
+      .build();
+    SwaggerModule.setup(
+      'api/docs',
+      app,
+      SwaggerModule.createDocument(app, swaggerConfig),
+    );
   }
 
+  const port = process.env.PORT ?? 4000;
   await app.listen(port);
   Logger.log(`Server running on port ${port}`, 'Bootstrap');
 }

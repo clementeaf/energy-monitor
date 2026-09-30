@@ -8,6 +8,7 @@ import {
 import { Observable, tap, catchError } from 'rxjs';
 import { DataSource } from 'typeorm';
 import type { JwtPayload } from '../decorators/current-user.decorator';
+import type { ValidatedApiKeyPayload } from '../../modules/api-keys/api-keys.service';
 
 /** GET paths that access personal data — must be audited for Ley 21.719 traceability. */
 const SENSITIVE_GET_PATHS = [
@@ -61,6 +62,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     }
 
     const user = request.user as JwtPayload | undefined;
+    const apiKeyId = (user as Partial<ValidatedApiKeyPayload> | undefined)?._apiKeyId;
     const startTime = Date.now();
     const routePath = request.route?.path ?? request.url;
     const body = sanitizeBody(request.body);
@@ -72,13 +74,14 @@ export class AuditLogInterceptor implements NestInterceptor {
            VALUES ($1, $2, $3, $4, $5, $6, $7::inet, $8)`,
           [
             user?.tenantId ?? null,
-            user?.sub ?? null,
+            apiKeyId ? null : (user?.sub ?? null),
             `${method} ${routePath}`,
             context.getClass().name.replace('Controller', ''),
             request.params?.id ?? null,
             JSON.stringify({
               statusCode,
               duration: Date.now() - startTime,
+              ...(apiKeyId ? { apiKeyId } : {}),
               ...(body ? { body } : {}),
               ...(error ? { error } : {}),
               ...(request.query && Object.keys(request.query).length > 0 ? { query: request.query } : {}),

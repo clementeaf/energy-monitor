@@ -1,4 +1,12 @@
-import { IsInt, IsDateString, IsOptional, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsInt,
+  IsDateString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ArrayMaxSize,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateVarElectricDto {
@@ -38,6 +46,7 @@ export class CreateVarElectricDto {
 
 export class CreateVarElectricBatchDto {
   @IsArray()
+  @ArrayMaxSize(1000)
   @ValidateNested({ each: true })
   @Type(() => CreateVarElectricDto)
   records!: CreateVarElectricDto[];

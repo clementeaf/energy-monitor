@@ -1,8 +1,18 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { RequirePermission } from '../../common/guards/permissions.guard';
-import { VarelectricIngressService } from './varelectric-ingress.service';
-import { CreateVarElectricDto, CreateVarElectricBatchDto } from './dto/create-var-electric.dto';
+import {
+  CurrentUser,
+  type JwtPayload,
+} from '../../common/decorators/current-user.decorator';
+import {
+  VarelectricIngressService,
+  type VarelectricIngestResult,
+} from './varelectric-ingress.service';
+import {
+  CreateVarElectricDto,
+  CreateVarElectricBatchDto,
+} from './dto/create-var-electric.dto';
 
 @ApiTags('Varelectric Ingress')
 @ApiSecurity('api-key')
@@ -13,20 +23,28 @@ export class VarelectricIngressController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission('varelectric', 'create')
-  @ApiOperation({ summary: 'Insert single var_electric record' })
-  async createOne(@Body() dto: CreateVarElectricDto) {
-    await this.svc.insertOne(dto);
-    return { ok: true };
+  @ApiOperation({
+    summary:
+      'Ingest one var_electric record into readings of the API key building',
+  })
+  createOne(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateVarElectricDto,
+  ): Promise<VarelectricIngestResult> {
+    return this.svc.ingest(user, [dto]);
   }
 
   @Post('batch')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission('varelectric', 'create')
-  @ApiOperation({ summary: 'Insert batch of var_electric records (max 1000)' })
-  async createBatch(@Body() dto: CreateVarElectricBatchDto) {
-    if (dto.records.length > 1000) {
-      return { error: 'Max 1000 records per batch' };
-    }
-    return this.svc.insertBatch(dto.records);
+  @ApiOperation({
+    summary:
+      'Ingest up to 1000 var_electric records into readings of the API key building',
+  })
+  createBatch(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateVarElectricBatchDto,
+  ): Promise<VarelectricIngestResult> {
+    return this.svc.ingest(user, dto.records);
   }
 }

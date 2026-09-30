@@ -1,116 +1,133 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { RESUMEN_KPIS, CENTROS, REMARCADORES, CURVA_CARGA_GLOBAL } from './mock-data';
+import { QueryStateView } from '../../components/ui/QueryStateView';
+import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
+import { LoadCurveChart } from './LoadCurveChart';
+import { formatDateTime, formatNumber } from './format';
+import { PORTFOLIO_CURVE } from './fleet';
+import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
 
-function fmt(n: number, d = 0): string {
-  return n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
+const CENTRO_COLORS: Record<string, string> = {
+  operativo: 'var(--color-accent)',
+  advertencia: 'var(--color-warning)',
+  alarma: 'var(--color-danger)',
+};
+
+const RANGOS: { key: LoadRange; label: string }[] = [
+  { key: 'hoy', label: 'Hoy' },
+  { key: '7dias', label: '7 días' },
+  { key: '30dias', label: '30 días' },
+];
 
 export function ResumenPage() {
   const navigate = useNavigate();
-  const k = RESUMEN_KPIS;
-  const sinConexion = REMARCADORES.filter((r) => r.estado === 'caido' || r.estado === 'sin_senal');
+  const fleet = useEmsFleet();
+  const alertsQuery = useAlertsQuery({ status: 'active' });
   const [bannerVisible, setBannerVisible] = useState(true);
+
+  const { centros, remarcadores } = fleet;
+  const consumoMesMwh = centros.reduce((sum, c) => sum + c.consumoMesKwh, 0) / 1000;
+  const conectados = remarcadores.filter((r) => r.estado === 'conectado').length;
+  const caidos = remarcadores.filter((r) => r.estado === 'caido').length;
+  const sinSenal = remarcadores.filter((r) => r.estado === 'sin_senal').length;
+  const sinConexion = remarcadores.filter((r) => r.estado !== 'conectado');
+  const alertas = alertsQuery.data ?? [];
+  const alertasCriticas = alertas.filter((a) => a.severity === 'critical').length;
+  const maxConsumo = Math.max(...centros.map((c) => c.consumoMesKwh), 1);
+  const periodo = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Resumen</h1>
-          <p className="text-xs text-muted">Periodo: septiembre 2026</p>
+          <p className="text-xs text-muted">Periodo: {periodo}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-success">
-            <span className="h-1.5 w-1.5 rounded-full bg-success" />
-            En vivo
-          </span>
-        </div>
+        <span className="flex items-center gap-1.5 text-xs font-medium text-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
+          En vivo
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiCard label="Consumo del mes" value={fmt(k.consumoMes, 1)} unit="MWh" delta={`↑ ${k.consumoDelta}% vs agosto`} positive onClick={() => navigate('/consumo')} />
-        <KpiCard label="Gasto en compra" value={`$${fmt(k.gastoCompra, 1)}M`} delta={`↑ ${k.gastoDelta}% vs agosto`} onClick={() => navigate('/margenes')} />
-        <KpiCard label="Margen estimado" value={`$${fmt(k.margenEstimado, 1)}M`} delta={`↑ ${k.margenDelta}% sobre venta`} positive onClick={() => navigate('/margenes')} />
-        <KpiCard label="Centros activos" value={String(k.centrosActivos)} delta={`↑ +${k.centrosDelta} este trimestre`} positive onClick={() => navigate('/centros')} />
-        <KpiCard label="Remarcadores" value={`${k.remarcadoresConectados}`} unit={`/${k.remarcadoresTotal}`} delta={`↓ ${k.remarcadoresCaidos} caído · ${k.remarcadoresSinSenal} sin señal`} negative onClick={() => navigate('/remarcadores')} />
-        <KpiCard label="Alertas activas" value={String(k.alertasActivas)} delta={`↓ ${k.alertasCriticas} críticas`} negative onClick={() => navigate('/alertas')} />
-      </div>
+      <div className="flex shrink-0 flex-col">
+        <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
+          <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <KpiCard label="Consumo del mes" value={formatNumber(consumoMesMwh, 1)} unit="MWh" delta="Mes en curso" onClick={() => navigate('/consumo')} />
+              <KpiCard label="Gasto en compra" value="—" delta="Sin tarifas cargadas" onClick={() => navigate('/margenes')} />
+              <KpiCard label="Margen estimado" value="—" delta="Sin tarifas cargadas" onClick={() => navigate('/margenes')} />
+              <KpiCard label="Centros activos" value={String(centros.length)} delta={`${centros.filter((c) => c.estado === 'operativo').length} operativos`} positive onClick={() => navigate('/centros')} />
+              <KpiCard label="Remarcadores" value={String(conectados)} unit={`/${remarcadores.length}`} delta={`${caidos} caídos · ${sinSenal} sin señal`} negative={caidos + sinSenal > 0} onClick={() => navigate('/remarcadores')} />
+              <KpiCard label="Alertas activas" value={alertsQuery.isPending ? '…' : String(alertas.length)} delta={`${alertasCriticas} críticas`} negative={alertasCriticas > 0} onClick={() => navigate('/alertas')} />
+            </div>
 
-      {sinConexion.length > 0 && bannerVisible && (
-        <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-bg px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="text-warning">⚠</span>
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                Sin conexión · {sinConexion.length} en cola
-              </p>
-              <p className="text-xs text-muted">
-                Sin lecturas desde las {sinConexion[0].ultimaLectura} en {sinConexion[0].centroName}. Revisa la flota para reanudar la medición.
-              </p>
+            {sinConexion.length > 0 && bannerVisible && (
+              <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-bg px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-warning">⚠</span>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Sin conexión · {sinConexion.length} remarcadores</p>
+                    <p className="text-xs text-muted">
+                      {sinConexion[0].code} ({sinConexion[0].centroName}) sin lecturas desde {formatDateTime(sinConexion[0].ultimaLectura)}. Revisa la flota.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/remarcadores')}>
+                    Ver flota
+                  </button>
+                  <button type="button" className="text-muted hover:text-foreground" onClick={() => setBannerVisible(false)} aria-label="Cerrar aviso">
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-4 lg:grid-cols-5">
+              <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3">
+                <CurvaCargaGlobal centrosActivos={centros.length} />
+              </div>
+
+              <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2">
+                <h2 className="text-sm font-semibold text-card-fg">Centros por consumo</h2>
+                <p className="mb-3 text-xs text-card-muted">Acumulado del mes · haz clic para abrir el centro</p>
+                <div className="space-y-3">
+                  {[...centros].sort((a, b) => b.consumoMesKwh - a.consumoMesKwh).map((c) => (
+                    <button key={c.id} type="button" onClick={() => navigate(`/centros/${c.id}`)} className="flex w-full items-center gap-3 text-left hover:opacity-80">
+                      <span className="w-36 truncate text-xs text-card-fg">{c.name}</span>
+                      <div className="flex-1">
+                        <div className="h-2 rounded-full bg-raised">
+                          <div className="h-2 rounded-full transition-all" style={{ width: `${(c.consumoMesKwh / maxConsumo) * 100}%`, backgroundColor: CENTRO_COLORS[c.estado] }} />
+                        </div>
+                      </div>
+                      <span className="w-20 text-right font-mono text-xs text-card-muted">{formatNumber(c.consumoMesKwh / 1000, 1)} MWh</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/remarcadores')}>
-              Ver flota
-            </button>
-            <button type="button" className="text-muted hover:text-foreground" onClick={() => setBannerVisible(false)}>
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3">
-          <CurvaCarga data={CURVA_CARGA_GLOBAL} centrosActivos={k.centrosActivos} peakHora={k.peakHora} peakValue={k.peakDemanda} />
-        </div>
-
-        <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-card-fg">Centros por consumo</h2>
-          <p className="mb-3 text-xs text-card-muted">Acumulado del mes · haz clic para abrir el centro</p>
-          <div className="space-y-3">
-            {[...CENTROS].sort((a, b) => b.consumoMes - a.consumoMes).map((c) => {
-              const max = Math.max(...CENTROS.map((x) => x.consumoMes));
-              const pct = (c.consumoMes / max) * 100;
-              const colors: Record<string, string> = { operativo: 'var(--color-accent)', advertencia: 'var(--color-warning)', alarma: 'var(--color-danger)' };
-              return (
-                <button key={c.id} type="button" onClick={() => navigate(`/centros/${c.id}`)} className="flex w-full items-center gap-3 text-left hover:opacity-80">
-                  <span className="w-36 truncate text-xs text-card-fg">{c.name}</span>
-                  <div className="flex-1">
-                    <div className="h-2 rounded-full bg-raised">
-                      <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: colors[c.estado] }} />
-                    </div>
-                  </div>
-                  <span className="w-20 text-right font-mono text-xs text-card-muted">{fmt(c.consumoMes, 1)} MWh</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        </QueryStateView>
       </div>
     </div>
   );
 }
 
-function CurvaCarga({ data, centrosActivos, peakHora, peakValue }: Readonly<{
-  data: number[]; centrosActivos: number; peakHora: string; peakValue: number;
-}>) {
-  const [rango, setRango] = useState<'hoy' | '7dias' | '30dias'>('hoy');
-  const rangos = [
-    { key: 'hoy' as const, label: 'Hoy' },
-    { key: '7dias' as const, label: '7 días' },
-    { key: '30dias' as const, label: '30 días' },
-  ];
+function CurvaCargaGlobal({ centrosActivos }: Readonly<{ centrosActivos: number }>) {
+  const [rango, setRango] = useState<LoadRange>('hoy');
+  const { phase, curves } = useLoadCurves(rango);
+  const points = curves.get(PORTFOLIO_CURVE) ?? [];
+  const peak = points.reduce((best, point) => (point.kw > best.kw ? point : best), { timestamp: '', kw: 0 });
 
   return (
     <>
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-sm font-semibold text-card-fg">Curva de carga global</h2>
-          <p className="mb-3 text-xs text-card-muted">Consumo agregado de los {centrosActivos} centros</p>
+          <p className="mb-3 text-xs text-card-muted">Demanda total de los {centrosActivos} centros</p>
         </div>
         <div className="flex rounded-lg border border-card-border bg-surface">
-          {rangos.map((r) => (
+          {RANGOS.map((r) => (
             <button
               key={r.key}
               type="button"
@@ -122,68 +139,13 @@ function CurvaCarga({ data, centrosActivos, peakHora, peakValue }: Readonly<{
           ))}
         </div>
       </div>
-      <AreaChart data={data} />
-      <div className="mt-2 flex items-center gap-4 px-1">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-sm bg-accent" />
-          <span className="text-[10px] text-card-muted">Consumo (kWh)</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full border border-card-muted" />
-          <span className="text-[10px] text-card-muted">Pico {peakHora} · {fmt(peakValue)} kWh</span>
-        </span>
-      </div>
+      <QueryStateView phase={phase} error={null} variant="widget">
+        <LoadCurveChart series={[{ label: 'Potencia (kW)', color: 'var(--color-accent)', points }]} filled />
+        {peak.kw > 0 && (
+          <p className="mt-1 px-1 text-[10px] text-card-muted">Pico {formatDateTime(peak.timestamp)} · {formatNumber(peak.kw, 1)} kW</p>
+        )}
+      </QueryStateView>
     </>
-  );
-}
-
-function AreaChart({ data }: Readonly<{ data: number[] }>) {
-  const max = Math.max(...data, 1);
-  const W = 600;
-  const H = 200;
-  const padTop = 10;
-  const padBottom = 22;
-  const padX = 40;
-  const chartW = W - padX;
-  const chartH = H - padTop - padBottom;
-  const baseline = padTop + chartH;
-
-  const points = data.map((v, i) => ({
-    x: padX + (i / (data.length - 1)) * chartW,
-    y: padTop + chartH - (v / max) * chartH,
-  }));
-
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-  const areaPath = `${linePath} L${points[points.length - 1].x},${baseline} L${padX},${baseline} Z`;
-
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((pct) => ({
-    y: padTop + chartH - pct * chartH,
-    label: fmt(Math.round(max * pct)),
-  }));
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.03" />
-        </linearGradient>
-      </defs>
-      {yTicks.map((t) => (
-        <g key={t.y}>
-          <line x1={padX} y1={t.y} x2={W} y2={t.y} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-          <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">{t.label}</text>
-        </g>
-      ))}
-      <line x1={padX} y1={baseline} x2={W} y2={baseline} stroke="var(--color-border)" strokeWidth="0.5" />
-      {data.map((_, i) => i % 3 === 0 ? (
-        <text key={i} x={points[i].x} y={baseline + 14} textAnchor="middle" fill="var(--color-muted)" fontSize="8" fontFamily="var(--font-mono)">
-          {String(i).padStart(2, '0')}:00
-        </text>
-      ) : null)}
-      <path d={areaPath} fill="url(#areaGrad)" />
-      <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinejoin="round" />
-    </svg>
   );
 }
 

@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { REMARCADORES, type Remarcador } from './mock-data';
+import { QueryStateView } from '../../components/ui/QueryStateView';
+import type { Remarcador } from './fleet';
+import { formatDateTime, formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
+import { useEmsFleet } from './useEmsFleet';
 
-type Filtro = 'todos' | 'conectados' | 'sin_senal' | 'caidos' | 'mantencion';
+type Filtro = 'todos' | 'conectados' | 'sin_senal' | 'caidos';
 
 const FILTROS: { key: Filtro; label: string }[] = [
   { key: 'todos', label: 'Todos' },
   { key: 'conectados', label: 'Conectados' },
   { key: 'sin_senal', label: 'Sin señal' },
   { key: 'caidos', label: 'Caídos' },
-  { key: 'mantencion', label: 'En mantención' },
 ];
 
 function filtrar(remarcadores: Remarcador[], filtro: Filtro, busqueda: string): Remarcador[] {
@@ -18,26 +20,27 @@ function filtrar(remarcadores: Remarcador[], filtro: Filtro, busqueda: string): 
   if (filtro === 'conectados') resultado = resultado.filter((r) => r.estado === 'conectado');
   if (filtro === 'sin_senal') resultado = resultado.filter((r) => r.estado === 'sin_senal');
   if (filtro === 'caidos') resultado = resultado.filter((r) => r.estado === 'caido');
-  if (filtro === 'mantencion') resultado = [];
   if (busqueda) {
     const q = busqueda.toLowerCase();
-    resultado = resultado.filter((r) => r.code.toLowerCase().includes(q) || r.centroName.toLowerCase().includes(q) || r.modelo.toLowerCase().includes(q));
+    resultado = resultado.filter((r) => [r.code, r.name, r.centroName].some((text) => text.toLowerCase().includes(q)));
   }
   return resultado;
 }
 
 export function RemarcadoresPage() {
   const navigate = useNavigate();
+  const { phase, error, refetch, remarcadores } = useEmsFleet();
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
 
-  const conectados = REMARCADORES.filter((r) => r.estado === 'conectado').length;
-  const sinSenal = REMARCADORES.filter((r) => r.estado === 'sin_senal').length;
-  const caidos = REMARCADORES.filter((r) => r.estado === 'caido').length;
-  const desconectado = REMARCADORES.find((r) => r.estado === 'caido');
+  const conectados = remarcadores.filter((r) => r.estado === 'conectado').length;
+  const sinSenal = remarcadores.filter((r) => r.estado === 'sin_senal').length;
+  const caidos = remarcadores.filter((r) => r.estado === 'caido').length;
+  const desconectado = remarcadores.find((r) => r.estado === 'caido');
+  const pctConectados = remarcadores.length > 0 ? (conectados / remarcadores.length) * 100 : 0;
 
-  const remarcadoresFiltrados = filtrar(REMARCADORES, filtro, busqueda);
+  const remarcadoresFiltrados = filtrar(remarcadores, filtro, busqueda);
 
   const toggleSeleccion = (id: string) => {
     setSeleccionados((prev) => {
@@ -57,14 +60,16 @@ export function RemarcadoresPage() {
     <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
       <div>
         <h1 className="text-lg font-bold text-foreground">Remarcadores</h1>
-        <p className="text-xs text-muted">{REMARCADORES.length} dispositivos en la flota</p>
+        <p className="text-xs text-muted">{remarcadores.length} dispositivos en la flota</p>
       </div>
 
+      <QueryStateView phase={phase} error={error} refetch={refetch}>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Dispositivos" value={String(REMARCADORES.length)} sub={`${new Set(REMARCADORES.map((r) => r.centroId)).size} centros cubiertos`} />
-        <StatCard label="Conectados" value={String(conectados)} sub={`↑ ${((conectados / REMARCADORES.length) * 100).toFixed(1)}% de la flota`} positive />
-        <StatCard label="Sin señal" value={String(sinSenal)} sub="Señal bajo 25%" />
-        <StatCard label="Caídos" value={String(caidos)} sub="↓ Alerta generada" negative />
+        <StatCard label="Dispositivos" value={String(remarcadores.length)} sub={`${new Set(remarcadores.map((r) => r.centroId)).size} centros cubiertos`} />
+        <StatCard label="Conectados" value={String(conectados)} sub={`${formatNumber(pctConectados, 1)}% de la flota`} positive />
+        <StatCard label="Sin señal" value={String(sinSenal)} sub="Sin lecturas hace más de 30 min" />
+        <StatCard label="Caídos" value={String(caidos)} sub="Sin lecturas hace más de 24 h" negative={caidos > 0} />
       </div>
 
       <div className="flex items-center justify-between gap-3">
@@ -92,9 +97,6 @@ export function RemarcadoresPage() {
             ))}
           </div>
         </div>
-        <button type="button" className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised">
-          ⚡ Forzar lectura
-        </button>
       </div>
 
       {desconectado && (
@@ -102,16 +104,13 @@ export function RemarcadoresPage() {
           <div className="flex items-center gap-2">
             <span className="text-danger">⊘</span>
             <div>
-              <p className="text-sm font-medium text-foreground">{desconectado.code} sin reportar desde las {desconectado.ultimaLectura}</p>
-              <p className="text-xs text-muted">Se generó automáticamente una alerta de desconexión para {desconectado.centroName}.</p>
+              <p className="text-sm font-medium text-foreground">{desconectado.code} sin reportar desde {formatDateTime(desconectado.ultimaLectura)}</p>
+              <p className="text-xs text-muted">{desconectado.centroName} · {caidos} remarcadores sin lecturas en las últimas 24 h.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/alertas')}>
               Ver alertas
-            </button>
-            <button type="button" className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised">
-              Diagnosticar
             </button>
           </div>
         </div>
@@ -126,9 +125,9 @@ export function RemarcadoresPage() {
                   <input type="checkbox" checked={seleccionados.size === remarcadoresFiltrados.length && remarcadoresFiltrados.length > 0} onChange={toggleTodos} className="rounded border-border" />
                 </th>
                 <Th accent>ID</Th>
+                <Th>Nombre</Th>
                 <Th>Centro</Th>
-                <Th>Modelo</Th>
-                <Th>Señal</Th>
+                <Th>Potencia</Th>
                 <Th>Última lectura</Th>
                 <Th>Estado</Th>
                 <Th />
@@ -141,12 +140,10 @@ export function RemarcadoresPage() {
                     <input type="checkbox" checked={seleccionados.has(r.id)} onChange={() => toggleSeleccion(r.id)} onClick={(e) => e.stopPropagation()} className="rounded border-border" />
                   </td>
                   <td className="px-5 py-3 font-mono text-sm font-medium text-foreground">{r.code}</td>
+                  <td className="px-5 py-3 text-sm text-foreground">{r.name}</td>
                   <td className="px-5 py-3 text-sm text-foreground">{r.centroName}</td>
-                  <td className="px-5 py-3 font-mono text-sm text-muted">{r.modelo}</td>
-                  <td className="px-5 py-3">
-                    <SignalBars signal={r.signal} />
-                  </td>
-                  <td className="px-5 py-3 font-mono text-sm text-muted tabular-nums">{r.ultimaLectura}</td>
+                  <td className="px-5 py-3 font-mono text-sm text-muted tabular-nums">{r.potenciaKw === null ? '—' : `${formatNumber(r.potenciaKw, 1)} kW`}</td>
+                  <td className="px-5 py-3 font-mono text-sm text-muted tabular-nums">{formatDateTime(r.ultimaLectura)}</td>
                   <td className="px-5 py-3"><StatusBadge estado={r.estado} /></td>
                   <td className="px-5 py-3 text-muted">›</td>
                 </tr>
@@ -155,20 +152,8 @@ export function RemarcadoresPage() {
           </table>
         </div>
       </div>
+      </QueryStateView>
     </div>
-  );
-}
-
-function SignalBars({ signal }: Readonly<{ signal: number }>) {
-  const bars = signal >= 75 ? 4 : signal >= 50 ? 3 : signal >= 25 ? 2 : signal > 0 ? 1 : 0;
-  const color = bars >= 3 ? 'var(--color-success)' : bars >= 2 ? 'var(--color-warning)' : 'var(--color-danger)';
-  return (
-    <span className="inline-flex items-end gap-0.5">
-      {[1, 2, 3, 4].map((b) => (
-        <span key={b} className="w-1 rounded-sm" style={{ height: `${b * 3 + 2}px`, backgroundColor: b <= bars ? color : 'var(--color-border)' }} />
-      ))}
-      <span className="ml-1 font-mono text-xs text-muted tabular-nums">{signal}%</span>
-    </span>
   );
 }
 

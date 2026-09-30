@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { CENTROS, type Centro } from './mock-data';
+import { QueryStateView } from '../../components/ui/QueryStateView';
+import type { Centro } from './fleet';
+import { formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
-
-function fmt(n: number, d = 0): string {
-  return n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
+import { useEmsFleet } from './useEmsFleet';
 
 type Filtro = 'todos' | 'operativos' | 'advertencia' | 'incidencia';
 
@@ -23,18 +22,19 @@ function filtrar(centros: Centro[], filtro: Filtro, busqueda: string): Centro[] 
   if (filtro === 'incidencia') resultado = resultado.filter((c) => c.estado === 'alarma');
   if (busqueda) {
     const q = busqueda.toLowerCase();
-    resultado = resultado.filter((c) => c.name.toLowerCase().includes(q) || c.cliente.toLowerCase().includes(q) || c.comuna.toLowerCase().includes(q));
+    resultado = resultado.filter((c) => [c.name, c.code, c.address ?? ''].some((text) => text.toLowerCase().includes(q)));
   }
   return resultado;
 }
 
 export function CentrosPage() {
   const navigate = useNavigate();
+  const { phase, error, refetch, centros } = useEmsFleet();
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
 
-  const centrosFiltrados = filtrar(CENTROS, filtro, busqueda);
+  const centrosFiltrados = filtrar(centros, filtro, busqueda);
 
   const toggleSeleccion = (id: string) => {
     setSeleccionados((prev) => {
@@ -55,7 +55,7 @@ export function CentrosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Centros</h1>
-          <p className="text-xs text-muted">{CENTROS.length} centros activos</p>
+          <p className="text-xs text-muted">{centros.length} centros activos</p>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ export function CentrosPage() {
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">⊙</span>
             <input
               type="text"
-              placeholder="Buscar centro, cliente o c..."
+              placeholder="Buscar centro, código o dirección"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="h-9 rounded-lg border border-border bg-surface pl-8 pr-3 text-xs text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
@@ -94,6 +94,7 @@ export function CentrosPage() {
         </div>
       </div>
 
+      <QueryStateView phase={phase} error={error} refetch={refetch}>
       <div className="flex-1 overflow-hidden rounded-xl border border-card-border bg-card">
         <div className="flex h-full flex-col">
           <div className="overflow-x-auto flex-1">
@@ -104,9 +105,9 @@ export function CentrosPage() {
                     <input type="checkbox" checked={seleccionados.size === centrosFiltrados.length && centrosFiltrados.length > 0} onChange={toggleTodos} className="rounded border-border" />
                   </th>
                   <Th>Centro</Th>
-                  <Th>Comuna</Th>
+                  <Th>Dirección</Th>
                   <Th accent>Consumo mes</Th>
-                  <Th>Margen</Th>
+                  <Th>Remarcadores</Th>
                   <Th>Estado</Th>
                   <Th />
                 </tr>
@@ -119,11 +120,11 @@ export function CentrosPage() {
                     </td>
                     <td className="px-5 py-3">
                       <p className="text-sm font-medium text-foreground">{c.name}</p>
-                      <p className="text-xs text-muted">{c.cliente}</p>
+                      <p className="font-mono text-xs text-muted">{c.code}</p>
                     </td>
-                    <td className="px-5 py-3 text-sm text-foreground">{c.comuna}</td>
-                    <td className="px-5 py-3 font-mono text-sm text-foreground tabular-nums">{fmt(c.consumoMes, 1)} <span className="text-xs text-muted">MWh</span></td>
-                    <td className="px-5 py-3 font-mono text-sm text-foreground tabular-nums">${fmt(c.margen, 1)}M <span className="text-xs text-muted">({fmt(c.margenPct, 1)}%)</span></td>
+                    <td className="px-5 py-3 text-sm text-foreground">{c.address ?? '—'}</td>
+                    <td className="px-5 py-3 font-mono text-sm text-foreground tabular-nums">{formatNumber(c.consumoMesKwh / 1000, 1)} <span className="text-xs text-muted">MWh</span></td>
+                    <td className="px-5 py-3 font-mono text-sm text-foreground tabular-nums">{c.remarcadores}</td>
                     <td className="px-5 py-3"><StatusBadge estado={c.estado} /></td>
                     <td className="px-5 py-3 text-muted">›</td>
                   </tr>
@@ -132,11 +133,12 @@ export function CentrosPage() {
             </table>
           </div>
           <div className="flex items-center justify-between border-t border-card-border px-5 py-2.5">
-            <span className="text-xs text-muted">{centrosFiltrados.length} de {CENTROS.length} centros</span>
+            <span className="text-xs text-muted">{centrosFiltrados.length} de {centros.length} centros</span>
             <span className="text-xs text-muted">Haz clic en una fila para ver el detalle</span>
           </div>
         </div>
       </div>
+      </QueryStateView>
     </div>
   );
 }

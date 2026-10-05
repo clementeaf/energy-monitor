@@ -8,11 +8,7 @@ import { JsonLoggerService } from './common/logging/json-logger.service';
 import { validateEnv } from './common/validation/env-validation';
 import { configureHttpApp } from './http-app';
 
-type HttpHandler = (
-  event: unknown,
-  context: unknown,
-  callback: unknown,
-) => Promise<unknown>;
+type HttpHandler = (event: unknown, context: unknown) => Promise<unknown>;
 
 interface ScheduledJobEvent {
   job: string;
@@ -56,9 +52,9 @@ async function runScheduledJob(
   return { job: jobName, durationMs: Date.now() - startedAt };
 }
 
-export const handler: HttpHandler = async (event, context, callback) => {
+export const handler: HttpHandler = async (event, context) => {
   lambdaApp ??= createLambdaApp();
   const { app, httpHandler } = await lambdaApp;
   if (isScheduledJobEvent(event)) return runScheduledJob(app, event.job);
-  return httpHandler(event, context, callback);
+  return httpHandler(event, context);
 };

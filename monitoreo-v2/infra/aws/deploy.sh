@@ -6,9 +6,14 @@ set -euo pipefail
 : "${MICROSOFT_CLIENT_ID:?MICROSOFT_CLIENT_ID required}"
 : "${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID required}"
 
-export AWS_REGION=us-east-1 AWS_DEFAULT_REGION=us-east-1
+export AWS_REGION="${AWS_REGION:-us-east-1}"
+export AWS_DEFAULT_REGION="$AWS_REGION"
 STACK_NAME="${STACK_NAME:-monitoreo-v2}"
 DOMAIN_NAME="${DOMAIN_NAME:-}"
+if [ -n "$DOMAIN_NAME" ] && [ "$AWS_REGION" != us-east-1 ]; then
+  echo "DOMAIN_NAME requires AWS_REGION=us-east-1 (CloudFront certificate), got $AWS_REGION" >&2
+  exit 1
+fi
 HOSTED_ZONE_ID="${HOSTED_ZONE_ID:-}"
 SES_FROM_EMAIL="${SES_FROM_EMAIL:-}"
 PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -26,7 +31,7 @@ stack_output() {
 ensure_artifacts_bucket() {
   if aws s3api head-bucket --bucket "$ARTIFACTS_BUCKET" 2>/dev/null; then return; fi
   echo "==> creating artifacts bucket $ARTIFACTS_BUCKET"
-  aws s3api create-bucket --bucket "$ARTIFACTS_BUCKET" >/dev/null
+  aws s3 mb "s3://$ARTIFACTS_BUCKET" >/dev/null
   aws s3api put-public-access-block --bucket "$ARTIFACTS_BUCKET" \
     --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 }
@@ -54,6 +59,8 @@ deploy_stack() {
       CodeKey="$1" \
       DomainName="$DOMAIN_NAME" \
       HostedZoneId="$HOSTED_ZONE_ID" \
+      DbInstanceClass="${DB_INSTANCE_CLASS:-db.t4g.small}" \
+      DbBackupRetentionDays="${DB_BACKUP_RETENTION_DAYS:-7}" \
       MicrosoftTenantId="$MICROSOFT_TENANT_ID" \
       MicrosoftClientId="$MICROSOFT_CLIENT_ID" \
       GoogleClientId="$GOOGLE_CLIENT_ID" \

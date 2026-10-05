@@ -35,7 +35,7 @@ EventBridge Scheduler ──► misma Lambda {"job": "..."}  (8 jobs: alertas, r
 - AWS CLI v2 con un perfil de la **cuenta destino** con permisos de administrador (`aws configure --profile <nombre>`).
 - Node.js 24+, npm, `psql` (cliente PostgreSQL), `zip`, `openssl`.
 - Credenciales OAuth (las mismas que hoy): `MICROSOFT_TENANT_ID`, `MICROSOFT_CLIENT_ID`, `GOOGLE_CLIENT_ID`.
-- Región: `us-east-1` (fija; CloudFront exige el certificado ahí).
+- Región: `AWS_REGION` (default `us-east-1`). Con `DOMAIN_NAME` debe ser `us-east-1`: CloudFront exige el certificado ahí; el script corta si no lo es.
 
 Verificar la cuenta antes de desplegar:
 
@@ -50,7 +50,7 @@ aws sts get-caller-identity --profile <perfil-cuenta-nueva>
 Desde la raíz del repo:
 
 ```bash
-export AWS_PROFILE=<perfil-cuenta-nueva>
+export AWS_PROFILE=<perfil-cuenta-nueva> AWS_REGION=<region-permitida>
 export MICROSOFT_TENANT_ID=<...> MICROSOFT_CLIENT_ID=<...> GOOGLE_CLIENT_ID=<...>
 # Opcional, con dominio (ver sección 4):
 # export DOMAIN_NAME=power-monitor.cloud HOSTED_ZONE_ID=Z0123456789

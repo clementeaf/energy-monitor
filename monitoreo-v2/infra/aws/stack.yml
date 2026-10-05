@@ -15,6 +15,9 @@ Parameters:
   DbInstanceClass:
     Type: String
     Default: db.t4g.small
+  DbBackupRetentionDays:
+    Type: Number
+    Default: 7
   MicrosoftTenantId:
     Type: String
   MicrosoftClientId:
@@ -100,7 +103,7 @@ Resources:
       VPCSecurityGroups:
         - !GetAtt DbSecurityGroup.GroupId
       PubliclyAccessible: true
-      BackupRetentionPeriod: 7
+      BackupRetentionPeriod: !Ref DbBackupRetentionDays
       DeletionProtection: true
       AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true

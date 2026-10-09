@@ -61,7 +61,6 @@ export function clearDevBearerToken(): void {
 
 const AUTH_PATHS = [
   '/auth/login',
-  '/auth/me',
   '/auth/refresh',
   '/auth/logout',
   '/auth/clear-session',

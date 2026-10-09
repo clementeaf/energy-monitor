@@ -1,30 +1,40 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
-import type { Remarcador } from './fleet';
+import type { Remarcador, RemarcadorEstado } from './fleet';
 import { formatDateTime, formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
+import { BulkBar, EmptyFilterState, onRowKeyDown, SearchInput, SelectAllCheckbox, SortableTh, sortRows, useSelection, useSort } from './table';
 import { useEmsFleet } from './useEmsFleet';
+import { useRemarcadorActions } from './useRemarcadorActions';
 
-type Filtro = 'todos' | 'conectados' | 'sin_senal' | 'caidos';
+type Filtro = 'todos' | RemarcadorEstado;
 
 const FILTROS: { key: Filtro; label: string }[] = [
   { key: 'todos', label: 'Todos' },
-  { key: 'conectados', label: 'Conectados' },
+  { key: 'conectado', label: 'Conectados' },
   { key: 'sin_senal', label: 'Sin señal' },
-  { key: 'caidos', label: 'Caídos' },
+  { key: 'caido', label: 'Caídos' },
+  { key: 'mantencion', label: 'En mantención' },
 ];
 
+type SortKey = 'code' | 'nombre' | 'centro' | 'potencia' | 'ultima';
+
+const SORT_GETTERS: Record<SortKey, (remarcador: Remarcador) => string | number> = {
+  code: (r) => r.code,
+  nombre: (r) => r.name,
+  centro: (r) => r.centroName,
+  potencia: (r) => r.potenciaKw ?? -1,
+  ultima: (r) => r.ultimaLectura ?? '',
+};
+
+const SECONDARY_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised';
+
 function filtrar(remarcadores: Remarcador[], filtro: Filtro, busqueda: string): Remarcador[] {
-  let resultado = remarcadores;
-  if (filtro === 'conectados') resultado = resultado.filter((r) => r.estado === 'conectado');
-  if (filtro === 'sin_senal') resultado = resultado.filter((r) => r.estado === 'sin_senal');
-  if (filtro === 'caidos') resultado = resultado.filter((r) => r.estado === 'caido');
-  if (busqueda) {
-    const q = busqueda.toLowerCase();
-    resultado = resultado.filter((r) => [r.code, r.name, r.centroName].some((text) => text.toLowerCase().includes(q)));
-  }
-  return resultado;
+  const q = busqueda.toLowerCase();
+  return remarcadores.filter((r) =>
+    (filtro === 'todos' || r.estado === filtro)
+    && (!q || [r.code, r.name, r.centroName].some((text) => text.toLowerCase().includes(q))));
 }
 
 export function RemarcadoresPage() {
@@ -32,7 +42,9 @@ export function RemarcadoresPage() {
   const { phase, error, refetch, remarcadores } = useEmsFleet();
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [busqueda, setBusqueda] = useState('');
-  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
+  const selection = useSelection();
+  const { sort, toggleSort } = useSort<SortKey>({ key: 'code', direction: 'asc' });
+  const actions = useRemarcadorActions();
 
   const conectados = remarcadores.filter((r) => r.estado === 'conectado').length;
   const sinSenal = remarcadores.filter((r) => r.estado === 'sin_senal').length;
@@ -40,24 +52,26 @@ export function RemarcadoresPage() {
   const desconectado = remarcadores.find((r) => r.estado === 'caido');
   const pctConectados = remarcadores.length > 0 ? (conectados / remarcadores.length) * 100 : 0;
 
-  const remarcadoresFiltrados = filtrar(remarcadores, filtro, busqueda);
+  const remarcadoresFiltrados = sortRows(filtrar(remarcadores, filtro, busqueda), sort, SORT_GETTERS);
+  const idsFiltrados = remarcadoresFiltrados.map((r) => r.id);
+  const seleccionadosVisibles = idsFiltrados.filter((id) => selection.selected.has(id)).length;
+  const remarcadoresSeleccionados = remarcadores.filter((r) => selection.selected.has(r.id));
 
-  const toggleSeleccion = (id: string) => {
-    setSeleccionados((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const buscar = (value: string) => {
+    setBusqueda(value);
+    selection.clear();
   };
-
-  const toggleTodos = () => {
-    if (seleccionados.size === remarcadoresFiltrados.length) setSeleccionados(new Set());
-    else setSeleccionados(new Set(remarcadoresFiltrados.map((r) => r.id)));
+  const quitarFiltros = () => {
+    setBusqueda('');
+    setFiltro('todos');
+  };
+  const actuarSobreSeleccion = (accion: (seleccion: Remarcador[]) => void) => {
+    accion(remarcadoresSeleccionados);
+    selection.clear();
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
       <div>
         <h1 className="text-lg font-bold text-foreground">Remarcadores</h1>
         <p className="text-xs text-muted">{remarcadores.length} dispositivos en la flota</p>
@@ -72,19 +86,10 @@ export function RemarcadoresPage() {
         <StatCard label="Caídos" value={String(caidos)} sub="Sin lecturas hace más de 24 h" negative={caidos > 0} />
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">⊙</span>
-            <input
-              type="text"
-              placeholder="Buscar por ID, centro o n..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="h-9 rounded-lg border border-border bg-surface pl-8 pr-3 text-xs text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchInput value={busqueda} onChange={buscar} placeholder="Buscar por ID, nombre o centro" />
+          <div className="flex flex-wrap gap-1">
             {FILTROS.map((f) => (
               <button
                 key={f.key}
@@ -97,10 +102,18 @@ export function RemarcadoresPage() {
             ))}
           </div>
         </div>
+        <button type="button" onClick={() => actions.forzarLectura(remarcadores)} className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised">
+          ↻ Forzar lectura
+        </button>
       </div>
 
+      <BulkBar count={selection.selected.size} noun="equipo" onClear={selection.clear}>
+        <button type="button" onClick={() => actuarSobreSeleccion(actions.forzarLectura)} className={SECONDARY_BUTTON}>↻ Forzar lectura</button>
+        <button type="button" onClick={() => actuarSobreSeleccion(actions.marcarMantencion)} className={SECONDARY_BUTTON}>⚙ Marcar en mantención</button>
+      </BulkBar>
+
       {desconectado && (
-        <div className="flex items-center justify-between rounded-lg border border-danger/30 bg-danger-bg px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger/30 bg-danger-bg px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="text-danger">⊘</span>
             <div>
@@ -112,32 +125,39 @@ export function RemarcadoresPage() {
             <button type="button" className="text-xs font-medium text-foreground hover:underline" onClick={() => navigate('/alertas')}>
               Ver alertas
             </button>
+            <button type="button" className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised" onClick={() => navigate(`/remarcadores/${desconectado.id}`)}>
+              Diagnosticar
+            </button>
           </div>
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden rounded-xl border border-card-border bg-card flex flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-[28rem] flex-1 flex-col overflow-hidden rounded-xl border border-card-border bg-card md:min-h-0">
+        {remarcadoresFiltrados.length === 0 ? (
+          <EmptyFilterState title="Sin equipos que coincidan" text="Ajusta la búsqueda o el filtro de estado para volver a ver la flota." onReset={quitarFiltros} />
+        ) : (
+        <>
+        <div className="min-h-0 flex-1 overflow-auto">
           <table className="min-w-full">
             <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b border-card-border">
                 <th className="w-10 px-4 py-2.5">
-                  <input type="checkbox" checked={seleccionados.size === remarcadoresFiltrados.length && remarcadoresFiltrados.length > 0} onChange={toggleTodos} className="rounded border-border" />
+                  <SelectAllCheckbox selectedCount={seleccionadosVisibles} totalCount={idsFiltrados.length} onToggle={() => selection.toggleAll(idsFiltrados)} />
                 </th>
-                <Th accent>ID</Th>
-                <Th>Nombre</Th>
-                <Th>Centro</Th>
-                <Th>Potencia</Th>
-                <Th>Última lectura</Th>
+                <SortableTh label="ID" sortKey="code" sort={sort} onToggle={toggleSort} />
+                <SortableTh label="Nombre" sortKey="nombre" sort={sort} onToggle={toggleSort} />
+                <SortableTh label="Centro" sortKey="centro" sort={sort} onToggle={toggleSort} />
+                <SortableTh label="Potencia" sortKey="potencia" sort={sort} onToggle={toggleSort} />
+                <SortableTh label="Última lectura" sortKey="ultima" sort={sort} onToggle={toggleSort} />
                 <Th>Estado</Th>
                 <Th />
               </tr>
             </thead>
             <tbody className="divide-y divide-card-border">
               {remarcadoresFiltrados.map((r) => (
-                <tr key={r.id} className="cursor-pointer hover:bg-surface" onClick={() => navigate(`/remarcadores/${r.id}`)}>
+                <tr key={r.id} tabIndex={0} className={`cursor-pointer hover:bg-surface ${selection.selected.has(r.id) ? 'bg-accent/10' : ''}`} onClick={() => navigate(`/remarcadores/${r.id}`)} onKeyDown={onRowKeyDown(() => navigate(`/remarcadores/${r.id}`))}>
                   <td className="w-10 px-4 py-3">
-                    <input type="checkbox" checked={seleccionados.has(r.id)} onChange={() => toggleSeleccion(r.id)} onClick={(e) => e.stopPropagation()} className="rounded border-border" />
+                    <input type="checkbox" aria-label={`Seleccionar ${r.code}`} checked={selection.selected.has(r.id)} onChange={() => selection.toggle(r.id)} onClick={(e) => e.stopPropagation()} className="rounded border-border" />
                   </td>
                   <td className="px-5 py-3 font-mono text-sm font-medium text-foreground">{r.code}</td>
                   <td className="px-5 py-3 text-sm text-foreground">{r.name}</td>
@@ -151,6 +171,12 @@ export function RemarcadoresPage() {
             </tbody>
           </table>
         </div>
+        <div className="flex items-center justify-between border-t border-card-border px-5 py-2.5">
+          <span className="text-xs text-muted">{remarcadoresFiltrados.length} de {remarcadores.length} equipos</span>
+          <span className="text-xs text-muted">Haz clic en una fila para ver el detalle</span>
+        </div>
+        </>
+        )}
       </div>
       </QueryStateView>
     </div>

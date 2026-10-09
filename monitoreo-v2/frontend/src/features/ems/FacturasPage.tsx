@@ -118,7 +118,7 @@ export function FacturasPage() {
   const vencidas = FACTURAS.filter((f) => f.estado === 'vencida');
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
       <div className="flex shrink-0 items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Facturas</h1>

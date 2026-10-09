@@ -438,11 +438,6 @@ export const LazyRemarcadorDetailPage = lazy(async () => {
   return { default: m.RemarcadorDetailPage };
 });
 
-export const LazyLockedModule = lazy(async () => {
-  const m = await import('../features/ems/LockedModule');
-  return { default: m.LockedModule };
-});
-
 export const LazyConsumoMockPage = lazy(async () => {
   const m = await import('../features/ems/ConsumoPage');
   return { default: m.ConsumoPage };

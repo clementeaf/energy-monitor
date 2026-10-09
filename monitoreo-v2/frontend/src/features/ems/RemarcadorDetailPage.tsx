@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { QueryStateView } from '../../components/ui/QueryStateView';
 import { StockChart } from '../../components/charts/StockChart';
 import { useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import type { Reading } from '../../types/reading';
-import { startOfDay, toNumber } from './fleet';
+import { startOfDay, toNumber, type Remarcador } from './fleet';
 import { formatDateTime, formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
 import { useEmsFleet } from './useEmsFleet';
+import { useRemarcadorActions } from './useRemarcadorActions';
 
 type Metric = 'potencia' | 'energia' | 'voltaje' | 'corriente' | 'factorPotencia';
 
@@ -41,13 +43,18 @@ const METRICS: Record<Metric, MetricDefinition> = {
   factorPotencia: { label: 'Factor de potencia', unit: '', decimals: 3, series: seriesOf('power_factor') },
 };
 
-const CONNECTION_LABEL = { conectado: 'Conectado', sin_senal: 'Sin señal', caido: 'Caído' } as const;
+const CONNECTION_LABEL = { conectado: 'Conectado', sin_senal: 'Sin señal', caido: 'Caído', mantencion: 'Mantención' } as const;
+
+const SECONDARY_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised';
+const ACCENT_BUTTON = 'rounded-lg border border-accent bg-accent px-3 py-2 text-xs font-medium text-accent-ink hover:opacity-90';
 
 export function RemarcadorDetailPage() {
   const { remarcadorId = '' } = useParams<{ remarcadorId: string }>();
   const navigate = useNavigate();
   const fleet = useEmsFleet();
   const [selectedMetric, setSelectedMetric] = useState<Metric>('potencia');
+  const [isConfirmingReinicio, setIsConfirmingReinicio] = useState(false);
+  const actions = useRemarcadorActions();
   const range = useMemo(() => {
     const now = new Date();
     return { from: startOfDay(now).toISOString(), to: now.toISOString() };
@@ -92,8 +99,8 @@ export function RemarcadorDetailPage() {
   return (
     <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
       {rem ? (
-        <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
-          <div className="flex shrink-0 items-center justify-between">
+        <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
             <div>
               <button type="button" onClick={() => navigate('/remarcadores')} className="flex items-center gap-1 text-xs text-muted hover:text-foreground">
                 ← Volver a Remarcadores
@@ -105,10 +112,38 @@ export function RemarcadorDetailPage() {
                 <Tag>{rem.centroName}</Tag>
               </div>
             </div>
-            <button type="button" onClick={() => navigate(`/centros/${rem.centroId}`)} className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised">
-              Ir al centro
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => navigate(`/centros/${rem.centroId}`)} className={SECONDARY_BUTTON}>
+                Ir al centro
+              </button>
+              <button type="button" onClick={() => actions.forzarLectura([rem])} className={SECONDARY_BUTTON}>
+                ↻ Forzar lectura
+              </button>
+              {rem.estado === 'mantencion' ? (
+                <button type="button" onClick={() => actions.reactivar(rem)} className={ACCENT_BUTTON}>
+                  ✓ Reactivar
+                </button>
+              ) : (
+                <button type="button" onClick={() => actions.marcarMantencion([rem])} className={SECONDARY_BUTTON}>
+                  ⚙ Mantención
+                </button>
+              )}
+              <button type="button" onClick={() => setIsConfirmingReinicio(true)} className="rounded-lg bg-danger px-3 py-2 text-xs font-medium text-background hover:opacity-90">
+                Reiniciar
+              </button>
+            </div>
           </div>
+
+          <EstadoBanner remarcador={rem} onVerAlerta={() => navigate('/alertas')} onRecuperar={() => actions.recuperar(rem)} />
+
+          <ConfirmDialog
+            open={isConfirmingReinicio}
+            onClose={() => setIsConfirmingReinicio(false)}
+            onConfirm={() => { setIsConfirmingReinicio(false); actions.reiniciar(rem); }}
+            title={`Reiniciar ${rem.code}`}
+            message="El equipo dejará de reportar durante unos 2 minutos. La acción queda registrada en la bitácora."
+            confirmLabel="Reiniciar"
+          />
 
           <div className="grid shrink-0 grid-cols-3 gap-3 lg:grid-cols-6">
             <KpiCard label="Potencia actual" value={formatNumber(toNumber(last?.power_kw), 1)} unit="kW" />
@@ -199,4 +234,41 @@ function FichaRow({ label, value }: Readonly<{ label: string; value: string }>) 
       <span className="font-mono text-xs font-medium text-card-fg">{value}</span>
     </div>
   );
+}
+
+function EstadoBanner({ remarcador, onVerAlerta, onRecuperar }: Readonly<{ remarcador: Remarcador; onVerAlerta: () => void; onRecuperar: () => void }>) {
+  if (remarcador.estado === 'caido') {
+    return (
+      <div className="flex shrink-0 items-center justify-between gap-4 rounded-lg border border-danger/30 bg-danger-bg px-4 py-3">
+        <div>
+          <p className="text-sm font-medium text-foreground">Dispositivo sin conexión</p>
+          <p className="text-xs text-muted">Sin lecturas desde {formatDateTime(remarcador.ultimaLectura)}. La plataforma ya generó la alerta de desconexión: al recuperar el equipo, la alerta se cierra sola.</p>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <button type="button" onClick={onVerAlerta} className="text-xs font-medium text-foreground hover:underline">Ver la alerta</button>
+          <button type="button" onClick={onRecuperar} className={ACCENT_BUTTON}>✓ Marcar recuperado</button>
+        </div>
+      </div>
+    );
+  }
+  if (remarcador.estado === 'sin_senal') {
+    return (
+      <div className="flex shrink-0 items-center justify-between gap-4 rounded-lg border border-warning/30 bg-warning-bg px-4 py-3">
+        <div>
+          <p className="text-sm font-medium text-foreground">Señal degradada</p>
+          <p className="text-xs text-muted">Las lecturas llegan con retraso: la última es de {formatDateTime(remarcador.ultimaLectura)}.</p>
+        </div>
+        <button type="button" onClick={onRecuperar} className={SECONDARY_BUTTON}>Reintentar enlace</button>
+      </div>
+    );
+  }
+  if (remarcador.estado === 'mantencion') {
+    return (
+      <div className="shrink-0 rounded-lg border border-info/30 bg-info-bg px-4 py-3">
+        <p className="text-sm font-medium text-foreground">Equipo en mantención</p>
+        <p className="text-xs text-muted">Mientras dure la intervención no se generan alertas de desconexión para este equipo.</p>
+      </div>
+    );
+  }
+  return null;
 }

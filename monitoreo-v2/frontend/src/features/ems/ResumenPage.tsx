@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
-import { useAlertsQuery } from '../../hooks/queries/useAlertsQuery';
 import { LoadCurveChart } from './LoadCurveChart';
 import { formatDateTime, formatNumber } from './format';
 import { PORTFOLIO_CURVE } from './fleet';
-import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
+import { useEmsAlertas, useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
 
 const CENTRO_COLORS: Record<string, string> = {
   operativo: 'var(--color-accent)',
@@ -22,7 +21,7 @@ const RANGOS: { key: LoadRange; label: string }[] = [
 export function ResumenPage() {
   const navigate = useNavigate();
   const fleet = useEmsFleet();
-  const alertsQuery = useAlertsQuery({ status: 'active' });
+  const { activas: alertas, criticas: alertasCriticas } = useEmsAlertas();
   const [bannerVisible, setBannerVisible] = useState(true);
 
   const { centros, remarcadores } = fleet;
@@ -31,13 +30,11 @@ export function ResumenPage() {
   const caidos = remarcadores.filter((r) => r.estado === 'caido').length;
   const sinSenal = remarcadores.filter((r) => r.estado === 'sin_senal').length;
   const sinConexion = remarcadores.filter((r) => r.estado !== 'conectado');
-  const alertas = alertsQuery.data ?? [];
-  const alertasCriticas = alertas.filter((a) => a.severity === 'critical').length;
   const maxConsumo = Math.max(...centros.map((c) => c.consumoMesKwh), 1);
   const periodo = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Resumen</h1>
@@ -58,7 +55,7 @@ export function ResumenPage() {
               <KpiCard label="Margen estimado" value="—" delta="Sin tarifas cargadas" onClick={() => navigate('/margenes')} />
               <KpiCard label="Centros activos" value={String(centros.length)} delta={`${centros.filter((c) => c.estado === 'operativo').length} operativos`} positive onClick={() => navigate('/centros')} />
               <KpiCard label="Remarcadores" value={String(conectados)} unit={`/${remarcadores.length}`} delta={`${caidos} caídos · ${sinSenal} sin señal`} negative={caidos + sinSenal > 0} onClick={() => navigate('/remarcadores')} />
-              <KpiCard label="Alertas activas" value={alertsQuery.isPending ? '…' : String(alertas.length)} delta={`${alertasCriticas} críticas`} negative={alertasCriticas > 0} onClick={() => navigate('/alertas')} />
+              <KpiCard label="Alertas activas" value={String(alertas.length)} delta={`${alertasCriticas} críticas`} negative={alertasCriticas > 0} onClick={() => navigate('/alertas')} />
             </div>
 
             {sinConexion.length > 0 && bannerVisible && (

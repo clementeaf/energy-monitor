@@ -2,12 +2,12 @@ import type { Building } from '../../types/building';
 import type { Meter } from '../../types/meter';
 import type { AggregatedReading, LatestReading } from '../../types/reading';
 
-export type RemarcadorEstado = 'conectado' | 'sin_senal' | 'caido';
+export type RemarcadorEstado = 'conectado' | 'sin_senal' | 'caido' | 'mantencion';
 export type CentroEstado = 'operativo' | 'advertencia' | 'alarma';
 
 const MINUTE_MS = 60_000;
 
-export const CONNECTION_MAX_AGE_MINUTES: Record<Exclude<RemarcadorEstado, 'caido'>, number> = {
+export const CONNECTION_MAX_AGE_MINUTES: Record<'conectado' | 'sin_senal', number> = {
   conectado: 30,
   sin_senal: 24 * 60,
 };
@@ -15,10 +15,11 @@ export const CONNECTION_MAX_AGE_MINUTES: Record<Exclude<RemarcadorEstado, 'caido
 const CENTRO_ESTADO_BY_WORST_REMARCADOR: Record<RemarcadorEstado, CentroEstado> = {
   conectado: 'operativo',
   sin_senal: 'advertencia',
+  mantencion: 'advertencia',
   caido: 'alarma',
 };
 
-const REMARCADOR_SEVERITY: RemarcadorEstado[] = ['conectado', 'sin_senal', 'caido'];
+const REMARCADOR_SEVERITY: RemarcadorEstado[] = ['conectado', 'mantencion', 'sin_senal', 'caido'];
 
 export interface Remarcador {
   id: string;
@@ -32,6 +33,11 @@ export interface Remarcador {
   ultimaLectura: string | null;
   potenciaKw: number | null;
   estado: RemarcadorEstado;
+}
+
+export interface RemarcadorOverride {
+  estado: RemarcadorEstado;
+  ultimaLectura: string | null;
 }
 
 export interface Centro {
@@ -176,4 +182,11 @@ export function startOfMonth(now: Date): Date {
 
 export function startOfDay(now: Date): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+export function applyRemarcadorOverrides(remarcadores: Remarcador[], overrides: Record<string, RemarcadorOverride>): Remarcador[] {
+  return remarcadores.map((remarcador) => {
+    const override = overrides[remarcador.id];
+    return override ? { ...remarcador, ...override } : remarcador;
+  });
 }

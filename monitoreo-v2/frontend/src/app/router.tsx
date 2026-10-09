@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import { SessionGate } from '../components/auth/SessionGate';
 import { LayoutShell } from '../components/layout/LayoutShell';
+import { EmsSectionRoute } from '../features/ems/EmsSectionRoute';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { RequirePerms } from '../components/auth/RequirePerms';
 import { RequireTenantLayout } from '../components/ui/RequireTenant';
@@ -322,19 +323,19 @@ export const router = createBrowserRouter([
 
               /* Edificios & Medidores (listas cross-tenant) */
               /* EMS — Núcleo (mock) */
-              { path: APP_ROUTES.resumen, element: <LazyResumenPage /> },
-              { path: APP_ROUTES.centroDetail, element: <LazyCentroDetailPage /> },
-              { path: APP_ROUTES.centros, element: <LazyCentrosPage /> },
-              { path: APP_ROUTES.remarcadorDetail, element: <LazyRemarcadorDetailPage /> },
-              { path: APP_ROUTES.remarcadores, element: <LazyRemarcadoresPage /> },
+              { path: APP_ROUTES.resumen, element: <EmsSectionRoute section="resumen"><LazyResumenPage /></EmsSectionRoute> },
+              { path: APP_ROUTES.centroDetail, element: <EmsSectionRoute section="centros"><LazyCentroDetailPage /></EmsSectionRoute> },
+              { path: APP_ROUTES.centros, element: <EmsSectionRoute section="centros"><LazyCentrosPage /></EmsSectionRoute> },
+              { path: APP_ROUTES.remarcadorDetail, element: <EmsSectionRoute section="remarcadores"><LazyRemarcadorDetailPage /></EmsSectionRoute> },
+              { path: APP_ROUTES.remarcadores, element: <EmsSectionRoute section="remarcadores"><LazyRemarcadoresPage /></EmsSectionRoute> },
 
               /* EMS — Add-ons (mock) */
-              { path: 'consumo', element: <LazyConsumoMockPage /> },
-              { path: 'margenes', element: <LazyMargenesPage /> },
-              { path: 'alertas', element: <LazyAlertasMockPage /> },
-              { path: 'reportes', element: <LazyReportesMockPage /> },
-              { path: 'sostenibilidad', element: <LazySostenibilidadPage /> },
-              { path: 'configuracion', element: <LazyConfiguracionPage /> },
+              { path: 'consumo', element: <EmsSectionRoute section="consumo"><LazyConsumoMockPage /></EmsSectionRoute> },
+              { path: 'margenes', element: <EmsSectionRoute section="margenes"><LazyMargenesPage /></EmsSectionRoute> },
+              { path: 'alertas', element: <EmsSectionRoute section="alertas"><LazyAlertasMockPage /></EmsSectionRoute> },
+              { path: 'reportes', element: <EmsSectionRoute section="reportes"><LazyReportesMockPage /></EmsSectionRoute> },
+              { path: 'sostenibilidad', element: <EmsSectionRoute section="sostenibilidad"><LazySostenibilidadPage /></EmsSectionRoute> },
+              { path: 'configuracion', element: <EmsSectionRoute section="configuracion"><LazyConfiguracionPage /></EmsSectionRoute> },
               { path: 'facturas', element: <LazyFacturasMockPage /> },
 
               { path: APP_ROUTES.unitDetail, element: <P any={BUILDINGS}><LazyTenantUnitDetailPage /></P> },

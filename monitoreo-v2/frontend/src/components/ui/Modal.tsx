@@ -24,7 +24,7 @@ export function Modal({ open, onClose, title, children, dialogClassName }: Reado
       onClose={onClose}
       className={
         dialogClassName ??
-        'm-auto max-w-lg panel p-0 backdrop:bg-foreground/50 backdrop:backdrop-blur-sm'
+        'm-auto w-[calc(100%-2rem)] max-w-lg panel p-0 backdrop:bg-foreground/50 backdrop:backdrop-blur-sm'
       }
     >
       <div className="flex items-center justify-between border-b border-border px-6 py-4">

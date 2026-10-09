@@ -49,4 +49,13 @@ describe('useAppStore', () => {
       expect(useAppStore.getState().selectedBuildingId).toBeNull();
     });
   });
+
+  describe('setMargenMinimo', () => {
+    it('clamps the contractual minimum to 0-60 %', () => {
+      useAppStore.getState().setMargenMinimo(75);
+      expect(useAppStore.getState().margenMinimo).toBe(60);
+      useAppStore.getState().setMargenMinimo(-5);
+      expect(useAppStore.getState().margenMinimo).toBe(0);
+    });
+  });
 });

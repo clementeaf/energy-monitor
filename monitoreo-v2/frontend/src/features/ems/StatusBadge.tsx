@@ -5,6 +5,7 @@ const BADGE_MAP = {
   conectado:   { label: 'Conectado',    icon: '⚡', cls: 'text-success bg-success-bg' },
   sin_senal:   { label: 'Sin señal',    icon: '⚠', cls: 'text-warning bg-warning-bg' },
   caido:       { label: 'Caído',        icon: '✕', cls: 'text-danger bg-danger-bg' },
+  mantencion:  { label: 'Mantención',   icon: '⚙', cls: 'text-info-ink bg-info-bg' },
 } as const;
 
 type BadgeEstado = keyof typeof BADGE_MAP;

@@ -1,8 +1,16 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
+import { useToastStore } from '../../store/useToastStore';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import { usePermissions } from '../../hooks/usePermissions';
+import { EMS_ROLES, type EmsRoleId } from '../../features/ems/roles';
+import { useEmsRole } from '../../features/ems/useEmsRole';
+import { findSectionLabel } from '../../features/ems/navigation';
+import { GlobalSearch } from './GlobalSearch';
+import { NotificationsMenu } from './NotificationsMenu';
 
 const BREADCRUMB_MAP: Record<string, string> = {
   '/calidad/datos': 'Calidad de Datos',
@@ -20,11 +28,22 @@ const BREADCRUMB_MAP: Record<string, string> = {
 };
 export function Header() {
   const { user } = useAuthStore();
-  const { sidebarOpen } = useAppStore();
+  const { sidebarOpen, setViewAsRole } = useAppStore();
+  const { isSuperAdmin } = usePermissions();
+  const emsRole = useEmsRole();
+  const showToast = useToastStore((s) => s.showToast);
   const navigate = useNavigate();
   const location = useLocation();
-  const breadcrumb = BREADCRUMB_MAP[location.pathname];
+  const breadcrumb = BREADCRUMB_MAP[location.pathname] ?? findSectionLabel(location.pathname);
   const [menuOpen, setMenuOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const sincronizar = async () => {
+    setIsSyncing(true);
+    await queryClient.refetchQueries({ type: 'active' });
+    setIsSyncing(false);
+    showToast('Datos sincronizados');
+  };
   const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches));
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -39,48 +58,40 @@ export function Header() {
 
   return (
     <header className="relative z-30 flex h-14 shrink-0 items-center gap-3 bg-sidebar text-sidebar-fg px-4">
-      <div className="flex items-center gap-2.5" style={{ width: sidebarOpen ? '240px' : '56px' }}>
+      <div className={`flex shrink-0 items-center gap-2.5 ${sidebarOpen ? 'md:w-[240px]' : 'md:w-14'}`}>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0" style={{ backgroundColor: '#9FD838' }}>
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="#062C23" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
         </div>
         {sidebarOpen && <span className="text-sm font-semibold text-sidebar-fg truncate">POWER Digital</span>}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {breadcrumb && (
-          <span className="text-sidebar-fg text-xs font-medium">{breadcrumb}</span>
+          <span className="text-sidebar-fg text-sm font-semibold truncate">{breadcrumb}</span>
         )}
       </div>
       <div className="flex-1" />
-      <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: 'min(636px, 40vw)' }}>
-        <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#505955" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-        <input
-          type="text"
-          placeholder="Buscar medidor, sitio, alarma..."
-          style={{
-            width: '100%',
-            height: '40px',
-            borderRadius: '6px',
-            border: '1px solid #505955',
-            backgroundColor: 'transparent',
-            color: '#C6CFCB',
-            fontSize: '13px',
-            fontWeight: 400,
-            paddingLeft: '30px',
-            paddingRight: '12px',
-            outline: 'none',
-          }}
-        />
+      <div className="hidden md:block" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: 'min(636px, 40vw)' }}>
+        <GlobalSearch />
       </div>
 
-      <button type="button" className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:text-sidebar-fg hover:bg-sidebar-hover shrink-0">
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+      <button
+        type="button"
+        onClick={() => void sincronizar()}
+        disabled={isSyncing}
+        aria-label="Sincronizar datos"
+        title="Sincronizar datos"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-fg"
+      >
+        <svg className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" /></svg>
       </button>
 
-      <button type="button" className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:text-sidebar-fg hover:bg-sidebar-hover shrink-0">
+      <NotificationsMenu />
+
+      <button type="button" className="hidden h-8 w-8 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:text-sidebar-fg hover:bg-sidebar-hover shrink-0 md:flex">
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
       </button>
 
-      <span style={{ color: '#505955', fontSize: '20px', fontWeight: 300 }}>|</span>
+      <span className="hidden md:inline" style={{ color: '#505955', fontSize: '20px', fontWeight: 300 }}>|</span>
 
       {/* User menu */}
       <div className="relative">
@@ -95,7 +106,7 @@ export function Header() {
           </span>
           <div className="hidden sm:flex flex-col items-start leading-tight">
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#F6F8F7' }}>{user?.displayName ?? 'Usuario'}</span>
-            <span style={{ fontSize: '11px', fontWeight: 400, color: '#9EA9A4' }}>Administrador</span>
+            <span style={{ fontSize: '11px', fontWeight: 400, color: '#9EA9A4' }}>{emsRole && EMS_ROLES[emsRole].label}</span>
           </div>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="#727C78" strokeWidth="1.5" strokeLinecap="round" className="hidden sm:block"><path d="M1 1l4 4 4-4" /></svg>
         </button>
@@ -119,6 +130,29 @@ export function Header() {
             >
               Configuracion
             </button>
+            {isSuperAdmin && (
+              <>
+                <div style={{ borderTop: '1px solid var(--color-border)', margin: '4px 0' }} />
+                <div className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">Ver como</div>
+                {(Object.keys(EMS_ROLES) as EmsRoleId[]).map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    aria-pressed={emsRole === role}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setViewAsRole(role === 'admin' ? null : EMS_ROLES[role].viewAsSlug);
+                      showToast(`Viendo la plataforma como ${EMS_ROLES[role].label}`);
+                    }}
+                    className="flex w-full flex-col px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-surface"
+                    style={{ fontWeight: emsRole === role ? 600 : 400 }}
+                  >
+                    {EMS_ROLES[role].label}
+                    <span className="text-[10px] text-muted">{EMS_ROLES[role].tagline}</span>
+                  </button>
+                ))}
+              </>
+            )}
             <div style={{ borderTop: '1px solid var(--color-border)', margin: '4px 0' }} />
             <button
               type="button"

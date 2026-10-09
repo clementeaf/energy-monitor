@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useToastStore } from '../../store/useToastStore';
 import { CENTROS } from './mock-data';
 
 function fmt(n: number, d = 0): string {
@@ -12,41 +13,69 @@ const HUELLA_POR_CENTRO = CENTROS.map((c) => ({
 })).sort((a, b) => b.huella - a.huella);
 
 const HUELLA_TOTAL = HUELLA_POR_CENTRO.reduce((s, c) => s + c.huella, 0);
-const EFICIENCIA = 82.4;
+const EFICIENCIA_BASE = 82.4;
+const EFICIENCIA_POR_MEDIDA = 2.1;
 
 interface Recomendacion {
   id: string;
   titulo: string;
   detalle: string;
+  ahorroMillones: number;
+  co2Toneladas: number;
+  stripeClass: string;
 }
 
 const RECOMENDACIONES: Recomendacion[] = [
-  { id: 'rec1', titulo: 'Desplazar carga fuera de punta en Planta Quilicura', detalle: 'Mover 12% del consumo de 18–21 h reduce 8,4 tCO₂e y $2,1M de costo.' },
-  { id: 'rec2', titulo: 'Recambio de iluminación en Bodega San Bernardo', detalle: 'Estimado 6,2% menos consumo con retorno en 14 meses.' },
-  { id: 'rec3', titulo: 'Corregir factor de potencia en Centro Costanera', detalle: 'Evita recargos y mejora 1,3 pts el margen del centro.' },
+  { id: 'rec1', titulo: 'Desplazar carga fuera de punta en Planta Quilicura', detalle: 'Mover 12% del consumo de 18–21 h reduce 8,4 tCO₂e y $2,1M de costo.', ahorroMillones: 2.1, co2Toneladas: 8.4, stripeClass: 'border-l-accent' },
+  { id: 'rec2', titulo: 'Recambio de iluminación en Bodega San Bernardo', detalle: 'Estimado 6,2% menos consumo con retorno en 14 meses.', ahorroMillones: 1.3, co2Toneladas: 4.1, stripeClass: 'border-l-info' },
+  { id: 'rec3', titulo: 'Corregir factor de potencia en Centro Costanera', detalle: 'Evita recargos y mejora 1,3 pts el margen del centro.', ahorroMillones: 0.8, co2Toneladas: 1.6, stripeClass: 'border-l-warning' },
 ];
+
+export function resumirMedidas(recomendaciones: Recomendacion[], aplicadas: Set<string>) {
+  const aplicadasList = recomendaciones.filter((r) => aplicadas.has(r.id));
+  const pendientes = recomendaciones.filter((r) => !aplicadas.has(r.id));
+  const sumar = (list: Recomendacion[], pick: (r: Recomendacion) => number) => list.reduce((sum, r) => sum + pick(r), 0);
+  return {
+    aplicadas: aplicadasList.length,
+    pendientes: pendientes.length,
+    ahorroPendiente: sumar(pendientes, (r) => r.ahorroMillones),
+    ahorroComprometido: sumar(aplicadasList, (r) => r.ahorroMillones),
+    co2Reducido: sumar(aplicadasList, (r) => r.co2Toneladas),
+    eficiencia: EFICIENCIA_BASE + aplicadasList.length * EFICIENCIA_POR_MEDIDA,
+  };
+}
 
 export function SostenibilidadPage() {
   const [aplicadas, setAplicadas] = useState<Set<string>>(new Set());
+  const showToast = useToastStore((s) => s.showToast);
+  const resumen = resumirMedidas(RECOMENDACIONES, aplicadas);
 
-  const aplicar = (id: string) => {
-    setAplicadas((prev) => new Set(prev).add(id));
+  const aplicar = (recomendacion: Recomendacion) => {
+    setAplicadas((prev) => new Set(prev).add(recomendacion.id));
+    showToast(`Medida aplicada · ahorro comprometido $${fmt(recomendacion.ahorroMillones, 1)}M`);
+  };
+  const deshacer = (id: string) => {
+    setAplicadas((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const maxHuella = Math.max(...HUELLA_POR_CENTRO.map((c) => c.huella));
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto p-6">
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
       <div>
         <h1 className="text-lg font-bold text-foreground">Sostenibilidad</h1>
         <p className="text-xs text-muted">Huella de carbono, eficiencia y recomendaciones de ahorro</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Huella del periodo" value={fmt(HUELLA_TOTAL, 0)} unit={`tCO₂`} delta={`↑ 2,6% vs agosto`} />
+        <KpiCard label="Huella del periodo" value={fmt(HUELLA_TOTAL - resumen.co2Reducido, 0)} unit="tCO₂" delta={resumen.aplicadas > 0 ? `↓ −${fmt(resumen.co2Reducido, 1)} t por medidas` : '↑ 2,6% vs agosto'} />
         <KpiCard label="Factor de emisión" value={fmt(FACTOR_EMISION, 2)} unit="kg/kWh" sub="Matriz SEN 2026" />
-        <KpiCard label="Ahorro potencial" value="$4,2M" sub={`${RECOMENDACIONES.length - aplicadas.size} medidas pendientes`} />
-        <KpiCard label="Ahorro comprometido" value={aplicadas.size > 0 ? '$2,1M' : '$0,0M'} sub={`${aplicadas.size} de ${RECOMENDACIONES.length} aplicadas`} />
+        <KpiCard label="Ahorro potencial" value={`$${fmt(resumen.ahorroPendiente, 1)}M`} sub={`${resumen.pendientes} medidas pendientes`} />
+        <KpiCard label="Ahorro comprometido" value={`$${fmt(resumen.ahorroComprometido, 1)}M`} sub={`${resumen.aplicadas} de ${RECOMENDACIONES.length} aplicadas`} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-5">
@@ -56,9 +85,7 @@ export function SostenibilidadPage() {
               <h2 className="text-sm font-semibold text-card-fg">Huella de CO₂ por centro</h2>
               <p className="text-xs text-card-muted">Toneladas equivalentes del mes</p>
             </div>
-            <button type="button" className="flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-              ⊙ Sostenibilidad
-            </button>
+            <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-medium text-success">Sostenibilidad</span>
           </div>
           <div className="mt-4 space-y-3">
             {HUELLA_POR_CENTRO.map((c) => {
@@ -81,32 +108,35 @@ export function SostenibilidadPage() {
         <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2 flex flex-col items-center justify-center">
           <h2 className="self-start text-sm font-semibold text-card-fg">Eficiencia de la cartera</h2>
           <p className="self-start mb-4 text-xs text-card-muted">Consumo real contra línea base</p>
-          <DonutChart value={EFICIENCIA} />
+          <DonutChart value={resumen.eficiencia} />
         </div>
       </div>
 
       <div className="rounded-xl border border-card-border bg-card p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-card-fg">Recomendaciones priorizadas por impacto</h2>
-          <span className="text-xs text-muted">{aplicadas.size} de {RECOMENDACIONES.length} aplicadas</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${resumen.pendientes === 0 ? 'bg-success-bg text-success' : 'border border-border text-muted'}`}>
+            {resumen.aplicadas} de {RECOMENDACIONES.length} aplicadas
+          </span>
         </div>
         <div className="space-y-3">
           {RECOMENDACIONES.map((r) => {
             const yaAplicada = aplicadas.has(r.id);
             return (
-              <div key={r.id} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${yaAplicada ? 'border-success/30 bg-success-bg' : 'border-card-border'}`}>
+              <div key={r.id} className={`flex items-center justify-between rounded-lg border border-l-4 border-card-border px-4 py-3 ${r.stripeClass} ${yaAplicada ? 'opacity-60' : ''}`}>
                 <div>
-                  <p className="text-sm font-medium text-foreground">{r.titulo}</p>
+                  <p className={`text-sm font-medium text-foreground ${yaAplicada ? 'line-through' : ''}`}>{r.titulo}</p>
                   <p className="text-xs text-muted">{r.detalle}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => aplicar(r.id)}
-                  disabled={yaAplicada}
-                  className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${yaAplicada ? 'border-success/30 text-success cursor-default' : 'border-border bg-surface text-foreground hover:bg-raised'}`}
-                >
-                  ✓ {yaAplicada ? 'Aplicada' : 'Aplicar'}
-                </button>
+                {yaAplicada ? (
+                  <button type="button" onClick={() => deshacer(r.id)} className="px-2 py-1.5 text-xs font-medium text-muted hover:text-foreground">
+                    Deshacer
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => aplicar(r)} className="rounded-lg border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink hover:opacity-90">
+                    ✓ Aplicar
+                  </button>
+                )}
               </div>
             );
           })}

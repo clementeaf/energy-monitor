@@ -1,35 +1,62 @@
-import { useState } from 'react';
-import { CENTROS } from './mock-data';
+import { useMemo, useState } from 'react';
+import { QueryStateView } from '../../components/ui/QueryStateView';
+import type { Centro } from './fleet';
+import { formatPeriodo } from './format';
+import { useEmsFleet } from './useEmsFleet';
 
 function fmt(n: number, d = 0): string {
   return n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
 
-interface MockFactura {
+type EstadoFactura = 'pagada' | 'pendiente' | 'vencida';
+
+export interface Factura {
   id: string;
   numero: string;
   centro: string;
-  centroId: string;
+  cliente: string;
   periodo: string;
   emision: string;
+  vencimiento: string;
+  consumoMwh: number;
+  precioMwh: number;
   neto: number;
   iva: number;
   total: number;
-  estado: 'pagada' | 'pendiente' | 'vencida';
-  vencimiento: string;
+  estado: EstadoFactura;
 }
 
-const FACTURAS: MockFactura[] = [
-  { id: 'f1', numero: 'FE-2026-0091', centro: 'Centro Costanera', centroId: 'c1', periodo: 'Sep 2026', emision: '2026-09-01', neto: 21100000, iva: 4009000, total: 25109000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f2', numero: 'FE-2026-0092', centro: 'Sucursal Maipú', centroId: 'c2', periodo: 'Sep 2026', emision: '2026-09-01', neto: 11100000, iva: 2109000, total: 13209000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f3', numero: 'FE-2026-0093', centro: 'Planta Quilicura', centroId: 'c3', periodo: 'Sep 2026', emision: '2026-09-01', neto: 39200000, iva: 7448000, total: 46648000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f4', numero: 'FE-2026-0094', centro: 'Centro Vitacura', centroId: 'c4', periodo: 'Sep 2026', emision: '2026-09-01', neto: 8400000, iva: 1596000, total: 9996000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f5', numero: 'FE-2026-0095', centro: 'Bodega San Bernardo', centroId: 'c5', periodo: 'Sep 2026', emision: '2026-09-01', neto: 15000000, iva: 2850000, total: 17850000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f6', numero: 'FE-2026-0096', centro: 'Local Providencia', centroId: 'c6', periodo: 'Sep 2026', emision: '2026-09-01', neto: 5100000, iva: 969000, total: 6069000, estado: 'pendiente', vencimiento: '2026-09-30' },
-  { id: 'f7', numero: 'FE-2026-0085', centro: 'Centro Costanera', centroId: 'c1', periodo: 'Ago 2026', emision: '2026-08-01', neto: 20200000, iva: 3838000, total: 24038000, estado: 'pagada', vencimiento: '2026-08-31' },
-  { id: 'f8', numero: 'FE-2026-0086', centro: 'Planta Quilicura', centroId: 'c3', periodo: 'Ago 2026', emision: '2026-08-01', neto: 37800000, iva: 7182000, total: 44982000, estado: 'pagada', vencimiento: '2026-08-31' },
-  { id: 'f9', numero: 'FE-2026-0087', centro: 'Bodega San Bernardo', centroId: 'c5', periodo: 'Ago 2026', emision: '2026-08-01', neto: 14500000, iva: 2755000, total: 17255000, estado: 'vencida', vencimiento: '2026-08-31' },
-];
+const IVA = 0.19;
+const DIAS_PARA_PAGAR = 30;
+
+function toIsoDate(date: Date): string {
+  return date.toLocaleDateString('sv-SE');
+}
+
+export function buildFacturas(centros: Centro[], periodo: Date, hoy: Date): Factura[] {
+  const emision = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 1);
+  const vencimiento = new Date(emision.getFullYear(), emision.getMonth(), emision.getDate() + DIAS_PARA_PAGAR);
+  const mes = String(periodo.getMonth() + 1).padStart(2, '0');
+  return centros.flatMap((centro) => (centro.tarifa && centro.margen ? [centro] : [])).map((centro, index) => {
+    const neto = Math.round(centro.margen?.precioVentaClp ?? 0);
+    const iva = Math.round(neto * IVA);
+    return {
+      id: `${centro.id}-${mes}`,
+      numero: `FE-${periodo.getFullYear()}-${mes}${String(index + 1).padStart(2, '0')}`,
+      centro: centro.name,
+      cliente: centro.tarifa?.cliente ?? '—',
+      periodo: formatPeriodo(periodo),
+      emision: toIsoDate(emision),
+      vencimiento: toIsoDate(vencimiento),
+      consumoMwh: centro.consumoMesKwh / 1000,
+      precioMwh: (centro.tarifa?.ventaClpKwh ?? 0) * 1000,
+      neto,
+      iva,
+      total: neto + iva,
+      estado: hoy > vencimiento ? 'vencida' : 'pendiente',
+    };
+  });
+}
 
 const ESTADO_CLS: Record<string, string> = {
   pagada: 'bg-success-bg text-success',
@@ -43,8 +70,7 @@ const ESTADO_LABEL: Record<string, string> = {
   vencida: 'Vencida',
 };
 
-function descargarPdf(factura: MockFactura) {
-  const centro = CENTROS.find((c) => c.id === factura.centroId);
+function descargarPdf(factura: Factura) {
   const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${factura.numero}</title>
 <style>
@@ -75,7 +101,7 @@ function descargarPdf(factura: MockFactura) {
 </div>
 <div class="meta">
   <div class="meta-item"><div class="meta-label">Centro</div><div class="meta-value">${factura.centro}</div></div>
-  <div class="meta-item"><div class="meta-label">Cliente</div><div class="meta-value">${centro?.cliente ?? '—'}</div></div>
+  <div class="meta-item"><div class="meta-label">Cliente</div><div class="meta-value">${factura.cliente}</div></div>
   <div class="meta-item"><div class="meta-label">Periodo</div><div class="meta-value">${factura.periodo}</div></div>
   <div class="meta-item"><div class="meta-label">Emisión</div><div class="meta-value">${factura.emision}</div></div>
   <div class="meta-item"><div class="meta-label">Vencimiento</div><div class="meta-value">${factura.vencimiento}</div></div>
@@ -84,9 +110,7 @@ function descargarPdf(factura: MockFactura) {
 <table>
   <thead><tr><th>Concepto</th><th class="right">Cantidad</th><th class="right">Precio unit.</th><th class="right">Subtotal</th></tr></thead>
   <tbody>
-    <tr><td>Energía consumida</td><td class="right mono">${fmt(centro?.consumoMes ?? 0, 1)} MWh</td><td class="right mono">$${fmt(Math.round((factura.neto * 0.7) / (centro?.consumoMes ?? 1)), 0)}/MWh</td><td class="right mono">$${fmt(Math.round(factura.neto * 0.7))}</td></tr>
-    <tr><td>Demanda máxima</td><td class="right mono">1 mes</td><td class="right mono">$${fmt(Math.round(factura.neto * 0.2))}</td><td class="right mono">$${fmt(Math.round(factura.neto * 0.2))}</td></tr>
-    <tr><td>Cargo fijo</td><td class="right mono">1</td><td class="right mono">$${fmt(Math.round(factura.neto * 0.1))}</td><td class="right mono">$${fmt(Math.round(factura.neto * 0.1))}</td></tr>
+    <tr><td>Energía consumida</td><td class="right mono">${fmt(factura.consumoMwh, 1)} MWh</td><td class="right mono">$${fmt(factura.precioMwh)}/MWh</td><td class="right mono">$${fmt(factura.neto)}</td></tr>
     <tr><td colspan="3" class="right"><strong>Neto</strong></td><td class="right mono"><strong>$${fmt(factura.neto)}</strong></td></tr>
     <tr><td colspan="3" class="right">IVA 19%</td><td class="right mono">$${fmt(factura.iva)}</td></tr>
     <tr class="total-row"><td colspan="3" class="right">TOTAL</td><td class="right mono">$${fmt(factura.total)}</td></tr>
@@ -109,84 +133,88 @@ function descargarPdf(factura: MockFactura) {
 }
 
 export function FacturasPage() {
-  const [filtro, setFiltro] = useState<'todas' | 'pendiente' | 'pagada' | 'vencida'>('todas');
+  const [filtro, setFiltro] = useState<'todas' | EstadoFactura>('todas');
+  const fleet = useEmsFleet();
+  const facturas = useMemo(() => buildFacturas(fleet.centros, fleet.periodo, new Date()), [fleet.centros, fleet.periodo]);
 
-  const filtered = filtro === 'todas' ? FACTURAS : FACTURAS.filter((f) => f.estado === filtro);
+  const filtered = filtro === 'todas' ? facturas : facturas.filter((f) => f.estado === filtro);
   const totalNeto = filtered.reduce((s, f) => s + f.neto, 0);
   const totalTotal = filtered.reduce((s, f) => s + f.total, 0);
-  const pendientes = FACTURAS.filter((f) => f.estado === 'pendiente');
-  const vencidas = FACTURAS.filter((f) => f.estado === 'vencida');
+  const pendientes = facturas.filter((f) => f.estado === 'pendiente');
+  const vencidas = facturas.filter((f) => f.estado === 'vencida');
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
-      <div className="flex shrink-0 items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-foreground">Facturas</h1>
-          <p className="text-xs text-muted">{FACTURAS.length} facturas emitidas</p>
+    <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
+      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
+        <div className="flex shrink-0 items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Facturas</h1>
+            <p className="text-xs text-muted">{facturas.length} facturas emitidas</p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Pendientes" value={String(pendientes.length)} sub={`$${fmt(pendientes.reduce((s, f) => s + f.total, 0))} total`} />
-        <KpiCard label="Vencidas" value={String(vencidas.length)} sub={vencidas.length > 0 ? `$${fmt(vencidas.reduce((s, f) => s + f.total, 0))}` : 'Sin vencidas'} negative={vencidas.length > 0} />
-        <KpiCard label="Facturado del mes" value={`$${fmt(totalNeto)}`} sub="Neto" />
-        <KpiCard label="Total con IVA" value={`$${fmt(totalTotal)}`} />
-      </div>
+        <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
+          <KpiCard label="Pendientes" value={String(pendientes.length)} sub={`$${fmt(pendientes.reduce((s, f) => s + f.total, 0))} total`} />
+          <KpiCard label="Vencidas" value={String(vencidas.length)} sub={vencidas.length > 0 ? `$${fmt(vencidas.reduce((s, f) => s + f.total, 0))}` : 'Sin vencidas'} negative={vencidas.length > 0} />
+          <KpiCard label="Facturado del mes" value={`$${fmt(totalNeto)}`} sub="Neto" />
+          <KpiCard label="Total con IVA" value={`$${fmt(totalTotal)}`} />
+        </div>
 
-      <div className="flex shrink-0 gap-1">
-        {(['todas', 'pendiente', 'pagada', 'vencida'] as const).map((f) => (
-          <button key={f} type="button" onClick={() => setFiltro(f)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize ${filtro === f ? 'bg-brand text-brand-fg' : 'border border-border text-muted hover:bg-surface'}`}>
-            {f === 'todas' ? 'Todas' : ESTADO_LABEL[f]}
-          </button>
-        ))}
-      </div>
+        <div className="flex shrink-0 gap-1">
+          {(['todas', 'pendiente', 'pagada', 'vencida'] as const).map((f) => (
+            <button key={f} type="button" onClick={() => setFiltro(f)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize ${filtro === f ? 'bg-brand text-brand-fg' : 'border border-border text-muted hover:bg-surface'}`}>
+              {f === 'todas' ? 'Todas' : ESTADO_LABEL[f]}
+            </button>
+          ))}
+        </div>
 
-      <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-card-border bg-card">
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <table className="min-w-full">
-            <thead className="sticky top-0 z-10 bg-card">
-              <tr className="border-b border-card-border">
-                <Th>N° Factura</Th>
-                <Th>Centro</Th>
-                <Th>Periodo</Th>
-                <Th>Neto</Th>
-                <Th>IVA</Th>
-                <Th>Total</Th>
-                <Th>Vencimiento</Th>
-                <Th>Estado</Th>
-                <Th>PDF</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-card-border">
-              {filtered.map((f) => (
-                <tr key={f.id} className="hover:bg-surface">
-                  <td className="px-4 py-3 font-mono text-sm font-medium text-foreground">{f.numero}</td>
-                  <td className="px-4 py-3 text-sm text-foreground">{f.centro}</td>
-                  <td className="px-4 py-3 text-sm text-muted">{f.periodo}</td>
-                  <td className="px-4 py-3 font-mono text-sm text-foreground tabular-nums">${fmt(f.neto)}</td>
-                  <td className="px-4 py-3 font-mono text-sm text-muted tabular-nums">${fmt(f.iva)}</td>
-                  <td className="px-4 py-3 font-mono text-sm font-medium text-foreground tabular-nums">${fmt(f.total)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted tabular-nums">{f.vencimiento}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTADO_CLS[f.estado]}`}>
-                      {ESTADO_LABEL[f.estado]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button type="button" onClick={() => descargarPdf(f)} className="flex items-center gap-1 text-xs font-medium text-foreground hover:text-accent-strong" title="Descargar PDF">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
-                      </svg>
-                    </button>
-                  </td>
+        <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-card-border bg-card">
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <table className="min-w-full">
+              <thead className="sticky top-0 z-10 bg-card">
+                <tr className="border-b border-card-border">
+                  <Th>N° Factura</Th>
+                  <Th>Centro</Th>
+                  <Th>Periodo</Th>
+                  <Th>Neto</Th>
+                  <Th>IVA</Th>
+                  <Th>Total</Th>
+                  <Th>Vencimiento</Th>
+                  <Th>Estado</Th>
+                  <Th>PDF</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-card-border">
+                {filtered.map((f) => (
+                  <tr key={f.id} className="hover:bg-surface">
+                    <td className="px-4 py-3 font-mono text-sm font-medium text-foreground">{f.numero}</td>
+                    <td className="px-4 py-3 text-sm text-foreground">{f.centro}</td>
+                    <td className="px-4 py-3 text-sm text-muted">{f.periodo}</td>
+                    <td className="px-4 py-3 font-mono text-sm text-foreground tabular-nums">${fmt(f.neto)}</td>
+                    <td className="px-4 py-3 font-mono text-sm text-muted tabular-nums">${fmt(f.iva)}</td>
+                    <td className="px-4 py-3 font-mono text-sm font-medium text-foreground tabular-nums">${fmt(f.total)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted tabular-nums">{f.vencimiento}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTADO_CLS[f.estado]}`}>
+                        {ESTADO_LABEL[f.estado]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button type="button" onClick={() => descargarPdf(f)} className="flex items-center gap-1 text-xs font-medium text-foreground hover:text-accent-strong" title="Descargar PDF">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </QueryStateView>
   );
 }
 

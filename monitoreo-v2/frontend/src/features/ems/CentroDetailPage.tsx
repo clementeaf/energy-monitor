@@ -4,10 +4,10 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { LoadCurveChart } from './LoadCurveChart';
 import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo } from './format';
 import { StatusBadge } from './StatusBadge';
-import { useAppStore } from '../../store/useAppStore';
 import { useToastStore } from '../../store/useToastStore';
 import { onRowKeyDown } from './table';
 import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
+import { useReglas } from './useReglas';
 
 type Tab = 'resumen' | 'consumo' | 'remarcadores';
 
@@ -22,13 +22,13 @@ export function CentroDetailPage() {
   const [range, setRange] = useState<LoadRange>('hoy');
   const curve = useLoadCurves('hoy');
   const rangeCurve = useLoadCurves(range);
-  const agregarRegla = useAppStore((s) => s.agregarRegla);
+  const { agregar: agregarRegla } = useReglas();
   const showToast = useToastStore((s) => s.showToast);
   const centro = fleet.centros.find((c) => c.id === centroId);
   const meters = fleet.remarcadores.filter((r) => r.centroId === centroId);
 
-  const crearAlerta = (nombre: string) => {
-    agregarRegla({ nombre: `Umbral de consumo · ${nombre}`, tipo: 'Umbral', aplicaA: nombre, notifica: 'Correo + app', activa: true });
+  const crearAlerta = async (nombre: string) => {
+    if (!await agregarRegla({ nombre: `Umbral de consumo · ${nombre}`, tipo: 'Umbral', aplicaA: nombre, notifica: 'Correo + app', activa: true })) return;
     navigate('/alertas');
     showToast(`Regla creada para ${nombre}`);
   };
@@ -58,7 +58,7 @@ export function CentroDetailPage() {
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => showToast('Exportando la ficha del centro…')} className={SECONDARY_BUTTON}>↓ Exportar</button>
               <button type="button" onClick={() => navigate('/margenes')} className={SECONDARY_BUTTON}>Ver en Márgenes</button>
-              <button type="button" onClick={() => crearAlerta(centro.name)} className="rounded-lg bg-card-fg px-3 py-2 text-xs font-medium text-card hover:opacity-90">Crear alerta</button>
+              <button type="button" onClick={() => void crearAlerta(centro.name)} className="rounded-lg bg-card-fg px-3 py-2 text-xs font-medium text-card hover:opacity-90">Crear alerta</button>
             </div>
           </div>
 

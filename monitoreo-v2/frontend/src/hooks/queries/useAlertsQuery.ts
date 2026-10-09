@@ -40,13 +40,14 @@ export function useResolveAlert() {
 
 // --- Alert Rules ---
 
-export function useAlertRulesQuery(buildingId?: string) {
+export function useAlertRulesQuery(buildingId?: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: KEYS.rules(buildingId),
     queryFn: async (): Promise<AlertRule[]> => {
       const { data } = await alertRulesEndpoints.list(buildingId);
       return data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

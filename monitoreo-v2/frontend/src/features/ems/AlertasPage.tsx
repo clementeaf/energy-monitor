@@ -8,6 +8,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { useToastStore } from '../../store/useToastStore';
 import type { AlertaSeveridad, Regla } from './alerts';
 import { useEmsAlertas } from './useEmsFleet';
+import { CANALES_LABELS, TIPOS_REGLA_LABELS, TODOS_LOS_CENTROS, useReglas } from './useReglas';
 
 type Filtro = 'todas' | 'criticas' | 'advertencias' | 'informativas' | 'resueltas';
 
@@ -44,9 +45,7 @@ const SEVERITY_ICON: Record<AlertaSeveridad, { icon: string; cls: string }> = {
 export function AlertasPage() {
   const navigate = useNavigate();
   const [filtro, setFiltro] = useState<Filtro>('todas');
-  const reglas = useAppStore((s) => s.reglas);
-  const toggleRegla = useAppStore((s) => s.toggleRegla);
-  const eliminarRegla = useAppStore((s) => s.eliminarRegla);
+  const { reglas, alternar, eliminar } = useReglas();
   const reabrirAlerta = useAppStore((s) => s.reabrirAlerta);
   const [isConfirmingTodas, setIsConfirmingTodas] = useState(false);
   const [isCreatingRegla, setIsCreatingRegla] = useState(false);
@@ -72,15 +71,14 @@ export function AlertasPage() {
     resolverAlertas(activas.map((a) => a.id));
     showToast('Alertas resueltas');
   };
-  const alternarRegla = (regla: Regla) => {
-    toggleRegla(regla.id);
-    showToast(regla.activa ? 'Regla pausada' : 'Regla activada');
+  const alternarRegla = async (regla: Regla) => {
+    if (await alternar(regla)) showToast(regla.activa ? 'Regla pausada' : 'Regla activada');
   };
-  const confirmarEliminarRegla = () => {
+  const confirmarEliminarRegla = async () => {
     if (!reglaPorEliminar) return;
-    eliminarRegla(reglaPorEliminar.id);
+    const regla = reglaPorEliminar;
     setReglaPorEliminar(null);
-    showToast('Regla eliminada');
+    if (await eliminar(regla)) showToast('Regla eliminada');
   };
 
   return (
@@ -197,7 +195,7 @@ export function AlertasPage() {
                           role="switch"
                           aria-checked={r.activa}
                           aria-label={`Activar ${r.nombre}`}
-                          onClick={() => alternarRegla(r)}
+                          onClick={() => void alternarRegla(r)}
                           className={`relative h-5 w-9 rounded-full transition-colors ${r.activa ? 'bg-accent' : 'bg-raised'}`}
                         >
                           <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${r.activa ? 'left-[18px]' : 'left-0.5'}`} />
@@ -227,7 +225,7 @@ export function AlertasPage() {
       <ConfirmDialog
         open={reglaPorEliminar !== null}
         onClose={() => setReglaPorEliminar(null)}
-        onConfirm={confirmarEliminarRegla}
+        onConfirm={() => void confirmarEliminarRegla()}
         title="Eliminar regla"
         message={`«${reglaPorEliminar?.nombre ?? ''}» dejará de generar alertas. No afecta a las alertas ya emitidas.`}
       />
@@ -239,21 +237,23 @@ export function AlertasPage() {
 const SELECT_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-accent focus:outline-none';
 
 function NuevaReglaModal({ open, onClose }: Readonly<{ open: boolean; onClose: () => void }>) {
-  const agregarRegla = useAppStore((s) => s.agregarRegla);
+  const { agregar } = useReglas();
   const showToast = useToastStore((s) => s.showToast);
   const buildingsQuery = useBuildingsQuery();
 
-  const crear = (event: React.FormEvent<HTMLFormElement>) => {
+  const crear = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    agregarRegla({
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const isSaved = await agregar({
       nombre: String(form.get('nombre')).trim() || 'Regla sin nombre',
       tipo: String(form.get('tipo')),
       aplicaA: String(form.get('aplicaA')),
       notifica: String(form.get('notifica')),
       activa: true,
     });
-    event.currentTarget.reset();
+    if (!isSaved) return;
+    formElement.reset();
     onClose();
     showToast('Regla creada y activada');
   };
@@ -261,7 +261,7 @@ function NuevaReglaModal({ open, onClose }: Readonly<{ open: boolean; onClose: (
   return (
     <Modal open={open} onClose={onClose} title="Nueva regla de alerta">
       <p className="mb-4 text-sm text-muted">Define cuándo debe avisar la plataforma.</p>
-      <form onSubmit={crear} className="flex flex-col gap-3">
+      <form onSubmit={(event) => void crear(event)} className="flex flex-col gap-3">
         <label className="flex flex-col gap-1 text-xs text-muted">
           Nombre
           <input name="nombre" placeholder="Pico sobre 1.200 kW" className={SELECT_CLASS} />
@@ -269,20 +269,20 @@ function NuevaReglaModal({ open, onClose }: Readonly<{ open: boolean; onClose: (
         <label className="flex flex-col gap-1 text-xs text-muted">
           Tipo
           <select name="tipo" className={SELECT_CLASS}>
-            {['Pico de demanda', 'Umbral', 'Desconexión', 'Margen'].map((tipo) => <option key={tipo}>{tipo}</option>)}
+            {TIPOS_REGLA_LABELS.map((tipo) => <option key={tipo}>{tipo}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           Aplica a
           <select name="aplicaA" className={SELECT_CLASS}>
-            <option>Todos los centros</option>
+            <option>{TODOS_LOS_CENTROS}</option>
             {(buildingsQuery.data ?? []).map((building) => <option key={building.id}>{building.name}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           Notifica por
           <select name="notifica" className={SELECT_CLASS}>
-            {['Correo + app', 'Correo', 'Solo en la app'].map((canal) => <option key={canal}>{canal}</option>)}
+            {CANALES_LABELS.map((canal) => <option key={canal}>{canal}</option>)}
           </select>
         </label>
         <div className="mt-2 flex justify-end gap-2">

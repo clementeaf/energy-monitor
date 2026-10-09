@@ -3,22 +3,15 @@ import { Modal } from '../../components/ui/Modal';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useAppStore } from '../../store/useAppStore';
 import { useToastStore } from '../../store/useToastStore';
-
-interface ReporteProgramado {
-  id: string;
-  nombre: string;
-  alcance: string;
-  frecuencia: string;
-  formato: string;
-  activo: boolean;
-}
-
-const PROGRAMADOS: ReporteProgramado[] = [
-  { id: 'rp1', nombre: 'Consumo y margen mensual', alcance: 'Todos los centros', frecuencia: 'Mensual · día 1', formato: 'PDF', activo: true },
-  { id: 'rp2', nombre: 'Detalle por centro', alcance: 'Alto Peñalolén', frecuencia: 'Mensual · día 3', formato: 'Excel', activo: true },
-  { id: 'rp3', nombre: 'Salud de la flota', alcance: 'Remarcadores', frecuencia: 'Semanal · lunes', formato: 'PDF', activo: true },
-  { id: 'rp4', nombre: 'Picos de demanda', alcance: 'Quilicura', frecuencia: 'Diario · 08:00', formato: 'Excel', activo: false },
-];
+import {
+  FORMATOS_LABELS,
+  FRECUENCIAS_LABELS,
+  TIPOS_REPORTE_LABELS,
+  useReportesProgramados,
+  type NuevoReporteProgramado,
+  type ReporteProgramado,
+} from './useReportesProgramados';
+import { TODOS_LOS_CENTROS } from './useReglas';
 
 const GENERACION_MS = 900;
 
@@ -31,16 +24,15 @@ const SECONDARY_BUTTON = 'flex items-center gap-1.5 rounded-lg border border-bor
 const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-accent focus:outline-none';
 
 export function ReportesPage() {
-  const [reportes, setReportes] = useState(PROGRAMADOS);
+  const { reportes, crear, alternar } = useReportesProgramados();
   const [generando, setGenerando] = useState<Set<string>>(new Set());
   const [isCreating, setIsCreating] = useState(false);
   const generados = useAppStore((s) => s.reportesGenerados);
   const agregarReporteGenerado = useAppStore((s) => s.agregarReporteGenerado);
   const showToast = useToastStore((s) => s.showToast);
 
-  const toggleReporte = (reporte: ReporteProgramado) => {
-    setReportes((prev) => prev.map((r) => (r.id === reporte.id ? { ...r, activo: !r.activo } : r)));
-    showToast(reporte.activo ? 'Envío pausado' : 'Envío programado');
+  const toggleReporte = async (reporte: ReporteProgramado) => {
+    if (await alternar(reporte)) showToast(reporte.activo ? 'Envío pausado' : 'Envío programado');
   };
 
   const generarAhora = (reporte: ReporteProgramado) => {
@@ -56,10 +48,11 @@ export function ReportesPage() {
     }, GENERACION_MS);
   };
 
-  const crearReporte = (reporte: Omit<ReporteProgramado, 'id' | 'activo'>) => {
-    setReportes((prev) => [...prev, { ...reporte, id: crypto.randomUUID(), activo: true }]);
+  const crearReporte = async (reporte: NuevoReporteProgramado) => {
+    if (!await crear(reporte)) return false;
     setIsCreating(false);
     showToast('Reporte programado');
+    return true;
   };
 
   return (
@@ -119,7 +112,7 @@ export function ReportesPage() {
                         role="switch"
                         aria-checked={r.activo}
                         aria-label={`Programar ${r.nombre}`}
-                        onClick={() => toggleReporte(r)}
+                        onClick={() => void toggleReporte(r)}
                         className={`relative h-5 w-9 rounded-full transition-colors ${r.activo ? 'bg-accent' : 'bg-raised'}`}
                       >
                         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${r.activo ? 'left-[18px]' : 'left-0.5'}`} />
@@ -172,49 +165,50 @@ export function ReportesPage() {
 function NuevoReporteModal({ open, onClose, onCreate }: Readonly<{
   open: boolean;
   onClose: () => void;
-  onCreate: (reporte: Omit<ReporteProgramado, 'id' | 'activo'>) => void;
+  onCreate: (reporte: NuevoReporteProgramado) => Promise<boolean>;
 }>) {
   const buildingsQuery = useBuildingsQuery();
 
-  const crear = (event: React.FormEvent<HTMLFormElement>) => {
+  const crear = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    onCreate({
-      nombre: String(form.get('nombre')).trim() || 'Reporte sin nombre',
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const isCreated = await onCreate({
+      nombre: String(form.get('nombre')),
       alcance: String(form.get('alcance')),
       frecuencia: String(form.get('frecuencia')),
       formato: String(form.get('formato')),
     });
-    event.currentTarget.reset();
+    if (isCreated) formElement.reset();
   };
 
   return (
     <Modal open={open} onClose={onClose} title="Nuevo reporte">
       <p className="mb-4 text-sm text-muted">Se guardará como reporte programado.</p>
-      <form onSubmit={crear} className="flex flex-col gap-3">
+      <form onSubmit={(event) => void crear(event)} className="flex flex-col gap-3">
         <label className="flex flex-col gap-1 text-xs text-muted">
-          Nombre
-          <input name="nombre" placeholder="Consumo semanal por centro" className={FIELD_CLASS} />
+          Tipo
+          <select name="nombre" className={FIELD_CLASS}>
+            {TIPOS_REPORTE_LABELS.map((tipo) => <option key={tipo}>{tipo}</option>)}
+          </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           Alcance
           <select name="alcance" className={FIELD_CLASS}>
-            <option>Todos los centros</option>
+            <option>{TODOS_LOS_CENTROS}</option>
             {(buildingsQuery.data ?? []).map((building) => <option key={building.id}>{building.name}</option>)}
-            <option>Remarcadores</option>
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           Frecuencia
           <select name="frecuencia" className={FIELD_CLASS}>
-            {['Diario · 08:00', 'Semanal · lunes', 'Mensual · día 1'].map((frecuencia) => <option key={frecuencia}>{frecuencia}</option>)}
+            {FRECUENCIAS_LABELS.map((frecuencia) => <option key={frecuencia}>{frecuencia}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
           Formato
           <select name="formato" className={FIELD_CLASS}>
-            <option>PDF</option>
-            <option>Excel</option>
+            {FORMATOS_LABELS.map((formato) => <option key={formato}>{formato}</option>)}
           </select>
         </label>
         <div className="mt-2 flex justify-end gap-2">

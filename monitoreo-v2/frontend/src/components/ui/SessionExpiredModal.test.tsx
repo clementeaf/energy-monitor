@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { SessionExpiredModal } from './SessionExpiredModal';
 import { setSessionExpiredHandler } from '../../services/api';
 import api from '../../services/api';
+import { useAuthStore } from '../../store/useAuthStore';
 
 vi.mock('../../services/api', async () => {
   let handler: () => void = () => {};
@@ -32,14 +33,27 @@ beforeEach(() => {
   });
 });
 
-async function abrirModal() {
+async function expirarSesion() {
   render(<SessionExpiredModal />);
   const mod = await import('../../services/api');
   (mod as unknown as { __expire: () => void }).__expire();
+}
+
+async function abrirModal() {
+  useAuthStore.setState({ isAuthenticated: true });
+  await expirarSesion();
   await screen.findByText('Sesión inactiva');
 }
 
 describe('SessionExpiredModal', () => {
+  it('no aparece si nadie habia iniciado sesion', async () => {
+    useAuthStore.setState({ isAuthenticated: false });
+    await expirarSesion();
+
+    expect(screen.queryByText('Sesión inactiva')).not.toBeInTheDocument();
+    expect(navegado).toEqual([]);
+  });
+
   it('"Continuar trabajando" refresca el token y cierra el modal sin ir a login', async () => {
     vi.mocked(api.post).mockResolvedValue({ data: { success: true } });
     await abrirModal();

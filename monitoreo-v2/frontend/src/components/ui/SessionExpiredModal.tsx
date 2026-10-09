@@ -13,7 +13,7 @@ export function SessionExpiredModal() {
   const idleTimeoutMinutes = useAuthStore((s) => s.idleTimeoutMinutes);
 
   useEffect(() => {
-    setSessionExpiredHandler(() => setOpen(true));
+    setSessionExpiredHandler(() => setOpen(useAuthStore.getState().isAuthenticated));
     return () => setSessionExpiredHandler(() => {});
   }, []);
 

@@ -27,10 +27,14 @@ Parameters:
   SesFromEmail:
     Type: String
     Default: ''
+  PublicReadOnlyTenantId:
+    Type: String
+    Default: ''
 
 Conditions:
   HasDomain: !Not [!Equals [!Ref DomainName, '']]
   HasSesFromEmail: !Not [!Equals [!Ref SesFromEmail, '']]
+  HasPublicReadOnlyTenant: !Not [!Equals [!Ref PublicReadOnlyTenantId, '']]
 
 Resources:
   JwtSecret:
@@ -196,6 +200,7 @@ Resources:
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
           EXPORT_S3_BUCKET: !Ref ExportsBucket
           SES_FROM_EMAIL: !If [HasSesFromEmail, !Ref SesFromEmail, !Ref AWS::NoValue]
+          PUBLIC_READ_ONLY_TENANT_ID: !If [HasPublicReadOnlyTenant, !Ref PublicReadOnlyTenantId, !Ref AWS::NoValue]
 
   HttpApi:
     Type: AWS::ApiGatewayV2::Api

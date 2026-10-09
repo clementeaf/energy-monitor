@@ -35,6 +35,11 @@ export function validateEnv(): void {
     missing.push('JWT_SECRET (too short — minimum 32 characters)');
   }
 
+  const publicTenantId = process.env.PUBLIC_READ_ONLY_TENANT_ID;
+  if (publicTenantId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(publicTenantId)) {
+    missing.push(`PUBLIC_READ_ONLY_TENANT_ID (not a UUID: ${publicTenantId})`);
+  }
+
   if (missing.length === 0) return;
 
   const message = `Environment validation failed: ${missing.join(', ')}`;

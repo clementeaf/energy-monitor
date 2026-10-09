@@ -64,7 +64,8 @@ deploy_stack() {
       MicrosoftTenantId="$MICROSOFT_TENANT_ID" \
       MicrosoftClientId="$MICROSOFT_CLIENT_ID" \
       GoogleClientId="$GOOGLE_CLIENT_ID" \
-      SesFromEmail="$SES_FROM_EMAIL"
+      SesFromEmail="$SES_FROM_EMAIL" \
+      PublicReadOnlyTenantId="${PUBLIC_READ_ONLY_TENANT_ID:-}"
 }
 
 bootstrap_database_if_empty() {

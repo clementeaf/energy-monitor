@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ReadingQueryDto } from './dto/reading-query.dto';
 import { LatestQueryDto } from './dto/latest-query.dto';
@@ -107,10 +107,18 @@ interface CacheEntry {
 const PORTFOLIO_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 @Injectable()
-export class ReadingsService {
+export class ReadingsService implements OnModuleInit {
   private portfolioCache = new Map<string, CacheEntry>();
+  private hasContinuousAggregates = true;
 
   constructor(private readonly dataSource: DataSource) {}
+
+  async onModuleInit(): Promise<void> {
+    const [row] = await this.dataSource.query(
+      `SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'timescaledb') AS installed`,
+    );
+    this.hasContinuousAggregates = row.installed;
+  }
 
   private getCached(key: string): AggregatedRow[] | null {
     const entry = this.portfolioCache.get(key);
@@ -467,6 +475,10 @@ export class ReadingsService {
 
     const pgInterval = INTERVAL_MAP[query.interval];
     if (!pgInterval) return [];
+
+    if (!this.hasContinuousAggregates && !query.groupBy) {
+      return this.findFromRawBucket(tenantId, buildingIds, query, pgInterval, crossTenant);
+    }
 
     // Portfolio / building cache — avoids slow sequential scans on continuous aggregates
     if (query.groupBy === 'portfolio' || query.groupBy === 'building') {
@@ -1047,14 +1059,17 @@ export class ReadingsService {
     buildingIds: string[],
     query: AggregatedQueryDto,
     pgInterval: string,
+    crossTenant = false,
   ): Promise<AggregatedRow[]> {
-    const params: unknown[] = [pgInterval, tenantId, query.from, query.to];
-    const conditions: string[] = [
-      'm.tenant_id = $2',
-      'r.timestamp >= $3',
-      'r.timestamp <= $4',
-    ];
-    let paramIdx = 5;
+    const params: unknown[] = [pgInterval, query.from, query.to];
+    const conditions: string[] = ['TRUE'];
+    let paramIdx = 4;
+
+    if (!crossTenant) {
+      conditions.push(`m.tenant_id = $${paramIdx}`);
+      params.push(tenantId);
+      paramIdx++;
+    }
 
     if (buildingIds.length > 0) {
       const placeholders = buildingIds.map((_, i) => `$${paramIdx + i}`);
@@ -1084,21 +1099,25 @@ export class ReadingsService {
     await this.dataSource.query("SET LOCAL statement_timeout = '15s'");
     try {
       return await this.dataSource.query(
-        `SELECT
-           time_bucket($1::interval, r.timestamp) AS bucket,
-           r.meter_id,
-           AVG(r.power_kw::numeric)::text AS avg_power_kw,
-           MAX(r.power_kw::numeric)::text AS max_power_kw,
-           MIN(r.power_kw::numeric)::text AS min_power_kw,
-           AVG(r.power_factor::numeric)::text AS avg_power_factor,
-           AVG(r.voltage_l1::numeric)::text AS avg_voltage_l1,
-           (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric))::text AS energy_delta_kwh,
-           COUNT(*)::text AS reading_count
-         FROM readings r
-         INNER JOIN meters m ON m.id = r.meter_id
+        `SELECT b.bucket, m.id AS meter_id, b.avg_power_kw, b.max_power_kw, b.min_power_kw,
+                b.avg_power_factor, b.avg_voltage_l1, b.energy_delta_kwh, b.reading_count
+         FROM meters m
+         CROSS JOIN LATERAL (
+           SELECT
+             time_bucket($1::interval, r.timestamp) AS bucket,
+             AVG(r.power_kw::numeric)::text AS avg_power_kw,
+             MAX(r.power_kw::numeric)::text AS max_power_kw,
+             MIN(r.power_kw::numeric)::text AS min_power_kw,
+             AVG(r.power_factor::numeric)::text AS avg_power_factor,
+             AVG(r.voltage_l1::numeric)::text AS avg_voltage_l1,
+             (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric))::text AS energy_delta_kwh,
+             COUNT(*)::text AS reading_count
+           FROM readings r
+           WHERE r.meter_id = m.id AND r.timestamp >= $2 AND r.timestamp <= $3
+           GROUP BY 1
+         ) b
          WHERE ${where}
-         GROUP BY time_bucket($1::interval, r.timestamp), r.meter_id
-         ORDER BY bucket ASC, r.meter_id ASC`,
+         ORDER BY b.bucket ASC, m.id ASC`,
         params,
       );
     } finally {

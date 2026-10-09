@@ -318,6 +318,41 @@ describe('ReadingsService', () => {
       expect(sql).toContain('SUM(a.avg_power_kw * a.reading_count)');
     });
 
+    /* --- Plain PostgreSQL (no TimescaleDB) --- */
+
+    function rawAggregateCall(): unknown[] | undefined {
+      return ds.query.mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('FROM readings r'),
+      );
+    }
+
+    it('without TimescaleDB, reads raw readings filtered by timestamp instead of the aggregate views', async () => {
+      ds.query.mockResolvedValueOnce([{ installed: false }]);
+      await service.onModuleInit();
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], { ...baseQuery, interval: 'monthly' });
+
+      const call = rawAggregateCall();
+      expect(call).toBeDefined();
+      const sql = call![0] as string;
+      expect(sql).not.toContain('readings_daily');
+      expect(sql).toContain('r.timestamp >=');
+      expect(call![1]).toEqual(['1 month', baseQuery.from, baseQuery.to, TENANT_ID]);
+    });
+
+    it('without TimescaleDB, a cross-tenant query is not scoped to one tenant', async () => {
+      ds.query.mockResolvedValueOnce([{ installed: false }]);
+      await service.onModuleInit();
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], baseQuery, true);
+
+      const call = rawAggregateCall();
+      expect(call![0] as string).not.toContain('tenant_id');
+      expect(call![1]).toEqual(['1 day', baseQuery.from, baseQuery.to]);
+    });
+
     /* --- Scoping --- */
 
     it('scopes by tenant in aggregate query', async () => {

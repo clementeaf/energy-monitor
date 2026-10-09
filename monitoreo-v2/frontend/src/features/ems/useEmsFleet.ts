@@ -9,6 +9,7 @@ import {
   applyRemarcadorOverrides,
   buildCentros,
   buildRemarcadores,
+  findLatestReadingAt,
   startOfDay,
   startOfMonth,
   toLoadCurves,
@@ -33,12 +34,14 @@ export interface EmsFleet {
   refetch: () => void;
   centros: Centro[];
   remarcadores: Remarcador[];
+  periodo: Date;
 }
 
 function toCentroSinRemarcadores(centro: CentroSimulado): Centro {
   return {
     id: centro.id, name: centro.name, code: 'Pendiente de instalación', address: centro.address,
     superficie: null, consumoMesKwh: 0, intensidadKwhM2: null, remarcadores: 0, estado: 'operativo',
+    tarifa: null, margen: null,
   };
 }
 
@@ -46,12 +49,15 @@ export function useEmsFleet(): EmsFleet {
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const periodo = useMemo(
+    () => startOfMonth(findLatestReadingAt(latestQuery.data ?? []) ?? new Date()),
+    [latestQuery.data],
+  );
   const monthRange = useMemo(() => {
-    const monthStart = startOfMonth(new Date());
-    const nextMonthStart = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
-    return { from: monthStart.toISOString(), to: nextMonthStart.toISOString() };
-  }, []);
-  const monthlyQuery = useAggregatedReadingsQuery({ ...monthRange, interval: 'monthly' });
+    const nextMonthStart = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 1);
+    return { from: periodo.toISOString(), to: nextMonthStart.toISOString() };
+  }, [periodo]);
+  const monthlyQuery = useAggregatedReadingsQuery({ ...monthRange, interval: 'monthly' }, latestQuery.isSuccess);
 
   const queries = [buildingsQuery, metersQuery, latestQuery, monthlyQuery];
   const failed = queries.find((query) => query.isError);
@@ -74,6 +80,7 @@ export function useEmsFleet(): EmsFleet {
     refetch: () => queries.forEach((query) => void query.refetch()),
     centros,
     remarcadores,
+    periodo,
   };
 }
 

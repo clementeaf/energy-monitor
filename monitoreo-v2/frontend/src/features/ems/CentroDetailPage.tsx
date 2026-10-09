@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
 import { LoadCurveChart } from './LoadCurveChart';
-import { formatDateTime, formatNumber } from './format';
+import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo } from './format';
 import { StatusBadge } from './StatusBadge';
 import { useAppStore } from '../../store/useAppStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -63,10 +63,10 @@ export function CentroDetailPage() {
           </div>
 
           <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-            <KpiCard label="Consumo del mes" value={formatNumber(centro.consumoMesKwh / 1000, 1)} unit="MWh" sub="Mes en curso" />
-            <KpiCard label="Costo de compra" value="—" sub="Sin tarifas cargadas" />
-            <KpiCard label="Precio de venta" value="—" sub="Sin tarifas cargadas" />
-            <KpiCard label="Margen del periodo" value="—" sub="Sin tarifas cargadas" />
+            <KpiCard label="Consumo del mes" value={formatNumber(centro.consumoMesKwh / 1000, 1)} unit="MWh" sub={formatPeriodo(fleet.periodo)} />
+            <KpiCard label="Costo de compra" value={formatMillonesClp(centro.margen?.costoCompraClp ?? null)} sub={centro.tarifa ? `${formatNumber(centro.tarifa.compraClpKwh)} $/kWh` : 'Sin tarifa'} />
+            <KpiCard label="Precio de venta" value={formatMillonesClp(centro.margen?.precioVentaClp ?? null)} sub={centro.tarifa ? `${formatNumber(centro.tarifa.ventaClpKwh)} $/kWh` : 'Sin tarifa'} />
+            <KpiCard label="Margen del periodo" value={formatMillonesClp(centro.margen?.margenClp ?? null)} sub={centro.margen ? `${formatNumber(centro.margen.margenPct, 1)}% sobre venta` : 'Sin tarifa'} />
           </div>
 
           <div role="tablist" className="flex shrink-0 gap-1 border-b border-border">
@@ -98,6 +98,8 @@ export function CentroDetailPage() {
               <h2 className="text-sm font-semibold text-card-fg">Ficha del centro</h2>
               <div className="mt-2 space-y-2">
                 <FichaRow label="Código" value={centro.code} />
+                <FichaRow label="Cliente" value={centro.tarifa?.cliente ?? '—'} />
+                <FichaRow label="Tarifa compra / venta" value={centro.tarifa ? `${formatNumber(centro.tarifa.compraClpKwh)} / ${formatNumber(centro.tarifa.ventaClpKwh)} $/kWh` : '—'} />
                 <FichaRow label="Dirección" value={centro.address ?? '—'} />
                 <FichaRow label="Superficie" value={centro.superficie ? `${formatNumber(centro.superficie)} m²` : '—'} />
                 <FichaRow label="Intensidad" value={centro.intensidadKwhM2 === null ? '—' : `${formatNumber(centro.intensidadKwhM2, 1)} kWh/m²`} />

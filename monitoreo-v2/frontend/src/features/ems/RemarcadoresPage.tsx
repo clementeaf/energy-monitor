@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
+import { buildFichaDispositivo } from './device';
 import type { Remarcador, RemarcadorEstado } from './fleet';
 import { formatDateTime, formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
@@ -18,12 +19,13 @@ const FILTROS: { key: Filtro; label: string }[] = [
   { key: 'mantencion', label: 'En mantención' },
 ];
 
-type SortKey = 'code' | 'nombre' | 'centro' | 'potencia' | 'ultima';
+type SortKey = 'code' | 'nombre' | 'centro' | 'senal' | 'potencia' | 'ultima';
 
 const SORT_GETTERS: Record<SortKey, (remarcador: Remarcador) => string | number> = {
   code: (r) => r.code,
   nombre: (r) => r.name,
   centro: (r) => r.centroName,
+  senal: (r) => buildFichaDispositivo(r).senalPct,
   potencia: (r) => r.potenciaKw ?? -1,
   ultima: (r) => r.ultimaLectura ?? '',
 };
@@ -147,6 +149,7 @@ export function RemarcadoresPage() {
                 <SortableTh label="ID" sortKey="code" sort={sort} onToggle={toggleSort} />
                 <SortableTh label="Nombre" sortKey="nombre" sort={sort} onToggle={toggleSort} />
                 <SortableTh label="Centro" sortKey="centro" sort={sort} onToggle={toggleSort} />
+                <SortableTh label="Señal" sortKey="senal" sort={sort} onToggle={toggleSort} />
                 <SortableTh label="Potencia" sortKey="potencia" sort={sort} onToggle={toggleSort} />
                 <SortableTh label="Última lectura" sortKey="ultima" sort={sort} onToggle={toggleSort} />
                 <Th>Estado</Th>
@@ -162,6 +165,7 @@ export function RemarcadoresPage() {
                   <td className="px-5 py-3 font-mono text-sm font-medium text-foreground">{r.code}</td>
                   <td className="px-5 py-3 text-sm text-foreground">{r.name}</td>
                   <td className="px-5 py-3 text-sm text-foreground">{r.centroName}</td>
+                  <td className="px-5 py-3"><SenalBar pct={buildFichaDispositivo(r).senalPct} /></td>
                   <td className="px-5 py-3 font-mono text-sm text-muted tabular-nums">{r.potenciaKw === null ? '—' : `${formatNumber(r.potenciaKw, 1)} kW`}</td>
                   <td className="px-5 py-3 font-mono text-sm text-muted tabular-nums">{formatDateTime(r.ultimaLectura)}</td>
                   <td className="px-5 py-3"><StatusBadge estado={r.estado} /></td>
@@ -195,4 +199,16 @@ function StatCard({ label, value, sub, positive, negative }: Readonly<{ label: s
 
 function Th({ children, accent }: Readonly<{ children?: React.ReactNode; accent?: boolean }>) {
   return <th className={`px-5 py-2.5 text-left text-xs font-medium uppercase tracking-wider ${accent ? 'text-accent' : 'text-muted'}`}>{children}</th>;
+}
+
+function SenalBar({ pct }: Readonly<{ pct: number }>) {
+  const color = pct >= 60 ? 'bg-success' : pct > 0 ? 'bg-warning' : 'bg-danger';
+  return (
+    <span className="flex items-center gap-2">
+      <span className="h-1.5 w-12 overflow-hidden rounded-full bg-raised">
+        <span className={`block h-full ${color}`} style={{ width: `${pct}%` }} />
+      </span>
+      <span className="font-mono text-xs text-muted tabular-nums">{pct}%</span>
+    </span>
+  );
 }

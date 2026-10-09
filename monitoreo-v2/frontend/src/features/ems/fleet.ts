@@ -1,6 +1,7 @@
 import type { Building } from '../../types/building';
 import type { Meter } from '../../types/meter';
 import type { AggregatedReading, LatestReading } from '../../types/reading';
+import { calcularMargen, TARIFAS_POR_CENTRO, type MargenCentro, type Tarifa } from './tariffs';
 
 export type RemarcadorEstado = 'conectado' | 'sin_senal' | 'caido' | 'mantencion';
 export type CentroEstado = 'operativo' | 'advertencia' | 'alarma';
@@ -50,6 +51,8 @@ export interface Centro {
   intensidadKwhM2: number | null;
   remarcadores: number;
   estado: CentroEstado;
+  tarifa: Tarifa | null;
+  margen: MargenCentro | null;
 }
 
 export interface LoadPoint {
@@ -130,6 +133,7 @@ export function buildCentros(
     const own = remarcadores.filter((remarcador) => remarcador.centroId === building.id);
     const superficie = toNumber(building.areaSqm);
     const consumoMesKwh = consumoByBuilding.get(building.id) ?? 0;
+    const tarifa = TARIFAS_POR_CENTRO[building.code] ?? null;
     return {
       id: building.id,
       name: building.name,
@@ -140,6 +144,8 @@ export function buildCentros(
       intensidadKwhM2: superficie && superficie > 0 ? consumoMesKwh / superficie : null,
       remarcadores: own.length,
       estado: classifyCentro(own.map((remarcador) => remarcador.estado)),
+      tarifa,
+      margen: tarifa && calcularMargen(consumoMesKwh, tarifa),
     };
   });
 }
@@ -174,6 +180,11 @@ export function toLoadCurves(
         .map(([time, kw]) => ({ timestamp: new Date(time).toISOString(), kw })),
     ]),
   );
+}
+
+export function findLatestReadingAt(latestReadings: LatestReading[]): Date | null {
+  if (latestReadings.length === 0) return null;
+  return new Date(Math.max(...latestReadings.map((reading) => new Date(reading.timestamp).getTime())));
 }
 
 export function startOfMonth(now: Date): Date {

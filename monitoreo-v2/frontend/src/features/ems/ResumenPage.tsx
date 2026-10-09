@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
 import { LoadCurveChart } from './LoadCurveChart';
-import { formatDateTime, formatNumber } from './format';
+import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo } from './format';
 import { PORTFOLIO_CURVE } from './fleet';
+import { sumarMargenes } from './tariffs';
 import { useEmsAlertas, useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
 
 const CENTRO_COLORS: Record<string, string> = {
@@ -31,7 +32,8 @@ export function ResumenPage() {
   const sinSenal = remarcadores.filter((r) => r.estado === 'sin_senal').length;
   const sinConexion = remarcadores.filter((r) => r.estado !== 'conectado');
   const maxConsumo = Math.max(...centros.map((c) => c.consumoMesKwh), 1);
-  const periodo = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+  const periodo = formatPeriodo(fleet.periodo);
+  const margenTotal = sumarMargenes(centros.flatMap((c) => (c.margen ? [c.margen] : [])));
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
@@ -50,9 +52,9 @@ export function ResumenPage() {
         <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
           <div className="flex flex-col gap-5">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              <KpiCard label="Consumo del mes" value={formatNumber(consumoMesMwh, 1)} unit="MWh" delta="Mes en curso" onClick={() => navigate('/consumo')} />
-              <KpiCard label="Gasto en compra" value="—" delta="Sin tarifas cargadas" onClick={() => navigate('/margenes')} />
-              <KpiCard label="Margen estimado" value="—" delta="Sin tarifas cargadas" onClick={() => navigate('/margenes')} />
+              <KpiCard label="Consumo del mes" value={formatNumber(consumoMesMwh, 1)} unit="MWh" delta="Último mes con lecturas" onClick={() => navigate('/consumo')} />
+              <KpiCard label="Gasto en compra" value={formatMillonesClp(margenTotal.costoCompraClp)} delta={`Venta ${formatMillonesClp(margenTotal.precioVentaClp)}`} onClick={() => navigate('/margenes')} />
+              <KpiCard label="Margen estimado" value={formatMillonesClp(margenTotal.margenClp)} delta={`${formatNumber(margenTotal.margenPct, 1)}% sobre venta`} positive onClick={() => navigate('/margenes')} />
               <KpiCard label="Centros activos" value={String(centros.length)} delta={`${centros.filter((c) => c.estado === 'operativo').length} operativos`} positive onClick={() => navigate('/centros')} />
               <KpiCard label="Remarcadores" value={String(conectados)} unit={`/${remarcadores.length}`} delta={`${caidos} caídos · ${sinSenal} sin señal`} negative={caidos + sinSenal > 0} onClick={() => navigate('/remarcadores')} />
               <KpiCard label="Alertas activas" value={String(alertas.length)} delta={`${alertasCriticas} críticas`} negative={alertasCriticas > 0} onClick={() => navigate('/alertas')} />

@@ -5,6 +5,7 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { StockChart } from '../../components/charts/StockChart';
 import { useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
 import type { Reading } from '../../types/reading';
+import { buildFichaDispositivo } from './device';
 import { startOfDay, toNumber, type Remarcador } from './fleet';
 import { formatDateTime, formatNumber } from './format';
 import { StatusBadge } from './StatusBadge';
@@ -202,6 +203,8 @@ export function RemarcadorDetailPage() {
                   <FichaRow label="Protocolo" value={rem.protocolo ?? '—'} />
                 </div>
               </div>
+
+              <FichaTecnica remarcador={rem} />
             </div>
           </div>
         </div>
@@ -209,6 +212,21 @@ export function RemarcadorDetailPage() {
         <div className="flex h-full items-center justify-center text-sm text-muted">Remarcador no encontrado.</div>
       )}
     </QueryStateView>
+  );
+}
+
+function FichaTecnica({ remarcador }: Readonly<{ remarcador: Remarcador }>) {
+  const ficha = buildFichaDispositivo(remarcador);
+  return (
+    <div className="rounded-xl border border-card-border bg-card p-4">
+      <h2 className="text-sm font-semibold text-card-fg">Ficha técnica</h2>
+      <div className="mt-3 space-y-2">
+        <FichaRow label="Modelo" value={ficha.modelo} />
+        <FichaRow label="Firmware" value={ficha.firmware} />
+        <FichaRow label="Fecha de alta" value={new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL')} />
+        <FichaRow label="Señal" value={`${ficha.senalPct}%`} />
+      </div>
+    </div>
   );
 }
 

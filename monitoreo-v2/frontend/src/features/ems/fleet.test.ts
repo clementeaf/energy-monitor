@@ -7,6 +7,7 @@ import {
   buildRemarcadores,
   classifyCentro,
   classifyConnection,
+  findLatestReadingAt,
   PORTFOLIO_CURVE,
   toLoadCurves,
 } from './fleet';
@@ -108,6 +109,27 @@ describe('buildCentros', () => {
 
     expect(alto).toMatchObject({ consumoMesKwh: 120.5, remarcadores: 2, estado: 'advertencia', superficie: null, intensidadKwhM2: null });
     expect(quilicura).toMatchObject({ consumoMesKwh: 250, remarcadores: 1, estado: 'operativo', superficie: 1000, intensidadKwhM2: 0.25 });
+  });
+
+  it('prices the period consumption with the centro tariff and leaves unknown centros unpriced', () => {
+    const buildings = [buildBuilding({}), buildBuilding({ id: 'b-2', code: 'SIN-TARIFA' })];
+    const remarcadores = buildRemarcadores([buildMeter({}), buildMeter({ id: 'm-3', buildingId: 'b-2' })], [], buildings, NOW);
+
+    const [alto, sinTarifa] = buildCentros(buildings, remarcadores, [
+      buildAggregate('m-1', { energy_delta_kwh: '1000' }),
+      buildAggregate('m-3', { energy_delta_kwh: '500' }),
+    ]);
+
+    expect(alto.margen).toEqual({ costoCompraClp: 118_000, precioVentaClp: 146_000, margenClp: 28_000, margenPct: (28 / 146) * 100 });
+    expect(sinTarifa).toMatchObject({ tarifa: null, margen: null });
+  });
+});
+
+describe('findLatestReadingAt', () => {
+  it('returns the newest reading across meters, or null when there are none', () => {
+    expect(findLatestReadingAt([buildLatest('m-1', '2026-07-28T10:00:00.000Z'), buildLatest('m-2', '2026-07-28T23:45:00.000Z')]))
+      .toEqual(new Date('2026-07-28T23:45:00.000Z'));
+    expect(findLatestReadingAt([])).toBeNull();
   });
 });
 

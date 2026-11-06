@@ -4,7 +4,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { Chart } from '../../../components/charts/Chart';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useInvoicesQuery } from '../../../hooks/queries/useInvoicesQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useMonthToDateEnergyByMeter } from '../../../hooks/queries/useReadingsQuery';
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import { CostTable } from './CostTable';
 import {
@@ -40,6 +40,7 @@ export function CostosTendenciasPage() {
   const buildingsQuery = useBuildingsQuery();
   const invoicesQuery = useInvoicesQuery();
   const latestQuery = useLatestReadingsQuery();
+  const energyByMeter = useMonthToDateEnergyByMeter();
 
   const rawBuildings = buildingsQuery.data ?? [];
   const buildings = useMemo(() => {
@@ -69,7 +70,7 @@ export function CostosTendenciasPage() {
   const filteredInvoices = invoices.filter((inv) => buildingIds.has(inv.buildingId));
   const filteredReadings = readings.filter((r) => buildingIds.has(r.building_id));
 
-  const costRows = buildCostRows(finalBuildings, filteredInvoices, filteredReadings, currencyRate);
+  const costRows = buildCostRows(finalBuildings, filteredInvoices, filteredReadings, currencyRate, energyByMeter);
 
   const monthlyData = aggregateMonthlyCosts(filteredInvoices, currencyRate);
 

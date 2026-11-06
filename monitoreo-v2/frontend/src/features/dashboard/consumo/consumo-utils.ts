@@ -83,6 +83,7 @@ export function buildRows(
   readings: LatestReading[],
   alerts: Alert[],
   yesterdayAgg: AggregatedReading[],
+  energyByMeter: Map<string, number>,
 ): BuildingRow[] {
   const readingsByBuilding = groupBy(readings, (r) => r.building_id);
   const alertsByBuilding = groupBy(alerts, (a) => a.buildingId);
@@ -97,7 +98,7 @@ export function buildRows(
     const bReadings = readingsByBuilding.get(building.id) ?? [];
     const bAlerts = alertsByBuilding.get(building.id) ?? [];
     const rawDemandKw = bReadings.reduce((sum, r) => sum + Number(r.power_kw || 0), 0);
-    const rawEnergyMwh = bReadings.reduce((sum, r) => sum + Number(r.energy_kwh_total || 0), 0) / 1000;
+    const rawEnergyMwh = bReadings.reduce((sum, r) => sum + (energyByMeter.get(r.meter_id) ?? 0), 0) / 1000;
     const severities = bAlerts.map((a) => a.severity as AlertSeverity);
     const hasData = bReadings.length > 0;
     const status = deriveBuildingStatus(severities, hasData);

@@ -4,7 +4,7 @@ import { DropdownSelect } from '../../../components/ui/DropdownSelect';
 import { MapView } from '../../../components/ui/MapView';
 import { useBuildingsQuery } from '../../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useMonthToDateEnergyByMeter } from '../../../hooks/queries/useReadingsQuery';
 import { useAlertsQuery } from '../../../hooks/queries/useAlertsQuery';
 import { useOperatorFilter } from '../../../hooks/useOperatorFilter';
 import { getStatusStyle } from '../../../lib/energy-status';
@@ -35,6 +35,7 @@ export function ConsumoJerarquicoPage() {
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const latestQuery = useLatestReadingsQuery();
+  const energyByMeter = useMonthToDateEnergyByMeter();
   const alertsQuery = useAlertsQuery({ status: 'active' });
   const yesterdayQuery = { data: [] as AggregatedReading[] };
 
@@ -77,7 +78,7 @@ export function ConsumoJerarquicoPage() {
   }
 
   const filteredBuildings = allBuildings.filter((b) => (b.countryCode ?? 'CL') === country);
-  const rows = buildRows(filteredBuildings, readings, alerts, yesterdayQuery.data);
+  const rows = buildRows(filteredBuildings, readings, alerts, yesterdayQuery.data, energyByMeter);
 
   const sortedRows = [...rows].sort((a, b) => {
     if (sortBy === 'name') return a.building.name.localeCompare(b.building.name);
@@ -278,7 +279,7 @@ export function ConsumoJerarquicoPage() {
       {/* Tab: Medidores */}
       {activeTab === 'medidores' && (
         <div className="min-h-0 flex-1">
-          <MeterTable meters={expandedMeters} readings={expandedReadings} />
+          <MeterTable meters={expandedMeters} readings={expandedReadings} energyByMeter={energyByMeter} />
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { readingsEndpoints } from '../../services/endpoints';
 import type {
@@ -75,4 +76,23 @@ export function useAggregatedReadingsQuery(params: AggregatedQueryParams, enable
     enabled,
     staleTime: 5 * 60 * 1000, // 5 min — aggregated data doesn't change fast
   });
+}
+
+export function sumEnergyDeltaByMeter(rows: AggregatedReading[]): Map<string, number> {
+  const energyByMeter = new Map<string, number>();
+  rows.forEach((row) => {
+    energyByMeter.set(row.meter_id, (energyByMeter.get(row.meter_id) ?? 0) + Number(row.energy_delta_kwh ?? 0));
+  });
+  return energyByMeter;
+}
+
+export function useMonthToDateEnergyByMeter(): Map<string, number> {
+  const anchor = useLatestReadingAnchorQuery().data?.timestamp ?? null;
+  const anchorDate = anchor ? new Date(anchor) : null;
+  const monthStart = anchorDate ? new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1).toISOString() : '';
+  const aggregatedQuery = useAggregatedReadingsQuery(
+    { from: monthStart, to: anchor ?? '', interval: 'monthly' },
+    !!anchor,
+  );
+  return useMemo(() => sumEnergyDeltaByMeter(aggregatedQuery.data ?? []), [aggregatedQuery.data]);
 }

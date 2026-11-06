@@ -8,7 +8,7 @@ import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useMapVxMalls, useMapVxStoresQuery } from '../../hooks/queries/useMapVxQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
-import { useLatestReadingsQuery } from '../../hooks/queries/useReadingsQuery';
+import { useLatestReadingsQuery, useMonthToDateEnergyByMeter } from '../../hooks/queries/useReadingsQuery';
 import { useInvoicesQuery } from '../../hooks/queries/useInvoicesQuery';
 import { fmtNum } from '../../lib/formatters';
 import type { MapvxFloor, MapvxMall, MapvxStore } from '../../types/mapvx';
@@ -73,6 +73,7 @@ export function MapPage() {
   const metersQuery = useMetersQuery();
   const meters = metersQuery.data ?? [];
   const latestQuery = useLatestReadingsQuery();
+  const energyByMeter = useMonthToDateEnergyByMeter();
   const readings = latestQuery.data ?? [];
   const invoicesQuery = useInvoicesQuery();
   const invoices = invoicesQuery.data ?? [];
@@ -114,10 +115,7 @@ export function MapPage() {
     // Building-level meter/reading summary (always show if data exists)
     if (metersByBuilding.length > 0) {
       const metersWithData = metersByBuilding.filter((m) => readingByMeter.has(m.id));
-      const totalKwh = metersWithData.reduce((sum, m) => {
-        const r = readingByMeter.get(m.id);
-        return sum + Number(r?.energy_kwh_total ?? 0);
-      }, 0);
+      const totalKwh = metersWithData.reduce((sum, m) => sum + (energyByMeter.get(m.id) ?? 0), 0);
 
       if (metersWithData.length > 0) {
         lines.push(`⚡ ${fmtNum(totalKwh)} kWh · ${metersWithData.length}/${metersByBuilding.length} medidores`);
@@ -150,7 +148,7 @@ export function MapPage() {
     }
 
     return { lng: selectedStore.lng, lat: selectedStore.lat, label: selectedStore.title, extraHtml };
-  }, [selectedStore, metersByBuilding, readingByMeter, invoices, matchedBuildingId]);
+  }, [selectedStore, metersByBuilding, readingByMeter, energyByMeter, invoices, matchedBuildingId]);
 
   const handleSelectStore = (store: MapvxStore) => {
     setSelectedStore(store);

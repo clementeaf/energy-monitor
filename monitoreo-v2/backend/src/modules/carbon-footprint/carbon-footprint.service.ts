@@ -78,7 +78,7 @@ export class CarbonFootprintService {
        ) d
        JOIN meters m ON m.id = d.meter_id
        JOIN buildings b ON b.id = m.building_id
-       WHERE m.building_id = ANY($2)
+       WHERE (cardinality($2::uuid[]) = 0 OR m.building_id = ANY($2))
        GROUP BY b.id, b.name, b.country_code`,
       [tenantId, buildingIds, query.from, query.to],
     );
@@ -105,7 +105,7 @@ export class CarbonFootprintService {
          FROM readings r
          JOIN meters m ON m.id = r.meter_id
          WHERE r.tenant_id = $1
-           AND m.building_id = ANY($2)
+           AND (cardinality($2::uuid[]) = 0 OR m.building_id = ANY($2))
            AND r.timestamp >= $3
            AND r.timestamp < $4
          GROUP BY r.meter_id
@@ -145,7 +145,7 @@ export class CarbonFootprintService {
          FROM readings r
          JOIN meters m ON m.id = r.meter_id
          WHERE r.tenant_id = $1
-           AND m.building_id = ANY($2)
+           AND (cardinality($2::uuid[]) = 0 OR m.building_id = ANY($2))
            AND r.timestamp >= $3
            AND r.timestamp < $4
            ${buildingFilter}

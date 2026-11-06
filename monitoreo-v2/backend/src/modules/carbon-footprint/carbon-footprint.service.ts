@@ -67,14 +67,18 @@ export class CarbonFootprintService {
 
     const rows = await this.dataSource.query(
       `SELECT b.id AS building_id, b.name AS building_name, b.country_code,
-              COALESCE(SUM(r.energy_kwh_total), 0) AS total_kwh
-       FROM readings r
-       JOIN meters m ON m.id = r.meter_id
+              COALESCE(SUM(d.delta_kwh), 0) AS total_kwh
+       FROM (
+         SELECT r.meter_id, MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta_kwh
+         FROM readings r
+         WHERE r.tenant_id = $1
+           AND r.timestamp >= $3
+           AND r.timestamp < $4
+         GROUP BY r.meter_id
+       ) d
+       JOIN meters m ON m.id = d.meter_id
        JOIN buildings b ON b.id = m.building_id
-       WHERE r.tenant_id = $1
-         AND m.building_id = ANY($2)
-         AND r.timestamp >= $3
-         AND r.timestamp < $4
+       WHERE m.building_id = ANY($2)
        GROUP BY b.id, b.name, b.country_code`,
       [tenantId, buildingIds, query.from, query.to],
     );
@@ -95,13 +99,17 @@ export class CarbonFootprintService {
     const factor = await this.resolveChileFactor();
 
     const rows = await this.dataSource.query(
-      `SELECT COALESCE(SUM(r.energy_kwh_total), 0) AS total_kwh
-       FROM readings r
-       JOIN meters m ON m.id = r.meter_id
-       WHERE r.tenant_id = $1
-         AND m.building_id = ANY($2)
-         AND r.timestamp >= $3
-         AND r.timestamp < $4`,
+      `SELECT COALESCE(SUM(d.delta_kwh), 0) AS total_kwh
+       FROM (
+         SELECT MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta_kwh
+         FROM readings r
+         JOIN meters m ON m.id = r.meter_id
+         WHERE r.tenant_id = $1
+           AND m.building_id = ANY($2)
+           AND r.timestamp >= $3
+           AND r.timestamp < $4
+         GROUP BY r.meter_id
+       ) d`,
       [tenantId, buildingIds, query.from, query.to],
     );
 
@@ -129,16 +137,21 @@ export class CarbonFootprintService {
     }
 
     const rows = await this.dataSource.query(
-      `SELECT to_char(date_trunc('month', r.timestamp), 'YYYY-MM') AS month,
-              COALESCE(SUM(r.energy_kwh_total), 0) AS total_kwh
-       FROM readings r
-       JOIN meters m ON m.id = r.meter_id
-       WHERE r.tenant_id = $1
-         AND m.building_id = ANY($2)
-         AND r.timestamp >= $3
-         AND r.timestamp < $4
-         ${buildingFilter}
-       GROUP BY date_trunc('month', r.timestamp)
+      `SELECT to_char(d.month_start, 'YYYY-MM') AS month,
+              COALESCE(SUM(d.delta_kwh), 0) AS total_kwh
+       FROM (
+         SELECT date_trunc('month', r.timestamp) AS month_start,
+                MAX(r.energy_kwh_total) - MIN(r.energy_kwh_total) AS delta_kwh
+         FROM readings r
+         JOIN meters m ON m.id = r.meter_id
+         WHERE r.tenant_id = $1
+           AND m.building_id = ANY($2)
+           AND r.timestamp >= $3
+           AND r.timestamp < $4
+           ${buildingFilter}
+         GROUP BY r.meter_id, date_trunc('month', r.timestamp)
+       ) d
+       GROUP BY d.month_start
        ORDER BY month`,
       params,
     );

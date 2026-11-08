@@ -126,7 +126,7 @@ export function FacturacionPage() {
                 <table className="min-w-full whitespace-nowrap">
                   <thead>
                     <tr className="border-b border-card-border bg-raised">
-                      <th className="w-10 px-4 py-2.5"><SelectAllCheckbox selectedCount={selection.selected.size} totalCount={visibles.length} onToggle={() => selection.toggleAll(visibles.map((doc) => doc.id))} /></th>
+                      <th className="w-10 px-4 py-2.5"><SelectAllCheckbox selectedCount={visibles.filter((doc) => selection.selected.has(doc.id)).length} totalCount={visibles.length} onToggle={() => selection.toggleAll(visibles.map((doc) => doc.id))} /></th>
                       {['Folio', 'Centro · cliente', 'Período', 'Total', 'Estado', 'Origen', 'Vence', ''].map((label) => (
                         <th key={label} className={`px-4 py-2.5 text-[11px] font-normal text-muted ${label === 'Total' ? 'text-right' : 'text-left'}`}>{label}</th>
                       ))}

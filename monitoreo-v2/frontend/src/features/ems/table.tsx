@@ -141,7 +141,10 @@ export function useSelection() {
       else next.add(id);
       return next;
     }),
-    toggleAll: (ids: string[]) => setSelected((current) => (ids.length > 0 && ids.every((id) => current.has(id)) ? new Set() : new Set(ids))),
+    toggleAll: (ids: string[]) => setSelected((current) => {
+      const isAllSelected = ids.length > 0 && ids.every((id) => current.has(id));
+      return isAllSelected ? new Set([...current].filter((id) => !ids.includes(id))) : new Set([...current, ...ids]);
+    }),
     clear: () => setSelected(new Set()),
   };
 }

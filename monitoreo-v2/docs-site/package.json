@@ -1,25 +1,33 @@
 {
   "name": "docs-site",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "docusaurus start",
-    "build": "docusaurus build",
-    "deploy": "npm run build && aws s3 sync build/ s3://power-monitor-frontend/docs/ --region us-east-1 --cache-control 'public,max-age=3600' --delete && aws cloudfront create-invalidation --distribution-id E1SNFETXON2VSI --paths '/docs/*' --region us-east-1",
-    "serve": "docusaurus serve",
-    "clear": "docusaurus clear"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && aws s3 sync dist/ s3://power-monitor-dev-docs/ --region us-east-1 --cache-control 'public,max-age=3600' --delete && aws cloudfront create-invalidation --distribution-id EE8564N72RUL8 --paths '/*' --region us-east-1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@docusaurus/core": "^3.10.1",
-    "@docusaurus/preset-classic": "^3.10.1",
     "@mdx-js/react": "^3.1.1",
-    "clsx": "^2.1.1",
-    "prism-react-renderer": "^2.4.1",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.6.2"
+  },
+  "devDependencies": {
+    "@mdx-js/rollup": "^3.1.0",
+    "@tailwindcss/vite": "^4.1.8",
+    "@types/mdx": "^2.0.13",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.5.2",
+    "rehype-slug": "^6.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx-frontmatter": "^5.0.0",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
   }
 }

@@ -10,9 +10,9 @@ sidebar_position: 1
 
 Autentica al usuario con un token OAuth de Microsoft o Google. Si las credenciales son validas, establece cookies httpOnly con los tokens JWT de acceso y refresh.
 
-:::note
+<div className="callout callout-note">
 Este endpoint es publico y no requiere autenticacion previa.
-:::
+</div>
 
 ## Body
 
@@ -60,9 +60,9 @@ Si el rol requiere MFA pero el usuario no lo ha configurado, se devuelve el QR p
 | `__Host-access_token` | 24 horas | JWT de acceso (httpOnly, Secure, SameSite=Strict) |
 | `__Host-refresh_token` | 7 dias | Token de refresh (httpOnly, Secure, path=/api/auth/refresh) |
 
-:::note
+<div className="callout callout-note">
 En desarrollo local los nombres de cookie no llevan el prefijo `__Host-` y `Secure` esta deshabilitado.
-:::
+</div>
 
 ## Ejemplo
 

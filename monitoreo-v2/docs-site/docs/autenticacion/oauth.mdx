@@ -45,10 +45,10 @@ La respuesta setea dos cookies httpOnly:
 - `access_token` -- JWT de sesion (15 min en prod)
 - `refresh_token` -- token de rotacion (24h)
 
-:::warning
+<div className="callout callout-warning">
 En produccion las cookies usan prefijo `__Host-` (requieren HTTPS + same-origin).
 No intentes leer estas cookies desde JavaScript.
-:::
+</div>
 
 ## Refresh
 

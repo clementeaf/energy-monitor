@@ -8,14 +8,15 @@ import { dailyBars, DemandBars, hourlyBars } from './DemandBars';
 import { buildFichaDispositivo } from './device';
 import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo } from './format';
 import { PORTFOLIO_CURVE, requiereAtencion, type Centro, type Remarcador, type RemarcadorEstado } from './fleet';
-import { KpiTile } from './KpiTile';
+import { KpiTile, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
+import { etiquetaComparacion, etiquetaTramo, isTramoParcial, periodoAnterior, periodoQueContiene, tramoEquivalente, variacionPct } from './periodos';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { StatusBadge } from './StatusBadge';
 import { sumarMargenes } from './tariffs';
 import { onRowKeyDown, SearchInput } from './table';
-import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
+import { useCentrosEnRango, useEmsFleet, useLoadCurves, type EmsFleet, type LoadRange } from './useEmsFleet';
 import { useEmsRole } from './useEmsRole';
 
 const RANGOS: Record<LoadRange, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días' };
@@ -68,7 +69,7 @@ export function ResumenPage() {
       <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 xl:grid-cols-3">
-            <ResumenPeriodo centros={centros} remarcadores={remarcadores} periodo={fleet.periodo} isMargenActivo={isMargenActivo} />
+            <ResumenPeriodo fleet={fleet} isMargenActivo={isMargenActivo} />
             <div className="flex flex-col gap-4">
               <InsightCard centros={enAtencion} margenMinimo={margenMinimo} isMargenActivo={isMargenActivo} />
               <FlotaCard remarcadores={remarcadores} />
@@ -81,12 +82,27 @@ export function ResumenPage() {
   );
 }
 
-function ResumenPeriodo({ centros, remarcadores, periodo, isMargenActivo }: Readonly<{ centros: Centro[]; remarcadores: Remarcador[]; periodo: Date; isMargenActivo: boolean }>) {
+function ResumenPeriodo({ fleet, isMargenActivo }: Readonly<{ fleet: EmsFleet; isMargenActivo: boolean }>) {
   const navigate = useNavigate();
+  const { centros, remarcadores, periodo } = fleet;
   const [rango, setRango] = useState<LoadRange>('hoy');
+  const [ahora] = useState(() => new Date());
   const { phase, curves } = useLoadCurves(rango);
   const points = curves.get(PORTFOLIO_CURVE) ?? [];
   const margen = sumarMargenes(centros.flatMap((centro) => (centro.margen ? [centro.margen] : [])));
+  const mesActual = periodoQueContiene('mes', periodo);
+  const mesAnterior = periodoAnterior(mesActual);
+  const tramo = tramoEquivalente(mesAnterior, mesActual, ahora);
+  const previo = useCentrosEnRango(tramo, fleet);
+  const margenPrevio = sumarMargenes(previo.centros.flatMap((centro) => (centro.margen ? [centro.margen] : [])));
+  const hayPrevio = previo.phase === 'ready' && previo.filas.length > 0;
+  const consumoActual = centros.reduce((sum, c) => sum + c.consumoMesKwh, 0);
+  const comparacion = {
+    vs: etiquetaComparacion(mesAnterior),
+    tramo: isTramoParcial(tramo, mesAnterior) ? etiquetaTramo(tramo) : undefined,
+  };
+  const isPrevioCargando = previo.phase === 'loading';
+  const variacion = (actual: number, anterior: number) => (isPrevioCargando ? undefined : hayPrevio ? variacionPct(actual, anterior) : null);
   const demandaActual = remarcadores.filter((r) => r.estado === 'conectado').reduce((sum, r) => sum + (r.potenciaKw ?? 0), 0);
   const ultimaLectura = Math.max(0, ...remarcadores.map((r) => (r.ultimaLectura ? new Date(r.ultimaLectura).getTime() : 0)));
   const haceMin = ultimaLectura > 0 ? Math.round((Date.now() - ultimaLectura) / MINUTE_MS) : null;
@@ -105,13 +121,14 @@ function ResumenPeriodo({ centros, remarcadores, periodo, isMargenActivo }: Read
         </div>
       </header>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiTile variant="inverse" label="Consumo del mes" value={formatNumber(centros.reduce((sum, c) => sum + c.consumoMesKwh, 0) / 1000, 1)} unit="MWh" sub="Último mes con lecturas" onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
+        <KpiTile variant="inverse" label="Consumo del mes" value={formatNumber(consumoActual / 1000, 1)} unit="MWh" sub={<Variacion valor={variacion(consumoActual, previo.centros.reduce((sum, c) => sum + c.consumoMesKwh, 0))} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
         <KpiTile variant="subtle" label="Demanda actual" value={formatNumber(demandaActual, 1)} unit="kW" sub="Remarcadores conectados" onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
-        <KpiTile variant="subtle" label="Gasto energético" value={formatMillonesClp(margen.costoCompraClp)} unit="CLP" sub={`Venta ${formatMillonesClp(margen.precioVentaClp)}`} onClick={() => navigate(EMS_SECTION_PATHS.facturacion)} />
+        <KpiTile variant="subtle" label="Gasto energético" value={formatMillonesClp(margen.costoCompraClp)} unit="CLP" sub={<Variacion valor={variacion(margen.costoCompraClp, margenPrevio.costoCompraClp)} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.facturacion)} />
         {isMargenActivo
-          ? <KpiTile variant="subtle" label="Margen promedio" value={formatNumber(margen.margenPct, 1)} unit="%" sub={formatMillonesClp(margen.margenClp)} onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />
+          ? <KpiTile variant="subtle" label="Margen promedio" value={formatNumber(margen.margenPct, 1)} unit="%" sub={<Variacion valor={isPrevioCargando ? undefined : hayPrevio && margenPrevio.precioVentaClp > 0 ? margen.margenPct - margenPrevio.margenPct : null} unidad="pts" {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />
           : <KpiTile variant="subtle" label="Margen promedio 🔒" value="—" sub="Módulo no contratado" onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />}
       </div>
+      {comparacion.tramo && <p className="-mt-2 text-[11px] text-muted">* Mes en curso: se compara con el mismo tramo de {comparacion.vs} ({comparacion.tramo}).</p>}
       <div className="rounded-xl bg-raised p-4">
         <p className="mb-2 text-xs font-medium text-foreground">Curva de carga · {RANGOS[rango].toLowerCase()}</p>
         <QueryStateView phase={phase} error={null} variant="widget">

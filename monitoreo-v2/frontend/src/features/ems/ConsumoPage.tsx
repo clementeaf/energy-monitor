@@ -5,8 +5,9 @@ import { usePageTitle } from '../../store/usePageTitleStore';
 import { descargarArchivo } from './exportar';
 import { PORTFOLIO_CURVE, type Centro, type LoadPoint } from './fleet';
 import { formatNumber } from './format';
-import { KpiTile } from './KpiTile';
+import { KpiTile, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
+import { desplazarMeses, etiquetaTramo, nombreMes, variacionPct } from './periodos';
 import { EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
@@ -37,19 +38,54 @@ export function participacionPunta(perfil: (number | null)[]): number {
   return total > 0 ? (punta / total) * 100 : 0;
 }
 
+type Comparacion = 'mes' | 'anio';
+
+const MESES_ATRAS: Record<Comparacion, number> = { mes: 1, anio: 12 };
+const DESFASE: Record<Comparacion, string> = { mes: 'un mes', anio: 'un año' };
+
+interface MetricasConsumo {
+  energiaMwh: number;
+  peak: number;
+  factorCarga: number;
+  puntaPct: number;
+}
+
+export function metricasConsumo(points: LoadPoint[], perfil: (number | null)[], horasPorPunto: number): MetricasConsumo {
+  const peak = Math.max(0, ...points.map((p) => p.kw));
+  const total = points.reduce((sum, p) => sum + p.kw, 0);
+  const promedio = points.length > 0 ? total / points.length : 0;
+  return { energiaMwh: (total * horasPorPunto) / 1000, peak, factorCarga: peak > 0 ? promedio / peak : 0, puntaPct: participacionPunta(perfil) };
+}
+
+function etiquetaComparacion(comparacion: Comparacion, hasta: Date): string {
+  const mes = nombreMes(hasta);
+  return comparacion === 'anio' ? `${mes} ${hasta.getFullYear()}` : mes;
+}
+
 export function ConsumoPage() {
   const navigate = useNavigate();
   const [rango, setRango] = useState<LoadRange>('30dias');
   const [centroId, setCentroId] = useState('');
+  const [comparacion, setComparacion] = useState<Comparacion>('mes');
   const fleet = useEmsFleet();
   const periodo = useLoadCurves(rango);
   const hoy = useLoadCurves('hoy');
+  const periodoPrevio = useLoadCurves(rango, MESES_ATRAS[comparacion]);
+  const hoyPrevio = useLoadCurves('hoy', MESES_ATRAS[comparacion]);
   const curva = centroId || PORTFOLIO_CURVE;
   const points = periodo.curves.get(curva) ?? [];
+  const pointsPrevios = periodoPrevio.curves.get(curva) ?? [];
   const perfil = perfilHorario(hoy.curves.get(curva) ?? []);
-  const peak = Math.max(0, ...points.map((p) => p.kw));
-  const promedio = points.length > 0 ? points.reduce((sum, p) => sum + p.kw, 0) / points.length : 0;
-  const energiaMwh = (points.reduce((sum, p) => sum + p.kw, 0) * RANGOS[rango].horasPorPunto) / 1000;
+  const perfilPrevio = perfilHorario(hoyPrevio.curves.get(curva) ?? []);
+  const actual = metricasConsumo(points, perfil, RANGOS[rango].horasPorPunto);
+  const previo = metricasConsumo(pointsPrevios, perfilPrevio, RANGOS[rango].horasPorPunto);
+  const isPrevioCargando = periodoPrevio.phase === 'loading' || hoyPrevio.phase === 'loading';
+  const hayPrevio = pointsPrevios.length > 0;
+  const hayPerfilPrevio = perfilPrevio.some((kw) => kw !== null);
+  const vs = etiquetaComparacion(comparacion, periodoPrevio.rango.hasta);
+  const tramo = etiquetaTramo(periodoPrevio.rango);
+  const variacion = (valor: number, anterior: number) => (isPrevioCargando ? undefined : hayPrevio ? variacionPct(valor, anterior) : null);
+  const diaPrevio = hoyPrevio.rango.desde.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: comparacion === 'anio' ? 'numeric' : undefined }).replace('.', '');
 
   const exportar = () => {
     const filas = [['Fecha', 'kW promedio'], ...points.map((p) => [p.timestamp, formatNumber(p.kw, 1)])];
@@ -66,18 +102,31 @@ export function ConsumoPage() {
               <button key={key} type="button" role="tab" aria-selected={rango === key} onClick={() => setRango(key)} className={segmentClass(rango === key)}>{RANGOS[key].label}</button>
             ))}
           </div>
-          <select value={centroId} onChange={(event) => setCentroId(event.target.value)} aria-label="Centro" className={`${FIELD_CLASS} ml-auto`}>
-            <option value="">Todos los centros</option>
-            {fleet.centros.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <select value={centroId} onChange={(event) => setCentroId(event.target.value)} aria-label="Centro" className={FIELD_CLASS}>
+              <option value="">Todos los centros</option>
+              {fleet.centros.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <select value={comparacion} onChange={(event) => setComparacion(event.target.value as Comparacion)} aria-label="Comparar con" className={FIELD_CLASS}>
+              {(Object.keys(MESES_ATRAS) as Comparacion[]).map((key) => (
+                <option key={key} value={key}>Comparar con: {etiquetaComparacion(key, desplazarMeses(new Date(), -MESES_ATRAS[key]))}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <QueryStateView phase={periodo.phase} error={null}>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <KpiTile variant="inverse" label="Consumo del período" value={formatNumber(energiaMwh, 1)} unit="MWh" sub="Estimado desde la demanda promedio" />
-            <KpiTile label="Demanda máxima agregada" value={formatNumber(peak, 1)} unit="kW" />
-            <KpiTile label="Consumo en horario punta" value={formatNumber(participacionPunta(perfil), 1)} unit="%" sub={`${PUNTA.desde}–${PUNTA.hasta} h · hoy`} />
-            <KpiTile label="Factor de carga" value={formatNumber(peak > 0 ? promedio / peak : 0, 2)} sub="Promedio / máximo" />
+          <div className="flex flex-col gap-1.5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <KpiTile variant="inverse" label="Consumo del período" value={formatNumber(actual.energiaMwh, 1)} unit="MWh"
+                sub={<Variacion valor={variacion(actual.energiaMwh, previo.energiaMwh)} vs={vs} tramo={tramo} isMejorSiBaja />} />
+              <KpiTile label="Demanda máxima agregada" value={formatNumber(actual.peak, 1)} unit="kW"
+                sub={<Variacion valor={variacion(actual.peak, previo.peak)} vs={vs} tramo={tramo} isMejorSiBaja />} />
+              <KpiTile label="Consumo en horario punta" value={formatNumber(actual.puntaPct, 1)} unit="%"
+                sub={<Variacion valor={isPrevioCargando ? undefined : hayPerfilPrevio ? actual.puntaPct - previo.puntaPct : null} unidad="pts" vs={diaPrevio} isMejorSiBaja />} />
+              <KpiTile label="Factor de carga" value={formatNumber(actual.factorCarga, 2)} sub="Promedio / máximo" />
+            </div>
+            <p className="text-[11px] text-muted">* {RANGOS[rango].label} hasta ahora contra el mismo tramo {DESFASE[comparacion]} antes ({tramo}). Horario punta: hoy contra {diaPrevio}. Consumo estimado desde la demanda promedio.</p>
           </div>
         </QueryStateView>
 
@@ -88,10 +137,14 @@ export function ConsumoPage() {
                 <h2 className="text-sm font-semibold text-card-fg">Perfil horario · hoy</h2>
                 <p className="text-xs text-card-muted">kW promedio por hora · {centroId ? fleet.centros.find((c) => c.id === centroId)?.name : 'todos los centros'}</p>
               </div>
-              <span className="flex items-center gap-1.5 text-[11px] text-muted"><span className="h-2 w-3 rounded-sm bg-warning-bg ring-1 ring-warning" />Horario punta {PUNTA.desde}–{PUNTA.hasta} h</span>
+              <div className="flex flex-wrap gap-3 text-[11px] text-muted">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-primary" />Hoy</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-border-strong" />{diaPrevio}</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-warning-bg ring-1 ring-warning" />Horario punta {PUNTA.desde}–{PUNTA.hasta} h</span>
+              </div>
             </header>
             <QueryStateView phase={hoy.phase} error={null} variant="widget">
-              <PerfilHorario perfil={perfil} />
+              <PerfilHorario perfil={perfil} perfilPrevio={hayPerfilPrevio ? perfilPrevio : null} etiquetaPrevia={diaPrevio} />
             </QueryStateView>
           </section>
 
@@ -106,19 +159,25 @@ export function ConsumoPage() {
   );
 }
 
-function PerfilHorario({ perfil }: Readonly<{ perfil: (number | null)[] }>) {
-  const max = Math.max(1, ...perfil.map((kw) => kw ?? 0));
+function PerfilHorario({ perfil, perfilPrevio, etiquetaPrevia }: Readonly<{ perfil: (number | null)[]; perfilPrevio: (number | null)[] | null; etiquetaPrevia: string }>) {
+  const max = Math.max(1, ...perfil.map((kw) => kw ?? 0), ...(perfilPrevio ?? []).map((kw) => kw ?? 0));
+  const altura = (kw: number | null) => `${kw === null ? 4 : Math.max(3, (kw / max) * 100)}%`;
   return (
     <div className="flex flex-col gap-2">
       <div className="relative flex h-52 items-end gap-1">
         <div className="pointer-events-none absolute inset-y-0 flex justify-center rounded-md bg-warning-bg" style={{ left: `${(PUNTA.desde / HORAS) * 100}%`, width: `${((PUNTA.hasta - PUNTA.desde) / HORAS) * 100}%` }}>
           <span className="-mt-2 h-fit rounded-full bg-warning px-2 text-[10px] font-medium text-accent-ink">Punta</span>
         </div>
-        {perfil.map((kw, hora) => (
-          <div key={hora} title={kw === null ? `${hora}:00 · sin dato` : `${hora}:00 · ${formatNumber(kw, 1)} kW`}
-            className={`relative flex-1 rounded-t-sm ${kw === null ? 'bg-border' : 'bg-primary'}`}
-            style={{ height: `${kw === null ? 4 : Math.max(3, (kw / max) * 100)}%` }} />
-        ))}
+        {perfil.map((kw, hora) => {
+          const kwPrevio = perfilPrevio?.[hora] ?? null;
+          const detalle = `${hora}:00 · hoy ${kw === null ? 'sin dato' : `${formatNumber(kw, 1)} kW`}${perfilPrevio ? ` · ${etiquetaPrevia} ${kwPrevio === null ? 'sin dato' : `${formatNumber(kwPrevio, 1)} kW`}` : ''}`;
+          return (
+            <div key={hora} title={detalle} className="relative flex h-full flex-1 items-end gap-px">
+              <div className={`flex-1 rounded-t-sm ${kw === null ? 'bg-border' : 'bg-primary'}`} style={{ height: altura(kw) }} />
+              {perfilPrevio && <div className={`flex-1 rounded-t-sm ${kwPrevio === null ? 'bg-border' : 'bg-border-strong'}`} style={{ height: altura(kwPrevio) }} />}
+            </div>
+          );
+        })}
       </div>
       <div className="flex justify-between font-mono text-[10px] text-muted">
         {[0, 3, 6, 9, 12, 15, 18, 21, 23].map((hora) => <span key={hora}>{String(hora).padStart(2, '0')}</span>)}

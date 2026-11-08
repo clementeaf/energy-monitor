@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAggregatedReadingsQuery, useLatestReadingsQuery } from '../../hooks/queries/useReadingsQuery';
+import { readingsEndpoints } from '../../services/endpoints';
 import { useAppStore, type CentroSimulado } from '../../store/useAppStore';
-import type { AggregationInterval } from '../../types/reading';
+import type { Building } from '../../types/building';
+import type { AggregatedReading, AggregationInterval } from '../../types/reading';
 import { buildAlertas, type Alerta } from './alerts';
 import {
   applyRemarcadorOverrides,
@@ -18,10 +21,10 @@ import {
   type LoadPoint,
   type Remarcador,
 } from './fleet';
+import { desplazarMeses, filasDelPeriodo, type Rango } from './periodos';
 
 export type LoadRange = 'hoy' | '7dias' | '30dias';
 export type EmsPhase = 'loading' | 'error' | 'ready';
-
 
 const LOAD_RANGES: Record<LoadRange, { days: number; interval: AggregationInterval }> = {
   hoy: { days: 0, interval: 'hourly' },
@@ -33,6 +36,7 @@ export interface EmsFleet {
   phase: EmsPhase;
   error: unknown;
   refetch: () => void;
+  buildings: Building[];
   centros: Centro[];
   remarcadores: Remarcador[];
   consumoPorRemarcador: Record<string, number>;
@@ -85,6 +89,7 @@ export function useEmsFleet(): EmsFleet {
     phase,
     error: failed?.error ?? null,
     refetch: () => queries.forEach((query) => void query.refetch()),
+    buildings: buildingsQuery.data ?? [],
     centros,
     remarcadores,
     consumoPorRemarcador,
@@ -92,15 +97,17 @@ export function useEmsFleet(): EmsFleet {
   };
 }
 
-export function useLoadCurves(range: LoadRange): { phase: EmsPhase; curves: Map<string, LoadPoint[]> } {
+export function useLoadCurves(range: LoadRange, mesesAtras = 0): { phase: EmsPhase; curves: Map<string, LoadPoint[]>; rango: Rango } {
   const metersQuery = useMetersQuery();
   const params = useMemo(() => {
-    const today = startOfDay(new Date());
+    const now = new Date();
+    const today = startOfDay(now);
     const { days, interval } = LOAD_RANGES[range];
     const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - days);
     const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    return { from: from.toISOString(), to: tomorrow.toISOString(), interval };
-  }, [range]);
+    const to = mesesAtras > 0 ? desplazarMeses(now, -mesesAtras) : tomorrow;
+    return { from: desplazarMeses(from, -mesesAtras).toISOString(), to: to.toISOString(), interval };
+  }, [range, mesesAtras]);
   const readingsQuery = useAggregatedReadingsQuery(params);
 
   const curves = useMemo(() => {
@@ -110,7 +117,32 @@ export function useLoadCurves(range: LoadRange): { phase: EmsPhase; curves: Map<
 
   const isError = metersQuery.isError || readingsQuery.isError;
   const isPending = metersQuery.isPending || readingsQuery.isPending;
-  return { phase: isError ? 'error' : isPending ? 'loading' : 'ready', curves };
+  const rango = useMemo(() => ({ desde: new Date(params.from), hasta: new Date(params.to) }), [params]);
+  return { phase: isError ? 'error' : isPending ? 'loading' : 'ready', curves, rango };
+}
+
+export function useCentrosEnRango(
+  rango: Rango | null,
+  fleet: Pick<EmsFleet, 'buildings' | 'remarcadores'>,
+  buildingIds?: string[],
+): { phase: EmsPhase; filas: AggregatedReading[]; centros: Centro[]; centrosDe: (periodo: Rango) => Centro[] } {
+  const scopes = buildingIds ?? [undefined];
+  const results = useQueries({
+    queries: scopes.map((buildingId) => {
+      const params = { from: rango?.desde.toISOString() ?? '', to: rango?.hasta.toISOString() ?? '', interval: 'monthly' as const, buildingId };
+      return {
+        queryKey: ['readings', 'aggregated', params],
+        queryFn: async (): Promise<AggregatedReading[]> => (await readingsEndpoints.aggregated(params)).data,
+        enabled: rango !== null,
+        staleTime: 5 * 60 * 1000,
+      };
+    }),
+  });
+  const filas = results.flatMap((result) => result.data ?? []);
+  const centros = buildCentros(fleet.buildings, fleet.remarcadores, filas);
+  const phase: EmsPhase = results.some((result) => result.isError) ? 'error' : results.some((result) => result.isPending) ? 'loading' : 'ready';
+  const centrosDe = (periodo: Rango) => buildCentros(fleet.buildings, fleet.remarcadores, filasDelPeriodo(filas, periodo));
+  return { phase, filas, centros, centrosDe };
 }
 
 export interface EmsAlerta extends Alerta {

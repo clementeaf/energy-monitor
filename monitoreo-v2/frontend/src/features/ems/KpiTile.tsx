@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { formatNumber } from './format';
 
 type KpiTone = 'neutral' | 'positive' | 'negative';
 
@@ -13,6 +14,24 @@ const TONE_CLS: Record<KpiTone, string> = {
   positive: 'text-success',
   negative: 'text-danger',
 };
+
+export function Variacion({ valor, vs, unidad = '%', isMejorSiBaja = false, tramo }: Readonly<{
+  valor: number | null | undefined;
+  vs: string;
+  unidad?: '%' | 'pts';
+  isMejorSiBaja?: boolean;
+  tramo?: string;
+}>) {
+  if (valor === undefined) return <span role="status" aria-label="Cargando" className="inline-block h-3 w-28 animate-pulse rounded bg-current opacity-20" />;
+  if (valor === null) return <span>— sin datos de {vs}</span>;
+  const flecha = valor > 0 ? '↗' : valor < 0 ? '↘' : '→';
+  const tono = valor === 0 ? '' : (valor > 0) === isMejorSiBaja ? 'text-danger' : 'text-success';
+  return (
+    <span title={tramo ? `Comparado con ${tramo}` : undefined}>
+      <span className={`font-mono ${tono}`}>{flecha} {formatNumber(Math.abs(valor), 1)} {unidad}</span> vs. {vs}{tramo ? '*' : ''}
+    </span>
+  );
+}
 
 export function KpiTile({ label, value, unit, sub, variant = 'surface', tone = 'neutral', onClick }: Readonly<{
   label: string;

@@ -11,9 +11,10 @@ import type {
 } from '../../types/register-mapping';
 
 export const metersEndpoints = {
-  list: (buildingId?: string) => {
+  list: (buildingId?: string, offset = 0) => {
     const params: Record<string, string> = {};
     if (buildingId) params.buildingId = buildingId;
+    if (offset > 0) params.offset = String(offset);
     return api.get<Meter[] | { data: Meter[]; total: number }>(API_ROUTES.meters, Object.keys(params).length > 0 ? { params } : undefined);
   },
 

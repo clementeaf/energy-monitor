@@ -9,14 +9,21 @@ const KEYS = {
   detail: (id: string) => ['meters', id] as const,
 };
 
+export async function fetchAllMeters(buildingId?: string): Promise<Meter[]> {
+  const meters: Meter[] = [];
+  for (;;) {
+    const { data } = await metersEndpoints.list(buildingId, meters.length);
+    if (Array.isArray(data)) return data;
+    meters.push(...data.data);
+    if (data.data.length === 0 || meters.length >= data.total) return meters;
+  }
+}
+
 export function useMetersQuery(buildingId?: string) {
   const selectedTenantId = useAppStore((s) => s.selectedTenantId);
   return useQuery({
     queryKey: KEYS.all(buildingId, selectedTenantId),
-    queryFn: async (): Promise<Meter[]> => {
-      const { data } = await metersEndpoints.list(buildingId);
-      return Array.isArray(data) ? data : data.data;
-    },
+    queryFn: () => fetchAllMeters(buildingId),
   });
 }
 

@@ -30,10 +30,13 @@ function buildNodeScript() {
   return "const pg=require('pg');const fs=require('fs');const sql=Buffer.from(process.env.MIGRATION_B64,'base64').toString('utf8');const client=new pg.Client({host:process.env.DB_HOST,port:Number(process.env.DB_PORT||5432),database:process.env.DB_NAME,user:process.env.DB_USERNAME,password:process.env.DB_PASSWORD,ssl:{rejectUnauthorized:true,ca:fs.readFileSync('/app/certs/rds-global-bundle.pem')}});(async()=>{await client.connect();await client.query(sql);await client.end();console.log('Chunk applied ('+sql.length+' bytes)');})().catch((err)=>{console.error(err.message);process.exit(1);});";
 }
 
+const DB_OVERRIDE = process.argv.find(a => a.startsWith('--db='))?.split('=')[1] || '';
+
 function runChunk(taskId, sqlChunk, chunkIdx, total) {
   const b64 = Buffer.from(sqlChunk).toString('base64');
   const nodeScript = buildNodeScript();
-  const shellCmd = `export MIGRATION_B64=${JSON.stringify(b64)}; node -e ${JSON.stringify(nodeScript)}`;
+  const dbExport = DB_OVERRIDE ? `export DB_NAME=${DB_OVERRIDE}; ` : '';
+  const shellCmd = `${dbExport}export MIGRATION_B64=${JSON.stringify(b64)}; node -e ${JSON.stringify(nodeScript)}`;
 
   console.log(`  Chunk ${chunkIdx + 1}/${total} (${(sqlChunk.length / 1024).toFixed(0)}KB SQL, ${(b64.length / 1024).toFixed(0)}KB b64)...`);
 
@@ -44,8 +47,8 @@ function runChunk(taskId, sqlChunk, chunkIdx, total) {
   ], { stdio: 'inherit' });
 }
 
-const sqlFile = process.argv[2];
-if (!sqlFile) { console.error('Usage: node apply-sql-dump-ecs.mjs <file.sql>'); process.exit(1); }
+const sqlFile = process.argv.filter(a => !a.startsWith('--'))[2];
+if (!sqlFile) { console.error('Usage: node apply-sql-dump-ecs.mjs <file.sql> [--db=monitoreo_v3]'); process.exit(1); }
 
 const sql = readFileSync(sqlFile, 'utf8');
 

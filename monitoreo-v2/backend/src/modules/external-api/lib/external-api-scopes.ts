@@ -12,7 +12,6 @@ export const EXTERNAL_API_SCOPES = [
   'concentrators:read',
   'fault_events:read',
   'integrations:read',
-  'varelectric:create',
 ] as const;
 
 export type ExternalApiScope = (typeof EXTERNAL_API_SCOPES)[number];
@@ -37,7 +36,6 @@ export const EXTERNAL_API_SCOPE_CATALOG: ExternalApiScopeMeta[] = [
   { scope: 'concentrators:read', label: 'Concentradores', description: 'GET /v1/concentrators' },
   { scope: 'fault_events:read', label: 'Eventos de fallo', description: 'GET /v1/fault-events' },
   { scope: 'integrations:read', label: 'Integraciones', description: 'GET /v1/integrations/health' },
-  { scope: 'varelectric:create', label: 'Varelectric Ingesta', description: 'POST /v1/varelectric, POST /v1/varelectric/batch' },
 ];
 
 /**

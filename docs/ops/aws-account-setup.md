@@ -11,7 +11,7 @@ Alcance de la cuenta nueva: plataforma + ingesta Varelectric (Alto Peñalolén, 
 ```
 Usuario ──► CloudFront ──► /*      S3 (SPA, privado vía OAC)
                       └──► /api/*  API Gateway HTTP ──► Lambda (NestJS) ──► RDS PostgreSQL 16
-Varelectric ──► POST /api/v1/varelectric/batch (X-API-Key) ─┘
+Varelectric ──► INSERT varelectric.var_electric (usuario varelectric) ──► trigger ──► readings
 EventBridge Scheduler ──► misma Lambda {"job": "..."}  (8 jobs: alertas, reportes, retención…)
 ```
 
@@ -102,13 +102,13 @@ Edificios y medidores creados:
 | `VE-QUILICURA` | Quilicura | 11 |
 | `VE-REN` | Hotel Renaissance | 1 |
 
-Si Varelectric envía un remarcador que no existe, se crea solo como `Remarcador <id>` en el edificio de la API key y se puede renombrar después.
+Si Varelectric envía un edificio o un remarcador que no existe, se crea solo (`edificio` como nombre, `Remarcador <id>`) y se puede renombrar después.
 
 ---
 
 ## 6. Habilitar Varelectric
 
-Una API key por edificio (la key define a qué edificio van los datos). Con acceso a la base:
+Varelectric inserta en `varelectric.var_electric` con un usuario que solo puede insertar ahí; un trigger convierte cada fila en lectura y crea edificios y remarcadores nuevos. Con acceso a la base:
 
 ```bash
 STACK_OUTPUT() { aws cloudformation describe-stacks --stack-name monitoreo-v2 --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }
@@ -116,12 +116,10 @@ export PGHOST=$(STACK_OUTPUT DbEndpoint)
 export PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id "$(STACK_OUTPUT DbPasswordSecretArn)" --query SecretString --output text)
 export PGUSER=emadmin PGDATABASE=monitoreo_v2 PGSSLMODE=require
 
-monitoreo-v2/database/rds/create-varelectric-key.sh VE-ALTOPENA
-monitoreo-v2/database/rds/create-varelectric-key.sh VE-QUILICURA
-monitoreo-v2/database/rds/create-varelectric-key.sh VE-REN
+monitoreo-v2/database/rds/create-varelectric-user.sh globe-power
 ```
 
-Cada comando imprime la key **una sola vez**. Entregar a Varelectric las 3 keys por un canal seguro junto con [`varelectric-integration.md`](varelectric-integration.md). Apenas empiecen a enviar, los datos aparecen en Resumen, Centros, Remarcadores y Consumo.
+Imprime la contraseña **una sola vez**; volver a correrlo la rota. Entregarla a Varelectric por un canal seguro junto con [`varelectric-integration.md`](varelectric-integration.md). Apenas empiecen a enviar, los datos aparecen en Resumen, Centros, Remarcadores y Consumo.
 
 ---
 
@@ -130,7 +128,7 @@ Cada comando imprime la key **una sola vez**. Entregar a Varelectric las 3 keys 
 - [ ] `curl https://<sitio>/api/health` → `status: ok`, `db: ok`, `schemaVersion: rds-20-rekey-non-rfc-uuids`
 - [ ] El frontend carga y el login con Google/Microsoft funciona
 - [ ] Centros muestra los 3 edificios
-- [ ] Un `POST /api/v1/varelectric/batch` de prueba con una key devuelve `{"inserted": N, ...}` y la lectura aparece en Remarcadores
+- [ ] `psql -f monitoreo-v2/database/rds/test-varelectric-inbox.sql` imprime `all checks passed` (corre en una transacción con rollback)
 - [ ] CloudWatch → log group `/aws/lambda/monitoreo-v2-api`: invocaciones de jobs cada 5 min (`alert-engine`, `reports-scheduler`)
 - [ ] Con dominio: el certificado queda `ISSUED` y el dominio resuelve a CloudFront
 
@@ -155,5 +153,6 @@ Cada comando imprime la key **una sola vez**. Entregar a Varelectric las 3 keys 
 - **Sin TimescaleDB.** Los agregados (`readings_15min/hourly/daily`) son vistas normales: siempre al día y sin refrescos. Con el volumen de Varelectric (~6.400 lecturas/día) responden en menos de 0,3 s con un mes de datos. Si el volumen crece mucho, pasarlos a vistas materializadas con refresco en un job.
 - **Consumo del mes** suma los deltas diarios de energía por medidor (agregador existente) y subestima alrededor de 1 % por los intervalos entre días.
 - **SES en sandbox** en una cuenta nueva: solo envía a direcciones verificadas hasta pedir producción a AWS (1–2 días).
-- **Límite de peticiones** global por IP: 10/s, 100/min, 1.000/h. Varelectric en operación normal usa ~3 peticiones cada 15 min; una recarga de histórico debe espaciar los lotes.
+- **Límite de peticiones** global por IP: 10/s, 100/min, 1.000/h.
+- **Varelectric escribe directo en la base.** El usuario `varelectric` solo tiene `INSERT` en `varelectric.var_electric`; el trigger corre con permisos del dueño. Cada fila queda guardada en esa tabla como registro crudo.
 - **Módulos add-on** (Márgenes, Sostenibilidad, Facturas, Alertas, Reportes) siguen mostrando datos de ejemplo.

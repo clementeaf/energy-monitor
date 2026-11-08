@@ -57,7 +57,6 @@ import { IdleTimeoutGuard } from './common/guards/idle-timeout.guard';
 import { DataProcessingBlockGuard } from './common/guards/data-processing-block.guard';
 import { ApiKeyGuard } from './modules/api-keys/guards/api-key.guard';
 import { HealthController } from './health.controller';
-import { VarelectricIngressModule } from './modules/varelectric-ingress/varelectric-ingress.module';
 import { CarbonFootprintModule } from './modules/carbon-footprint/carbon-footprint.module';
 import { BaselineModule } from './modules/baseline/baseline.module';
 
@@ -156,7 +155,6 @@ import { BaselineModule } from './modules/baseline/baseline.module';
     IotDevicesModule,
     CnrModule,
     InterventionsModule,
-    VarelectricIngressModule,
     CarbonFootprintModule,
     BaselineModule,
   ],

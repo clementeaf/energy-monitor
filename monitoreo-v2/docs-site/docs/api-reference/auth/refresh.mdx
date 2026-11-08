@@ -10,9 +10,9 @@ sidebar_position: 2
 
 Renueva los tokens JWT usando el refresh token. El token se lee automaticamente de la cookie httpOnly `__Host-refresh_token`. Ambos tokens (acceso y refresh) son rotados en cada llamada.
 
-:::note
+<div className="callout callout-note">
 Este endpoint es publico. No requiere el token de acceso, solo la cookie de refresh.
-:::
+</div>
 
 ## Body
 
@@ -45,6 +45,6 @@ curl -X POST https://power-monitor.cloud/api/auth/refresh \
 |--------|-------------|
 | `401` | Refresh token invalido, expirado o revocado. El usuario debe volver a iniciar sesion con `POST /auth/login`. |
 
-:::warning
+<div className="callout callout-warning">
 El refresh token es de uso unico. Si se detecta reutilizacion de un token ya rotado, todos los tokens del usuario son revocados automaticamente como medida de seguridad (deteccion de robo de token).
-:::
+</div>

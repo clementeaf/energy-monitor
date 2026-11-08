@@ -161,7 +161,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             <button
               type="button"
               onClick={() => setGenerateOpen(true)}
-              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
             >
               Generar Factura
             </button>
@@ -184,7 +184,7 @@ export function InvoicesPage({ defaultStatus }: InvoicesPageProps = {}) {
             onClick={() => setStatusTab(tab.value)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               statusTab === tab.value
-                ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                ? 'rounded-full bg-primary text-primary-fg shadow-sm'
                 : 'border border-border text-muted hover:bg-surface'
             }`}
           >
@@ -424,7 +424,7 @@ function GenerateModal({
           <button type="button" onClick={onClose} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface">
             Cancelar
           </button>
-          <button type="submit" disabled={isPending} className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50">
+          <button type="submit" disabled={isPending} className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50">
             {isPending ? 'Generando...' : 'Generar'}
           </button>
         </div>

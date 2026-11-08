@@ -44,6 +44,15 @@ const ROLE_PERMISSIONS: Record<string, Set<string>> = {
   ]),
 };
 
+const PUBLIC_VIEWER_PERMISSIONS = new Set<string>([
+  'dashboard_executive:read', 'dashboard_technical:read',
+  'admin_buildings:read', 'admin_meters:read', 'admin_hierarchy:read', 'admin_tenants_units:read',
+  'alerts:read', 'billing:read', 'buildings:read', 'concentrators:read',
+  'data_quality:read', 'diagnostics:read', 'fault_events:read', 'hierarchy:read',
+  'meters:read', 'monitoring:read', 'monitoring_faults:read', 'readings:read',
+  'register_mappings:read', 'reports:read', 'tenant_units:read',
+]);
+
 export function usePermissions() {
   const user = useAuthStore((s) => s.user);
   const viewAsRole = useAppStore((s) => s.viewAsRole);
@@ -56,7 +65,7 @@ export function usePermissions() {
   const isImpersonating = isSuperAdmin && viewAsRole !== null && viewAsRole !== 'super_admin';
 
   const permSet = useMemo(() => {
-    if (!activeRole) return new Set<string>();
+    if (!activeRole) return PUBLIC_VIEWER_PERMISSIONS;
     // Impersonating: use role-based permission set
     if (isImpersonating) return ROLE_PERMISSIONS[activeRole] ?? new Set<string>();
     // Real user: use actual permissions from DB

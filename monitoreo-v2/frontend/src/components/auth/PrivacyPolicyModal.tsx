@@ -153,7 +153,7 @@ export function PrivacyPolicyModal() {
             type="button"
             onClick={() => acceptMutation.mutate()}
             disabled={!scrolledToBottom || acceptMutation.isPending}
-            className="rounded-lg bg-brand px-6 py-2.5 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-40"
+            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-40"
           >
             {acceptMutation.isPending ? 'Guardando...' : 'Acepto la Política de Privacidad'}
           </button>

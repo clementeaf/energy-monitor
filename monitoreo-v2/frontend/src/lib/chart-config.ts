@@ -8,8 +8,8 @@ const cssVar = (name: string, fallback: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
 export const getColors = () => ({
-  primary: cssVar('--color-chart-1', cssVar('--color-brand', '#3a5b1e')),
-  secondary: cssVar('--color-chart-2', cssVar('--color-brand-hover', '#272628')),
+  primary: cssVar('--color-chart-1', cssVar('--color-primary', '#0A0E0C')),
+  secondary: cssVar('--color-chart-2', cssVar('--color-accent', '#9FD838')),
   text: cssVar('--color-chart-text', '#0a0a0a'),
   textMuted: cssVar('--color-chart-text-muted', '#6b6b6b'),
   border: cssVar('--color-chart-border', '#e5e5e5'),

@@ -20,7 +20,7 @@ type MetersTab = 'list' | 'import';
 
 const TAB_CLASS = (active: boolean): string =>
   `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+    active ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-surface hover:text-foreground'
   }`;
 
 export function MetersPage() {
@@ -119,7 +119,7 @@ export function MetersPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
             >
               Nuevo Medidor
             </button>

@@ -272,7 +272,7 @@ function HierarchyTreeNode({
         onClick={() => onSelect(node.id)}
         className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors ${
           isSelected
-            ? 'bg-brand/10 text-foreground'
+            ? 'bg-primary/10 text-foreground'
             : 'text-foreground hover:bg-surface'
         }`}
         style={{ paddingLeft: `${depth * 20 + 8}px` }}

@@ -1,5 +1,5 @@
-import type { Remarcador, RemarcadorEstado } from './fleet';
-import { formatDateTime } from './format';
+import type { Centro, Remarcador, RemarcadorEstado } from './fleet';
+import { formatDateTime, formatNumber } from './format';
 
 export type AlertaSeveridad = 'critica' | 'advertencia' | 'informativa';
 
@@ -9,7 +9,9 @@ export interface Alerta {
   titulo: string;
   detalle: string;
   centroId: string;
-  remarcadorId: string;
+  centroName: string;
+  desde: string | null;
+  href: string;
 }
 
 const ALERTA_BY_ESTADO: Partial<Record<RemarcadorEstado, { severidad: AlertaSeveridad; titulo: (code: string) => string }>> = {
@@ -27,9 +29,24 @@ export function buildAlertas(remarcadores: Remarcador[]): Alerta[] {
       titulo: alerta.titulo(remarcador.code),
       detalle: `Sin lecturas desde ${formatDateTime(remarcador.ultimaLectura)} en ${remarcador.centroName}.`,
       centroId: remarcador.centroId,
-      remarcadorId: remarcador.id,
+      centroName: remarcador.centroName,
+      desde: remarcador.ultimaLectura,
+      href: `/remarcadores/${remarcador.id}`,
     }];
   });
+}
+
+export function buildAlertasMargen(centros: Centro[], margenMinimoPct: number, desde: Date): Alerta[] {
+  return centros.flatMap((centro) => (centro.margen && centro.margen.margenPct < margenMinimoPct ? [{
+    id: `margen-${centro.id}`,
+    severidad: 'critica' as const,
+    titulo: `Margen bajo el mínimo (${formatNumber(centro.margen.margenPct, 1)} %)`,
+    detalle: `${centro.name} deja ${formatNumber(centro.margen.margenPct, 1)} % sobre la venta; el mínimo es ${formatNumber(margenMinimoPct)} %.`,
+    centroId: centro.id,
+    centroName: centro.name,
+    desde: desde.toISOString(),
+    href: `/centros/${centro.id}`,
+  }] : []));
 }
 
 export interface Regla {

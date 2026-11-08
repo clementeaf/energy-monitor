@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import { SessionGate } from '../components/auth/SessionGate';
 import { LayoutShell } from '../components/layout/LayoutShell';
 import { EmsSectionRoute } from '../features/ems/EmsSectionRoute';
+import { ResumenPage } from '../features/ems/ResumenPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { RequirePerms } from '../components/auth/RequirePerms';
 import { RequireTenantLayout } from '../components/ui/RequireTenant';
@@ -88,7 +89,6 @@ import {
   LazyPlatformDashboardPage,
   LazyBuildingDetailPage,
   LazyTenantUnitDetailPage,
-  LazyResumenPage,
   LazyCentrosPage,
   LazyCentroDetailPage,
   LazyRemarcadoresPage,
@@ -99,7 +99,11 @@ import {
   LazyReportesMockPage,
   LazySostenibilidadPage,
   LazyConfiguracionPage,
-  LazyFacturasMockPage,
+  LazyFacturacionPage,
+  LazyTerrenoTareasPage,
+  LazyTerrenoDiagnosticoPage,
+  LazyTerrenoAltaPage,
+  LazyDocumentoPage,
   LazyMeterDetailPage,
   LazyMeterReadingsPage,
   LazyProfilePage,
@@ -323,10 +327,13 @@ export const router = createBrowserRouter([
 
               /* Edificios & Medidores (listas cross-tenant) */
               /* EMS — Núcleo (mock) */
-              { path: APP_ROUTES.resumen, element: <EmsSectionRoute section="resumen"><LazyResumenPage /></EmsSectionRoute> },
+              { path: APP_ROUTES.resumen, element: <EmsSectionRoute section="resumen"><ResumenPage /></EmsSectionRoute> },
               { path: APP_ROUTES.centroDetail, element: <EmsSectionRoute section="centros"><LazyCentroDetailPage /></EmsSectionRoute> },
               { path: APP_ROUTES.centros, element: <EmsSectionRoute section="centros"><LazyCentrosPage /></EmsSectionRoute> },
               { path: APP_ROUTES.remarcadorDetail, element: <EmsSectionRoute section="remarcadores"><LazyRemarcadorDetailPage /></EmsSectionRoute> },
+              { path: 'terreno', element: <EmsSectionRoute section="terreno"><LazyTerrenoTareasPage /></EmsSectionRoute> },
+              { path: 'terreno/remarcadores/:remarcadorId', element: <EmsSectionRoute section="terreno"><LazyTerrenoDiagnosticoPage /></EmsSectionRoute> },
+              { path: 'terreno/alta', element: <EmsSectionRoute section="terreno"><LazyTerrenoAltaPage /></EmsSectionRoute> },
               { path: APP_ROUTES.remarcadores, element: <EmsSectionRoute section="remarcadores"><LazyRemarcadoresPage /></EmsSectionRoute> },
 
               /* EMS — Add-ons (mock) */
@@ -336,7 +343,8 @@ export const router = createBrowserRouter([
               { path: 'reportes', element: <EmsSectionRoute section="reportes"><LazyReportesMockPage /></EmsSectionRoute> },
               { path: 'sostenibilidad', element: <EmsSectionRoute section="sostenibilidad"><LazySostenibilidadPage /></EmsSectionRoute> },
               { path: 'configuracion', element: <EmsSectionRoute section="configuracion"><LazyConfiguracionPage /></EmsSectionRoute> },
-              { path: 'facturas', element: <LazyFacturasMockPage /> },
+              { path: 'facturacion/:documentoId', element: <EmsSectionRoute section="facturacion"><LazyDocumentoPage /></EmsSectionRoute> },
+              { path: 'facturacion', element: <EmsSectionRoute section="facturacion"><LazyFacturacionPage /></EmsSectionRoute> },
 
               { path: APP_ROUTES.unitDetail, element: <P any={BUILDINGS}><LazyTenantUnitDetailPage /></P> },
               { path: APP_ROUTES.buildingDetail, element: <P any={BUILDINGS}><LazyBuildingDetailPage /></P> },

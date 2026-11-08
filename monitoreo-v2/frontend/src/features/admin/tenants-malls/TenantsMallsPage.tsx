@@ -346,7 +346,7 @@ export function TenantsMallsPage() {
           <button
             type="button"
             onClick={() => navigate('/admin/companies')}
-            className="rounded-md bg-brand px-4 py-1.5 text-xs font-medium text-brand-fg hover:opacity-90"
+            className="rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-fg hover:opacity-90"
           >
             Crear tenant
           </button>

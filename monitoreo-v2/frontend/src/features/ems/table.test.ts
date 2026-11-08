@@ -1,5 +1,6 @@
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { nextSort, sortRows } from './table';
+import { nextSort, sortRows, useSelection } from './table';
 
 const ROWS = [
   { name: 'Ñuñoa', kwh: 20 },
@@ -19,5 +20,16 @@ describe('nextSort', () => {
   it('flips direction on the same column and starts a new column descending', () => {
     expect(nextSort({ key: 'kwh', direction: 'desc' }, 'kwh')).toEqual({ key: 'kwh', direction: 'asc' });
     expect(nextSort({ key: 'kwh', direction: 'asc' }, 'name')).toEqual({ key: 'name', direction: 'desc' });
+  });
+});
+
+describe('useSelection', () => {
+  it('selects and clears one page without touching the selection on other pages', () => {
+    const { result } = renderHook(() => useSelection());
+    act(() => result.current.toggle('otra-pagina'));
+    act(() => result.current.toggleAll(['a', 'b']));
+    expect([...result.current.selected].sort()).toEqual(['a', 'b', 'otra-pagina']);
+    act(() => result.current.toggleAll(['a', 'b']));
+    expect([...result.current.selected]).toEqual(['otra-pagina']);
   });
 });

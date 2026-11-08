@@ -237,14 +237,14 @@ export function PamCards({
                 <DropdownSelect className="w-full" value={jitDuration} onChange={setJitDuration} options={[{ value: '15', label: '15 min' }, { value: '30', label: '30 min' }, { value: '60', label: '1 hora' }, { value: '120', label: '2 horas' }]} />
                 <textarea value={jitJustification} onChange={(e) => setJitJustification(e.target.value)} rows={2} className="w-full rounded border border-border bg-background px-2 py-1 text-xs outline-none" placeholder="Justificación..." />
                 <div className="flex gap-1.5">
-                  <button type="button" disabled={!jitResource || !jitJustification.trim()} onClick={() => setJitSubmitted(true)} className="flex-1 rounded bg-brand px-2 py-1 text-xs font-medium text-brand-fg disabled:opacity-50">Enviar</button>
+                  <button type="button" disabled={!jitResource || !jitJustification.trim()} onClick={() => setJitSubmitted(true)} className="flex-1 rounded bg-primary px-2 py-1 text-xs font-medium text-primary-fg disabled:opacity-50">Enviar</button>
                   <button type="button" onClick={() => setJitRequestOpen(false)} className="rounded border border-border px-2 py-1 text-xs text-muted hover:bg-surface">Cancelar</button>
                 </div>
               </>
             )}
           </div>
         ) : (
-          <button type="button" onClick={() => { setJitRequestOpen(true); setJitSubmitted(false); }} className="rounded bg-brand px-2.5 py-1 text-xs font-medium text-brand-fg hover:bg-brand-hover">
+          <button type="button" onClick={() => { setJitRequestOpen(true); setJitSubmitted(false); }} className="rounded bg-primary px-2.5 py-1 text-xs font-medium text-primary-fg hover:bg-primary-hover">
             Solicitar acceso
           </button>
         )}

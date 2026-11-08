@@ -86,6 +86,7 @@ Resources:
       Description: !Sub ${AWS::StackName} force TLS
       Parameters:
         rds.force_ssl: '1'
+        log_connections: '1'
 
   Database:
     Type: AWS::RDS::DBInstance

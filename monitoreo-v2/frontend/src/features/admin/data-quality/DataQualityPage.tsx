@@ -10,7 +10,7 @@ type DataQualityTab = 'report' | 'balance' | 'slo' | 'contracts';
 
 const TAB_CLASS = (active: boolean): string =>
   `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+    active ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-surface hover:text-foreground'
   }`;
 
 /**

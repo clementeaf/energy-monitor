@@ -1,292 +1,272 @@
 import { useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { QueryStateView } from '../../components/ui/QueryStateView';
-import { StockChart } from '../../components/charts/StockChart';
 import { useReadingsQuery } from '../../hooks/queries/useReadingsQuery';
-import type { Reading } from '../../types/reading';
+import { useAppStore } from '../../store/useAppStore';
+import { usePageTitle } from '../../store/usePageTitleStore';
+import { useToastStore } from '../../store/useToastStore';
+import type { Reading, ReadingResolution } from '../../types/reading';
 import { buildFichaDispositivo } from './device';
-import { startOfDay, toNumber, type Remarcador } from './fleet';
+import { toNumber, type Remarcador, type RemarcadorEstado } from './fleet';
 import { formatDateTime, formatNumber } from './format';
+import { PageAction } from './PageAction';
+import { canEditSection, EMS_SECTION_PATHS } from './roles';
+import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { StatusBadge } from './StatusBadge';
+import { RowMenu } from './table';
 import { useEmsFleet } from './useEmsFleet';
+import { useEmsRole } from './useEmsRole';
 import { useRemarcadorActions } from './useRemarcadorActions';
 
-type Metric = 'potencia' | 'energia' | 'voltaje' | 'corriente' | 'factorPotencia';
+type Rango = '24h' | '7d' | '30d';
 
-interface MetricDefinition {
-  label: string;
-  unit: string;
-  decimals: number;
-  series: (readings: Reading[]) => [number, number][];
-}
-
-function seriesOf(column: keyof Reading): (readings: Reading[]) => [number, number][] {
-  return (readings) =>
-    readings.flatMap((reading) => {
-      const value = toNumber(reading[column] as string | null);
-      return value === null ? [] : [[new Date(reading.timestamp).getTime(), value] as [number, number]];
-    });
-}
-
-function energyPerInterval(readings: Reading[]): [number, number][] {
-  return readings.slice(1).map((reading, i) => [
-    new Date(reading.timestamp).getTime(),
-    Math.max(0, Number(reading.energy_kwh_total) - Number(readings[i].energy_kwh_total)),
-  ]);
-}
-
-const METRICS: Record<Metric, MetricDefinition> = {
-  potencia: { label: 'Potencia', unit: 'kW', decimals: 2, series: seriesOf('power_kw') },
-  energia: { label: 'Energía por intervalo', unit: 'kWh', decimals: 2, series: energyPerInterval },
-  voltaje: { label: 'Voltaje L1', unit: 'V', decimals: 1, series: seriesOf('voltage_l1') },
-  corriente: { label: 'Corriente L1', unit: 'A', decimals: 1, series: seriesOf('current_l1') },
-  factorPotencia: { label: 'Factor de potencia', unit: '', decimals: 3, series: seriesOf('power_factor') },
+const MINUTE_MS = 60_000;
+const RANGOS: Record<Rango, { label: string; horas: number; tramoMin: number; resolution: ReadingResolution }> = {
+  '24h': { label: '24 h', horas: 24, tramoMin: 15, resolution: '15min' },
+  '7d': { label: '7 días', horas: 24 * 7, tramoMin: 60, resolution: '1h' },
+  '30d': { label: '30 días', horas: 24 * 30, tramoMin: 360, resolution: '1h' },
 };
+const ULTIMAS_LECTURAS = 5;
+const SENAL_SEGMENTOS = 10;
+const ESTADO_OPERATIVO: Record<RemarcadorEstado, 'operativo' | 'advertencia' | 'alarma' | 'mantencion'> = {
+  conectado: 'operativo', sin_senal: 'advertencia', caido: 'alarma', mantencion: 'mantencion',
+};
+const SECONDARY_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised';
 
-const CONNECTION_LABEL = { conectado: 'Conectado', sin_senal: 'Sin señal', caido: 'Caído', mantencion: 'Mantención' } as const;
+export interface Tramo {
+  inicio: number;
+  kw: number | null;
+  lectura: Reading | null;
+}
 
-const SECONDARY_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised';
-const ACCENT_BUTTON = 'rounded-lg border border-accent bg-accent px-3 py-2 text-xs font-medium text-accent-ink hover:opacity-90';
+export function construirTramos(readings: Reading[], hasta: number, horas: number, tramoMin: number): Tramo[] {
+  const tramoMs = tramoMin * MINUTE_MS;
+  const total = Math.round((horas * 60) / tramoMin);
+  const desde = Math.floor(hasta / tramoMs) * tramoMs - (total - 1) * tramoMs;
+  const porTramo = new Map<number, Reading[]>();
+  for (const reading of readings) {
+    const indice = Math.floor((new Date(reading.timestamp).getTime() - desde) / tramoMs);
+    if (indice < 0 || indice >= total) continue;
+    porTramo.set(indice, [...(porTramo.get(indice) ?? []), reading]);
+  }
+  return Array.from({ length: total }, (_, indice) => {
+    const propias = porTramo.get(indice) ?? [];
+    const potencias = propias.flatMap((r) => { const kw = toNumber(r.power_kw); return kw === null ? [] : [kw]; });
+    return {
+      inicio: desde + indice * tramoMs,
+      kw: potencias.length > 0 ? potencias.reduce((sum, kw) => sum + kw, 0) / potencias.length : null,
+      lectura: propias.at(-1) ?? null,
+    };
+  });
+}
 
 export function RemarcadorDetailPage() {
   const { remarcadorId = '' } = useParams<{ remarcadorId: string }>();
-  const navigate = useNavigate();
   const fleet = useEmsFleet();
-  const [selectedMetric, setSelectedMetric] = useState<Metric>('potencia');
-  const [isConfirmingReinicio, setIsConfirmingReinicio] = useState(false);
+  const canEdit = canEditSection(useEmsRole(), 'remarcadores');
   const actions = useRemarcadorActions();
-  const range = useMemo(() => {
-    const now = new Date();
-    return { from: startOfDay(now).toISOString(), to: now.toISOString() };
-  }, []);
-  const readingsQuery = useReadingsQuery({ meterId: remarcadorId, ...range }, !!remarcadorId);
   const rem = fleet.remarcadores.find((r) => r.id === remarcadorId);
 
-  const readings = useMemo(
-    () => [...(readingsQuery.data ?? [])].sort((a, b) => a.timestamp.localeCompare(b.timestamp)),
-    [readingsQuery.data],
-  );
-  const meta = METRICS[selectedMetric];
-  const points = useMemo(() => meta.series(readings), [meta, readings]);
-  const values = points.map(([, value]) => value);
-  const last = readings[readings.length - 1];
-  const first = readings[0];
-  const energiaHoy = first && last ? Number(last.energy_kwh_total) - Number(first.energy_kwh_total) : null;
-  const peakHoy = readings.length > 0 ? Math.max(...readings.map((r) => Number(r.power_kw))) : null;
-
-  const stockOptions = useMemo(() => ({
-    series: [{
-      type: 'areaspline' as const,
-      name: meta.label,
-      data: points,
-      tooltip: { valueSuffix: meta.unit ? ` ${meta.unit}` : '', valueDecimals: meta.decimals },
-      fillOpacity: 0.15,
-      lineWidth: 2,
-      color: 'var(--color-accent)',
-    }],
-    yAxis: { title: { text: meta.unit || meta.label } },
-    rangeSelector: {
-      buttons: [
-        { type: 'hour' as const, count: 3, text: '3h' },
-        { type: 'hour' as const, count: 6, text: '6h' },
-        { type: 'hour' as const, count: 12, text: '12h' },
-        { type: 'all' as const, text: 'Hoy' },
-      ],
-      selected: 3,
-    },
-  }), [points, meta]);
+  usePageTitle(rem ? `${rem.code} · ${rem.name}` : 'Remarcador', `Núcleo / Remarcadores / ${rem?.code ?? ''}`,
+    rem && canEdit ? <PageAction label="⚡ Forzar lectura" onClick={() => actions.forzarLectura([rem])} /> : undefined);
 
   return (
-    <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
-      {rem ? (
-        <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:overflow-hidden md:p-6">
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-            <div>
-              <button type="button" onClick={() => navigate('/remarcadores')} className="flex items-center gap-1 text-xs text-muted hover:text-foreground">
-                ← Volver a Remarcadores
-              </button>
-              <h1 className="mt-1 font-mono text-lg font-bold text-foreground">{rem.code}</h1>
-              <div className="mt-1 flex flex-wrap gap-2">
-                <StatusBadge estado={rem.estado} />
-                <Tag>{rem.name}</Tag>
-                <Tag>{rem.centroName}</Tag>
+    <div className="h-full overflow-y-auto p-4 md:p-6">
+      <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
+        {rem ? <RemarcadorDetalle rem={rem} canEdit={canEdit} /> : <div className="flex h-full items-center justify-center text-sm text-muted">Remarcador no encontrado.</div>}
+      </QueryStateView>
+    </div>
+  );
+}
+
+function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit: boolean }>) {
+  const navigate = useNavigate();
+  const actions = useRemarcadorActions();
+  const showToast = useToastStore((s) => s.showToast);
+  const asignarTerreno = useAppStore((s) => s.asignarTerreno);
+  const [rango, setRango] = useState<Rango>('24h');
+  const [isConfirmingReinicio, setIsConfirmingReinicio] = useState(false);
+  const ficha = buildFichaDispositivo(rem);
+  const ahora = useMemo(() => Date.now(), []);
+  const { horas, tramoMin, resolution } = RANGOS[rango];
+  const range = useMemo(() => ({ from: new Date(ahora - horas * 60 * MINUTE_MS).toISOString(), to: new Date(ahora).toISOString() }), [ahora, horas]);
+  const readingsQuery = useReadingsQuery({ meterId: rem.id, ...range, resolution }, true);
+  const ultimasQuery = useReadingsQuery({ meterId: rem.id, from: new Date(ahora - 2 * 60 * MINUTE_MS).toISOString(), to: new Date(ahora).toISOString() }, true);
+  const tramos = useMemo(() => construirTramos(readingsQuery.data ?? [], ahora, horas, tramoMin), [readingsQuery.data, ahora, horas, tramoMin]);
+  const ultimas = useMemo(() => construirTramos(ultimasQuery.data ?? [], ahora, 2, 15).slice(-ULTIMAS_LECTURAS).reverse(), [ultimasQuery.data, ahora]);
+  const haceMin = rem.ultimaLectura ? Math.round((ahora - new Date(rem.ultimaLectura).getTime()) / MINUTE_MS) : null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge estado={ESTADO_OPERATIVO[rem.estado]} />
+        <StatusBadge estado={rem.estado} detail={`${ficha.senalPct} %`} />
+        <button type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${rem.centroId}`)} className="rounded-md bg-surface px-2 py-0.5 text-xs text-foreground hover:bg-raised">{rem.centroName}</button>
+        <span className="font-mono text-xs text-muted">Última lectura {formatDateTime(rem.ultimaLectura)}{haceMin !== null && ` · hace ${formatNumber(haceMin)} min`}</span>
+        {canEdit && (
+          <div className="ml-auto flex items-center gap-2">
+            <button type="button" onClick={() => { asignarTerreno([rem.id], rem.estado === 'caido'); showToast(`${rem.code} asignado a terreno`); }} className={SECONDARY_BUTTON}>Asignar a terreno</button>
+            <button type="button" onClick={() => setIsConfirmingReinicio(true)} className={SECONDARY_BUTTON}>⚡ Reiniciar equipo</button>
+            <RowMenu label="Más acciones" items={[
+              rem.estado === 'mantencion' ? { label: 'Reactivar', onSelect: () => actions.reactivar(rem) } : { label: 'Marcar en mantención', onSelect: () => actions.marcarMantencion([rem]) },
+              { label: 'Ir al centro', onSelect: () => navigate(`${EMS_SECTION_PATHS.centros}/${rem.centroId}`) },
+            ]} />
+          </div>
+        )}
+      </div>
+
+      <EstadoBanner remarcador={rem} onVerAlerta={() => navigate(EMS_SECTION_PATHS.alertas)} onRecuperar={() => actions.recuperar(rem)} canEdit={canEdit} />
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-4 xl:col-span-2">
+          <section className="rounded-xl bg-card p-5">
+            <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-card-fg">Potencia · últimas {RANGOS[rango].label}</h2>
+                <p className="text-xs text-card-muted">kW promedio cada {tramoMin >= 60 ? `${tramoMin / 60} h` : `${tramoMin} min`} · gris claro: sin datos</p>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => navigate(`/centros/${rem.centroId}`)} className={SECONDARY_BUTTON}>
-                Ir al centro
-              </button>
-              <button type="button" onClick={() => actions.forzarLectura([rem])} className={SECONDARY_BUTTON}>
-                ↻ Forzar lectura
-              </button>
-              {rem.estado === 'mantencion' ? (
-                <button type="button" onClick={() => actions.reactivar(rem)} className={ACCENT_BUTTON}>
-                  ✓ Reactivar
-                </button>
-              ) : (
-                <button type="button" onClick={() => actions.marcarMantencion([rem])} className={SECONDARY_BUTTON}>
-                  ⚙ Mantención
-                </button>
-              )}
-              <button type="button" onClick={() => setIsConfirmingReinicio(true)} className="rounded-lg bg-danger px-3 py-2 text-xs font-medium text-background hover:opacity-90">
-                Reiniciar
-              </button>
-            </div>
-          </div>
+              <div role="tablist" aria-label="Rango" className={SEGMENT_TRACK_CLASS}>
+                {(Object.keys(RANGOS) as Rango[]).map((key) => (
+                  <button key={key} type="button" role="tab" aria-selected={rango === key} onClick={() => setRango(key)} className={segmentClass(rango === key)}>{RANGOS[key].label}</button>
+                ))}
+              </div>
+            </header>
+            <QueryStateView phase={readingsQuery.isError ? 'error' : readingsQuery.isPending ? 'loading' : 'ready'} error={readingsQuery.error} refetch={() => void readingsQuery.refetch()} variant="widget">
+              <PotenciaTramos tramos={tramos} />
+            </QueryStateView>
+          </section>
 
-          <EstadoBanner remarcador={rem} onVerAlerta={() => navigate('/alertas')} onRecuperar={() => actions.recuperar(rem)} />
+          <section className="rounded-xl bg-card">
+            <h2 className="px-5 py-4 text-sm font-semibold text-card-fg">Últimas lecturas</h2>
+            <QueryStateView phase={ultimasQuery.isError ? 'error' : ultimasQuery.isPending ? 'loading' : 'ready'} error={ultimasQuery.error} refetch={() => void ultimasQuery.refetch()} variant="widget">
+              <div className="overflow-x-auto">
+                <table className="min-w-full whitespace-nowrap">
+                  <thead>
+                    <tr className="bg-raised">
+                      {['Fecha y hora', 'Energía (kWh)', 'Potencia (kW)', 'Tensión (V)', 'Calidad'].map((label) => (
+                        <th key={label} className="px-5 py-2 text-left text-[11px] font-normal text-muted">{label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-border font-mono text-xs">
+                    {ultimas.map((tramo) => (
+                      <tr key={tramo.inicio}>
+                        <td className="px-5 py-2.5 text-foreground">{formatDateTime(tramo.lectura?.timestamp ?? new Date(tramo.inicio).toISOString())}</td>
+                        <td className="px-5 py-2.5">{tramo.lectura ? formatNumber(toNumber(tramo.lectura.energy_kwh_total), 1) : '—'}</td>
+                        <td className="px-5 py-2.5">{tramo.lectura ? formatNumber(toNumber(tramo.lectura.power_kw), 1) : '—'}</td>
+                        <td className="px-5 py-2.5">{tramo.lectura ? formatNumber(toNumber(tramo.lectura.voltage_l1), 1) : '—'}</td>
+                        <td className="px-5 py-2.5 font-sans">
+                          {tramo.lectura
+                            ? <span className="rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-medium text-success-ink">✓ Válida</span>
+                            : <span className="rounded-full bg-neutral-bg px-2 py-0.5 text-[11px] font-medium text-neutral-ink">○ Sin dato</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </QueryStateView>
+          </section>
+        </div>
 
-          <ConfirmDialog
-            open={isConfirmingReinicio}
-            onClose={() => setIsConfirmingReinicio(false)}
-            onConfirm={() => { setIsConfirmingReinicio(false); actions.reiniciar(rem); }}
-            title={`Reiniciar ${rem.code}`}
-            message="El equipo dejará de reportar durante unos 2 minutos. La acción queda registrada en la bitácora."
-            confirmLabel="Reiniciar"
-          />
-
-          <div className="grid shrink-0 grid-cols-3 gap-3 lg:grid-cols-6">
-            <KpiCard label="Potencia actual" value={formatNumber(toNumber(last?.power_kw), 1)} unit="kW" />
-            <KpiCard label="Energía hoy" value={formatNumber(energiaHoy, 1)} unit="kWh" />
-            <KpiCard label="Voltaje L1" value={formatNumber(toNumber(last?.voltage_l1), 1)} unit="V" />
-            <KpiCard label="Corriente L1" value={formatNumber(toNumber(last?.current_l1), 1)} unit="A" />
-            <KpiCard label="Factor potencia" value={formatNumber(toNumber(last?.power_factor), 3)} />
-            <KpiCard label="Peak hoy" value={formatNumber(peakHoy, 1)} unit="kW" />
-          </div>
-
-          <div className="shrink-0">
-            <select
-              value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as Metric)}
-              className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground"
-            >
-              {(Object.keys(METRICS) as Metric[]).map((key) => (
-                <option key={key} value={key}>{METRICS[key].label} ({METRICS[key].unit || '—'})</option>
+        <div className="flex min-w-0 flex-col gap-4">
+          <section className="rounded-xl bg-card p-5">
+            <h2 className="mb-3 text-sm font-semibold text-card-fg">Ficha del equipo</h2>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
+              {[
+                ['Modelo', ficha.modelo],
+                ['ID remarcador', rem.idRemarcador ?? '—'],
+                ['Ubicación', rem.name],
+                ['Instalado', new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL')],
+                ['Comunicación', [rem.protocolo, rem.fuente].filter(Boolean).join(' · ') || '—'],
+                ['Intervalo de lectura', '15 min'],
+              ].map(([label, value]) => (
+                <div key={label} className="contents"><dt className="text-muted">{label}</dt><dd className="font-mono text-foreground">{value}</dd></div>
               ))}
-            </select>
-          </div>
+            </dl>
+          </section>
 
-          <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-5">
-            <div className="flex flex-col rounded-xl border border-card-border bg-card lg:col-span-3">
-              <div className="flex shrink-0 items-start justify-between px-4 pt-4">
-                <div>
-                  <h2 className="text-sm font-semibold text-card-fg">{meta.label} · hoy</h2>
-                  <p className="text-xs text-card-muted">{rem.code} — {readings.length} lecturas</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-mono text-lg font-bold text-card-fg tabular-nums">
-                    {formatNumber(values.length > 0 ? values[values.length - 1] : null, meta.decimals)} <span className="text-xs font-normal text-card-muted">{meta.unit}</span>
-                  </p>
-                  <p className="text-[10px] text-card-muted">
-                    prom: {formatNumber(values.length > 0 ? values.reduce((s, v) => s + v, 0) / values.length : null, meta.decimals)} · max: {formatNumber(values.length > 0 ? Math.max(...values) : null, meta.decimals)}
-                  </p>
-                </div>
-              </div>
-              <div className="min-h-0 flex-1">
-                <QueryStateView phase={readingsQuery.isError ? 'error' : readingsQuery.isPending ? 'loading' : points.length === 0 ? 'empty' : 'ready'} error={readingsQuery.error} refetch={() => void readingsQuery.refetch()} variant="widget" emptyDescription="Sin lecturas hoy para este remarcador.">
-                  <StockChart options={stockOptions} className="h-full" />
-                </QueryStateView>
-              </div>
+          <section className="rounded-xl bg-card p-5">
+            <header className="flex items-baseline justify-between">
+              <h2 className="text-sm font-semibold text-card-fg">Nivel de señal</h2>
+              <span className={`font-mono text-2xl font-semibold ${ficha.senalPct >= 60 ? 'text-success' : ficha.senalPct > 0 ? 'text-warning-ink' : 'text-danger'}`}>{ficha.senalPct} %</span>
+            </header>
+            <div className="mt-2 flex gap-0.5" aria-hidden="true">
+              {Array.from({ length: SENAL_SEGMENTOS }, (_, i) => (
+                <span key={i} className={`h-3 flex-1 rounded-sm ${i < Math.round(ficha.senalPct / SENAL_SEGMENTOS) ? (ficha.senalPct >= 60 ? 'bg-accent' : 'bg-warning') : 'bg-border'}`} />
+              ))}
             </div>
+            <p className="mt-2 text-xs text-muted">Señal estimada según la regularidad de lecturas del equipo.</p>
+          </section>
 
-            <div className="flex flex-col gap-4 overflow-y-auto lg:col-span-2">
-              <div className="rounded-xl border border-card-border bg-card p-4">
-                <h2 className="text-sm font-semibold text-card-fg">Estado del dispositivo</h2>
-                <div className="mt-3 space-y-2">
-                  <FichaRow label="Conexión" value={CONNECTION_LABEL[rem.estado]} />
-                  <FichaRow label="Última lectura" value={formatDateTime(rem.ultimaLectura)} />
-                  <FichaRow label="Centro" value={rem.centroName} />
-                  <FichaRow label="Código" value={rem.code} />
-                  <FichaRow label="ID remarcador" value={rem.idRemarcador ?? '—'} />
-                  <FichaRow label="Fuente" value={rem.fuente ?? '—'} />
-                  <FichaRow label="Protocolo" value={rem.protocolo ?? '—'} />
-                </div>
-              </div>
-
-              <FichaTecnica remarcador={rem} />
-            </div>
-          </div>
+          <section className="rounded-xl bg-card p-5">
+            <h2 className="mb-3 text-sm font-semibold text-card-fg">Historial de eventos</h2>
+            <ol className="flex flex-col gap-3 border-l border-border pl-4">
+              {[
+                ...(rem.estado !== 'conectado' ? [{ titulo: rem.estado === 'caido' ? 'Sin lecturas: equipo caído' : rem.estado === 'sin_senal' ? 'Señal intermitente' : 'En mantención', fecha: formatDateTime(rem.ultimaLectura), tono: 'bg-warning' }] : []),
+                { titulo: 'Última lectura recibida', fecha: formatDateTime(rem.ultimaLectura), tono: 'bg-success' },
+                { titulo: 'Alta del equipo', fecha: new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL'), tono: 'bg-border-strong' },
+              ].map((evento) => (
+                <li key={evento.titulo} className="relative">
+                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${evento.tono}`} />
+                  <p className="text-sm text-foreground">{evento.titulo}</p>
+                  <p className="font-mono text-[11px] text-muted">{evento.fecha} · Sistema</p>
+                </li>
+              ))}
+            </ol>
+          </section>
         </div>
-      ) : (
-        <div className="flex h-full items-center justify-center text-sm text-muted">Remarcador no encontrado.</div>
-      )}
-    </QueryStateView>
+      </div>
+
+      <ConfirmDialog
+        open={isConfirmingReinicio}
+        onClose={() => setIsConfirmingReinicio(false)}
+        onConfirm={() => { setIsConfirmingReinicio(false); actions.reiniciar(rem); }}
+        title={`Reiniciar ${rem.code}`}
+        message="El equipo dejará de reportar unos 2 minutos. La acción queda registrada en el historial."
+        confirmLabel="Reiniciar"
+      />
+    </div>
   );
 }
 
-function FichaTecnica({ remarcador }: Readonly<{ remarcador: Remarcador }>) {
-  const ficha = buildFichaDispositivo(remarcador);
+function PotenciaTramos({ tramos }: Readonly<{ tramos: Tramo[] }>) {
+  const max = Math.max(...tramos.map((t) => t.kw ?? 0), 1);
+  const etiquetas = [0, Math.floor(tramos.length / 4), Math.floor(tramos.length / 2), Math.floor((tramos.length * 3) / 4), tramos.length - 1];
   return (
-    <div className="rounded-xl border border-card-border bg-card p-4">
-      <h2 className="text-sm font-semibold text-card-fg">Ficha técnica</h2>
-      <div className="mt-3 space-y-2">
-        <FichaRow label="Modelo" value={ficha.modelo} />
-        <FichaRow label="Firmware" value={ficha.firmware} />
-        <FichaRow label="Fecha de alta" value={new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL')} />
-        <FichaRow label="Señal" value={`${ficha.senalPct}%`} />
+    <div className="flex flex-col gap-2">
+      <div className="flex h-44 items-end gap-px">
+        {tramos.map((tramo) => (
+          <div key={tramo.inicio}
+            title={tramo.kw === null ? `${formatDateTime(new Date(tramo.inicio).toISOString())} · sin lectura recibida` : `${formatDateTime(new Date(tramo.inicio).toISOString())} · ${formatNumber(tramo.kw, 1)} kW`}
+            className={`flex-1 rounded-t-[1px] ${tramo.kw === null ? 'bg-raised' : 'bg-border-strong'}`}
+            style={{ height: tramo.kw === null ? '100%' : `${Math.max(3, (tramo.kw / max) * 100)}%` }} />
+        ))}
+      </div>
+      <div className="flex justify-between font-mono text-[10px] text-muted">
+        {etiquetas.map((i) => <span key={i}>{formatDateTime(new Date(tramos[i]?.inicio ?? 0).toISOString())}</span>)}
       </div>
     </div>
   );
 }
 
-function KpiCard({ label, value, unit }: Readonly<{ label: string; value: string; unit?: string }>) {
+function EstadoBanner({ remarcador, onVerAlerta, onRecuperar, canEdit }: Readonly<{ remarcador: Remarcador; onVerAlerta: () => void; onRecuperar: () => void; canEdit: boolean }>) {
+  const banners: Partial<Record<RemarcadorEstado, { cls: string; titulo: string; texto: string }>> = {
+    caido: { cls: 'bg-danger-bg text-danger-ink', titulo: `Dispositivo sin conexión desde ${formatDateTime(remarcador.ultimaLectura)}`, texto: 'La plataforma ya generó la alerta de desconexión: al recuperar el equipo, la alerta se cierra sola.' },
+    sin_senal: { cls: 'bg-warning-bg text-warning-ink', titulo: `Señal intermitente desde ${formatDateTime(remarcador.ultimaLectura)}`, texto: 'Las lecturas llegan con retraso. Si no se recibe una lectura en las próximas 24 h, el equipo pasa a caído y se genera la alerta.' },
+    mantencion: { cls: 'bg-info-bg text-info-ink', titulo: 'Equipo en mantención', texto: 'Mientras dure la intervención no se generan alertas de desconexión para este equipo.' },
+  };
+  const banner = banners[remarcador.estado];
+  if (!banner) return null;
   return (
-    <div className="rounded-xl border border-card-border bg-card px-3 py-2.5">
-      <p className="text-[11px] text-card-muted">{label}</p>
-      <p className="mt-0.5 font-mono text-base font-bold text-card-fg tabular-nums">
-        {value}{unit && <span className="ml-0.5 text-xs font-normal text-card-muted">{unit}</span>}
-      </p>
+    <div role="alert" className={`flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 ${banner.cls}`}>
+      <div className="flex-1">
+        <p className="text-sm font-medium">⚠ {banner.titulo}</p>
+        <p className="text-xs">{banner.texto}</p>
+      </div>
+      {remarcador.estado === 'caido' && <button type="button" onClick={onVerAlerta} className="text-xs font-medium underline">Ver la alerta</button>}
+      {canEdit && remarcador.estado !== 'mantencion' && <button type="button" onClick={onRecuperar} className="rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-foreground">Reintentar enlace</button>}
     </div>
   );
-}
-
-function Tag({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted">{children}</span>;
-}
-
-function FichaRow({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <div className="flex items-center justify-between border-b border-card-border pb-2 last:border-0">
-      <span className="text-xs text-card-muted">{label}</span>
-      <span className="font-mono text-xs font-medium text-card-fg">{value}</span>
-    </div>
-  );
-}
-
-function EstadoBanner({ remarcador, onVerAlerta, onRecuperar }: Readonly<{ remarcador: Remarcador; onVerAlerta: () => void; onRecuperar: () => void }>) {
-  if (remarcador.estado === 'caido') {
-    return (
-      <div className="flex shrink-0 items-center justify-between gap-4 rounded-lg border border-danger/30 bg-danger-bg px-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-foreground">Dispositivo sin conexión</p>
-          <p className="text-xs text-muted">Sin lecturas desde {formatDateTime(remarcador.ultimaLectura)}. La plataforma ya generó la alerta de desconexión: al recuperar el equipo, la alerta se cierra sola.</p>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <button type="button" onClick={onVerAlerta} className="text-xs font-medium text-foreground hover:underline">Ver la alerta</button>
-          <button type="button" onClick={onRecuperar} className={ACCENT_BUTTON}>✓ Marcar recuperado</button>
-        </div>
-      </div>
-    );
-  }
-  if (remarcador.estado === 'sin_senal') {
-    return (
-      <div className="flex shrink-0 items-center justify-between gap-4 rounded-lg border border-warning/30 bg-warning-bg px-4 py-3">
-        <div>
-          <p className="text-sm font-medium text-foreground">Señal degradada</p>
-          <p className="text-xs text-muted">Las lecturas llegan con retraso: la última es de {formatDateTime(remarcador.ultimaLectura)}.</p>
-        </div>
-        <button type="button" onClick={onRecuperar} className={SECONDARY_BUTTON}>Reintentar enlace</button>
-      </div>
-    );
-  }
-  if (remarcador.estado === 'mantencion') {
-    return (
-      <div className="shrink-0 rounded-lg border border-info/30 bg-info-bg px-4 py-3">
-        <p className="text-sm font-medium text-foreground">Equipo en mantención</p>
-        <p className="text-xs text-muted">Mientras dure la intervención no se generan alertas de desconexión para este equipo.</p>
-      </div>
-    );
-  }
-  return null;
 }

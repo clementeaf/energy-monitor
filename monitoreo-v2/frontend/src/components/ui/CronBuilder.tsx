@@ -39,7 +39,7 @@ function CronBuilderInner({ value, onChange, disabled = false, className = '' }:
               className={
                 'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ' +
                 (isActive
-                  ? 'border-[var(--color-brand)] bg-brand text-brand-fg'
+                  ? 'border-[var(--color-primary)] bg-primary text-primary-fg'
                   : 'border-border bg-background text-foreground hover:bg-surface')
               }
             >

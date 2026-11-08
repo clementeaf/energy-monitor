@@ -66,10 +66,10 @@ export function GlobalSearch() {
         onChange={(event) => { setQuery(event.target.value); setIsOpen(true); }}
         onFocus={() => setIsOpen(true)}
         onKeyDown={(event) => { if (event.key === 'Escape') setIsOpen(false); }}
-        placeholder="Buscar centro, equipo o sección"
+        placeholder="Buscar centro o equipo"
         aria-label="Buscar en la plataforma"
         autoComplete="off"
-        className="h-10 w-full rounded-md border border-[#505955] bg-transparent pl-8 pr-8 text-[13px] text-[#C6CFCB] outline-none [&::-webkit-search-cancel-button]:hidden"
+        className="h-9 w-full rounded-lg border border-[var(--color-sidebar-border)] bg-background pl-8 pr-8 text-[13px] text-foreground outline-none placeholder:text-sidebar-muted focus:border-accent [&::-webkit-search-cancel-button]:hidden"
       />
       {query && (
         <button type="button" onClick={() => { setQuery(''); setIsOpen(false); }} aria-label="Limpiar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 text-sidebar-muted hover:text-sidebar-fg">

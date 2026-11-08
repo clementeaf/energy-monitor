@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { ErrorBoundary } from '../errors/ErrorBoundary';
-import { MainContentErrorFallback, PageLoadFallback } from '../errors/fallbacks';
+import { MainContentErrorFallback } from '../errors/fallbacks';
+import { LoadingSkeleton } from '../ui/QueryStateView';
 
 /**
  * Suspense + ErrorBoundary alrededor del Outlet en el main (nivel más particular:
@@ -14,9 +15,11 @@ export function MainContentOutlet() {
 
   return (
     <ErrorBoundary resetKeys={resetKeys} fallback={MainContentErrorFallback}>
-      <Suspense fallback={<PageLoadFallback />}>
-        <Outlet />
-      </Suspense>
+      <div key={location.pathname} className="h-full animate-route-in">
+        <Suspense fallback={<div className="p-4 md:p-6"><LoadingSkeleton variant="page" /></div>}>
+          <Outlet />
+        </Suspense>
+      </div>
     </ErrorBoundary>
   );
 }

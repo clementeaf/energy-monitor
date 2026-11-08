@@ -5,12 +5,13 @@ import type { LatestReading } from '../../../types/reading';
 interface MeterTableProps {
   meters: Meter[];
   readings: LatestReading[];
+  energyByMeter: Map<string, number>;
 }
 
-export function MeterTable({ meters, readings }: Readonly<MeterTableProps>) {
+export function MeterTable({ meters, readings, energyByMeter }: Readonly<MeterTableProps>) {
   const navigate = useNavigate();
 
-  const mallTotal = readings.reduce((s, r) => s + Number(r.energy_kwh_total || 0), 0) / 1000;
+  const mallTotal = readings.reduce((s, r) => s + (energyByMeter.get(r.meter_id) ?? 0), 0) / 1000;
 
   return (
     <div className="panel flex min-h-0 flex-col overflow-hidden p-3">
@@ -34,7 +35,7 @@ export function MeterTable({ meters, readings }: Readonly<MeterTableProps>) {
             <tbody className="divide-y divide-border">
               {meters.length > 0 ? meters.map((meter, i) => {
                 const reading = readings.find((r) => r.meter_id === meter.id);
-                const mwh = Number(reading?.energy_kwh_total ?? 0) / 1000;
+                const mwh = (energyByMeter.get(meter.id) ?? 0) / 1000;
                 const pct = mallTotal > 0 ? (mwh / mallTotal) * 100 : 0;
                 const isOnline = !!reading;
                 const stale = reading ? (Date.now() - new Date(reading.timestamp).getTime()) > 4 * 3_600_000 : false;

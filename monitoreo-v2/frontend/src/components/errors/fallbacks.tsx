@@ -3,22 +3,6 @@ import { Link } from 'react-router';
 import { APP_ROUTES } from '../../app/routes';
 
 /**
- * Spinner mientras carga el chunk lazy de la vista actual.
- */
-export function PageLoadFallback(): ReactElement {
-  return (
-    <div className="flex min-h-[12rem] flex-col items-center justify-center gap-3 rounded-lg border border-border bg-background p-8">
-      <div
-        className="size-10 animate-spin rounded-full border-2 border-border border-t-gray-700"
-        role="status"
-        aria-label="Cargando vista"
-      />
-      <p className="text-sm text-muted">Cargando vista…</p>
-    </div>
-  );
-}
-
-/**
  * Error en el área principal (vista lazy o render); no desmonta sidebar/header.
  */
 export function MainContentErrorFallback(props: { error: Error; reset: () => void }): ReactElement {
@@ -34,7 +18,7 @@ export function MainContentErrorFallback(props: { error: Error; reset: () => voi
         <button
           type="button"
           onClick={reset}
-          className="rounded-md bg-warning px-4 py-2 text-sm font-medium text-brand-fg hover:bg-warning/80"
+          className="rounded-md bg-warning px-4 py-2 text-sm font-medium text-primary-fg hover:bg-warning/80"
         >
           Reintentar
         </button>
@@ -61,7 +45,7 @@ export function LayoutErrorFallback(props: { error: Error; reset: () => void }):
       <button
         type="button"
         onClick={reset}
-        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-brand-fg hover:bg-foreground"
+        className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-primary-fg hover:bg-foreground"
       >
         Reintentar
       </button>
@@ -89,7 +73,7 @@ export function AppErrorFallback(props: { error: Error; reset: () => void }): Re
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-brand-fg hover:bg-foreground"
+          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-primary-fg hover:bg-foreground"
         >
           Recargar página
         </button>

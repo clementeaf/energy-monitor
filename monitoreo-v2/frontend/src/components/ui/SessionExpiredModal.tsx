@@ -74,7 +74,7 @@ export function SessionExpiredModal() {
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex-1 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:opacity-90 disabled:opacity-60"
+            className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-fg transition-colors hover:opacity-90 disabled:opacity-60"
           >
             {refreshing ? 'Reconectando…' : 'Continuar trabajando'}
           </button>

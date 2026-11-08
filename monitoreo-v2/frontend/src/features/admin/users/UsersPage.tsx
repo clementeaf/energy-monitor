@@ -15,7 +15,7 @@ type UsersTab = 'list' | 'import';
 
 const TAB_CLASS = (active: boolean): string =>
   `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+    active ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-surface hover:text-foreground'
   }`;
 
 const PROFILE_FILTER_OPTIONS = [
@@ -146,7 +146,7 @@ export function UsersPage() {
                     <button
                       type="button"
                       onClick={openCreate}
-                      className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-brand-fg hover:opacity-90"
+                      className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-fg hover:opacity-90"
                     >
                       + Nuevo
                     </button>
@@ -257,7 +257,7 @@ export function UsersPage() {
                   <ul className="space-y-2">
                     {accessHistory.map((entry) => (
                       <li key={entry.id} className="flex items-start gap-2 text-xs">
-                        <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                        <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-primary" />
                         <span className="text-foreground">{entry.label}</span>
                       </li>
                     ))}
@@ -265,7 +265,7 @@ export function UsersPage() {
                 ) : (
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2 text-xs">
-                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                      <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-primary" />
                       <span className="text-muted">Login OK · 10-07 08:14 · IP 190.x</span>
                     </li>
                     <li className="flex items-start gap-2 text-xs">
@@ -321,7 +321,7 @@ export function UsersPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+                className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
               >
                 Asignar / cambiar perfil
               </button>

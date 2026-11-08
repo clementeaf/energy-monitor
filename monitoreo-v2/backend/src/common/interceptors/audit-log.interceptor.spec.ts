@@ -6,9 +6,9 @@ import { AuditLogInterceptor } from './audit-log.interceptor';
 function buildContext(user: Record<string, unknown>): ExecutionContext {
   const request = {
     method: 'POST',
-    url: '/api/v1/varelectric/batch',
-    route: { path: '/api/v1/varelectric/batch' },
-    body: { records: [] },
+    url: '/api/v1/measurements',
+    route: { path: '/api/v1/measurements' },
+    body: { measurements: [] },
     params: {},
     query: {},
     ip: '127.0.0.1',
@@ -20,7 +20,7 @@ function buildContext(user: Record<string, unknown>): ExecutionContext {
       getRequest: () => request,
       getResponse: () => ({ statusCode: 201 }),
     }),
-    getClass: () => ({ name: 'VarelectricIngressController' }),
+    getClass: () => ({ name: 'ExternalApiController' }),
   } as unknown as ExecutionContext;
 }
 

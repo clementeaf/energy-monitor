@@ -55,10 +55,10 @@ describe('MonthlyChart', () => {
     const lineBtn = screen.getByText('Línea');
     fireEvent.click(lineBtn);
     // After clicking, the line button should have the active bg class
-    expect(lineBtn.className).toContain('bg-brand');
+    expect(lineBtn.className).toContain('bg-primary');
     // The column button should no longer be active
     const colBtn = screen.getByText('Barra');
-    expect(colBtn.className).not.toContain('bg-brand');
+    expect(colBtn.className).not.toContain('bg-primary');
   });
 
   it('hides toggle when only one mode provided', () => {

@@ -38,7 +38,7 @@ describe('Button', () => {
 
   it('applies primary variant by default', () => {
     render(<Button>Primary</Button>);
-    expect(screen.getByRole('button').className).toContain('bg-brand');
+    expect(screen.getByRole('button').className).toContain('bg-primary');
   });
 
   it('applies danger variant', () => {

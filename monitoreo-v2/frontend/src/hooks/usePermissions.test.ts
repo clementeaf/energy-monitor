@@ -38,10 +38,14 @@ describe('usePermissions', () => {
     useAuthStore.getState().clearSession();
   });
 
-  it('returns empty permSet when no user', () => {
+  it('grants read-only public viewer permissions when no user', () => {
     const { result } = renderHook(() => usePermissions());
-    expect(result.current.permSet.size).toBe(0);
     expect(result.current.roleSlug).toBeNull();
+    expect(result.current.hasAny('dashboard_executive:read')).toBe(true);
+    expect(result.current.has('billing', 'read')).toBe(true);
+    expect(result.current.has('admin_users', 'read')).toBe(false);
+    expect(result.current.has('api_keys', 'read')).toBe(false);
+    expect(result.current.has('alerts', 'update')).toBe(false);
   });
 
   describe('has', () => {

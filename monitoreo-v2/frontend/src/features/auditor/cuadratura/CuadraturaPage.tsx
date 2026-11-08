@@ -309,7 +309,7 @@ export function CuadraturaPage() {
           <button
             type="button"
             onClick={handleExport}
-            className="rounded-md bg-brand px-4 py-2 text-xs font-medium text-background hover:opacity-90 transition-opacity"
+            className="rounded-md bg-primary px-4 py-2 text-xs font-medium text-background hover:opacity-90 transition-opacity"
           >
             Descargar reconciliación firmada
           </button>

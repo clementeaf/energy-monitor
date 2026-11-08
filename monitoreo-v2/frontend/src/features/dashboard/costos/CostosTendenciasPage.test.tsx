@@ -29,6 +29,7 @@ vi.mock('../../../hooks/queries/useInvoicesQuery', () => ({
 }));
 
 vi.mock('../../../hooks/queries/useReadingsQuery', () => ({
+  useMonthToDateEnergyByMeter: () => new Map<string, number>(),
   useLatestReadingsQuery: () => ({
     data: [
       { meter_id: 'm1', meter_name: 'M1', building_id: 'b1', timestamp: '2026-06-24T12:00:00Z', power_kw: '500', energy_kwh_total: '120000', voltage_l1: null, current_l1: null, power_factor: null, frequency_hz: null },

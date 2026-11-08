@@ -95,7 +95,7 @@ export function UserImportDropzone({
           }
         }}
         className={`flex min-h-[10rem] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors ${
-          dragOver ? 'border-brand bg-brand/5' : 'border-border bg-surface/50 hover:border-brand/60'
+          dragOver ? 'border-primary bg-primary/5' : 'border-border bg-surface/50 hover:border-primary/60'
         } ${disabled ? 'pointer-events-none opacity-60' : ''}`}
       >
         <p className="text-sm font-medium text-foreground">Arrastre un archivo CSV o Excel aquí</p>

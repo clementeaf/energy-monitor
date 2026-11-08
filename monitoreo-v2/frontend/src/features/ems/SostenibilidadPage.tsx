@@ -3,6 +3,7 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useToastStore } from '../../store/useToastStore';
 import { formatPeriodo } from './format';
 import { useEmsFleet } from './useEmsFleet';
+import { usePageTitle } from '../../store/usePageTitleStore';
 
 function fmt(n: number, d = 0): string {
   return n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -66,87 +67,86 @@ export function SostenibilidadPage() {
 
   const maxHuella = Math.max(...huellaPorCentro.map((c) => c.huella), 1);
 
+  usePageTitle('Sostenibilidad', 'Add-ons / Sostenibilidad');
+
   return (
-    <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
-      <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
-        <div>
-          <h1 className="text-lg font-bold text-foreground">Sostenibilidad</h1>
-          <p className="text-xs text-muted">Huella de carbono, eficiencia y recomendaciones de ahorro</p>
-        </div>
+    <div className="h-full overflow-y-auto p-4 md:p-6">
+      <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <KpiCard label="Huella del periodo" value={fmt(Math.max(huellaTotal - resumen.co2Reducido, 0), 0)} unit="tCO₂" delta={resumen.aplicadas > 0 ? `↓ −${fmt(resumen.co2Reducido, 1)} t por medidas` : periodo} />
+            <KpiCard label="Factor de emisión" value={fmt(FACTOR_EMISION, 2)} unit="kg/kWh" sub="Matriz SEN 2026" />
+            <KpiCard label="Ahorro potencial" value={`$${fmt(resumen.ahorroPendiente, 1)}M`} sub={`${resumen.pendientes} medidas pendientes`} />
+            <KpiCard label="Ahorro comprometido" value={`$${fmt(resumen.ahorroComprometido, 1)}M`} sub={`${resumen.aplicadas} de ${RECOMENDACIONES.length} aplicadas`} />
+          </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiCard label="Huella del periodo" value={fmt(Math.max(huellaTotal - resumen.co2Reducido, 0), 0)} unit="tCO₂" delta={resumen.aplicadas > 0 ? `↓ −${fmt(resumen.co2Reducido, 1)} t por medidas` : periodo} />
-          <KpiCard label="Factor de emisión" value={fmt(FACTOR_EMISION, 2)} unit="kg/kWh" sub="Matriz SEN 2026" />
-          <KpiCard label="Ahorro potencial" value={`$${fmt(resumen.ahorroPendiente, 1)}M`} sub={`${resumen.pendientes} medidas pendientes`} />
-          <KpiCard label="Ahorro comprometido" value={`$${fmt(resumen.ahorroComprometido, 1)}M`} sub={`${resumen.aplicadas} de ${RECOMENDACIONES.length} aplicadas`} />
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-5">
-          <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold text-card-fg">Huella de CO₂ por centro</h2>
-                <p className="text-xs text-card-muted">Toneladas equivalentes · {periodo}</p>
+          <div className="grid gap-4 lg:grid-cols-5">
+            <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-card-fg">Huella de CO₂ por centro</h2>
+                  <p className="text-xs text-card-muted">Toneladas equivalentes · {periodo}</p>
+                </div>
+                <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-medium text-success">Sostenibilidad</span>
               </div>
-              <span className="rounded-full bg-success-bg px-2.5 py-0.5 text-xs font-medium text-success">Sostenibilidad</span>
-            </div>
-            <div className="mt-4 space-y-3">
-              {huellaPorCentro.map((c) => {
-                const pct = (c.huella / maxHuella) * 100;
-                return (
-                  <div key={c.id} className="flex items-center gap-3">
-                    <span className="w-40 truncate text-xs text-card-fg">{c.name}</span>
-                    <div className="flex-1">
-                      <div className="h-3 rounded-full bg-raised">
-                        <div className="h-3 rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+              <div className="mt-4 space-y-3">
+                {huellaPorCentro.map((c) => {
+                  const pct = (c.huella / maxHuella) * 100;
+                  return (
+                    <div key={c.id} className="flex items-center gap-3">
+                      <span className="w-40 truncate text-xs text-card-fg">{c.name}</span>
+                      <div className="flex-1">
+                        <div className="h-3 rounded-full bg-raised">
+                          <div className="h-3 rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+                        </div>
                       </div>
+                      <span className="w-14 text-right font-mono text-xs text-card-muted tabular-nums">{fmt(c.huella, 1)} t</span>
                     </div>
-                    <span className="w-14 text-right font-mono text-xs text-card-muted tabular-nums">{fmt(c.huella, 1)} t</span>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2 flex flex-col items-center justify-center">
+              <h2 className="self-start text-sm font-semibold text-card-fg">Eficiencia de la cartera</h2>
+              <p className="self-start mb-4 text-xs text-card-muted">Consumo real contra línea base</p>
+              <DonutChart value={resumen.eficiencia} />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-card-border bg-card p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-card-fg">Recomendaciones priorizadas por impacto</h2>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${resumen.pendientes === 0 ? 'bg-success-bg text-success' : 'border border-border text-muted'}`}>
+                {resumen.aplicadas} de {RECOMENDACIONES.length} aplicadas
+              </span>
+            </div>
+            <div className="space-y-3">
+              {RECOMENDACIONES.map((r) => {
+                const yaAplicada = aplicadas.has(r.id);
+                return (
+                  <div key={r.id} className={`flex items-center justify-between rounded-lg border border-l-4 border-card-border px-4 py-3 ${r.stripeClass} ${yaAplicada ? 'opacity-60' : ''}`}>
+                    <div>
+                      <p className={`text-sm font-medium text-foreground ${yaAplicada ? 'line-through' : ''}`}>{r.titulo}</p>
+                      <p className="text-xs text-muted">{r.detalle}</p>
+                    </div>
+                    {yaAplicada ? (
+                      <button type="button" onClick={() => deshacer(r.id)} className="px-2 py-1.5 text-xs font-medium text-muted hover:text-foreground">
+                        Deshacer
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => aplicar(r)} className="rounded-lg border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink hover:opacity-90">
+                        ✓ Aplicar
+                      </button>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-
-          <div className="rounded-xl border border-card-border bg-card p-4 lg:col-span-2 flex flex-col items-center justify-center">
-            <h2 className="self-start text-sm font-semibold text-card-fg">Eficiencia de la cartera</h2>
-            <p className="self-start mb-4 text-xs text-card-muted">Consumo real contra línea base</p>
-            <DonutChart value={resumen.eficiencia} />
-          </div>
         </div>
-
-        <div className="rounded-xl border border-card-border bg-card p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-card-fg">Recomendaciones priorizadas por impacto</h2>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${resumen.pendientes === 0 ? 'bg-success-bg text-success' : 'border border-border text-muted'}`}>
-              {resumen.aplicadas} de {RECOMENDACIONES.length} aplicadas
-            </span>
-          </div>
-          <div className="space-y-3">
-            {RECOMENDACIONES.map((r) => {
-              const yaAplicada = aplicadas.has(r.id);
-              return (
-                <div key={r.id} className={`flex items-center justify-between rounded-lg border border-l-4 border-card-border px-4 py-3 ${r.stripeClass} ${yaAplicada ? 'opacity-60' : ''}`}>
-                  <div>
-                    <p className={`text-sm font-medium text-foreground ${yaAplicada ? 'line-through' : ''}`}>{r.titulo}</p>
-                    <p className="text-xs text-muted">{r.detalle}</p>
-                  </div>
-                  {yaAplicada ? (
-                    <button type="button" onClick={() => deshacer(r.id)} className="px-2 py-1.5 text-xs font-medium text-muted hover:text-foreground">
-                      Deshacer
-                    </button>
-                  ) : (
-                    <button type="button" onClick={() => aplicar(r)} className="rounded-lg border border-accent bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink hover:opacity-90">
-                      ✓ Aplicar
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </QueryStateView>
+      </QueryStateView>
+    </div>
   );
 }
 

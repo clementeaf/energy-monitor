@@ -22,6 +22,15 @@ FROM (VALUES
 ) AS remarcador(id, name)
 ON CONFLICT DO NOTHING;
 
+UPDATE buildings b
+SET external_site_id = v.site, updated_at = NOW()
+FROM (VALUES
+  ('VE-ALTOPENA', 'altopena'),
+  ('VE-QUILICURA', 'quilicura'),
+  ('VE-REN', 'renaissance')
+) AS v(code, site)
+WHERE b.code = v.code AND b.external_site_id IS NULL;
+
 INSERT INTO user_building_access (user_id, building_id)
 SELECT u.id, b.id
 FROM users u CROSS JOIN buildings b

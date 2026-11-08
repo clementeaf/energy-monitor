@@ -21,7 +21,7 @@ const RANGE_PRESETS: { key: RangePreset; label: string; days: number }[] = [
   { key: 'month', label: 'Mes', days: 30 },
 ];
 
-const CHART_COLORS = ['var(--color-brand)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
+const CHART_COLORS = ['var(--color-primary)', '#E84C6F', '#2D9F5D', '#F5A623', '#6366F1', '#8B5CF6'];
 
 /**
  * Formatea rango de fechas para etiquetas de periodo.
@@ -266,7 +266,7 @@ export function CompareDashboardPage(): ReactElement {
                 onClick={() => toggleBuilding(b.id)}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   on
-                    ? 'border-brand bg-brand-muted text-foreground'
+                    ? 'border-primary bg-accent-subtle text-foreground'
                     : 'border-border bg-surface text-muted hover:bg-background'
                 }`}
               >

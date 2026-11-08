@@ -152,7 +152,7 @@ export function RetencionPrivacidadPage() {
               <input className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground" placeholder="Gestión facturación" value={form.finalidad} onChange={(e) => setForm({ ...form, finalidad: e.target.value })} />
             </div>
             <div className="flex gap-2 pt-1">
-              <button type="submit" className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-background hover:bg-brand/90">Guardar política</button>
+              <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-background hover:bg-primary/90">Guardar política</button>
               <button type="button" className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted hover:bg-surface">Cancelar</button>
             </div>
           </form>
@@ -190,7 +190,7 @@ export function RetencionPrivacidadPage() {
           </table>
         </div>
         <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
-          <button type="button" className="rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-background hover:bg-brand/90">Ejecutar borrado</button>
+          <button type="button" className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-background hover:bg-primary/90">Ejecutar borrado</button>
           <button type="button" className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted hover:bg-surface">Enviar a aprobación PASA</button>
         </div>
       </div>

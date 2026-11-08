@@ -3,12 +3,19 @@ import { persist } from 'zustand/middleware';
 import type { RoleSlug } from '../types/auth';
 import type { RemarcadorOverride } from '../features/ems/fleet';
 import { REGLAS_INICIALES, type Regla } from '../features/ems/alerts';
+import type { EstadoDocumento, EventoDocumento, FacturaVinculada, SeguimientoDocumento } from '../features/ems/facturacion';
 
 export interface ReporteGenerado {
   id: string;
   nombre: string;
   formato: string;
   hora: string;
+}
+
+export interface TareaTerreno {
+  asignadaEn: string;
+  isUrgente: boolean;
+  checklist: boolean[];
 }
 
 export interface CentroSimulado {
@@ -27,7 +34,7 @@ export const VIEW_AS_LABELS: Record<string, string> = {
   auditor: 'Auditor',
 };
 
-export type ModuloId = 'consumo' | 'margenes' | 'sostenibilidad' | 'alertas' | 'reportes';
+export type ModuloId = 'consumo' | 'margenes' | 'sostenibilidad' | 'alertas' | 'reportes' | 'facturacion';
 
 const MARGEN_MINIMO_MAX = 60;
 
@@ -41,10 +48,13 @@ interface AppState {
   modulosActivos: Record<ModuloId, boolean>;
   margenMinimo: number;
   alertasResueltas: string[];
+  alertasAsignadas: Record<string, string>;
+  tareasTerreno: Record<string, TareaTerreno>;
   remarcadorOverrides: Record<string, RemarcadorOverride>;
   reglas: Regla[];
   centrosSimulados: CentroSimulado[];
   reportesGenerados: ReporteGenerado[];
+  seguimientoDocumentos: Record<string, SeguimientoDocumento>;
   setSidebarOpen: (open: boolean) => void;
   toggleSidebar: () => void;
   setSelectedBuildingId: (id: string | null) => void;
@@ -56,12 +66,17 @@ interface AppState {
   setMargenMinimo: (percent: number) => void;
   resolverAlertas: (ids: string[]) => void;
   reabrirAlerta: (id: string) => void;
+  asignarAlerta: (id: string, responsable: string) => void;
+  asignarTerreno: (remarcadorIds: string[], isUrgente: boolean) => void;
+  marcarChecklist: (remarcadorId: string, paso: number) => void;
+  cerrarTarea: (remarcadorId: string) => void;
   eliminarRegla: (id: string) => void;
   overrideRemarcadores: (overrides: Record<string, RemarcadorOverride>) => void;
   agregarRegla: (regla: Omit<Regla, 'id'>) => void;
   toggleRegla: (id: string) => void;
   agregarCentro: (centro: Omit<CentroSimulado, 'id'>) => void;
   agregarReporteGenerado: (reporte: Pick<ReporteGenerado, 'nombre' | 'formato'>) => void;
+  registrarEventoDocumento: (id: string, evento: EventoDocumento, cambios: { estado?: EstadoDocumento; factura?: FacturaVinculada }) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -73,13 +88,16 @@ export const useAppStore = create<AppState>()(
       selectedTenantId: null,
       selectedOperator: null,
       workProfile: 'Auditoría',
-      modulosActivos: { consumo: true, margenes: true, sostenibilidad: true, alertas: true, reportes: true },
+      modulosActivos: { consumo: true, margenes: true, sostenibilidad: true, alertas: true, reportes: true, facturacion: true },
       margenMinimo: 10,
       alertasResueltas: [],
+      alertasAsignadas: {},
+      tareasTerreno: {},
       remarcadorOverrides: {},
       reglas: REGLAS_INICIALES,
       centrosSimulados: [],
       reportesGenerados: [],
+      seguimientoDocumentos: {},
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
       setSelectedBuildingId: (selectedBuildingId) => set({ selectedBuildingId, selectedOperator: null }),
@@ -93,8 +111,27 @@ export const useAppStore = create<AppState>()(
       agregarReporteGenerado: (reporte) => set((s) => ({
         reportesGenerados: [{ ...reporte, id: crypto.randomUUID(), hora: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) }, ...s.reportesGenerados],
       })),
+      registrarEventoDocumento: (id, evento, cambios) => set((s) => {
+        const actual = s.seguimientoDocumentos[id] ?? { eventos: [] };
+        return { seguimientoDocumentos: { ...s.seguimientoDocumentos, [id]: { ...actual, ...cambios, eventos: [evento, ...actual.eventos] } } };
+      }),
       agregarCentro: (centro) => set((s) => ({ centrosSimulados: [...s.centrosSimulados, { ...centro, id: `sim-${crypto.randomUUID()}` }] })),
       overrideRemarcadores: (overrides) => set((s) => ({ remarcadorOverrides: { ...s.remarcadorOverrides, ...overrides } })),
+      asignarTerreno: (remarcadorIds, isUrgente) => set((s) => ({
+        tareasTerreno: { ...s.tareasTerreno, ...Object.fromEntries(remarcadorIds.map((id) => [id, s.tareasTerreno[id] ?? { asignadaEn: new Date().toISOString(), isUrgente, checklist: [] }])) },
+      })),
+      marcarChecklist: (remarcadorId, paso) => set((s) => {
+        const tarea = s.tareasTerreno[remarcadorId];
+        if (!tarea) return {};
+        const checklist = [...tarea.checklist];
+        checklist[paso] = !checklist[paso];
+        return { tareasTerreno: { ...s.tareasTerreno, [remarcadorId]: { ...tarea, checklist } } };
+      }),
+      cerrarTarea: (remarcadorId) => set((s) => {
+        const { [remarcadorId]: _cerrada, ...resto } = s.tareasTerreno;
+        return { tareasTerreno: resto };
+      }),
+      asignarAlerta: (id, responsable) => set((s) => ({ alertasAsignadas: { ...s.alertasAsignadas, [id]: responsable } })),
       reabrirAlerta: (id) => set((s) => ({ alertasResueltas: s.alertasResueltas.filter((resuelta) => resuelta !== id) })),
       eliminarRegla: (id) => set((s) => ({ reglas: s.reglas.filter((r) => r.id !== id) })),
       resolverAlertas: (ids) => set((s) => ({ alertasResueltas: [...new Set([...s.alertasResueltas, ...ids])] })),
@@ -119,6 +156,9 @@ export const useAppStore = create<AppState>()(
         modulosActivos: state.modulosActivos,
         margenMinimo: state.margenMinimo,
         alertasResueltas: state.alertasResueltas,
+        alertasAsignadas: state.alertasAsignadas,
+        tareasTerreno: state.tareasTerreno,
+        seguimientoDocumentos: state.seguimientoDocumentos,
       }) as unknown as AppState,
     },
   ),

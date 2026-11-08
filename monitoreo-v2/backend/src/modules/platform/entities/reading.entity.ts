@@ -11,7 +11,7 @@ import { Meter } from './meter.entity';
 import type { ReadingQuality, ReadingSource } from '../../../common/constants/reading-quality';
 
 @Entity('readings')
-@Index('idx_readings_meter_ts', ['meterId', 'timestamp'])
+@Index('idx_readings_meter_ts_covering', ['meterId', 'timestamp'])
 @Index('idx_readings_tenant_ts', ['tenantId', 'timestamp'])
 export class Reading {
   @PrimaryGeneratedColumn('uuid')

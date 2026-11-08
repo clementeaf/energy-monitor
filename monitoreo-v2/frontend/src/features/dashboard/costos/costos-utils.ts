@@ -70,6 +70,7 @@ export function buildCostRows(
   invoices: Invoice[],
   readings: LatestReading[],
   currencyRate: number,
+  energyByMeter: Map<string, number>,
 ): CostRow[] {
   const invoicesByBuilding = new Map<string, Invoice[]>();
   invoices
@@ -92,7 +93,7 @@ export function buildCostRows(
     const bReadings = readingsByBuilding.get(building.id) ?? [];
     const totalCostClp = bInvoices.reduce((sum, inv) => sum + (parseFloat(inv.total) || 0), 0);
     const totalCost = totalCostClp * currencyRate;
-    const consumptionMwh = bReadings.reduce((sum, r) => sum + Number(r.energy_kwh_total || 0), 0) / 1000;
+    const consumptionMwh = bReadings.reduce((sum, r) => sum + (energyByMeter.get(r.meter_id) ?? 0), 0) / 1000;
     const avgPricePerMwh = consumptionMwh > 0 ? totalCost / consumptionMwh : 0;
     return { buildingId: building.id, buildingName: building.name, countryCode: building.countryCode ?? 'CL', consumptionMwh, totalCost, invoiceCount: bInvoices.length, avgPricePerMwh, variationPct: null };
   });

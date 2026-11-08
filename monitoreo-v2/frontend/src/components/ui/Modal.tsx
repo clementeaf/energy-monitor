@@ -24,11 +24,11 @@ export function Modal({ open, onClose, title, children, dialogClassName }: Reado
       onClose={onClose}
       className={
         dialogClassName ??
-        'm-auto w-[calc(100%-2rem)] max-w-lg panel p-0 backdrop:bg-foreground/50 backdrop:backdrop-blur-sm'
+        'm-auto w-[calc(100%-2rem)] max-w-lg panel p-0 backdrop:bg-black/50 backdrop:backdrop-blur-sm'
       }
     >
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         <button
           type="button"
           onClick={onClose}

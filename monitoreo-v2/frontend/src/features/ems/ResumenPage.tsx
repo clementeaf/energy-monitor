@@ -207,7 +207,7 @@ function IncidenciasTable({ remarcadores }: Readonly<{ remarcadores: Remarcador[
         <p className="px-5 pb-8 pt-4 text-center text-sm text-muted">{remarcadores.length === 0 ? 'Toda la flota está conectada.' : 'Sin remarcadores con esa búsqueda.'}</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="min-w-full whitespace-nowrap">
             <thead>
               <tr className="bg-raised">
                 {['Remarcador', 'Centro', 'Señal', 'Última lectura', 'Estado'].map((label) => (

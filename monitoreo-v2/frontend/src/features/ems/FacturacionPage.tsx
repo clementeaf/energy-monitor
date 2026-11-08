@@ -6,12 +6,12 @@ import { useToastStore } from '../../store/useToastStore';
 import { AnularModal, CargarFacturaModal } from './DocumentoModals';
 import { ACCIONES_POR_ESTADO, detalleCsv, ESTADO_DOCUMENTO, imprimirNota, listarDocumentos, type DocumentoListado, type EstadoDocumento, type NotaCobro, type OrigenDocumento, type TipoDocumento } from './facturacion';
 import { descargarArchivo } from './exportar';
-import { formatNumber } from './format';
+import { formatFecha, formatNumber } from './format';
 import { KpiTile } from './KpiTile';
 import { PageAction } from './PageAction';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
-import { BulkBar, EmptyFilterState, onRowKeyDown, RowMenu, SearchInput, SelectAllCheckbox, useSelection } from './table';
+import { BulkBar, EmptyFilterState, onRowKeyDown, RowMenu, SearchInput, SelectAllCheckbox, TablePager, useSelection } from './table';
 import { useDocumentoActions, useNotasCobro } from './useFacturacion';
 import { useEmsRole } from './useEmsRole';
 
@@ -26,6 +26,7 @@ const ORIGEN_CLS: Record<OrigenDocumento, string> = {
 };
 const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-xs text-foreground focus:border-accent focus:outline-none';
 const POR_COBRAR: EstadoDocumento[] = ['emitida', 'enviada', 'vencida'];
+const POR_PAGINA = 8;
 
 export function EstadoDocumentoBadge({ estado }: Readonly<{ estado: EstadoDocumento }>) {
   const badge = ESTADO_DOCUMENTO[estado];
@@ -58,10 +59,12 @@ export function FacturacionPage() {
   const [estado, setEstado] = useState<'' | EstadoDocumento>('');
   const [isCargando, setIsCargando] = useState(false);
   const [porAnular, setPorAnular] = useState<NotaCobro | null>(null);
+  const [pagina, setPagina] = useState(0);
   const selection = useSelection();
 
   const documentos = useMemo(() => listarDocumentos(notas), [notas]);
-  const visibles = filtrarDocumentos(documentos, { vista, busqueda, centroId, estado });
+  const filtrados = filtrarDocumentos(documentos, { vista, busqueda, centroId, estado });
+  const visibles = filtrados.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA);
   const vigentes = notas.filter((nota) => nota.estado !== 'anulada');
   const vencidas = notas.filter((nota) => nota.estado === 'vencida');
   const facturas = documentos.filter((doc) => doc.tipo === 'factura').length;
@@ -71,7 +74,8 @@ export function FacturacionPage() {
 
   usePageTitle('Facturación', 'Facturación / Documentos', canEdit ? <PageAction label="Cargar factura" onClick={() => setIsCargando(true)} /> : undefined);
 
-  const resetFiltros = () => { setVista('todos'); setBusqueda(''); setCentroId(''); setEstado(''); };
+  const filtrar = (cambio: () => void) => { cambio(); setPagina(0); };
+  const resetFiltros = () => filtrar(() => { setVista('todos'); setBusqueda(''); setCentroId(''); setEstado(''); });
   const descargarSeleccion = () => {
     const seleccionadas = [...new Set(documentos.filter((doc) => selection.selected.has(doc.id)).map((doc) => doc.nota))];
     descargarArchivo(`documentos-${seleccionadas.length}.csv`, detalleCsv(seleccionadas), 'text/csv;charset=utf-8');
@@ -86,43 +90,40 @@ export function FacturacionPage() {
           <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiTile variant="inverse" label="Facturado" value={`$${formatNumber(sum(vigentes))}`} sub="IVA incluido · notas vigentes" />
             <KpiTile label="Por cobrar" value={`$${formatNumber(sum(vigentes.filter((nota) => POR_COBRAR.includes(nota.estado))))}`} sub="Emitidas, enviadas y vencidas" />
-            <KpiTile label="Vencido" value={`$${formatNumber(sum(vencidas))}`} sub={`${vencidas.length} documento${vencidas.length === 1 ? '' : 's'} · ver`} tone={vencidas.length > 0 ? 'negative' : 'neutral'} onClick={() => { setEstado('vencida'); setVista('todos'); }} />
+            <KpiTile label="Vencido" value={`$${formatNumber(sum(vencidas))}`} sub={`${vencidas.length} documento${vencidas.length === 1 ? '' : 's'} · ver`} tone={vencidas.length > 0 ? 'negative' : 'neutral'} onClick={() => filtrar(() => { setEstado('vencida'); setVista('todos'); })} />
             <KpiTile label="Documentos" value={String(documentos.length)} sub={`${notas.length} notas · ${facturas} facturas`} />
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <div className={SEGMENT_TRACK_CLASS} role="tablist" aria-label="Tipo de documento">
-              {(Object.keys(VISTAS) as VistaTipo[]).map((key) => (
-                <button key={key} type="button" role="tab" aria-selected={vista === key} onClick={() => setVista(key)} className={segmentClass(vista === key)}>{VISTAS[key]}</button>
-              ))}
-            </div>
-            <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar folio, centro o cliente" />
-            <select value={centroId} onChange={(event) => setCentroId(event.target.value)} aria-label="Centro" className={FIELD_CLASS}>
-              <option value="">Todos los centros</option>
-              {centros.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-            </select>
-            <select value={estado} onChange={(event) => setEstado(event.target.value as '' | EstadoDocumento)} aria-label="Estado" className={FIELD_CLASS}>
-              <option value="">Todos los estados</option>
-              {(Object.keys(ESTADO_DOCUMENTO) as EstadoDocumento[]).map((key) => <option key={key} value={key}>{ESTADO_DOCUMENTO[key].label}</option>)}
-            </select>
-          </div>
-
-          <BulkBar count={selection.selected.size} noun="documento" onClear={selection.clear}>
-            <button type="button" onClick={descargarSeleccion} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-fg hover:bg-primary-hover">Descargar (Excel)</button>
-          </BulkBar>
-
-          <div className="min-h-0 flex-1 rounded-xl bg-card">
-            <header className="px-5 py-4">
-              <h2 className="text-sm font-semibold text-card-fg first-letter:uppercase">Documentos de {periodo}</h2>
-              <p className="text-xs text-card-muted">{documentos.length} documentos · {notas.length} notas de cobro · {facturas} facturas</p>
+          <section className="min-h-0 flex-1 rounded-xl bg-card">
+            <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
+              <div>
+                <h2 className="text-base font-semibold text-card-fg first-letter:uppercase">Documentos de {periodo}</h2>
+                <p className="text-xs text-card-muted">{documentos.length} documentos · {notas.length} notas de cobro · {facturas} facturas</p>
+              </div>
+              <div className={SEGMENT_TRACK_CLASS} role="tablist" aria-label="Tipo de documento">
+                {(Object.keys(VISTAS) as VistaTipo[]).map((key) => (
+                  <button key={key} type="button" role="tab" aria-selected={vista === key} onClick={() => filtrar(() => setVista(key))} className={segmentClass(vista === key)}>{VISTAS[key]}</button>
+                ))}
+              </div>
             </header>
+            <div className="flex flex-wrap items-center gap-2 px-5 py-4">
+              <SearchInput value={busqueda} onChange={(value) => filtrar(() => setBusqueda(value))} placeholder="Buscar folio, centro o cliente" />
+              <select value={centroId} onChange={(event) => filtrar(() => setCentroId(event.target.value))} aria-label="Centro" className={FIELD_CLASS}>
+                <option value="">Todos los centros</option>
+                {centros.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              </select>
+              <select value={estado} onChange={(event) => filtrar(() => setEstado(event.target.value as '' | EstadoDocumento))} aria-label="Estado" className={FIELD_CLASS}>
+                <option value="">Todos los estados</option>
+                {(Object.keys(ESTADO_DOCUMENTO) as EstadoDocumento[]).map((key) => <option key={key} value={key}>{ESTADO_DOCUMENTO[key].label}</option>)}
+              </select>
+            </div>
             {notas.length === 0 ? (
               <p className="px-6 py-12 text-center text-sm text-muted">Sin documentos: ningún centro tiene tarifa de venta configurada para este período.</p>
-            ) : visibles.length === 0 ? (
+            ) : filtrados.length === 0 ? (
               <EmptyFilterState title="Sin documentos con estos filtros" text="Prueba con otro estado, centro o tipo." onReset={resetFiltros} />
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full">
+                <table className="min-w-full whitespace-nowrap">
                   <thead>
                     <tr className="border-b border-card-border bg-raised">
                       <th className="w-10 px-4 py-2.5"><SelectAllCheckbox selectedCount={selection.selected.size} totalCount={visibles.length} onToggle={() => selection.toggleAll(visibles.map((doc) => doc.id))} /></th>
@@ -152,7 +153,7 @@ export function FacturacionPage() {
                           <td className={`px-4 py-3 text-right font-mono text-sm tabular-nums text-foreground ${isAnulado ? 'line-through' : ''}`}>${formatNumber(doc.total)}</td>
                           <td className="px-4 py-3"><EstadoDocumentoBadge estado={doc.estado} /></td>
                           <td className="px-4 py-3"><OrigenTag origen={doc.origen} /></td>
-                          <td className="px-4 py-3 font-mono text-xs tabular-nums text-muted">{doc.nota.vencimiento}</td>
+                          <td className="whitespace-nowrap px-4 py-3 text-xs tabular-nums text-muted">{formatFecha(doc.nota.vencimiento)}</td>
                           <td className="px-4 py-3">
                             <RowMenu label={`Más opciones de ${doc.folio}`} items={[
                               { label: 'Abrir', onSelect: abrir },
@@ -169,9 +170,10 @@ export function FacturacionPage() {
                 </table>
               </div>
             )}
-            {visibles.length > 0 && <footer className="px-5 py-3 text-xs text-muted">Mostrando {visibles.length} de {documentos.length}</footer>}
-          </div>
+            {filtrados.length > 0 && <TablePager pagina={pagina} porPagina={POR_PAGINA} total={filtrados.length} onChange={setPagina} />}
+          </section>
         </div>
+        <BulkBar count={selection.selected.size} noun="documento" onClear={selection.clear} actions={[{ label: 'Descargar (Excel)', onSelect: descargarSeleccion }]} />
         <CargarFacturaModal open={isCargando} notas={notas} notaInicial={null} onClose={() => setIsCargando(false)}
           onVincular={(nota, factura) => { vincularFactura(nota, factura); setIsCargando(false); showToast(`Factura ${factura.folio} vinculada a ${nota.folio}`); }} />
         <AnularModal nota={porAnular} onClose={() => setPorAnular(null)}

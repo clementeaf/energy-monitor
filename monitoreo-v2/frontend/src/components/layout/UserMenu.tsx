@@ -82,7 +82,7 @@ export function UserMenu({ variant }: Readonly<{ variant: keyof typeof MENU_PLAC
       {isOpen && (
         <div ref={menuRef} className={`absolute z-50 rounded-lg border border-border bg-surface py-1 shadow-float ${MENU_PLACEMENT[variant]}`}>
           <button type="button" onClick={() => goTo('/profile')} className={MENU_ITEM_CLASS}>Perfil</button>
-          <button type="button" onClick={() => goTo('/admin/settings')} className={MENU_ITEM_CLASS}>Configuracion</button>
+          <button type="button" onClick={() => goTo('/admin/settings')} className={MENU_ITEM_CLASS}>Configuración</button>
           {isSuperAdmin && (
             <>
               <div className="my-1 border-t border-border" />

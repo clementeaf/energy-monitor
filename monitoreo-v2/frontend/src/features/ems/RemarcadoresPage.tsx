@@ -13,7 +13,7 @@ import { PageAction } from './PageAction';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { StatusBadge } from './StatusBadge';
-import { BulkBar, EmptyFilterState, onRowKeyDown, RowMenu, SearchInput, SelectAllCheckbox, SortableTh, sortRows, useSelection, useSort } from './table';
+import { BulkBar, EmptyFilterState, onRowKeyDown, RowMenu, SearchInput, SelectAllCheckbox, SortableTh, sortRows, TablePager, useSelection, useSort } from './table';
 import { useEmsFleet } from './useEmsFleet';
 import { useEmsRole } from './useEmsRole';
 import { useRemarcadorActions } from './useRemarcadorActions';
@@ -34,7 +34,6 @@ const SORT_GETTERS: Record<SortKey, (remarcador: Remarcador) => string | number>
 };
 const POR_PAGINA = 25;
 const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-xs text-foreground focus:border-accent focus:outline-none';
-const SECONDARY_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised';
 
 export function RemarcadoresPage() {
   const navigate = useNavigate();
@@ -114,26 +113,28 @@ export function RemarcadoresPage() {
               </select>
             )}
             {estado && <button type="button" onClick={() => filtrarEstado(null)} className="rounded-full bg-surface px-2.5 py-1 text-xs text-foreground">Estado: <StatusBadge estado={estado} /> ✕</button>}
-            <div className="ml-auto"><SearchInput value={busqueda} onChange={(value) => { setBusqueda(value); setPagina(0); }} placeholder="Buscar remarcador" /></div>
           </div>
 
           {canEdit && (
-            <BulkBar count={selection.selected.size} noun="equipo" onClear={selection.clear}>
-              <button type="button" onClick={() => enLote(actions.forzarLectura)} className={SECONDARY_BUTTON}>↻ Forzar lectura</button>
-              <button type="button" onClick={() => enLote(aTerreno)} className={SECONDARY_BUTTON}>Asignar a terreno</button>
-            </BulkBar>
+            <BulkBar count={selection.selected.size} noun="equipo" onClear={selection.clear} actions={[
+              { label: '↻ Forzar lectura', onSelect: () => enLote(actions.forzarLectura) },
+              { label: 'Asignar a terreno', onSelect: () => enLote(aTerreno) },
+            ]} />
           )}
 
           <section className="rounded-xl bg-card">
-            <header className="px-5 py-4">
-              <h2 className="text-sm font-semibold text-card-fg">Flota de remarcadores</h2>
-              <p className="text-xs text-card-muted">{filtrados.length} equipos · ordenados por severidad</p>
+            <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              <div>
+                <h2 className="text-sm font-semibold text-card-fg">Flota de remarcadores</h2>
+                <p className="text-xs text-card-muted">{filtrados.length} equipos · ordenados por severidad</p>
+              </div>
+              <SearchInput value={busqueda} onChange={(value) => { setBusqueda(value); setPagina(0); }} placeholder="Buscar remarcador" />
             </header>
             {filtrados.length === 0 ? (
               <EmptyFilterState title="Sin equipos que coincidan" text="Ajusta la búsqueda o la vista para volver a ver la flota." onReset={quitarFiltros} />
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full">
+                <table className="min-w-full whitespace-nowrap">
                   <thead>
                     <tr className="bg-raised">
                       <th className="w-10 px-4 py-2.5">{canEdit && <SelectAllCheckbox selectedCount={visibles.filter((r) => selection.selected.has(r.id)).length} totalCount={visibles.length} onToggle={() => selection.toggleAll(visibles.map((r) => r.id))} />}</th>
@@ -175,13 +176,7 @@ export function RemarcadoresPage() {
                 </table>
               </div>
             )}
-            <footer className="flex items-center justify-between px-5 py-3 text-xs text-muted">
-              <span>Mostrando {visibles.length} de {filtrados.length}</span>
-              <div className="flex gap-2">
-                <button type="button" disabled={pagina === 0} onClick={() => setPagina((p) => p - 1)} className="rounded-lg border border-border bg-surface px-3 py-1.5 font-medium text-foreground disabled:opacity-40">Anterior</button>
-                <button type="button" disabled={(pagina + 1) * POR_PAGINA >= filtrados.length} onClick={() => setPagina((p) => p + 1)} className="rounded-lg border border-border bg-surface px-3 py-1.5 font-medium text-foreground disabled:opacity-40">Siguiente</button>
-              </div>
-            </footer>
+            <TablePager pagina={pagina} porPagina={POR_PAGINA} total={filtrados.length} onChange={setPagina} />
           </section>
         </div>
         <Modal open={isAlta} onClose={() => setIsAlta(false)} title="Alta de remarcador">

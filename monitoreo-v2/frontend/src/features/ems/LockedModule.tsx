@@ -3,13 +3,13 @@ import type { ModuloId } from '../../store/useAppStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { useToastStore } from '../../store/useToastStore';
 import { ADDON_MODULES } from './modules';
-import { EMS_SECTION_PATHS } from './roles';
+import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { useEmsRole } from './useEmsRole';
 
 export function LockedModule({ moduloId }: Readonly<{ moduloId: ModuloId }>) {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.showToast);
-  const isAdmin = useEmsRole() === 'admin';
+  const isAdmin = canEditSection(useEmsRole(), 'configuracion');
   const modulo = ADDON_MODULES[moduloId];
   usePageTitle(modulo.addon, `Add-ons / ${modulo.addon}`);
 

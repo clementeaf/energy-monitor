@@ -118,7 +118,7 @@ function CentroCard({ centro, pctEnLinea, onOpen }: Readonly<{ centro: Centro; p
     { label: 'Remarcadores', value: String(centro.remarcadores), unit: '' },
   ];
   return (
-    <button type="button" onClick={onOpen} className="flex flex-col gap-3 rounded-xl bg-card p-4 text-left transition-shadow hover:shadow-float">
+    <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-3 rounded-xl bg-card p-4 text-left transition-shadow hover:shadow-float">
       <header className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-raised text-foreground"><NavModuleIcon name="building" className="h-4 w-4" /></span>
         <div className="min-w-0 flex-1">
@@ -129,8 +129,8 @@ function CentroCard({ centro, pctEnLinea, onOpen }: Readonly<{ centro: Centro; p
       </header>
       <div className="grid grid-cols-3 gap-2">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-lg bg-raised px-2.5 py-2">
-            <p className="text-[10px] text-muted">{stat.label}</p>
+          <div key={stat.label} className="min-w-0 rounded-lg bg-raised px-2.5 py-2">
+            <p className="truncate text-[10px] text-muted">{stat.label}</p>
             <p className="font-mono text-sm font-semibold text-foreground">{stat.value}<span className="ml-0.5 text-[10px] font-normal text-muted">{stat.unit}</span></p>
           </div>
         ))}

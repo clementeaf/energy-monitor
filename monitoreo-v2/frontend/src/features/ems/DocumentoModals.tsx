@@ -86,19 +86,6 @@ export function CargarFacturaModal({ open, notas, notaInicial, onClose, onVincul
     <Modal open={open} onClose={cerrar} title="Cargar factura">
       <form onSubmit={(event) => { event.preventDefault(); vincular(); }} className="flex flex-col gap-4">
         <p className="text-sm text-muted">Sube el PDF y el XML emitidos en el SII y elige la nota de cobro a la que corresponde.</p>
-        <label className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed border-border-strong px-4 py-6 text-center hover:border-accent-strong"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => { event.preventDefault(); void recibirArchivos(event.dataTransfer.files); }}>
-          <span className="text-sm font-medium text-foreground">Arrastra los archivos o haz clic para buscar</span>
-          <span className="text-xs text-muted">PDF y XML del documento tributario · máx. 10 MB</span>
-          <input type="file" accept=".pdf,.xml" multiple className="sr-only" onChange={(event) => void recibirArchivos(event.target.files)} />
-        </label>
-        {(pdf || xml) && (
-          <ul className="flex flex-col gap-1 text-xs">
-            {pdf && <li className="flex justify-between rounded-lg bg-raised px-3 py-2 text-foreground"><span>{pdf.name}</span><span className="text-muted">{formatNumber(pdf.size / 1024)} KB</span></li>}
-            {xml && <li className="flex justify-between rounded-lg bg-raised px-3 py-2 text-foreground"><span>{xml.name}</span><span className={dte ? 'text-muted' : 'text-danger'}>{dte ? `${dte.folio} · $ ${formatNumber(dte.monto)}` : 'XML no válido'}</span></li>}
-          </ul>
-        )}
         <label className="flex flex-col gap-1 text-xs text-muted">
           Nota de cobro
           <select value={nota?.id ?? ''} onChange={(event) => setNotaId(event.target.value)} className={FIELD_CLASS}>
@@ -108,6 +95,32 @@ export function CargarFacturaModal({ open, notas, notaInicial, onClose, onVincul
             ))}
           </select>
         </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1 text-xs text-muted">
+            Folio de la factura
+            <input type="text" readOnly value={dte?.folio ?? ''} placeholder="Se lee del XML" className={FIELD_CLASS} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-muted">
+            Monto en el XML
+            <input type="text" readOnly value={dte ? `$ ${formatNumber(dte.monto)}` : ''} placeholder="Se lee del XML" className={FIELD_CLASS} />
+          </label>
+        </div>
+        <label className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed border-border-strong px-4 py-6 text-center hover:border-accent-strong"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => { event.preventDefault(); void recibirArchivos(event.dataTransfer.files); }}>
+          <span className="text-sm font-medium text-foreground">Arrastra los archivos o haz clic para buscar</span>
+          <span className="text-xs text-muted">PDF y XML del documento tributario · máx. 10 MB</span>
+          <input type="file" accept=".pdf,.xml" multiple className="sr-only" onChange={(event) => void recibirArchivos(event.target.files)} />
+        </label>
+        {(pdf || xml) && (
+          <ul className="flex flex-col gap-2 text-xs">
+            {pdf && <ArchivoCargado nombre={pdf.name} detalle={`${formatNumber(pdf.size / 1024)} KB`} isValido />}
+            {xml && <ArchivoCargado nombre={xml.name} detalle={dte ? `${dte.folio} · $ ${formatNumber(dte.monto)}` : 'XML no válido'} isValido={dte !== null} />}
+          </ul>
+        )}
+        {dte && nota && !hayDiferencia && (
+          <div role="status" className="rounded-lg bg-success-bg px-3 py-2 text-xs text-success-ink">✓ Los montos coinciden: la factura y la nota suman $ {formatNumber(nota.total)}.</div>
+        )}
         {hayDiferencia && nota && dte && (
           <div className="rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning-ink">
             ⚠ Diferencia de montos: la factura suma $ {formatNumber(dte.monto)} y la nota $ {formatNumber(nota.total)} ({dte.monto > nota.total ? '+' : ''}{formatNumber(dte.monto - nota.total)}).
@@ -118,6 +131,17 @@ export function CargarFacturaModal({ open, notas, notaInicial, onClose, onVincul
         <Actions onClose={cerrar} submitLabel="Vincular factura" isDisabled={error !== null} />
       </form>
     </Modal>
+  );
+}
+
+function ArchivoCargado({ nombre, detalle, isValido }: Readonly<{ nombre: string; detalle: string; isValido: boolean }>) {
+  return (
+    <li className="flex items-center gap-3 rounded-lg bg-raised px-3 py-2.5 text-foreground">
+      <span aria-hidden className="text-muted">▤</span>
+      <span className="flex-1 truncate">{nombre}</span>
+      <span className={isValido ? 'text-muted' : 'text-danger'}>{detalle}</span>
+      <span aria-label={isValido ? 'Válido' : 'No válido'} className={isValido ? 'text-success' : 'text-danger'}>{isValido ? '✓' : '✕'}</span>
+    </li>
   );
 }
 

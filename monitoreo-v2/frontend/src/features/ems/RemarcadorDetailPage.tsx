@@ -141,7 +141,7 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
             <h2 className="px-5 py-4 text-sm font-semibold text-card-fg">Últimas lecturas</h2>
             <QueryStateView phase={ultimasQuery.isError ? 'error' : ultimasQuery.isPending ? 'loading' : 'ready'} error={ultimasQuery.error} refetch={() => void ultimasQuery.refetch()} variant="widget">
               <div className="overflow-x-auto">
-                <table className="min-w-full">
+                <table className="min-w-full whitespace-nowrap">
                   <thead>
                     <tr className="bg-raised">
                       {['Fecha y hora', 'Energía (kWh)', 'Potencia (kW)', 'Tensión (V)', 'Calidad'].map((label) => (

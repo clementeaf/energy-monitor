@@ -27,14 +27,14 @@ export function KpiTile({ label, value, unit, sub, variant = 'surface', tone = '
   const content = (
     <>
       <p className={`text-xs ${cls.label}`}>{label}</p>
-      <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${TONE_CLS[tone]}`}>
+      <p className={`mt-1 break-words font-mono text-xl font-semibold tabular-nums sm:text-2xl ${TONE_CLS[tone]}`}>
         {value}
         {unit && <span className={`ml-1 text-sm font-normal ${cls.label}`}>{unit}</span>}
       </p>
       {sub && <p className={`mt-1 text-[11px] ${cls.sub}`}>{sub}</p>}
     </>
   );
-  const box = `rounded-xl px-4 py-3 text-left ${cls.box}`;
+  const box = `min-w-0 rounded-xl px-4 py-3 text-left ${cls.box}`;
   return onClick
     ? <button type="button" onClick={onClick} className={`${box} transition-opacity hover:opacity-90`}>{content}</button>
     : <div className={box}>{content}</div>;

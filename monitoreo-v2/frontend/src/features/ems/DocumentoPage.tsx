@@ -7,7 +7,7 @@ import { AnularModal, CargarFacturaModal, DiferenciaMontosAlert, ReenviarModal }
 import { ACCIONES, ACCIONES_POR_ESTADO, detalleCsv, imprimirNota, type AccionDocumento, type NotaCobro } from './facturacion';
 import { EstadoDocumentoBadge, OrigenTag } from './FacturacionPage';
 import { descargarArchivo } from './exportar';
-import { formatDateTime, formatNumber } from './format';
+import { formatFecha, formatFechaHora, formatNumber } from './format';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { RowMenu } from './table';
 import { useDocumentoActions, useNotasCobro } from './useFacturacion';
@@ -60,7 +60,7 @@ function DocumentoDetalle({ nota, notas }: Readonly<{ nota: NotaCobro; notas: No
       <div className="flex flex-wrap items-center gap-2">
         <EstadoDocumentoBadge estado={nota.estado} />
         <OrigenTag origen="EMS" />
-        {ultimoEnvio && <span className="text-xs text-muted">{ultimoEnvio.titulo} · {formatDateTime(ultimoEnvio.fecha)}</span>}
+        {ultimoEnvio && <span className="text-xs text-muted">{ultimoEnvio.titulo} · {formatFechaHora(ultimoEnvio.fecha)}</span>}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {ACCIONES_DIRECTAS.filter((accion) => disponibles.includes(accion)).map((accion) => (
             <button key={accion} type="button" onClick={() => accionar(accion)} className="rounded-lg bg-accent px-3 py-2 text-xs font-medium text-accent-ink hover:bg-accent-hover">{ACCIONES[accion].label}</button>
@@ -79,17 +79,21 @@ function DocumentoDetalle({ nota, notas }: Readonly<{ nota: NotaCobro; notas: No
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-4 xl:col-span-2">
-          <section className="grid gap-4 rounded-xl bg-card p-5 md:grid-cols-3">
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:col-span-2">
+          <section className="grid gap-4 rounded-xl bg-card p-5 md:grid-cols-[1fr_1fr_1fr_15rem]">
+            <dl className="flex flex-col gap-3 text-sm">
               <Campo label="Cliente" value={nota.cliente} />
+            </dl>
+            <dl className="flex flex-col gap-3 text-sm">
               <Campo label="Centro" value={<Link to={`${EMS_SECTION_PATHS.centros}/${nota.centroId}`} className="underline decoration-border-strong hover:decoration-foreground">{nota.centroName}</Link>} />
               <Campo label="Tarifa de venta" value={`${clp(nota.lineas[0]?.precioUnitario ?? 0)} / kWh`} />
+            </dl>
+            <dl className="flex flex-col gap-3 text-sm">
               <Campo label="Período" value={<span className="inline-block first-letter:uppercase">{nota.periodo}</span>} />
-              <Campo label="Emisión · vencimiento" value={`${nota.emision} · ${nota.vencimiento}`} />
+              <Campo label="Emisión · vencimiento" value={`${formatFecha(nota.emision)} · ${formatFecha(nota.vencimiento)}`} />
             </dl>
             <div className="flex flex-col justify-center rounded-xl bg-primary px-5 py-4 text-primary-fg">
               <p className="text-xs opacity-70">Total a pagar</p>
-              <p className={`mt-1 font-mono text-3xl font-semibold tabular-nums ${isAnulada ? 'line-through' : ''}`}>{clp(nota.total)}</p>
+              <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${isAnulada ? 'line-through' : ''}`}>{clp(nota.total)}</p>
               <p className="mt-1 text-xs opacity-70">IVA incluido · CLP</p>
             </div>
           </section>
@@ -100,7 +104,7 @@ function DocumentoDetalle({ nota, notas }: Readonly<{ nota: NotaCobro; notas: No
               <span className="text-xs text-muted">Calculado con las lecturas del período</span>
             </header>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full whitespace-nowrap text-sm">
                 <thead>
                   <tr className="bg-raised text-[11px] text-muted">
                     <th className="px-5 py-2 text-left font-medium">Concepto</th>
@@ -129,33 +133,19 @@ function DocumentoDetalle({ nota, notas }: Readonly<{ nota: NotaCobro; notas: No
               </table>
             </div>
           </section>
-
-          <section className="rounded-xl bg-card p-5">
-            <h2 className="mb-3 text-sm font-semibold text-card-fg">Remarcadores incluidos</h2>
-            <ul className="divide-y divide-card-border">
-              {nota.remarcadores.map((remarcador) => (
-                <li key={remarcador.id}>
-                  <button type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.remarcadores}/${remarcador.id}`)} className="flex w-full items-center gap-3 py-2 text-left text-sm hover:bg-raised">
-                    <span className="font-mono text-foreground">{remarcador.code}</span>
-                    <span className="flex-1 truncate text-xs text-muted">{remarcador.name}</span>
-                    <span className="font-mono tabular-nums text-foreground">{formatNumber(remarcador.kwh)} kWh</span>
-                    <span className="w-12 text-right font-mono text-xs tabular-nums text-muted">{totalKwh > 0 ? `${formatNumber((remarcador.kwh / totalKwh) * 100)} %` : '—'}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 flex justify-between border-t border-card-border pt-3 text-sm"><span className="text-muted">Total del período</span><span className="font-mono font-semibold tabular-nums">{formatNumber(totalKwh)} kWh</span></p>
-          </section>
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
           <section className="rounded-xl bg-card p-5">
-            <h2 className="mb-3 text-sm font-semibold text-card-fg">Factura vinculada</h2>
+            <header className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-card-fg">Factura vinculada</h2>
+              {nota.factura && <OrigenTag origen={nota.factura.origen} />}
+            </header>
             {nota.factura ? (
               <div className="flex items-center gap-3 rounded-lg bg-raised px-3 py-3">
                 <div className="flex-1">
-                  <p className="text-xs text-muted">Factura electrónica · DTE 33 <OrigenTag origen={nota.factura.origen} /></p>
-                  <p className="mt-1 font-mono text-sm text-foreground">{nota.factura.folio} · {nota.factura.fecha} · {clp(nota.factura.monto)}</p>
+                  <p className="text-sm text-foreground">Factura electrónica · DTE 33</p>
+                  <p className="mt-1 font-mono text-xs text-muted">{nota.factura.folio} · {formatFecha(nota.factura.fecha)} · {clp(nota.factura.monto)}</p>
                 </div>
               </div>
             ) : canEdit && !isAnulada ? (
@@ -172,10 +162,27 @@ function DocumentoDetalle({ nota, notas }: Readonly<{ nota: NotaCobro; notas: No
                 <li key={`${evento.fecha}-${evento.titulo}`} className="relative">
                   <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-accent-strong" />
                   <p className="text-sm text-foreground">{evento.titulo}</p>
-                  <p className="text-xs text-muted">{formatDateTime(evento.fecha)} · {evento.autor}</p>
+                  <p className="text-xs text-muted">{formatFechaHora(evento.fecha)} · {evento.autor}</p>
                 </li>
               ))}
             </ol>
+          </section>
+
+          <section className="rounded-xl bg-card p-5">
+            <h2 className="mb-3 text-sm font-semibold text-card-fg">Remarcadores incluidos</h2>
+            <ul className="divide-y divide-card-border">
+              {nota.remarcadores.map((remarcador) => (
+                <li key={remarcador.id}>
+                  <button type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.remarcadores}/${remarcador.id}`)} className="flex w-full items-center gap-3 py-2 text-left text-sm hover:bg-raised">
+                    <span className="font-mono text-foreground">{remarcador.code}</span>
+                    <span className="flex-1 truncate text-xs text-muted">{remarcador.name}</span>
+                    <span className="font-mono tabular-nums text-foreground">{formatNumber(remarcador.kwh)} kWh</span>
+                    <span className="w-12 text-right font-mono text-xs tabular-nums text-muted">{totalKwh > 0 ? `${formatNumber((remarcador.kwh / totalKwh) * 100)} %` : '—'}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 flex justify-between border-t border-card-border pt-3 text-sm"><span className="text-muted">Total del período</span><span className="font-mono font-semibold tabular-nums">{formatNumber(totalKwh)} kWh</span></p>
           </section>
         </div>
       </div>

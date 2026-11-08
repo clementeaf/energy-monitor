@@ -3,9 +3,23 @@ export function formatNumber(value: number | null, decimals = 0): string {
   return value.toLocaleString('es-CL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-export function formatDateTime(iso: string | null): string {
+export function formatDateTime(iso: string | null, now = new Date()): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const fecha = new Date(iso);
+  if (fecha.toDateString() === now.toDateString()) return fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  return fecha.toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+export function formatFecha(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '');
+}
+
+export function formatFechaHora(iso: string): string {
+  const fecha = new Date(iso);
+  const dia = fecha.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '');
+  const hora = fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${dia} · ${hora}`;
 }
 
 export function formatMillonesClp(clp: number | null): string {

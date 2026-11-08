@@ -225,7 +225,7 @@ function UsuariosTab({ usuarios, filtroRol, onQuitarFiltro, onCambiarRol, onQuit
         )}
       </header>
       <div className="overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full whitespace-nowrap">
           <thead>
             <tr className="border-b border-card-border bg-raised">
               <th className="px-4 py-2.5 text-left text-[11px] font-normal text-muted">Persona</th>

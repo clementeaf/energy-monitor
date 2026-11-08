@@ -98,7 +98,7 @@ export function MargenesPage() {
           <section className="rounded-xl bg-card">
             <h2 className="px-5 py-4 text-sm font-semibold text-card-fg">Detalle por centro</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full">
+              <table className="min-w-full whitespace-nowrap">
                 <thead>
                   <tr className="bg-raised">
                     {['Centro · cliente', 'Venta', 'Compra', 'Margen', '%', 'Estado'].map((label) => (

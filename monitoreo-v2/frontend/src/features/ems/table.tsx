@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -58,13 +58,35 @@ export function SelectAllCheckbox({ selectedCount, totalCount, onToggle }: Reado
   return <input ref={ref} type="checkbox" aria-label="Seleccionar todo" checked={isAll} onChange={onToggle} className="rounded border-border" />;
 }
 
-export function BulkBar({ count, noun, onClear, children }: Readonly<{ count: number; noun: string; onClear: () => void; children: ReactNode }>) {
+const PAGER_BUTTON = 'rounded-lg border border-border bg-surface px-3 py-1.5 font-medium text-foreground disabled:opacity-40';
+
+export function TablePager({ pagina, porPagina, total, onChange }: Readonly<{ pagina: number; porPagina: number; total: number; onChange: (pagina: number) => void }>) {
+  const mostrando = Math.max(0, Math.min(porPagina, total - pagina * porPagina));
+  return (
+    <footer className="flex items-center justify-between px-5 py-3 text-xs text-muted">
+      <span>Mostrando {mostrando} de {total}</span>
+      <div className="flex gap-2">
+        <button type="button" disabled={pagina === 0} onClick={() => onChange(pagina - 1)} className={PAGER_BUTTON}>Anterior</button>
+        <button type="button" disabled={(pagina + 1) * porPagina >= total} onClick={() => onChange(pagina + 1)} className={PAGER_BUTTON}>Siguiente</button>
+      </div>
+    </footer>
+  );
+}
+
+export interface BulkAction {
+  label: string;
+  onSelect: () => void;
+}
+
+export function BulkBar({ count, noun, onClear, actions }: Readonly<{ count: number; noun: string; onClear: () => void; actions: BulkAction[] }>) {
   if (count === 0) return null;
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 px-4 py-2 text-sm text-foreground">
-      <span className="flex-1">✓ {count} {noun}{count === 1 ? '' : 's'} seleccionado{count === 1 ? '' : 's'}</span>
-      {children}
-      <button type="button" onClick={onClear} className="px-2 py-1.5 text-xs font-medium text-muted hover:text-foreground">Quitar selección</button>
+    <div role="toolbar" aria-label="Acciones en lote" className="fixed inset-x-0 bottom-6 z-30 mx-auto flex w-fit max-w-[calc(100%-2rem)] items-center gap-2 rounded-xl bg-primary py-2 pl-4 pr-2 text-sm text-primary-fg shadow-lg">
+      <span className="mr-2 whitespace-nowrap">{count} {noun}{count === 1 ? '' : 's'} seleccionado{count === 1 ? '' : 's'}</span>
+      {actions.map((action) => (
+        <button key={action.label} type="button" onClick={action.onSelect} className="whitespace-nowrap rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink hover:bg-accent-hover">{action.label}</button>
+      ))}
+      <button type="button" onClick={onClear} aria-label="Quitar selección" className="rounded-lg px-2 py-1.5 text-xs font-medium text-primary-fg/70 hover:text-primary-fg">✕</button>
     </div>
   );
 }
@@ -131,23 +153,30 @@ export interface RowMenuItem {
 }
 
 export function RowMenu({ label, items }: Readonly<{ label: string; items: RowMenuItem[] }>) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!isOpen) return;
+    if (!anchor) return;
     const close = (event: MouseEvent) => {
-      if (!ref.current?.contains(event.target as Node)) setIsOpen(false);
+      if (!ref.current?.contains(event.target as Node)) setAnchor(null);
     };
+    const dismiss = () => setAnchor(null);
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [isOpen]);
+    window.addEventListener('scroll', dismiss, true);
+    window.addEventListener('resize', dismiss);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      window.removeEventListener('scroll', dismiss, true);
+      window.removeEventListener('resize', dismiss);
+    };
+  }, [anchor]);
   return (
-    <div ref={ref} className="relative" onClick={(event) => event.stopPropagation()}>
-      <button type="button" aria-label={label} aria-expanded={isOpen} onClick={() => setIsOpen((open) => !open)} className="rounded-md px-2 py-1 text-muted hover:bg-raised hover:text-foreground">⋯</button>
-      {isOpen && (
-        <div role="menu" className="absolute right-0 z-20 mt-1 min-w-48 rounded-lg border border-border bg-surface py-1 shadow-float">
+    <div ref={ref} onClick={(event) => event.stopPropagation()}>
+      <button type="button" aria-label={label} aria-expanded={anchor !== null} onClick={(event) => setAnchor(anchor ? null : event.currentTarget.getBoundingClientRect())} className="rounded-md px-2 py-1 text-muted hover:bg-raised hover:text-foreground">⋯</button>
+      {anchor && (
+        <div role="menu" style={{ top: anchor.bottom + 4, right: window.innerWidth - anchor.right }} className="fixed z-40 min-w-48 rounded-lg border border-border bg-surface py-1 shadow-float">
           {items.map((item) => (
-            <button key={item.label} type="button" role="menuitem" onClick={() => { setIsOpen(false); item.onSelect(); }}
+            <button key={item.label} type="button" role="menuitem" onClick={() => { setAnchor(null); item.onSelect(); }}
               className={`block w-full px-3 py-2 text-left text-xs hover:bg-raised ${item.isDanger ? 'text-danger' : 'text-foreground'}`}>
               {item.label}
             </button>

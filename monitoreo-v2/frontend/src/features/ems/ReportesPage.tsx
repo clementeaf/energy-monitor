@@ -7,7 +7,7 @@ import { usePageTitle } from '../../store/usePageTitleStore';
 import { useToastStore } from '../../store/useToastStore';
 import { descargarArchivo, imprimirTabla } from './exportar';
 import type { Centro, Remarcador } from './fleet';
-import { formatNumber, formatPeriodo } from './format';
+import { formatFechaHora, formatNumber, formatPeriodo } from './format';
 import { NavModuleIcon } from '../../components/layout/sidebar-icons';
 import { PageAction } from './PageAction';
 import { canEditSection } from './roles';
@@ -105,9 +105,9 @@ export function ReportesPage() {
                 {reportes.map((r) => {
                   const proximo = r.activo ? proximoEnvio(r.frecuencia, ahora) : null;
                   return (
-                    <li key={r.id} className={`flex items-center gap-3 rounded-lg border border-card-border px-3 py-3 ${r.activo ? '' : 'opacity-60'}`}>
+                    <li key={r.id} className={`flex flex-wrap items-center gap-3 rounded-lg border border-card-border px-3 py-3 ${r.activo ? '' : 'opacity-60'}`}>
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-module-reportes-bg text-module-reportes-ink"><NavModuleIcon name="file" className="h-4 w-4" /></span>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-[12rem] flex-1">
                         <p className="truncate text-sm text-foreground">{r.nombre}</p>
                         <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                           <span className="rounded-md bg-module-reportes-bg px-1.5 py-0.5 font-medium text-module-reportes-ink">{r.frecuencia}</span>
@@ -117,7 +117,7 @@ export function ReportesPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] text-muted">Próximo envío</p>
-                        <p className="font-mono text-xs text-foreground">{proximo ? proximo.toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                        <p className="font-mono text-xs text-foreground">{proximo ? formatFechaHora(proximo.toISOString()) : '—'}</p>
                       </div>
                       <Switch checked={r.activo} disabled={!canEdit} label={`Programar ${r.nombre}`} onChange={() => void alternar(r).then((ok) => ok && showToast(r.activo ? 'Envío pausado' : 'Envío programado'))} />
                     </li>

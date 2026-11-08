@@ -8,9 +8,9 @@ import { dailyBars, DemandBars, hourlyBars } from './DemandBars';
 import { buildFichaDispositivo } from './device';
 import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo } from './format';
 import { PORTFOLIO_CURVE, requiereAtencion, type Centro, type Remarcador, type RemarcadorEstado } from './fleet';
-import { KpiTile, Variacion } from './KpiTile';
+import { KpiTile, NotaComparacion, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
-import { etiquetaComparacion, etiquetaTramo, isTramoParcial, periodoAnterior, periodoQueContiene, tramoEquivalente, variacionPct } from './periodos';
+import { comparablesEntre, etiquetaComparacion, etiquetaTramo, isTramoParcial, periodoAnterior, periodoQueContiene, tramoEquivalente, variacionPct } from './periodos';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { StatusBadge } from './StatusBadge';
@@ -89,14 +89,18 @@ function ResumenPeriodo({ fleet, isMargenActivo }: Readonly<{ fleet: EmsFleet; i
   const [ahora] = useState(() => new Date());
   const { phase, curves } = useLoadCurves(rango);
   const points = curves.get(PORTFOLIO_CURVE) ?? [];
-  const margen = sumarMargenes(centros.flatMap((centro) => (centro.margen ? [centro.margen] : [])));
+  const margenesDe = (lista: Centro[]) => sumarMargenes(lista.flatMap((centro) => (centro.margen ? [centro.margen] : [])));
+  const margen = margenesDe(centros);
   const mesActual = periodoQueContiene('mes', periodo);
   const mesAnterior = periodoAnterior(mesActual);
   const tramo = tramoEquivalente(mesAnterior, mesActual, ahora);
   const previo = useCentrosEnRango(tramo, fleet);
-  const margenPrevio = sumarMargenes(previo.centros.flatMap((centro) => (centro.margen ? [centro.margen] : [])));
-  const hayPrevio = previo.phase === 'ready' && previo.filas.length > 0;
-  const consumoActual = centros.reduce((sum, c) => sum + c.consumoMesKwh, 0);
+  const comparables = comparablesEntre(centros, previo.centros, (c) => c.consumoMesKwh);
+  const margenComparable = margenesDe(comparables.actuales);
+  const margenPrevio = margenesDe(comparables.previos);
+  const hayPrevio = previo.phase === 'ready' && comparables.previos.length > 0;
+  const consumoDe = (lista: Centro[]) => lista.reduce((sum, c) => sum + c.consumoMesKwh, 0);
+  const consumoActual = consumoDe(centros);
   const comparacion = {
     vs: etiquetaComparacion(mesAnterior),
     tramo: isTramoParcial(tramo, mesAnterior) ? etiquetaTramo(tramo) : undefined,
@@ -121,14 +125,14 @@ function ResumenPeriodo({ fleet, isMargenActivo }: Readonly<{ fleet: EmsFleet; i
         </div>
       </header>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiTile variant="inverse" label="Consumo del mes" value={formatNumber(consumoActual / 1000, 1)} unit="MWh" sub={<Variacion valor={variacion(consumoActual, previo.centros.reduce((sum, c) => sum + c.consumoMesKwh, 0))} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
+        <KpiTile variant="inverse" label="Consumo del mes" value={formatNumber(consumoActual / 1000, 1)} unit="MWh" sub={<Variacion valor={variacion(consumoDe(comparables.actuales), consumoDe(comparables.previos))} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
         <KpiTile variant="subtle" label="Demanda actual" value={formatNumber(demandaActual, 1)} unit="kW" sub="Remarcadores conectados" onClick={() => navigate(EMS_SECTION_PATHS.consumo)} />
-        <KpiTile variant="subtle" label="Gasto energético" value={formatMillonesClp(margen.costoCompraClp)} unit="CLP" sub={<Variacion valor={variacion(margen.costoCompraClp, margenPrevio.costoCompraClp)} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.facturacion)} />
+        <KpiTile variant="subtle" label="Gasto energético" value={formatMillonesClp(margen.costoCompraClp)} unit="CLP" sub={<Variacion valor={variacion(margenComparable.costoCompraClp, margenPrevio.costoCompraClp)} isMejorSiBaja {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.facturacion)} />
         {isMargenActivo
-          ? <KpiTile variant="subtle" label="Margen promedio" value={formatNumber(margen.margenPct, 1)} unit="%" sub={<Variacion valor={isPrevioCargando ? undefined : hayPrevio && margenPrevio.precioVentaClp > 0 ? margen.margenPct - margenPrevio.margenPct : null} unidad="pts" {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />
+          ? <KpiTile variant="subtle" label="Margen promedio" value={formatNumber(margen.margenPct, 1)} unit="%" sub={<Variacion valor={isPrevioCargando ? undefined : hayPrevio && margenPrevio.precioVentaClp > 0 ? margenComparable.margenPct - margenPrevio.margenPct : null} unidad="pts" {...comparacion} />} onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />
           : <KpiTile variant="subtle" label="Margen promedio 🔒" value="—" sub="Módulo no contratado" onClick={() => navigate(EMS_SECTION_PATHS.margenes)} />}
       </div>
-      {comparacion.tramo && <p className="-mt-2 text-[11px] text-muted">* Mes en curso: se compara con el mismo tramo de {comparacion.vs} ({comparacion.tramo}).</p>}
+      <NotaComparacion tramo={comparacion.tramo} vs={comparacion.vs} excluidos={isPrevioCargando ? [] : comparables.excluidos} />
       <div className="rounded-xl bg-raised p-4">
         <p className="mb-2 text-xs font-medium text-foreground">Curva de carga · {RANGOS[rango].toLowerCase()}</p>
         <QueryStateView phase={phase} error={null} variant="widget">

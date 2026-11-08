@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { descargarArchivo } from './exportar';
-import { PORTFOLIO_CURVE, type Centro, type LoadPoint } from './fleet';
+import { PORTFOLIO_CURVE, sumarCurvas, type Centro, type LoadPoint } from './fleet';
 import { formatNumber } from './format';
 import { KpiTile, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
-import { desplazarMeses, etiquetaTramo, nombreMes, variacionPct } from './periodos';
+import { comparablesEntre, desplazarMeses, etiquetaTramo, nombreMes, variacionPct } from './periodos';
 import { EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
@@ -57,6 +57,12 @@ export function metricasConsumo(points: LoadPoint[], perfil: (number | null)[], 
   return { energiaMwh: (total * horasPorPunto) / 1000, peak, factorCarga: peak > 0 ? promedio / peak : 0, puntaPct: participacionPunta(perfil) };
 }
 
+function energiaPorCentro(centros: Centro[], ids: string[], curves: Map<string, LoadPoint[]>): { id: string; name: string; kw: number }[] {
+  return centros
+    .filter((c) => ids.includes(c.id))
+    .map((c) => ({ id: c.id, name: c.name, kw: (curves.get(c.id) ?? []).reduce((sum, p) => sum + p.kw, 0) }));
+}
+
 function etiquetaComparacion(comparacion: Comparacion, hasta: Date): string {
   const mes = nombreMes(hasta);
   return comparacion === 'anio' ? `${mes} ${hasta.getFullYear()}` : mes;
@@ -74,10 +80,15 @@ export function ConsumoPage() {
   const hoyPrevio = useLoadCurves('hoy', MESES_ATRAS[comparacion]);
   const curva = centroId || PORTFOLIO_CURVE;
   const points = periodo.curves.get(curva) ?? [];
-  const pointsPrevios = periodoPrevio.curves.get(curva) ?? [];
   const perfil = perfilHorario(hoy.curves.get(curva) ?? []);
-  const perfilPrevio = perfilHorario(hoyPrevio.curves.get(curva) ?? []);
+  const ids = centroId ? [centroId] : fleet.centros.map((c) => c.id);
+  const comparables = comparablesEntre(energiaPorCentro(fleet.centros, ids, periodo.curves), energiaPorCentro(fleet.centros, ids, periodoPrevio.curves), (c) => c.kw);
+  const comparablesHoy = comparablesEntre(energiaPorCentro(fleet.centros, ids, hoy.curves), energiaPorCentro(fleet.centros, ids, hoyPrevio.curves), (c) => c.kw);
+  const idsDe = (lista: { id: string }[]) => lista.map((c) => c.id);
+  const pointsPrevios = sumarCurvas(periodoPrevio.curves, idsDe(comparables.previos));
+  const perfilPrevio = perfilHorario(sumarCurvas(hoyPrevio.curves, idsDe(comparablesHoy.previos)));
   const actual = metricasConsumo(points, perfil, RANGOS[rango].horasPorPunto);
+  const actualComparable = metricasConsumo(sumarCurvas(periodo.curves, idsDe(comparables.actuales)), perfilHorario(sumarCurvas(hoy.curves, idsDe(comparablesHoy.actuales))), RANGOS[rango].horasPorPunto);
   const previo = metricasConsumo(pointsPrevios, perfilPrevio, RANGOS[rango].horasPorPunto);
   const isPrevioCargando = periodoPrevio.phase === 'loading' || hoyPrevio.phase === 'loading';
   const hayPrevio = pointsPrevios.length > 0;
@@ -119,14 +130,14 @@ export function ConsumoPage() {
           <div className="flex flex-col gap-1.5">
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <KpiTile variant="inverse" label="Consumo del período" value={formatNumber(actual.energiaMwh, 1)} unit="MWh"
-                sub={<Variacion valor={variacion(actual.energiaMwh, previo.energiaMwh)} vs={vs} tramo={tramo} isMejorSiBaja />} />
+                sub={<Variacion valor={variacion(actualComparable.energiaMwh, previo.energiaMwh)} vs={vs} tramo={tramo} isMejorSiBaja />} />
               <KpiTile label="Demanda máxima agregada" value={formatNumber(actual.peak, 1)} unit="kW"
-                sub={<Variacion valor={variacion(actual.peak, previo.peak)} vs={vs} tramo={tramo} isMejorSiBaja />} />
+                sub={<Variacion valor={variacion(actualComparable.peak, previo.peak)} vs={vs} tramo={tramo} isMejorSiBaja />} />
               <KpiTile label="Consumo en horario punta" value={formatNumber(actual.puntaPct, 1)} unit="%"
-                sub={<Variacion valor={isPrevioCargando ? undefined : hayPerfilPrevio ? actual.puntaPct - previo.puntaPct : null} unidad="pts" vs={diaPrevio} isMejorSiBaja />} />
+                sub={<Variacion valor={isPrevioCargando ? undefined : hayPerfilPrevio ? actualComparable.puntaPct - previo.puntaPct : null} unidad="pts" vs={diaPrevio} isMejorSiBaja />} />
               <KpiTile label="Factor de carga" value={formatNumber(actual.factorCarga, 2)} sub="Promedio / máximo" />
             </div>
-            <p className="text-[11px] text-muted">* {RANGOS[rango].label} hasta ahora contra el mismo tramo {DESFASE[comparacion]} antes ({tramo}). Horario punta: hoy contra {diaPrevio}. Consumo estimado desde la demanda promedio.</p>
+            <p className="text-[11px] text-muted">* {RANGOS[rango].label} hasta ahora contra el mismo tramo {DESFASE[comparacion]} antes ({tramo}). Horario punta: hoy contra {diaPrevio}. Consumo estimado desde la demanda promedio.{!isPrevioCargando && comparables.excluidos.length > 0 && ` Variación sin ${comparables.excluidos.map((c) => c.name).join(', ')}: sin datos en ${vs}.`}</p>
           </div>
         </QueryStateView>
 

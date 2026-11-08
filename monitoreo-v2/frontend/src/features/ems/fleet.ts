@@ -156,6 +156,15 @@ export function requiereAtencion(centro: Centro, margenMinimoPct: number): boole
 
 export const PORTFOLIO_CURVE = '_portfolio';
 
+export function sumarCurvas(curves: Map<string, LoadPoint[]>, ids: string[]): LoadPoint[] {
+  const kwPorTiempo = new Map<number, number>();
+  for (const point of ids.flatMap((id) => curves.get(id) ?? [])) {
+    const time = new Date(point.timestamp).getTime();
+    kwPorTiempo.set(time, (kwPorTiempo.get(time) ?? 0) + point.kw);
+  }
+  return [...kwPorTiempo].sort(([a], [b]) => a - b).map(([time, kw]) => ({ timestamp: new Date(time).toISOString(), kw }));
+}
+
 export function toLoadCurves(
   meterRows: AggregatedReading[],
   buildingByMeter: Map<string, string>,

@@ -33,6 +33,16 @@ export function Variacion({ valor, vs, unidad = '%', isMejorSiBaja = false, tram
   );
 }
 
+export function NotaComparacion({ tramo, vs, excluidos }: Readonly<{ tramo?: string; vs: string; excluidos: { name: string }[] }>) {
+  if (!tramo && excluidos.length === 0) return null;
+  return (
+    <p className="text-[11px] text-muted">
+      {tramo && `* En curso: se compara con el mismo tramo de ${vs} (${tramo}). `}
+      {excluidos.length > 0 && `Variación sin ${excluidos.map((c) => c.name).join(', ')}: no tiene${excluidos.length === 1 ? '' : 'n'} datos en ${vs}.`}
+    </p>
+  );
+}
+
 export function KpiTile({ label, value, unit, sub, variant = 'surface', tone = 'neutral', onClick }: Readonly<{
   label: string;
   value: string;

@@ -6,10 +6,10 @@ import { usePageTitle } from '../../store/usePageTitleStore';
 import { descargarArchivo } from './exportar';
 import type { Centro } from './fleet';
 import { formatMillonesClp, formatNumber } from './format';
-import { KpiTile, Variacion } from './KpiTile';
+import { KpiTile, NotaComparacion, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
 import {
-  etiquetaComparacion, etiquetaPeriodo, etiquetaTramo, GRANULARIDADES, isTramoParcial,
+  comparablesEntre, etiquetaComparacion, etiquetaPeriodo, etiquetaTramo, GRANULARIDADES, isTramoParcial,
   periodoAnterior, periodoQueContiene, periodosDisponibles, tramoEquivalente, variacionPct, type Granularidad, type Periodo,
 } from './periodos';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
@@ -74,7 +74,9 @@ export function MargenesPage() {
   const fasePrevia = isParcial ? tramoParcial.phase : historial.phase;
   const fase = isMesVigente ? fleet.phase : fleet.phase === 'ready' ? historial.phase : fleet.phase;
   const total = sumarMargenes(centros);
-  const totalPrevio = sumarMargenes(previos);
+  const comparables = comparablesEntre(centros, previos, (c) => c.precioVentaClp);
+  const totalComparable = sumarMargenes(comparables.actuales);
+  const totalPrevio = sumarMargenes(comparables.previos);
   const hayPrevio = fasePrevia === 'ready' && totalPrevio.precioVentaClp > 0;
   const variacion = (valor: number, previo: number) => (fasePrevia === 'loading' ? undefined : hayPrevio ? variacionPct(valor, previo) : null);
   const comparacion = { vs: etiquetaComparacion(anterior), tramo: isParcial ? etiquetaTramo(tramo) : undefined };
@@ -117,13 +119,13 @@ export function MargenesPage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                <KpiTile label="Venta de energía" value={formatMillonesClp(total.precioVentaClp)} unit="CLP" sub={<Variacion valor={variacion(total.precioVentaClp, totalPrevio.precioVentaClp)} {...comparacion} />} />
-                <KpiTile label="Costo de compra" value={formatMillonesClp(total.costoCompraClp)} unit="CLP" sub={<Variacion valor={variacion(total.costoCompraClp, totalPrevio.costoCompraClp)} isMejorSiBaja {...comparacion} />} />
-                <KpiTile variant="inverse" label="Margen" value={formatMillonesClp(total.margenClp)} unit="CLP" sub={<Variacion valor={variacion(total.margenClp, totalPrevio.margenClp)} {...comparacion} />} />
+                <KpiTile label="Venta de energía" value={formatMillonesClp(total.precioVentaClp)} unit="CLP" sub={<Variacion valor={variacion(totalComparable.precioVentaClp, totalPrevio.precioVentaClp)} {...comparacion} />} />
+                <KpiTile label="Costo de compra" value={formatMillonesClp(total.costoCompraClp)} unit="CLP" sub={<Variacion valor={variacion(totalComparable.costoCompraClp, totalPrevio.costoCompraClp)} isMejorSiBaja {...comparacion} />} />
+                <KpiTile variant="inverse" label="Margen" value={formatMillonesClp(total.margenClp)} unit="CLP" sub={<Variacion valor={variacion(totalComparable.margenClp, totalPrevio.margenClp)} {...comparacion} />} />
                 <KpiTile label="Margen promedio" value={formatNumber(total.margenPct, 1)} unit="%" tone={total.margenPct < minimo ? 'negative' : 'neutral'}
-                  sub={<><Variacion valor={fasePrevia === 'loading' ? undefined : hayPrevio ? total.margenPct - totalPrevio.margenPct : null} unidad="pts" {...comparacion} /> · mínimo {formatNumber(minimo)} %</>} />
+                  sub={<><Variacion valor={fasePrevia === 'loading' ? undefined : hayPrevio ? totalComparable.margenPct - totalPrevio.margenPct : null} unidad="pts" {...comparacion} /> · mínimo {formatNumber(minimo)} %</>} />
               </div>
-              {comparacion.tramo && <p className="text-[11px] text-muted">* Período en curso: se compara con el mismo tramo de {comparacion.vs} ({comparacion.tramo}).</p>}
+              <NotaComparacion tramo={comparacion.tramo} vs={comparacion.vs} excluidos={fasePrevia === 'loading' ? [] : comparables.excluidos} />
             </div>
 
             <section className="rounded-xl bg-card p-5">

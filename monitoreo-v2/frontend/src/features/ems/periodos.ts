@@ -70,6 +70,23 @@ export function variacionPct(actual: number, previo: number | null): number | nu
   return ((actual - previo) / Math.abs(previo)) * 100;
 }
 
+export interface Comparables<T> {
+  actuales: T[];
+  previos: T[];
+  excluidos: T[];
+}
+
+export function comparablesEntre<T extends { id: string }>(actuales: T[], previos: T[], valorDe: (item: T) => number): Comparables<T> {
+  const idsConDato = (items: T[]) => new Set(items.filter((item) => valorDe(item) > 0).map((item) => item.id));
+  const idsPrevios = idsConDato(previos);
+  const idsActuales = idsConDato(actuales);
+  return {
+    actuales: actuales.filter((item) => idsActuales.has(item.id) && idsPrevios.has(item.id)),
+    previos: previos.filter((item) => idsPrevios.has(item.id) && idsActuales.has(item.id)),
+    excluidos: actuales.filter((item) => idsActuales.has(item.id) && !idsPrevios.has(item.id)),
+  };
+}
+
 export function mesDelBucket(bucket: string): Date {
   const fecha = new Date(bucket);
   return new Date(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1);

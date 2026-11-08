@@ -6,7 +6,7 @@ import { useEmsAlertas } from '../../features/ems/useEmsFleet';
 
 const SEVERITY_CLS = { critica: 'text-danger', advertencia: 'text-warning', informativa: 'text-info' } as const;
 
-export function NotificationsMenu() {
+export function NotificationsMenu({ buttonClassName }: Readonly<{ buttonClassName: string }>) {
   const navigate = useNavigate();
   const { activas } = useEmsAlertas();
   const showToast = useToastStore((s) => s.showToast);
@@ -23,10 +23,10 @@ export function NotificationsMenu() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Notificaciones"
         aria-expanded={isOpen}
-        className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-fg"
+        className={buttonClassName}
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-        {hasUnread && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" />}
+        {hasUnread && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-danger" />}
       </button>
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-border bg-background shadow-float">
@@ -43,7 +43,7 @@ export function NotificationsMenu() {
               <button
                 key={alerta.id}
                 type="button"
-                onClick={() => { setIsOpen(false); navigate(`/remarcadores/${alerta.remarcadorId}`); }}
+                onClick={() => { setIsOpen(false); navigate(alerta.href); }}
                 className={`flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-surface ${isRead ? 'opacity-60' : ''}`}
               >
                 <span className={SEVERITY_CLS[alerta.severidad]}>●</span>

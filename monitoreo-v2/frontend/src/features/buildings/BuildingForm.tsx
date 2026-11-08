@@ -191,7 +191,7 @@ export function BuildingForm({ open, onClose, onSubmit, isPending, building }: R
           <button
             type="submit"
             disabled={isPending || !name || (!isEdit && !code) || (needsTenantSelect && !tenantId)}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>

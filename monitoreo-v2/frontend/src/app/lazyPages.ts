@@ -413,10 +413,6 @@ export const LazyTenantUnitDetailPage = lazy(async () => {
   return { default: m.TenantUnitDetailPage };
 });
 
-export const LazyResumenPage = lazy(async () => {
-  const m = await import('../features/ems/ResumenPage');
-  return { default: m.ResumenPage };
-});
 
 export const LazyCentrosPage = lazy(async () => {
   const m = await import('../features/ems/CentrosPage');
@@ -468,9 +464,14 @@ export const LazyConfiguracionPage = lazy(async () => {
   return { default: m.ConfiguracionPage };
 });
 
-export const LazyFacturasMockPage = lazy(async () => {
-  const m = await import('../features/ems/FacturasPage');
-  return { default: m.FacturasPage };
+export const LazyFacturacionPage = lazy(async () => {
+  const m = await import('../features/ems/FacturacionPage');
+  return { default: m.FacturacionPage };
+});
+
+export const LazyDocumentoPage = lazy(async () => {
+  const m = await import('../features/ems/DocumentoPage');
+  return { default: m.DocumentoPage };
 });
 
 export const LazyMeterDetailPage = lazy(async () => {
@@ -531,4 +532,19 @@ export const LazyMapPage = lazy(async () => {
 export const LazyIotDevicesPage = lazy(async () => {
   const m = await import('../features/admin/iot-devices/IotDevicesPage');
   return { default: m.IotDevicesPage };
+});
+
+export const LazyTerrenoTareasPage = lazy(async () => {
+  const m = await import('../features/ems/TerrenoPage');
+  return { default: m.TerrenoTareasPage };
+});
+
+export const LazyTerrenoDiagnosticoPage = lazy(async () => {
+  const m = await import('../features/ems/TerrenoPage');
+  return { default: m.TerrenoDiagnosticoPage };
+});
+
+export const LazyTerrenoAltaPage = lazy(async () => {
+  const m = await import('../features/ems/TerrenoPage');
+  return { default: m.TerrenoAltaPage };
 });

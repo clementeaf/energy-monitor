@@ -223,7 +223,7 @@ export function FloorPlanView({ buildingId, buildingName, floorId, readings, ale
               type="button"
               onClick={() => setColorMode(opt.key)}
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                colorMode === opt.key ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface'
+                colorMode === opt.key ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-surface'
               }`}
             >
               {opt.label}

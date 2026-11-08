@@ -41,7 +41,7 @@ export function MfaSetupGate() {
         <button
           type="button"
           onClick={() => navigate(APP_ROUTES.profile)}
-          className="mt-6 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-brand-fg hover:opacity-90"
+          className="mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-fg hover:opacity-90"
         >
           Configurar ahora
         </button>

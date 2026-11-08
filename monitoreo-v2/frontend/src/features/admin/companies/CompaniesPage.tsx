@@ -111,7 +111,7 @@ export function CompaniesPage() {
           <button
             type="button"
             onClick={() => { setResult(null); setForm({ ...EMPTY_FORM }); setCreateOpen(true); }}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover"
+            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg transition-colors hover:bg-primary-hover"
           >
             Nueva empresa
           </button>
@@ -190,7 +190,7 @@ export function CompaniesPage() {
             <button
               type="button"
               onClick={handleCreateClose}
-              className="w-full rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:bg-brand-hover"
+              className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover"
             >
               Cerrar
             </button>

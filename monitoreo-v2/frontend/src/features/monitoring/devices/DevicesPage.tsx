@@ -251,7 +251,7 @@ export function DevicesPage() {
                     {d.type === 'concentrator' && (
                       <Link
                         to={`/monitoring/concentrator/${d.id}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-foreground hover:bg-brand/10"
+                        className="rounded px-2 py-1 text-xs font-medium text-foreground hover:bg-primary/10"
                       >
                         Diagnostico
                       </Link>

@@ -190,7 +190,7 @@ export function MisOrdenesPage() {
                 onClick={() => setQuickFilter(f.key)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   quickFilter === f.key
-                    ? 'bg-brand text-brand-fg'
+                    ? 'bg-primary text-primary-fg'
                     : 'border border-border text-muted hover:bg-surface'
                 }`}
               >

@@ -150,6 +150,10 @@ export function buildCentros(
   });
 }
 
+export function requiereAtencion(centro: Centro, margenMinimoPct: number): boolean {
+  return centro.estado !== 'operativo' || (centro.margen !== null && centro.margen.margenPct < margenMinimoPct);
+}
+
 export const PORTFOLIO_CURVE = '_portfolio';
 
 export function toLoadCurves(

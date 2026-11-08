@@ -19,7 +19,7 @@ type TenantsTab = 'list' | 'import';
 
 const TAB_CLASS = (active: boolean): string =>
   `rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-    active ? 'bg-brand text-brand-fg' : 'text-muted hover:bg-surface hover:text-foreground'
+    active ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-surface hover:text-foreground'
   }`;
 
 const COL_COUNT = 8;
@@ -87,7 +87,7 @@ export function TenantsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-fg transition-colors hover:bg-primary-hover"
             >
               Nuevo Locatario
             </button>

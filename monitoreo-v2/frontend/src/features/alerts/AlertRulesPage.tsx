@@ -80,7 +80,7 @@ export function AlertRulesPage() {
           type="button"
           onClick={() => { evaluate.mutate(); }}
           disabled={evaluate.isPending}
-          className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+          className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
         >
           {evaluate.isPending ? 'Evaluando...' : 'Evaluar Ahora'}
         </button>
@@ -158,7 +158,7 @@ export function AlertRulesPage() {
                     type="button"
                     onClick={() => { handleToggle(rule); }}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      rule.isActive ? 'bg-brand' : 'bg-border'
+                      rule.isActive ? 'bg-primary' : 'bg-border'
                     }`}
                   >
                     <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-background transition-transform ${
@@ -265,7 +265,7 @@ export function AlertRulesPage() {
                 type="button"
                 onClick={handleSaveConfig}
                 disabled={updateRule.isPending}
-                className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+                className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
               >
                 Guardar
               </button>

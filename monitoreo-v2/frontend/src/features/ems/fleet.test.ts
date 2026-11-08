@@ -9,6 +9,7 @@ import {
   classifyConnection,
   findLatestReadingAt,
   PORTFOLIO_CURVE,
+  requiereAtencion,
   toLoadCurves,
 } from './fleet';
 
@@ -152,5 +153,16 @@ describe('toLoadCurves', () => {
       { timestamp: '2026-09-30T01:00:00.000Z', kw: 5 },
       { timestamp: '2026-09-30T02:00:00.000Z', kw: 10 },
     ]);
+  });
+});
+
+describe('requiereAtencion', () => {
+  const base = { id: 'b', name: 'B', code: 'B', address: null, superficie: null, consumoMesKwh: 0, intensidadKwhM2: null, remarcadores: 1, tarifa: null };
+  const margen = (margenPct: number) => ({ costoCompraClp: 0, precioVentaClp: 0, margenClp: 0, margenPct });
+
+  it('flags centros with unhealthy meters or a margin under the minimum', () => {
+    expect(requiereAtencion({ ...base, estado: 'operativo', margen: margen(15) }, 10)).toBe(false);
+    expect(requiereAtencion({ ...base, estado: 'advertencia', margen: null }, 10)).toBe(true);
+    expect(requiereAtencion({ ...base, estado: 'operativo', margen: margen(7.4) }, 10)).toBe(true);
   });
 });

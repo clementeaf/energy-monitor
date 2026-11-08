@@ -19,18 +19,9 @@ describe('applyTenantTheme', () => {
     document.querySelectorAll("link[rel='icon']").forEach((el) => el.remove());
   });
 
-  it('sets brand and semantic CSS custom properties on :root', () => {
+  it('leaves design-system color tokens untouched', () => {
     applyTenantTheme(theme);
-    const root = document.documentElement;
-    expect(root.style.getPropertyValue('--color-brand')).toBe('#FF0000');
-    expect(root.style.getPropertyValue('--color-brand-fg')).toBe('#ffffff');
-    expect(root.style.getPropertyValue('--color-secondary')).toBe('#00FF00');
-    expect(root.style.getPropertyValue('--color-sidebar')).toBe('#0000FF');
-    expect(root.style.getPropertyValue('--color-sidebar-fg')).toBe('#ffffff');
-    expect(root.style.getPropertyValue('--color-accent')).toBe('#FFFF00');
-    expect(root.style.getPropertyValue('--color-chart-1')).toBe('#FF0000');
-    expect(root.style.getPropertyValue('--color-chart-3')).toBe('#00FF00');
-    expect(root.style.getPropertyValue('--color-chart-4')).toBe('#FFFF00');
+    expect(document.documentElement.getAttribute('style')).toBeNull();
   });
 
   it('sets document.title', () => {

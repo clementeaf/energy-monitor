@@ -1,163 +1,193 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
-import { useToastStore } from '../../store/useToastStore';
-import { PORTFOLIO_CURVE, type LoadPoint } from './fleet';
+import { usePageTitle } from '../../store/usePageTitleStore';
+import { descargarArchivo } from './exportar';
+import { PORTFOLIO_CURVE, type Centro, type LoadPoint } from './fleet';
 import { formatNumber } from './format';
-import { LoadCurveChart } from './LoadCurveChart';
+import { KpiTile } from './KpiTile';
+import { PageAction } from './PageAction';
+import { EMS_SECTION_PATHS } from './roles';
+import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
 
-type Franja = 'todas' | 'punta' | 'valle';
-
-const RANGO_TABS: { key: LoadRange; label: string }[] = [
-  { key: 'hoy', label: 'Hoy' },
-  { key: '7dias', label: '7 días' },
-  { key: '30dias', label: '30 días' },
-];
-
-const FRANJA_TABS: { key: Franja; label: string }[] = [
-  { key: 'todas', label: 'Todas las franjas' },
-  { key: 'punta', label: 'Punta 18–23 h' },
-  { key: 'valle', label: 'Valle 00–07 h' },
-];
-
-const FRANJA_HOURS: Record<Franja, (hour: number) => boolean> = {
-  todas: () => true,
-  punta: (hour) => hour >= 18 && hour <= 23,
-  valle: (hour) => hour >= 0 && hour <= 7,
+const RANGOS: Record<LoadRange, { label: string; horasPorPunto: number }> = {
+  hoy: { label: 'Hoy', horasPorPunto: 1 },
+  '7dias': { label: '7 días', horasPorPunto: 24 },
+  '30dias': { label: '30 días', horasPorPunto: 24 },
 };
+const PUNTA = { desde: 18, hasta: 22 };
+const HORAS = 24;
+const PICOS = 3;
+const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-xs text-foreground focus:border-accent focus:outline-none';
 
-const COMPARACION_COLORS = ['var(--color-accent)', 'var(--color-info)'];
-const MAX_COMPARADOS = 2;
-
-const RANGO_SUBTITLE: Record<LoadRange, string> = { hoy: 'por hora', '7dias': 'últimos 7 días', '30dias': 'últimos 30 días' };
-const FRANJA_SUBTITLE: Record<Franja, string> = { todas: '', punta: ' · punta', valle: ' · valle' };
-
-export function toggleComparacion(current: string[], id: string): string[] {
-  if (current.includes(id)) return current.length > 1 ? current.filter((existing) => existing !== id) : current;
-  return [...current, id].slice(-MAX_COMPARADOS);
+export function esPunta(hora: number): boolean {
+  return hora >= PUNTA.desde && hora < PUNTA.hasta;
 }
 
-function inFranja(points: LoadPoint[], franja: Franja): LoadPoint[] {
-  return points.filter((point) => FRANJA_HOURS[franja](new Date(point.timestamp).getHours()));
+export function perfilHorario(points: LoadPoint[]): (number | null)[] {
+  const porHora = Array.from({ length: HORAS }, () => [] as number[]);
+  for (const point of points) porHora[new Date(point.timestamp).getHours()].push(point.kw);
+  return porHora.map((valores) => (valores.length > 0 ? valores.reduce((sum, kw) => sum + kw, 0) / valores.length : null));
 }
 
-function pillClass(active: boolean): string {
-  return `rounded-full px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${active ? 'bg-accent text-accent-ink' : 'border border-border text-foreground hover:bg-surface'}`;
+export function participacionPunta(perfil: (number | null)[]): number {
+  const total = perfil.reduce<number>((sum, kw) => sum + (kw ?? 0), 0);
+  const punta = perfil.reduce<number>((sum, kw, hora) => sum + (esPunta(hora) ? kw ?? 0 : 0), 0);
+  return total > 0 ? (punta / total) * 100 : 0;
 }
 
 export function ConsumoPage() {
-  const [rango, setRango] = useState<LoadRange>('hoy');
-  const [franja, setFranja] = useState<Franja>('todas');
-  const [seleccionados, setSeleccionados] = useState<string[] | null>(null);
+  const navigate = useNavigate();
+  const [rango, setRango] = useState<LoadRange>('30dias');
+  const [centroId, setCentroId] = useState('');
   const fleet = useEmsFleet();
-  const loadCurves = useLoadCurves(rango);
-  const showToast = useToastStore((s) => s.showToast);
-  const franjaEfectiva: Franja = rango === 'hoy' ? franja : 'todas';
-
-  const points = inFranja(loadCurves.curves.get(PORTFOLIO_CURVE) ?? [], franjaEfectiva);
+  const periodo = useLoadCurves(rango);
+  const hoy = useLoadCurves('hoy');
+  const curva = centroId || PORTFOLIO_CURVE;
+  const points = periodo.curves.get(curva) ?? [];
+  const perfil = perfilHorario(hoy.curves.get(curva) ?? []);
   const peak = Math.max(0, ...points.map((p) => p.kw));
   const promedio = points.length > 0 ? points.reduce((sum, p) => sum + p.kw, 0) / points.length : 0;
-  const factorCarga = peak > 0 ? (promedio / peak) * 100 : 0;
-  const centrosComparados = seleccionados ?? fleet.centros.slice(0, MAX_COMPARADOS).map((c) => c.id);
+  const energiaMwh = (points.reduce((sum, p) => sum + p.kw, 0) * RANGOS[rango].horasPorPunto) / 1000;
+
+  const exportar = () => {
+    const filas = [['Fecha', 'kW promedio'], ...points.map((p) => [p.timestamp, formatNumber(p.kw, 1)])];
+    descargarArchivo(`consumo-${rango}.csv`, `﻿${filas.map((fila) => fila.join(';')).join('\n')}`, 'text/csv;charset=utf-8');
+  };
+  usePageTitle('Analítica de Consumo', 'Add-ons / Analítica de Consumo', <PageAction label="↓ Exportar" onClick={exportar} />);
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
-      <div>
-        <h1 className="text-lg font-bold text-foreground">Consumo</h1>
-        <p className="text-xs text-muted">Picos y curvas de carga</p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div role="tablist" aria-label="Período" className="flex rounded-lg border border-border">
-          {RANGO_TABS.map((r) => (
-            <button key={r.key} type="button" role="tab" aria-selected={rango === r.key} onClick={() => setRango(r.key)} className={`px-3 py-1.5 text-xs font-medium ${rango === r.key ? 'bg-card-fg text-card' : 'text-muted hover:bg-surface'}`}>{r.label}</button>
-          ))}
+    <div className="h-full overflow-y-auto p-4 md:p-6">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <div role="tablist" aria-label="Período" className={SEGMENT_TRACK_CLASS}>
+            {(Object.keys(RANGOS) as LoadRange[]).map((key) => (
+              <button key={key} type="button" role="tab" aria-selected={rango === key} onClick={() => setRango(key)} className={segmentClass(rango === key)}>{RANGOS[key].label}</button>
+            ))}
+          </div>
+          <select value={centroId} onChange={(event) => setCentroId(event.target.value)} aria-label="Centro" className={`${FIELD_CLASS} ml-auto`}>
+            <option value="">Todos los centros</option>
+            {fleet.centros.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
-        <div className="flex gap-1" aria-label="Franja horaria">
-          {FRANJA_TABS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFranja(f.key)}
-              aria-pressed={franjaEfectiva === f.key}
-              disabled={rango !== 'hoy' && f.key !== 'todas'}
-              title={rango !== 'hoy' && f.key !== 'todas' ? 'Las franjas aplican a la curva por hora' : undefined}
-              className={pillClass(franjaEfectiva === f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <span className="flex-1" />
-        <button type="button" onClick={() => showToast('Exportando la serie de consumo…')} className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-raised">
-          ↓ Exportar serie
-        </button>
-      </div>
 
-      <div className="flex shrink-0 flex-col">
-        <QueryStateView phase={loadCurves.phase} error={null}>
-          <div className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <KpiCard label="Pico de demanda" value={formatNumber(peak, 1)} unit="kW" sub="Máximo del periodo" positive />
-              <KpiCard label="Potencia media" value={formatNumber(promedio, 1)} unit="kW" sub="Promedio por punto" />
-              <KpiCard label="Factor de carga" value={formatNumber(factorCarga, 1)} unit="%" sub="Media / pico" />
-              <KpiCard label="Puntos de la serie" value={String(points.length)} sub={franjaEfectiva === 'todas' ? 'Serie completa' : 'Franja filtrada'} />
-            </div>
-
-            <div className="rounded-xl border border-card-border bg-card p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-semibold text-card-fg">Curva de carga agregada</h2>
-                  <p className="text-xs text-card-muted">Todos los centros · {RANGO_SUBTITLE[rango]}{FRANJA_SUBTITLE[franjaEfectiva]}</p>
-                </div>
-                <span className="rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-medium text-info-ink">Analítica de Consumo</span>
-              </div>
-              <LoadCurveChart series={[{ label: 'Potencia (kW)', color: 'var(--color-accent)', points }]} />
-            </div>
+        <QueryStateView phase={periodo.phase} error={null}>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <KpiTile variant="inverse" label="Consumo del período" value={formatNumber(energiaMwh, 1)} unit="MWh" sub="Estimado desde la demanda promedio" />
+            <KpiTile label="Demanda máxima agregada" value={formatNumber(peak, 1)} unit="kW" />
+            <KpiTile label="Consumo en horario punta" value={formatNumber(participacionPunta(perfil), 1)} unit="%" sub={`${PUNTA.desde}–${PUNTA.hasta} h · hoy`} />
+            <KpiTile label="Factor de carga" value={formatNumber(peak > 0 ? promedio / peak : 0, 2)} sub="Promedio / máximo" />
           </div>
         </QueryStateView>
-      </div>
 
-      <div className="rounded-xl border border-card-border bg-card p-4">
-        <h2 className="text-sm font-semibold text-card-fg">Comparativa entre centros</h2>
-        <p className="mb-3 text-xs text-card-muted">Elige dos centros para contrastar su patrón</p>
-        <div className="mb-4 flex flex-wrap gap-2">
-          {fleet.centros.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              aria-pressed={centrosComparados.includes(c.id)}
-              onClick={() => setSeleccionados(toggleComparacion(centrosComparados, c.id))}
-              className={pillClass(centrosComparados.includes(c.id))}
-            >
-              {c.name}
-            </button>
-          ))}
+        <div className="grid gap-4 xl:grid-cols-3">
+          <section className="min-w-0 rounded-xl bg-card p-5 xl:col-span-2">
+            <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-card-fg">Perfil horario · hoy</h2>
+                <p className="text-xs text-card-muted">kW promedio por hora · {centroId ? fleet.centros.find((c) => c.id === centroId)?.name : 'todos los centros'}</p>
+              </div>
+              <span className="flex items-center gap-1.5 text-[11px] text-muted"><span className="h-2 w-3 rounded-sm bg-warning-bg ring-1 ring-warning" />Horario punta {PUNTA.desde}–{PUNTA.hasta} h</span>
+            </header>
+            <QueryStateView phase={hoy.phase} error={null} variant="widget">
+              <PerfilHorario perfil={perfil} />
+            </QueryStateView>
+          </section>
+
+          <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch} variant="widget">
+            <IntensidadRanking centros={fleet.centros} onOpen={(id) => navigate(`${EMS_SECTION_PATHS.centros}/${id}`)} />
+          </QueryStateView>
         </div>
-        <QueryStateView phase={loadCurves.phase} error={null} variant="widget">
-          <LoadCurveChart
-            series={centrosComparados.flatMap((id, i) => {
-              const centro = fleet.centros.find((c) => c.id === id);
-              return centro ? [{ label: centro.name, color: COMPARACION_COLORS[i], points: inFranja(loadCurves.curves.get(id) ?? [], franjaEfectiva) }] : [];
-            })}
-          />
-        </QueryStateView>
+
+        <PicosDemanda curves={periodo.curves} centros={fleet.centros} isLoading={periodo.phase === 'loading'} rango={RANGOS[rango].label} />
       </div>
     </div>
   );
 }
 
-function KpiCard({ label, value, unit, sub, positive }: Readonly<{
-  label: string; value: string; unit?: string; sub: string; positive?: boolean;
-}>) {
+function PerfilHorario({ perfil }: Readonly<{ perfil: (number | null)[] }>) {
+  const max = Math.max(1, ...perfil.map((kw) => kw ?? 0));
   return (
-    <div className="rounded-xl border border-card-border bg-card px-4 py-3">
-      <p className="text-xs text-card-muted">{label}</p>
-      <p className="mt-1 font-mono text-2xl font-bold text-card-fg tabular-nums">
-        {value}
-        {unit && <span className="ml-0.5 text-sm font-normal text-card-muted">{unit}</span>}
-      </p>
-      <p className={`mt-1 text-[11px] ${positive ? 'text-success' : 'text-muted'}`}>{sub}</p>
+    <div className="flex flex-col gap-2">
+      <div className="relative flex h-52 items-end gap-1">
+        <div className="pointer-events-none absolute inset-y-0 flex justify-center rounded-md bg-warning-bg" style={{ left: `${(PUNTA.desde / HORAS) * 100}%`, width: `${((PUNTA.hasta - PUNTA.desde) / HORAS) * 100}%` }}>
+          <span className="-mt-2 h-fit rounded-full bg-warning px-2 text-[10px] font-medium text-accent-ink">Punta</span>
+        </div>
+        {perfil.map((kw, hora) => (
+          <div key={hora} title={kw === null ? `${hora}:00 · sin dato` : `${hora}:00 · ${formatNumber(kw, 1)} kW`}
+            className={`relative flex-1 rounded-t-sm ${kw === null ? 'bg-border' : 'bg-primary'}`}
+            style={{ height: `${kw === null ? 4 : Math.max(3, (kw / max) * 100)}%` }} />
+        ))}
+      </div>
+      <div className="flex justify-between font-mono text-[10px] text-muted">
+        {[0, 3, 6, 9, 12, 15, 18, 21, 23].map((hora) => <span key={hora}>{String(hora).padStart(2, '0')}</span>)}
+      </div>
     </div>
+  );
+}
+
+const RANKINGS = {
+  intensidad: { titulo: 'Intensidad por centro', sub: 'kWh por m² en el mes · de mayor a menor', valor: (c: Centro) => c.intensidadKwhM2 },
+  consumo: { titulo: 'Consumo por centro', sub: 'MWh en el mes · de mayor a menor · sin superficie registrada', valor: (c: Centro) => c.consumoMesKwh / 1000 },
+};
+
+function IntensidadRanking({ centros, onOpen }: Readonly<{ centros: Centro[]; onOpen: (id: string) => void }>) {
+  const metrica = RANKINGS[centros.some((c) => c.intensidadKwhM2 !== null) ? 'intensidad' : 'consumo'];
+  const ranking = centros.flatMap((c) => {
+    const valor = metrica.valor(c);
+    return valor === null ? [] : [{ id: c.id, name: c.name, valor }];
+  }).sort((a, b) => b.valor - a.valor);
+  const max = Math.max(1, ...ranking.map((r) => r.valor));
+  const tono = (i: number) => (i === 0 ? 'bg-danger' : i === 1 ? 'bg-warning' : i === ranking.length - 1 ? 'bg-success' : 'bg-border-strong');
+  return (
+    <section className="rounded-xl bg-card p-5">
+      <h2 className="text-sm font-semibold text-card-fg">{metrica.titulo}</h2>
+      <p className="mb-3 text-xs text-card-muted">{metrica.sub}</p>
+      {ranking.length === 0 ? <p className="text-xs text-muted">Sin consumo registrado en el mes.</p> : (
+        <ul className="flex flex-col gap-3">
+          {ranking.map((r, i) => (
+            <li key={r.id}>
+              <button type="button" onClick={() => onOpen(r.id)} className="w-full text-left">
+                <p className="flex justify-between text-xs"><span className="text-foreground">{r.name}</span><span className="font-mono text-foreground">{formatNumber(r.valor, 1)}</span></p>
+                <div className="mt-1 h-1.5 rounded-full bg-raised"><div className={`h-1.5 rounded-full ${tono(i)}`} style={{ width: `${(r.valor / max) * 100}%` }} /></div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {ranking.length < centros.length && <p className="mt-3 text-[11px] text-muted">{centros.length - ranking.length} centro(s) sin superficie registrada.</p>}
+    </section>
+  );
+}
+
+function PicosDemanda({ curves, centros, isLoading, rango }: Readonly<{ curves: Map<string, LoadPoint[]>; centros: Centro[]; isLoading: boolean; rango: string }>) {
+  const navigate = useNavigate();
+  const picos = centros
+    .flatMap((c) => {
+      const pico = (curves.get(c.id) ?? []).reduce<LoadPoint | null>((best, p) => (p.kw > (best?.kw ?? 0) ? p : best), null);
+      return pico ? [{ centro: c, pico }] : [];
+    })
+    .sort((a, b) => b.pico.kw - a.pico.kw)
+    .slice(0, PICOS);
+  return (
+    <section className="rounded-xl bg-card p-5">
+      <h2 className="mb-3 text-sm font-semibold text-card-fg">Picos de demanda · {rango}</h2>
+      {isLoading ? (
+        <div className="grid animate-pulse gap-3 md:grid-cols-3" role="status" aria-label="Cargando">
+          {Array.from({ length: PICOS }, (_, i) => <div key={i} className="h-24 rounded-lg bg-raised" />)}
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-3">
+          {picos.map(({ centro, pico }) => (
+            <button key={centro.id} type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${centro.id}`)} className="rounded-lg bg-raised p-3 text-left hover:bg-background">
+              <p className="text-sm text-foreground">{centro.name}</p>
+              <p className="font-mono text-[11px] text-muted">{new Date(pico.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-foreground">{formatNumber(pico.kw, 1)} <span className="text-xs font-normal text-muted">kW</span></p>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

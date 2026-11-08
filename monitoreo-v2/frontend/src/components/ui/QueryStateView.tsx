@@ -50,7 +50,7 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
     'No hay información para mostrar en este momento.';
 
   if (phase === 'loading') {
-    return <QueryLoadingPanel variant={variant} />;
+    return <LoadingSkeleton variant={variant} />;
   }
 
   if (phase === 'error') {
@@ -90,23 +90,26 @@ export function QueryStateView(props: QueryStateViewProps): ReactElement {
   );
 }
 
-function QueryLoadingPanel(props: { variant: QueryStateVariant }): ReactElement {
+export function LoadingSkeleton(props: { variant: QueryStateVariant }): ReactElement {
   const { variant } = props;
-  const isWidget = variant === 'widget';
+  if (variant === 'widget') {
+    return (
+      <div className="flex min-h-[8rem] animate-pulse flex-col gap-3 panel p-4" role="status" aria-label="Cargando">
+        <div className="h-3 w-1/3 rounded bg-raised" />
+        <div className="h-3 w-full rounded bg-raised" />
+        <div className="h-3 w-5/6 rounded bg-raised" />
+        <div className="h-3 w-2/3 rounded bg-raised" />
+      </div>
+    );
+  }
   return (
-    <div
-      className={`flex flex-col items-center justify-center panel ${
-        isWidget ? 'min-h-[8rem] gap-2 p-4' : 'min-h-[12rem] gap-4 p-8'
-      }`}
-    >
-      <div
-        className={`animate-spin rounded-full border-2 border-border border-t-gray-700 ${
-          isWidget ? 'size-8' : 'size-10'
-        }`}
-        role="status"
-        aria-label="Cargando"
-      />
-      <p className={isWidget ? 'text-xs text-muted' : 'text-sm text-muted'}>Cargando datos…</p>
+    <div className="flex animate-pulse flex-col gap-4" role="status" aria-label="Cargando">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="h-24 rounded-lg bg-surface" />
+        <div className="h-24 rounded-lg bg-surface" />
+        <div className="h-24 rounded-lg bg-surface" />
+      </div>
+      <div className="h-64 rounded-lg bg-surface" />
     </div>
   );
 }

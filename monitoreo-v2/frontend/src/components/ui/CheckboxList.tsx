@@ -45,12 +45,12 @@ function CheckboxListInner({ options, selected, onChange, maxHeight = '10rem', c
             <span
               className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
                 checked
-                  ? 'border-brand bg-brand'
+                  ? 'border-primary bg-primary'
                   : 'border-border bg-background'
               }`}
             >
               {checked && (
-                <svg className="size-3 text-brand-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <svg className="size-3 text-primary-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               )}

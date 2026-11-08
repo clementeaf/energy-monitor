@@ -217,7 +217,7 @@ export function IntegrationsPage() {
                   <button
                     type="button"
                     onClick={openCreate}
-                    className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+                    className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
                   >
                     Nueva integracion
                   </button>
@@ -390,7 +390,7 @@ export function IntegrationsPage() {
                   type="button"
                   onClick={submitForm}
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
                 >
                   Guardar
                 </button>

@@ -199,7 +199,7 @@ export function ConfigReleasesPage() {
               <li className="flex items-start gap-2"><span className="mt-0.5 text-foreground">•</span>Ambientes QA/sandbox y Producción independientes</li>
             </ul>
             <div className="flex gap-2">
-              <button type="button" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90">
+              <button type="button" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-background hover:bg-primary/90">
                 Solicitar despliegue a producción
               </button>
               <button type="button" className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface">

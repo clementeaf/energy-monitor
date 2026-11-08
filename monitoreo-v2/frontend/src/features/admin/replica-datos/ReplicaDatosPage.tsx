@@ -109,7 +109,7 @@ export function ReplicaDatosPage() {
             <p className="mb-2 text-xs text-muted">lag en segundos · últimas 24h</p>
             <div className="mb-1 flex items-center gap-3">
               <span className="flex items-center gap-1 text-xs text-muted">
-                <span className="inline-block h-3 w-3 rounded-sm bg-brand" /> lag (s)
+                <span className="inline-block h-3 w-3 rounded-sm bg-primary" /> lag (s)
               </span>
               <span className="flex items-center gap-1 text-xs text-muted">
                 <span className="inline-block h-0.5 w-4 bg-danger/60" style={{ borderTop: '2px dashed #ef4444' }} /> umbral 300 s
@@ -288,7 +288,7 @@ export function ReplicaDatosPage() {
             <p className="text-xs text-danger mt-0.5">El cambio se desplegó 27 días antes de cumplir el aviso a PASA.</p>
           </div>
           <div className="mt-3">
-            <button type="button" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90">
+            <button type="button" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-background hover:bg-primary/90">
               Notificar a PASA ahora
             </button>
           </div>

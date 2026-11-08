@@ -112,7 +112,7 @@ export function BuildingDetail({ detail, readings, alerts, country, selectedFloo
                   onClick={() => onSelectFloor(isActive ? null : floor.id)}
                   className={`relative rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-brand text-brand-fg'
+                      ? 'bg-primary text-primary-fg'
                       : 'bg-surface text-foreground hover:bg-surface/80'
                   }`}
                 >

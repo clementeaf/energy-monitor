@@ -16,3 +16,8 @@ export function formatMillonesClp(clp: number | null): string {
 export function formatPeriodo(periodo: Date): string {
   return periodo.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 }
+
+export function inicialesDe(nombre: string): string {
+  const [primero = '', segundo = ''] = nombre.split(/[^\p{L}]+/u).filter(Boolean);
+  return `${primero.charAt(0)}${segundo.charAt(0)}`.toUpperCase() || '?';
+}

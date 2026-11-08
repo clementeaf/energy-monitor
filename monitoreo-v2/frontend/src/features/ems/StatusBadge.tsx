@@ -1,20 +1,21 @@
 const BADGE_MAP = {
   operativo:   { label: 'Operativo',    icon: '✓', cls: 'text-success bg-success-bg' },
-  advertencia: { label: 'Advertencia',  icon: '⚠', cls: 'text-warning bg-warning-bg' },
+  advertencia: { label: 'Advertencia',  icon: '⚠', cls: 'text-warning-ink bg-warning-bg' },
   alarma:      { label: 'Alarma',       icon: '✕', cls: 'text-danger bg-danger-bg' },
   conectado:   { label: 'Conectado',    icon: '⚡', cls: 'text-success bg-success-bg' },
-  sin_senal:   { label: 'Sin señal',    icon: '⚠', cls: 'text-warning bg-warning-bg' },
+  sin_senal:   { label: 'Sin señal',    icon: '⚠', cls: 'text-warning-ink bg-warning-bg' },
   caido:       { label: 'Caído',        icon: '✕', cls: 'text-danger bg-danger-bg' },
   mantencion:  { label: 'Mantención',   icon: '⚙', cls: 'text-info-ink bg-info-bg' },
 } as const;
 
 type BadgeEstado = keyof typeof BADGE_MAP;
 
-export function StatusBadge({ estado }: Readonly<{ estado: BadgeEstado }>) {
+export function StatusBadge({ estado, detail }: Readonly<{ estado: BadgeEstado; detail?: string }>) {
   const b = BADGE_MAP[estado];
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${b.cls}`}>
       {b.icon} {b.label}
+      {detail && <span className="ml-0.5 font-mono font-normal opacity-80">{detail}</span>}
     </span>
   );
 }

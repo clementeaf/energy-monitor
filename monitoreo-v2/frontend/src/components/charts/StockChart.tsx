@@ -90,7 +90,7 @@ function StockChartInner({ options, className, loading, onRangeChange }: Readonl
       />
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
         </div>
       )}
     </div>

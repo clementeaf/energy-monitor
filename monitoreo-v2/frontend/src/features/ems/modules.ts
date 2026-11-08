@@ -15,7 +15,7 @@ export const ADDON_MODULES: Record<ModuloId, AddonModule> = {
     features: ['Curvas de carga por hora', 'Detección de picos', 'Comparativa entre centros'],
   },
   margenes: {
-    colorClass: 'text-warning bg-warning-bg',
+    colorClass: 'text-warning-ink bg-warning-bg',
     addon: 'Márgenes',
     sub: 'Compra vs venta por centro',
     features: ['Compra vs venta por centro', 'Margen por cliente', 'Alerta de margen mínimo'],
@@ -33,10 +33,16 @@ export const ADDON_MODULES: Record<ModuloId, AddonModule> = {
     features: ['Reglas de pico y umbral', 'Aviso de desconexión', 'Notificación por correo y app'],
   },
   reportes: {
-    colorClass: 'text-violet-500 bg-violet-500/15',
+    colorClass: 'text-module-reportes-ink bg-module-reportes-bg',
     addon: 'Reportes',
     sub: 'Export y programación',
     features: ['Export PDF y Excel', 'Reportes programados', 'Envío automático a clientes'],
+  },
+  facturacion: {
+    colorClass: 'text-module-facturacion-ink bg-module-facturacion-bg',
+    addon: 'Facturación',
+    sub: 'Notas de cobro y facturas para backoffice',
+    features: ['Notas de cobro por centro', 'Factura vinculada (ERP o carga manual)', 'Descarga PDF, Excel y ZIP'],
   },
 };
 

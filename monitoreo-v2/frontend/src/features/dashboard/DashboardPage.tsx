@@ -424,7 +424,7 @@ function SeverityDot({ severity }: Readonly<{ severity: string }>) {
     critical: 'bg-danger',
     high: 'bg-warning',
     medium: 'bg-warning/100',
-    low: 'bg-brand',
+    low: 'bg-primary',
   };
   return <span className={`inline-block size-2 rounded-full ${colors[severity] ?? 'bg-subtle'}`} />;
 }

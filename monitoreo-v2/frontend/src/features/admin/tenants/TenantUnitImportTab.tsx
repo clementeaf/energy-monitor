@@ -191,7 +191,7 @@ export function TenantUnitImportTab({ onViewTenants }: Readonly<TenantUnitImport
                   type="button"
                   onClick={() => { setStatusFilter(value); setRowsOffset(0); }}
                   className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    active ? 'bg-brand text-brand-fg' : 'bg-surface text-muted hover:text-foreground'
+                    active ? 'bg-primary text-primary-fg' : 'bg-surface text-muted hover:text-foreground'
                   }`}
                 >
                   {label}

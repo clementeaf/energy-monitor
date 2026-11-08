@@ -41,8 +41,8 @@ export function SortableTh<K extends string>({ label, sortKey, sort, onToggle, a
 }>) {
   const isActive = sort.key === sortKey;
   return (
-    <th aria-sort={isActive ? ARIA_SORT[sort.direction] : 'none'} className={`px-5 py-2.5 text-xs font-medium uppercase tracking-wider ${alignRight ? 'text-right' : 'text-left'}`}>
-      <button type="button" onClick={() => onToggle(sortKey)} title={`Ordenar por ${label}`} className={`uppercase hover:text-foreground ${isActive ? 'text-accent' : 'text-muted'}`}>
+    <th aria-sort={isActive ? ARIA_SORT[sort.direction] : 'none'} className={`px-5 py-2.5 text-[11px] font-normal ${alignRight ? 'text-right' : 'text-left'}`}>
+      <button type="button" onClick={() => onToggle(sortKey)} title={`Ordenar por ${label}`} className={`hover:text-foreground ${isActive ? 'text-primary' : 'text-muted'}`}>
         {label}{isActive && (sort.direction === 'asc' ? ' ↑' : ' ↓')}
       </button>
     </th>
@@ -122,4 +122,38 @@ export function useSelection() {
     toggleAll: (ids: string[]) => setSelected((current) => (ids.length > 0 && ids.every((id) => current.has(id)) ? new Set() : new Set(ids))),
     clear: () => setSelected(new Set()),
   };
+}
+
+export interface RowMenuItem {
+  label: string;
+  onSelect: () => void;
+  isDanger?: boolean;
+}
+
+export function RowMenu({ label, items }: Readonly<{ label: string; items: RowMenuItem[] }>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [isOpen]);
+  return (
+    <div ref={ref} className="relative" onClick={(event) => event.stopPropagation()}>
+      <button type="button" aria-label={label} aria-expanded={isOpen} onClick={() => setIsOpen((open) => !open)} className="rounded-md px-2 py-1 text-muted hover:bg-raised hover:text-foreground">⋯</button>
+      {isOpen && (
+        <div role="menu" className="absolute right-0 z-20 mt-1 min-w-48 rounded-lg border border-border bg-surface py-1 shadow-float">
+          {items.map((item) => (
+            <button key={item.label} type="button" role="menuitem" onClick={() => { setIsOpen(false); item.onSelect(); }}
+              className={`block w-full px-3 py-2 text-left text-xs hover:bg-raised ${item.isDanger ? 'text-danger' : 'text-foreground'}`}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

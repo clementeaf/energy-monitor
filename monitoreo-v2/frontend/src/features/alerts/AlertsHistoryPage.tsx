@@ -175,7 +175,7 @@ export function AlertsHistoryPage(): ReactElement {
               type="button"
               onClick={() => setChartTab('trend')}
               className={`px-2.5 py-0.5 text-xs rounded-l-full transition-colors ${
-                chartTab === 'trend' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
+                chartTab === 'trend' ? 'rounded-full bg-primary text-primary-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
               Tendencia
@@ -184,7 +184,7 @@ export function AlertsHistoryPage(): ReactElement {
               type="button"
               onClick={() => setChartTab('sla')}
               className={`px-2.5 py-0.5 text-xs rounded-r-full transition-colors ${
-                chartTab === 'sla' ? 'rounded-full bg-brand text-brand-fg shadow-sm' : 'text-muted hover:bg-surface'
+                chartTab === 'sla' ? 'rounded-full bg-primary text-primary-fg shadow-sm' : 'text-muted hover:bg-surface'
               }`}
             >
               SLA

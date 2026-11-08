@@ -163,7 +163,7 @@ export function MeterDetailPage() {
             onClick={() => setSelectedMetric(i)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               i === selectedMetric
-                ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                ? 'rounded-full bg-primary text-primary-fg shadow-sm'
                 : 'border border-border text-muted hover:bg-surface'
             }`}
           >

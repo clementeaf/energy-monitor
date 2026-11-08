@@ -282,7 +282,7 @@ export function CalidadBackfillPage() {
                             <td className="px-2 py-1.5 text-muted">{new Date(job.fromTs).toLocaleDateString('es-CL')} — {new Date(job.toTs).toLocaleDateString('es-CL')}</td>
                             <td className="px-2 py-1.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                <div className="h-1.5 w-16 rounded-full bg-surface"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
+                                <div className="h-1.5 w-16 rounded-full bg-surface"><div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} /></div>
                                 <span className="font-medium text-foreground">{pct}%</span>
                               </div>
                             </td>

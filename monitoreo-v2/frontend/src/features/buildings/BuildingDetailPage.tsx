@@ -191,7 +191,7 @@ export function BuildingDetailPage() {
                 onClick={() => setChartMetric(key)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   key === chartMetric
-                    ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+                    ? 'rounded-full bg-primary text-primary-fg shadow-sm'
                     : 'border border-border text-muted hover:bg-surface'
                 }`}
               >
@@ -506,7 +506,7 @@ function TabBtn({ label, active, onClick, count }: Readonly<{ label: string; act
       onClick={onClick}
       className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
         active
-          ? 'rounded-full bg-brand text-brand-fg shadow-sm'
+          ? 'rounded-full bg-primary text-primary-fg shadow-sm'
           : 'border border-border text-muted hover:bg-surface'
       }`}
     >

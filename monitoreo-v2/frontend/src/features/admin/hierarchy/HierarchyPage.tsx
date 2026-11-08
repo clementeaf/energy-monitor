@@ -92,7 +92,7 @@ export function HierarchyPage() {
             <button
               type="button"
               onClick={() => { openCreate(null); }}
-              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
             >
               Nuevo Nodo Raiz
             </button>
@@ -292,7 +292,7 @@ function NodeFormModal({
           <button
             type="submit"
             disabled={isPending || !name}
-            className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : isEdit ? 'Guardar' : 'Crear'}
           </button>

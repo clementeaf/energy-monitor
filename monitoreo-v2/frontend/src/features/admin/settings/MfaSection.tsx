@@ -105,7 +105,7 @@ export function MfaSection(): ReactElement {
             type="button"
             onClick={() => setupMutation.mutate()}
             disabled={setupMutation.isPending}
-            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
           >
             {setupMutation.isPending ? 'Generando...' : 'Configurar MFA'}
           </button>
@@ -144,7 +144,7 @@ export function MfaSection(): ReactElement {
                   type="button"
                   onClick={handleVerify}
                   disabled={verifyMutation.isPending}
-                  className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
                 >
                   {verifyMutation.isPending ? 'Verificando...' : 'Verificar'}
                 </button>
@@ -244,7 +244,7 @@ function PasskeySection() {
             type="button"
             onClick={() => registerMutation.mutate()}
             disabled={registerMutation.isPending}
-            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
           >
             {registerMutation.isPending ? 'Registrando...' : 'Registrar passkey'}
           </button>

@@ -1,22 +1,26 @@
 import type { NavModuleIconName } from '../../components/layout/sidebar-icons';
+import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
+import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
 import { useAppStore } from '../../store/useAppStore';
 import { isAddonSection } from './modules';
 import { canViewSection, EMS_SECTION_PATHS, type EmsSection } from './roles';
 import { useEmsAlertas } from './useEmsFleet';
 import { useEmsRole } from './useEmsRole';
 
-export type NavGroup = 'Núcleo' | 'Add-ons' | 'Sistema';
+export type NavGroup = 'Núcleo' | 'Add-ons' | 'Cuenta';
 
 export const EMS_SECTION_NAV: Record<EmsSection, { label: string; icon: NavModuleIconName; group: NavGroup }> = {
   resumen: { label: 'Resumen', icon: 'gauge', group: 'Núcleo' },
   centros: { label: 'Centros', icon: 'building', group: 'Núcleo' },
   remarcadores: { label: 'Remarcadores', icon: 'cpu', group: 'Núcleo' },
-  consumo: { label: 'Consumo', icon: 'analytics', group: 'Add-ons' },
+  terreno: { label: 'Mis tareas', icon: 'alerts', group: 'Núcleo' },
+  consumo: { label: 'Analítica de Consumo', icon: 'analytics', group: 'Add-ons' },
   margenes: { label: 'Márgenes', icon: 'coins', group: 'Add-ons' },
   sostenibilidad: { label: 'Sostenibilidad', icon: 'leaf', group: 'Add-ons' },
   alertas: { label: 'Alertas', icon: 'alerts', group: 'Add-ons' },
   reportes: { label: 'Reportes', icon: 'file', group: 'Add-ons' },
-  configuracion: { label: 'Configuración', icon: 'settings', group: 'Sistema' },
+  facturacion: { label: 'Facturación', icon: 'billing', group: 'Add-ons' },
+  configuracion: { label: 'Configuración', icon: 'settings', group: 'Cuenta' },
 };
 
 export function findSectionLabel(pathname: string): string | undefined {
@@ -40,7 +44,15 @@ export interface EmsNavItem {
 export function useEmsNavItems(): EmsNavItem[] {
   const role = useEmsRole();
   const modulosActivos = useAppStore((s) => s.modulosActivos);
-  const { criticas } = useEmsAlertas();
+  const centrosSimulados = useAppStore((s) => s.centrosSimulados);
+  const buildingsQuery = useBuildingsQuery();
+  const metersQuery = useMetersQuery();
+  const { activas } = useEmsAlertas();
+  const badges: Partial<Record<EmsSection, number>> = {
+    centros: (buildingsQuery.data?.length ?? 0) + centrosSimulados.length,
+    remarcadores: metersQuery.data?.length ?? 0,
+    alertas: activas.length,
+  };
 
   return (Object.keys(EMS_SECTION_NAV) as EmsSection[])
     .filter((section) => canViewSection(role, section))
@@ -51,7 +63,7 @@ export function useEmsNavItems(): EmsNavItem[] {
         ...EMS_SECTION_NAV[section],
         path: EMS_SECTION_PATHS[section],
         isLocked,
-        badge: section === 'alertas' && !isLocked ? criticas : 0,
+        badge: isLocked ? 0 : badges[section] ?? 0,
       };
     });
 }

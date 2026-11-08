@@ -259,7 +259,7 @@ export function DatosCrudosPage() {
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
         <Button
-          className="bg-brand text-background hover:opacity-90"
+          className="bg-primary text-background hover:opacity-90"
           onClick={handleExportParquet}
           disabled={selectedMeterIds.length === 0}
         >

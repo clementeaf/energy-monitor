@@ -269,7 +269,7 @@ export function CompanyForm({
       <button
         type="submit"
         disabled={isSubmitDisabled}
-        className="mt-2 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover disabled:opacity-50"
+        className="mt-2 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-fg transition-colors hover:bg-primary-hover disabled:opacity-50"
       >
         {isPending
           ? (isCreate ? 'Creando...' : 'Guardando...')

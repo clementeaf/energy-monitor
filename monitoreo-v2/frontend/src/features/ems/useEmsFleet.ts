@@ -13,6 +13,7 @@ import {
   startOfDay,
   startOfMonth,
   toLoadCurves,
+  toNumber,
   type Centro,
   type LoadPoint,
   type Remarcador,
@@ -24,7 +25,7 @@ export type EmsPhase = 'loading' | 'error' | 'ready';
 
 const LOAD_RANGES: Record<LoadRange, { days: number; interval: AggregationInterval }> = {
   hoy: { days: 0, interval: 'hourly' },
-  '7dias': { days: 7, interval: 'hourly' },
+  '7dias': { days: 7, interval: 'daily' },
   '30dias': { days: 30, interval: 'daily' },
 };
 
@@ -34,6 +35,7 @@ export interface EmsFleet {
   refetch: () => void;
   centros: Centro[];
   remarcadores: Remarcador[];
+  consumoPorRemarcador: Record<string, number>;
   periodo: Date;
 }
 
@@ -72,6 +74,11 @@ export function useEmsFleet(): EmsFleet {
     return { remarcadores: fleet, centros: [...buildCentros(buildings, fleet, monthlyQuery.data ?? []), ...centrosSimulados.map(toCentroSinRemarcadores)] };
   }, [buildingsQuery.data, metersQuery.data, latestQuery.data, monthlyQuery.data, remarcadorOverrides, centrosSimulados]);
 
+  const consumoPorRemarcador = useMemo(
+    () => Object.fromEntries((monthlyQuery.data ?? []).map((row) => [row.meter_id, toNumber(row.energy_delta_kwh) ?? 0])),
+    [monthlyQuery.data],
+  );
+
   const phase: EmsPhase = failed ? 'error' : queries.some((query) => query.isPending) ? 'loading' : 'ready';
 
   return {
@@ -80,6 +87,7 @@ export function useEmsFleet(): EmsFleet {
     refetch: () => queries.forEach((query) => void query.refetch()),
     centros,
     remarcadores,
+    consumoPorRemarcador,
     periodo,
   };
 }

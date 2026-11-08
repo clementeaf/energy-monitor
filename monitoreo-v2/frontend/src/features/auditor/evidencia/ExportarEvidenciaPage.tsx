@@ -188,7 +188,7 @@ export function ExportarEvidenciaPage() {
               <Button
                 disabled={selected.size === 0}
                 loading={generateReport.isPending}
-                className="bg-brand text-background"
+                className="bg-primary text-background"
                 onClick={handleGenerate}
               >
                 Generar paquete firmado

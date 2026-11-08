@@ -226,7 +226,7 @@ function RoleSwitcher({
         <button
           type="button"
           onClick={onReset}
-          className="rounded-md bg-danger px-2 py-1 text-xs font-medium text-brand-fg hover:bg-danger/90"
+          className="rounded-md bg-danger px-2 py-1 text-xs font-medium text-primary-fg hover:bg-danger/90"
         >
           Reset
         </button>

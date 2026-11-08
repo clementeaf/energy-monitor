@@ -186,7 +186,7 @@ export function AlertsPage() {
                 onClick={() => { if (a.meterId) navigate('/monitoring/meter/' + a.meterId); }}
                 className={`cursor-pointer transition-colors duration-500 ${
                   a.id === highlightId
-                    ? 'bg-brand-muted ring-1 ring-inset ring-foreground/30'
+                    ? 'bg-accent-subtle ring-1 ring-inset ring-foreground/30'
                     : 'hover:bg-surface'
                 }`}
               >

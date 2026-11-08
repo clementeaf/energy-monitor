@@ -287,7 +287,7 @@ export function PistaAuditoriaPage() {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-background hover:bg-brand/90"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-background hover:bg-primary/90"
             >
               Exportar CSV completo
             </button>

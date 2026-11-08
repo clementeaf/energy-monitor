@@ -111,7 +111,7 @@ export function ProfilePage() {
                     type="button"
                     onClick={() => updateNameMutation.mutate(nameValue)}
                     disabled={updateNameMutation.isPending || nameValue.length < 2}
-                    className="rounded-full bg-brand px-3 py-1 text-xs font-medium text-brand-fg hover:opacity-90 disabled:opacity-50"
+                    className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-fg hover:opacity-90 disabled:opacity-50"
                   >
                     Guardar
                   </button>

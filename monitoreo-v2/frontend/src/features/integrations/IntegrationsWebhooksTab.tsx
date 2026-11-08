@@ -123,7 +123,7 @@ export function IntegrationsWebhooksTab() {
             <button
               type="button"
               onClick={() => { resetForm(); setCreateOpen(true); }}
-              className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-fg hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:opacity-90"
             >
               Nueva suscripcion
             </button>

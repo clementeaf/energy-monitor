@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { useAppStore } from '../../store/useAppStore';
-import { useToastStore } from '../../store/useToastStore';
+import { useNavigate } from 'react-router';
 import { QueryStateView } from '../../components/ui/QueryStateView';
+import { useAppStore } from '../../store/useAppStore';
+import { usePageTitle } from '../../store/usePageTitleStore';
+import { descargarArchivo } from './exportar';
 import { formatMillonesClp, formatNumber, formatPeriodo } from './format';
-import type { MargenCentro } from './tariffs';
-import { sumarMargenes } from './tariffs';
-import { SortableTh, sortRows, useSort } from './table';
+import { KpiTile } from './KpiTile';
+import { PageAction } from './PageAction';
+import { canEditSection, EMS_SECTION_PATHS } from './roles';
+import { sumarMargenes, type MargenCentro } from './tariffs';
 import { useEmsFleet } from './useEmsFleet';
-
-type SortKey = 'nombre' | 'compra' | 'venta' | 'margen' | 'pct';
+import { useEmsRole } from './useEmsRole';
 
 interface CentroMargen extends MargenCentro {
   id: string;
@@ -16,198 +17,115 @@ interface CentroMargen extends MargenCentro {
   cliente: string;
 }
 
-const SORT_GETTERS: Record<SortKey, (c: CentroMargen) => string | number> = {
-  nombre: (c) => c.name,
-  compra: (c) => c.costoCompraClp,
-  venta: (c) => c.precioVentaClp,
-  margen: (c) => c.margenClp,
-  pct: (c) => c.margenPct,
+type EstadoMargen = 'bajo' | 'observacion' | 'sobre';
+
+const BANDA_OBSERVACION_PTS = 7;
+const ESTADO_MARGEN: Record<EstadoMargen, { label: string; cls: string; bar: string }> = {
+  bajo: { label: '! Bajo el mínimo', cls: 'text-danger-ink bg-danger-bg', bar: 'bg-danger' },
+  observacion: { label: '⚠ En observación', cls: 'text-warning-ink bg-warning-bg', bar: 'bg-warning' },
+  sobre: { label: '✓ Sobre el mínimo', cls: 'text-success-ink bg-success-bg', bar: 'bg-primary' },
 };
 
-type Vista = 'monto' | 'porcentaje';
-
-const VISTA_CHART: Record<Vista, { title: string; sub: string; value: (c: CentroMargen) => number; label: (c: CentroMargen) => string }> = {
-  monto: { title: 'Margen en monto', sub: 'Millones de pesos', value: (c) => c.margenClp, label: (c) => formatMillonesClp(c.margenClp) },
-  porcentaje: { title: 'Margen porcentual', sub: 'Porcentaje sobre la venta', value: (c) => c.margenPct, label: (c) => `${formatNumber(c.margenPct, 1)}%` },
-};
-
-export function MargenesPage() {
-  const [vista, setVista] = useState<Vista>('monto');
-  const minimoContractual = useAppStore((s) => s.margenMinimo);
-  const setMinimoContractual = useAppStore((s) => s.setMargenMinimo);
-
-  const fleet = useEmsFleet();
-  const centros: CentroMargen[] = fleet.centros.flatMap((c) =>
-    c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, ...c.margen }] : []);
-  const total = sumarMargenes(centros);
-  const periodo = formatPeriodo(fleet.periodo);
-  const centrosBajoMinimo = centros.filter((c) => c.margenPct < minimoContractual).length;
-
-  const showToast = useToastStore((s) => s.showToast);
-  const { sort, toggleSort } = useSort<SortKey>({ key: 'margen', direction: 'desc' });
-  const centrosOrdenados = sortRows(centros, sort, SORT_GETTERS);
-  const maxVenta = Math.max(...centros.map((c) => c.precioVentaClp), 1);
-  const chart = VISTA_CHART[vista];
-  const maxChart = Math.max(...centros.map(chart.value), 1);
-
-  return (
-    <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
-      <div className="flex h-full flex-col gap-5 overflow-y-auto p-4 md:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Márgenes</h1>
-            <p className="text-xs text-muted">Costo de compra contra precio de venta · {periodo}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex rounded-lg border border-border">
-              <button
-                type="button"
-                onClick={() => setVista('monto')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-l-lg ${vista === 'monto' ? 'bg-card-fg text-card' : 'text-muted hover:bg-surface'}`}
-              >
-                Monto
-              </button>
-              <button
-                type="button"
-                onClick={() => setVista('porcentaje')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-r-lg ${vista === 'porcentaje' ? 'bg-card-fg text-card' : 'text-muted hover:bg-surface'}`}
-              >
-                Porcentaje
-              </button>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted">
-              <span>Mínimo contractual</span>
-              <input
-                type="number"
-                min={0}
-                max={60}
-                value={minimoContractual}
-                onChange={(e) => setMinimoContractual(Number(e.target.value))}
-                className="w-12 rounded border border-border bg-surface px-2 py-1 text-center font-mono text-xs text-foreground focus:border-accent focus:outline-none"
-              />
-              <span>%</span>
-            </div>
-          </div>
-          <button type="button" onClick={() => showToast('Exportando el detalle de márgenes…')} className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-raised">
-            ↓ Exportar
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiCard label="Ingreso por venta" value={formatMillonesClp(total.precioVentaClp)} delta={periodo} positive />
-          <KpiCard label="Costo de compra" value={formatMillonesClp(total.costoCompraClp)} delta={periodo} />
-          <KpiCard label="Margen bruto" value={formatMillonesClp(total.margenClp)} delta={`${formatNumber(total.margenPct, 1)}% sobre venta`} positive />
-          <KpiCard label="Centros bajo el mínimo" value={String(centrosBajoMinimo)} delta={centrosBajoMinimo > 0 ? `↓ Mínimo ${minimoContractual}%` : `Mínimo ${minimoContractual}%`} negative={centrosBajoMinimo > 0} />
-        </div>
-
-        <div className="rounded-xl border border-card-border bg-card p-4">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-card-border">
-                  <SortableTh label="Centro" sortKey="nombre" sort={sort} onToggle={toggleSort} />
-                  <SortableTh label="Compra" sortKey="compra" sort={sort} onToggle={toggleSort} />
-                  <SortableTh label="Venta" sortKey="venta" sort={sort} onToggle={toggleSort} />
-                  <SortableTh label="Margen" sortKey="margen" sort={sort} onToggle={toggleSort} />
-                  <SortableTh label="%" sortKey="pct" sort={sort} onToggle={toggleSort} />
-                  <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border">
-                {centrosOrdenados.map((c) => {
-                  const sobreMinimo = c.margenPct >= minimoContractual;
-                  return (
-                    <tr key={c.id} className="hover:bg-surface">
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-foreground">{c.name}</p>
-                        <p className="text-xs text-muted">{c.cliente}</p>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-sm text-foreground tabular-nums">{formatMillonesClp(c.costoCompraClp)}</td>
-                      <td className="px-4 py-3 font-mono text-sm text-foreground tabular-nums">{formatMillonesClp(c.precioVentaClp)}</td>
-                      <td className="px-4 py-3 font-mono text-sm font-medium text-foreground tabular-nums">{formatMillonesClp(c.margenClp)}</td>
-                      <td className={`px-4 py-3 font-mono text-sm tabular-nums ${sobreMinimo ? 'text-success' : 'text-danger'}`}>{formatNumber(c.margenPct, 1)}%</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${sobreMinimo ? 'text-success bg-success-bg' : 'text-danger bg-danger-bg'}`}>
-                          {sobreMinimo ? '✓' : '✕'} {sobreMinimo ? 'Sobre el mínimo' : 'Bajo el mínimo'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-card-border bg-card p-4">
-            <h2 className="text-sm font-semibold text-card-fg">Compra vs venta</h2>
-            <p className="mb-4 text-xs text-card-muted">La barra completa es el precio de venta</p>
-            <div className="space-y-3">
-              {centrosOrdenados.map((c) => {
-                const compraPct = (c.costoCompraClp / maxVenta) * 100;
-                const margenPctBarra = (c.margenClp / maxVenta) * 100;
-                return (
-                  <div key={c.id} className="flex items-center gap-3">
-                    <span className="w-36 truncate text-xs text-card-fg">{c.name}</span>
-                    <div className="flex h-3 flex-1 overflow-hidden rounded-full">
-                      <div className="h-full bg-subtle" style={{ width: `${compraPct}%` }} />
-                      <div className="h-full bg-accent" style={{ width: `${margenPctBarra}%` }} />
-                    </div>
-                    <span className="w-14 text-right font-mono text-xs text-card-muted tabular-nums">{formatMillonesClp(c.precioVentaClp)}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-3 flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-[10px] text-card-muted">
-                <span className="h-2 w-3 rounded-sm bg-subtle" /> Costo de compra
-              </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-card-muted">
-                <span className="h-2 w-3 rounded-sm bg-accent" /> Margen
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-card-border bg-card p-4">
-            <h2 className="text-sm font-semibold text-card-fg">{chart.title}</h2>
-            <p className="mb-4 text-xs text-card-muted">{chart.sub}</p>
-            <div className="space-y-3">
-              {centrosOrdenados.map((c) => {
-                const pct = (chart.value(c) / maxChart) * 100;
-                const color = c.margenPct >= minimoContractual ? 'var(--color-accent)' : 'var(--color-danger)';
-                return (
-                  <div key={c.id} className="flex items-center gap-3">
-                    <span className="w-36 truncate text-xs text-card-fg">{c.name}</span>
-                    <div className="flex-1">
-                      <div className="h-3 rounded-full bg-raised">
-                        <div className="h-3 rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
-                      </div>
-                    </div>
-                    <span className="w-14 text-right font-mono text-xs text-card-muted tabular-nums">{chart.label(c)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </QueryStateView>
-  );
+export function estadoMargen(margenPct: number, minimoPct: number): EstadoMargen {
+  if (margenPct < minimoPct) return 'bajo';
+  if (margenPct < minimoPct + BANDA_OBSERVACION_PTS) return 'observacion';
+  return 'sobre';
 }
 
-function KpiCard({ label, value, delta, positive, negative }: Readonly<{
-  label: string; value: string; delta?: string; positive?: boolean; negative?: boolean;
-}>) {
-  const deltaColor = negative ? 'text-danger' : positive ? 'text-success' : 'text-muted';
+export function MargenesPage() {
+  const navigate = useNavigate();
+  const minimo = useAppStore((s) => s.margenMinimo);
+  const setMinimo = useAppStore((s) => s.setMargenMinimo);
+  const canEdit = canEditSection(useEmsRole(), 'margenes');
+  const fleet = useEmsFleet();
+  const centros: CentroMargen[] = fleet.centros
+    .flatMap((c) => (c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, ...c.margen }] : []))
+    .sort((a, b) => a.margenPct - b.margenPct);
+  const total = sumarMargenes(centros);
+  const periodo = formatPeriodo(fleet.periodo);
+  const maxPct = Math.max(minimo + BANDA_OBSERVACION_PTS, ...centros.map((c) => c.margenPct), 1);
+  const ordenados = [...centros].sort((a, b) => b.margenPct - a.margenPct);
+
+  const exportar = () => {
+    const filas = [['Centro', 'Cliente', 'Venta', 'Compra', 'Margen', '%', 'Estado'], ...centros.map((c) => [c.name, c.cliente, formatNumber(c.precioVentaClp), formatNumber(c.costoCompraClp), formatNumber(c.margenClp), formatNumber(c.margenPct, 1), ESTADO_MARGEN[estadoMargen(c.margenPct, minimo)].label])];
+    descargarArchivo(`margenes-${fleet.periodo.toLocaleDateString('sv-SE').slice(0, 7)}.csv`, `﻿${filas.map((fila) => fila.join(';')).join('\n')}`, 'text/csv;charset=utf-8');
+  };
+
+  usePageTitle('Márgenes', `Add-ons / Márgenes · ${periodo}`, <PageAction label="↓ Exportar" onClick={exportar} />);
+
   return (
-    <div className="rounded-xl border border-card-border bg-card px-4 py-3">
-      <p className="text-xs text-card-muted">{label}</p>
-      <p className="mt-1 font-mono text-2xl font-bold text-card-fg tabular-nums">{value}</p>
-      {delta && <p className={`mt-1 text-[11px] ${deltaColor}`}>{delta}</p>}
+    <div className="h-full overflow-y-auto p-4 md:p-6">
+      <QueryStateView phase={fleet.phase} error={fleet.error} refetch={fleet.refetch}>
+        <div className="flex flex-col gap-4">
+          {canEdit && (
+            <label className="flex items-center gap-1.5 self-end text-xs text-muted">
+              Mínimo contractual
+              <input type="number" min={0} max={60} value={minimo} onChange={(e) => setMinimo(Number(e.target.value))}
+                className="w-14 rounded-lg border border-border bg-surface px-2 py-1 text-center font-mono text-xs text-foreground focus:border-accent focus:outline-none" />
+              %
+            </label>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <KpiTile label="Venta de energía" value={formatMillonesClp(total.precioVentaClp)} unit="CLP" sub={periodo} />
+            <KpiTile label="Costo de compra" value={formatMillonesClp(total.costoCompraClp)} unit="CLP" sub={periodo} />
+            <KpiTile variant="inverse" label="Margen" value={formatMillonesClp(total.margenClp)} unit="CLP" sub={periodo} />
+            <KpiTile label="Margen promedio" value={formatNumber(total.margenPct, 1)} unit="%" sub={`Mínimo ${formatNumber(minimo)} %`} tone={total.margenPct < minimo ? 'negative' : 'neutral'} />
+          </div>
+
+          <section className="rounded-xl bg-card p-5">
+            <h2 className="text-sm font-semibold text-card-fg first-letter:uppercase">Margen por centro · {periodo}</h2>
+            <p className="mb-4 text-xs text-card-muted">% sobre la venta · línea punteada: mínimo contractual {formatNumber(minimo)} %</p>
+            {centros.length === 0 ? <p className="py-8 text-center text-xs text-muted">Ningún centro tiene tarifa de compra y venta configurada.</p> : (
+              <div className="flex flex-col gap-1.5">
+                <div className="relative mt-5 flex h-52 items-end gap-3">
+                  <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-danger" style={{ bottom: `${(minimo / maxPct) * 100}%` }} />
+                  {ordenados.map((c) => (
+                    <button key={c.id} type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${c.id}`)} title={`${c.name} · ${formatNumber(c.margenPct, 1)} %`}
+                      className="relative mx-auto w-full max-w-24 flex-1 rounded-t-md" style={{ height: `${Math.max(2, (c.margenPct / maxPct) * 100)}%` }}>
+                      <span className={`absolute inset-0 rounded-t-md ${ESTADO_MARGEN[estadoMargen(c.margenPct, minimo)].bar}`} />
+                      <span className="absolute -top-5 inset-x-0 text-center font-mono text-[11px] text-foreground">{formatNumber(c.margenPct, 1)} %</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  {ordenados.map((c) => <span key={c.id} className="mx-auto w-full max-w-24 flex-1 truncate text-center text-[10px] text-muted">{c.name}</span>)}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-xl bg-card">
+            <h2 className="px-5 py-4 text-sm font-semibold text-card-fg">Detalle por centro</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-raised">
+                    {['Centro · cliente', 'Venta', 'Compra', 'Margen', '%', 'Estado'].map((label) => (
+                      <th key={label} className={`px-5 py-2.5 text-[11px] font-normal text-muted ${['Venta', 'Compra', 'Margen', '%'].includes(label) ? 'text-right' : 'text-left'}`}>{label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-card-border">
+                  {centros.map((c) => {
+                    const estado = ESTADO_MARGEN[estadoMargen(c.margenPct, minimo)];
+                    return (
+                      <tr key={c.id} onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${c.id}`)} className="cursor-pointer hover:bg-raised">
+                        <td className="px-5 py-3 text-sm text-foreground">{c.name} · <span className="text-muted">{c.cliente}</span></td>
+                        <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.precioVentaClp)}</td>
+                        <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.costoCompraClp)}</td>
+                        <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.margenClp)}</td>
+                        <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">{formatNumber(c.margenPct, 1)} %</td>
+                        <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${estado.cls}`}>{estado.label}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </QueryStateView>
     </div>
   );
 }

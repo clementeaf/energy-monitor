@@ -12,7 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLS: Record<ButtonVariant, string> = {
   primary:
-    'bg-brand text-brand-fg hover:bg-brand-hover focus:ring-border',
+    'bg-primary text-primary-fg hover:bg-primary-hover focus:ring-border',
   secondary:
     'border border-border bg-background text-foreground hover:bg-surface hover:border-subtle focus:ring-border',
   danger:

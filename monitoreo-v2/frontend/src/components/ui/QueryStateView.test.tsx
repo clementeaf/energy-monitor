@@ -13,14 +13,14 @@ describe('QueryStateView', () => {
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
 
-  it('shows loading spinner during loading phase', () => {
+  it('shows a skeleton without loading text during loading phase', () => {
     render(
       <QueryStateView phase="loading" error={null}>
         <p>Content</p>
       </QueryStateView>,
     );
-    expect(screen.getByRole('status')).toBeInTheDocument();
-    expect(screen.getByText('Cargando datos…')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Cargando' })).toBeInTheDocument();
+    expect(screen.queryByText(/Cargando/)).not.toBeInTheDocument();
     expect(screen.queryByText('Content')).not.toBeInTheDocument();
   });
 

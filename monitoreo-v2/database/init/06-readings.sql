@@ -36,5 +36,5 @@ SELECT create_hypertable(
     if_not_exists => TRUE
 );
 
-CREATE INDEX IF NOT EXISTS idx_readings_meter_ts ON readings (meter_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_readings_meter_ts_covering ON readings (meter_id, timestamp) INCLUDE (energy_kwh_total, power_kw, power_factor, voltage_l1);
 CREATE INDEX IF NOT EXISTS idx_readings_tenant_ts ON readings (tenant_id, timestamp DESC);

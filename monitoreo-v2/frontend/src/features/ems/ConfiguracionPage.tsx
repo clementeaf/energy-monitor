@@ -1,20 +1,22 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { Modal } from '../../components/ui/Modal';
+import { useNavigate, useSearchParams } from 'react-router';
+import { APP_ROUTES } from '../../app/routes';
+import { QueryStateView } from '../../components/ui/QueryStateView';
 import { NavModuleIcon } from '../../components/layout/sidebar-icons';
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useMetersQuery } from '../../hooks/queries/useMetersQuery';
+import { useUsersQuery } from '../../hooks/queries/useUsersQuery';
 import { useAppStore, type ModuloId } from '../../store/useAppStore';
 import { useToastStore } from '../../store/useToastStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
+import type { UserListItem } from '../../types/user';
 import { inicialesDe } from './format';
 import { ADDON_MODULES } from './modules';
 import { EMS_SECTION_NAV } from './navigation';
 import { PageAction } from './PageAction';
-import { EMS_ROLES, type EmsRoleId } from './roles';
+import { canEditSection, EMS_ROLE_BY_SLUG, EMS_ROLES, type EmsRoleId } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { Switch } from './Switch';
+import { useEmsRole } from './useEmsRole';
 
 interface Usuario {
   id: string;
@@ -28,38 +30,23 @@ type Pestana = 'usuarios' | 'modulos' | 'cuenta';
 
 const PESTANAS: Record<Pestana, string> = { usuarios: 'Usuarios y roles', modulos: 'Módulos', cuenta: 'Cuenta' };
 
-const USUARIOS_INIT: Usuario[] = [
-  { id: 'u1', nombre: 'Rocío Mendoza', email: 'rocio@energiaaustral.cl', iniciales: 'RM', rol: 'admin' },
-  { id: 'u2', nombre: 'Javier Tapia', email: 'javier@energiaaustral.cl', iniciales: 'JT', rol: 'gestor' },
-  { id: 'u3', nombre: 'Carla Soto', email: 'carla@energiaaustral.cl', iniciales: 'CS', rol: 'ejecutivo' },
-  { id: 'u4', nombre: 'Pablo Núñez', email: 'pablo@energiaaustral.cl', iniciales: 'PN', rol: 'tecnico' },
-  { id: 'u5', nombre: 'Carolina Pérez', email: 'carolina@energiaaustral.cl', iniciales: 'CP', rol: 'backoffice' },
-];
-
 const MODULOS = Object.keys(ADDON_MODULES) as ModuloId[];
 const ROLES = Object.keys(EMS_ROLES) as EmsRoleId[];
 const ROL_NUEVO: EmsRoleId = 'backoffice';
 const MODULO_NUEVO: ModuloId = 'facturacion';
-const CENTROS_CONTRATADOS = 25;
-const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-accent focus:outline-none';
 
 export function ConfiguracionPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const pestana = (searchParams.get('tab') as Pestana | null) ?? 'modulos';
   const filtroRol = searchParams.get('rol') as EmsRoleId | null;
-  const [usuarios, setUsuarios] = useState(USUARIOS_INIT);
-  const [isInviting, setIsInviting] = useState(false);
-  const [usuarioPorQuitar, setUsuarioPorQuitar] = useState<Usuario | null>(null);
-  const showToast = useToastStore((s) => s.showToast);
+  const canEdit = canEditSection(useEmsRole(), 'configuracion');
+  const usersQuery = useUsersQuery(canEdit);
+  const usuarios = (usersQuery.data ?? []).map(toUsuario);
 
   const irA = (tab: Pestana, rol?: EmsRoleId) => setSearchParams(rol ? { tab, rol } : { tab });
 
-  usePageTitle('Configuración', 'Cuenta / Configuración', <PageAction label="Invitar usuario" onClick={() => setIsInviting(true)} />);
-
-  const cambiarRol = (usuario: Usuario, rol: EmsRoleId) => {
-    setUsuarios((prev) => prev.map((u) => (u.id === usuario.id ? { ...u, rol } : u)));
-    showToast(`${usuario.nombre} ahora es ${EMS_ROLES[rol].label}`);
-  };
+  usePageTitle('Configuración', 'Cuenta / Configuración', canEdit ? <PageAction label="Gestionar usuarios" onClick={() => navigate(APP_ROUTES.admin.users)} /> : undefined);
 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-6">
@@ -71,43 +58,40 @@ export function ConfiguracionPage() {
         </div>
 
         {pestana === 'usuarios' && (
-          <UsuariosTab usuarios={filtroRol ? usuarios.filter((u) => u.rol === filtroRol) : usuarios} filtroRol={filtroRol}
-            onQuitarFiltro={() => irA('usuarios')} onCambiarRol={cambiarRol} onQuitar={setUsuarioPorQuitar} />
+          canEdit
+            ? <UsuariosTab usuarios={filtroRol ? usuarios.filter((u) => u.rol === filtroRol) : usuarios} filtroRol={filtroRol} phase={usersQuery.isPending ? 'loading' : usersQuery.isError ? 'error' : 'ready'} onQuitarFiltro={() => irA('usuarios')} />
+            : <SinAccesoUsuarios />
         )}
         {pestana === 'modulos' && (
           <div className="grid gap-4 lg:grid-cols-3">
-            <ModulosCard />
+            <ModulosCard canEdit={canEdit} />
             <div className="flex flex-col gap-4">
-              <UsuariosPorRolCard usuarios={usuarios} onVerRol={(rol) => irA('usuarios', rol)} />
-              <CuentaCard compacta onEditar={() => irA('cuenta')} />
+              {canEdit ? <UsuariosPorRolCard usuarios={usuarios} onVerRol={(rol) => irA('usuarios', rol)} /> : <SinAccesoUsuarios />}
+              <CuentaCard compacta onVerTodo={() => irA('cuenta')} />
             </div>
           </div>
         )}
-        {pestana === 'cuenta' && <CuentaCard usuarios={usuarios.length} />}
-
-        <ConfirmDialog
-          open={usuarioPorQuitar !== null}
-          onClose={() => setUsuarioPorQuitar(null)}
-          onConfirm={() => {
-            setUsuarios((prev) => prev.filter((u) => u.id !== usuarioPorQuitar?.id));
-            setUsuarioPorQuitar(null);
-            showToast('Acceso revocado');
-          }}
-          title="Quitar acceso"
-          message={`${usuarioPorQuitar?.nombre ?? ''} perderá el acceso a la plataforma de inmediato.`}
-          confirmLabel="Quitar acceso"
-        />
-        <InvitarModal open={isInviting} onClose={() => setIsInviting(false)} onInvite={(usuario) => {
-          setUsuarios((prev) => [...prev, { ...usuario, id: crypto.randomUUID() }]);
-          setIsInviting(false);
-          showToast('Invitación enviada');
-        }} />
+        {pestana === 'cuenta' && <CuentaCard usuarios={canEdit ? usuarios.length : undefined} />}
       </div>
     </div>
   );
 }
 
-function ModulosCard() {
+function toUsuario(user: UserListItem): Usuario {
+  const nombre = user.displayName ?? user.email;
+  return { id: user.id, nombre, email: user.email, iniciales: inicialesDe(nombre), rol: EMS_ROLE_BY_SLUG[user.role.slug] };
+}
+
+function SinAccesoUsuarios() {
+  return (
+    <section className="rounded-xl bg-card p-5">
+      <h2 className="text-sm font-semibold text-card-fg">Usuarios</h2>
+      <p className="mt-1 text-xs text-muted">Solo un Administrador con sesión iniciada puede ver y gestionar los usuarios.</p>
+    </section>
+  );
+}
+
+function ModulosCard({ canEdit }: Readonly<{ canEdit: boolean }>) {
   const modulosActivos = useAppStore((s) => s.modulosActivos);
   const toggleModulo = useAppStore((s) => s.toggleModulo);
   const showToast = useToastStore((s) => s.showToast);
@@ -141,9 +125,9 @@ function ModulosCard() {
                 </p>
                 <p className="text-xs text-muted">{modulo.sub}</p>
               </div>
-              {isActivo
+              {canEdit && (isActivo
                 ? <Switch checked label={modulo.addon} onChange={() => { toggleModulo(id); showToast(`${modulo.addon} desactivado`); }} />
-                : <button type="button" onClick={() => { toggleModulo(id); showToast(`${modulo.addon} habilitado`); }} className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-ink hover:bg-accent-hover">Contratar</button>}
+                : <button type="button" onClick={() => { toggleModulo(id); showToast(`${modulo.addon} habilitado`); }} className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-ink hover:bg-accent-hover">Contratar</button>)}
             </li>
           );
         })}
@@ -175,7 +159,7 @@ function UsuariosPorRolCard({ usuarios, onVerRol }: Readonly<{ usuarios: Usuario
   );
 }
 
-function CuentaCard({ compacta = false, usuarios, onEditar }: Readonly<{ compacta?: boolean; usuarios?: number; onEditar?: () => void }>) {
+function CuentaCard({ compacta = false, usuarios, onVerTodo }: Readonly<{ compacta?: boolean; usuarios?: number; onVerTodo?: () => void }>) {
   const buildingsQuery = useBuildingsQuery();
   const metersQuery = useMetersQuery();
   const modulosActivos = useAppStore((s) => s.modulosActivos);
@@ -185,17 +169,16 @@ function CuentaCard({ compacta = false, usuarios, onEditar }: Readonly<{ compact
     { label: 'Contacto de facturación', value: '—' },
     ...(compacta ? [] : [
       { label: 'Plan', value: `Núcleo + ${MODULOS.filter((id) => modulosActivos[id]).length} add-ons` },
-      { label: 'Centros contratados', value: `${buildingsQuery.data?.length ?? '—'} de ${CENTROS_CONTRATADOS}` },
+      { label: 'Centros', value: String(buildingsQuery.data?.length ?? '—') },
       { label: 'Remarcadores activos', value: String(metersQuery.data?.length ?? '—') },
       { label: 'Usuarios', value: String(usuarios ?? '—') },
-      { label: 'Período de facturación', value: 'Mensual · vence el 05' },
     ]),
   ];
   return (
     <section className="rounded-xl bg-card p-5">
       <header className="mb-3 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-card-fg">Datos de la cuenta</h2>
-        {onEditar && <button type="button" onClick={onEditar} className="text-xs text-muted underline hover:text-foreground">Editar</button>}
+        {onVerTodo && <button type="button" onClick={onVerTodo} className="text-xs text-muted underline hover:text-foreground">Ver todo</button>}
       </header>
       <dl className={compacta ? 'flex flex-col gap-3' : 'divide-y divide-card-border'}>
         {datos.map((dato) => (
@@ -209,12 +192,11 @@ function CuentaCard({ compacta = false, usuarios, onEditar }: Readonly<{ compact
   );
 }
 
-function UsuariosTab({ usuarios, filtroRol, onQuitarFiltro, onCambiarRol, onQuitar }: Readonly<{
+function UsuariosTab({ usuarios, filtroRol, phase, onQuitarFiltro }: Readonly<{
   usuarios: Usuario[];
   filtroRol: EmsRoleId | null;
+  phase: 'loading' | 'error' | 'ready';
   onQuitarFiltro: () => void;
-  onCambiarRol: (usuario: Usuario, rol: EmsRoleId) => void;
-  onQuitar: (usuario: Usuario) => void;
 }>) {
   return (
     <section className="rounded-xl bg-card p-5">
@@ -224,87 +206,38 @@ function UsuariosTab({ usuarios, filtroRol, onQuitarFiltro, onCambiarRol, onQuit
           <button type="button" onClick={onQuitarFiltro} className="rounded-full bg-raised px-2.5 py-0.5 text-xs text-foreground hover:bg-background">{EMS_ROLES[filtroRol].label} ✕</button>
         )}
       </header>
-      <div className="overflow-x-auto">
-        <table className="min-w-full whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-card-border bg-raised">
-              <th className="px-4 py-2.5 text-left text-[11px] font-normal text-muted">Persona</th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-normal text-muted">Rol</th>
-              <th className="w-8" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-card-border">
-            {usuarios.map((u) => (
-              <tr key={u.id} className="hover:bg-raised">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-subtle text-xs font-medium text-accent-ink">{u.iniciales}</div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{u.nombre}</p>
-                      <p className="text-xs text-muted">{u.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <select value={u.rol} onChange={(e) => onCambiarRol(u, e.target.value as EmsRoleId)} aria-label={`Rol de ${u.nombre}`}
-                    className="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none">
-                    {ROLES.map((rol) => <option key={rol} value={rol}>{EMS_ROLES[rol].label}</option>)}
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  <button type="button" onClick={() => onQuitar(u)} aria-label={`Quitar a ${u.nombre}`} className="text-muted hover:text-danger">×</button>
-                </td>
+      <QueryStateView phase={phase === 'ready' && usuarios.length === 0 ? 'empty' : phase} error={null} variant="widget" emptyTitle="Sin usuarios" emptyDescription={filtroRol ? `Nadie tiene el rol ${EMS_ROLES[filtroRol].label}.` : 'No hay usuarios registrados.'}>
+        <div className="overflow-x-auto">
+          <table className="min-w-full whitespace-nowrap">
+            <thead>
+              <tr className="border-b border-card-border bg-raised">
+                <th className="px-4 py-2.5 text-left text-[11px] font-normal text-muted">Persona</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-normal text-muted">Rol</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-card-border">
+              {usuarios.map((u) => (
+                <tr key={u.id} className="hover:bg-raised">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-subtle text-xs font-medium text-accent-ink">{u.iniciales}</div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{u.nombre}</p>
+                        <p className="text-xs text-muted">{u.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-foreground">{EMS_ROLES[u.rol].label}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </QueryStateView>
     </section>
   );
 }
 
 function ModuloTag({ label, cls }: Readonly<{ label: string; cls: string }>) {
   return <span className={`ml-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${cls}`}>{label}</span>;
-}
-
-
-function InvitarModal({ open, onClose, onInvite }: Readonly<{ open: boolean; onClose: () => void; onInvite: (usuario: Omit<Usuario, 'id'>) => void }>) {
-  const enviar = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const nombre = String(form.get('nombre')).trim() || 'Persona invitada';
-    onInvite({
-      nombre,
-      email: String(form.get('email')).trim() || 'sin-correo@ejemplo.cl',
-      iniciales: inicialesDe(nombre),
-      rol: String(form.get('rol')) as EmsRoleId,
-    });
-    event.currentTarget.reset();
-  };
-
-  return (
-    <Modal open={open} onClose={onClose} title="Invitar a una persona">
-      <p className="mb-4 text-sm text-muted">Recibirá un correo para activar su cuenta.</p>
-      <form onSubmit={enviar} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          Nombre y apellido
-          <input name="nombre" placeholder="Ana Ríos" className={FIELD_CLASS} />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          Correo
-          <input name="email" type="email" placeholder="ana@energiaaustral.cl" className={FIELD_CLASS} />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          Rol
-          <select name="rol" className={FIELD_CLASS}>
-            {ROLES.map((rol) => <option key={rol} value={rol}>{EMS_ROLES[rol].label}</option>)}
-          </select>
-        </label>
-        <div className="mt-2 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-xs font-medium text-muted hover:text-foreground">Cancelar</button>
-          <button type="submit" className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-fg hover:bg-primary-hover">Enviar invitación</button>
-        </div>
-      </form>
-    </Modal>
-  );
 }

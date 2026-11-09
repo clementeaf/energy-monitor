@@ -11,13 +11,14 @@ const KEYS = {
   buildings: (id: string) => ['users', id, 'buildings'] as const,
 };
 
-export function useUsersQuery() {
+export function useUsersQuery(enabled = true) {
   return useQuery({
     queryKey: KEYS.all,
     queryFn: async (): Promise<UserListItem[]> => {
       const { data } = await usersEndpoints.list();
       return data;
     },
+    enabled,
   });
 }
 

@@ -6,7 +6,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { dailyBars, DemandBars, hourlyBars } from './DemandBars';
 import { formatDateTime, formatMillonesClp, formatNumber, formatPeriodo, formatSenal } from './format';
-import { PORTFOLIO_CURVE, requiereAtencion, type Centro, type Remarcador, type RemarcadorEstado } from './fleet';
+import { medidoresDeConsumo, PORTFOLIO_CURVE, requiereAtencion, type Centro, type Remarcador, type RemarcadorEstado } from './fleet';
 import { KpiTile, NotaComparacion, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
 import { comparablesEntre, etiquetaComparacion, etiquetaTramo, isTramoParcial, periodoAnterior, periodoQueContiene, tramoEquivalente, variacionPct } from './periodos';
@@ -106,7 +106,7 @@ function ResumenPeriodo({ fleet, isMargenActivo }: Readonly<{ fleet: EmsFleet; i
   };
   const isPrevioCargando = previo.phase === 'loading';
   const variacion = (actual: number, anterior: number) => (isPrevioCargando ? undefined : hayPrevio ? variacionPct(actual, anterior) : null);
-  const demandaActual = remarcadores.filter((r) => r.estado === 'conectado').reduce((sum, r) => sum + (r.potenciaKw ?? 0), 0);
+  const demandaActual = medidoresDeConsumo(remarcadores).filter((r) => r.estado === 'conectado').reduce((sum, r) => sum + (r.potenciaKw ?? 0), 0);
   const ultimaLectura = Math.max(0, ...remarcadores.map((r) => (r.ultimaLectura ? new Date(r.ultimaLectura).getTime() : 0)));
   const haceMin = ultimaLectura > 0 ? Math.round((Date.now() - ultimaLectura) / MINUTE_MS) : null;
 

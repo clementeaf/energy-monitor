@@ -42,7 +42,7 @@ export function estadoMargen(margenPct: number, minimoPct: number): EstadoMargen
 
 function centrosConMargen(centros: Centro[]): CentroMargen[] {
   return centros
-    .flatMap((c) => (c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, perdidaPct: perdidaPct(c.balance), ...c.margen }] : []))
+    .flatMap((c) => (c.margen && c.tarifa && c.margen.precioVentaClp > 0 ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, perdidaPct: perdidaPct(c.balance), ...c.margen }] : []))
     .sort((a, b) => a.margenPct - b.margenPct);
 }
 
@@ -73,7 +73,8 @@ export function MargenesPage() {
   const previos = centrosConMargen(delAnterior.centros);
   const fasePrevia = delAnterior.phase;
   const fasePeriodo = isMesVigente || !isFleetLista ? fleet.phase : delPeriodo.phase;
-  const fase = fasePeriodo === 'ready' && centros.every((c) => c.precioVentaClp === 0) ? 'empty' : fasePeriodo;
+  const fase = fasePeriodo === 'ready' && centros.length === 0 && tarifados.length > 0 ? 'empty' : fasePeriodo;
+  const sinDatos = fleet.centros.filter((c) => c.tarifa && !centros.some((conDatos) => conDatos.id === c.id));
   const total = sumarMargenes(centros);
   const comparables = comparablesEntre(centros, previos, (c) => c.precioVentaClp);
   const totalComparable = sumarMargenes(comparables.actuales);
@@ -131,7 +132,7 @@ export function MargenesPage() {
 
             <section className="rounded-xl bg-card p-5">
               <h2 className="text-sm font-semibold text-card-fg first-letter:uppercase">Margen por centro · {periodo}</h2>
-              <p className="mb-4 text-xs text-card-muted">% sobre la venta · línea punteada: mínimo contractual {formatNumber(minimo)} %</p>
+              <p className="mb-4 text-xs text-card-muted">% sobre la venta · línea punteada: mínimo contractual {formatNumber(minimo)} %{sinDatos.length > 0 && ` · sin datos en ${periodo}: ${sinDatos.map((c) => c.name).join(', ')}`}</p>
               {centros.length === 0 ? <p className="py-8 text-center text-xs text-muted">Ningún centro tiene tarifa de compra y venta configurada.</p> : (
                 <div className="flex flex-col gap-1.5">
                   <div className="relative mt-5 flex h-52 items-end gap-3">

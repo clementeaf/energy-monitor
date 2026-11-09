@@ -27,6 +27,7 @@ import {
 import { desplazarMeses, filasDelPeriodo, type Rango } from './periodos';
 
 const DIA_MS = 24 * 60 * 60 * 1000;
+const CUARTO_DE_HORA_MS = 15 * 60 * 1000;
 
 export type LoadRange = 'hoy' | '7dias' | '30dias';
 export type EmsPhase = 'loading' | 'error' | 'ready';
@@ -69,10 +70,11 @@ export function useEmsFleet(): EmsFleet {
     return { from: periodo.toISOString(), to: nextMonthStart.toISOString() };
   }, [periodo]);
   const monthlyQuery = useAggregatedReadingsQuery({ ...monthRange, interval: 'monthly' }, latestQuery.isSuccess);
+  const cuartoDeHora = Math.floor(Date.now() / CUARTO_DE_HORA_MS);
   const ultimas24h = useMemo(() => {
-    const ahora = new Date();
-    return { from: new Date(ahora.getTime() - DIA_MS).toISOString(), to: ahora.toISOString(), interval: 'daily' as const };
-  }, []);
+    const hasta = (cuartoDeHora + 1) * CUARTO_DE_HORA_MS;
+    return { from: new Date(hasta - DIA_MS).toISOString(), to: new Date(hasta).toISOString(), interval: 'hourly' as const };
+  }, [cuartoDeHora]);
   const senalQuery = useAggregatedReadingsQuery(ultimas24h);
 
   const queries = [buildingsQuery, metersQuery, latestQuery, monthlyQuery];
@@ -100,7 +102,7 @@ export function useEmsFleet(): EmsFleet {
   return {
     phase,
     error: failed?.error ?? null,
-    refetch: () => queries.forEach((query) => void query.refetch()),
+    refetch: () => [...queries, senalQuery].forEach((query) => void query.refetch()),
     buildings: buildingsQuery.data ?? [],
     centros,
     remarcadores,

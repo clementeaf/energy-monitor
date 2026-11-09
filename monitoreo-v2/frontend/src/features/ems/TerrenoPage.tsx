@@ -4,9 +4,8 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useAppStore, type TareaTerreno } from '../../store/useAppStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { useToastStore } from '../../store/useToastStore';
-import { buildFichaDispositivo } from './device';
 import type { Remarcador } from './fleet';
-import { formatDateTime, formatNumber } from './format';
+import { formatDateTime, formatNumber, formatSenal } from './format';
 import { EMS_SECTION_PATHS } from './roles';
 import { StatusBadge } from './StatusBadge';
 import { useEmsFleet } from './useEmsFleet';
@@ -106,7 +105,6 @@ function Diagnostico({ rem }: Readonly<{ rem: Remarcador }>) {
   const marcarChecklist = useAppStore((s) => s.marcarChecklist);
   const asignarTerreno = useAppStore((s) => s.asignarTerreno);
   const cerrarTarea = useAppStore((s) => s.cerrarTarea);
-  const ficha = buildFichaDispositivo(rem);
   const haceMin = rem.ultimaLectura ? Math.round((Date.now() - new Date(rem.ultimaLectura).getTime()) / MINUTE_MS) : null;
   const hechos = tarea ? CHECKLIST.filter((_, paso) => tarea.checklist[paso]).length : 0;
 
@@ -123,13 +121,13 @@ function Diagnostico({ rem }: Readonly<{ rem: Remarcador }>) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-2"><StatusBadge estado={rem.estado} /><span className="rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-foreground">Señal {ficha.senalPct} %</span></div>
+      <div className="flex gap-2"><StatusBadge estado={rem.estado} /><span className="rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-foreground">Señal {formatSenal(rem.senalPct)}</span></div>
       <div className="grid grid-cols-2 gap-2">
         {[
           ['Última lectura', rem.ultimaLectura ? new Date(rem.ultimaLectura).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—', haceMin === null ? '' : `hace ${formatNumber(haceMin)} min`],
           ['Potencia', formatNumber(rem.potenciaKw, 1), 'kW'],
           ['Centro', rem.centroName, ''],
-          ['Señal', String(ficha.senalPct), '%'],
+          ['Señal', rem.senalPct === null ? '—' : String(rem.senalPct), rem.senalPct === null ? '' : '%'],
         ].map(([label, value, unit]) => (
           <div key={label} className="rounded-2xl bg-card px-3.5 py-3">
             <p className="text-xs text-muted">{label}</p>

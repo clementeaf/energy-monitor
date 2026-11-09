@@ -1,6 +1,5 @@
 import { useBuildingsQuery } from '../../hooks/queries/useBuildingsQuery';
 import { useAlertRulesQuery, useCreateAlertRule, useDeleteAlertRule, useUpdateAlertRule } from '../../hooks/queries/useAlertsQuery';
-import { useAppStore } from '../../store/useAppStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import type { AlertRule, AlertSeverity, CreateAlertRulePayload } from '../../types/alert';
 import type { Building } from '../../types/building';
@@ -66,18 +65,10 @@ export function useReglas(): ReglasApi {
   const updateRule = useUpdateAlertRule();
   const deleteRule = useDeleteAlertRule();
   const guardar = useGuardarConAviso();
-  const reglasSimuladas = useAppStore((s) => s.reglas);
-  const agregarRegla = useAppStore((s) => s.agregarRegla);
-  const toggleRegla = useAppStore((s) => s.toggleRegla);
-  const eliminarRegla = useAppStore((s) => s.eliminarRegla);
 
   if (!isAuthenticated) {
-    return {
-      reglas: reglasSimuladas,
-      agregar: async (regla) => { agregarRegla(regla); return true; },
-      alternar: async (regla) => { toggleRegla(regla.id); return true; },
-      eliminar: async (regla) => { eliminarRegla(regla.id); return true; },
-    };
+    const sinSesion = async () => false;
+    return { reglas: [], agregar: sinSesion, alternar: sinSesion, eliminar: sinSesion };
   }
 
   return {

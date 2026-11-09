@@ -5,9 +5,8 @@ import { QueryStateView } from '../../components/ui/QueryStateView';
 import { useAppStore } from '../../store/useAppStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { useToastStore } from '../../store/useToastStore';
-import { buildFichaDispositivo } from './device';
 import type { Remarcador, RemarcadorEstado } from './fleet';
-import { formatDateTime, formatNumber } from './format';
+import { formatDateTime, formatNumber, formatSenal } from './format';
 import { KpiTile } from './KpiTile';
 import { PageAction } from './PageAction';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
@@ -29,7 +28,7 @@ const ESTADO_OPERATIVO: Record<RemarcadorEstado, 'operativo' | 'advertencia' | '
 const SORT_GETTERS: Record<SortKey, (remarcador: Remarcador) => string | number> = {
   code: (r) => r.code,
   centro: (r) => r.centroName,
-  senal: (r) => SEVERIDAD.indexOf(r.estado) * 1000 - buildFichaDispositivo(r).senalPct,
+  senal: (r) => SEVERIDAD.indexOf(r.estado) * 1000 - (r.senalPct ?? 0),
   ultima: (r) => r.ultimaLectura ?? '',
 };
 const POR_PAGINA = 25;
@@ -156,7 +155,7 @@ export function RemarcadoresPage() {
                           </td>
                           <td className="px-5 py-3 font-mono text-sm font-medium text-foreground">{r.code}</td>
                           <td className="px-5 py-3"><p className="text-sm text-foreground">{r.centroName}</p><p className="text-[11px] text-muted">{r.name}</p></td>
-                          <td className="px-5 py-3"><StatusBadge estado={r.estado} detail={`${buildFichaDispositivo(r).senalPct} %`} /></td>
+                          <td className="px-5 py-3"><StatusBadge estado={r.estado} detail={formatSenal(r.senalPct)} /></td>
                           <td className="px-5 py-3 font-mono text-xs text-muted">{formatDateTime(r.ultimaLectura)}</td>
                           <td className="px-5 py-3"><StatusBadge estado={ESTADO_OPERATIVO[r.estado]} /></td>
                           <td className="px-3 py-3">

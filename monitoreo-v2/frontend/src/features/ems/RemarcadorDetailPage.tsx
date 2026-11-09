@@ -7,9 +7,8 @@ import { useAppStore } from '../../store/useAppStore';
 import { usePageTitle } from '../../store/usePageTitleStore';
 import { useToastStore } from '../../store/useToastStore';
 import type { Reading, ReadingResolution } from '../../types/reading';
-import { buildFichaDispositivo } from './device';
 import { toNumber, type Remarcador, type RemarcadorEstado } from './fleet';
-import { formatDateTime, formatNumber } from './format';
+import { formatDateTime, formatNumber, formatSenal } from './format';
 import { PageAction } from './PageAction';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
@@ -87,7 +86,8 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
   const asignarTerreno = useAppStore((s) => s.asignarTerreno);
   const [rango, setRango] = useState<Rango>('24h');
   const [isConfirmingReinicio, setIsConfirmingReinicio] = useState(false);
-  const ficha = buildFichaDispositivo(rem);
+  const senal = rem.senalPct;
+  const registrado = new Date(rem.registrado).toLocaleDateString('es-CL');
   const ahora = useMemo(() => Date.now(), []);
   const { horas, tramoMin, resolution } = RANGOS[rango];
   const range = useMemo(() => ({ from: new Date(ahora - horas * 60 * MINUTE_MS).toISOString(), to: new Date(ahora).toISOString() }), [ahora, horas]);
@@ -101,7 +101,7 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge estado={ESTADO_OPERATIVO[rem.estado]} />
-        <StatusBadge estado={rem.estado} detail={`${ficha.senalPct} %`} />
+        <StatusBadge estado={rem.estado} detail={formatSenal(senal)} />
         <button type="button" onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${rem.centroId}`)} className="rounded-md bg-surface px-2 py-0.5 text-xs text-foreground hover:bg-raised">{rem.centroName}</button>
         <span className="font-mono text-xs text-muted">Última lectura {formatDateTime(rem.ultimaLectura)}{haceMin !== null && ` · hace ${formatNumber(haceMin)} min`}</span>
         {canEdit && (
@@ -175,10 +175,11 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
             <h2 className="mb-3 text-sm font-semibold text-card-fg">Ficha del equipo</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
               {[
-                ['Modelo', ficha.modelo],
+                ['Modelo', rem.modelo ?? '—'],
+                ['N° de serie', rem.serie ?? '—'],
                 ['ID remarcador', rem.idRemarcador ?? '—'],
                 ['Ubicación', rem.name],
-                ['Instalado', new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL')],
+                ['Registrado', registrado],
                 ['Comunicación', [rem.protocolo, rem.fuente].filter(Boolean).join(' · ') || '—'],
                 ['Intervalo de lectura', '15 min'],
               ].map(([label, value]) => (
@@ -190,14 +191,14 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
           <section className="rounded-xl bg-card p-5">
             <header className="flex items-baseline justify-between">
               <h2 className="text-sm font-semibold text-card-fg">Nivel de señal</h2>
-              <span className={`font-mono text-2xl font-semibold ${ficha.senalPct >= 60 ? 'text-success' : ficha.senalPct > 0 ? 'text-warning-ink' : 'text-danger'}`}>{ficha.senalPct} %</span>
+              <span className={`font-mono text-2xl font-semibold ${senal === null ? 'text-muted' : senal >= 60 ? 'text-success' : senal > 0 ? 'text-warning-ink' : 'text-danger'}`}>{formatSenal(senal)}</span>
             </header>
             <div className="mt-2 flex gap-0.5" aria-hidden="true">
               {Array.from({ length: SENAL_SEGMENTOS }, (_, i) => (
-                <span key={i} className={`h-3 flex-1 rounded-sm ${i < Math.round(ficha.senalPct / SENAL_SEGMENTOS) ? (ficha.senalPct >= 60 ? 'bg-accent' : 'bg-warning') : 'bg-border'}`} />
+                <span key={i} className={`h-3 flex-1 rounded-sm ${senal !== null && i < Math.round(senal / SENAL_SEGMENTOS) ? (senal >= 60 ? 'bg-accent' : 'bg-warning') : 'bg-border'}`} />
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted">Señal estimada según la regularidad de lecturas del equipo.</p>
+            <p className="mt-2 text-xs text-muted">Lecturas recibidas en las últimas 24 h sobre las 96 esperadas (una cada 15 min).</p>
           </section>
 
           <section className="rounded-xl bg-card p-5">
@@ -206,7 +207,7 @@ function RemarcadorDetalle({ rem, canEdit }: Readonly<{ rem: Remarcador; canEdit
               {[
                 ...(rem.estado !== 'conectado' ? [{ titulo: rem.estado === 'caido' ? 'Sin lecturas: equipo caído' : rem.estado === 'sin_senal' ? 'Señal intermitente' : 'En mantención', fecha: formatDateTime(rem.ultimaLectura), tono: 'bg-warning' }] : []),
                 { titulo: 'Última lectura recibida', fecha: formatDateTime(rem.ultimaLectura), tono: 'bg-success' },
-                { titulo: 'Alta del equipo', fecha: new Date(`${ficha.alta}T12:00:00`).toLocaleDateString('es-CL'), tono: 'bg-border-strong' },
+                { titulo: 'Registrado en la plataforma', fecha: registrado, tono: 'bg-border-strong' },
               ].map((evento) => (
                 <li key={evento.titulo} className="relative">
                   <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${evento.tono}`} />

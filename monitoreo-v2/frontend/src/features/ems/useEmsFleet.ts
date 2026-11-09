@@ -13,6 +13,9 @@ import {
   buildCentros,
   buildRemarcadores,
   findLatestReadingAt,
+  isMedidorPrincipal,
+  medidoresDeConsumo,
+  senalPorRemarcador,
   startOfDay,
   startOfMonth,
   toLoadCurves,
@@ -22,6 +25,9 @@ import {
   type Remarcador,
 } from './fleet';
 import { desplazarMeses, filasDelPeriodo, type Rango } from './periodos';
+
+const DIA_MS = 24 * 60 * 60 * 1000;
+const CUARTO_DE_HORA_MS = 15 * 60 * 1000;
 
 export type LoadRange = 'hoy' | '7dias' | '30dias';
 export type EmsPhase = 'loading' | 'error' | 'ready';
@@ -46,7 +52,7 @@ export interface EmsFleet {
 function toCentroSinRemarcadores(centro: CentroSimulado): Centro {
   return {
     id: centro.id, name: centro.name, code: 'Pendiente de instalación', address: centro.address,
-    superficie: null, consumoMesKwh: 0, intensidadKwhM2: null, remarcadores: 0, estado: 'operativo',
+    superficie: null, consumoMesKwh: 0, balance: { compraKwh: 0, ventaKwh: 0, perdidaKwh: null }, intensidadKwhM2: null, remarcadores: 0, estado: 'operativo',
     tarifa: null, margen: null,
   };
 }
@@ -64,6 +70,12 @@ export function useEmsFleet(): EmsFleet {
     return { from: periodo.toISOString(), to: nextMonthStart.toISOString() };
   }, [periodo]);
   const monthlyQuery = useAggregatedReadingsQuery({ ...monthRange, interval: 'monthly' }, latestQuery.isSuccess);
+  const cuartoDeHora = Math.floor(Date.now() / CUARTO_DE_HORA_MS);
+  const ultimas24h = useMemo(() => {
+    const hasta = (cuartoDeHora + 1) * CUARTO_DE_HORA_MS;
+    return { from: new Date(hasta - DIA_MS).toISOString(), to: new Date(hasta).toISOString(), interval: 'hourly' as const };
+  }, [cuartoDeHora]);
+  const senalQuery = useAggregatedReadingsQuery(ultimas24h);
 
   const queries = [buildingsQuery, metersQuery, latestQuery, monthlyQuery];
   const failed = queries.find((query) => query.isError);
@@ -73,10 +85,12 @@ export function useEmsFleet(): EmsFleet {
 
   const { centros, remarcadores } = useMemo(() => {
     const buildings = buildingsQuery.data ?? [];
-    const realFleet = buildRemarcadores(metersQuery.data ?? [], latestQuery.data ?? [], buildings, new Date());
+    const senales = senalPorRemarcador(senalQuery.data ?? []);
+    const realFleet = buildRemarcadores(metersQuery.data ?? [], latestQuery.data ?? [], buildings, new Date())
+      .map((remarcador) => ({ ...remarcador, senalPct: senalQuery.data ? senales.get(remarcador.id) ?? 0 : null }));
     const fleet = applyRemarcadorOverrides(realFleet, remarcadorOverrides);
     return { remarcadores: fleet, centros: [...buildCentros(buildings, fleet, monthlyQuery.data ?? []), ...centrosSimulados.map(toCentroSinRemarcadores)] };
-  }, [buildingsQuery.data, metersQuery.data, latestQuery.data, monthlyQuery.data, remarcadorOverrides, centrosSimulados]);
+  }, [buildingsQuery.data, metersQuery.data, latestQuery.data, monthlyQuery.data, senalQuery.data, remarcadorOverrides, centrosSimulados]);
 
   const consumoPorRemarcador = useMemo(
     () => Object.fromEntries((monthlyQuery.data ?? []).map((row) => [row.meter_id, toNumber(row.energy_delta_kwh) ?? 0])),
@@ -88,7 +102,7 @@ export function useEmsFleet(): EmsFleet {
   return {
     phase,
     error: failed?.error ?? null,
-    refetch: () => queries.forEach((query) => void query.refetch()),
+    refetch: () => [...queries, senalQuery].forEach((query) => void query.refetch()),
     buildings: buildingsQuery.data ?? [],
     centros,
     remarcadores,
@@ -111,7 +125,8 @@ export function useLoadCurves(range: LoadRange, mesesAtras = 0): { phase: EmsPha
   const readingsQuery = useAggregatedReadingsQuery(params);
 
   const curves = useMemo(() => {
-    const buildingByMeter = new Map((metersQuery.data ?? []).map((meter) => [meter.id, meter.buildingId]));
+    const medidores = (metersQuery.data ?? []).map((meter) => ({ id: meter.id, centroId: meter.buildingId, isPrincipal: isMedidorPrincipal(meter) }));
+    const buildingByMeter = new Map(medidoresDeConsumo(medidores).map((medidor) => [medidor.id, medidor.centroId]));
     return toLoadCurves(readingsQuery.data ?? [], buildingByMeter);
   }, [metersQuery.data, readingsQuery.data]);
 

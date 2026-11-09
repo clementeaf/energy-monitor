@@ -55,6 +55,7 @@ export function AlertasPage() {
   const reabrirAlerta = useAppStore((s) => s.reabrirAlerta);
   const asignarAlerta = useAppStore((s) => s.asignarAlerta);
   const yo = useAuthStore((s) => s.user?.displayName ?? s.user?.email ?? 'Usuario');
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const showToast = useToastStore((s) => s.showToast);
 
   const ahora = Date.now();
@@ -142,6 +143,7 @@ export function AlertasPage() {
                     </li>
                   ))}
                 </ul>
+                {!isAuthenticated && <p className="mt-3 text-[11px] text-muted">Las reglas configuradas de la cuenta se ven con sesión iniciada.</p>}
                 <p className="mt-3 text-[11px] text-muted">Margen bajo el mínimo usa el mínimo contractual de Márgenes ({formatNumber(margenMinimo)} %).</p>
               </section>
 

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RoleSlug } from '../types/auth';
 import type { RemarcadorOverride } from '../features/ems/fleet';
-import { REGLAS_INICIALES, type Regla } from '../features/ems/alerts';
 import type { EstadoDocumento, EventoDocumento, FacturaVinculada, SeguimientoDocumento } from '../features/ems/facturacion';
 
 export interface ReporteGenerado {
@@ -51,7 +50,6 @@ interface AppState {
   alertasAsignadas: Record<string, string>;
   tareasTerreno: Record<string, TareaTerreno>;
   remarcadorOverrides: Record<string, RemarcadorOverride>;
-  reglas: Regla[];
   centrosSimulados: CentroSimulado[];
   reportesGenerados: ReporteGenerado[];
   seguimientoDocumentos: Record<string, SeguimientoDocumento>;
@@ -70,10 +68,7 @@ interface AppState {
   asignarTerreno: (remarcadorIds: string[], isUrgente: boolean) => void;
   marcarChecklist: (remarcadorId: string, paso: number) => void;
   cerrarTarea: (remarcadorId: string) => void;
-  eliminarRegla: (id: string) => void;
   overrideRemarcadores: (overrides: Record<string, RemarcadorOverride>) => void;
-  agregarRegla: (regla: Omit<Regla, 'id'>) => void;
-  toggleRegla: (id: string) => void;
   agregarCentro: (centro: Omit<CentroSimulado, 'id'>) => void;
   agregarReporteGenerado: (reporte: Pick<ReporteGenerado, 'nombre' | 'formato'>) => void;
   registrarEventoDocumento: (id: string, evento: EventoDocumento, cambios: { estado?: EstadoDocumento; factura?: FacturaVinculada }) => void;
@@ -94,7 +89,6 @@ export const useAppStore = create<AppState>()(
       alertasAsignadas: {},
       tareasTerreno: {},
       remarcadorOverrides: {},
-      reglas: REGLAS_INICIALES,
       centrosSimulados: [],
       reportesGenerados: [],
       seguimientoDocumentos: {},
@@ -106,8 +100,6 @@ export const useAppStore = create<AppState>()(
       setSelectedOperator: (selectedOperator) => set({ selectedOperator }),
       setWorkProfile: (workProfile) => set({ workProfile }),
       toggleModulo: (id) => set((s) => ({ modulosActivos: { ...s.modulosActivos, [id]: !s.modulosActivos[id] } })),
-      agregarRegla: (regla) => set((s) => ({ reglas: [...s.reglas, { ...regla, id: crypto.randomUUID() }] })),
-      toggleRegla: (id) => set((s) => ({ reglas: s.reglas.map((r) => (r.id === id ? { ...r, activa: !r.activa } : r)) })),
       agregarReporteGenerado: (reporte) => set((s) => ({
         reportesGenerados: [{ ...reporte, id: crypto.randomUUID(), hora: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) }, ...s.reportesGenerados],
       })),
@@ -133,7 +125,6 @@ export const useAppStore = create<AppState>()(
       }),
       asignarAlerta: (id, responsable) => set((s) => ({ alertasAsignadas: { ...s.alertasAsignadas, [id]: responsable } })),
       reabrirAlerta: (id) => set((s) => ({ alertasResueltas: s.alertasResueltas.filter((resuelta) => resuelta !== id) })),
-      eliminarRegla: (id) => set((s) => ({ reglas: s.reglas.filter((r) => r.id !== id) })),
       resolverAlertas: (ids) => set((s) => ({ alertasResueltas: [...new Set([...s.alertasResueltas, ...ids])] })),
       setMargenMinimo: (percent) => set({ margenMinimo: Math.min(MARGEN_MINIMO_MAX, Math.max(0, percent)) }),
     }),

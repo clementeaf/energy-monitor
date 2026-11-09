@@ -14,7 +14,7 @@ import {
 } from './periodos';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
-import { sumarMargenes, TARIFAS_POR_CENTRO, type MargenCentro } from './tariffs';
+import { perdidaPct, sumarMargenes, TARIFAS_POR_CENTRO, type MargenCentro } from './tariffs';
 import { useCentrosEnRango, useEmsFleet } from './useEmsFleet';
 import { useEmsRole } from './useEmsRole';
 
@@ -22,6 +22,7 @@ interface CentroMargen extends MargenCentro {
   id: string;
   name: string;
   cliente: string;
+  perdidaPct: number | null;
 }
 
 type EstadoMargen = 'bajo' | 'observacion' | 'sobre';
@@ -41,7 +42,7 @@ export function estadoMargen(margenPct: number, minimoPct: number): EstadoMargen
 
 function centrosConMargen(centros: Centro[]): CentroMargen[] {
   return centros
-    .flatMap((c) => (c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, ...c.margen }] : []))
+    .flatMap((c) => (c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, perdidaPct: perdidaPct(c.balance), ...c.margen }] : []))
     .sort((a, b) => a.margenPct - b.margenPct);
 }
 
@@ -166,7 +167,7 @@ export function MargenesPage() {
                       const estado = ESTADO_MARGEN[estadoMargen(c.margenPct, minimo)];
                       return (
                         <tr key={c.id} onClick={() => navigate(`${EMS_SECTION_PATHS.centros}/${c.id}`)} className="cursor-pointer hover:bg-raised">
-                          <td className="px-5 py-3 text-sm text-foreground">{c.name} · <span className="text-muted">{c.cliente}</span></td>
+                          <td className="px-5 py-3 text-sm text-foreground">{c.name} · <span className="text-muted">{c.cliente}</span>{c.perdidaPct !== null && <span className="block text-[11px] text-muted">Pérdida {formatNumber(c.perdidaPct, 1)} % entre compra y venta</span>}</td>
                           <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.precioVentaClp)}</td>
                           <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.costoCompraClp)}</td>
                           <td className="px-5 py-3 text-right font-mono text-sm tabular-nums">$ {formatNumber(c.margenClp)}</td>

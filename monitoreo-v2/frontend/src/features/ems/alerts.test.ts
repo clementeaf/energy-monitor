@@ -5,7 +5,7 @@ import type { Centro, Remarcador, RemarcadorEstado } from './fleet';
 function buildRemarcador(id: string, estado: RemarcadorEstado): Remarcador {
   return {
     id, code: id.toUpperCase(), name: id, centroId: 'b-1', centroName: 'Alto Peñalolén',
-    protocolo: null, fuente: null, idRemarcador: null, ultimaLectura: null, potenciaKw: null, estado,
+    protocolo: null, fuente: null, idRemarcador: null, ultimaLectura: null, potenciaKw: null, estado, modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null, isPrincipal: false,
   };
 }
 

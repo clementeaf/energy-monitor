@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { esPunta, participacionPunta, perfilHorario } from './ConsumoPage';
+import { diaReferenciaPunta, esPunta, participacionPunta, perfilHorario } from './ConsumoPage';
 
 const at = (hour: number, kw: number) => ({ timestamp: new Date(2026, 10, 6, hour).toISOString(), kw });
 
@@ -14,5 +14,13 @@ describe('perfil horario', () => {
   it('treats 18 to 22 h as peak and measures its share of demand', () => {
     expect([17, 18, 21, 22].map(esPunta)).toEqual([false, true, true, false]);
     expect(participacionPunta(perfilHorario([at(18, 30), at(10, 70)]))).toBe(30);
+  });
+});
+
+describe('diaReferenciaPunta', () => {
+  it('uses yesterday until today\'s 18–22 h peak window has ended', () => {
+    expect(diaReferenciaPunta(new Date(2026, 10, 9, 21, 59))).toEqual({ dia: new Date(2026, 10, 8), isHoy: false });
+    expect(diaReferenciaPunta(new Date(2026, 10, 1, 8))).toEqual({ dia: new Date(2026, 9, 31), isHoy: false });
+    expect(diaReferenciaPunta(new Date(2026, 10, 9, 22, 0))).toEqual({ dia: new Date(2026, 10, 9), isHoy: true });
   });
 });

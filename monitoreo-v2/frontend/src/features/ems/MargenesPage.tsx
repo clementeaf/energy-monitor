@@ -10,7 +10,7 @@ import { KpiTile, NotaComparacion, Variacion } from './KpiTile';
 import { PageAction } from './PageAction';
 import {
   comparablesEntre, etiquetaComparacion, etiquetaPeriodo, etiquetaTramo, GRANULARIDADES, isTramoParcial,
-  periodoAnterior, periodoQueContiene, periodosDisponibles, tramoEquivalente, variacionPct, type Granularidad, type Periodo,
+  periodoAnterior, periodoQueContiene, periodosHasta, tramoEquivalente, variacionPct, type Granularidad, type Periodo,
 } from './periodos';
 import { canEditSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
@@ -42,7 +42,7 @@ export function estadoMargen(margenPct: number, minimoPct: number): EstadoMargen
 
 function centrosConMargen(centros: Centro[]): CentroMargen[] {
   return centros
-    .flatMap((c) => (c.margen && c.tarifa ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, perdidaPct: perdidaPct(c.balance), ...c.margen }] : []))
+    .flatMap((c) => (c.margen && c.tarifa && c.margen.precioVentaClp > 0 ? [{ id: c.id, name: c.name, cliente: c.tarifa.cliente, perdidaPct: perdidaPct(c.balance), ...c.margen }] : []))
     .sort((a, b) => a.margenPct - b.margenPct);
 }
 
@@ -59,21 +59,22 @@ export function MargenesPage() {
   const [inicioElegido, setInicioElegido] = useState<number | null>(null);
   const tarifados = fleet.buildings.filter((b) => TARIFAS_POR_CENTRO[b.code]).map((b) => b.id);
   const inicioHistorial = new Date(fleet.periodo.getFullYear() - 1, 0, 1);
-  const finHistorial = new Date(fleet.periodo.getFullYear(), fleet.periodo.getMonth() + 1, 1);
-  const historial = useCentrosEnRango(fleet.phase === 'ready' ? { desde: inicioHistorial, hasta: finHistorial } : null, fleet, tarifados);
   const vigente = periodoQueContiene(granularidad, fleet.periodo);
-  const disponibles = historial.phase === 'ready' ? periodosDisponibles(historial.filas, granularidad, inicioHistorial) : [];
-  const opciones = disponibles.some((p) => p.desde.getTime() === vigente.desde.getTime()) ? disponibles : [vigente, ...disponibles];
+  const opciones = periodosHasta(vigente, inicioHistorial);
   const elegido: Periodo = opciones.find((p) => p.desde.getTime() === inicioElegido) ?? vigente;
   const isMesVigente = granularidad === 'mes' && elegido.desde.getTime() === vigente.desde.getTime();
   const anterior = periodoAnterior(elegido);
   const tramo = tramoEquivalente(anterior, elegido, ahora);
   const isParcial = isTramoParcial(tramo, anterior);
-  const tramoParcial = useCentrosEnRango(isParcial ? tramo : null, fleet, tarifados);
-  const centros = centrosConMargen(isMesVigente ? fleet.centros : historial.centrosDe(elegido));
-  const previos = centrosConMargen(isParcial ? tramoParcial.centros : historial.centrosDe(anterior));
-  const fasePrevia = isParcial ? tramoParcial.phase : historial.phase;
-  const fase = isMesVigente ? fleet.phase : fleet.phase === 'ready' ? historial.phase : fleet.phase;
+  const isFleetLista = fleet.phase === 'ready';
+  const delPeriodo = useCentrosEnRango(isFleetLista && !isMesVigente ? elegido : null, fleet, tarifados);
+  const delAnterior = useCentrosEnRango(isFleetLista ? tramo : null, fleet, tarifados);
+  const centros = centrosConMargen(isMesVigente ? fleet.centros : delPeriodo.centros);
+  const previos = centrosConMargen(delAnterior.centros);
+  const fasePrevia = delAnterior.phase;
+  const fasePeriodo = isMesVigente || !isFleetLista ? fleet.phase : delPeriodo.phase;
+  const fase = fasePeriodo === 'ready' && centros.length === 0 && tarifados.length > 0 ? 'empty' : fasePeriodo;
+  const sinDatos = fleet.centros.filter((c) => c.tarifa && !centros.some((conDatos) => conDatos.id === c.id));
   const total = sumarMargenes(centros);
   const comparables = comparablesEntre(centros, previos, (c) => c.precioVentaClp);
   const totalComparable = sumarMargenes(comparables.actuales);
@@ -116,7 +117,7 @@ export function MargenesPage() {
           </div>
         </div>
 
-        <QueryStateView phase={fase} error={fleet.error ?? null} refetch={fleet.refetch}>
+        <QueryStateView phase={fase} error={fleet.error ?? null} refetch={fleet.refetch} emptyTitle={`Sin datos en ${periodo}`} emptyDescription="Ningún centro con tarifa registró consumo en este período.">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -131,7 +132,7 @@ export function MargenesPage() {
 
             <section className="rounded-xl bg-card p-5">
               <h2 className="text-sm font-semibold text-card-fg first-letter:uppercase">Margen por centro · {periodo}</h2>
-              <p className="mb-4 text-xs text-card-muted">% sobre la venta · línea punteada: mínimo contractual {formatNumber(minimo)} %</p>
+              <p className="mb-4 text-xs text-card-muted">% sobre la venta · línea punteada: mínimo contractual {formatNumber(minimo)} %{sinDatos.length > 0 && ` · sin datos en ${periodo}: ${sinDatos.map((c) => c.name).join(', ')}`}</p>
               {centros.length === 0 ? <p className="py-8 text-center text-xs text-muted">Ningún centro tiene tarifa de compra y venta configurada.</p> : (
                 <div className="flex flex-col gap-1.5">
                   <div className="relative mt-5 flex h-52 items-end gap-3">

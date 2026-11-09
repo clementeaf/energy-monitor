@@ -24,7 +24,7 @@ import {
   type LoadPoint,
   type Remarcador,
 } from './fleet';
-import { desplazarMeses, filasDelPeriodo, type Rango } from './periodos';
+import { desplazarMeses, type Rango } from './periodos';
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 const CUARTO_DE_HORA_MS = 15 * 60 * 1000;
@@ -112,7 +112,6 @@ export function useEmsFleet(): EmsFleet {
 }
 
 export function useLoadCurves(range: LoadRange, mesesAtras = 0): { phase: EmsPhase; curves: Map<string, LoadPoint[]>; rango: Rango } {
-  const metersQuery = useMetersQuery();
   const params = useMemo(() => {
     const now = new Date();
     const today = startOfDay(now);
@@ -122,7 +121,25 @@ export function useLoadCurves(range: LoadRange, mesesAtras = 0): { phase: EmsPha
     const to = mesesAtras > 0 ? desplazarMeses(now, -mesesAtras) : tomorrow;
     return { from: desplazarMeses(from, -mesesAtras).toISOString(), to: to.toISOString(), interval };
   }, [range, mesesAtras]);
-  const readingsQuery = useAggregatedReadingsQuery(params);
+  return useCurvasEnRango(params);
+}
+
+export function useDayCurves(dia: Date | null): { phase: EmsPhase; curves: Map<string, LoadPoint[]>; rango: Rango } {
+  const inicio = dia?.getTime() ?? 0;
+  const params = useMemo(() => {
+    const desde = new Date(inicio);
+    const hasta = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() + 1);
+    return { from: desde.toISOString(), to: hasta.toISOString(), interval: 'hourly' as const };
+  }, [inicio]);
+  return useCurvasEnRango(params, dia !== null);
+}
+
+function useCurvasEnRango(
+  params: { from: string; to: string; interval: AggregationInterval },
+  enabled = true,
+): { phase: EmsPhase; curves: Map<string, LoadPoint[]>; rango: Rango } {
+  const metersQuery = useMetersQuery();
+  const readingsQuery = useAggregatedReadingsQuery(params, enabled);
 
   const curves = useMemo(() => {
     const medidores = (metersQuery.data ?? []).map((meter) => ({ id: meter.id, centroId: meter.buildingId, isPrincipal: isMedidorPrincipal(meter) }));
@@ -140,7 +157,7 @@ export function useCentrosEnRango(
   rango: Rango | null,
   fleet: Pick<EmsFleet, 'buildings' | 'remarcadores'>,
   buildingIds?: string[],
-): { phase: EmsPhase; filas: AggregatedReading[]; centros: Centro[]; centrosDe: (periodo: Rango) => Centro[] } {
+): { phase: EmsPhase; centros: Centro[] } {
   const scopes = buildingIds ?? [undefined];
   const results = useQueries({
     queries: scopes.map((buildingId) => {
@@ -156,8 +173,7 @@ export function useCentrosEnRango(
   const filas = results.flatMap((result) => result.data ?? []);
   const centros = buildCentros(fleet.buildings, fleet.remarcadores, filas);
   const phase: EmsPhase = results.some((result) => result.isError) ? 'error' : results.some((result) => result.isPending) ? 'loading' : 'ready';
-  const centrosDe = (periodo: Rango) => buildCentros(fleet.buildings, fleet.remarcadores, filasDelPeriodo(filas, periodo));
-  return { phase, filas, centros, centrosDe };
+  return { phase, centros };
 }
 
 export interface EmsAlerta extends Alerta {

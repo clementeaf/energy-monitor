@@ -10,7 +10,7 @@ import { PageAction } from './PageAction';
 import { comparablesEntre, desplazarMeses, etiquetaTramo, nombreMes, variacionPct } from './periodos';
 import { EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
-import { useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
+import { useDayCurves, useEmsFleet, useLoadCurves, type LoadRange } from './useEmsFleet';
 
 const RANGOS: Record<LoadRange, { label: string; horasPorPunto: number }> = {
   hoy: { label: 'Hoy', horasPorPunto: 1 },
@@ -24,6 +24,12 @@ const FIELD_CLASS = 'h-9 rounded-lg border border-border bg-surface px-3 text-xs
 
 export function esPunta(hora: number): boolean {
   return hora >= PUNTA.desde && hora < PUNTA.hasta;
+}
+
+export function diaReferenciaPunta(ahora: Date): { dia: Date; isHoy: boolean } {
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  if (ahora.getHours() >= PUNTA.hasta) return { dia: hoy, isHoy: true };
+  return { dia: new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1), isHoy: false };
 }
 
 export function perfilHorario(points: LoadPoint[]): (number | null)[] {
@@ -73,30 +79,41 @@ export function ConsumoPage() {
   const [rango, setRango] = useState<LoadRange>('30dias');
   const [centroId, setCentroId] = useState('');
   const [comparacion, setComparacion] = useState<Comparacion>('mes');
+  const [ahora] = useState(() => new Date());
   const fleet = useEmsFleet();
   const periodo = useLoadCurves(rango);
   const hoy = useLoadCurves('hoy');
   const periodoPrevio = useLoadCurves(rango, MESES_ATRAS[comparacion]);
   const hoyPrevio = useLoadCurves('hoy', MESES_ATRAS[comparacion]);
+  const referenciaPunta = diaReferenciaPunta(ahora);
+  const diaPuntaPrevio = desplazarMeses(referenciaPunta.dia, -MESES_ATRAS[comparacion]);
+  const ayer = useDayCurves(referenciaPunta.isHoy ? null : referenciaPunta.dia);
+  const puntaPrevia = useDayCurves(diaPuntaPrevio);
+  const curvasPunta = referenciaPunta.isHoy ? hoy.curves : ayer.curves;
   const curva = centroId || PORTFOLIO_CURVE;
   const points = periodo.curves.get(curva) ?? [];
   const perfil = perfilHorario(hoy.curves.get(curva) ?? []);
   const ids = centroId ? [centroId] : fleet.centros.map((c) => c.id);
   const comparables = comparablesEntre(energiaPorCentro(fleet.centros, ids, periodo.curves), energiaPorCentro(fleet.centros, ids, periodoPrevio.curves), (c) => c.kw);
-  const comparablesHoy = comparablesEntre(energiaPorCentro(fleet.centros, ids, hoy.curves), energiaPorCentro(fleet.centros, ids, hoyPrevio.curves), (c) => c.kw);
+  const comparablesPunta = comparablesEntre(energiaPorCentro(fleet.centros, ids, curvasPunta), energiaPorCentro(fleet.centros, ids, puntaPrevia.curves), (c) => c.kw);
   const idsDe = (lista: { id: string }[]) => lista.map((c) => c.id);
   const pointsPrevios = sumarCurvas(periodoPrevio.curves, idsDe(comparables.previos));
-  const perfilPrevio = perfilHorario(sumarCurvas(hoyPrevio.curves, idsDe(comparablesHoy.previos)));
-  const actual = metricasConsumo(points, perfil, RANGOS[rango].horasPorPunto);
-  const actualComparable = metricasConsumo(sumarCurvas(periodo.curves, idsDe(comparables.actuales)), perfilHorario(sumarCurvas(hoy.curves, idsDe(comparablesHoy.actuales))), RANGOS[rango].horasPorPunto);
-  const previo = metricasConsumo(pointsPrevios, perfilPrevio, RANGOS[rango].horasPorPunto);
+  const perfilPrevio = perfilHorario(hoyPrevio.curves.get(curva) ?? []);
+  const perfilPuntaPrevio = perfilHorario(sumarCurvas(puntaPrevia.curves, idsDe(comparablesPunta.previos)));
+  const actual = metricasConsumo(points, perfilHorario(curvasPunta.get(curva) ?? []), RANGOS[rango].horasPorPunto);
+  const actualComparable = metricasConsumo(sumarCurvas(periodo.curves, idsDe(comparables.actuales)), perfilHorario(sumarCurvas(curvasPunta, idsDe(comparablesPunta.actuales))), RANGOS[rango].horasPorPunto);
+  const previo = metricasConsumo(pointsPrevios, perfilPuntaPrevio, RANGOS[rango].horasPorPunto);
+  const isPuntaCargando = puntaPrevia.phase === 'loading' || (!referenciaPunta.isHoy && ayer.phase === 'loading');
   const isPrevioCargando = periodoPrevio.phase === 'loading' || hoyPrevio.phase === 'loading';
   const hayPrevio = pointsPrevios.length > 0;
   const hayPerfilPrevio = perfilPrevio.some((kw) => kw !== null);
+  const hayPuntaPrevia = perfilPuntaPrevio.some((kw) => kw !== null);
+  const formatoDia = (fecha: Date) => fecha.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: comparacion === 'anio' ? 'numeric' : undefined }).replace('.', '');
+  const diaPunta = referenciaPunta.isHoy ? 'hoy' : `ayer (${formatoDia(referenciaPunta.dia)})`;
   const vs = etiquetaComparacion(comparacion, periodoPrevio.rango.hasta);
   const tramo = etiquetaTramo(periodoPrevio.rango);
   const variacion = (valor: number, anterior: number) => (isPrevioCargando ? undefined : hayPrevio ? variacionPct(valor, anterior) : null);
-  const diaPrevio = hoyPrevio.rango.desde.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: comparacion === 'anio' ? 'numeric' : undefined }).replace('.', '');
+  const diaPrevio = formatoDia(hoyPrevio.rango.desde);
 
   const exportar = () => {
     const filas = [['Fecha', 'kW promedio'], ...points.map((p) => [p.timestamp, formatNumber(p.kw, 1)])];
@@ -133,11 +150,11 @@ export function ConsumoPage() {
                 sub={<Variacion valor={variacion(actualComparable.energiaMwh, previo.energiaMwh)} vs={vs} tramo={tramo} isMejorSiBaja />} />
               <KpiTile label="Demanda máxima agregada" value={formatNumber(actual.peak, 1)} unit="kW"
                 sub={<Variacion valor={variacion(actualComparable.peak, previo.peak)} vs={vs} tramo={tramo} isMejorSiBaja />} />
-              <KpiTile label="Consumo en horario punta" value={formatNumber(actual.puntaPct, 1)} unit="%"
-                sub={<Variacion valor={isPrevioCargando ? undefined : hayPerfilPrevio ? actualComparable.puntaPct - previo.puntaPct : null} unidad="pts" vs={diaPrevio} isMejorSiBaja />} />
+              <KpiTile label={`Consumo en horario punta · ${referenciaPunta.isHoy ? 'hoy' : 'ayer'}`} value={isPuntaCargando ? '—' : formatNumber(actual.puntaPct, 1)} unit="%"
+                sub={<Variacion valor={isPuntaCargando ? undefined : hayPuntaPrevia ? actualComparable.puntaPct - previo.puntaPct : null} unidad="pts" vs={formatoDia(diaPuntaPrevio)} isMejorSiBaja />} />
               <KpiTile label="Factor de carga" value={formatNumber(actual.factorCarga, 2)} sub="Promedio / máximo" />
             </div>
-            <p className="text-[11px] text-muted">* {RANGOS[rango].label} hasta ahora contra el mismo tramo {DESFASE[comparacion]} antes ({tramo}). Horario punta: hoy contra {diaPrevio}. Consumo estimado desde la demanda promedio.{!isPrevioCargando && comparables.excluidos.length > 0 && ` Variación sin ${comparables.excluidos.map((c) => c.name).join(', ')}: sin datos en ${vs}.`}</p>
+            <p className="text-[11px] text-muted">* {RANGOS[rango].label} hasta ahora contra el mismo tramo {DESFASE[comparacion]} antes ({tramo}). Horario punta: {diaPunta} contra {formatoDia(diaPuntaPrevio)}{referenciaPunta.isHoy ? '' : `, porque la franja ${PUNTA.desde}–${PUNTA.hasta} h de hoy aún no termina`}. Consumo estimado desde la demanda promedio.{!isPrevioCargando && comparables.excluidos.length > 0 && ` Variación sin ${comparables.excluidos.map((c) => c.name).join(', ')}: sin datos en ${vs}.`}</p>
           </div>
         </QueryStateView>
 

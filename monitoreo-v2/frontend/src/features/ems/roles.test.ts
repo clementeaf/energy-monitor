@@ -39,4 +39,10 @@ describe('EMS roles', () => {
       expect(EMS_ROLE_BY_SLUG[EMS_ROLES[role].viewAsSlug]).toBe(role);
     }
   });
+
+  it('lets a visitor without an EMS role see the admin sections but edit none', () => {
+    expect(canViewSection(null, 'facturacion')).toBe(true);
+    expect(canEditSection(null, 'facturacion')).toBe(false);
+    expect(canEditSection(null, 'configuracion')).toBe(false);
+  });
 });

@@ -1003,7 +1003,7 @@ export class ReadingsService implements OnModuleInit {
              MIN(r.power_kw::numeric) AS min_power_kw,
              AVG(r.power_factor::numeric) AS avg_power_factor,
              AVG(r.voltage_l1::numeric) AS avg_voltage_l1,
-             (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric)) AS energy_delta_kwh,
+             (MAX(NULLIF(r.energy_kwh_total::numeric, 0)) - MIN(NULLIF(r.energy_kwh_total::numeric, 0))) AS energy_delta_kwh,
              COUNT(*)::bigint AS reading_count
            FROM readings r
            WHERE r.timestamp >= $2 AND r.timestamp <= $3
@@ -1034,7 +1034,7 @@ export class ReadingsService implements OnModuleInit {
            MIN(r.power_kw::numeric) AS min_power_kw,
            AVG(r.power_factor::numeric) AS avg_power_factor,
            AVG(r.voltage_l1::numeric) AS avg_voltage_l1,
-           (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric)) AS energy_delta_kwh,
+           (MAX(NULLIF(r.energy_kwh_total::numeric, 0)) - MIN(NULLIF(r.energy_kwh_total::numeric, 0))) AS energy_delta_kwh,
            COUNT(*)::bigint AS reading_count
          FROM readings r
          INNER JOIN meters m ON m.id = r.meter_id
@@ -1110,7 +1110,7 @@ export class ReadingsService implements OnModuleInit {
              MIN(r.power_kw::numeric)::text AS min_power_kw,
              AVG(r.power_factor::numeric)::text AS avg_power_factor,
              AVG(r.voltage_l1::numeric)::text AS avg_voltage_l1,
-             (MAX(r.energy_kwh_total::numeric) - MIN(r.energy_kwh_total::numeric))::text AS energy_delta_kwh,
+             (MAX(NULLIF(r.energy_kwh_total::numeric, 0)) - MIN(NULLIF(r.energy_kwh_total::numeric, 0)))::text AS energy_delta_kwh,
              COUNT(*)::text AS reading_count
            FROM readings r
            WHERE r.meter_id = m.id AND r.timestamp >= $2 AND r.timestamp <= $3

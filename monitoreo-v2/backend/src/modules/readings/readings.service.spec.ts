@@ -619,6 +619,20 @@ describe('ReadingsService', () => {
       expect(hasTimeout).toBe(true);
     });
 
+    it('ignores zero energy counters so a spurious 0 does not inflate the delta', async () => {
+      ds.query.mockResolvedValue([]);
+
+      await service.findAggregated(TENANT_ID, [], {
+        from: '2026-01-01T00:00:00Z',
+        to: '2026-01-03T00:00:00Z',
+        interval: '15min',
+      });
+
+      const sql = ds.query.mock.calls.map((c: unknown[]) => c[0] as string).find((s) => s.includes('energy_delta_kwh'));
+      expect(sql).toContain('MIN(NULLIF(r.energy_kwh_total::numeric, 0))');
+      expect(sql).not.toContain('MIN(r.energy_kwh_total::numeric)');
+    });
+
     it('resets statement_timeout after raw bucket query', async () => {
       ds.query.mockResolvedValue([]);
 

@@ -84,7 +84,7 @@ export function canViewSection(role: EmsRoleId | null, section: EmsSection): boo
 }
 
 export function canEditSection(role: EmsRoleId | null, section: EmsSection): boolean {
-  return EMS_ROLES[role ?? 'admin'].access[section] === 'editar';
+  return role !== null && EMS_ROLES[role].access[section] === 'editar';
 }
 
 export function firstSectionPath(role: EmsRoleId): string {

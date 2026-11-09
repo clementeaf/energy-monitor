@@ -8,3 +8,7 @@ WHERE b.id = m.building_id
     ('quilicura', 'VE-QUILICURA-31')
   )
   AND NOT COALESCE((m.metadata->>'is_main_meter')::boolean, false);
+
+INSERT INTO schema_migrations (version, description)
+VALUES ('rds-30-varelectric-main-meters', 'Mark main meters (transformers) so consumption is not double counted')
+ON CONFLICT (version) DO NOTHING;

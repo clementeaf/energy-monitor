@@ -57,10 +57,3 @@ export interface Regla {
   notifica: string;
   activa: boolean;
 }
-
-export const REGLAS_INICIALES: Regla[] = [
-  { id: 'r1', nombre: 'Pico sobre 1.150 kW', tipo: 'Pico de demanda', aplicaA: 'Quilicura', notifica: 'Correo + app', activa: true },
-  { id: 'r2', nombre: 'Desconexión > 30 min', tipo: 'Desconexión', aplicaA: 'Todos los centros', notifica: 'App', activa: true },
-  { id: 'r3', nombre: 'Margen bajo 10%', tipo: 'Margen contractual', aplicaA: 'Todos los centros', notifica: 'Correo + app', activa: true },
-  { id: 'r4', nombre: 'Consumo nocturno anómalo', tipo: 'Umbral consumo', aplicaA: 'Alto Peñalolén', notifica: 'App', activa: false },
-];

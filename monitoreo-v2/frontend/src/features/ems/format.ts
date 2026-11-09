@@ -35,3 +35,7 @@ export function inicialesDe(nombre: string): string {
   const [primero = '', segundo = ''] = nombre.split(/[^\p{L}]+/u).filter(Boolean);
   return `${primero.charAt(0)}${segundo.charAt(0)}`.toUpperCase() || '?';
 }
+
+export function formatSenal(senalPct: number | null): string {
+  return senalPct === null ? '—' : `${senalPct} %`;
+}

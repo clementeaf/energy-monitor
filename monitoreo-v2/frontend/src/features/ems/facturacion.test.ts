@@ -13,7 +13,7 @@ function buildCentro(overrides: Partial<Centro> = {}): Centro {
 }
 
 function buildRemarcador(id: string, centroId = 'b-1'): Remarcador {
-  return { id, code: `VE-QUILICURA-${id}`, name: `Remarcador ${id}`, centroId, centroName: 'Quilicura', protocolo: null, fuente: null, idRemarcador: id, ultimaLectura: null, potenciaKw: null, estado: 'conectado' };
+  return { id, code: `VE-QUILICURA-${id}`, name: `Remarcador ${id}`, centroId, centroName: 'Quilicura', protocolo: null, fuente: null, idRemarcador: id, ultimaLectura: null, potenciaKw: null, estado: 'conectado', modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null };
 }
 
 const JULIO = new Date(2026, 6, 1);

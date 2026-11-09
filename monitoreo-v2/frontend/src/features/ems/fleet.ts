@@ -34,6 +34,10 @@ export interface Remarcador {
   ultimaLectura: string | null;
   potenciaKw: number | null;
   estado: RemarcadorEstado;
+  modelo: string | null;
+  serie: string | null;
+  registrado: string;
+  senalPct: number | null;
 }
 
 export interface RemarcadorOverride {
@@ -83,6 +87,14 @@ export function classifyCentro(estados: RemarcadorEstado[]): CentroEstado {
   return CENTRO_ESTADO_BY_WORST_REMARCADOR[worst];
 }
 
+const LECTURAS_ESPERADAS_24H = 96;
+
+export function senalPorRemarcador(rows: AggregatedReading[]): Map<string, number> {
+  const lecturas = new Map<string, number>();
+  for (const row of rows) lecturas.set(row.meter_id, (lecturas.get(row.meter_id) ?? 0) + (toNumber(row.reading_count) ?? 0));
+  return new Map([...lecturas].map(([id, total]) => [id, Math.min(100, Math.round((total / LECTURAS_ESPERADAS_24H) * 100))]));
+}
+
 function metadataText(meter: Meter, key: string): string | null {
   const value = meter.metadata?.[key];
   return value === undefined || value === null ? null : String(value);
@@ -112,6 +124,10 @@ export function buildRemarcadores(
       ultimaLectura: lastReadingAt,
       potenciaKw: toNumber(latest?.power_kw),
       estado: classifyConnection(lastReadingAt, now),
+      modelo: meter.model,
+      serie: meter.serialNumber,
+      registrado: meter.createdAt,
+      senalPct: null,
     };
   });
 }

@@ -5,6 +5,7 @@ import type { AggregatedReading, LatestReading } from '../../types/reading';
 import {
   buildCentros,
   buildRemarcadores,
+  senalPorRemarcador,
   classifyCentro,
   classifyConnection,
   findLatestReadingAt,
@@ -88,6 +89,16 @@ describe('buildRemarcadores', () => {
       idRemarcador: '101', potenciaKw: 8.4, estado: 'conectado',
     });
     expect(sinLectura).toMatchObject({ ultimaLectura: null, potenciaKw: null, protocolo: null, estado: 'caido' });
+  });
+});
+
+describe('senalPorRemarcador', () => {
+  it('turns readings received in the last 24 h into a share of the 96 expected, capped at 100', () => {
+    const fila = (meter_id: string, reading_count: string) => ({ bucket: '2026-11-08T00:00:00Z', meter_id, avg_power_kw: null, max_power_kw: null, min_power_kw: null, avg_power_factor: null, avg_voltage_l1: null, energy_delta_kwh: null, reading_count });
+    const senales = senalPorRemarcador([fila('m-1', '40'), fila('m-1', '32'), fila('m-2', '120')]);
+    expect(senales.get('m-1')).toBe(75);
+    expect(senales.get('m-2')).toBe(100);
+    expect(senales.has('m-3')).toBe(false);
   });
 });
 

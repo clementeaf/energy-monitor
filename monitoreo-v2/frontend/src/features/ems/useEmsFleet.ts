@@ -13,6 +13,7 @@ import {
   buildCentros,
   buildRemarcadores,
   findLatestReadingAt,
+  senalPorRemarcador,
   startOfDay,
   startOfMonth,
   toLoadCurves,
@@ -22,6 +23,8 @@ import {
   type Remarcador,
 } from './fleet';
 import { desplazarMeses, filasDelPeriodo, type Rango } from './periodos';
+
+const DIA_MS = 24 * 60 * 60 * 1000;
 
 export type LoadRange = 'hoy' | '7dias' | '30dias';
 export type EmsPhase = 'loading' | 'error' | 'ready';
@@ -64,6 +67,11 @@ export function useEmsFleet(): EmsFleet {
     return { from: periodo.toISOString(), to: nextMonthStart.toISOString() };
   }, [periodo]);
   const monthlyQuery = useAggregatedReadingsQuery({ ...monthRange, interval: 'monthly' }, latestQuery.isSuccess);
+  const ultimas24h = useMemo(() => {
+    const ahora = new Date();
+    return { from: new Date(ahora.getTime() - DIA_MS).toISOString(), to: ahora.toISOString(), interval: 'daily' as const };
+  }, []);
+  const senalQuery = useAggregatedReadingsQuery(ultimas24h);
 
   const queries = [buildingsQuery, metersQuery, latestQuery, monthlyQuery];
   const failed = queries.find((query) => query.isError);
@@ -73,10 +81,12 @@ export function useEmsFleet(): EmsFleet {
 
   const { centros, remarcadores } = useMemo(() => {
     const buildings = buildingsQuery.data ?? [];
-    const realFleet = buildRemarcadores(metersQuery.data ?? [], latestQuery.data ?? [], buildings, new Date());
+    const senales = senalPorRemarcador(senalQuery.data ?? []);
+    const realFleet = buildRemarcadores(metersQuery.data ?? [], latestQuery.data ?? [], buildings, new Date())
+      .map((remarcador) => ({ ...remarcador, senalPct: senalQuery.data ? senales.get(remarcador.id) ?? 0 : null }));
     const fleet = applyRemarcadorOverrides(realFleet, remarcadorOverrides);
     return { remarcadores: fleet, centros: [...buildCentros(buildings, fleet, monthlyQuery.data ?? []), ...centrosSimulados.map(toCentroSinRemarcadores)] };
-  }, [buildingsQuery.data, metersQuery.data, latestQuery.data, monthlyQuery.data, remarcadorOverrides, centrosSimulados]);
+  }, [buildingsQuery.data, metersQuery.data, latestQuery.data, monthlyQuery.data, senalQuery.data, remarcadorOverrides, centrosSimulados]);
 
   const consumoPorRemarcador = useMemo(
     () => Object.fromEntries((monthlyQuery.data ?? []).map((row) => [row.meter_id, toNumber(row.energy_delta_kwh) ?? 0])),

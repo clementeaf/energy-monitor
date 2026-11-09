@@ -4,16 +4,17 @@ import { ACCIONES_POR_ESTADO, buildNotasCobro, detalleCsv, listarDocumentos, not
 import { calcularMargen, TARIFAS_POR_CENTRO } from './tariffs';
 
 const TARIFA = TARIFAS_POR_CENTRO['VE-QUILICURA'];
+const BALANCE = { compraKwh: 2000, ventaKwh: 2000, perdidaKwh: null };
 
 function buildCentro(overrides: Partial<Centro> = {}): Centro {
   return {
-    id: 'b-1', name: 'Quilicura', code: 'VE-QUILICURA', address: null, superficie: null, consumoMesKwh: 2000,
-    intensidadKwhM2: null, remarcadores: 2, estado: 'operativo', tarifa: TARIFA, margen: calcularMargen(2000, TARIFA), ...overrides,
+    id: 'b-1', name: 'Quilicura', code: 'VE-QUILICURA', address: null, superficie: null, consumoMesKwh: 2000, balance: BALANCE,
+    intensidadKwhM2: null, remarcadores: 2, estado: 'operativo', tarifa: TARIFA, margen: calcularMargen(BALANCE, TARIFA), ...overrides,
   };
 }
 
 function buildRemarcador(id: string, centroId = 'b-1'): Remarcador {
-  return { id, code: `VE-QUILICURA-${id}`, name: `Remarcador ${id}`, centroId, centroName: 'Quilicura', protocolo: null, fuente: null, idRemarcador: id, ultimaLectura: null, potenciaKw: null, estado: 'conectado', modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null };
+  return { id, code: `VE-QUILICURA-${id}`, name: `Remarcador ${id}`, centroId, centroName: 'Quilicura', protocolo: null, fuente: null, idRemarcador: id, ultimaLectura: null, potenciaKw: null, estado: 'conectado', modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null, isPrincipal: false };
 }
 
 const JULIO = new Date(2026, 6, 1);

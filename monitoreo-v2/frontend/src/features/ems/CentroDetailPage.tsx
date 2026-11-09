@@ -13,6 +13,7 @@ import { PageAction } from './PageAction';
 import { canViewSection, EMS_SECTION_PATHS } from './roles';
 import { SEGMENT_TRACK_CLASS, segmentClass } from './segmented';
 import { StatusBadge } from './StatusBadge';
+import { perdidaPct } from './tariffs';
 import { useNotasCobro } from './useFacturacion';
 import { useEmsFleet, useLoadCurves } from './useEmsFleet';
 import { useEmsRole } from './useEmsRole';
@@ -67,6 +68,7 @@ function CentroDetalle({ centro, meters, consumoPorRemarcador, periodo }: Readon
   const demandaMaxima = phase === 'ready' ? Math.max(0, ...points.map((p) => p.kw)) : null;
   const sinLecturas = meters.filter((m) => m.estado !== 'conectado');
   const isBajoMinimo = centro.margen !== null && centro.margen.margenPct < margenMinimo;
+  const perdida = perdidaPct(centro.balance);
   const puedeVerMargenes = canViewSection(role, 'margenes');
   const puedeVerFacturacion = canViewSection(role, 'facturacion');
 
@@ -94,7 +96,8 @@ function CentroDetalle({ centro, meters, consumoPorRemarcador, periodo }: Readon
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiTile variant="inverse" label={`Consumo de ${formatPeriodo(periodo)}`} value={formatNumber(centro.consumoMesKwh / 1000, 1)} unit="MWh" />
+        <KpiTile variant="inverse" label={`Consumo de ${formatPeriodo(periodo)}`} value={formatNumber(centro.consumoMesKwh / 1000, 1)} unit="MWh"
+          sub={perdida === null ? undefined : `Locales ${formatNumber(centro.balance.ventaKwh / 1000, 1)} MWh · pérdida ${formatNumber(perdida, 1)} %`} />
         <KpiTile label="Demanda promedio máx. diaria" value={formatNumber(demandaMaxima, 1)} unit="kW" sub="Últimos 30 días" />
         <KpiTile label="Margen del centro" value={centro.margen ? formatNumber(centro.margen.margenPct, 1) : '—'} unit={centro.margen ? '%' : undefined}
           sub={centro.margen ? `Mínimo ${formatNumber(margenMinimo)} %` : 'Sin tarifa'} tone={isBajoMinimo ? 'negative' : 'neutral'} />

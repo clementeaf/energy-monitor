@@ -1,7 +1,7 @@
 import type { Building } from '../../types/building';
 import type { Meter } from '../../types/meter';
 import type { AggregatedReading, LatestReading } from '../../types/reading';
-import { calcularMargen, TARIFAS_POR_CENTRO, type MargenCentro, type Tarifa } from './tariffs';
+import { balanceEnergia, calcularMargen, TARIFAS_POR_CENTRO, type BalanceEnergia, type MargenCentro, type Tarifa } from './tariffs';
 
 export type RemarcadorEstado = 'conectado' | 'sin_senal' | 'caido' | 'mantencion';
 export type CentroEstado = 'operativo' | 'advertencia' | 'alarma';
@@ -38,6 +38,7 @@ export interface Remarcador {
   serie: string | null;
   registrado: string;
   senalPct: number | null;
+  isPrincipal: boolean;
 }
 
 export interface RemarcadorOverride {
@@ -52,6 +53,7 @@ export interface Centro {
   address: string | null;
   superficie: number | null;
   consumoMesKwh: number;
+  balance: BalanceEnergia;
   intensidadKwhM2: number | null;
   remarcadores: number;
   estado: CentroEstado;
@@ -95,6 +97,15 @@ export function senalPorRemarcador(rows: AggregatedReading[]): Map<string, numbe
   return new Map([...lecturas].map(([id, total]) => [id, Math.min(100, Math.round((total / LECTURAS_ESPERADAS_24H) * 100))]));
 }
 
+export function isMedidorPrincipal(meter: Meter): boolean {
+  return meter.metadata?.is_main_meter === true;
+}
+
+export function medidoresDeConsumo<T extends { centroId: string; isPrincipal: boolean }>(medidores: T[]): T[] {
+  const centrosConPrincipal = new Set(medidores.filter((m) => m.isPrincipal).map((m) => m.centroId));
+  return medidores.filter((m) => m.isPrincipal || !centrosConPrincipal.has(m.centroId));
+}
+
 function metadataText(meter: Meter, key: string): string | null {
   const value = meter.metadata?.[key];
   return value === undefined || value === null ? null : String(value);
@@ -128,6 +139,7 @@ export function buildRemarcadores(
       serie: meter.serialNumber,
       registrado: meter.createdAt,
       senalPct: null,
+      isPrincipal: isMedidorPrincipal(meter),
     };
   });
 }
@@ -137,18 +149,14 @@ export function buildCentros(
   remarcadores: Remarcador[],
   monthlyByMeter: AggregatedReading[],
 ): Centro[] {
-  const buildingByMeter = new Map(remarcadores.map((remarcador) => [remarcador.id, remarcador.centroId]));
-  const consumoByBuilding = new Map<string, number>();
-  for (const row of monthlyByMeter) {
-    const buildingId = buildingByMeter.get(row.meter_id);
-    if (!buildingId) continue;
-    consumoByBuilding.set(buildingId, (consumoByBuilding.get(buildingId) ?? 0) + (toNumber(row.energy_delta_kwh) ?? 0));
-  }
+  const kwhByMeter = new Map<string, number>();
+  for (const row of monthlyByMeter) kwhByMeter.set(row.meter_id, (kwhByMeter.get(row.meter_id) ?? 0) + (toNumber(row.energy_delta_kwh) ?? 0));
 
   return buildings.map((building) => {
     const own = remarcadores.filter((remarcador) => remarcador.centroId === building.id);
     const superficie = toNumber(building.areaSqm);
-    const consumoMesKwh = consumoByBuilding.get(building.id) ?? 0;
+    const balance = balanceEnergia(own.map((remarcador) => ({ isPrincipal: remarcador.isPrincipal, kwh: kwhByMeter.get(remarcador.id) ?? 0 })));
+    const consumoMesKwh = balance.compraKwh;
     const tarifa = TARIFAS_POR_CENTRO[building.code] ?? null;
     return {
       id: building.id,
@@ -157,11 +165,12 @@ export function buildCentros(
       address: building.address,
       superficie: superficie && superficie > 0 ? superficie : null,
       consumoMesKwh,
+      balance,
       intensidadKwhM2: superficie && superficie > 0 ? consumoMesKwh / superficie : null,
       remarcadores: own.length,
       estado: classifyCentro(own.map((remarcador) => remarcador.estado)),
       tarifa,
-      margen: tarifa && calcularMargen(consumoMesKwh, tarifa),
+      margen: tarifa && calcularMargen(balance, tarifa),
     };
   });
 }

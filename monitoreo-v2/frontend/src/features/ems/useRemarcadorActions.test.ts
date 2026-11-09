@@ -8,7 +8,7 @@ const NOW = new Date('2026-10-09T15:00:00Z');
 function buildRemarcador(id: string, estado: RemarcadorEstado): Remarcador {
   return {
     id, code: id, name: id, centroId: 'b-1', centroName: 'Alto Peñalolén',
-    protocolo: null, fuente: null, idRemarcador: null, ultimaLectura: '2026-07-28T15:00:00Z', potenciaKw: null, estado, modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null,
+    protocolo: null, fuente: null, idRemarcador: null, ultimaLectura: '2026-07-28T15:00:00Z', potenciaKw: null, estado, modelo: null, serie: null, registrado: '2026-07-01T00:00:00Z', senalPct: null, isPrincipal: false,
   };
 }
 

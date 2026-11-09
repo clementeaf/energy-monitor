@@ -4,6 +4,7 @@ import type { Meter } from '../../types/meter';
 import type { AggregatedReading, LatestReading } from '../../types/reading';
 import {
   buildCentros,
+  medidoresDeConsumo,
   buildRemarcadores,
   senalPorRemarcador,
   classifyCentro,
@@ -168,12 +169,37 @@ describe('toLoadCurves', () => {
 });
 
 describe('requiereAtencion', () => {
-  const base = { id: 'b', name: 'B', code: 'B', address: null, superficie: null, consumoMesKwh: 0, intensidadKwhM2: null, remarcadores: 1, tarifa: null };
+  const base = { id: 'b', name: 'B', code: 'B', address: null, superficie: null, consumoMesKwh: 0, balance: { compraKwh: 0, ventaKwh: 0, perdidaKwh: null }, intensidadKwhM2: null, remarcadores: 1, tarifa: null };
   const margen = (margenPct: number) => ({ costoCompraClp: 0, precioVentaClp: 0, margenClp: 0, margenPct });
 
   it('flags centros with unhealthy meters or a margin under the minimum', () => {
     expect(requiereAtencion({ ...base, estado: 'operativo', margen: margen(15) }, 10)).toBe(false);
     expect(requiereAtencion({ ...base, estado: 'advertencia', margen: null }, 10)).toBe(true);
     expect(requiereAtencion({ ...base, estado: 'operativo', margen: margen(7.4) }, 10)).toBe(true);
+  });
+});
+
+describe('main meters', () => {
+  it('counts a centro once: main meters for consumption and purchase, submeters for sales', () => {
+    const buildings = [buildBuilding({}), buildBuilding({ id: 'b-2', code: 'SIN-TARIFA' })];
+    const remarcadores = buildRemarcadores(
+      [buildMeter({ metadata: { is_main_meter: true } }), buildMeter({ id: 'm-2' }), buildMeter({ id: 'm-4' }), buildMeter({ id: 'm-3', buildingId: 'b-2' })],
+      [],
+      buildings,
+      NOW,
+    );
+
+    const [alto, sinPrincipal] = buildCentros(buildings, remarcadores, [
+      buildAggregate('m-1', { energy_delta_kwh: '1000' }),
+      buildAggregate('m-2', { energy_delta_kwh: '600' }),
+      buildAggregate('m-4', { energy_delta_kwh: '365' }),
+      buildAggregate('m-3', { energy_delta_kwh: '500' }),
+    ]);
+
+    expect(alto.consumoMesKwh).toBe(1000);
+    expect(alto.balance).toEqual({ compraKwh: 1000, ventaKwh: 965, perdidaKwh: 35 });
+    expect(alto.margen).toMatchObject({ costoCompraClp: 118_000, precioVentaClp: 965 * 146 });
+    expect(sinPrincipal.balance).toEqual({ compraKwh: 500, ventaKwh: 500, perdidaKwh: null });
+    expect(medidoresDeConsumo(remarcadores).map((r) => r.id)).toEqual(['m-1', 'm-3']);
   });
 });

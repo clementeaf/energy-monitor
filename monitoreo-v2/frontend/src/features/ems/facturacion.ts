@@ -123,7 +123,7 @@ export function buildNotasCobro(
 
   return centros.flatMap((centro) => (centro.tarifa ? [{ centro, tarifa: centro.tarifa }] : [])).map(({ centro, tarifa }, index) => {
     const id = `${centro.id}-${periodo.getFullYear()}${mes}`;
-    const subtotal = Math.round(centro.consumoMesKwh * tarifa.ventaClpKwh);
+    const subtotal = Math.round(centro.balance.ventaKwh * tarifa.ventaClpKwh);
     const neto = subtotal;
     const iva = Math.round(neto * IVA);
     const propio = seguimiento[id];
@@ -136,12 +136,12 @@ export function buildNotasCobro(
       periodo: formatPeriodo(periodo),
       emision: toIsoDate(emision),
       vencimiento,
-      lineas: [{ concepto: 'Energía consumida', cantidad: centro.consumoMesKwh, unidad: 'kWh', precioUnitario: tarifa.ventaClpKwh, subtotal }],
+      lineas: [{ concepto: 'Energía consumida', cantidad: centro.balance.ventaKwh, unidad: 'kWh', precioUnitario: tarifa.ventaClpKwh, subtotal }],
       neto,
       iva,
       total: neto + iva,
       remarcadores: remarcadores
-        .filter((remarcador) => remarcador.centroId === centro.id)
+        .filter((remarcador) => remarcador.centroId === centro.id && !remarcador.isPrincipal)
         .map((remarcador) => ({ id: remarcador.id, code: remarcador.code, name: remarcador.name, kwh: consumoPorRemarcador[remarcador.id] ?? 0 }))
         .sort((a, b) => b.kwh - a.kwh),
       estado: resolverEstado(propio?.estado ?? 'borrador', vencimiento, hoy),

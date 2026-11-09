@@ -13,6 +13,8 @@ import {
   buildCentros,
   buildRemarcadores,
   findLatestReadingAt,
+  isMedidorPrincipal,
+  medidoresDeConsumo,
   senalPorRemarcador,
   startOfDay,
   startOfMonth,
@@ -49,7 +51,7 @@ export interface EmsFleet {
 function toCentroSinRemarcadores(centro: CentroSimulado): Centro {
   return {
     id: centro.id, name: centro.name, code: 'Pendiente de instalación', address: centro.address,
-    superficie: null, consumoMesKwh: 0, intensidadKwhM2: null, remarcadores: 0, estado: 'operativo',
+    superficie: null, consumoMesKwh: 0, balance: { compraKwh: 0, ventaKwh: 0, perdidaKwh: null }, intensidadKwhM2: null, remarcadores: 0, estado: 'operativo',
     tarifa: null, margen: null,
   };
 }
@@ -121,7 +123,8 @@ export function useLoadCurves(range: LoadRange, mesesAtras = 0): { phase: EmsPha
   const readingsQuery = useAggregatedReadingsQuery(params);
 
   const curves = useMemo(() => {
-    const buildingByMeter = new Map((metersQuery.data ?? []).map((meter) => [meter.id, meter.buildingId]));
+    const medidores = (metersQuery.data ?? []).map((meter) => ({ id: meter.id, centroId: meter.buildingId, isPrincipal: isMedidorPrincipal(meter) }));
+    const buildingByMeter = new Map(medidoresDeConsumo(medidores).map((medidor) => [medidor.id, medidor.centroId]));
     return toLoadCurves(readingsQuery.data ?? [], buildingByMeter);
   }, [metersQuery.data, readingsQuery.data]);
 

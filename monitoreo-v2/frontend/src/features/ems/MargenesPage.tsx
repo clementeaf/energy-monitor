@@ -69,6 +69,10 @@ export function MargenesPage() {
   const isFleetLista = fleet.phase === 'ready';
   const delPeriodo = useCentrosEnRango(isFleetLista && !isMesVigente ? elegido : null, fleet, tarifados);
   const delAnterior = useCentrosEnRango(isFleetLista ? tramo : null, fleet, tarifados);
+  const isVistaLista = isFleetLista && delAnterior.phase === 'ready';
+  const anioVigente = periodoQueContiene('anio', fleet.periodo);
+  useCentrosEnRango(isVistaLista ? anioVigente : null, fleet, tarifados);
+  useCentrosEnRango(isVistaLista ? tramoEquivalente(periodoAnterior(anioVigente), anioVigente, ahora) : null, fleet, tarifados);
   const centros = centrosConMargen(isMesVigente ? fleet.centros : delPeriodo.centros);
   const previos = centrosConMargen(delAnterior.centros);
   const fasePrevia = delAnterior.phase;

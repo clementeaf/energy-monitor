@@ -1,5 +1,3 @@
-import type { AggregatedReading } from '../../types/reading';
-
 export type Granularidad = 'mes' | 'trimestre' | 'anio';
 
 export interface Rango {
@@ -60,9 +58,15 @@ export function etiquetaComparacion(periodo: Periodo): string {
   return periodo.granularidad === 'mes' ? nombreMes(periodo.desde) : etiquetaPeriodo(periodo);
 }
 
-export function etiquetaTramo(tramo: Rango): string {
-  const formato = (fecha: Date) => fecha.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '');
-  return `${formato(tramo.desde)} – ${formato(new Date(tramo.hasta.getTime() - 1))}`;
+export function etiquetaTramo(tramo: Rango, ahora = new Date()): string {
+  const fin = new Date(tramo.hasta.getTime() - 1);
+  const formato = (fecha: Date, isConAnio: boolean) => {
+    const dia = fecha.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }).replace('.', '');
+    return isConAnio ? `${dia} ${fecha.getFullYear()}` : dia;
+  };
+  const isOtroAnio = fin.getFullYear() !== ahora.getFullYear();
+  const isCruzaAnio = tramo.desde.getFullYear() !== fin.getFullYear();
+  return `${formato(tramo.desde, isCruzaAnio)} – ${formato(fin, isOtroAnio || isCruzaAnio)}`;
 }
 
 export function variacionPct(actual: number, previo: number | null): number | null {
@@ -87,24 +91,8 @@ export function comparablesEntre<T extends { id: string }>(actuales: T[], previo
   };
 }
 
-export function mesDelBucket(bucket: string): Date {
-  const fecha = new Date(bucket);
-  return new Date(fecha.getUTCFullYear(), fecha.getUTCMonth(), 1);
-}
-
-export function filasDelPeriodo(filas: AggregatedReading[], periodo: Rango): AggregatedReading[] {
-  return filas.filter((fila) => {
-    const mes = mesDelBucket(fila.bucket);
-    return mes >= periodo.desde && mes < periodo.hasta;
-  });
-}
-
-export function periodosDisponibles(filas: AggregatedReading[], granularidad: Granularidad, inicioHistorial: Date): Periodo[] {
-  const conEnergia = filas.filter((fila) => Number(fila.energy_delta_kwh ?? 0) > 0);
-  const porInicio = new Map<number, Periodo>();
-  for (const fila of conEnergia) {
-    const periodo = periodoQueContiene(granularidad, mesDelBucket(fila.bucket));
-    if (periodoAnterior(periodo).desde >= inicioHistorial) porInicio.set(periodo.desde.getTime(), periodo);
-  }
-  return [...porInicio.values()].sort((a, b) => b.desde.getTime() - a.desde.getTime());
+export function periodosHasta(vigente: Periodo, desde: Date): Periodo[] {
+  const periodos: Periodo[] = [];
+  for (let periodo = vigente; periodo.desde >= desde; periodo = periodoAnterior(periodo)) periodos.push(periodo);
+  return periodos;
 }

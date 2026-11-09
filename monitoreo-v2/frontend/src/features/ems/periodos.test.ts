@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AggregatedReading } from '../../types/reading';
-import { comparablesEntre, desplazarMeses, etiquetaPeriodo, periodoAnterior, periodoQueContiene, periodosDisponibles, tramoEquivalente, variacionPct } from './periodos';
-
-const fila = (bucket: string, kwh: string): AggregatedReading => ({
-  bucket, meter_id: 'm1', avg_power_kw: null, max_power_kw: null, min_power_kw: null, avg_power_factor: null, avg_voltage_l1: null, energy_delta_kwh: kwh, reading_count: '1',
-});
+import { comparablesEntre, desplazarMeses, etiquetaTramo, etiquetaPeriodo, periodoAnterior, periodoQueContiene, periodosHasta, tramoEquivalente, variacionPct } from './periodos';
 
 describe('periodos', () => {
   it('compares an in-progress month against the same elapsed stretch of the previous one', () => {
@@ -32,10 +27,10 @@ describe('periodos', () => {
     expect(variacionPct(110, null)).toBeNull();
   });
 
-  it('offers only periods with energy whose previous period is inside the loaded history', () => {
-    const filas = [fila('2025-01-01T00:00:00.000Z', '5'), fila('2025-02-01T00:00:00.000Z', '0'), fila('2025-03-01T00:00:00.000Z', '7')];
-    const meses = periodosDisponibles(filas, 'mes', new Date(2025, 0, 1)).map(etiquetaPeriodo);
-    expect(meses).toEqual(['Marzo 2025']);
+  it('lists periods from the current one back to the start of the history', () => {
+    const vigente = periodoQueContiene('trimestre', new Date(2026, 10, 9));
+    expect(periodosHasta(vigente, new Date(2025, 0, 1)).map(etiquetaPeriodo)).toEqual(['T4 2026', 'T3 2026', 'T2 2026', 'T1 2026', 'T4 2025', 'T3 2025', 'T2 2025', 'T1 2025']);
+    expect(periodosHasta(periodoQueContiene('anio', new Date(2026, 10, 9)), new Date(2025, 0, 1)).map(etiquetaPeriodo)).toEqual(['2026', '2025']);
   });
 
   it('compares only centros with data in both periods and reports the newcomers', () => {
@@ -45,5 +40,12 @@ describe('periodos', () => {
     expect(a.map((c) => c.id)).toEqual(['altopena']);
     expect(p.map((c) => c.id)).toEqual(['altopena']);
     expect(excluidos.map((c) => c.id)).toEqual(['dehesa']);
+  });
+
+  it('shows the year in a stretch label only when it is not the current year', () => {
+    const ahora = new Date(2026, 10, 9);
+    expect(etiquetaTramo({ desde: new Date(2026, 9, 10), hasta: new Date(2026, 10, 10) }, ahora)).toBe('10 oct – 9 nov');
+    expect(etiquetaTramo({ desde: new Date(2025, 9, 10), hasta: new Date(2025, 10, 10) }, ahora)).toBe('10 oct – 9 nov 2025');
+    expect(etiquetaTramo({ desde: new Date(2025, 11, 20), hasta: new Date(2026, 0, 10) }, ahora)).toBe('20 dic 2025 – 9 ene 2026');
   });
 });
